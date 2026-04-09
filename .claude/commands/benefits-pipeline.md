@@ -45,11 +45,14 @@ cat data/pipeline-summary.ts | head -50
 
 **Present a summary to the user:**
 1. **Approved drafts** — If any programs across any states have been marked "approved" in the review workflow, list them prominently: "{N} programs approved and ready to publish: {list}. Apply all?"
-2. **Pipeline status** — Which states have been explored, classified, drafted
-3. **Needs attention** — Any programs marked "needs-changes" with reviewer comments
-4. **Next states** — Suggest the next high-population states to explore
+2. **State overview status** — Check if any state overviews have been approved (review with `programId: "state-overview"`). List: "{State} state page: approved/pending/needs-changes"
+3. **Pipeline status** — Which states have been explored, classified, drafted
+4. **Needs attention** — Any programs or state overviews marked "needs-changes" with reviewer comments
+5. **Next states** — Suggest the next high-population states to explore
 
 If approved drafts exist, offer to apply them first before doing any new exploration. Applying means: read the draft from `data/pipeline/{STATE}/drafts.json`, write the v2 fields into the matching program in `data/waiver-library.ts`, commit, and push.
+
+If an approved state overview exists, the state page is already rendering from `pipeline-drafts.ts` — no separate apply step needed. Just confirm the v2 state page looks good at `/waiver-library/{state-id}` (compare with old page at `?v=1`).
 
 ## Pipeline Script Reference
 
@@ -152,7 +155,9 @@ curl "https://staging-olera2-web.vercel.app/api/admin/seed-sbf-programs?state=XX
 
 1. Run `./node_modules/.bin/next build` to verify no errors
 2. Check the admin dashboard: does the state show updated readiness?
-3. Check a sample program page: `/waiver-library/{state-id}/{program-id}`
+3. Check the v2 state page: `/waiver-library/{state-id}` — verify overview, start-here picks, need groups render correctly
+4. Compare with old page: `/waiver-library/{state-id}?v=1` — the `?v=1` param forces the legacy rendering
+5. Check a sample program page: `/waiver-library/{state-id}/{program-id}`
 
 ## Step 4: Commit and PR
 
@@ -257,6 +262,9 @@ Programs now have optional classification and rich content fields:
 - Perplexity for research, Claude for content generation — different tools for different strengths.
 - Always verify pipeline findings. It flags issues for review, it's not an oracle.
 - Run end-to-end without pausing. TJ prefers autonomous execution.
+- Pipeline generates both program-level drafts AND state-level overview (intro, start-here, by-need, quick facts). Both need team review before going live.
+- State overview review uses `programId: "state-overview"` in the same review API.
+- The v2 state page renders automatically from `pipeline-drafts.ts` when overview exists. Force old page with `?v=1`.
 
 ## Cost Per State
 

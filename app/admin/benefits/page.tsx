@@ -62,54 +62,24 @@ function getStateReadiness(state: StateData): StateReadiness {
   return "scaffolding";
 }
 
-function getStateHealth(state: StateData): "verified" | "partial" | "unverified" {
-  const stats = getVerificationStats(state.programs);
-  if (stats.verified === stats.total) return "verified";
-  if (stats.verified > 0) return "partial";
-  return "unverified";
-}
-
-const CATEGORY_COLORS: Record<string, string> = {
-  healthcare: "bg-blue-50 text-blue-700",
-  income: "bg-emerald-50 text-emerald-700",
-  housing: "bg-violet-50 text-violet-700",
-  food: "bg-orange-50 text-orange-700",
-  utilities: "bg-amber-50 text-amber-700",
-  caregiver: "bg-rose-50 text-rose-700",
+const PROGRAM_TYPE_STYLES: Record<string, string> = {
+  benefit: "bg-emerald-50 text-emerald-700",
+  resource: "bg-blue-50 text-blue-700",
+  navigator: "bg-violet-50 text-violet-700",
+  employment: "bg-amber-50 text-amber-700",
 };
 
-function inferCategory(program: WaiverProgram): string {
-  const text = `${program.name} ${program.description}`.toLowerCase();
-  if (text.includes("caregiver") || text.includes("respite") || text.includes("companion")) return "caregiver";
-  if (text.includes("snap") || text.includes("food") || text.includes("nutrition") || text.includes("meals")) return "food";
-  if (text.includes("housing") || text.includes("section 8") || text.includes("rent")) return "housing";
-  if (text.includes("energy") || text.includes("liheap") || text.includes("utility") || text.includes("weatherization")) return "utilities";
-  if (text.includes("ssi") || text.includes("supplemental security") || text.includes("employment") || text.includes("scsep")) return "income";
-  return "healthcare";
+function getProgramType(program: WaiverProgram): string {
+  return program.programType || "benefit";
 }
 
 // ─── Components ─────────────────────────────────────────────────────────────
 
-function VerificationDot({ program }: { program: WaiverProgram }) {
-  if (program.lastVerifiedDate) {
-    return (
-      <span className="relative flex h-2 w-2" title={`Verified ${program.lastVerifiedDate} by ${program.verifiedBy}`}>
-        <span className="h-2 w-2 rounded-full bg-emerald-400" />
-      </span>
-    );
-  }
-  return (
-    <span className="relative flex h-2 w-2" title="Not yet verified">
-      <span className="h-2 w-2 rounded-full bg-gray-300" />
-    </span>
-  );
-}
-
-function CategoryBadge({ category }: { category: string }) {
-  const colors = CATEGORY_COLORS[category] || "bg-gray-50 text-gray-600";
+function TypeBadge({ type }: { type: string }) {
+  const colors = PROGRAM_TYPE_STYLES[type] || "bg-gray-50 text-gray-600";
   return (
     <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium tracking-wide uppercase ${colors}`}>
-      {category}
+      {type}
     </span>
   );
 }
@@ -158,32 +128,53 @@ function PipelineDiffs({ comparison }: { comparison: PipelineComparison }) {
   );
 }
 
-function DraftReviewPanel({ programId, stateId }: { programId: string; stateId: string }) {
-  const [reviews, setReviews] = useState<DraftReview[]>([]);
+function DraftReviewPanel({
+  programId,
+  stateId,
+  allReviews,
+  onReviewAdded,
+}: {
+  programId: string;
+  stateId: string;
+  allReviews?: DraftReview[];
+  onReviewAdded?: () => void;
+}) {
+  // If allReviews provided (lifted fetch), filter locally. Otherwise fetch independently.
+  const [localReviews, setLocalReviews] = useState<DraftReview[]>([]);
   const [status, setStatus] = useState("draft");
   const [comment, setComment] = useState("");
-  const [reviewer, setReviewer] = useState("");
+  const [reviewer, setReviewer] = useState(() => {
+    if (typeof window !== "undefined") return localStorage.getItem("olera-reviewer") || "";
+    return "";
+  });
   const [submitting, setSubmitting] = useState(false);
 
   const fetchReviews = useCallback(async () => {
+    if (allReviews) return; // skip if parent provides reviews
     try {
       const res = await fetch(`/api/admin/draft-reviews?state=${stateId}`);
       const data = await res.json();
       if (data.reviews) {
-        const programReviews = data.reviews.filter((r: DraftReview) => r.program_id === programId);
-        setReviews(programReviews);
-        if (programReviews.length > 0) {
-          setStatus(programReviews[0].status);
-        }
+        setLocalReviews(data.reviews.filter((r: DraftReview) => r.program_id === programId));
       }
     } catch { /* silent */ }
-  }, [programId, stateId]);
+  }, [programId, stateId, allReviews]);
 
   useEffect(() => { fetchReviews(); }, [fetchReviews]);
+
+  const reviews = allReviews
+    ? allReviews.filter((r) => r.program_id === programId)
+    : localReviews;
+
+  useEffect(() => {
+    if (reviews.length > 0) setStatus(reviews[0].status);
+  }, [reviews]);
 
   const submit = async () => {
     if (!reviewer.trim()) return;
     setSubmitting(true);
+    // Remember name
+    localStorage.setItem("olera-reviewer", reviewer.trim());
     try {
       await fetch("/api/admin/draft-reviews", {
         method: "POST",
@@ -197,7 +188,8 @@ function DraftReviewPanel({ programId, stateId }: { programId: string; stateId: 
         }),
       });
       setComment("");
-      await fetchReviews();
+      if (onReviewAdded) onReviewAdded();
+      else await fetchReviews();
     } catch { /* silent */ }
     setSubmitting(false);
   };
@@ -278,11 +270,11 @@ function DraftReviewPanel({ programId, stateId }: { programId: string; stateId: 
   );
 }
 
-function DraftPreview({ draft, stateId }: { draft: PipelineDraft; stateId: string }) {
+function DraftPreview({ draft, stateId, allReviews, onReviewAdded }: { draft: PipelineDraft; stateId: string; allReviews?: DraftReview[]; onReviewAdded?: () => void }) {
   return (
     <div className="mt-4 p-5 bg-blue-50/40 border border-blue-100 rounded-xl space-y-5">
       {/* Review panel */}
-      <DraftReviewPanel programId={draft.id} stateId={stateId} />
+      <DraftReviewPanel programId={draft.id} stateId={stateId} allReviews={allReviews} onReviewAdded={onReviewAdded} />
 
       {/* Draft header */}
       <div className="flex items-center justify-between">
@@ -533,7 +525,7 @@ function DraftPreview({ draft, stateId }: { draft: PipelineDraft; stateId: strin
   );
 }
 
-function ProgramPreview({ program, stateId, pipelineComparison, draft }: { program: WaiverProgram; stateId: string; pipelineComparison?: PipelineComparison; draft?: PipelineDraft }) {
+function ProgramPreview({ program, stateId, pipelineComparison, draft, allReviews, onReviewAdded }: { program: WaiverProgram; stateId: string; pipelineComparison?: PipelineComparison; draft?: PipelineDraft; allReviews?: DraftReview[]; onReviewAdded?: () => void }) {
   const [showDraft, setShowDraft] = useState(draft ? true : false);
 
   return (
@@ -576,7 +568,7 @@ function ProgramPreview({ program, stateId, pipelineComparison, draft }: { progr
 
       {/* Draft preview */}
       {showDraft && draft ? (
-        <DraftPreview draft={draft} stateId={stateId} />
+        <DraftPreview draft={draft} stateId={stateId} allReviews={allReviews} onReviewAdded={onReviewAdded} />
       ) : (
         <>
           {/* Pipeline diffs */}
@@ -689,11 +681,12 @@ function ProgramPreview({ program, stateId, pipelineComparison, draft }: { progr
   );
 }
 
-function ProgramRow({ program, stateId, pipelineComparison, draft }: { program: WaiverProgram; stateId: string; pipelineComparison?: PipelineComparison; draft?: PipelineDraft }) {
+function ProgramRow({ program, stateId, pipelineComparison, draft, reviewStatus, allReviews, onReviewAdded }: { program: WaiverProgram; stateId: string; pipelineComparison?: PipelineComparison; draft?: PipelineDraft; reviewStatus?: string; allReviews?: DraftReview[]; onReviewAdded?: () => void }) {
   const [expanded, setExpanded] = useState(false);
-  const category = inferCategory(program);
-  const isVerified = !!program.lastVerifiedDate;
-  const hasDiffs = pipelineComparison && pipelineComparison.diffsFound > 0;
+  const type = getProgramType(program);
+
+  // Review status badge
+  const statusInfo = reviewStatus ? STATUSES.find((s) => s.value === reviewStatus) : null;
 
   return (
     <div
@@ -705,35 +698,23 @@ function ProgramRow({ program, stateId, pipelineComparison, draft }: { program: 
         onClick={() => setExpanded(!expanded)}
         className="w-full flex items-center gap-3 text-left"
       >
-        <VerificationDot program={program} />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-sm font-medium text-gray-900 truncate">
               {program.name}
             </span>
-            <CategoryBadge category={category} />
+            <TypeBadge type={type} />
+            {statusInfo && (
+              <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${statusInfo.color}`}>
+                {statusInfo.label}
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-3 mt-0.5">
-            {program.savingsRange && (
+            {program.savingsRange ? (
               <span className="text-xs text-emerald-600 font-medium">{program.savingsRange}</span>
-            )}
-            {!program.savingsRange && (
+            ) : (
               <span className="text-xs text-gray-400">Free service</span>
-            )}
-            {!isVerified && (
-              <span className="text-[11px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded font-medium">
-                Unverified
-              </span>
-            )}
-            {hasDiffs && (
-              <span className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded font-medium">
-                {pipelineComparison.diffsFound} diff{pipelineComparison.diffsFound > 1 ? "s" : ""}
-              </span>
-            )}
-            {draft && (
-              <span className="text-[11px] text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded font-medium">
-                Draft
-              </span>
             )}
           </div>
         </div>
@@ -746,7 +727,7 @@ function ProgramRow({ program, stateId, pipelineComparison, draft }: { program: 
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
         </svg>
       </button>
-      {expanded && <ProgramPreview program={program} stateId={stateId} pipelineComparison={pipelineComparison} draft={draft} />}
+      {expanded && <ProgramPreview program={program} stateId={stateId} pipelineComparison={pipelineComparison} draft={draft} allReviews={allReviews} onReviewAdded={onReviewAdded} />}
     </div>
   );
 }
@@ -928,6 +909,23 @@ function StateDetail({
   const stateOverview = pipelineDrafts[state.abbreviation]?.stateOverview;
   const [showStateOverview, setShowStateOverview] = useState(!!stateOverview);
 
+  // Lift review fetch — one API call for entire state
+  const [allReviews, setAllReviews] = useState<DraftReview[]>([]);
+  const fetchAllReviews = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/admin/draft-reviews?state=${state.abbreviation}`);
+      const data = await res.json();
+      if (data.reviews) setAllReviews(data.reviews);
+    } catch { /* silent */ }
+  }, [state.abbreviation]);
+  useEffect(() => { fetchAllReviews(); }, [fetchAllReviews]);
+
+  // Get review status for a program
+  function getReviewStatus(programId: string): string | undefined {
+    const review = allReviews.find((r) => r.program_id === programId);
+    return review?.status;
+  }
+
   // Match pipeline comparisons to existing programs by ID or fuzzy name
   function findComparison(program: WaiverProgram): PipelineComparison | undefined {
     return comparisons.find((c) =>
@@ -960,18 +958,30 @@ function StateDetail({
       <div className="mb-6">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold text-gray-900">{state.name}</h2>
-          <a
-            href={`/waiver-library/${state.id}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            Preview state page
-          </a>
+          <div className="flex items-center gap-2">
+            {stateOverview && (
+              <a
+                href={`/waiver-library/${state.id}?v=1`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                Preview current
+              </a>
+            )}
+            <a
+              href={`/waiver-library/${state.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              {stateOverview ? "Preview v2" : "Preview state page"}
+            </a>
+          </div>
         </div>
         <p className="text-sm text-gray-500 mt-0.5">
           {stats.total} programs &middot;{" "}
@@ -1029,8 +1039,12 @@ function StateDetail({
           </div>
 
           {showStateOverview && (
-            <div className="mt-4 p-4 bg-white rounded-xl border border-gray-200">
+            <div className="mt-4 p-4 bg-white rounded-xl border border-gray-200 space-y-5">
               <StateOverviewPreview overview={stateOverview} stateName={state.name} />
+              <div className="pt-4 border-t border-gray-100">
+                <p className="text-[13px] font-medium text-gray-400 uppercase tracking-wider mb-2">Review</p>
+                <DraftReviewPanel programId="state-overview" stateId={state.abbreviation} allReviews={allReviews} onReviewAdded={fetchAllReviews} />
+              </div>
             </div>
           )}
         </div>
@@ -1038,15 +1052,21 @@ function StateDetail({
 
       {/* Program list */}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden divide-y divide-gray-100">
-        {state.programs.map((program) => (
-          <ProgramRow
-            key={program.id}
-            program={program}
-            stateId={state.id}
-            pipelineComparison={findComparison(program)}
-            draft={findDraft(program)}
-          />
-        ))}
+        {state.programs.map((program) => {
+          const draft = findDraft(program);
+          return (
+            <ProgramRow
+              key={program.id}
+              program={program}
+              stateId={state.id}
+              pipelineComparison={findComparison(program)}
+              draft={draft}
+              reviewStatus={draft ? getReviewStatus(draft.id) : undefined}
+              allReviews={allReviews}
+              onReviewAdded={fetchAllReviews}
+            />
+          );
+        })}
       </div>
     </div>
   );
@@ -1054,25 +1074,26 @@ function StateDetail({
 
 // ─── Main Page ──────────────────────────────────────────────────────────────
 
-type StatusFilter = "all" | "verified" | "partial" | "unverified";
+type ReadinessFilter = "all" | "published" | "drafted" | "explored" | "scaffolding";
 
 export default function AdminBenefitsPage() {
   const [selectedState, setSelectedState] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [readinessFilter, setReadinessFilter] = useState<ReadinessFilter>("all");
 
   const globalStats = useMemo(() => {
     const allPrograms = allStates.flatMap((s) => s.programs);
-    const verification = getVerificationStats(allPrograms);
-    const content = getContentStats(allPrograms);
+    const totalPrograms = allPrograms.length;
 
     // Pipeline stats
     const pipelineStates = Object.keys(pipelineData);
     const exploredCount = pipelineStates.length;
-    const draftedCount = pipelineStates.filter((s) => {
-      const p = pipelineData[s] as PipelineStateSummary;
-      return p.draftsGenerated && p.draftsGenerated > 0;
-    }).length;
+
+    // Draft stats across all states
+    let totalDrafts = 0;
+    for (const stateCode of Object.keys(pipelineDrafts)) {
+      totalDrafts += pipelineDrafts[stateCode]?.programs?.length || 0;
+    }
 
     // Readiness breakdown
     const readiness = { published: 0, drafted: 0, explored: 0, scaffolding: 0 };
@@ -1080,7 +1101,7 @@ export default function AdminBenefitsPage() {
       readiness[getStateReadiness(s)]++;
     }
 
-    return { ...verification, ...content, exploredCount, draftedCount, readiness };
+    return { totalPrograms, exploredCount, totalDrafts, readiness };
   }, []);
 
   const filteredStates = useMemo(() => {
@@ -1096,27 +1117,27 @@ export default function AdminBenefitsPage() {
       );
     }
 
-    // Status filter
-    if (statusFilter !== "all") {
-      states = states.filter((s) => getStateHealth(s) === statusFilter);
+    // Readiness filter
+    if (readinessFilter !== "all") {
+      states = states.filter((s) => getStateReadiness(s) === readinessFilter);
     }
 
-    // Sort: verified states first, then partial, then unverified
-    const order = { verified: 0, partial: 1, unverified: 2 };
-    states.sort((a, b) => order[getStateHealth(a)] - order[getStateHealth(b)]);
+    // Sort: published first, then drafted, explored, scaffolding
+    const order: Record<StateReadiness, number> = { published: 0, drafted: 1, explored: 2, scaffolding: 3 };
+    states.sort((a, b) => order[getStateReadiness(a)] - order[getStateReadiness(b)]);
 
     return states;
-  }, [search, statusFilter]);
+  }, [search, readinessFilter]);
 
   const stateData = selectedState
     ? allStates.find((s) => s.abbreviation === selectedState)
     : null;
 
-  // Counts per status for filter pills
-  const statusCounts = useMemo(() => {
-    const counts = { all: allStates.length, verified: 0, partial: 0, unverified: 0 };
+  // Counts per readiness for filter pills
+  const readinessCounts = useMemo(() => {
+    const counts = { all: allStates.length, published: 0, drafted: 0, explored: 0, scaffolding: 0 };
     for (const s of allStates) {
-      counts[getStateHealth(s)]++;
+      counts[getStateReadiness(s)]++;
     }
     return counts;
   }, []);
@@ -1126,84 +1147,59 @@ export default function AdminBenefitsPage() {
       {/* Summary Bar */}
       <div className="mb-8">
         <div className="flex items-baseline justify-between mb-4">
-          <h1 className="text-2xl font-semibold text-gray-900">Benefits Data</h1>
+          <h1 className="text-2xl font-semibold text-gray-900">Benefits Content</h1>
           <p className="text-sm text-gray-400">
-            {globalStats.total.toLocaleString()} programs &middot; {allStates.length} states
+            {globalStats.totalPrograms.toLocaleString()} programs &middot; {allStates.length} states
           </p>
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {/* Verification */}
+          {/* Pipeline Coverage */}
           <div className="p-4 rounded-xl border border-gray-200 bg-white">
-            <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider mb-1">Verified</p>
-            <p className="text-2xl font-semibold text-gray-900">{globalStats.verified}</p>
-            <div className="mt-2">
-              <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-emerald-400 transition-all"
-                  style={{ width: `${Math.max((globalStats.verified / globalStats.total) * 100, 0.5)}%` }}
-                />
-              </div>
-              <p className="text-[11px] text-gray-400 mt-1">
-                {((globalStats.verified / globalStats.total) * 100).toFixed(1)}% of {globalStats.total.toLocaleString()}
-              </p>
-            </div>
-          </div>
-
-          {/* Content Quality */}
-          <div className="p-4 rounded-xl border border-gray-200 bg-white">
-            <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider mb-1">With Real Content</p>
-            <p className="text-2xl font-semibold text-gray-900">{globalStats.withIntro}</p>
-            <div className="mt-2">
-              <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-blue-400 transition-all"
-                  style={{ width: `${Math.max((globalStats.withIntro / globalStats.total) * 100, 0.5)}%` }}
-                />
-              </div>
-              <p className="text-[11px] text-gray-400 mt-1">
-                {globalStats.withFaqs} with FAQs &middot; {globalStats.withSource} sourced
-              </p>
-            </div>
-          </div>
-
-          {/* Pipeline */}
-          <div className="p-4 rounded-xl border border-gray-200 bg-white">
-            <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider mb-1">Pipeline</p>
-            <p className="text-2xl font-semibold text-gray-900">{globalStats.exploredCount}</p>
+            <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider mb-1">Pipeline Coverage</p>
+            <p className="text-2xl font-semibold text-gray-900">{globalStats.exploredCount}<span className="text-base text-gray-400 font-normal">/{allStates.length}</span></p>
             <p className="text-[11px] text-gray-400 mt-2">
-              {globalStats.exploredCount} explored &middot; {globalStats.draftedCount} drafted
+              states explored
+            </p>
+          </div>
+
+          {/* Drafts */}
+          <div className="p-4 rounded-xl border border-gray-200 bg-white">
+            <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider mb-1">Drafts Generated</p>
+            <p className="text-2xl font-semibold text-gray-900">{globalStats.totalDrafts}</p>
+            <p className="text-[11px] text-gray-400 mt-2">
+              programs with content drafts
             </p>
           </div>
 
           {/* State Readiness */}
-          <div className="p-4 rounded-xl border border-gray-200 bg-white">
+          <div className="p-4 rounded-xl border border-gray-200 bg-white col-span-2">
             <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider mb-1">State Readiness</p>
-            <div className="flex items-center gap-1.5 mt-1">
+            <div className="flex items-center gap-4 mt-1">
               {globalStats.readiness.published > 0 && (
-                <span className="inline-flex items-center gap-1 text-xs">
+                <span className="inline-flex items-center gap-1.5 text-xs">
                   <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                  <span className="text-gray-600">{globalStats.readiness.published}</span>
+                  <span className="text-gray-600 font-medium">{globalStats.readiness.published} published</span>
                 </span>
               )}
               {globalStats.readiness.drafted > 0 && (
-                <span className="inline-flex items-center gap-1 text-xs">
+                <span className="inline-flex items-center gap-1.5 text-xs">
                   <span className="w-2 h-2 rounded-full bg-blue-400" />
-                  <span className="text-gray-600">{globalStats.readiness.drafted}</span>
+                  <span className="text-gray-600 font-medium">{globalStats.readiness.drafted} drafted</span>
                 </span>
               )}
               {globalStats.readiness.explored > 0 && (
-                <span className="inline-flex items-center gap-1 text-xs">
+                <span className="inline-flex items-center gap-1.5 text-xs">
                   <span className="w-2 h-2 rounded-full bg-amber-400" />
-                  <span className="text-gray-600">{globalStats.readiness.explored}</span>
+                  <span className="text-gray-600 font-medium">{globalStats.readiness.explored} explored</span>
                 </span>
               )}
-              <span className="inline-flex items-center gap-1 text-xs">
+              <span className="inline-flex items-center gap-1.5 text-xs">
                 <span className="w-2 h-2 rounded-full bg-gray-200" />
-                <span className="text-gray-400">{globalStats.readiness.scaffolding}</span>
+                <span className="text-gray-400">{globalStats.readiness.scaffolding} scaffolding</span>
               </span>
             </div>
-            <div className="flex gap-0.5 mt-2 h-1.5 rounded-full overflow-hidden bg-gray-100">
+            <div className="flex gap-0.5 mt-3 h-1.5 rounded-full overflow-hidden bg-gray-100">
               {globalStats.readiness.published > 0 && (
                 <div className="bg-emerald-400" style={{ width: `${(globalStats.readiness.published / allStates.length) * 100}%` }} />
               )}
@@ -1214,9 +1210,6 @@ export default function AdminBenefitsPage() {
                 <div className="bg-amber-400" style={{ width: `${(globalStats.readiness.explored / allStates.length) * 100}%` }} />
               )}
             </div>
-            <p className="text-[11px] text-gray-400 mt-1">
-              Published &middot; Drafted &middot; Explored &middot; Scaffolding
-            </p>
           </div>
         </div>
       </div>
@@ -1248,24 +1241,24 @@ export default function AdminBenefitsPage() {
               />
             </div>
             <div className="flex items-center gap-1">
-              {(["all", "verified", "partial", "unverified"] as StatusFilter[]).map(
-                (status) => (
+              {([
+                { key: "all" as ReadinessFilter, label: "All" },
+                { key: "published" as ReadinessFilter, label: "Published" },
+                { key: "drafted" as ReadinessFilter, label: "Drafted" },
+                { key: "explored" as ReadinessFilter, label: "Explored" },
+                { key: "scaffolding" as ReadinessFilter, label: "Scaffolding" },
+              ]).filter((f) => f.key === "all" || readinessCounts[f.key] > 0).map(
+                (f) => (
                   <button
-                    key={status}
-                    onClick={() => setStatusFilter(status)}
+                    key={f.key}
+                    onClick={() => setReadinessFilter(f.key)}
                     className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                      statusFilter === status
+                      readinessFilter === f.key
                         ? "bg-gray-900 text-white"
                         : "text-gray-500 hover:bg-gray-100"
                     }`}
                   >
-                    {status === "all"
-                      ? `All ${statusCounts.all}`
-                      : status === "verified"
-                      ? `Verified ${statusCounts.verified}`
-                      : status === "partial"
-                      ? `Partial ${statusCounts.partial}`
-                      : `Unverified ${statusCounts.unverified}`}
+                    {f.label} {readinessCounts[f.key]}
                   </button>
                 )
               )}

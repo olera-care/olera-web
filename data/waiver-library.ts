@@ -43,27 +43,27 @@ export interface RegionalApplication {
 export interface StructuredEligibility {
   summary: string[];
   ageRequirement?: string | null;
-  incomeTable?: { householdSize: number; monthlyLimit: number }[] | null;
+  incomeTable?: { householdSize: number; monthlyLimit: number; annualLimit?: number }[] | null;
   assetLimits?: {
     individual?: number | null;
     couple?: number | null;
-    countedAssets?: string[];
-    exemptAssets?: string[];
+    countedAssets?: string[] | null;
+    exemptAssets?: string[] | null;
     homeEquityCap?: number | null;
   } | null;
   functionalRequirement?: string | null;
-  otherRequirements?: string[];
+  otherRequirements?: string[] | null;
   povertyLevelReference?: string | null;
 }
 
 export interface ApplicationGuide {
   method: string;
   summary: string;
-  steps?: { step: number; title: string; description: string }[];
+  steps?: { step: number; title: string; description: string }[] | null;
   processingTime?: string | null;
   waitlist?: string | null;
   tip?: string | null;
-  urls?: { label: string; url: string }[];
+  urls?: { label: string; url: string }[] | null;
 }
 
 export interface WaiverProgram {

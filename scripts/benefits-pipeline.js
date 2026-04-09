@@ -191,7 +191,7 @@ class RateLimiter {
 
 // Separate rate limiters for each API to allow concurrent calls across APIs
 const perplexityLimiter = new RateLimiter(200);  // 200ms between Perplexity calls
-const claudeLimiter = new RateLimiter(300);       // 300ms between Claude calls
+const claudeLimiter = new RateLimiter(8000);      // 8s between Claude calls (8K output tokens/min limit = ~1 call per 30s, but with retries we can be more aggressive)
 // Legacy single limiter for backwards compat
 const rateLimiter = perplexityLimiter;
 
@@ -1050,29 +1050,46 @@ function phaseClassify(entity, diveData, compareData) {
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 
 async function claudeChat(prompt, maxTokens = 4096) {
-  await claudeLimiter.wait();
+  const MAX_RETRIES = 5;
 
-  const resp = await fetchWithRetry("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "x-api-key": ANTHROPIC_API_KEY,
-      "anthropic-version": "2023-06-01",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: maxTokens,
-      messages: [{ role: "user", content: prompt }],
-    }),
-  });
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+    await claudeLimiter.wait();
 
-  if (!resp.ok) {
+    const resp = await fetchWithRetry("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "x-api-key": ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: maxTokens,
+        messages: [{ role: "user", content: prompt }],
+      }),
+    });
+
+    if (resp.ok) {
+      const json = await resp.json();
+      return json.content?.[0]?.text || "";
+    }
+
     const text = await resp.text();
+
+    // Rate limit: wait and retry
+    if (resp.status === 429) {
+      // Parse retry-after header or use exponential backoff
+      const retryAfter = resp.headers.get("retry-after");
+      const waitMs = retryAfter ? parseInt(retryAfter) * 1000 : Math.min(15000 * (attempt + 1), 60000);
+      console.log(`\n  [rate-limit] Waiting ${(waitMs / 1000).toFixed(0)}s (attempt ${attempt + 1}/${MAX_RETRIES})...`);
+      await new Promise((r) => setTimeout(r, waitMs));
+      continue;
+    }
+
     throw new Error(`Claude ${resp.status}: ${text.slice(0, 200)}`);
   }
 
-  const json = await resp.json();
-  return json.content?.[0]?.text || "";
+  throw new Error(`Claude rate limit: exhausted ${MAX_RETRIES} retries`);
 }
 
 const CONTENT_VOICE_PROMPT = `You are writing benefit program page content for Olera, a senior care platform. Your audience is family caregivers — adult children helping aging parents navigate government programs.
@@ -1106,8 +1123,8 @@ async function phaseDraft(entity, diveData, classifyData) {
     return null;
   }
 
-  const DRAFT_CONCURRENCY = 3;
-  console.log(`  Drafting ${divePrograms.length} programs (concurrency: ${DRAFT_CONCURRENCY})...\n`);
+  const DRAFT_CONCURRENCY = 1; // Sequential — Claude API has 8K output tokens/min limit, concurrency just triggers 429s
+  console.log(`  Drafting ${divePrograms.length} programs (sequential, rate-limited)...\n`);
   let draftCompleted = 0;
   const draftedAt = new Date().toISOString().split("T")[0];
 

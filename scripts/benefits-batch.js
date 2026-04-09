@@ -28,7 +28,7 @@ const ALL_STATES = [
 
 // Parse args
 const args = process.argv.slice(2);
-let concurrency = 3;
+let concurrency = 1; // Default 1: Claude API rate limit (8K tokens/min) is shared across states
 let force = false;
 const skipStates = new Set();
 const requestedStates = [];

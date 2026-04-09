@@ -100,17 +100,9 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 | 2026-04-08 | Slash command auto-detects approved drafts | Instead of per-state apply commands, Step 0 checks all states for approved drafts and offers batch apply. |
 | 2026-04-08 | Pipeline generates state-level overview content | State page was a bare index with no editorial content. Pipeline now generates intro, start-here picks, need-based groupings, quick facts. |
 | 2026-04-08 | State page v2 matches program page v2 design language | Same content-forward, prose-width, quiet labels. Consistent feel across the benefits experience. |
-|------|----------|-----------|
-| 2026-04-06 | Exploration before taxonomy | 5-shape taxonomy derived from 12 TX programs was too small a sample. Pipeline observes what data exists, taxonomy emerges from patterns across states. |
-| 2026-04-06 | Pipeline auto-generates dashboard data | `pipeline-summary.ts` is auto-written after each run. No manual step between pipeline and dashboard. |
-| 2026-04-06 | Dashboard shows pipeline findings inline, not in separate view | Pipeline diffs appear as amber warnings on program rows. Dashboard stays a quality lens, not a pipeline viewer. |
-| 2026-04-06 | No Airtable — AI-first workflow with admin viewer | Provider data uses Supabase + Claude directly. Benefits follows same pattern. Problem was viewing, not editing. |
-| 2026-04-06 | Empty string for free-service savingsRange | UI renders "Save {savingsRange}" — empty string = badge hidden. Free-service info lives in savingsSource. |
 | 2026-04-06 | Verification gate: no state goes live without verification | YMYL content — Google can suppress the whole domain for inaccurate benefits info. |
-| 2026-03-28 | Onboard page is platform showcase, not profile editor | Provider's first impression should be "here's what Olera can do" not "fill out these 7 forms." |
-| 2026-03-27 | Rename `token` query param to `otk` in email links | Apple Mail strips params named "token". |
-| 2026-03-25 | Quick discovery mode (3 terms/category) sufficient for batch | Standard mode costs 4x more but yields mostly duplicates. |
-| 2026-03-24 | Highlights are earned, not defaulted | Users see through templated labels. 1 verified fact > 4 defaults. |
+
+*Older decisions archived to `archive/SCRATCHPAD-2026-04.md` and `archive/SCRATCHPAD-2026-03.md`*
 
 ---
 
@@ -311,56 +303,4 @@ The deep dive. Restrained, lets content breathe. Reads like a well-researched ar
 
 **Commits:** `86530f8e` → `643d70bb` → `4f10a0f7` → `f1cfed6b` → `33b767fa` → `2c690789` → `ff26b594` → `c852b379` → `2e11a804` → `ec460d15` → `f423eced` → `67516447` → `4eae7868` → `8c0e92d7` → `a87503fa` → `91b44e73` → `51e2792b` → `460eec1e`
 
----
-
-### 2026-04-08 (Session 70b) — V2 Page Design + Save Program Feature
-
-**Branch:** `eager-ride` | **Latest: `09177d30`**
-
-**ProgramPageV2 component** (`components/waiver-library/ProgramPageV2.tsx`):
-- Content-forward layout: light header with serif title, no dark hero banner
-- Single-column prose-width (max-w-2xl), wider for maps/tables
-- Section labels as quiet uppercase markers
-- Structured eligibility with income tables, asset limits as prose, functional requirements
-- Application steps as flowing content with numbered circles
-- Callouts merged into "Things to know" prose section
-- Clean FAQ as details/summary
-- No bottom CTA banner, no pre-footer (hidden via ConditionalFooter)
-
-**Applied MI Choice Waiver** as first v2 test program with full pipeline draft content.
-
-**Taste refinements based on TJ review:**
-- Asset limits: redesigned from colored comparison boxes → natural language prose
-- Stacked callout boxes → merged into single "Things to know" section
-- Processing/waitlist metadata → flowing paragraph after steps
-- Pre-footer hidden on all waiver-library pages
-
-**Save program feature:**
-- `hooks/use-saved-programs.tsx` — auth-gated context provider, Supabase persistence, optimistic UI
-- Bookmark icon in ProgramPageV2 header — muted outline → filled teal on save
-- If not logged in, opens auth modal (no localStorage fallback)
-- `/saved` page updated: programs section above providers with state/type/savings
-- Migration 035: `saved_programs` table with RLS
-
-**Draft review workflow:**
-- `DraftReviewPanel` component in admin dashboard draft view
-- Statuses: Draft → Reviewed → Needs Changes → Approved → Published
-- Comment thread with reviewer name, timestamp, history (latest 5)
-- API: `/api/admin/draft-reviews` (GET/POST, auth-gated)
-- Migration 036: `draft_reviews` table
-- Self-review caught: API had no auth check — fixed
-
-**Preview button** on each program's draft view — opens rendered page in new tab
-
-**Slash command updated:** Step 0 now auto-detects approved drafts across all states. Presents "N programs approved — apply all?" before doing anything else.
-
-**State-level content generation:**
-- Pipeline draft phase now generates state overview: intro, "where to start" picks, "browse by need" groups, quick facts, resources vs benefits explanation
-- `StatePageV2` component: content-forward state page matching program v2 design
-- Michigan regenerated with state overview (3 start-here, 5 need groups)
-- State page auto-switches to v2 when pipeline stateOverview exists
-- Preview link added to admin dashboard state detail header
-
-**Commits:** `3f6ca8a6` → `34fa0e10` → `09177d30` → `e728d7c4` → `ddfe6514` → `2c9a5988` → `f2c211e0` → `d15bfd78` → `4e658f3c` → `a3b08ba0` → `32be6219`
-
-*Sessions 67-70 archived to `archive/SCRATCHPAD-2026-04.md`*
+*Sessions 67-70b archived to `archive/SCRATCHPAD-2026-04.md`*

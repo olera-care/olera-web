@@ -68,6 +68,18 @@
 - Fixed auto-sign-in from lead emails, added contact_revealed tracking
 - Built unsubscribe flow: /unsubscribe/[slug] + API + email link
 
+### 2026-04-08 (Session 70b) — V2 Page Design + Save Program Feature
+
+**Branch:** `eager-ride` | **Latest: `09177d30`**
+
+- ProgramPageV2: content-forward layout, prose-width, serif headings, structured eligibility as prose, clean FAQs, no card soup, no dark hero
+- Applied MI Choice Waiver as first v2 test program
+- Taste refinements: asset limits → prose, callouts → "Things to know", pre-footer hidden
+- Save program: auth-gated bookmark, Supabase persistence, /saved page (migration 035)
+- Draft review workflow: DraftReviewPanel, statuses, comments, history (migration 036). Self-review caught missing auth.
+- Preview button on draft view, slash command auto-detects approved drafts
+- State-level content generation: pipeline generates overview, StatePageV2 component, auto-switches when overview exists
+
 ### 2026-04-06 (Session 67) — Aging in America: Framer → Olera Web Migration
 
 **Branch:** `thirsty-hugle` | **Merged via PRs #493-498**

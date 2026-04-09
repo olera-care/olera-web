@@ -961,7 +961,7 @@ function StateDetail({
           <div className="flex items-center gap-2">
             {stateOverview && (
               <a
-                href={`/waiver-library/${state.id}?v=1`}
+                href={`/waiver-library/${state.id}/current`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"

@@ -47,7 +47,6 @@ const STATE_FAQS: Record<string, { question: string; answer: string }[]> = {
 
 interface Props {
   params: Promise<{ state: string }>;
-  searchParams: Promise<{ v?: string }>;
 }
 
 export async function generateStaticParams() {
@@ -73,18 +72,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function StatePage({ params, searchParams }: Props) {
+export default async function StatePage({ params }: Props) {
   const { state: stateId } = await params;
-  const { v } = await searchParams;
   const state = getStateById(stateId);
 
   if (!state || state.programs.length === 0) {
     notFound();
   }
 
-  // V2 state page if pipeline has generated a state overview (skip with ?v=1)
+  // V2 state page if pipeline has generated a state overview
   const stateDrafts = pipelineDrafts[state.abbreviation];
-  if (stateDrafts?.stateOverview && v !== "1") {
+  if (stateDrafts?.stateOverview) {
     return <StatePageV2 state={state} overview={stateDrafts.stateOverview} />;
   }
 

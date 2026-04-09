@@ -52,7 +52,7 @@ cat data/pipeline-summary.ts | head -50
 
 If approved drafts exist, offer to apply them first before doing any new exploration. Applying means: read the draft from `data/pipeline/{STATE}/drafts.json`, write the v2 fields into the matching program in `data/waiver-library.ts`, commit, and push.
 
-If an approved state overview exists, the state page is already rendering from `pipeline-drafts.ts` — no separate apply step needed. Just confirm the v2 state page looks good at `/waiver-library/{state-id}` (compare with old page at `?v=1`).
+If an approved state overview exists, the state page is already rendering from `pipeline-drafts.ts` — no separate apply step needed. Just confirm the v2 state page looks good at `/waiver-library/{state-id}` (compare with old page at `/current`).
 
 ## Pipeline Script Reference
 
@@ -158,7 +158,7 @@ curl "https://staging-olera2-web.vercel.app/api/admin/seed-sbf-programs?state=XX
 1. Run `./node_modules/.bin/next build` to verify no errors
 2. Check the admin dashboard: does the state show updated readiness?
 3. Check the v2 state page: `/waiver-library/{state-id}` — verify overview, start-here picks, need groups render correctly
-4. Compare with old page: `/waiver-library/{state-id}?v=1` — the `?v=1` param forces the legacy rendering
+4. Compare with old page: `/waiver-library/{state-id}/current` — the `/current` route always renders the legacy page
 5. Check a sample program page: `/waiver-library/{state-id}/{program-id}`
 
 ## Step 4: Commit and PR
@@ -266,7 +266,7 @@ Programs now have optional classification and rich content fields:
 - Run end-to-end without pausing. TJ prefers autonomous execution.
 - Pipeline generates both program-level drafts AND state-level overview (intro, start-here, by-need, quick facts). Both need team review before going live.
 - State overview review uses `programId: "state-overview"` in the same review API.
-- The v2 state page renders automatically from `pipeline-drafts.ts` when overview exists. Force old page with `?v=1`.
+- The v2 state page renders automatically from `pipeline-drafts.ts` when overview exists. Force old page with `/current`.
 
 ## Cost Per State
 

@@ -2118,40 +2118,40 @@ export interface PipelineDraft {
   structuredEligibility?: {
     summary: string[];
     ageRequirement?: string | null;
-    incomeTable?: { householdSize: number; monthlyLimit: number }[] | null;
+    incomeTable?: { householdSize: number; monthlyLimit: number; annualLimit?: number }[] | null;
     assetLimits?: {
       individual?: number | null;
       couple?: number | null;
-      countedAssets?: string[];
-      exemptAssets?: string[];
+      countedAssets?: string[] | null;
+      exemptAssets?: string[] | null;
       homeEquityCap?: number | null;
     } | null;
     functionalRequirement?: string | null;
-    otherRequirements?: string[];
+    otherRequirements?: string[] | null;
     povertyLevelReference?: string | null;
-  };
+  } | null;
   applicationGuide?: {
     method: string;
     summary: string;
-    steps?: { step: number; title: string; description: string }[];
+    steps?: { step: number; title: string; description: string }[] | null;
     processingTime?: string | null;
     waitlist?: string | null;
     tip?: string | null;
-    urls?: { label: string; url: string }[];
-  };
-  contentSections?: { type: string; [key: string]: unknown }[];
-  faqs?: { question: string; answer: string }[];
+    urls?: { label: string; url: string }[] | null;
+  } | null;
+  contentSections?: { type: string; [key: string]: unknown }[] | null;
+  faqs?: { question: string; answer: string }[] | null;
   phone?: string | null;
   sourceUrl?: string | null;
   contentStatus: string;
   draftedAt: string;
-  geographicScope?: { type: string; stateVariation?: boolean; localEntities?: { name: string; type: string; phone?: string; address?: string; url?: string }[] };
+  geographicScope?: { type: string; stateVariation?: boolean; localEntities?: { name: string; type: string; phone?: string; address?: string; url?: string; email?: string }[] } | null;
   // v3 fields — editorial depth
-  documentsNeeded?: string[];
-  contacts?: { label: string; description?: string; phone: string; hours?: string }[];
-  regionalApplications?: { region: string; counties?: string[]; url: string; isPdf?: boolean }[];
-  applicationNotes?: string[];
-  relatedPrograms?: string[];
+  documentsNeeded?: string[] | null;
+  contacts?: { label: string; description?: string; phone: string; hours?: string }[] | null;
+  regionalApplications?: { region: string; counties?: string[]; url: string; isPdf?: boolean }[] | null;
+  applicationNotes?: string[] | null;
+  relatedPrograms?: string[] | null;
 }
 
 export interface PipelineStateOverview {

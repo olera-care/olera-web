@@ -748,69 +748,35 @@ function StateCard({
   state: StateData;
   onClick: () => void;
 }) {
-  const stats = getVerificationStats(state.programs);
-  const content = getContentStats(state.programs);
   const readiness = getStateReadiness(state);
   const style = READINESS_STYLES[readiness];
   const pipeline = pipelineData[state.abbreviation] as PipelineStateSummary | undefined;
+  const drafts = pipelineDrafts[state.abbreviation];
+  const draftCount = drafts?.programs?.length || 0;
 
   return (
     <button
       onClick={onClick}
       className={`text-left p-4 rounded-xl border bg-white hover:shadow-sm transition-all duration-150 group ${style.border}`}
     >
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex items-center justify-between mb-1">
         <div className="flex items-center gap-2">
           <span className={`w-2 h-2 rounded-full ${style.dot}`} />
-          <span className="text-sm font-semibold text-gray-900 group-hover:text-gray-800">
+          <span className="text-sm font-semibold text-gray-900">
             {state.abbreviation}
           </span>
         </div>
-        <span className="text-[11px] text-gray-400 font-medium">
-          {stats.total}
-        </span>
+        <span className="text-[11px] text-gray-400">{state.programs.length}</span>
       </div>
-      <p className="text-[13px] text-gray-500 leading-snug truncate mb-2">
+      <p className="text-[13px] text-gray-500 truncate">
         {state.name}
       </p>
-
-      {/* Content depth indicators */}
-      <div className="flex items-center gap-2 text-[11px] text-gray-400 mb-2">
-        {content.withIntro > 0 && (
-          <span className="text-blue-500">{content.withIntro} content</span>
-        )}
-        {stats.verified > 0 && (
-          <span className="text-emerald-500">{stats.verified} verified</span>
-        )}
-        {content.withIntro === 0 && stats.verified === 0 && (
-          <span>Template only</span>
-        )}
-      </div>
-
-      <ProgressBar value={content.withIntro || stats.verified} total={stats.total} />
-
-      {/* Pipeline status line */}
-      {pipeline && (
-        <div className="mt-2 pt-2 border-t border-gray-100 space-y-0.5">
-          <p className="text-[11px] text-gray-400">
-            Explored {pipeline.exploredAt}
-          </p>
-          {pipeline.draftsGenerated !== undefined && pipeline.draftsGenerated > 0 && (
-            <p className="text-[11px] text-blue-500 font-medium">
-              {pipeline.draftsGenerated} draft{pipeline.draftsGenerated > 1 ? "s" : ""} ready
-            </p>
-          )}
-          {pipeline.diffsFound > 0 && (
-            <p className="text-[11px] text-amber-600 font-medium">
-              {pipeline.diffsFound} issue{pipeline.diffsFound > 1 ? "s" : ""}
-            </p>
-          )}
-          {pipeline.classification && (
-            <p className="text-[11px] text-gray-400">
-              {Object.entries(pipeline.classification.types || {}).map(([t, n]) => `${n} ${t}`).join(", ")}
-            </p>
-          )}
-        </div>
+      {readiness !== "scaffolding" && (
+        <p className="text-[11px] mt-2 font-medium" style={{ color: readiness === "published" ? "#059669" : readiness === "drafted" ? "#3b82f6" : "#d97706" }}>
+          {readiness === "published" && `${state.programs.filter(p => p.lastVerifiedDate).length} verified`}
+          {readiness === "drafted" && `${draftCount} drafts`}
+          {readiness === "explored" && "Explored"}
+        </p>
       )}
     </button>
   );
@@ -1162,75 +1128,46 @@ export default function AdminBenefitsPage() {
     return counts;
   }, []);
 
+  // Split states into active (published/drafted/explored) and backlog (scaffolding)
+  const activeStates = useMemo(() =>
+    filteredStates.filter((s) => getStateReadiness(s) !== "scaffolding"),
+  [filteredStates]);
+  const backlogStates = useMemo(() =>
+    filteredStates.filter((s) => getStateReadiness(s) === "scaffolding"),
+  [filteredStates]);
+
   return (
     <div>
-      {/* Summary Bar */}
+      {/* Header — serif title + status line */}
       <div className="mb-8">
-        <div className="flex items-baseline justify-between mb-4">
-          <h1 className="text-2xl font-semibold text-gray-900">Benefits Content</h1>
-          <p className="text-sm text-gray-400">
-            {globalStats.totalPrograms.toLocaleString()} programs &middot; {allStates.length} states
-          </p>
-        </div>
+        <h1 className="text-display-xs font-bold text-gray-900 font-serif">Benefits Content</h1>
+        <p className="text-sm text-gray-500 mt-1">
+          {globalStats.readiness.drafted > 0 && (
+            <><span className="font-medium text-gray-700">{globalStats.readiness.drafted}</span> drafted</>
+          )}
+          {globalStats.readiness.published > 0 && (
+            <> &middot; <span className="font-medium text-gray-700">{globalStats.readiness.published}</span> published</>
+          )}
+          {globalStats.readiness.explored > 0 && (
+            <> &middot; <span className="font-medium text-gray-700">{globalStats.readiness.explored}</span> explored</>
+          )}
+          {globalStats.readiness.scaffolding > 0 && (
+            <> &middot; <span className="text-gray-400">{globalStats.readiness.scaffolding} awaiting pipeline</span></>
+          )}
+          <> &middot; {globalStats.totalDrafts} program drafts &middot; {globalStats.totalPrograms.toLocaleString()} programs total</>
+        </p>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {/* Pipeline Coverage */}
-          <div className="p-4 rounded-xl border border-gray-200 bg-white">
-            <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider mb-1">Pipeline Coverage</p>
-            <p className="text-2xl font-semibold text-gray-900">{globalStats.exploredCount}<span className="text-base text-gray-400 font-normal">/{allStates.length}</span></p>
-            <p className="text-[11px] text-gray-400 mt-2">
-              states explored
-            </p>
-          </div>
-
-          {/* Drafts */}
-          <div className="p-4 rounded-xl border border-gray-200 bg-white">
-            <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider mb-1">Drafts Generated</p>
-            <p className="text-2xl font-semibold text-gray-900">{globalStats.totalDrafts}</p>
-            <p className="text-[11px] text-gray-400 mt-2">
-              programs with content drafts
-            </p>
-          </div>
-
-          {/* State Readiness */}
-          <div className="p-4 rounded-xl border border-gray-200 bg-white col-span-2">
-            <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider mb-1">State Readiness</p>
-            <div className="flex items-center gap-4 mt-1">
-              {globalStats.readiness.published > 0 && (
-                <span className="inline-flex items-center gap-1.5 text-xs">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                  <span className="text-gray-600 font-medium">{globalStats.readiness.published} published</span>
-                </span>
-              )}
-              {globalStats.readiness.drafted > 0 && (
-                <span className="inline-flex items-center gap-1.5 text-xs">
-                  <span className="w-2 h-2 rounded-full bg-blue-400" />
-                  <span className="text-gray-600 font-medium">{globalStats.readiness.drafted} drafted</span>
-                </span>
-              )}
-              {globalStats.readiness.explored > 0 && (
-                <span className="inline-flex items-center gap-1.5 text-xs">
-                  <span className="w-2 h-2 rounded-full bg-amber-400" />
-                  <span className="text-gray-600 font-medium">{globalStats.readiness.explored} explored</span>
-                </span>
-              )}
-              <span className="inline-flex items-center gap-1.5 text-xs">
-                <span className="w-2 h-2 rounded-full bg-gray-200" />
-                <span className="text-gray-400">{globalStats.readiness.scaffolding} scaffolding</span>
-              </span>
-            </div>
-            <div className="flex gap-0.5 mt-3 h-1.5 rounded-full overflow-hidden bg-gray-100">
-              {globalStats.readiness.published > 0 && (
-                <div className="bg-emerald-400" style={{ width: `${(globalStats.readiness.published / allStates.length) * 100}%` }} />
-              )}
-              {globalStats.readiness.drafted > 0 && (
-                <div className="bg-blue-400" style={{ width: `${(globalStats.readiness.drafted / allStates.length) * 100}%` }} />
-              )}
-              {globalStats.readiness.explored > 0 && (
-                <div className="bg-amber-400" style={{ width: `${(globalStats.readiness.explored / allStates.length) * 100}%` }} />
-              )}
-            </div>
-          </div>
+        {/* Readiness bar */}
+        <div className="flex gap-0.5 mt-3 h-2 rounded-full overflow-hidden bg-gray-100 max-w-lg">
+          {globalStats.readiness.published > 0 && (
+            <div className="bg-emerald-400 transition-all" style={{ width: `${(globalStats.readiness.published / allStates.length) * 100}%` }} />
+          )}
+          {globalStats.readiness.drafted > 0 && (
+            <div className="bg-blue-400 transition-all" style={{ width: `${(globalStats.readiness.drafted / allStates.length) * 100}%` }} />
+          )}
+          {globalStats.readiness.explored > 0 && (
+            <div className="bg-amber-400 transition-all" style={{ width: `${(globalStats.readiness.explored / allStates.length) * 100}%` }} />
+          )}
         </div>
       </div>
 
@@ -1301,9 +1238,9 @@ export default function AdminBenefitsPage() {
         </div>
       ) : (
         <>
-          {/* Search + filters */}
-          <div className="flex items-center gap-3 mb-5">
-            <div className="relative flex-1 max-w-xs">
+          {/* Search */}
+          <div className="mb-5">
+            <div className="relative max-w-xs">
               <svg
                 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
                 fill="none"
@@ -1320,52 +1257,32 @@ export default function AdminBenefitsPage() {
                 className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-colors"
               />
             </div>
-            <div className="flex items-center gap-1">
-              {([
-                { key: "all" as ReadinessFilter, label: "All" },
-                { key: "published" as ReadinessFilter, label: "Published" },
-                { key: "drafted" as ReadinessFilter, label: "Drafted" },
-                { key: "explored" as ReadinessFilter, label: "Explored" },
-                { key: "scaffolding" as ReadinessFilter, label: "Scaffolding" },
-              ]).filter((f) => f.key === "all" || readinessCounts[f.key] > 0).map(
-                (f) => (
-                  <button
-                    key={f.key}
-                    onClick={() => setReadinessFilter(f.key)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                      readinessFilter === f.key
-                        ? "bg-gray-900 text-white"
-                        : "text-gray-500 hover:bg-gray-100"
-                    }`}
-                  >
-                    {f.label} {readinessCounts[f.key]}
-                  </button>
-                )
-              )}
-            </div>
           </div>
 
-          {/* State grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-            {filteredStates.map((state) => (
-              <StateCard
-                key={state.abbreviation}
-                state={state}
-                onClick={() => { setSelectedState(state.abbreviation); setSelectedRegion(null); }}
-              />
-            ))}
-          </div>
-
-          {filteredStates.length === 0 && (
-            <div className="text-center py-16">
-              <p className="text-sm text-gray-400">No states match your search</p>
+          {/* Active states — the ones that matter */}
+          {activeStates.length > 0 && (
+            <div className="mb-8">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-gray-400 mb-3">
+                Active ({activeStates.length})
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                {activeStates.map((state) => (
+                  <StateCard
+                    key={state.abbreviation}
+                    state={state}
+                    onClick={() => { setSelectedState(state.abbreviation); setSelectedRegion(null); }}
+                  />
+                ))}
+              </div>
             </div>
           )}
 
-          {/* Regions grid */}
+          {/* Regions */}
           {regions.length > 0 && (
-            <div className="mt-8">
-              <h2 className="text-lg font-semibold text-gray-900 mb-3">Regions</h2>
+            <div className="mb-8">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-gray-400 mb-3">
+                Regions ({regions.length})
+              </p>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                 {regions.map((region) => (
                   <button
@@ -1373,19 +1290,43 @@ export default function AdminBenefitsPage() {
                     onClick={() => { setSelectedRegion(region.key); setSelectedState(null); }}
                     className="text-left p-4 rounded-xl border border-blue-200 hover:border-blue-300 bg-white hover:shadow-sm transition-all duration-150 group"
                   >
-                    <div className="flex items-center gap-2 mb-2">
+                    <div className="flex items-center gap-2 mb-1">
                       <span className="w-2 h-2 rounded-full bg-blue-400" />
                       <span className="text-sm font-semibold text-gray-900">{region.name}</span>
                     </div>
                     <p className="text-[11px] text-gray-400">
                       {region.programCount} programs{region.parentState ? ` · ${region.parentState}` : ""}
                     </p>
-                    {region.hasOverview && (
-                      <p className="text-[11px] text-blue-500 font-medium mt-1">Overview ready</p>
-                    )}
                   </button>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Backlog states — compressed */}
+          {backlogStates.length > 0 && (
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-gray-400 mb-3">
+                Awaiting pipeline ({backlogStates.length})
+              </p>
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-1.5">
+                {backlogStates.map((state) => (
+                  <button
+                    key={state.abbreviation}
+                    onClick={() => { setSelectedState(state.abbreviation); setSelectedRegion(null); }}
+                    className="text-left px-3 py-2 rounded-lg border border-gray-100 bg-white hover:border-gray-200 hover:bg-gray-50 transition-colors"
+                  >
+                    <span className="text-xs font-semibold text-gray-500">{state.abbreviation}</span>
+                    <span className="text-[11px] text-gray-400 ml-1.5">{state.programs.length}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {filteredStates.length === 0 && (
+            <div className="text-center py-16">
+              <p className="text-sm text-gray-400">No states match your search</p>
             </div>
           )}
         </>

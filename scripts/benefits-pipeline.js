@@ -1836,13 +1836,19 @@ function generatePipelineDrafts() {
       .map((p) => {
         // Strip _raw and keep the structured draft content
         const { _raw, ...clean } = p;
-        // Clean income table rows — LLM sometimes adds extra fields
+        // Clean income table rows — LLM sometimes adds extra fields or non-numeric values
         if (clean.structuredEligibility?.incomeTable) {
-          clean.structuredEligibility.incomeTable = clean.structuredEligibility.incomeTable.map((row) => ({
-            householdSize: row.householdSize,
-            monthlyLimit: row.monthlyLimit,
-            ...(row.annualLimit ? { annualLimit: row.annualLimit } : {}),
-          }));
+          clean.structuredEligibility.incomeTable = clean.structuredEligibility.incomeTable
+            .filter((row) => typeof row.householdSize === "number" && typeof row.monthlyLimit === "number")
+            .map((row) => ({
+              householdSize: row.householdSize,
+              monthlyLimit: row.monthlyLimit,
+              ...(row.annualLimit && typeof row.annualLimit === "number" ? { annualLimit: row.annualLimit } : {}),
+            }));
+          // Drop empty tables
+          if (clean.structuredEligibility.incomeTable.length === 0) {
+            clean.structuredEligibility.incomeTable = null;
+          }
         }
         return clean;
       });

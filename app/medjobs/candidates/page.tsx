@@ -210,7 +210,6 @@ export default function CandidateBrowsePage() {
                   key={candidate.id}
                   candidate={candidate}
                   basePath="/medjobs/candidates"
-                  isVerified={false}
                 />
               ))}
             </div>

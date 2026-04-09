@@ -16,12 +16,6 @@ interface ReachOutDrawerProps {
   providerPaymentMethods?: string[];
   sending?: boolean;
   sendError?: string | null;
-  /** Whether the provider is verified */
-  isVerified?: boolean;
-  /** The provider's verification state (unverified, pending, verified, rejected) */
-  verificationState?: string;
-  /** Callback when provider wants to verify */
-  onVerifyClick?: () => void;
 }
 
 // ── Helpers ──
@@ -209,11 +203,7 @@ export default function ReachOutDrawer({
   providerProfile,
   sending = false,
   sendError,
-  isVerified = false,
-  verificationState,
-  onVerifyClick,
 }: ReachOutDrawerProps) {
-  const isPending = verificationState === "pending";
   const [message, setMessage] = useState("");
   const [saveAsDefault, setSaveAsDefault] = useState(false);
   const [activeTone, setActiveTone] = useState<ToneType>("introduce");
@@ -537,14 +527,7 @@ export default function ReachOutDrawer({
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <p className="text-sm font-medium text-gray-900 truncate">{providerName}</p>
-                  {isVerified && (
-                    <svg className="w-4 h-4 text-[#2a7a6e] shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-label="Verified">
-                      <path fillRule="evenodd" d="M8.603 3.799A4.49 4.49 0 0112 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 013.498 1.307 4.491 4.491 0 011.307 3.497A4.49 4.49 0 0121.75 12a4.49 4.49 0 01-1.549 3.397 4.491 4.491 0 01-1.307 3.497 4.491 4.491 0 01-3.497 1.307A4.49 4.49 0 0112 21.75a4.49 4.49 0 01-3.397-1.549 4.49 4.49 0 01-3.498-1.306 4.491 4.491 0 01-1.307-3.498A4.49 4.49 0 012.25 12c0-1.357.6-2.573 1.549-3.397a4.49 4.49 0 011.307-3.497 4.49 4.49 0 013.497-1.307zm7.007 6.387a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clipRule="evenodd" />
-                    </svg>
-                  )}
-                </div>
+                <p className="text-sm font-medium text-gray-900 truncate">{providerName}</p>
                 {providerLocation && (
                   <p className="text-xs text-gray-500 truncate">{providerLocation}</p>
                 )}
@@ -599,24 +582,6 @@ export default function ReachOutDrawer({
           </div>
           <p className="text-[11px] text-center text-gray-400 mt-3">
             {firstName} will see your profile
-            {!isVerified && isPending && (
-              <span className="text-amber-600 font-medium">
-                {" · "}Verification in progress
-              </span>
-            )}
-            {!isVerified && !isPending && (
-              <>
-                {" · "}
-                <button
-                  type="button"
-                  onClick={onVerifyClick}
-                  className="font-semibold text-[#2a7a6e] hover:text-[#1f5c54] transition-colors"
-                >
-                  Get verified
-                </button>
-                {" for 2x more responses"}
-              </>
-            )}
           </p>
         </div>
       </div>

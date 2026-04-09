@@ -205,14 +205,14 @@ export async function POST(request: Request) {
             }
           }
 
+          // Everyone who completes email verification gets full access
           const shouldAutoVerify = emailMatches || domainMatches;
 
           // Atomic claim: only update if account_id is still NULL
           const claimUpdate: Record<string, unknown> = {
             account_id: accountId,
             claim_state: shouldAutoVerify ? "claimed" : "pending",
-            // Auto-verify if email or domain matches
-            verification_state: shouldAutoVerify ? "verified" : "unverified",
+            verification_state: "verified",
           };
 
           if (!existing.display_name?.trim() && (orgName || sanitizedDisplayName))
@@ -296,7 +296,7 @@ export async function POST(request: Request) {
             zip: zip || null,
             care_types: sanitizedCareTypes,
             claim_state: "pending",
-            verification_state: "unverified",
+            verification_state: "verified",
             source: "user_created",
             is_active: true,
             metadata: {

@@ -43,7 +43,7 @@ const ROLE_LABELS: Record<string, string> = {
   other: "Other",
 };
 
-type StatusFilter = "pending" | "verified" | "rejected";
+type StatusFilter = "pending" | "approved" | "rejected";
 
 export default function AdminVerificationPage() {
   const [filter, setFilter] = useState<StatusFilter>("pending");
@@ -87,7 +87,7 @@ export default function AdminVerificationPage() {
 
   const filters: { label: string; value: StatusFilter }[] = [
     { label: "Pending", value: "pending" },
-    { label: "Verified", value: "verified" },
+    { label: "Approved", value: "approved" },
     { label: "Rejected", value: "rejected" },
   ];
 
@@ -100,7 +100,7 @@ export default function AdminVerificationPage() {
     return providerName.includes(searchLower) || submitterName.includes(searchLower);
   });
 
-  async function handleAction(id: string, action: "approve" | "reject" | "restore") {
+  async function handleAction(id: string, action: "approve" | "reject") {
     setActionLoading(id);
     setActionError(null);
     try {
@@ -114,11 +114,11 @@ export default function AdminVerificationPage() {
         setSelectedProvider(null);
       } else {
         const data = await res.json().catch(() => ({}));
-        setActionError(data.error || `Failed to ${action} verification. Please try again.`);
+        setActionError(data.error || `Failed to ${action} badge. Please try again.`);
       }
     } catch (err) {
       console.error("Action failed:", err);
-      setActionError(`Failed to ${action} verification. Please check your connection.`);
+      setActionError(`Failed to ${action} badge. Please check your connection.`);
     } finally {
       setActionLoading(null);
     }
@@ -132,9 +132,9 @@ export default function AdminVerificationPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Verification Requests</h1>
+        <h1 className="text-3xl font-bold text-gray-900">Badge Requests</h1>
         <p className="text-lg text-gray-600 mt-1">
-          Review and approve provider identity verification submissions.
+          Review and approve provider badge requests. Approved providers get a &quot;Verified&quot; badge on their profile.
         </p>
       </div>
 
@@ -225,14 +225,14 @@ export default function AdminVerificationPage() {
               ? "No results found"
               : filter === "pending"
                 ? "All caught up!"
-                : `No ${filter} providers`}
+                : `No ${filter} badge requests`}
           </p>
           <p className="text-sm text-gray-500 mt-1">
             {search
               ? `No providers matching "${search}"`
               : filter === "pending"
-                ? "No verification requests waiting for review."
-                : `No providers with ${filter} verification status.`}
+                ? "No badge requests waiting for review."
+                : `No providers with ${filter} badges.`}
           </p>
         </div>
       ) : (
@@ -306,14 +306,12 @@ export default function AdminVerificationPage() {
                         <td className="px-6 py-4">
                           <Badge
                             variant={
-                              provider.verification_state === "verified"
+                              filter === "approved"
                                 ? "verified"
-                                : provider.verification_state === "rejected"
-                                ? "rejected"
-                                : "pending"
+                                : "rejected"
                             }
                           >
-                            {provider.verification_state}
+                            {filter === "approved" ? "Badge Approved" : "Badge Rejected"}
                           </Badge>
                         </td>
                       )}
@@ -348,22 +346,22 @@ export default function AdminVerificationPage() {
                               </button>
                             </>
                           )}
-                          {filter === "verified" && (
+                          {filter === "approved" && (
                             <button
-                              onClick={() => handleAction(provider.id, "restore")}
+                              onClick={() => handleAction(provider.id, "reject")}
                               disabled={actionLoading === provider.id}
                               className="px-3 py-1.5 bg-amber-500 text-white text-sm font-medium rounded-lg hover:bg-amber-600 disabled:opacity-50 transition-colors"
                             >
-                              {actionLoading === provider.id ? "..." : "Revoke"}
+                              {actionLoading === provider.id ? "..." : "Revoke Badge"}
                             </button>
                           )}
                           {filter === "rejected" && (
                             <button
-                              onClick={() => handleAction(provider.id, "restore")}
+                              onClick={() => handleAction(provider.id, "approve")}
                               disabled={actionLoading === provider.id}
-                              className="px-3 py-1.5 bg-amber-500 text-white text-sm font-medium rounded-lg hover:bg-amber-600 disabled:opacity-50 transition-colors"
+                              className="px-3 py-1.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
                             >
-                              {actionLoading === provider.id ? "..." : "Restore to Pending"}
+                              {actionLoading === provider.id ? "..." : "Approve Badge"}
                             </button>
                           )}
                         </div>
@@ -424,7 +422,7 @@ function VerificationReviewModal({
     <Modal
       isOpen={true}
       onClose={onClose}
-      title="Review Verification Request"
+      title="Review Badge Request"
       size="xl"
       footer={
         <div className="flex gap-3">
@@ -440,7 +438,7 @@ function VerificationReviewModal({
             disabled={isLoading}
             className="flex-1 px-4 py-3 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 disabled:opacity-50 transition-colors"
           >
-            {isLoading ? "Processing..." : "Approve Verification"}
+            {isLoading ? "Processing..." : "Approve Badge"}
           </button>
         </div>
       }
@@ -479,7 +477,7 @@ function VerificationReviewModal({
         <div className="space-y-5">
           <div>
             <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-3">
-              Verification Submission
+              Badge Request Details
             </p>
             <div className="bg-gray-50 rounded-xl p-4 space-y-3">
               <div className="grid grid-cols-2 gap-4">
@@ -580,8 +578,8 @@ function VerificationReviewModal({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
             </svg>
           </div>
-          <p className="text-gray-500 text-sm">No verification submission found.</p>
-          <p className="text-gray-400 text-xs mt-1">This provider may have been marked pending manually.</p>
+          <p className="text-gray-500 text-sm">No badge request details found.</p>
+          <p className="text-gray-400 text-xs mt-1">This record may be from an older submission format.</p>
         </div>
       )}
     </Modal>

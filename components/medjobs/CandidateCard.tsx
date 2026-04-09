@@ -36,8 +36,6 @@ function getFirstName(name: string): string {
 interface CandidateCardProps {
   candidate: CandidateData;
   basePath: string;
-  /** If false, shows limited info and prompts verification on click */
-  isVerified?: boolean;
   /** Whether the provider has already contacted this candidate */
   isContacted?: boolean;
 }
@@ -45,7 +43,6 @@ interface CandidateCardProps {
 export default function CandidateCard({
   candidate,
   basePath,
-  isVerified = true, // Default to true for public pages that don't pass this
   isContacted = false,
 }: CandidateCardProps) {
   const meta = candidate.metadata;
@@ -97,12 +94,10 @@ export default function CandidateCard({
 
         <div className="min-w-0 flex-1 pt-0.5">
           <h3 className="text-lg font-semibold text-gray-900 group-hover:text-gray-700 transition-colors leading-tight truncate">
-            {isVerified ? candidate.display_name : firstName}
+            {candidate.display_name}
           </h3>
           <p className="text-sm text-gray-500 mt-0.5 truncate">
-            {isVerified
-              ? (meta.university || "University not specified")
-              : "Details available after verification"}
+            {meta.university || "University not specified"}
           </p>
         </div>
       </div>

@@ -30,30 +30,46 @@ export async function PATCH(
     const body = await request.json();
     const action = body.action as string;
 
-    if (!["approve", "reject", "restore"].includes(action)) {
+    if (!["approve", "reject"].includes(action)) {
       return NextResponse.json(
-        { error: "Invalid action. Must be 'approve', 'reject', or 'restore'." },
+        { error: "Invalid action. Must be 'approve' or 'reject'." },
         { status: 400 }
       );
     }
 
-    // Determine new verification state based on action
-    let newState: string;
-    if (action === "approve") {
-      newState = "verified";
-    } else if (action === "reject") {
-      newState = "rejected";
-    } else {
-      // restore - move back to pending for re-review
-      newState = "pending";
-    }
     const db = getServiceClient();
+
+    // First fetch the current profile to get metadata
+    const { data: currentProfile, error: fetchError } = await db
+      .from("business_profiles")
+      .select("metadata")
+      .eq("id", id)
+      .single();
+
+    if (fetchError) {
+      console.error("Failed to fetch profile:", fetchError);
+      return NextResponse.json({ error: "Profile not found" }, { status: 404 });
+    }
+
+    // Update metadata with badge status
+    // Note: verification_state stays "verified" - this is about the badge, not access
+    const currentMetadata = (currentProfile?.metadata as Record<string, unknown>) || {};
+    const updatedMetadata = {
+      ...currentMetadata,
+      badge_approved: action === "approve",
+      badge_approved_at: action === "approve" ? new Date().toISOString() : null,
+      badge_rejected: action === "reject",
+      badge_rejected_at: action === "reject" ? new Date().toISOString() : null,
+    };
 
     const { data: profile, error: updateError } = await db
       .from("business_profiles")
-      .update({ verification_state: newState, updated_at: new Date().toISOString() })
+      .update({
+        metadata: updatedMetadata,
+        updated_at: new Date().toISOString(),
+      })
       .eq("id", id)
-      .select("id, display_name, verification_state, account_id, slug")
+      .select("id, display_name, verification_state, account_id, slug, metadata")
       .single();
 
     if (updateError) {
@@ -63,10 +79,8 @@ export async function PATCH(
 
     // Log audit action
     const auditAction = action === "approve"
-      ? "approve_verification"
-      : action === "reject"
-        ? "reject_verification"
-        : "restore_verification";
+      ? "approve_badge"
+      : "reject_badge";
     await logAuditAction({
       adminUserId: adminUser.id,
       action: auditAction,
@@ -74,24 +88,22 @@ export async function PATCH(
       targetId: id,
       details: {
         provider_name: profile?.display_name,
-        new_state: newState,
+        badge_approved: action === "approve",
       },
     });
 
     // Slack alert (fire-and-forget)
     try {
-      const emoji = action === "approve" ? ":white_check_mark:" : action === "reject" ? ":x:" : ":arrows_counterclockwise:";
-      const actionText = action === "restore" ? "restored to pending" : `${action}d`;
-      const text = `${emoji} *Verification ${actionText}* — ${profile?.display_name || id} by ${user.email}`;
+      const emoji = action === "approve" ? ":white_check_mark:" : ":x:";
+      const text = `${emoji} *Badge ${action}d* — ${profile?.display_name || id} by ${user.email}`;
       await sendSlackAlert(text);
     } catch {
       // Non-blocking
     }
 
     // Email + Loops notification to provider (fire-and-forget)
-    // Only send emails for approve/reject decisions, not restore (which just moves to pending)
     try {
-      if (profile?.account_id && action !== "restore") {
+      if (profile?.account_id) {
         const { data: account } = await db
           .from("accounts")
           .select("user_id")

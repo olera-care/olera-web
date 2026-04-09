@@ -252,15 +252,19 @@ function DashboardContent({
         </div>
       )}
 
-      {/* Mobile verification card - hidden on desktop, shown for unverified/pending */}
-      {profile.verification_state !== "verified" && (
-        <div className="lg:hidden mb-4">
-          <MobileVerificationCard
-            verificationState={profile.verification_state}
-            onVerify={() => handleOpenVerificationModal()}
-          />
-        </div>
-      )}
+      {/* Mobile badge request card - hidden on desktop, shown if badge not approved and (no submission OR rejected) */}
+      {(() => {
+        const meta = profile.metadata as { badge_approved?: boolean; badge_rejected?: boolean; verification_submission?: unknown } | null;
+        const wasRejected = meta?.badge_rejected === true;
+        const hasSubmission = !!meta?.verification_submission;
+        // Show if: not approved AND (no submission OR was rejected)
+        const shouldShowMobileBadgeCard = !meta?.badge_approved && (!hasSubmission || wasRejected);
+        return shouldShowMobileBadgeCard ? (
+          <div className="lg:hidden mb-4">
+            <MobileBadgeRequestCard onRequestBadge={() => handleOpenVerificationModal()} wasRejected={wasRejected} />
+          </div>
+        ) : null;
+      })()}
 
       {/* Mobile progress banner - hidden on desktop */}
       <MobileProgressBanner
@@ -351,10 +355,9 @@ function DashboardContent({
               animationDelay: "450ms",
             }}
           >
-            {/* Verification card - shown only for unverified/pending */}
+            {/* Badge request card - shown if form not submitted or was rejected */}
             <VerificationStatusCard
-              verificationState={profile.verification_state}
-              profileId={profile.id}
+              metadata={profile.metadata as { verification_submission?: { name: string; role: string; phone?: string | null; submitted_at: string }; badge_approved?: boolean; badge_rejected?: boolean } | null}
               onRequestVerification={handleOpenVerificationModal}
             />
 
@@ -521,58 +524,39 @@ function MobileProgressBanner({
   );
 }
 
-// ── Mobile verification card (visible only on mobile for unverified/pending) ──
+// ── Mobile badge request card (visible only on mobile when badge not requested/approved yet) ──
 
-function MobileVerificationCard({
-  verificationState,
-  onVerify,
+function MobileBadgeRequestCard({
+  onRequestBadge,
+  wasRejected = false,
 }: {
-  verificationState: string;
-  onVerify: () => void;
+  onRequestBadge: () => void;
+  wasRejected?: boolean;
 }) {
-  const isPending = verificationState === "pending";
-
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-4">
       <div className="flex items-start gap-3">
         {/* Icon */}
-        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-          isPending
-            ? "bg-blue-100"
-            : "bg-gray-100"
-        }`}>
-          {isPending ? (
-            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          ) : (
-            <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
-            </svg>
-          )}
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${wasRejected ? "bg-amber-100" : "bg-primary-100"}`}>
+          <svg className={`w-5 h-5 ${wasRejected ? "text-amber-600" : "text-primary-600"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+          </svg>
         </div>
 
         {/* Content */}
         <div className="flex-1 min-w-0">
           <h4 className="text-[15px] font-semibold text-gray-900">
-            {isPending ? "Verification Pending" : "Verify Your Business"}
+            {wasRejected ? "Resubmit for Badge" : "Get Verified Badge"}
           </h4>
           <p className="text-sm text-gray-500 mt-0.5">
-            {isPending
-              ? "Under review (1-2 business days)"
-              : "Unlock full features and reach more families"
-            }
+            {wasRejected ? "Your previous request needs attention" : "Stand out to families with a trust badge"}
           </p>
           <button
             type="button"
-            onClick={onVerify}
-            className={`mt-3 w-full py-2.5 text-sm font-semibold rounded-xl transition-colors ${
-              isPending
-                ? "text-gray-700 bg-gray-100 hover:bg-gray-200"
-                : "text-white bg-gray-900 hover:bg-gray-800"
-            }`}
+            onClick={onRequestBadge}
+            className="mt-3 w-full py-2.5 text-sm font-semibold rounded-xl transition-colors text-white bg-gray-900 hover:bg-gray-800"
           >
-            {isPending ? "Update Submission" : "Complete Verification"}
+            {wasRejected ? "Resubmit Request" : "Get Verified"}
           </button>
         </div>
       </div>

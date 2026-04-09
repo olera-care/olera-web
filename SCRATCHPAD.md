@@ -1,81 +1,66 @@
 # Scratchpad
 
 > A living document for tracking work in progress, decisions, and context between sessions.
-> Older sessions archived to `archive/SCRATCHPAD-2026-02.md` and `archive/SCRATCHPAD-2026-03.md`
+> Older sessions archived to `archive/SCRATCHPAD-2026-02.md`, `archive/SCRATCHPAD-2026-03.md`, and `archive/SCRATCHPAD-2026-04.md`
+
+---
+
+## North Star
+
+**The benefits pipeline is a content production system, not a data quality tool.**
+
+The pivot (Apr 8): the pipeline used to research programs and output a report for humans to act on. Now it researches, classifies, and generates the actual page content — intro paragraphs, structured eligibility, application guides, FAQs — in Olera's voice. Research and content generation are one skill, not two steps with a lossy handoff.
+
+**Where we're headed:**
+- Every state gets pipeline-generated content: a state overview page and individual program pages, each tailored to the program's type and complexity
+- The admin dashboard is the operational command center: review drafts, leave comments, track status, preview pages, approve for publishing
+- The team runs `/benefits-pipeline` to process states. Approved drafts flow into the codebase automatically. Pages go live on deploy.
+- Geographic entities are flexible — a program's natural scope (state, county, service area, region, city) is discovered by the pipeline, not forced into a URL hierarchy. "PACE in Harris County" and "SNAP in Texas" and "PACE in the DMV" all work.
+
+**What's different about Olera's approach:** Most benefits sites dump government data into templates. Our pages read like a thoughtful guide written by someone who understands the program and cares whether your family gets help. The pipeline enforces this: caregiver-first voice, specific numbers with sources, honest about unknowns, no bureaucratic filler.
+
+**Open architectural questions:**
+1. **Entity model for geography** — programs need county, city, region, and service-area support. Current data model has `geographicScope` with `localEntities` but the page routing is still `/waiver-library/{state}/{program}`. Need to evolve to support sub-state entities without rigid hierarchy.
+2. **State page old/new toggle in admin** — program-level has Draft/Current, state-level doesn't yet. Need parity.
+3. **Batch apply workflow** — slash command detects approved drafts, but the actual "write to waiver-library.ts" step hasn't been tested at scale.
+4. **Content freshness** — income limits and program rules change annually. Pipeline needs a re-verification mode, not just initial generation.
 
 ---
 
 ## Current Focus
 
-- **Benefits Pipeline v2: Content Production System** (branch: `eager-ride`) — IN PROGRESS
-  - Evolving pipeline from research/QA tool → full content production system
-  - Five-phase lifecycle: Identify → Research → Classify → Draft → Review
-  - See Notion doc for full spec: "Benefits Pipeline v2 — Content Production System"
-  - **Phase 1: Foundation** — COMPLETE (`d8baefec`)
-    - [x] Data model evolution (programType, geographicScope, complexity, contentSections, contentStatus)
-    - [x] Classify phase — tested on MI: 11 benefit, 2 resource, 2 navigator, 1 employment
-    - [x] Draft phase — 16/16 MI programs drafted via Claude API, zero errors
-    - [x] Admin dashboard summary bar (4 metric cards, state readiness color-coding)
-    - [x] Admin dashboard draft preview (DraftPreview component, Draft/Current toggle per program)
-    - [x] Auto-generated `pipeline-drafts.ts` for dashboard import
-    - [x] Slash command updated for 6-phase lifecycle
-    - [x] Self-review: 4 bugs found and fixed (classify misclassification, prompt bloat, token limits, JSON template)
-    - [x] Build fix: LLM extra fields in income table rows stripped by generator
-    - [x] Page component taste pass — ProgramPageV2 component built and deployed
-  - **Phase 2: First Test States + Page Refinement** (in progress)
-    - [x] MI draft phase run successfully (16/16 programs, $0.30)
-    - [x] MI Choice Waiver applied as first v2 test program with full draft content
-    - [x] V2 page live: content-forward layout, prose-width, no dark hero, no card soup
-    - [x] Taste refinements: asset limits as prose, callouts merged, pre-footer hidden
-    - [x] Save program to profile (auth-gated bookmark, /saved page, Supabase table)
-    - [x] Draft review workflow (status, comments, history in admin dashboard)
-    - [x] Preview button in admin dashboard draft view
-    - [x] Slash command auto-detects approved drafts
-    - [x] State-level content generation (pipeline + StatePageV2 component)
-    - [x] State page preview link in admin dashboard
-    - [ ] Run pipeline on FL or CA
-    - [ ] Apply approved MI drafts to waiver-library.ts (batch via slash command)
-    - [ ] Review draft quality with Chantel
+**Benefits Pipeline v2** (branch: `eager-ride`) — the system is built, now proving it works.
 
-- **Admin Panel 2.0 QA Fixes** (branch: `noble-yalow`) — MERGED (PR #509)
-  - All code items complete. Only remaining: purchase Perplexity AI premium (non-code)
+### What's shipped
+- 6-phase pipeline: explore → dive → compare → classify → draft → report
+- Data model: programType, geographicScope, complexity, structuredEligibility, applicationGuide, contentSections, contentStatus
+- Admin dashboard: summary bar, content quality indicators, draft preview with old/new toggle, review workflow (status + comments), preview buttons
+- ProgramPageV2: content-forward, prose-width, serif headings, structured eligibility as prose, clean FAQs, no card soup
+- StatePageV2: hand-drawn SVG illustrations, "where to start" picks, need-based groupings, quick facts, organic design language
+- Save program: auth-gated bookmark, Supabase persistence, /saved page
+- Michigan: 16 programs drafted + state overview generated. MI Choice applied as live v2 test.
 
-- **Senior Benefits Pipeline** (branch: `noble-pare`) — MERGED (PR #502)
+### What's next
+1. State page old/new toggle in admin dashboard
+2. Apply approved MI drafts to waiver-library.ts (all 16 programs)
+3. Run pipeline on FL or CA — prove the system generalizes
+4. Review draft quality with Chantel
+5. Evolve geographic entity model for sub-state routing
 
-- **Aging in America** — SHIPPED (PRs #493-498 merged)
-
-- **Homepage De-Jank + Mega Menu + Search Bar Polish** (branch: `gifted-rosalind`) — READY FOR QA
-
-- **Provider Page CTA Conversion Redesign** — PUSHED TO `fine-dijkstra`, TESTING ON VERCEL PREVIEW
-
-- **Strict User Account Type Separation** (PR #463) — READY FOR MERGE
-
-- **Staging → Main Promotion** — IN PROGRESS (253 commits audited)
-
-- **SEO: City/Browse Page Optimization** — ANALYSIS COMPLETE, IMPLEMENTATION NEXT
-
-- **Care Seeker Connection Flow De-Jank** (branch: `helpful-euler`) — IN PROGRESS
-
-- **Family Activity Center** (branch: `logical-mahavira`) — IN PROGRESS
+### Other active work (different branches)
+- Homepage de-jank + mega menu (`gifted-rosalind`) — ready for QA
+- Provider page CTA redesign (`fine-dijkstra`) — testing on Vercel
+- User account separation (PR #463) — ready for merge
+- Staging → main promotion — 253 commits audited, in progress
+- SEO city optimization — analysis done, implementation next
+- Care seeker connection flow (`helpful-euler`) — in progress
+- Family activity center (`logical-mahavira`) — in progress
 
 ---
 
 ## Blocked / Needs Input
 
 (none active)
-
----
-
-## Next Up
-
-1. Apply approved MI drafts to waiver-library.ts (run `/benefits-pipeline`)
-2. Run pipeline on FL or CA
-3. Review draft quality with Chantel
-4. Seed TX: `/api/admin/seed-sbf-programs?state=TX&confirm=true`
-4. MedJobs candidates detail page taste pass
-5. SEO city-specific content sections
-6. Merge PR #463 (user account separation)
-7. Continue staging → main promotion
 
 ---
 
@@ -110,16 +95,56 @@
 
 ---
 
+## Design Language (v2 Benefits Pages)
+
+The v2 design was approved Apr 8-9. Reuse and extend this language for all new benefits content.
+
+**Core principles:**
+- Content-forward: the page reads like a guide, not a dashboard of cards
+- Typography creates hierarchy: serif headings, quiet uppercase section labels, prose-width body
+- Decoration is rare and meaningful — when it exists, it adds warmth, not noise
+
+**Visual elements (StatePageV2 — approved direction):**
+- Hand-drawn SVG illustrations: organic teal blobs (#96c8c8), warm accent blobs (#e9bd91), floating circles
+- Wavy divider SVG between sections (not hard lines)
+- Hand-drawn underline on key heading words
+- Need category icons: custom SVG vignettes (home, medical, food, advice, money, work) with teal strokes + warm accents
+- "Where to start" cards: numbered picks, white bg, subtle border, hover shadow
+- "Browse by need" groups: icons + linked program pills in primary-50
+- Program list: clean rows with type badges, not card grid
+
+**Program page (ProgramPageV2):**
+- Light header with serif title, no dark hero banner
+- Single column at max-w-2xl (readable), wider for maps/tables
+- Eligibility as prose: "Assets must be under $9,950 — but not everything counts. Your parent can keep their primary residence..."
+- Application steps as numbered flowing content, not equal-sized cards
+- Callouts merged into "Things to know" prose (not stacked colored boxes)
+- Clean FAQ as details/summary with chevron
+- No bottom CTA banner — page ends when content ends
+- Auth-gated bookmark icon next to title
+
+**State page (StatePageV2):**
+- Organic blob illustrations in header
+- "13 programs to help your family" (not "Saving families up to $35,000")
+- State-specific intro with real numbers
+- "Where to start" with top 3 ranked programs
+- "Good to know" quick facts
+- "Browse by what you need" with custom SVG icons per category
+- Resources vs benefits explanation
+- All programs as clean list rows
+
+---
+
 ## Notes & Observations
 
 - Project is a TypeScript/Next.js 16 web app for senior care discovery
-- Benefits data: 1,145 programs across 50 states in `data/waiver-library.ts` (~11,740 lines). Only 15 (1.3%, all TX) have real content.
+- Benefits data: 1,145 programs across 50 states in `data/waiver-library.ts` (~11,740 lines). Only 15 (1.3%, all TX) have real content. Michigan has 16 pipeline drafts.
+- Pipeline cost: ~$0.40/state (research + content generation)
 - Chantel Research files: `~/Desktop/olera-hq/Senior Benefits/Chantel Research/` — TX audit CSV + accuracy docx
-- Notion strategy docs: "Benefits: Turning Traffic into Platform Users" + "Benefits Data: Getting It Right Before We Scale"
+- Notion docs: "Benefits Pipeline v2 — Content Production System" (spec), "Benefits Hub Next Steps" (Apr 7 meeting)
 - Waiver library pages auto-generate via `generateStaticParams` — adding programs = pages on deploy
-- Texas has special SEO routes at `/texas/benefits/`, other states at `/waiver-library/{state}/`
-- Pipeline reference: `scripts/pipeline-batch.js` (city pipeline, 1322 lines)
-- Michigan pipeline findings: PACE age wrong (65→55), SNAP age wrong (65→60), Ombudsman has fake savings, 4 source URLs missing, 5 data fields model can't capture (asset_limits, regional_variations, waitlist, documents_required, household_size_table)
+- Anthropic API: key `olera-benefits-pipeline` in Olera org, $15 credits. Key in `~/Desktop/olera-web/.env.local`
+- Supabase tables added: `saved_programs` (035), `draft_reviews` (036)
 
 ---
 

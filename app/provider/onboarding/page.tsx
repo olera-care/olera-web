@@ -202,6 +202,7 @@ function ProviderOnboardingContent() {
     openAuth({
       defaultMode: "sign-in",
       deferred: {
+        action: "claim-listing",
         returnUrl: "/provider/onboarding",
       },
     });

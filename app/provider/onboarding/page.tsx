@@ -642,12 +642,12 @@ function ProviderOnboardingContent() {
             {/* Header - changes based on whether org is pre-selected */}
             <div className="text-center mb-8 lg:mb-12">
               <h1 className="text-2xl lg:text-4xl font-display font-bold text-gray-900 tracking-tight">
-                {selectedOrg && selectedOrg.claimState !== "claimed"
+                {selectedOrg
                   ? "Confirm your organization"
                   : "Find your organization"}
               </h1>
               <p className="text-gray-500 mt-4 lg:mt-6 text-base lg:text-lg leading-relaxed max-w-md mx-auto">
-                {selectedOrg && selectedOrg.claimState !== "claimed"
+                {selectedOrg
                   ? "Enter your email to continue."
                   : "Search our directory of 50,000+ providers. Claim your listing or create a new one."}
               </p>
@@ -806,7 +806,7 @@ function ProviderOnboardingContent() {
         {/* Bottom Nav */}
         <OnboardingBottomNav
           primary={{
-            label: selectedOrg && selectedOrg.claimState !== "claimed" ? "Continue" : "Find Your Organization",
+            label: selectedOrg ? "Continue" : "Find Your Organization",
             onClick: () => searchFormRef.current?.requestSubmit(),
             loading: searching,
             disabled: !formData.email.trim() || !formData.email.includes("@"),
@@ -1166,12 +1166,18 @@ function ProviderOnboardingContent() {
             {/* Header */}
             <div className="mb-8">
               <h1 className="text-2xl md:text-3xl font-display font-bold text-gray-900 mb-2">
-                {searchResults.length === 0 ? "No results found" : "Select your organization"}
+                {searchResults.length === 0
+                  ? "No results found"
+                  : selectedOrg && selectedOrg.claimState === "claimed"
+                    ? "This listing is claimed"
+                    : "Select your organization"}
               </h1>
               <p className="text-gray-600">
                 {searchResults.length === 0
                   ? `We couldn't find "${formData.orgName}" in ${formData.city}, ${formData.state}.`
-                  : `${searchResults.length} result${searchResults.length !== 1 ? "s" : ""} for "${formData.orgName}" near ${formData.city}, ${formData.state}`
+                  : selectedOrg && selectedOrg.claimState === "claimed"
+                    ? "Choose how you'd like to proceed."
+                    : `${searchResults.length} result${searchResults.length !== 1 ? "s" : ""} for "${formData.orgName}" near ${formData.city}, ${formData.state}`
                 }
               </p>
             </div>

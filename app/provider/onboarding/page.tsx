@@ -640,13 +640,13 @@ function ProviderOnboardingContent() {
         <div className="flex-1 flex items-center justify-center px-4 pt-12 md:pt-16 pb-24">
           <div className="w-full max-w-xl animate-fade-in">
             {/* Header - changes based on whether org is pre-selected */}
-            <div className="text-center mb-8 lg:mb-12">
-              <h1 className="text-2xl lg:text-4xl font-display font-bold text-gray-900 tracking-tight">
+            <div className="text-center mb-8">
+              <h1 className="text-2xl md:text-3xl font-display font-bold text-gray-900 tracking-tight">
                 {selectedOrg
                   ? "Confirm your organization"
                   : "Find your organization"}
               </h1>
-              <p className="text-gray-500 mt-4 lg:mt-6 text-base lg:text-lg leading-relaxed max-w-md mx-auto">
+              <p className="text-gray-500 mt-2 max-w-md mx-auto">
                 {selectedOrg
                   ? "Enter your email to continue."
                   : "Search our directory of 50,000+ providers. Claim your listing or create a new one."}
@@ -1164,15 +1164,15 @@ function ProviderOnboardingContent() {
         <div className="flex-1 px-4 py-8 md:py-12 pb-24">
           <div className="max-w-2xl mx-auto animate-fade-in">
             {/* Header */}
-            <div className="mb-8">
-              <h1 className="text-2xl md:text-3xl font-display font-bold text-gray-900 mb-2">
+            <div className="text-center mb-8">
+              <h1 className="text-2xl md:text-3xl font-display font-bold text-gray-900 tracking-tight">
                 {searchResults.length === 0
                   ? "Create your listing"
                   : selectedOrg && selectedOrg.claimState === "claimed"
                     ? "This listing is claimed"
                     : "Select your organization"}
               </h1>
-              <p className="text-gray-600">
+              <p className="text-gray-500 mt-2">
                 {searchResults.length === 0
                   ? "Let's get your organization set up on Olera."
                   : selectedOrg && selectedOrg.claimState === "claimed"
@@ -1489,11 +1489,11 @@ function ProviderOnboardingContent() {
         <div className="flex-1 px-4 py-8 md:py-12 pb-24">
           <div className="max-w-xl mx-auto animate-fade-in">
             {/* Header */}
-            <div className="mb-8">
-              <h1 className="text-2xl md:text-3xl font-display font-bold text-gray-900 mb-2">
+            <div className="text-center mb-8">
+              <h1 className="text-2xl md:text-3xl font-display font-bold text-gray-900 tracking-tight">
                 Create your listing
               </h1>
-              <p className="text-gray-600">
+              <p className="text-gray-500 mt-2">
                 Add your details to start connecting with families.
               </p>
             </div>
@@ -1719,8 +1719,8 @@ function ProviderOnboardingContent() {
               {/* Claim confirmation */}
               <div className="p-5 space-y-5">
                 <div className="text-center">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Claim this listing</h3>
-                  <p className="text-gray-600">
+                  <h3 className="text-xl font-display font-bold text-gray-900 tracking-tight">Claim this listing</h3>
+                  <p className="text-gray-500 mt-2">
                     We&apos;ll email you a link to access your dashboard.
                   </p>
                 </div>
@@ -1816,10 +1816,10 @@ function ProviderOnboardingContent() {
               </svg>
             </div>
 
-            <h1 className="text-2xl md:text-3xl font-display font-bold text-gray-900 mb-3">
+            <h1 className="text-2xl md:text-3xl font-display font-bold text-gray-900 tracking-tight">
               Check your email
             </h1>
-            <p className="text-lg text-gray-600 mb-2">
+            <p className="text-gray-500 mt-2 mb-2">
               We sent a verification link to <span className="font-semibold text-gray-900">{maskedEmail}</span>
             </p>
             {providerName && (
@@ -1918,8 +1918,8 @@ function ProviderOnboardingContent() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <h2 className="text-xl font-display font-bold text-gray-900 mb-2">Dispute submitted</h2>
-              <p className="text-gray-500">
+              <h2 className="text-xl font-display font-bold text-gray-900 tracking-tight">Dispute submitted</h2>
+              <p className="text-gray-500 mt-2">
                 We&apos;ll review and respond within 2–3 business days.
               </p>
             </div>
@@ -1965,10 +1965,10 @@ function ProviderOnboardingContent() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                   </svg>
                 </div>
-                <h2 className="text-xl font-display font-bold text-gray-900 mb-1">
+                <h2 className="text-xl font-display font-bold text-gray-900 tracking-tight">
                   Dispute this listing
                 </h2>
-                <p className="text-[15px] text-gray-500">
+                <p className="text-gray-500 mt-2">
                   Tell us why you should manage <strong className="text-gray-700">{disputeProviderName}</strong>.
                 </p>
               </div>

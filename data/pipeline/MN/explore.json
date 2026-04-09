@@ -1,0 +1,119 @@
+{
+  "entity": "Minnesota",
+  "entitySlug": "minnesota",
+  "state": "MN",
+  "stateName": "Minnesota",
+  "isRegion": false,
+  "exploredAt": "2026-04-09T08:54:05.924Z",
+  "programCount": 15,
+  "programs": [
+    {
+      "name": "Medical Assistance (MA) - Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), Qualifying Individual (QI)",
+      "what_it_does": "MA covers Medicare premiums, deductibles, and co-pays for QMB; premiums for SLMB and QI to help low-income seniors afford Medicare. These are part of MA eligibility for seniors meeting income/asset limits.[1]",
+      "who_its_for": "Medicare-enrolled seniors age 65+ with low income/assets qualifying under MA rules (income limits vary: QMB up to 100% FPL, SLMB 120%, QI 135%).[1]",
+      "official_url": "https://www.medicaidplanningassistance.org/minnesota-senior-health-care-plus/",
+      "benefit_value": "Premium payments (e.g., Part B ~$174.70/mo federally in 2024) + cost-sharing coverage; no additional premium for MA.[1]"
+    },
+    {
+      "name": "Elderly Waiver (EW)",
+      "what_it_does": "The Elderly Waiver provides home and community-based services (HCBS) to help seniors avoid nursing home placement. Services include respite care, adult day care, home-delivered meals, homemaker services, personal care assistance, and home modifications.[1]",
+      "who_its_for": "Seniors age 65+ who are MA-eligible, require nursing home level of care, but can safely remain in the community.[1]",
+      "official_url": "https://www.medicaidplanningassistance.org/minnesota-senior-health-care-plus/",
+      "benefit_value": "Waiver services tailored to prevent institutionalization; integrated into MSHO/MSC+ plans with no additional premium.[1]"
+    },
+    {
+      "name": "Minnesota Senior Health Options (MSHO)",
+      "what_it_does": "MSHO is a managed care program combining Medicare Parts A, B, D and Medicaid benefits into one plan for dual-eligible seniors. It includes HCBS waiver services, 180 days of nursing facility care, and care coordination to support community living.[2][5]",
+      "who_its_for": "Dual-eligible seniors age 65+ enrolled in Medicare Parts A & B and eligible for MA; voluntary enrollment.[2]",
+      "official_url": "https://mn.gov/dhs/people-we-serve/seniors/health-care/health-care-programs/programs-and-services/msho.jsp",
+      "benefit_value": "Full Medicare + Medicaid coverage including EW services; no premium, assigned care coordinator.[5]"
+    },
+    {
+      "name": "Supplemental Nutrition Assistance Program (SNAP)",
+      "what_it_does": "SNAP provides monthly benefits via EBT card to purchase food for low-income households. Seniors may qualify with higher income disregard.[6]",
+      "who_its_for": "Low-income seniors age 60+ (net income under $1,634/mo for 2026 household of 1; assets under $4,250).",
+      "official_url": "https://mn.gov/dhs/people-we-serve/families-and-children/food-support/overview.jsp",
+      "benefit_value": "Average $200-300/mo per person depending on income/household size."
+    },
+    {
+      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "what_it_does": "LIHEAP provides grants to help pay heating costs and connect utilities. Offers one-time payments or percentage of bills.",
+      "who_its_for": "Low-income households including seniors (income <150% FPL; ~$22,590/yr for 1 in 2026).",
+      "official_url": "https://mn.gov/commerce/energy/consumer/energyassistance/liheap/",
+      "benefit_value": "Grants $200-$1,000+ per season based on income/fuel type."
+    },
+    {
+      "name": "Residential Energy Assistance Partnership (REAP) / Weatherization Assistance Program (WAP)",
+      "what_it_does": "REAP/WAP funds home weatherization like insulation, furnace repair to reduce energy costs. Free or low-cost for eligible homes.",
+      "who_its_for": "Low-income homeowners/renters including seniors (<200% FPL).",
+      "official_url": "https://mn.gov/commerce/energy/consumer/energyassistance/weatherization/",
+      "benefit_value": "Free weatherization services valued $5,000-$15,000 per home."
+    },
+    {
+      "name": "Senior Health Insurance Program (SHIP)",
+      "what_it_does": "SHIP offers free counseling on Medicare, supplements, and assistance programs. Helps compare plans and resolve issues.",
+      "who_its_for": "All Minnesota Medicare beneficiaries age 65+, disabled, or with ESRD.",
+      "official_url": "https://www.shiphelps.org/",
+      "benefit_value": "Free personalized counseling; saves thousands via optimal plan selection."
+    },
+    {
+      "name": "Home-Delivered Meals (via Elderly Waiver/MSHO)",
+      "what_it_does": "Provides nutritious meals delivered to homebound seniors. Often 5-14 meals/week through waiver services.",
+      "who_its_for": "Homebound MA-eligible seniors receiving EW/MSHO needing meal support.[1]",
+      "official_url": "https://mn.gov/dhs/people-we-serve/seniors/health-care/health-care-programs/programs-and-services/msho.jsp",
+      "benefit_value": "$7-12 per meal; ~$2,000+/yr value covered by program.[1]"
+    },
+    {
+      "name": "Respite Care (via Elderly Waiver)",
+      "what_it_does": "Respite provides temporary relief for family caregivers through in-home or facility care. Helps prevent caregiver burnout.",
+      "who_its_for": "MA-eligible seniors on EW with family caregivers.[1]",
+      "official_url": "https://www.medicaidplanningassistance.org/minnesota-senior-health-care-plus/",
+      "benefit_value": "Up to 40-60 hours/mo or more based on assessment; $20+/hr value."
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "what_it_does": "SCSEP offers part-time paid community service jobs with training for employability. Minimum wage, 20 hrs/wk max.",
+      "who_its_for": "Unemployed low-income seniors age 55+ (income <125% FPL).",
+      "official_url": "https://mn.gov/deed/job-seekers/seniors/scsep/",
+      "benefit_value": "$15/hr MN minimum wage; ~$12,000/yr at 20 hrs/wk."
+    },
+    {
+      "name": "Legal Assistance for Seniors",
+      "what_it_does": "Provides free legal help for issues like housing, benefits, abuse, wills. Through Legal Aid Society and Senior Legal Helpline.",
+      "who_its_for": "Low-income seniors age 60+ unable to afford private attorneys.",
+      "official_url": "https://www.lascn.org/seniors/",
+      "benefit_value": "Free legal services; saves $200+/hr attorney fees."
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "what_it_does": "Advocates for residents in nursing homes, assisted living, and boarding care homes. Investigates complaints and ensures rights.",
+      "who_its_for": "All seniors in long-term care facilities and their families.",
+      "official_url": "https://ltcombudsman.mn.gov/",
+      "benefit_value": "Free advocacy resolving ~80% complaints without litigation."
+    },
+    {
+      "name": "UCare Minnesota Senior Care Plus (MSC+)",
+      "what_it_does": "MSC+ offers a Medicaid health plan with robust medical, mental health, pharmacy, and dental benefits, including waiver services for qualifying seniors. It provides extras like no-cost office visits, disease management, 24/7 nurse line, fall prevention kits, healthy food discounts, and mobile dental care.[2]",
+      "who_its_for": "People aged 65 or older eligible for Medical Assistance (Medicaid), Minnesota residents in the UCare service area; Medicare enrollment optional.[2]",
+      "whats_unique": "As a Minnesota-specific Medicaid managed care plan for seniors, it includes state-enhanced waiver services and unique perks like pre-loaded healthy food discounts on a Visa card and mobile dental clinics, beyond standard federal Medicaid.[2]",
+      "official_url": "https://www.ucare.org/health-plans/medicaid/ages-65-plus/msc-plus",
+      "benefit_value": "No-cost visits and programs; healthy food discounts weekly; rewards for preventive care; access to dental, food resources, and quit-smoking programs.[2]"
+    },
+    {
+      "name": "SecureBlue (Minnesota Senior Health Options)",
+      "what_it_does": "SecureBlue is an MSHO plan combining Medicare and Medical Assistance benefits into one, covering medical care, drugs, preventive services, and emergencies with no premium. It offers featured supports like healthy foods/household aid for chronic conditions and links to local services.[3]",
+      "who_its_for": "Individuals 65 or older with Medicare Parts A and B, eligible for Medical Assistance, residing in any of Minnesota's 87 counties.[3]",
+      "whats_unique": "This state-specific HMO SNP under MSHO provides Minnesota-funded extras like $275 quarterly for utilities/rent/healthy foods for certain conditions and statewide county/agency partnerships (e.g., Senior LinkAge Line), not available in standard federal plans.[3]",
+      "official_url": "https://www.bluecrossmn.com/our-plans/medical-assistance-medicaid/secureblue-minnesota-senior-health-options",
+      "benefit_value": "$275 every 3 months for utilities/rent/food (if eligible); no premium; comprehensive medical/drug coverage plus local support services.[3]"
+    },
+    {
+      "name": "Minnesota Aging Pathways (formerly Senior LinkAge Line)",
+      "what_it_does": "Aging Pathways offers free statewide support connecting seniors and caregivers to services like Medicare counseling, prescription assistance, long-term care planning, financial aid applications (energy, food), and resource coordination for home-based independence. It provides ongoing follow-ups, live chat, and local staff across Minnesota's 87 counties.[4][8]",
+      "who_its_for": "Older Minnesotans, caregivers, and families seeking services in any of the state's counties.[4][8]",
+      "whats_unique": "This is Minnesota's free, statewide helpline run by the Minnesota Board on Aging with area agencies, offering in-depth, localized assistance for state-specific applications and home transition support not replicated as a unified service elsewhere.[4][8]",
+      "official_url": "https://mn.gov/aging-pathways/",
+      "benefit_value": "Free counseling, application help, and connections saving on costs for energy/fuel, prescriptions, Medicare savings, food assistance; promotes long-term community living.[4]"
+    }
+  ]
+}

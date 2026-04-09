@@ -1,0 +1,61 @@
+{
+  "state": "AL",
+  "stateName": "Alabama",
+  "comparedAt": "2026-04-09T08:46:33.096Z",
+  "total": 2,
+  "newPrograms": 2,
+  "withDiffs": 0,
+  "withNovelFields": 0,
+  "benefitTypes": {
+    "service": 1,
+    "financial": 1
+  },
+  "variationPatterns": {
+    "priority_tier": 1,
+    "household_size": 1
+  },
+  "novelFieldSummary": {},
+  "comparisons": [
+    {
+      "name": "Alabama Cares",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Caregiver-training/respite focused via regional AAAs; priority-based access with no income/asset tests; varies by local AAA providers and priority tiers.",
+      "gotchas": [
+        "Focuses on caregivers (not direct to elderly); families must qualify as primary caregivers.",
+        "No guaranteed services or payment to caregivers; provides support services only, prioritized by need.",
+        "Not Medicaid; separate from Elderly & Disabled Waiver or paid caregiver programs.",
+        "Relative caregivers need legal custody and proof of 20+ hours/week care.",
+        "Services aim to prevent burnout/delay institutionalization, not long-term paid care."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://alabamaageline.gov/alabama-cares/"
+    },
+    {
+      "name": "Alabama Elderly Simplified Application Project (AESAP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Streamlined SNAP variant: 3-year certification, no mandatory interview, self-declaration of income/resources (with exceptions), 2-page form; income/assets match standard SNAP tables (adjust annually); statewide via county offices",
+      "gotchas": [
+        "Age discrepancy in some sources (60+ vs. 65+); official DHR uses 60+",
+        "No earned income means zero wages/self-employment; unearned income (Social Security, pensions) allowed if under limits",
+        "All household members must be 60+ (no children or younger adults, even if separate food prep)",
+        "Self-declaration OK unless questionable; verification required for medical expenses or suspicions",
+        "Must submit annual Interim Contact Form or risk closure",
+        "Benefits calculated identically to regular SNAP despite simplified process"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "household_size",
+      "officialSource": "https://dhr.alabama.gov/food-assistance/alabama-elderly-simplified-application-project-aesap/"
+    }
+  ]
+}

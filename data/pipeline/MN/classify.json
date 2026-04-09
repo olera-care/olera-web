@@ -1,0 +1,498 @@
+{
+  "state": "MN",
+  "stateName": "Minnesota",
+  "classifiedAt": "2026-04-09T08:54:46.644Z",
+  "total": 14,
+  "typeSummary": {
+    "benefit": 9,
+    "resource": 4,
+    "employment": 1
+  },
+  "scopeSummary": {
+    "federal": 6,
+    "state": 5,
+    "local": 3
+  },
+  "complexitySummary": {
+    "deep": 10,
+    "simple": 4
+  },
+  "programs": [
+    {
+      "name": "Medical Assistance (MA) - Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), Qualifying Individual (QI)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local county or tribal human services offices across MN.",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Elderly Waiver (EW)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "County human services offices",
+            "type": "service-area"
+          },
+          {
+            "name": "Tribal nations",
+            "type": "service-area"
+          },
+          {
+            "name": "Enrolled MHCP providers",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Minnesota Senior Health Options (MSHO)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "UCare, Medica DUAL Solution, Blue Cross MN SecureBlue, South Country Health Alliance SeniorCare Complete, others via DHS[4][5][6][7][8].",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": false,
+        "isStatewide": false
+      }
+    },
+    {
+      "name": "Supplemental Nutrition Assistance Program (SNAP)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "financial (food assistance)",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local EAP agencies (find via 1-800-657-3710 or state site); e.g., Community Action Partnership of Hennepin County for Hennepin.[4]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Residential Energy Assistance Partnership (REAP) / Weatherization Assistance Program (WAP)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Find local provider: 1-800-657-3710 or county/tribe list[1][3].",
+            "type": "service-area"
+          },
+          {
+            "name": "Examples: CAP Agency (Dakota/Carver), BiCAP, TCC Action Partnership[6][7][9].",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Senior Health Insurance Program (SHIP)",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Minnesota Board on Aging/Senior LinkAge Line (statewide coordination); local Aging Pathways offices[3][7]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "advocacy",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Home-Delivered Meals (via Elderly Waiver/MSHO)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "County/tribal LTCC contacts (statewide list at MN DHS)",
+            "type": "service-area"
+          },
+          {
+            "name": "Providers like Mom's Meals (enrolled MHCP providers)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Respite Care (via Elderly Waiver)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "programType": "employment",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "MN DEED (state admin)[1]",
+            "type": "service-area"
+          },
+          {
+            "name": "Minnesota Valley Action Council (southern counties)[6]",
+            "type": "service-area"
+          },
+          {
+            "name": "CWI Works subgrantees statewide[5][8]",
+            "type": "service-area"
+          },
+          {
+            "name": "MET, Inc.[2]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "documents"
+      ],
+      "signals": {
+        "benefitType": "employment",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Legal Assistance for Seniors",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Mid-Minnesota Legal Aid (mylegalaid.org)[1][4][5][10]",
+            "type": "service-area"
+          },
+          {
+            "name": "Southern Minnesota Regional Legal Services (smrls.org)[3][5]",
+            "type": "service-area"
+          },
+          {
+            "name": "Legal Services of Northwest Minnesota (Moorhead)[2]",
+            "type": "service-area"
+          },
+          {
+            "name": "Justice North (Duluth)[2]",
+            "type": "service-area"
+          },
+          {
+            "name": "Minnesota Elder Justice Center (elderjusticemn.org)[7]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": false
+      }
+    },
+    {
+      "name": "UCare Minnesota Senior Care Plus (MSC+)",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local county human services offices",
+            "type": "service-area"
+          },
+          {
+            "name": "UCare (ucare.org)",
+            "type": "service-area"
+          },
+          {
+            "name": "Blue Plus (bluecrossmn.com)",
+            "type": "service-area"
+          },
+          {
+            "name": "South Country Health Alliance (7-county area)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": false,
+        "isStatewide": false
+      }
+    },
+    {
+      "name": "SecureBlue (Minnesota Senior Health Options)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "SecureBlue is offered by Blue Cross Blue Shield Minnesota",
+            "type": "service-area"
+          },
+          {
+            "name": "Other MSHO plans are offered by HealthPartners and other health plans in specific Minnesota counties",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Minnesota Aging Pathways (formerly Senior LinkAge Line)",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Statewide service; referrals triage to local lead agencies or county offices as needed",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "entity": "Alabama",
+  "entitySlug": "alabama",
+  "state": "AL",
+  "stateName": "Alabama",
+  "isRegion": false,
+  "exploredAt": "2026-04-09T08:46:24.395Z",
+  "programCount": 2,
+  "programs": [
+    {
+      "name": "Alabama Cares",
+      "what_it_does": "Alabama Cares provides support services to assist caregivers with the emotional, physical, and practical demands of caregiving for frail older adults or relatives. It offers respite care, counseling, training, and other resources to help caregivers maintain their own health and well-being.[1][2]",
+      "who_its_for": "Unpaid primary family caregivers of frail adults age 60+ needing help with at least three activities of daily living; caregivers of those with Alzheimer's/dementia regardless of age; older relative caregivers age 55+ caring for children 18 or younger or disabled adults 19-59.[2]",
+      "whats_unique": "State-funded program specifically administered through Alabama's Area Agencies on Aging and partners like United Way, targeting caregivers of seniors and relatives with tailored respite and support not solely reliant on federal Older Americans Act funding.[1][2][4]",
+      "official_url": "https://uwaaa.org/services/alabamacares/",
+      "benefit_value": "Varies; includes respite care, support groups, and training; limited funds available for specific relative caregivers (exact amounts not specified in sources)."
+    },
+    {
+      "name": "Alabama Elderly Simplified Application Project (AESAP)",
+      "what_it_does": "AESAP simplifies the Food Assistance Program (SNAP/food stamps) application process for elderly households by using a shorter form and outreach efforts. It addresses barriers like mobility, transportation, and disability to increase access to food benefits.[1][6]",
+      "who_its_for": "Households where all members are age 60 or older and have no earned income; standard SNAP income/resource limits apply.[6]",
+      "whats_unique": "Alabama-specific adaptation of the federal SNAP program with a state-designed simplified application and targeted outreach for seniors, reducing administrative complexity unique to the state's implementation.[1][6]",
+      "official_url": "https://www.alabamalegalhelp.org/resource/food-stamp-application-for-seniors",
+      "benefit_value": "Standard SNAP/food assistance benefits; value based on household size/income (e.g., up to federal maximums, simplified process increases eligibility access)."
+    }
+  ]
+}

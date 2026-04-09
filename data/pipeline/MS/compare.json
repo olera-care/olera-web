@@ -1,0 +1,591 @@
+{
+  "state": "MS",
+  "stateName": "Mississippi",
+  "comparedAt": "2026-04-09T08:54:39.623Z",
+  "total": 12,
+  "newPrograms": 4,
+  "withDiffs": 8,
+  "withNovelFields": 8,
+  "benefitTypes": {
+    "unknown": 1,
+    "service": 8,
+    "financial": 2,
+    "advocacy": 1
+  },
+  "variationPatterns": {
+    "program_tier (QMB > SLMB > QI in terms of coverage breadth)": 1,
+    "not_applicable": 5,
+    "household_size": 1,
+    "household_size|priority_tier": 1,
+    "priority_tier": 2,
+    "region": 2
+  },
+  "novelFieldSummary": {
+    "asset_limits": {
+      "count": 8,
+      "programs": [
+        "Medicaid Medicare Savings Programs (QMB, SLMB, QI)",
+        "Mississippi Elderly and Disabled (E&D) Waiver",
+        "Mississippi SNAP (Supplemental Nutrition Assistance Program)",
+        "Mississippi LIHEAP (Low-Income Home Energy Assistance Program)",
+        "Mississippi SHIP (State Health Insurance Assistance Program)",
+        "Mississippi Family Caregiver Support Program",
+        "Mississippi Legal Services (Senior Legal Helpline)",
+        "Mississippi Long-Term Care Ombudsman Program"
+      ],
+      "note": "Our model has no asset limit fields"
+    },
+    "waitlist": {
+      "count": 3,
+      "programs": [
+        "Medicaid Medicare Savings Programs (QMB, SLMB, QI)",
+        "Mississippi Elderly and Disabled (E&D) Waiver",
+        "Mississippi LIHEAP (Low-Income Home Energy Assistance Program)"
+      ],
+      "note": "Has waitlist info — our model has no wait time field"
+    },
+    "documents_required": {
+      "count": 8,
+      "programs": [
+        "Medicaid Medicare Savings Programs (QMB, SLMB, QI)",
+        "Mississippi Elderly and Disabled (E&D) Waiver",
+        "Mississippi SNAP (Supplemental Nutrition Assistance Program)",
+        "Mississippi LIHEAP (Low-Income Home Energy Assistance Program)",
+        "Mississippi SHIP (State Health Insurance Assistance Program)",
+        "Mississippi Family Caregiver Support Program",
+        "Mississippi Legal Services (Senior Legal Helpline)",
+        "Mississippi Long-Term Care Ombudsman Program"
+      ],
+      "note": "Has document checklist — our model doesn't store per-program documents"
+    },
+    "regional_variations": {
+      "count": 6,
+      "programs": [
+        "Mississippi Elderly and Disabled (E&D) Waiver",
+        "Mississippi LIHEAP (Low-Income Home Energy Assistance Program)",
+        "Mississippi SHIP (State Health Insurance Assistance Program)",
+        "Mississippi Family Caregiver Support Program",
+        "Mississippi Legal Services (Senior Legal Helpline)",
+        "Mississippi Long-Term Care Ombudsman Program"
+      ],
+      "note": "Program varies by region — our model doesn't capture this"
+    },
+    "household_size_table": {
+      "count": 1,
+      "programs": [
+        "Mississippi SNAP (Supplemental Nutrition Assistance Program)"
+      ],
+      "note": "Benefits/eligibility vary by household size — we store a single number"
+    }
+  },
+  "comparisons": [
+    {
+      "name": "Medicaid Medicare Savings Programs (QMB, SLMB, QI)",
+      "isNew": false,
+      "existingId": "medicare-savings-program",
+      "existingVerified": null,
+      "diffsFound": 1,
+      "diffs": [
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://medicaid.ms.gov/medicaid-coverage/who-qualifies-for-coverage/medicare-cost-sharing/"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": {
+            "QMB": "No resource test — assets do not matter[6]",
+            "SLMB": "Not specified in search results",
+            "QI": "Individual: $9,660; Married couple: $14,470[3]"
+          },
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "waitlist",
+          "value": "QI program has limited federal funding and operates on first-come, first-served basis until money runs out; you must reapply annually[3][10]",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": "Not specified in search results",
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "This program consists of three distinct tiers (QMB, SLMB, QI) with progressively higher income limits but fewer benefits. QMB is the most comprehensive but has the lowest income threshold. QI has the highest income limit but only covers Part B premiums and has limited federal funding. Income limits are tied to Federal Poverty Guidelines and change annually. Asset limits apply only to QI and not to QMB. Eligibility start dates vary by program (retroactive for SLMB/QI, not for QMB). The search results do not provide specific application procedures, form numbers, phone numbers, processing times, or regional office locations for Mississippi.",
+      "gotchas": [
+        "QI program has limited federal funding and operates on first-come, first-served basis — you must reapply every year, and if funds run out, the program could be affected[5][10]",
+        "If you are already eligible for Medicaid, you cannot use the QI program but may qualify for QMB or SLMB instead[7]",
+        "QMB has no retroactive coverage — eligibility begins the month after approval, not before[6]",
+        "SLMB and QI do not cover deductibles, coinsurance, or copayments — only Part B premiums[3]",
+        "Income limits change annually based on Federal Poverty Guidelines; families should verify current limits each year[7]",
+        "SLMB and QI do not provide a Medicaid card, while QMB does[5]",
+        "QI program only applies to Original Medicare (Parts A and B), not Medicare Advantage (Part C) or Medigap plans[7]"
+      ],
+      "benefitType": "unknown",
+      "benefitVariesBy": "program_tier (QMB > SLMB > QI in terms of coverage breadth)",
+      "officialSource": "https://medicaid.ms.gov/medicaid-coverage/who-qualifies-for-coverage/medicare-cost-sharing/"
+    },
+    {
+      "name": "Mississippi Elderly and Disabled (E&D) Waiver",
+      "isNew": false,
+      "existingId": "elderly-and-disabled-waiver",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "min_age",
+          "ours": "65",
+          "found": "21 or older (65+ for elderly; 21-64 for physically disabled; those enrolled before 65 can continue after)[1][2]",
+          "source": "https://medicaid.ms.gov/programs/elderly-and-disabled-waiver/[2]"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$10,000 – $30,000/year",
+          "found": "Adult day health care, home-delivered meals, personal care services, institutional respite, in-home respite, expanded/extended home health (skilled nursing, nurse aide, physical therapy, speech therapy after state plan exhausted), community transition services, medication management, environmental safety services, case management[2][5][7]",
+          "source": "https://medicaid.ms.gov/programs/elderly-and-disabled-waiver/[2]"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://medicaid.ms.gov/programs/elderly-and-disabled-waiver/[2]"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Follows Medicaid rules (specifics not detailed); home equity limit of $752,000 in 2026 if applicant lives in home or intends to return (exempt if spouse or minor/permanently disabled child lives there)[1]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Case management by regional Planning and Development Districts; providers must meet enrollment via Office of Long Term Care (possible differences in availability/wait times not detailed)[2]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Not mentioned (may exist due to waiver caps, but no data provided)",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of income/resources for Medicaid/SSI or 300% SSI (income trust if over limit)",
+            "Physician NFLOC certification",
+            "LTSS assessment documents",
+            "Home equity proof if applicable"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Tied to SSI levels (no fixed dollar table or household variations specified); NFLOC physician-certified and reassessed annually; statewide but case-managed regionally by districts; income trust for excess over 300% SSI",
+      "gotchas": [
+        "Income over 300% SSI requires monthly payment of excess via income trust (not a spend-down)[2][3][4]",
+        "Must meet strict NFLOC via scored in-person assessment; dementia diagnosis alone insufficient[1]",
+        "Home equity limit $752,000 (2026) applies unless exemptions met[1]",
+        "Distinguish from Independent Living Waiver (ILW, ages 16-64 severe impairments) or Assisted Living Waiver[5][6]",
+        "Services only after Medicaid state plan benefits exhausted (e.g., extended home health)[7]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://medicaid.ms.gov/programs/elderly-and-disabled-waiver/[2]"
+    },
+    {
+      "name": "Program of All-Inclusive Care for the Elderly (PACE) - Not available in MS",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Not available in Mississippi; no providers, no service areas, no applications possible; eligibility hinges on geographic availability which MS lacks",
+      "gotchas": [
+        "PACE is unavailable in Mississippi, so families cannot enroll regardless of meeting other criteria[4]",
+        "Must live in a PACE service area, which excludes all of MS[1][3][5]",
+        "Even if eligible elsewhere, cannot be in Medicare Advantage or hospice[1]",
+        "Non-Medicaid enrollees may pay premiums for long-term care and Part D drugs[3][7]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://www.medicare.gov/health-drug-plans/health-plans/your-coverage-options/other-medicare-health-plans/PACE[5]"
+    },
+    {
+      "name": "Mississippi SNAP (Supplemental Nutrition Assistance Program)",
+      "isNew": false,
+      "existingId": "snap-supplemental-nutrition-assistance-program",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$1,500 – $3,600/year",
+          "found": "Monthly benefits provided on an Electronic Benefits Transfer (EBT) card to help low-income households buy food[5]. Specific benefit amounts vary by household size and income but are not detailed in available search results.",
+          "source": "https://www.mdhs.ms.gov/help/snap/"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.mdhs.ms.gov/help/snap/"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": {
+            "general_households": "$3,000 in countable resources[3]",
+            "households_with_member_60_or_older_or_disabled": "$4,500 in countable resources[3]",
+            "what_counts": "Bank accounts, cash, real estate, personal property, and vehicles[3]",
+            "what_is_exempt": "Your house and at least one vehicle per household are not counted toward the limit[3]"
+          },
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "household_size_table",
+          "value": {
+            "general_households": "Maximum net monthly income (100% Federal Poverty Level): 1 person: $1,255 | 2 people: $1,704 | 3 people: $2,152 | 4 people: $2,600 | 5 people: $3,049 | Each additional person: +$449[3]",
+            "households_with_member_60_or_older_or_disabled": "No gross income limit in Mississippi[4]. Only the net income test applies (gross income minus allowable deductions)[2][4]",
+            "seniors_60_and_older": "For 2025: $15,060 for one person or $20,440 for two people (federal SNAP standard for seniors)[2]"
+          },
+          "note": "Benefits/eligibility vary by household size — we store a single number"
+        },
+        {
+          "field": "documents_required",
+          "value": "Not specified in search results",
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Mississippi SNAP has a bifurcated eligibility structure: households with members 60+ or disabled face no gross income limit and only the net income test, while other households must pass both gross and net income tests. The program offers a simplified application pathway (ESAP) exclusively for elderly households with no earned income, which streamlines enrollment but has strict eligibility gates. Benefits are provided via EBT card and scale by household size, but specific benefit amounts are not detailed in available sources.",
+      "gotchas": [
+        "Elderly Simplified Application Project (ESAP) has strict requirements: ALL household members must be 60 or older, AND no one can have earned income. If even one household member is under 60 or has earned income, the household does not qualify for ESAP and must use the standard application[1][3]",
+        "If a household qualifies for ESAP, they are MANDATORY for ESAP and ineligible for regular SNAP[1]",
+        "Seniors (60+) only need to meet the net income test, not the gross income test, which can be advantageous[2][4]",
+        "Social Security, veterans' benefits, and disability payments all count toward total income[2]",
+        "About half of eligible seniors do not receive SNAP benefits, suggesting significant underutilization[2]",
+        "Mississippi Combined Application Project (MSCAP) is a separate streamlined process for individuals receiving SSI benefits[5]",
+        "The search results do not provide specific phone numbers, online application URLs, processing times, required documents, or regional office locations — families will need to contact MDHS directly for these details"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "household_size",
+      "officialSource": "https://www.mdhs.ms.gov/help/snap/"
+    },
+    {
+      "name": "Mississippi LIHEAP (Low-Income Home Energy Assistance Program)",
+      "isNew": false,
+      "existingId": "liheap-low-income-home-energy-assistance-program",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$2783",
+          "found": "$2,228",
+          "source": "https://www.mdhs.ms.gov/community/liheap/"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$500 – $2,000/year",
+          "found": "Payments for home energy bills (power, gas), energy crisis, purchase/repair/replacement of AC/heaters. Heating/cooling max $1,500, min $1; crisis max $1,500. Amounts based on income, household size, fuel type.[1][2][4]",
+          "source": "https://www.mdhs.ms.gov/community/liheap/"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.mdhs.ms.gov/community/liheap/"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits mentioned in program rules.[3]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered by local Community Action Agencies (CAAs) per county; potential differences in processing/wait times/funding availability by local provider.[1][3]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Funding limited; apply early as funds may run out. Vulnerable households prioritized.[1][2][3]",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of identity (over 18): photo ID, passport, driver’s license, etc.",
+            "Income proof: award letters (SS, SSI), pay stubs (30 days), W2, 1099, tax forms, unemployment letter.",
+            "Residency: utility bills, lease, mortgage/deed.",
+            "Household members verification.[1]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "County-administered via CAAs with priority tiers for vulnerable; seasonal components; benefits scaled by income/household size/fuel; limited funds drive early application urgency.",
+      "gotchas": [
+        "Funding limited and not year-round: heating Oct-Apr, cooling May-Sep, crisis year-round; apply early.[2]",
+        "Must apply in own county; priority to elderly/disabled/young children but all qualifying get considered.[1][3]",
+        "No automatic eligibility specified; verify via local CAA as roommates count as household.[2]",
+        "Weatherization separate (200% FPL, DOE rules).[3]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "household_size|priority_tier",
+      "officialSource": "https://www.mdhs.ms.gov/community/liheap/"
+    },
+    {
+      "name": "Mississippi Weatherization Assistance Program (WAP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Administered statewide via local CAAs with county-based providers; priority tiers for vulnerable groups like elderly; income at 200% FPG with full household verification; pre-app online, full app in-person.",
+      "gotchas": [
+        "Must submit pre-application online first via Access MS; full app is in-person only—no direct mail/online completion.[1]",
+        "Renters may qualify but need local CAA confirmation; not automatic.[1]",
+        "Priority for elderly/disabled/young children/high energy burden, but all ≤200% FPG eligible if funds allow.[1]",
+        "Dwelling eligibility requires pre-audit and proof of ownership/residency.[2]",
+        "Income verified at time of application using current FPG; non-applicants (e.g., certain citizenship statuses) must still disclose income.[2]",
+        "Availability tied to federal funds; may have regional shortages.[5]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.mdhs.ms.gov/wap/"
+    },
+    {
+      "name": "Mississippi SHIP (State Health Insurance Assistance Program)",
+      "isNew": false,
+      "existingId": "mississippi-ship-state-health-insurance-assistance-program",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$3,000 – $10,000/year",
+          "found": "Free one-on-one counseling on Medicare Parts A/B/C/D, Medigap, Medicare Savings Programs, Extra Help/LIS, Medicaid, long-term care options, SenioRxMS, appeals, claims, bill organization, fraud prevention via SMP; outreach events, presentations, printed materials, referrals[1][2][3][6]",
+          "source": "https://www.mdhs.ms.gov/adults-seniors/services-for-seniors/state-health-insurance-assistance-program/"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.mdhs.ms.gov/adults-seniors/services-for-seniors/state-health-insurance-assistance-program/"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits or tests apply[1][2]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Uniform statewide administration through MDHS Division of Aging and Adult Services; local counseling via network but no specified differences in services, wait times, or providers by region[1][3][4]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "No documents needed for initial counseling; may require Medicare info, bills, or plan details for specific help[3][6][7]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "no income/asset/age test; purely counseling service with statewide phone/in-person access; funded by federal grants to MDHS, volunteer/staff network",
+      "gotchas": [
+        "Not a financial aid or healthcare provider program—only free counseling and education, no direct payments or services; distinguish from Small Rural Hospital Improvement (SHIP) grant which is unrelated[5]; services are unbiased and objective, not sales-oriented; counselors must be CMS-trained annually[1][2][3]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://www.mdhs.ms.gov/adults-seniors/services-for-seniors/state-health-insurance-assistance-program/"
+    },
+    {
+      "name": "Mississippi Meals on Wheels (via Aging and Disability Resource Centers)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Administered statewide via local Area Agencies on Aging/ADRCs with no income/asset test; priority-based access with regional provider and meal format variations (frozen minimum vs. hot in some counties)",
+      "gotchas": [
+        "Not means-tested, but priority to homebound 60+ with no congregate options; meals may be frozen (min 5/week) not always hot/fresh[2][6]",
+        "Availability limited by waitlists and local providers; contact ADRC first, not national Meals on Wheels[1][2][6]",
+        "Spouses under 60 may qualify if linked to eligible adult, but under-60 generally only with disabilities[5]",
+        "Voluntary contributions expected but not required; private options like Mom's Meals ($9.49/meal) if ineligible[3]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "region",
+      "officialSource": "https://www.mdhs.ms.gov/aging/services/"
+    },
+    {
+      "name": "Mississippi Family Caregiver Support Program",
+      "isNew": false,
+      "existingId": "national-family-caregiver-support-program",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$2,000 – $8,000/year",
+          "found": "Five core services: 1) Information about available services; 2) Assistance gaining access to services; 3) Individual counseling, support groups, caregiver training; 4) Respite care (one unit = one hour); 5) Supplemental services on limited basis to complement care. No fixed dollar amounts or weekly hours specified beyond respite unit definition[5][6][7].",
+          "source": "https://www.mdhs.ms.gov/aging/caregivers/[6]"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.mdhs.ms.gov/aging/caregivers/[6]"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits specified[6].",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered through local community service providers and AAAs, potentially varying by provider availability or wait times, but no specific differences detailed[6].",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Not specified; prepare proof of relationship, care needs, and any disability documentation as assessed by providers[6]."
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Services delivered via local AAAs/providers with priority tiers for low-income/greatest need; no strict income/asset tests or fixed benefits; not payment-based",
+      "gotchas": [
+        "Not a paid caregiving program (no direct payments to family caregivers); focuses on support services like respite and counseling[6].",
+        "Often confused with Medicaid EDWP (pays family caregivers) or VA PCAFC (veteran-specific)[1][4].",
+        "Priority-based access may limit availability for non-priority caregivers[5].",
+        "Separate from Mississippi Dementia Care Program, which provides ~27 hours/month respite for ADRD caregivers[6]."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.mdhs.ms.gov/aging/caregivers/[6]"
+    },
+    {
+      "name": "Mississippi Legal Services (Senior Legal Helpline)",
+      "isNew": false,
+      "existingId": "mississippi-legal-services-senior-program",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$3,000 – $10,000/year",
+          "found": "Free civil legal assistance including phone advice, document review, letter writing, advocacy, and representation in areas like elder care, housing, family, consumer, income maintenance. No attorney fees charged. Limited to phone advice in some cases with possible referrals.[1][3][4][5][8]",
+          "source": "https://mscenterforlegalservices.org and https://www.mslegalservices.org"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://mscenterforlegalservices.org and https://www.mslegalservices.org"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits mentioned in available sources.",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Separate providers (NMRLS vs. MCLSC) with distinct intake hotlines as of January 1, 2026; NMRLS focuses on elder care, domestic violence; MCLSC on consumer, education, housing. Online intake for NMRLS temporarily closed.[5][7][8]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of income (e.g., pay stubs, benefit statements), household size details, zip code/county for service area verification"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Regionally divided with separate providers/hotlines; income at 125% FPL with senior exceptions; no asset test or exact dollar tables in sources (varies yearly by household size)",
+      "gotchas": [
+        "Not fully statewide—must use correct regional hotline/provider based on zip code/county (north vs. central/southern MS)",
+        "Income is gross household total from all contributing members; seniors may get exceptions but still screened",
+        "Excludes prisoners and criminal cases; only civil matters",
+        "Online intake for north MS temporarily closed—use phone",
+        "Hotline numbers changed January 2026; older numbers (e.g., 888-660-0008) may be outdated"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "region",
+      "officialSource": "https://mscenterforlegalservices.org and https://www.mslegalservices.org"
+    },
+    {
+      "name": "Mississippi Long-Term Care Ombudsman Program",
+      "isNew": false,
+      "existingId": "mississippi-long-term-care-ombudsman-program",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$10,000 – $30,000/year",
+          "found": "Assists with complaints (abuse, neglect, improper discharge, food quality, medication issues); conducts facility visits and assessments; provides information on rights; helps select facilities; systems advocacy for groups; resolves problems to improve quality of life. In 2023: 973 individuals assisted, 151,094 visits, 2,352 complaints fully resolved.",
+          "source": "https://www.mdhs.ms.gov/aging/ombudsman/"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.mdhs.ms.gov/aging/ombudsman/"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits; no financial requirements.",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Services provided through contracts with Area Agencies on Aging (AAAs); 19 local ombudsmen (2 staff) cover statewide; each AAA must have at least one designated ombudsman; access ensured via travel funds.",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "No specific documents required; provide details of complaint or issue (facility name, resident info, description of problem)."
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "No income/asset/age tests; advocacy-only (non-financial); delivered via 19 local ombudsmen through AAAs covering all counties; complaint-driven access.",
+      "gotchas": [
+        "Not a direct service provider (e.g., no personal care, meals, or financial aid); purely advocacy and complaint resolution.",
+        "No Medicaid or financial eligibility test—open to all, but only for regulated long-term care facilities.",
+        "Family/complainants drive access; residents don't apply independently.",
+        "Volunteers must be certified; public contacts staff or designated ombudsmen.",
+        "Not for community/home-based care—facility-focused only."
+      ],
+      "benefitType": "advocacy",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://www.mdhs.ms.gov/aging/ombudsman/"
+    },
+    {
+      "name": "Mississippi Access to Care (MAC) Network",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Tied to Medicaid E&D Waiver; eligibility via Medicaid ABD + NFLOC; services fixed list, no dollar/hour caps specified; statewide but provider-delivered with potential regional wait/provider variations",
+      "gotchas": [
+        "Must first qualify for Medicaid ABD (people miss the strict NFLOC assessment—not just age/disability)",
+        "Home equity limit $752,000 excludes many with home ownership",
+        "Waiver has limited slots leading to waitlists",
+        "Must accept all other benefits (e.g., VA/SSI) or lose eligibility",
+        "Dementia diagnosis alone does not guarantee NFLOC"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://www.mississippiaccesstocare.org"
+    }
+  ]
+}

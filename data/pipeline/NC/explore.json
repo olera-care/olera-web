@@ -1,0 +1,59 @@
+{
+  "entity": "North Carolina",
+  "entitySlug": "north-carolina",
+  "state": "NC",
+  "stateName": "North Carolina",
+  "isRegion": false,
+  "exploredAt": "2026-04-09T08:56:49.220Z",
+  "programCount": 6,
+  "programs": [
+    {
+      "name": "North Carolina Homestead Exemption",
+      "what_it_does": "This property tax relief program reduces the annual tax burden for qualifying seniors by exempting a portion of their home's assessed value from property taxes. It provides financial relief to help low-income elderly homeowners afford housing costs.",
+      "who_its_for": "Residents aged 65 or older who meet county-specific income thresholds and own and occupy their primary residence.",
+      "whats_unique": "State-specific property tax exemption tailored to NC seniors with varying income limits by county, beyond standard federal benefits.",
+      "official_url": "https://mcelderlaw.com/key-benefits-available-for-north-carolina-seniors/",
+      "benefit_value": "Varies by county and year; reduces taxable value of primary residence (e.g., up to $38,000 in some areas as of recent years)[1]"
+    },
+    {
+      "name": "North Carolina Long-Term Care Medicaid",
+      "what_it_does": "Covers skilled nursing facility care and some home-based long-term services under different eligibility rules than standard Medicaid. It helps pay for care costing $10,000-$15,000 monthly, preserving assets through planning.",
+      "who_its_for": "Seniors requiring nursing home level care, with income/assets qualifying under LTC-specific rules (often middle-income eligible via planning).",
+      "whats_unique": "NC state-administered Medicaid waiver program with asset protection strategies unique to state elder law practices, distinct from federal baseline.",
+      "official_url": "https://mcelderlaw.com/key-benefits-available-for-north-carolina-seniors/",
+      "benefit_value": "Full coverage of nursing home costs (up to $10k-$15k/month); asset limits ~$2,000 individual[1]"
+    },
+    {
+      "name": "Project C.A.R.E.",
+      "what_it_does": "Provides state-funded financial assistance for in-home or facility-based long-term care to eligible disabled veterans. Monthly payments help cover care expenses when medical costs exceed income.",
+      "who_its_for": "Honorably discharged veterans with 90 days active duty (including wartime), whose medical expenses exceed income.",
+      "whats_unique": "NC state-funded veteran aid program supplementing federal VA benefits, offering direct cash assistance for care not universally available.",
+      "official_url": "https://www.ncdhhs.gov/assistance/division-aging-assistance",
+      "benefit_value": "Up to $3,500 per month for care costs[1][4]"
+    },
+    {
+      "name": "North Carolina Seniors Farmers' Market Nutrition Program",
+      "what_it_does": "Offers vouchers to low-income seniors for purchasing fresh produce at farmers' markets and roadside stands. Promotes nutrition and supports local agriculture through state-funded coupons.",
+      "who_its_for": "Income-eligible adults aged 60 and older.",
+      "whats_unique": "State-specific nutrition voucher program unique to NC, not a federal standard benefit.",
+      "official_url": "https://www.ncdhhs.gov/assistance/division-aging-assistance",
+      "benefit_value": "Vouchers worth $50 annually per participant (varies by funding)[4]"
+    },
+    {
+      "name": "NC Lifespan Respite Program",
+      "what_it_does": "Provides planned or emergency relief to family caregivers of older adults or disabled individuals, offering respite services. Supports caregiver well-being through state-coordinated breaks from caregiving duties.",
+      "who_its_for": "Family caregivers of seniors or adults with disabilities.",
+      "whats_unique": "Statewide NC program focused on respite care coordination, beyond federal caregiver supports.",
+      "official_url": "https://www.ncdhhs.gov/assistance/division-aging-assistance",
+      "benefit_value": "Varies; respite services, training, and support (funding-dependent)[4]"
+    },
+    {
+      "name": "State-County Special Assistance - In Home",
+      "what_it_does": "Delivers state-county funded cash assistance for in-home care services to low-income frail seniors. Enables aging in place through direct support for personal care needs.",
+      "who_its_for": "Low-income older adults and disabled individuals needing in-home assistance.",
+      "whats_unique": "NC's state-county partnership program for in-home aid, distinct from federal SSI or Medicaid.",
+      "official_url": "https://www.ncdhhs.gov/assistance/division-aging-assistance",
+      "benefit_value": "Monthly cash payments scaled to need and income (e.g., up to state maximum ~$500+)[4]"
+    }
+  ]
+}

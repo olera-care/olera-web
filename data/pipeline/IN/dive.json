@@ -1,0 +1,1030 @@
+{
+  "state": "IN",
+  "stateName": "Indiana",
+  "diveAt": "2026-04-09T08:52:14.567Z",
+  "total": 18,
+  "parsed": 17,
+  "programs": [
+    {
+      "name": "Hoosier Care Connect",
+      "eligibility": {
+        "age": "59 years and younger[1][2][5]",
+        "income_limits": "For standard ABD coverage, $994/month for individuals not receiving institutional or waiver services. Higher limits apply for institutionalized or waiver-eligible disabled individuals (up to $2,982/month, individual only, may have patient/waiver liability). Working disabled via MEDWorks have slightly higher income with premiums. Specific household size table not detailed for HCC; ABD often individual-based[4][9]",
+        "asset_limits": "Resources checked if aged, blind, disabled, or Medicare-eligible (e.g., checking/savings accounts), but no specific dollar limits or exemptions detailed in sources for HCC[3]",
+        "other_requirements": [
+          "Blind or disabled[1][2][5]",
+          "Not eligible for/enrolled in Medicare[1][2][5]",
+          "Living in the community (not institutionalized, except specific cases)[1][5]",
+          "Receiving Supplemental Security Income (SSI)[1][2][5]",
+          "Enrolled through M.E.D. Works[1][2][5]",
+          "Some foster care children, wards of state, adoption assistance, transitioning from foster care[1]",
+          "Indiana resident"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "All Indiana Medicaid-covered benefits under Package A (refer to Indiana Medicaid Covered Services page), plus individualized care coordination services based on health needs screening. Dedicated care manager. Services via Primary Medical Provider (PMP) network; must be medically necessary, some require prior approval, doctor's order, or have limits. Managed care entities (MCEs: Anthem, MHS, UnitedHealthcare) may offer enhanced benefits[2][5]",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Online: IndianaMedicaid.com or learn if qualify at MHS link[2][3]",
+          "Phone, mail, fax, or in-person at local FSSA Division of Family Resources (DFR) office[2][3]",
+          "Find local DFR office or enrollment centers by county: Find My Local DFR Office website[3]"
+        ],
+        "processing_time": "Not specified in sources",
+        "waitlist": null,
+        "forms": [
+          "Medicaid application (no specific form name/number listed; complete via IndianaMedicaid.com)[3]"
+        ],
+        "documents": [
+          "Names and dates of birth",
+          "Social Security Numbers",
+          "Income from jobs or training",
+          "Current/past benefits (e.g., SSI, Social Security, veterans, child support)",
+          "Family and tax relationship information",
+          "If aged/blind/disabled/Medicare: checking/savings/resources amounts",
+          "Payments for health coverage/medical benefits[3]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Indiana residents only",
+        "regional_variations": "Administered via local FSSA DFR offices and enrollment centers by county; choose among 3 statewide MCEs (Anthem, MHS, UnitedHealthcare); no service differences noted[3][5]",
+        "offices_or_providers": [
+          "Local FSSA Division of Family Resources (DFR) offices",
+          "Statewide enrollment centers (list via website)",
+          "MCEs: Anthem, Managed Health Services (MHS), UnitedHealthcare[3][5]"
+        ]
+      },
+      "official_source": "https://www.in.gov/medicaid/members/member-programs/hoosier-care-connect/[5]",
+      "gotchas": [
+        "Not for those 60+ or on Medicare (focuses on younger blind/disabled)[1][2][5]",
+        "Must select/assigned to MCE (Anthem, MHS, UnitedHealthcare) and stay through calendar year[2][5]",
+        "Services require PMP referral, prior approval, medically necessary; some limits[2]",
+        "Institutionalized/waiver cases have different income rules/liabilities; community-living focus[1][4]",
+        "One source incorrectly states age 65+ (outlier, majority confirm 59 and under)[8]",
+        "Having private insurance may affect eligibility[4]"
+      ],
+      "data_shape_notes": "Targeted at under-60 blind/disabled non-Medicare; SSI/MEDWorks gateway; individualized care coordination beyond standard Medicaid; MCE choice required; ABD income often individual-based with waivers/institutional exceptions",
+      "_raw": "{\n  \"name\": \"Hoosier Care Connect\",\n  \"eligibility\": {\n    \"age\": \"59 years and younger[1][2][5]\",\n    \"income_limits\": \"For standard ABD coverage, $994/month for individuals not receiving institutional or waiver services. Higher limits apply for institutionalized or waiver-eligible disabled individuals (up to $2,982/month, individual only, may have patient/waiver liability). Working disabled via MEDWorks have slightly higher income with premiums. Specific household size table not detailed for HCC; ABD often individual-based[4][9]\",\n    \"asset_limits\": \"Resources checked if aged, blind, disabled, or Medicare-eligible (e.g., checking/savings accounts), but no specific dollar limits or exemptions detailed in sources for HCC[3]\",\n    \"other_requirements\": [\"Blind or disabled[1][2][5]\", \"Not eligible for/enrolled in Medicare[1][2][5]\", \"Living in the community (not institutionalized, except specific cases)[1][5]\", \"Receiving Supplemental Security Income (SSI)[1][2][5]\", \"Enrolled through M.E.D. Works[1][2][5]\", \"Some foster care children, wards of state, adoption assistance, transitioning from foster care[1]\", \"Indiana resident\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"All Indiana Medicaid-covered benefits under Package A (refer to Indiana Medicaid Covered Services page), plus individualized care coordination services based on health needs screening. Dedicated care manager. Services via Primary Medical Provider (PMP) network; must be medically necessary, some require prior approval, doctor's order, or have limits. Managed care entities (MCEs: Anthem, MHS, UnitedHealthcare) may offer enhanced benefits[2][5]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\"Online: IndianaMedicaid.com or learn if qualify at MHS link[2][3]\", \"Phone, mail, fax, or in-person at local FSSA Division of Family Resources (DFR) office[2][3]\", \"Find local DFR office or enrollment centers by county: Find My Local DFR Office website[3]\"],\n    \"processing_time\": \"Not specified in sources\",\n    \"waitlist\": null,\n    \"forms\": [\"Medicaid application (no specific form name/number listed; complete via IndianaMedicaid.com)[3]\"],\n    \"documents\": [\"Names and dates of birth\", \"Social Security Numbers\", \"Income from jobs or training\", \"Current/past benefits (e.g., SSI, Social Security, veterans, child support)\", \"Family and tax relationship information\", \"If aged/blind/disabled/Medicare: checking/savings/resources amounts\", \"Payments for health coverage/medical benefits[3]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Indiana residents only\",\n    \"regional_variations\": \"Administered via local FSSA DFR offices and enrollment centers by county; choose among 3 statewide MCEs (Anthem, MHS, UnitedHealthcare); no service differences noted[3][5]\",\n    \"offices_or_providers\": [\"Local FSSA Division of Family Resources (DFR) offices\", \"Statewide enrollment centers (list via website)\", \"MCEs: Anthem, Managed Health Services (MHS), UnitedHealthcare[3][5]\"]\n  },\n  \"official_source\": \"https://www.in.gov/medicaid/members/member-programs/hoosier-care-connect/[5]\",\n  \"gotchas\": [\"Not for those 60+ or on Medicare (focuses on younger blind/disabled)[1][2][5]\", \"Must select/assigned to MCE (Anthem, MHS, UnitedHealthcare) and stay through calendar year[2][5]\", \"Services require PMP referral, prior approval, medically necessary; some limits[2]\", \"Institutionalized/waiver cases have different income rules/liabilities; community-living focus[1][4]\", \"One source incorrectly states age 65+ (outlier, majority confirm 59 and under)[8]\", \"Having private insurance may affect eligibility[4]\"],\n  \"data_shape_notes\": \"Targeted at under-60 blind/disabled non-Medicare; SSI/MEDWorks gateway; individualized care coordination beyond standard Medicaid; MCE choice required; ABD income often individual-based with waivers/institutional exceptions\"\n}"
+    },
+    {
+      "name": "Indiana PathWays for Aging",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "Follows standard Indiana Medicaid income limits for aged, blind, or disabled categories (specific dollar amounts not detailed in sources; same as traditional Medicaid). No unique PathWays-specific income or asset limits listed beyond Medicaid eligibility. For home-based services, home equity interest must not exceed $730,000 unless spouse or dependent child lives in home.[1]",
+        "asset_limits": "Standard Medicaid asset rules apply (not uniquely specified for PathWays). Home equity limit of $730,000 for those living at home or intending to return, unless exceptions apply (spouse or child under 18/disabled child in home).[1]",
+        "other_requirements": [
+          "Indiana resident",
+          "Eligible for full Medicaid coverage in aged, blind, or disabled category (with or without Medicare)",
+          "May require Nursing Facility Level of Care (NFLOC) for HCBS or nursing home services: help with ≥3 ADLs (bathing, dressing, mobility, eating, toileting) or medically unable to self-care; assessed by Area Agency on Aging (AAA) or from July 2025 by Maximus Health Services.[1]",
+          "Exclusions: Under 60, Healthy Indiana Plan, Hoosier Healthwise, certain DDRS waivers (Family Support, CIH, TBI), Emergency Services Only, Breast/Cervical Cancer Program, intellectual/developmental disability residents in immediate care.[3][4]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Managed long-term services and supports (LTSS) via managed care entities (MCEs: Anthem, Humana, UnitedHealthcare), including home/community-based services (HCBS) to age in place (e.g., transportation to doctor, meal preparation, home health visits, adult day center); nursing facility care; hospice; care coordination. Aims for 75% to receive home-based LTSS. Prior authorizations continue during transition.[5][6][8]",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Automatic enrollment for eligible current Medicaid members (letters sent with MCE selection instructions; e.g., ahead of 60th birthday or post-Medicaid application).[5][7]",
+          "Select MCE (Anthem, Humana, UnitedHealthcare); can change within 90 days of start or by deadlines (e.g., until July 1, 2024 for early transition; open enrollment Oct-Dec 2024).[5][8]",
+          "Official site: https://www.in.gov/pathways/[3][8]"
+        ],
+        "processing_time": "Automatic for eligible; plan changes effective Jan 2025 for open enrollment.[8]",
+        "waitlist": "Not mentioned; continuity of care for 90 days post-enrollment.[5]",
+        "forms": [
+          "No specific form names/numbers listed; MCE selection via letter instructions."
+        ],
+        "documents": [
+          "Standard Medicaid application documents if not already enrolled; functional assessment by AAA/Maximus for NFLOC.[1]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Indiana residents only; no county restrictions noted.",
+        "regional_variations": "Functional assessments via local Area Agency on Aging (AAA), transitioning to Maximus in July 2025; care coordination emphasizes equity across geography.[1][6]",
+        "offices_or_providers": [
+          "Managed by MCEs (Anthem, Humana, UnitedHealthcare); providers join MCE networks.[5]"
+        ]
+      },
+      "official_source": "https://www.in.gov/pathways/",
+      "gotchas": [
+        "Requires underlying Medicaid eligibility (aged/blind/disabled); not for under-60, Hoosier Healthwise, or certain waivers.[3]",
+        "NFLOC needed for HCBS/nursing home (not automatic with dementia diagnosis).[1]",
+        "Automatic enrollment but must select MCE; 90-day change window.[5][7]",
+        "Home equity limit $730,000 for community living.[1]",
+        "Providers must verify eligibility/MCE each service; prior auths carry over 90 days.[5]"
+      ],
+      "data_shape_notes": "Managed care LTSS program wrapping Medicaid for 60+ ABD; automatic enrollment with MCE choice; NFLOC tier for services; transitioned from Aged/Disabled Waiver/HCC on 7/1/24.",
+      "_raw": "{\n  \"name\": \"Indiana PathWays for Aging\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"Follows standard Indiana Medicaid income limits for aged, blind, or disabled categories (specific dollar amounts not detailed in sources; same as traditional Medicaid). No unique PathWays-specific income or asset limits listed beyond Medicaid eligibility. For home-based services, home equity interest must not exceed $730,000 unless spouse or dependent child lives in home.[1]\",\n    \"asset_limits\": \"Standard Medicaid asset rules apply (not uniquely specified for PathWays). Home equity limit of $730,000 for those living at home or intending to return, unless exceptions apply (spouse or child under 18/disabled child in home).[1]\",\n    \"other_requirements\": [\n      \"Indiana resident\",\n      \"Eligible for full Medicaid coverage in aged, blind, or disabled category (with or without Medicare)\",\n      \"May require Nursing Facility Level of Care (NFLOC) for HCBS or nursing home services: help with ≥3 ADLs (bathing, dressing, mobility, eating, toileting) or medically unable to self-care; assessed by Area Agency on Aging (AAA) or from July 2025 by Maximus Health Services.[1]\",\n      \"Exclusions: Under 60, Healthy Indiana Plan, Hoosier Healthwise, certain DDRS waivers (Family Support, CIH, TBI), Emergency Services Only, Breast/Cervical Cancer Program, intellectual/developmental disability residents in immediate care.[3][4]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Managed long-term services and supports (LTSS) via managed care entities (MCEs: Anthem, Humana, UnitedHealthcare), including home/community-based services (HCBS) to age in place (e.g., transportation to doctor, meal preparation, home health visits, adult day center); nursing facility care; hospice; care coordination. Aims for 75% to receive home-based LTSS. Prior authorizations continue during transition.[5][6][8]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Automatic enrollment for eligible current Medicaid members (letters sent with MCE selection instructions; e.g., ahead of 60th birthday or post-Medicaid application).[5][7]\",\n      \"Select MCE (Anthem, Humana, UnitedHealthcare); can change within 90 days of start or by deadlines (e.g., until July 1, 2024 for early transition; open enrollment Oct-Dec 2024).[5][8]\",\n      \"Official site: https://www.in.gov/pathways/[3][8]\"\n    ],\n    \"processing_time\": \"Automatic for eligible; plan changes effective Jan 2025 for open enrollment.[8]\",\n    \"waitlist\": \"Not mentioned; continuity of care for 90 days post-enrollment.[5]\",\n    \"forms\": [\"No specific form names/numbers listed; MCE selection via letter instructions.\"],\n    \"documents\": [\"Standard Medicaid application documents if not already enrolled; functional assessment by AAA/Maximus for NFLOC.[1]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Indiana residents only; no county restrictions noted.\",\n    \"regional_variations\": \"Functional assessments via local Area Agency on Aging (AAA), transitioning to Maximus in July 2025; care coordination emphasizes equity across geography.[1][6]\",\n    \"offices_or_providers\": [\"Managed by MCEs (Anthem, Humana, UnitedHealthcare); providers join MCE networks.[5]\"]\n  },\n  \"official_source\": \"https://www.in.gov/pathways/\",\n  \"gotchas\": [\n    \"Requires underlying Medicaid eligibility (aged/blind/disabled); not for under-60, Hoosier Healthwise, or certain waivers.[3]\",\n    \"NFLOC needed for HCBS/nursing home (not automatic with dementia diagnosis).[1]\",\n    \"Automatic enrollment but must select MCE; 90-day change window.[5][7]\",\n    \"Home equity limit $730,000 for community living.[1]\",\n    \"Providers must verify eligibility/MCE each service; prior auths carry over 90 days.[5]\"\n  ],\n  \"data_shape_notes\": \"Managed care LTSS program wrapping Medicaid for 60+ ABD; automatic enrollment with MCE choice; NFLOC tier for services; transitioned from Aged/Disabled Waiver/HCC on 7/1/24.\"\n}"
+    },
+    {
+      "name": "Program for All-Inclusive Care for the Elderly (PACE)",
+      "eligibility": {
+        "age": 55,
+        "income_limits": "No income limits; financial criteria not considered for eligibility. Most participants are dually eligible for Medicare and Medicaid, but not required. For Medicaid eligibility (common for free services), income under 300% of Federal Benefit Rate ($2,901/month in 2025), assets $2,000 or less (excluding primary home), but Medicaid planning can qualify others.[3]",
+        "asset_limits": "No asset limits for PACE eligibility itself. For associated Medicaid, assets $2,000 or less (excluding primary home); Medicaid planning available.[3]",
+        "other_requirements": [
+          "Live in the service area of an Indiana PACE provider (e.g., Allen County for PACE of Northeast Indiana, specific zip codes for Saint Joseph PACE, Franciscan areas like Dyer, Michigan City, Lafayette, Indianapolis).[1][4][6][7]",
+          "Certified by Indiana as needing nursing home level of care (assessed via Indiana Nursing Home Placement Assessment).[1][2][7]",
+          "Able to live safely in the community with PACE services at time of enrollment.[1][2][7]",
+          "Not enrolled in Medicare Advantage, Medicare prepayment plan, Medicare prescription drug plan, or hospice.[2]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Comprehensive services including primary care, hospital care, prescription drugs, social services, restorative therapies, personal care, respite care, minor home modifications, adult day health care, transportation, meals (including home-delivered), socialization, medication management, and nursing home care if needed (PACE pays and coordinates). All care coordinated by interdisciplinary team at PACE center; services free for Medicare/Medicaid eligible, flat monthly fee for others.[2][4][7]",
+        "varies_by": "region"
+      },
+      "application": {
+        "methods": [
+          "Phone: Varies by provider, e.g., PACE of Northeast Indiana 260-469-4148, Ascension Living St. Vincent PACE 317-754-4565 or toll-free 833-949-3777, Reid Health PACE (contact via site).[1][7]",
+          "Online eligibility survey (e.g., PACE of Northeast Indiana).[1]",
+          "In-person home visit scheduled after initial contact.[1]",
+          "Contact specific providers for Franciscan Health PACE locations (Dyer, Michigan City, Lafayette, Indianapolis) or Saint Joseph PACE.[4][6]"
+        ],
+        "processing_time": "Not specified; involves home visit, assessment, then state approval from Indiana Family and Social Services Administration.[1]",
+        "waitlist": "Not mentioned in sources; may vary by provider.",
+        "forms": [
+          "Indiana Nursing Home Placement Assessment (conducted during home visit), no specific form number listed.[1]"
+        ],
+        "documents": [
+          "Personal information (name, birthdate)",
+          "Insurance information (Medicare/Medicaid screening)",
+          "Family contact information",
+          "Medical information[1]"
+        ]
+      },
+      "geography": {
+        "statewide": false,
+        "restrictions": "Limited to service areas of specific PACE providers (not statewide). Examples: Allen County (PACE of Northeast Indiana), St. Joseph County zip 46552 (Ascension), specific zips like Bremen 46506, Elkhart 46514/16/17 (Saint Joseph PACE), Dyer/Michigan City/Lafayette/Indianapolis areas (Franciscan).[1][4][6][7]",
+        "regional_variations": "Different providers serve different counties/zips (e.g., Fort Wayne/Allen, Indianapolis, Richmond, South Bend areas); services free if Medicaid-eligible, otherwise flat monthly fee; enrollment via specific provider contacts.[1][4][7]",
+        "offices_or_providers": [
+          "PACE of Northeast Indiana, 2927 Lake Avenue, Fort Wayne, IN 46805 (Allen County), 260-469-4148[1][7]",
+          "Ascension Living St. Vincent PACE, 5435 W Pike Plaza Rd, Indianapolis, IN 46254, 317-754-4565 / 833-949-3777 (St. Joseph County 46552)[7]",
+          "Reid Health PACE, 2300 National Road West, Richmond, IN 47374[7]",
+          "Saint Joseph PACE (specific zips: Bremen 46506, Elkhart 46514/16/17)[4][8]",
+          "Franciscan Health Senior Health & Wellness PACE: Dyer, Michigan City, Lafayette, Indianapolis[6]"
+        ]
+      },
+      "official_source": "https://www.in.gov/fssa/ddars/bba/program-of-all-inclusive-care-for-the-elderly/[7]",
+      "gotchas": [
+        "Not statewide—must live in specific provider service area (e.g., not all Indiana counties covered).[1][7]",
+        "Requires state certification for nursing home level of care via assessment; not just any elderly person.[1][2]",
+        "Cannot be in Medicare Advantage, hospice, or certain other plans.[2]",
+        "Free only if Medicaid-eligible; private pay flat monthly fee otherwise—check Medicaid planning if needed.[3][4]",
+        "Must be able to live safely in community at enrollment (not currently in nursing home unless PACE coordinates).[2][7]"
+      ],
+      "data_shape_notes": "County/zip-restricted to limited PACE provider locations (e.g., 5+ providers but not statewide); no income/asset test for core eligibility but ties to Medicaid for free services; nursing home level assessment required; provider-specific enrollment.",
+      "_raw": "{\n  \"name\": \"Program for All-Inclusive Care for the Elderly (PACE)\",\n  \"eligibility\": {\n    \"age\": 55,\n    \"income_limits\": \"No income limits; financial criteria not considered for eligibility. Most participants are dually eligible for Medicare and Medicaid, but not required. For Medicaid eligibility (common for free services), income under 300% of Federal Benefit Rate ($2,901/month in 2025), assets $2,000 or less (excluding primary home), but Medicaid planning can qualify others.[3]\",\n    \"asset_limits\": \"No asset limits for PACE eligibility itself. For associated Medicaid, assets $2,000 or less (excluding primary home); Medicaid planning available.[3]\",\n    \"other_requirements\": [\n      \"Live in the service area of an Indiana PACE provider (e.g., Allen County for PACE of Northeast Indiana, specific zip codes for Saint Joseph PACE, Franciscan areas like Dyer, Michigan City, Lafayette, Indianapolis).[1][4][6][7]\",\n      \"Certified by Indiana as needing nursing home level of care (assessed via Indiana Nursing Home Placement Assessment).[1][2][7]\",\n      \"Able to live safely in the community with PACE services at time of enrollment.[1][2][7]\",\n      \"Not enrolled in Medicare Advantage, Medicare prepayment plan, Medicare prescription drug plan, or hospice.[2]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Comprehensive services including primary care, hospital care, prescription drugs, social services, restorative therapies, personal care, respite care, minor home modifications, adult day health care, transportation, meals (including home-delivered), socialization, medication management, and nursing home care if needed (PACE pays and coordinates). All care coordinated by interdisciplinary team at PACE center; services free for Medicare/Medicaid eligible, flat monthly fee for others.[2][4][7]\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: Varies by provider, e.g., PACE of Northeast Indiana 260-469-4148, Ascension Living St. Vincent PACE 317-754-4565 or toll-free 833-949-3777, Reid Health PACE (contact via site).[1][7]\",\n      \"Online eligibility survey (e.g., PACE of Northeast Indiana).[1]\",\n      \"In-person home visit scheduled after initial contact.[1]\",\n      \"Contact specific providers for Franciscan Health PACE locations (Dyer, Michigan City, Lafayette, Indianapolis) or Saint Joseph PACE.[4][6]\"\n    ],\n    \"processing_time\": \"Not specified; involves home visit, assessment, then state approval from Indiana Family and Social Services Administration.[1]\",\n    \"waitlist\": \"Not mentioned in sources; may vary by provider.\",\n    \"forms\": [\"Indiana Nursing Home Placement Assessment (conducted during home visit), no specific form number listed.[1]\"],\n    \"documents\": [\n      \"Personal information (name, birthdate)\",\n      \"Insurance information (Medicare/Medicaid screening)\",\n      \"Family contact information\",\n      \"Medical information[1]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Limited to service areas of specific PACE providers (not statewide). Examples: Allen County (PACE of Northeast Indiana), St. Joseph County zip 46552 (Ascension), specific zips like Bremen 46506, Elkhart 46514/16/17 (Saint Joseph PACE), Dyer/Michigan City/Lafayette/Indianapolis areas (Franciscan).[1][4][6][7]\",\n    \"regional_variations\": \"Different providers serve different counties/zips (e.g., Fort Wayne/Allen, Indianapolis, Richmond, South Bend areas); services free if Medicaid-eligible, otherwise flat monthly fee; enrollment via specific provider contacts.[1][4][7]\",\n    \"offices_or_providers\": [\n      \"PACE of Northeast Indiana, 2927 Lake Avenue, Fort Wayne, IN 46805 (Allen County), 260-469-4148[1][7]\",\n      \"Ascension Living St. Vincent PACE, 5435 W Pike Plaza Rd, Indianapolis, IN 46254, 317-754-4565 / 833-949-3777 (St. Joseph County 46552)[7]\",\n      \"Reid Health PACE, 2300 National Road West, Richmond, IN 47374[7]\",\n      \"Saint Joseph PACE (specific zips: Bremen 46506, Elkhart 46514/16/17)[4][8]\",\n      \"Franciscan Health Senior Health & Wellness PACE: Dyer, Michigan City, Lafayette, Indianapolis[6]\"\n    ]\n  },\n  \"official_source\": \"https://www.in.gov/fssa/ddars/bba/program-of-all-inclusive-care-for-the-elderly/[7]\",\n  \"gotchas\": [\n    \"Not statewide—must live in specific provider service area (e.g., not all Indiana counties covered).[1][7]\",\n    \"Requires state certification for nursing home level of care via assessment; not just any elderly person.[1][2]\",\n    \"Cannot be in Medicare Advantage, hospice, or certain other plans.[2]\",\n    \"Free only if Medicaid-eligible; private pay flat monthly fee otherwise—check Medicaid planning if needed.[3][4]\",\n    \"Must be able to live safely in community at enrollment (not currently in nursing home unless PACE coordinates).[2][7]\"\n  ],\n  \"data_shape_notes\": \"County/zip-restricted to limited PACE provider locations (e.g., 5+ providers but not statewide); no income/asset test for core eligibility but ties to Medicaid for free services; nursing home level assessment required; provider-specific enrollment.\"\n}"
+    },
+    {
+      "name": "Healthy Indiana Plan QMB, SLMB, QI",
+      "eligibility": {
+        "age": null,
+        "income_limits": "These are federal Medicare Savings Programs (MSPs) administered by Indiana Medicaid, not part of HIP which is for ages 19-64 without Medicare. Eligibility requires Medicare Part A eligibility (or enrollment) and Part B enrollment. All include $20 general income disregard. 2025/2026 limits (monthly, approximate; vary slightly by source/year, based on FPL):\n- **QMB**: ≤100% FPL (~$1,325 individual, $1,783 couple)\n- **SLMB**: 100-120% FPL (~$1,526 individual, $2,064 couple)\n- **QI**: 120-135% FPL (~$1,715-$1,816 individual, $2,320-$2,455 couple)\nLimits increase annually in April; Alaska/Hawaii higher. Full household table not specified—primarily individual/couple, scales with FPL for larger households but rare for Medicare elderly.",
+        "asset_limits": "Applies to all (2025/2026): $9,430-$9,660 individual, $14,130-$14,470 couple. Counts: cash, bank accounts, stocks, bonds. Exempt: primary home, one vehicle, burial plots, SNAP benefits, certain life insurance.",
+        "other_requirements": [
+          "Must be eligible for Medicare Part A (even if not enrolled) and enrolled in Part B.",
+          "Reside in Indiana.",
+          "Not eligible for full Medicaid (but may qualify for other MSPs).",
+          "U.S. citizen or qualified immigrant."
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "- **QMB**: Pays Medicare Part A premiums (if applicable), Part B premiums/deductible, coinsurance/copayments for A/B services.\n- **SLMB**: Pays Medicare Part B premiums.\n- **QI**: Pays Medicare Part B premiums; auto-qualifies for Extra Help (LIS): $0 premiums/deductibles, ≤$12.65 brand/$5.10 generic copays (2026), quarterly enrollment periods, no late penalty.\nNo dollar cap specified except QI funding limits.",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Online: Indiana Medicaid portal (in.gov/medicaid; specific MSP form via local FSSA office).",
+          "Phone: Local Division of Family Resources (DFR) office or Indiana Medicaid at 1-800-403-0864.",
+          "Mail/In-person: Local FSSA/DFR office (find via in.gov/fssa).",
+          "Request application from state Medicaid agency."
+        ],
+        "processing_time": "QMB: ≤45 days (effective 1st of next month). SLMB/QI: Up to 45 days, retroactive up to 3 months.",
+        "waitlist": "QI: Yes—first-come, first-served; limited federal funding, may run out annually; reapply each year.",
+        "forms": [
+          "Medicaid application (Form 1001 or online equivalent via IN Medicaid); request MSP-specific from state agency."
+        ],
+        "documents": [
+          "Proof of income (pay stubs, SSI award, pension statements).",
+          "Proof of assets/resources (bank statements).",
+          "Medicare card (Parts A/B).",
+          "ID (SSN, birth certificate, proof of residency).",
+          "Proof of SNAP if applicable."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Must reside in Indiana.",
+        "regional_variations": "Administered uniformly statewide via local FSSA/DFR offices; no major benefit/provider differences, but processing/wait times may vary by local office workload.",
+        "offices_or_providers": [
+          "Local FSSA Division of Family Resources (DFR) offices statewide; find via in.gov/fssa."
+        ]
+      },
+      "official_source": "https://www.in.gov/medicaid/providers/about-ihcp-programs/medicare-savings-programs/",
+      "gotchas": [
+        "Not part of HIP—HIP excludes Medicare-eligible; these are separate MSPs for Medicare beneficiaries.",
+        "QI has limited funding—apply early in calendar year; first-come, first-served.",
+        "Income/assets counted after $20 disregard; states can't be less generous but may add rules (IN follows federal).",
+        "QMB doesn't cover services beyond Medicare coinsurance; providers can't bill QMB enrollees.",
+        "Must reapply annually for QI; retroactivity only for SLMB/QI.",
+        "Income limits update yearly—verify current FPL-based amounts."
+      ],
+      "data_shape_notes": "Tiered by income brackets (QMB <100% FPL, SLMB 100-120%, QI 120-135%); QI waitlist/funding cap; asset-tested unlike some state expansions; auto-Extra Help for QI; elderly/disabled Medicare focus, distinct from HIP.",
+      "_raw": "{\n  \"name\": \"Healthy Indiana Plan QMB, SLMB, QI\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"These are federal Medicare Savings Programs (MSPs) administered by Indiana Medicaid, not part of HIP which is for ages 19-64 without Medicare. Eligibility requires Medicare Part A eligibility (or enrollment) and Part B enrollment. All include $20 general income disregard. 2025/2026 limits (monthly, approximate; vary slightly by source/year, based on FPL):\\n- **QMB**: ≤100% FPL (~$1,325 individual, $1,783 couple)\\n- **SLMB**: 100-120% FPL (~$1,526 individual, $2,064 couple)\\n- **QI**: 120-135% FPL (~$1,715-$1,816 individual, $2,320-$2,455 couple)\\nLimits increase annually in April; Alaska/Hawaii higher. Full household table not specified—primarily individual/couple, scales with FPL for larger households but rare for Medicare elderly.\",\n    \"asset_limits\": \"Applies to all (2025/2026): $9,430-$9,660 individual, $14,130-$14,470 couple. Counts: cash, bank accounts, stocks, bonds. Exempt: primary home, one vehicle, burial plots, SNAP benefits, certain life insurance.\",\n    \"other_requirements\": [\n      \"Must be eligible for Medicare Part A (even if not enrolled) and enrolled in Part B.\",\n      \"Reside in Indiana.\",\n      \"Not eligible for full Medicaid (but may qualify for other MSPs).\",\n      \"U.S. citizen or qualified immigrant.\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"- **QMB**: Pays Medicare Part A premiums (if applicable), Part B premiums/deductible, coinsurance/copayments for A/B services.\\n- **SLMB**: Pays Medicare Part B premiums.\\n- **QI**: Pays Medicare Part B premiums; auto-qualifies for Extra Help (LIS): $0 premiums/deductibles, ≤$12.65 brand/$5.10 generic copays (2026), quarterly enrollment periods, no late penalty.\\nNo dollar cap specified except QI funding limits.\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: Indiana Medicaid portal (in.gov/medicaid; specific MSP form via local FSSA office).\",\n      \"Phone: Local Division of Family Resources (DFR) office or Indiana Medicaid at 1-800-403-0864.\",\n      \"Mail/In-person: Local FSSA/DFR office (find via in.gov/fssa).\",\n      \"Request application from state Medicaid agency.\"\n    ],\n    \"processing_time\": \"QMB: ≤45 days (effective 1st of next month). SLMB/QI: Up to 45 days, retroactive up to 3 months.\",\n    \"waitlist\": \"QI: Yes—first-come, first-served; limited federal funding, may run out annually; reapply each year.\",\n    \"forms\": [\"Medicaid application (Form 1001 or online equivalent via IN Medicaid); request MSP-specific from state agency.\"],\n    \"documents\": [\n      \"Proof of income (pay stubs, SSI award, pension statements).\",\n      \"Proof of assets/resources (bank statements).\",\n      \"Medicare card (Parts A/B).\",\n      \"ID (SSN, birth certificate, proof of residency).\",\n      \"Proof of SNAP if applicable.\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Must reside in Indiana.\",\n    \"regional_variations\": \"Administered uniformly statewide via local FSSA/DFR offices; no major benefit/provider differences, but processing/wait times may vary by local office workload.\",\n    \"offices_or_providers\": [\"Local FSSA Division of Family Resources (DFR) offices statewide; find via in.gov/fssa.\"]\n  },\n  \"official_source\": \"https://www.in.gov/medicaid/providers/about-ihcp-programs/medicare-savings-programs/\",\n  \"gotchas\": [\n    \"Not part of HIP—HIP excludes Medicare-eligible; these are separate MSPs for Medicare beneficiaries.\",\n    \"QI has limited funding—apply early in calendar year; first-come, first-served.\",\n    \"Income/assets counted after $20 disregard; states can't be less generous but may add rules (IN follows federal).\",\n    \"QMB doesn't cover services beyond Medicare coinsurance; providers can't bill QMB enrollees.\",\n    \"Must reapply annually for QI; retroactivity only for SLMB/QI.\",\n    \"Income limits update yearly—verify current FPL-based amounts.\"\n  ],\n  \"data_shape_notes\": \"Tiered by income brackets (QMB <100% FPL, SLMB 100-120%, QI 120-135%); QI waitlist/funding cap; asset-tested unlike some state expansions; auto-Extra Help for QI; elderly/disabled Medicare focus, distinct from HIP.\"\n}"
+    },
+    {
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "For households with a member age 60+ or disabled in Indiana (Oct 1, 2025 - Sept 30, 2026): No gross income limit. Must pass net income test (gross income minus deductions like medical expenses over $35/month for elderly/disabled, shelter costs, utilities). General gross income limits (130% FPL) for reference: 1 person $1,695/month, 2 $2,291, 3 $2,887, 4 $3,482, 5 $4,079, 6 $4,674, 7 $5,270, +$595 each additional. Seniors (60+) only need to meet net income test[1][2][3][6].",
+        "asset_limits": "Most households: $5,000. Households with elderly (60+) or disabled: $4,500. Counts: bank accounts, cash, real estate (non-home), personal property, vehicles. Exempt: primary home and lot, household goods, personal belongings, life insurance, most retirement/pension plans, SSI/TANF resources[1][2][6][7][8].",
+        "other_requirements": [
+          "Indiana residency",
+          "Citizenship or qualified non-citizen status (e.g., 5+ years US residency, children under 18, disability benefits)",
+          "Household includes those who buy/prepare food together (separate application possible if both 60+ with disability and income <165% poverty)",
+          "Work registration (exempt for 60+)",
+          "Cooperation with IMPACT job training (exempt for elderly)"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "Monthly EBT card benefits for purchasing nutritious food (amount calculated as max allotment minus 30% of net income; e.g., example 2-person elderly household with $1,200 gross might get $415/month)[2][4][6].",
+        "varies_by": "household_size"
+      },
+      "application": {
+        "methods": [
+          "Online: https://www.in.gov/fssa/dfr/snap-food-assistance/ (via ACCESS Indiana portal)",
+          "Phone: Local county office or statewide 1-800-403-0864",
+          "Mail: To local Division of Family Resources office",
+          "In-person: Local county FSSA Division of Family Resources office"
+        ],
+        "processing_time": "Determined upon application; must be processed promptly (federal rule: 30 days max, 7 days if expedited)",
+        "waitlist": null,
+        "forms": [
+          "ACCESS Indiana application (online or paper)"
+        ],
+        "documents": [
+          "Proof of income (Social Security awards, pay stubs, pension statements)",
+          "Proof of expenses (medical bills over $35/month for elderly, rent/mortgage, utilities)",
+          "ID (driver's license, birth certificate)",
+          "Proof of residency",
+          "Bank statements or asset proofs if near limits",
+          "Disability verification if applicable"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": null,
+        "regional_variations": "Administered uniformly by FSSA Division of Family Resources in each county, but contact local offices for processing; no major benefit variations noted[6].",
+        "offices_or_providers": [
+          "Local county FSSA DFR offices (find via https://www.in.gov/fssa/dfr/ or call 1-800-403-0864)"
+        ]
+      },
+      "official_source": "https://www.in.gov/fssa/dfr/snap-food-assistance/",
+      "gotchas": [
+        "Seniors often miss high medical deductions (> $35/month out-of-pocket for elderly/disabled lowers net income significantly)",
+        "Social Security, pensions, VA benefits count as income[1][2]",
+        "Must include household members who buy/prepare food together unless special elderly/disabled separate application[1]",
+        "Assets include non-primary real estate/vehicles, but home/lot exempt[6]",
+        "No gross income test for elderly/disabled households in Indiana—many sites show standard limits which are stricter[2]",
+        "EBT only for food, not cash/hot meals (some exceptions)"
+      ],
+      "data_shape_notes": "Expanded eligibility in Indiana: no gross income test for households with elderly (60+) or disabled; net income test only for seniors; asset limit $4,500 for elderly vs $5,000 general; benefits scale by household size and deductions (medical/shelter key for seniors); statewide but county-administered",
+      "_raw": "{\n  \"name\": \"SNAP (Supplemental Nutrition Assistance Program)\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"For households with a member age 60+ or disabled in Indiana (Oct 1, 2025 - Sept 30, 2026): No gross income limit. Must pass net income test (gross income minus deductions like medical expenses over $35/month for elderly/disabled, shelter costs, utilities). General gross income limits (130% FPL) for reference: 1 person $1,695/month, 2 $2,291, 3 $2,887, 4 $3,482, 5 $4,079, 6 $4,674, 7 $5,270, +$595 each additional. Seniors (60+) only need to meet net income test[1][2][3][6].\",\n    \"asset_limits\": \"Most households: $5,000. Households with elderly (60+) or disabled: $4,500. Counts: bank accounts, cash, real estate (non-home), personal property, vehicles. Exempt: primary home and lot, household goods, personal belongings, life insurance, most retirement/pension plans, SSI/TANF resources[1][2][6][7][8].\",\n    \"other_requirements\": [\n      \"Indiana residency\",\n      \"Citizenship or qualified non-citizen status (e.g., 5+ years US residency, children under 18, disability benefits)\",\n      \"Household includes those who buy/prepare food together (separate application possible if both 60+ with disability and income <165% poverty)\",\n      \"Work registration (exempt for 60+)\",\n      \"Cooperation with IMPACT job training (exempt for elderly)\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Monthly EBT card benefits for purchasing nutritious food (amount calculated as max allotment minus 30% of net income; e.g., example 2-person elderly household with $1,200 gross might get $415/month)[2][4][6].\",\n    \"varies_by\": \"household_size\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: https://www.in.gov/fssa/dfr/snap-food-assistance/ (via ACCESS Indiana portal)\",\n      \"Phone: Local county office or statewide 1-800-403-0864\",\n      \"Mail: To local Division of Family Resources office\",\n      \"In-person: Local county FSSA Division of Family Resources office\"\n    ],\n    \"processing_time\": \"Determined upon application; must be processed promptly (federal rule: 30 days max, 7 days if expedited)\",\n    \"waitlist\": null,\n    \"forms\": [\"ACCESS Indiana application (online or paper)\"],\n    \"documents\": [\n      \"Proof of income (Social Security awards, pay stubs, pension statements)\",\n      \"Proof of expenses (medical bills over $35/month for elderly, rent/mortgage, utilities)\",\n      \"ID (driver's license, birth certificate)\",\n      \"Proof of residency\",\n      \"Bank statements or asset proofs if near limits\",\n      \"Disability verification if applicable\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": null,\n    \"regional_variations\": \"Administered uniformly by FSSA Division of Family Resources in each county, but contact local offices for processing; no major benefit variations noted[6].\",\n    \"offices_or_providers\": [\"Local county FSSA DFR offices (find via https://www.in.gov/fssa/dfr/ or call 1-800-403-0864)\"]\n  },\n  \"official_source\": \"https://www.in.gov/fssa/dfr/snap-food-assistance/\",\n  \"gotchas\": [\n    \"Seniors often miss high medical deductions (> $35/month out-of-pocket for elderly/disabled lowers net income significantly)\",\n    \"Social Security, pensions, VA benefits count as income[1][2]\",\n    \"Must include household members who buy/prepare food together unless special elderly/disabled separate application[1]\",\n    \"Assets include non-primary real estate/vehicles, but home/lot exempt[6]\",\n    \"No gross income test for elderly/disabled households in Indiana—many sites show standard limits which are stricter[2]\",\n    \"EBT only for food, not cash/hot meals (some exceptions)\"\n  ],\n  \"data_shape_notes\": \"Expanded eligibility in Indiana: no gross income test for households with elderly (60+) or disabled; net income test only for seniors; asset limit $4,500 for elderly vs $5,000 general; benefits scale by household size and deductions (medical/shelter key for seniors); statewide but county-administered\"\n}"
+    },
+    {
+      "name": "Energy Assistance Program (EAP)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Gross household income (last 3 months, all persons 18+) at or below 60% of State Median Income (SMI). Example limits from AES Indiana (likely recent): Household size 1: $8,059; 2: $10,539; 3: $13,018; 4: $15,498; 5: $17,978; 6: $20,458; 7: $20,923; 8: $21,388. Limits vary annually; check IHCDA for current table.[1][3][7]",
+        "asset_limits": "No asset limits mentioned in sources.",
+        "other_requirements": [
+          "Indiana resident",
+          "U.S. citizen, U.S. national, or qualified non-citizen (ineligible members do not disqualify household)",
+          "Income based on most recent 3 months gross (before tax) for all adults 18+"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "One-time annual payment to help with heating/electric bills (does not cover full annual costs). Exact amounts vary by funding, household factors, fuel type; expected lower in 2025-2026. Crisis aid for disconnections/emergencies.",
+        "varies_by": "household_size|priority_tier|region"
+      },
+      "application": {
+        "methods": [
+          "Online: http://eap.ihcda.in.gov",
+          "Contact local service provider (LSP) for in-person/phone/mail appointments, especially for crisis/disconnection: find via IHCDA site",
+          "County intake sites via http://eap.ihcda.in.gov"
+        ],
+        "processing_time": "Not specified; LSPs determine eligibility.",
+        "waitlist": "Funds limited; apply early as applications may close when funds exhausted (e.g., Oct 1, 2025 - Apr 20, 2026 in Marion County).",
+        "forms": [
+          "Online application via http://eap.ihcda.in.gov",
+          "Signed application packet"
+        ],
+        "documents": [
+          "Proof of income for past 90 days (last 3 months)",
+          "Utility bills",
+          "Proof of residency",
+          "SS/SSDI/SSI acceptable",
+          "Do not submit unrequired docs like citizenship proof in some areas (e.g., IndyEAP)"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Available statewide via local providers; must use county LSP.",
+        "regional_variations": "Administered by Local Service Providers (LSPs) per county/region; different intake sites, potential benefit/process variations (e.g., IndyEAP specific for Marion County). Find LSP via IHCDA.",
+        "offices_or_providers": [
+          "Local Service Providers (LSPs) by county via http://eap.ihcda.in.gov"
+        ]
+      },
+      "official_source": "http://eap.ihcda.in.gov",
+      "gotchas": [
+        "Must reapply annually even if previously approved",
+        "One-time benefit only; continue paying bills",
+        "Crisis cases: contact utility/LSP first, not online",
+        "Funds limited - apply early Oct-May",
+        "Income is gross last 3 months for all adults",
+        "No cooling assistance",
+        "Ineligible household members ok if others qualify"
+      ],
+      "data_shape_notes": "Administered statewide via county-specific LSPs; income over last 3 months at 60% SMI with household size table; annual one-time benefit varies by region/funding/household; no asset test or age requirement",
+      "_raw": "{\n  \"name\": \"Energy Assistance Program (EAP)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Gross household income (last 3 months, all persons 18+) at or below 60% of State Median Income (SMI). Example limits from AES Indiana (likely recent): Household size 1: $8,059; 2: $10,539; 3: $13,018; 4: $15,498; 5: $17,978; 6: $20,458; 7: $20,923; 8: $21,388. Limits vary annually; check IHCDA for current table.[1][3][7]\",\n    \"asset_limits\": \"No asset limits mentioned in sources.\",\n    \"other_requirements\": [\"Indiana resident\", \"U.S. citizen, U.S. national, or qualified non-citizen (ineligible members do not disqualify household)\", \"Income based on most recent 3 months gross (before tax) for all adults 18+\"]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"One-time annual payment to help with heating/electric bills (does not cover full annual costs). Exact amounts vary by funding, household factors, fuel type; expected lower in 2025-2026. Crisis aid for disconnections/emergencies.\",\n    \"varies_by\": \"household_size|priority_tier|region\"\n  },\n  \"application\": {\n    \"methods\": [\"Online: http://eap.ihcda.in.gov\", \"Contact local service provider (LSP) for in-person/phone/mail appointments, especially for crisis/disconnection: find via IHCDA site\", \"County intake sites via http://eap.ihcda.in.gov\"],\n    \"processing_time\": \"Not specified; LSPs determine eligibility.\",\n    \"waitlist\": \"Funds limited; apply early as applications may close when funds exhausted (e.g., Oct 1, 2025 - Apr 20, 2026 in Marion County).\",\n    \"forms\": [\"Online application via http://eap.ihcda.in.gov\", \"Signed application packet\"],\n    \"documents\": [\"Proof of income for past 90 days (last 3 months)\", \"Utility bills\", \"Proof of residency\", \"SS/SSDI/SSI acceptable\", \"Do not submit unrequired docs like citizenship proof in some areas (e.g., IndyEAP)\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Available statewide via local providers; must use county LSP.\",\n    \"regional_variations\": \"Administered by Local Service Providers (LSPs) per county/region; different intake sites, potential benefit/process variations (e.g., IndyEAP specific for Marion County). Find LSP via IHCDA.\",\n    \"offices_or_providers\": [\"Local Service Providers (LSPs) by county via http://eap.ihcda.in.gov\"]\n  },\n  \"official_source\": \"http://eap.ihcda.in.gov\",\n  \"gotchas\": [\"Must reapply annually even if previously approved\", \"One-time benefit only; continue paying bills\", \"Crisis cases: contact utility/LSP first, not online\", \"Funds limited - apply early Oct-May\", \"Income is gross last 3 months for all adults\", \"No cooling assistance\", \"Ineligible household members ok if others qualify\"],\n  \"data_shape_notes\": \"Administered statewide via county-specific LSPs; income over last 3 months at 60% SMI with household size table; annual one-time benefit varies by region/funding/household; no asset test or age requirement\"\n}"
+    },
+    {
+      "name": "Weatherization Assistance Program",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Household income at or below 200% of the Federal Poverty Level (FPL), based on 2025 tax return or current guidelines effective February 23, 2026. Example for AES Indiana service area (likely 2026 figures): 1 person: $30,120; 2: $40,880; 3: $51,640; 4: $62,400; 5: $73,160; 6: $83,920; 7: $94,680; 8: $105,440; add $10,760 per additional member. Exact 200% FPL table varies annually; confirm with local provider. Automatic eligibility if receiving LIHEAP/EAP, TANF, or SSI.[1][2][3][4]",
+        "asset_limits": "No asset limits mentioned in program guidelines.[2]",
+        "other_requirements": [
+          "Must live in eligible home (single-family, site-built; safe to weatherize; no prior weatherization in past 3 years via some providers like NIPSCO).[1][2][4]",
+          "NIPSCO customers: Active residential service.[1]",
+          "Renters need landlord permission (e.g., Property Owner Authorization Form).[1]",
+          "Home must have electric heat for some upgrades (AES Indiana).[3]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Free weatherization services including in-home energy assessment (1-2 hours), air sealing, insulation, energy-efficient product installations (e.g., to improve comfort, performance, safety). Excludes roofing, siding, window/door replacement, furnace/AC repairs, hazard remediation (mold, asbestos).[1][2][3][4]",
+        "varies_by": "region"
+      },
+      "application": {
+        "methods": [
+          "Contact Local Service Provider (LSP) by phone, online form, or in-person (find via https://www.in.gov/ihcda/homeowners-and-renters/weatherizationenergy-conservation/).[2]",
+          "NIPSCO area: Call TRC at 1-800-721-7385.[1]",
+          "AES Indiana: Through their program (partner CLEAResult).[3]",
+          "Brightpoint (NE Indiana): Call 1-800-589-3506 or (260) 423-3546 option 1; submit EAP application with weatherization referral 'Yes'.[4]",
+          "Complete EAP/LIHEAP application for referral.[4]"
+        ],
+        "processing_time": "Varies; initial eligibility check, then waitlist.[2][4]",
+        "waitlist": "Yes, statewide via LSPs; priority for elderly, children, disabled; e.g., Brightpoint serves ~100 households/year.[2][4]",
+        "forms": [
+          "Property Owner Authorization Form (renters, NIPSCO).[1]",
+          "Energy Assistance Program (EAP) application for referral.[4]"
+        ],
+        "documents": [
+          "Proof of income (2025 tax return or current).[1][2]",
+          "Proof of benefits (LIHEAP/EAP, TANF, SSI if applicable).[1]",
+          "Landlord permission if renter.[1]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Administered statewide by IHCDA via Local Service Providers (LSPs); utility-specific overlays (e.g., NIPSCO, AES Indiana customers).[1][2][3]",
+        "regional_variations": "Services via different LSPs/providers by county/region (e.g., Brightpoint NE IN, TRI-CAP, CAPE Evansville); utility partnerships add options (NIPSCO, AES); wait times/funding availability vary (first-come-first-served, limited funds).[1][2][3][4]",
+        "offices_or_providers": [
+          "Find LSP by county: https://www.in.gov/ihcda/homeowners-and-renters/weatherizationenergy-conservation/.[2]",
+          "NIPSCO/TRC: 1-800-721-7385.[1]",
+          "AES Indiana/CLEAResult.[3]",
+          "Brightpoint: 1-800-589-3506.[4]"
+        ]
+      },
+      "official_source": "https://www.in.gov/ihcda/homeowners-and-renters/weatherizationenergy-conservation/[2]",
+      "gotchas": [
+        "Funds limited, first-come-first-served; long waitlists with priority for vulnerable (elderly get priority but not exclusive).[1][2][4]",
+        "Home must be safe/eligible (no major repairs like roof/windows); prior weatherization may disqualify (3-year rule for some).[1][2]",
+        "Utility-specific (e.g., NIPSCO/AES customers prioritized; electric heat required for some upgrades).[1][3]",
+        "Renters need landlord approval; not emergency/repair program.[1][2]",
+        "Apply via LSP, not centrally; check county provider.[2]"
+      ],
+      "data_shape_notes": "Decentralized via county LSPs with utility overlays; income at 200% FPL or benefit receipt; waitlisted with vulnerable priority; excludes structural repairs.",
+      "_raw": "{\n  \"name\": \"Weatherization Assistance Program\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Household income at or below 200% of the Federal Poverty Level (FPL), based on 2025 tax return or current guidelines effective February 23, 2026. Example for AES Indiana service area (likely 2026 figures): 1 person: $30,120; 2: $40,880; 3: $51,640; 4: $62,400; 5: $73,160; 6: $83,920; 7: $94,680; 8: $105,440; add $10,760 per additional member. Exact 200% FPL table varies annually; confirm with local provider. Automatic eligibility if receiving LIHEAP/EAP, TANF, or SSI.[1][2][3][4]\",\n    \"asset_limits\": \"No asset limits mentioned in program guidelines.[2]\",\n    \"other_requirements\": [\n      \"Must live in eligible home (single-family, site-built; safe to weatherize; no prior weatherization in past 3 years via some providers like NIPSCO).[1][2][4]\",\n      \"NIPSCO customers: Active residential service.[1]\",\n      \"Renters need landlord permission (e.g., Property Owner Authorization Form).[1]\",\n      \"Home must have electric heat for some upgrades (AES Indiana).[3]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free weatherization services including in-home energy assessment (1-2 hours), air sealing, insulation, energy-efficient product installations (e.g., to improve comfort, performance, safety). Excludes roofing, siding, window/door replacement, furnace/AC repairs, hazard remediation (mold, asbestos).[1][2][3][4]\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact Local Service Provider (LSP) by phone, online form, or in-person (find via https://www.in.gov/ihcda/homeowners-and-renters/weatherizationenergy-conservation/).[2]\",\n      \"NIPSCO area: Call TRC at 1-800-721-7385.[1]\",\n      \"AES Indiana: Through their program (partner CLEAResult).[3]\",\n      \"Brightpoint (NE Indiana): Call 1-800-589-3506 or (260) 423-3546 option 1; submit EAP application with weatherization referral 'Yes'.[4]\",\n      \"Complete EAP/LIHEAP application for referral.[4]\"\n    ],\n    \"processing_time\": \"Varies; initial eligibility check, then waitlist.[2][4]\",\n    \"waitlist\": \"Yes, statewide via LSPs; priority for elderly, children, disabled; e.g., Brightpoint serves ~100 households/year.[2][4]\",\n    \"forms\": [\n      \"Property Owner Authorization Form (renters, NIPSCO).[1]\",\n      \"Energy Assistance Program (EAP) application for referral.[4]\"\n    ],\n    \"documents\": [\n      \"Proof of income (2025 tax return or current).[1][2]\",\n      \"Proof of benefits (LIHEAP/EAP, TANF, SSI if applicable).[1]\",\n      \"Landlord permission if renter.[1]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Administered statewide by IHCDA via Local Service Providers (LSPs); utility-specific overlays (e.g., NIPSCO, AES Indiana customers).[1][2][3]\",\n    \"regional_variations\": \"Services via different LSPs/providers by county/region (e.g., Brightpoint NE IN, TRI-CAP, CAPE Evansville); utility partnerships add options (NIPSCO, AES); wait times/funding availability vary (first-come-first-served, limited funds).[1][2][3][4]\",\n    \"offices_or_providers\": [\n      \"Find LSP by county: https://www.in.gov/ihcda/homeowners-and-renters/weatherizationenergy-conservation/.[2]\",\n      \"NIPSCO/TRC: 1-800-721-7385.[1]\",\n      \"AES Indiana/CLEAResult.[3]\",\n      \"Brightpoint: 1-800-589-3506.[4]\"\n    ]\n  },\n  \"official_source\": \"https://www.in.gov/ihcda/homeowners-and-renters/weatherizationenergy-conservation/[2]\",\n  \"gotchas\": [\n    \"Funds limited, first-come-first-served; long waitlists with priority for vulnerable (elderly get priority but not exclusive).[1][2][4]\",\n    \"Home must be safe/eligible (no major repairs like roof/windows); prior weatherization may disqualify (3-year rule for some).[1][2]\",\n    \"Utility-specific (e.g., NIPSCO/AES customers prioritized; electric heat required for some upgrades).[1][3]\",\n    \"Renters need landlord approval; not emergency/repair program.[1][2]\",\n    \"Apply via LSP, not centrally; check county provider.[2]\"\n  ],\n  \"data_shape_notes\": \"Decentralized via county LSPs with utility overlays; income at 200% FPL or benefit receipt; waitlisted with vulnerable priority; excludes structural repairs.\"\n}"
+    },
+    {
+      "name": "State Health Insurance Assistance Program (SHIP)",
+      "_parseError": true,
+      "_raw": "{\n  \"name\": \"State Health Insurance Assistance Program (SHIP)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No income limits for core SHIP counseling services, which are available to anyone eligible for Medicare (typically age 65+ or under 65 with disabilities), family members, caregivers, and those soon to be eligible. SHIP assists with applications for related low-income programs like Medicare Savings Programs (MSP): QMB up to 150% FPL, SLMB/QI up to 185% FPL; or state assistance if income < $2,500/month with limited assets (specific FPL dollar amounts not detailed in sources; vary by household size per federal guidelines).[2][6]\",\n    \"asset_limits\": \"Asset limits apply only when SHIP helps apply for low-income assistance programs (e.g., MSP, Extra Help), not for core counseling. Sources do not specify Indiana asset details, what counts, or exemptions; refers to 'limited assets' generally.[2]\",\n    \"other_requirements\": [\"Must be eligible for Medicare (or soon eligible, family/caregiver of Medicare beneficiary). No enrollment or income test for free counseling services.\"][1][2]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free, impartial one-on-one counseling, education, and assistance including: comparing/enrolling in Medicare, Medicare Supplement, Medicare Advantage, Part D, Long Term Care plans; understanding Medicare; filing claims/appeals; rights education; policy evaluation; referrals; group presentations; help applying for low-income programs (MSP, Extra Help, Medicaid) to cover premiums/costs. Provided by trained/certified volunteer counselors; no dollar value, sales, or affiliation with insurers.[2][4][7]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: Statewide SHIP line via https://www.in.gov/ship/ (specific number not listed; regional example Central Indiana: (317) 803-6131); In-person/phone via local partners (e.g., CICOA for Central Indiana); Website: https://www.in.gov/ship/ for info, contact, volunteer signup, and resources; Mail/in-person: Indiana Department of Insurance, 311 West Washington Street, 2nd Floor, Indianapolis IN 46204.\"[2][5][6]],\n    \"processing_time\": \"No formal application or processing time; services available immediately via phone/in-person counseling upon contact. No waitlists mentioned.\",\n    \"waitlist\": null,\n    \"forms\": [\"No specific SHIP enrollment form; helps with forms for Medicare plans, MSP (QMB/SLMB/QI), Extra Help/LIS, Medicaid applications.\"][2][4],\n    \"documents\": [\"For counseling: None required. For assistance programs: Income proof, asset statements, Medicare card (prepare if applying for MSP/Extra Help via SHIP help).\"][2]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; available statewide to Medicare-eligible.\",\n    \"regional_variations\": \"Delivered via state/local partnerships (e.g., Area Agencies on Aging like CICOA in Central Indiana); different local counselors/providers/offices, but services standardized. No wait time or eligibility variations noted by region.\",\n    \"offices_or_providers\": [\"Indiana Department of Insurance (statewide lead, Indianapolis); Local partners like CICOA (Central Indiana).\"][2][5][6]\n  },\n  \"official_source\": \"https://www.in.gov/ship/\",\n  \"gotchas\": [\"Not a direct financial aid or healthcare provider—only free counseling/assistance, no insurance sales. People miss that it's volunteer-staffed (may have variable availability). Assists with low-income apps but doesn't guarantee approval. Contact 3 months before Medicare start. Separate from Medicare Savings Programs (which have income/asset tests).[1][2][6]\",\n  \"data_shape_notes\": \"no income test for core services; focuses on counseling/referrals rather than direct benefits; delivered via statewide volunteer network with local partners; helps apply for tiered low-income programs (e.g., QMB/SLMB by FPL %)\"\n}"
+    },
+    {
+      "name": "Meals on Wheels",
+      "eligibility": {
+        "age": null,
+        "income_limits": "No statewide income limits; some local programs offer reduced rates based on assistance programs (e.g., SNAP, SSDI, Medicaid, SSI) or income thresholds like below $1,350/month in Muncie. Varies by provider; no universal table.",
+        "asset_limits": "No asset limits mentioned across sources.",
+        "other_requirements": [
+          "Physically or mentally unable to prepare meals (homebound or mobility challenges)",
+          "Residency in provider's delivery zone or eligible zip codes",
+          "Dietary prescription from physician often required",
+          "Some programs: 60+ or disabled; others open to all ages including children/teens"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Home-delivered nutritious meals (e.g., medically tailored, diabetic, heart healthy, low-sodium <2,300mg/day, low sugar/saturated fat); minimum 2 weeks service; frequency based on need (daily or fewer days/week); small fee per meal with subsidies available",
+        "varies_by": "region"
+      },
+      "application": {
+        "methods": [
+          "Online form (e.g., mealsonwheelsindy.org/apply/, mealsonwheelshc.org form)",
+          "Phone: Central IN (317) 252-5558, Hamilton County (317) 776-7159",
+          "Mail: e.g., Meals on Wheels of Central Indiana, 708 E. Michigan St., Indianapolis, IN 46202 with check/money order",
+          "Contact local Area Agency on Aging for assessment"
+        ],
+        "processing_time": "Typically 5-7 business days or less than a week; varies by program",
+        "waitlist": "Generally no waitlist, but temporary waitlists possible in Marion County/Central IN",
+        "forms": [
+          "Client application form (online/printable per provider)",
+          "Financial Assistance Request form (e.g., Hamilton County)"
+        ],
+        "documents": [
+          "Proof of age/residence (sometimes)",
+          "Medical info/dietary restrictions",
+          "Dietary prescription from physician",
+          "Financial docs for subsidies (not always required)",
+          "Payment for first 2 weeks + application fee (e.g., $5 + $80 in Central IN)"
+        ]
+      },
+      "geography": {
+        "statewide": false,
+        "restrictions": "Limited to provider delivery zones/zip codes (e.g., Central IN specific zips like 46201-46208; Hamilton County; Muncie)",
+        "regional_variations": "Operated by local providers with differences in age/income rules, fees, subsidies, waitlists, and coverage areas; contact local Area Agency on Aging",
+        "offices_or_providers": [
+          "Meals on Wheels of Central Indiana (Indianapolis/Marion County)",
+          "Meals on Wheels Hamilton County",
+          "Meals on Wheels Muncie",
+          "Others via local AAA"
+        ]
+      },
+      "official_source": "https://www.in.gov/fssa/ompp/files/Home-Delivered-Meals.pdf",
+      "gotchas": [
+        "Not a single statewide program—must find local provider and confirm zone eligibility",
+        "Fees required upfront (non-refundable, e.g., 2 weeks minimum + app fee); subsidies not automatic",
+        "Dietary prescription often needed from doctor",
+        "Car ownership or ability to leave home/cook may disqualify",
+        "Services vary widely by region—no uniform rules"
+      ],
+      "data_shape_notes": "Decentralized local providers with no uniform statewide eligibility/income/assets; zone-restricted; fees with targeted subsidies; physician referral often key",
+      "_raw": "{\n  \"name\": \"Meals on Wheels\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No statewide income limits; some local programs offer reduced rates based on assistance programs (e.g., SNAP, SSDI, Medicaid, SSI) or income thresholds like below $1,350/month in Muncie. Varies by provider; no universal table.\",\n    \"asset_limits\": \"No asset limits mentioned across sources.\",\n    \"other_requirements\": [\"Physically or mentally unable to prepare meals (homebound or mobility challenges)\", \"Residency in provider's delivery zone or eligible zip codes\", \"Dietary prescription from physician often required\", \"Some programs: 60+ or disabled; others open to all ages including children/teens\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Home-delivered nutritious meals (e.g., medically tailored, diabetic, heart healthy, low-sodium <2,300mg/day, low sugar/saturated fat); minimum 2 weeks service; frequency based on need (daily or fewer days/week); small fee per meal with subsidies available\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\"Online form (e.g., mealsonwheelsindy.org/apply/, mealsonwheelshc.org form)\", \"Phone: Central IN (317) 252-5558, Hamilton County (317) 776-7159\", \"Mail: e.g., Meals on Wheels of Central Indiana, 708 E. Michigan St., Indianapolis, IN 46202 with check/money order\", \"Contact local Area Agency on Aging for assessment\"],\n    \"processing_time\": \"Typically 5-7 business days or less than a week; varies by program\",\n    \"waitlist\": \"Generally no waitlist, but temporary waitlists possible in Marion County/Central IN\",\n    \"forms\": [\"Client application form (online/printable per provider)\", \"Financial Assistance Request form (e.g., Hamilton County)\"],\n    \"documents\": [\"Proof of age/residence (sometimes)\", \"Medical info/dietary restrictions\", \"Dietary prescription from physician\", \"Financial docs for subsidies (not always required)\", \"Payment for first 2 weeks + application fee (e.g., $5 + $80 in Central IN)\"]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Limited to provider delivery zones/zip codes (e.g., Central IN specific zips like 46201-46208; Hamilton County; Muncie)\",\n    \"regional_variations\": \"Operated by local providers with differences in age/income rules, fees, subsidies, waitlists, and coverage areas; contact local Area Agency on Aging\",\n    \"offices_or_providers\": [\"Meals on Wheels of Central Indiana (Indianapolis/Marion County)\", \"Meals on Wheels Hamilton County\", \"Meals on Wheels Muncie\", \"Others via local AAA\"]\n  },\n  \"official_source\": \"https://www.in.gov/fssa/ompp/files/Home-Delivered-Meals.pdf\",\n  \"gotchas\": [\"Not a single statewide program—must find local provider and confirm zone eligibility\", \"Fees required upfront (non-refundable, e.g., 2 weeks minimum + app fee); subsidies not automatic\", \"Dietary prescription often needed from doctor\", \"Car ownership or ability to leave home/cook may disqualify\", \"Services vary widely by region—no uniform rules\"],\n  \"data_shape_notes\": \"Decentralized local providers with no uniform statewide eligibility/income/assets; zone-restricted; fees with targeted subsidies; physician referral often key\"\n}"
+    },
+    {
+      "name": "Older Americans Act Family Caregiver Support",
+      "eligibility": {
+        "age": null,
+        "income_limits": "No specific income or asset limits mentioned; services may be means-tested at local Area Agency on Aging (AAA) level, but exact dollar amounts or tables not detailed in sources[2][7]",
+        "asset_limits": "No asset limits specified; no details on what counts or exemptions[2]",
+        "other_requirements": [
+          "Caregivers providing care to individuals 60 years of age and older",
+          "Older relatives (not parents) age 55 and older caring for a child under 18",
+          "Older relatives (including parents) age 55 and older caring for an individual with a disability ages 18-59",
+          "Adult family members or informal caregivers age 18 and older providing care to individuals of any age with Alzheimer’s disease and related disorders",
+          "Services provided through local Area Agencies on Aging (AAAs)[2][5][7]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Individual counseling, training, support groups; respite care; caregiver support services; may include adult day services, attendant care, case management, homemaker, information and assistance (services available on limited basis based on funding)[2][5]",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Contact local Area Agency on Aging (AAA) via INconnect Alliance (800-445-8106)[2][4][7]",
+          "Visit https://www.in.gov/fssa/ddars/bba/older-americans-act-family-caregiver-support/ for AAA locations[2]",
+          "In-person or phone through one of 15 AAAs serving 16 planning and service areas[2]"
+        ],
+        "processing_time": "Not specified",
+        "waitlist": "Funding is limited; waitlists possible due to grant-based nature[3][5]",
+        "forms": [
+          "No specific form names or numbers listed; functional needs assessment may be required for related programs[4]"
+        ],
+        "documents": [
+          "Not detailed; prepare proof of relationship, care needs, and caregiver status as guided by local AAA"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Administered through 15 Area Agencies on Aging (AAAs) serving 16 planning and service areas; must contact local AAA[2]",
+        "regional_variations": "Services delivered by local AAAs, which may vary in availability, specific offerings, and wait times by region[2][6]",
+        "offices_or_providers": [
+          "INconnect Alliance member AAAs; find local via https://www.in.gov/fssa/ddars/bba/older-americans-act-family-caregiver-support/[2]"
+        ]
+      },
+      "official_source": "https://www.in.gov/fssa/ddars/bba/older-americans-act-family-caregiver-support/[2]",
+      "gotchas": [
+        "Not a paid stipend program like Structured Family Caregiving (SFC) or Medicaid waivers; focuses on support services, not direct financial payments to caregivers[1][2][3]",
+        "Often confused with Medicaid programs like SFC, which require living together, ADL needs, and have income limits[1][3][4]",
+        "Funding limited by federal grants; availability depends on local AAA resources and may have waitlists[3][5]",
+        "Must contact specific local AAA; not a centralized state application[2][4]"
+      ],
+      "data_shape_notes": "Administered via 15 local Area Agencies on Aging with no statewide income/asset tables published; services grant-funded and limited; distinct from Medicaid SFC which offers stipends",
+      "_raw": "{\n  \"name\": \"Older Americans Act Family Caregiver Support\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No specific income or asset limits mentioned; services may be means-tested at local Area Agency on Aging (AAA) level, but exact dollar amounts or tables not detailed in sources[2][7]\",\n    \"asset_limits\": \"No asset limits specified; no details on what counts or exemptions[2]\",\n    \"other_requirements\": [\n      \"Caregivers providing care to individuals 60 years of age and older\",\n      \"Older relatives (not parents) age 55 and older caring for a child under 18\",\n      \"Older relatives (including parents) age 55 and older caring for an individual with a disability ages 18-59\",\n      \"Adult family members or informal caregivers age 18 and older providing care to individuals of any age with Alzheimer’s disease and related disorders\",\n      \"Services provided through local Area Agencies on Aging (AAAs)[2][5][7]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Individual counseling, training, support groups; respite care; caregiver support services; may include adult day services, attendant care, case management, homemaker, information and assistance (services available on limited basis based on funding)[2][5]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact local Area Agency on Aging (AAA) via INconnect Alliance (800-445-8106)[2][4][7]\",\n      \"Visit https://www.in.gov/fssa/ddars/bba/older-americans-act-family-caregiver-support/ for AAA locations[2]\",\n      \"In-person or phone through one of 15 AAAs serving 16 planning and service areas[2]\"\n    ],\n    \"processing_time\": \"Not specified\",\n    \"waitlist\": \"Funding is limited; waitlists possible due to grant-based nature[3][5]\",\n    \"forms\": [\"No specific form names or numbers listed; functional needs assessment may be required for related programs[4]\"],\n    \"documents\": [\"Not detailed; prepare proof of relationship, care needs, and caregiver status as guided by local AAA\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Administered through 15 Area Agencies on Aging (AAAs) serving 16 planning and service areas; must contact local AAA[2]\",\n    \"regional_variations\": \"Services delivered by local AAAs, which may vary in availability, specific offerings, and wait times by region[2][6]\",\n    \"offices_or_providers\": [\"INconnect Alliance member AAAs; find local via https://www.in.gov/fssa/ddars/bba/older-americans-act-family-caregiver-support/[2]\"]\n  },\n  \"official_source\": \"https://www.in.gov/fssa/ddars/bba/older-americans-act-family-caregiver-support/[2]\",\n  \"gotchas\": [\n    \"Not a paid stipend program like Structured Family Caregiving (SFC) or Medicaid waivers; focuses on support services, not direct financial payments to caregivers[1][2][3]\",\n    \"Often confused with Medicaid programs like SFC, which require living together, ADL needs, and have income limits[1][3][4]\",\n    \"Funding limited by federal grants; availability depends on local AAA resources and may have waitlists[3][5]\",\n    \"Must contact specific local AAA; not a centralized state application[2][4]\"\n  ],\n  \"data_shape_notes\": \"Administered via 15 local Area Agencies on Aging with no statewide income/asset tables published; services grant-funded and limited; distinct from Medicaid SFC which offers stipends\"\n}"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "eligibility": {
+        "age": 55,
+        "income_limits": "Family income less than 125% of the Federal Poverty Level (FPL) for the past 6-12 months. Exact dollar amounts vary annually by household size and are verified with proof such as Social Security, SSI, SSDI benefit statements. For example, in prior years for a family of 1, this was approximately $14,850[1][2][3][7]. Full table not specified in sources; contact provider for current FPL figures.",
+        "asset_limits": "No asset limits mentioned in sources.",
+        "other_requirements": [
+          "Unemployed",
+          "Actively seeking employment",
+          "Eligible to work in the US",
+          "Resident of Indiana",
+          "Provide proof of annual household income for last 6-12 months"
+        ]
+      },
+      "benefits": {
+        "type": "employment",
+        "value": "Paid part-time community service job training (average 20 hours per week) at the highest of federal, state, or local minimum wage. Includes job skills training, work experience at nonprofits/public agencies (e.g., schools, hospitals, senior centers), free health physical or reimbursement, career coaching, employment assistance via American Job Centers. Goal is transition to unsubsidized employment.",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Phone: For counties served by Indiana DWD (shaded yellow on map at in.gov/dwd), call 765-830-WORK (9675) to connect to Vantage Aging[2].",
+          "Regional providers: e.g., Eastern Indiana Works (easternindianaworks.org/scsep)[1]; Catholic Charities Fort Wayne/South Bend (260-422-5625)[9]; Community and Family Services (260-726-9318)[9]; Northern Indiana Workforce Board (574-237-9675)[6][9]; Goodwill Indy (goodwillindy.org/employment-services, but not currently processing)[5].",
+          "In-person: Via local workforce boards, American Job Centers, or listed providers.",
+          "Online: Provider websites for info/eligibility (no central online form specified)."
+        ],
+        "processing_time": "Not specified in sources.",
+        "waitlist": "Possible; Goodwill Indy not processing applications currently[5]. Regional variations likely.",
+        "forms": [
+          "No specific form names/numbers listed; intake via phone/provider conversation."
+        ],
+        "documents": [
+          "Proof of age (e.g., ID)",
+          "Proof of income for past 6-12 months (e.g., Social Security, SSI, SSDI statements)",
+          "Proof of residency, work eligibility, unemployment status"
+        ]
+      },
+      "geography": {
+        "statewide": false,
+        "restrictions": "Coverage varies by county and grantee; not all counties served by state DWD (refer to map on in.gov/dwd). Examples: Eastern Indiana counties via Eastern Indiana Works[1]; specific counties like St. Joseph, Elkhart via Northern Indiana Workforce Board[6]; others via CWI subgrantees[9].",
+        "regional_variations": "Operated by different grantees/providers (e.g., Vantage Aging for DWD counties, CWI Works subgrantees, Goodwill). Contacts, availability, wait times differ by region[1][2][5][6][9].",
+        "offices_or_providers": [
+          "Indiana DWD/Vantage Aging (DWD counties): 765-830-9675[2]",
+          "Eastern Indiana Works[1]",
+          "Catholic Charities Fort Wayne/South Bend: Adams, Allen, etc.[9]",
+          "Community and Family Services: Blackford, Delaware, etc.[9]",
+          "Northern Indiana Workforce Board: Elkhart, St. Joseph, etc.[6][9]",
+          "Goodwill Indy (limited processing)[5]"
+        ]
+      },
+      "official_source": "https://www.in.gov/dwd/job-seekers/scsep/[2]",
+      "gotchas": [
+        "Not statewide uniform; must identify correct regional provider/county coverage first[2][9].",
+        "Priority enrollment for veterans, disabled, rural residents, etc.—may affect access[1][3].",
+        "Temporary training program aimed at unsubsidized job placement, not permanent employment[3][4].",
+        "Some providers (e.g., Goodwill Indy) may pause applications[5].",
+        "Income based on 125% FPL for past 6-12 months with proof required[2]."
+      ],
+      "data_shape_notes": "Operated via multiple regional grantees/subgrantees (not centralized); county-specific providers and contacts; priority tiers affect enrollment; income at 125% FPL verified retrospectively.",
+      "_raw": "{\n  \"name\": \"Senior Community Service Employment Program (SCSEP)\",\n  \"eligibility\": {\n    \"age\": 55,\n    \"income_limits\": \"Family income less than 125% of the Federal Poverty Level (FPL) for the past 6-12 months. Exact dollar amounts vary annually by household size and are verified with proof such as Social Security, SSI, SSDI benefit statements. For example, in prior years for a family of 1, this was approximately $14,850[1][2][3][7]. Full table not specified in sources; contact provider for current FPL figures.\",\n    \"asset_limits\": \"No asset limits mentioned in sources.\",\n    \"other_requirements\": [\n      \"Unemployed\",\n      \"Actively seeking employment\",\n      \"Eligible to work in the US\",\n      \"Resident of Indiana\",\n      \"Provide proof of annual household income for last 6-12 months\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"employment\",\n    \"value\": \"Paid part-time community service job training (average 20 hours per week) at the highest of federal, state, or local minimum wage. Includes job skills training, work experience at nonprofits/public agencies (e.g., schools, hospitals, senior centers), free health physical or reimbursement, career coaching, employment assistance via American Job Centers. Goal is transition to unsubsidized employment.\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: For counties served by Indiana DWD (shaded yellow on map at in.gov/dwd), call 765-830-WORK (9675) to connect to Vantage Aging[2].\",\n      \"Regional providers: e.g., Eastern Indiana Works (easternindianaworks.org/scsep)[1]; Catholic Charities Fort Wayne/South Bend (260-422-5625)[9]; Community and Family Services (260-726-9318)[9]; Northern Indiana Workforce Board (574-237-9675)[6][9]; Goodwill Indy (goodwillindy.org/employment-services, but not currently processing)[5].\",\n      \"In-person: Via local workforce boards, American Job Centers, or listed providers.\",\n      \"Online: Provider websites for info/eligibility (no central online form specified).\"\n    ],\n    \"processing_time\": \"Not specified in sources.\",\n    \"waitlist\": \"Possible; Goodwill Indy not processing applications currently[5]. Regional variations likely.\",\n    \"forms\": [\"No specific form names/numbers listed; intake via phone/provider conversation.\"],\n    \"documents\": [\n      \"Proof of age (e.g., ID)\",\n      \"Proof of income for past 6-12 months (e.g., Social Security, SSI, SSDI statements)\",\n      \"Proof of residency, work eligibility, unemployment status\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Coverage varies by county and grantee; not all counties served by state DWD (refer to map on in.gov/dwd). Examples: Eastern Indiana counties via Eastern Indiana Works[1]; specific counties like St. Joseph, Elkhart via Northern Indiana Workforce Board[6]; others via CWI subgrantees[9].\",\n    \"regional_variations\": \"Operated by different grantees/providers (e.g., Vantage Aging for DWD counties, CWI Works subgrantees, Goodwill). Contacts, availability, wait times differ by region[1][2][5][6][9].\",\n    \"offices_or_providers\": [\n      \"Indiana DWD/Vantage Aging (DWD counties): 765-830-9675[2]\",\n      \"Eastern Indiana Works[1]\",\n      \"Catholic Charities Fort Wayne/South Bend: Adams, Allen, etc.[9]\",\n      \"Community and Family Services: Blackford, Delaware, etc.[9]\",\n      \"Northern Indiana Workforce Board: Elkhart, St. Joseph, etc.[6][9]\",\n      \"Goodwill Indy (limited processing)[5]\"\n    ]\n  },\n  \"official_source\": \"https://www.in.gov/dwd/job-seekers/scsep/[2]\",\n  \"gotchas\": [\n    \"Not statewide uniform; must identify correct regional provider/county coverage first[2][9].\",\n    \"Priority enrollment for veterans, disabled, rural residents, etc.—may affect access[1][3].\",\n    \"Temporary training program aimed at unsubsidized job placement, not permanent employment[3][4].\",\n    \"Some providers (e.g., Goodwill Indy) may pause applications[5].\",\n    \"Income based on 125% FPL for past 6-12 months with proof required[2].\"\n  ],\n  \"data_shape_notes\": \"Operated via multiple regional grantees/subgrantees (not centralized); county-specific providers and contacts; priority tiers affect enrollment; income at 125% FPL verified retrospectively.\"\n}"
+    },
+    {
+      "name": "Indiana Legal Services (Pro Bono for Seniors)",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "Generally 125% of Federal Poverty Guidelines (FPG), but senior projects (60+) have less restrictive guidelines dictated by specialized funding; up to 200% FPG possible depending on expenses. Exact dollar amounts vary annually with FPG updates (e.g., 2024 FPG referenced); no specific table provided in sources—check current FPG at indianalegalservices.org/eligibility-guidelines. Varies by household size per standard FPG tables.",
+        "asset_limits": "Countable assets under $10,000 (excludes primary residence, vehicle, and some other items). Less restrictive for senior projects.",
+        "other_requirements": [
+          "Low-income Hoosier resident facing civil (non-criminal) legal issues",
+          "Unable to afford private attorney",
+          "Not fee-generating cases unless no private attorneys available",
+          "Citizens, legal immigrants, or certain victims of crime/trafficking"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Free civil legal assistance including advice, representation, document preparation; specific to seniors: Senior Law issues (e.g., housing, public benefits, family law, consumer law). No fee for lawyer if eligible; client may pay court filing fees/costs.",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Online: indianalegalservices.org/applyonline",
+          "Phone: (844) 243-8570 (M-F, 10am-2pm); regional e.g., Columbus (812) 372-6918 or (866) 644-6407",
+          "In-person: Regional offices e.g., Columbus: 1531 13th Street, Suite G, Columbus, IN 47201-1302"
+        ],
+        "processing_time": "Not specified",
+        "waitlist": null,
+        "forms": [
+          "Online intake form at indianalegalservices.org/applyonline"
+        ],
+        "documents": [
+          "Proof of income, assets, residency, immigration status if applicable; specific details not listed—prepare financial docs for eligibility screening"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Serves low-income residents throughout Indiana; some senior projects county-specific e.g., Sullivan/Vigo, Orange, Clay/Greene/Lawrence/Monroe/Morgan/Owen/Putnam Counties via Columbus office/Area XI Council on Aging",
+        "regional_variations": "Regional offices with specialized senior intake (e.g., Fort Wayne for Family/Consumer/Senior/Public Benefits/Housing; Columbus for 60+ in select counties); potential differences in wait times/services by office",
+        "offices_or_providers": [
+          "Fort Wayne: 919 S. Harrison, Suite 200",
+          "Columbus: 1531 13th Street, Suite G, Columbus, IN 47201-1302 (partners with Area XI Council on Aging)"
+        ]
+      },
+      "official_source": "https://www.indianalegalservices.org",
+      "gotchas": [
+        "Senior projects (60+) have different/less restrictive eligibility than general ILS—must specify senior needs",
+        "No criminal or divorce cases; may refer out",
+        "Client pays court fees/costs even if lawyer free",
+        "200% FPG only if high expenses; assets exclude home/car but cap at $10k countable",
+        "Recent immigration/funding changes may affect eligibility",
+        "Some areas require referral from local aid org (e.g., Heartland Pro Bono)"
+      ],
+      "data_shape_notes": "Senior projects less restrictive than general 125% FPG/$10k assets; county-specific for some 60+ services via regional offices/partners; eligibility varies by funding source/project",
+      "_raw": "{\n  \"name\": \"Indiana Legal Services (Pro Bono for Seniors)\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"Generally 125% of Federal Poverty Guidelines (FPG), but senior projects (60+) have less restrictive guidelines dictated by specialized funding; up to 200% FPG possible depending on expenses. Exact dollar amounts vary annually with FPG updates (e.g., 2024 FPG referenced); no specific table provided in sources—check current FPG at indianalegalservices.org/eligibility-guidelines. Varies by household size per standard FPG tables.\",\n    \"asset_limits\": \"Countable assets under $10,000 (excludes primary residence, vehicle, and some other items). Less restrictive for senior projects.\",\n    \"other_requirements\": [\n      \"Low-income Hoosier resident facing civil (non-criminal) legal issues\",\n      \"Unable to afford private attorney\",\n      \"Not fee-generating cases unless no private attorneys available\",\n      \"Citizens, legal immigrants, or certain victims of crime/trafficking\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free civil legal assistance including advice, representation, document preparation; specific to seniors: Senior Law issues (e.g., housing, public benefits, family law, consumer law). No fee for lawyer if eligible; client may pay court filing fees/costs.\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: indianalegalservices.org/applyonline\",\n      \"Phone: (844) 243-8570 (M-F, 10am-2pm); regional e.g., Columbus (812) 372-6918 or (866) 644-6407\",\n      \"In-person: Regional offices e.g., Columbus: 1531 13th Street, Suite G, Columbus, IN 47201-1302\"\n    ],\n    \"processing_time\": \"Not specified\",\n    \"waitlist\": null,\n    \"forms\": [\"Online intake form at indianalegalservices.org/applyonline\"],\n    \"documents\": [\"Proof of income, assets, residency, immigration status if applicable; specific details not listed—prepare financial docs for eligibility screening\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Serves low-income residents throughout Indiana; some senior projects county-specific e.g., Sullivan/Vigo, Orange, Clay/Greene/Lawrence/Monroe/Morgan/Owen/Putnam Counties via Columbus office/Area XI Council on Aging\",\n    \"regional_variations\": \"Regional offices with specialized senior intake (e.g., Fort Wayne for Family/Consumer/Senior/Public Benefits/Housing; Columbus for 60+ in select counties); potential differences in wait times/services by office\",\n    \"offices_or_providers\": [\n      \"Fort Wayne: 919 S. Harrison, Suite 200\",\n      \"Columbus: 1531 13th Street, Suite G, Columbus, IN 47201-1302 (partners with Area XI Council on Aging)\"\n    ]\n  },\n  \"official_source\": \"https://www.indianalegalservices.org\",\n  \"gotchas\": [\n    \"Senior projects (60+) have different/less restrictive eligibility than general ILS—must specify senior needs\",\n    \"No criminal or divorce cases; may refer out\",\n    \"Client pays court fees/costs even if lawyer free\",\n    \"200% FPG only if high expenses; assets exclude home/car but cap at $10k countable\",\n    \"Recent immigration/funding changes may affect eligibility\",\n    \"Some areas require referral from local aid org (e.g., Heartland Pro Bono)\"\n  ],\n  \"data_shape_notes\": \"Senior projects less restrictive than general 125% FPG/$10k assets; county-specific for some 60+ services via regional offices/partners; eligibility varies by funding source/project\"\n}"
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "eligibility": {
+        "age": null,
+        "income_limits": "No income limits; open to all regardless of financial status.",
+        "asset_limits": "No asset limits; no financial tests apply.",
+        "other_requirements": [
+          "Resident must be in a nursing facility or licensed assisted living facility in Indiana. Services also extend to in-home services per state statute, though funding limits implementation to facilities primarily.[4] Anyone can contact on behalf of a resident: residents, relatives, friends, facility staff, or community members.[5][6]"
+        ]
+      },
+      "benefits": {
+        "type": "advocacy",
+        "value": "Free, confidential advocacy to resolve complaints including quality of care (e.g., call lights, medications, hygiene), rights violations (e.g., privacy, dignity, verbal abuse), transfers/discharges (e.g., improper discharge, Medicaid discrimination), abuse, restraints. Ombudsmen visit facilities, assist in problem resolution, promote resident rights under federal/state law. Resident-directed; no fixed hours or dollar amounts.[5][6]",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Phone: 1-800-622-4484 (toll-free information/complaint line) or 317-232-7134 (State Ombudsman).[6]",
+          "Email: Available via state office (specific address not listed; use phone for guidance).[6]",
+          "Mail: Office of the Long Term Care Ombudsman, 402 West Washington Street, Room W451, Post Office Box 7083, MS 27, Indianapolis, Indiana 46207-7083.[6]",
+          "In-person: Local ombudsman offices across the state (contact state line for nearest).[5]",
+          "No formal application form for recipients; contact to file complaint or request assistance directly.[1][5]"
+        ],
+        "processing_time": "Not specified for complaint resolution; volunteer certification applications take 4-6 weeks (not applicable to recipients).[1]",
+        "waitlist": null,
+        "forms": [
+          "No specific forms for service recipients; complaint intake via phone/email/mail. Volunteer applicants submit application with references and background check authorization (not for families).[1]"
+        ],
+        "documents": [
+          "None required; provide details of concern (e.g., facility name, resident info, complaint description). Consent from resident or legal representative if accessing records.[2]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Primarily long-term care facilities (nursing homes, licensed assisted living); in-home services authorized but not fully funded/implemented statewide.[4][5]",
+        "regional_variations": "Network of local offices across Indiana recruit, train, manage ombudsmen; visits and services via local ombudsmen, but no specified differences in wait times or provision.[1][5]",
+        "offices_or_providers": [
+          "State office: Indianapolis (402 West Washington Street, Room W451).[6]",
+          "Local offices statewide (contact 1-800-622-4484 for nearest).[5]"
+        ]
+      },
+      "official_source": "https://www.in.gov/ombudsman/long-term-care-ombudsman/overview/[5]",
+      "gotchas": [
+        "Not a direct service provider (e.g., no healthcare, housing, financial aid); purely advocacy/complaint resolution.[5]",
+        "Free and confidential, but resident-directed—ombudsman prioritizes resident's wishes.[5]",
+        "Not for qualifying for facility admission or payment; for rights protection once in facility.[5][6]",
+        "In-home services statutorily mandated but underfunded, so focus on facilities.[4]",
+        "Anyone can contact, but access to records needs resident/legal consent.[2]",
+        "Volunteer program often confused with recipient services—volunteers aid residents.[1]"
+      ],
+      "data_shape_notes": "no income test; advocacy-only, not financial/service benefits; statewide via local offices; open to public contacts for facility residents; volunteer-focused requirements in sources often misapplied to recipients",
+      "_raw": "{\n  \"name\": \"Long-Term Care Ombudsman Program\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No income limits; open to all regardless of financial status.\",\n    \"asset_limits\": \"No asset limits; no financial tests apply.\",\n    \"other_requirements\": [\"Resident must be in a nursing facility or licensed assisted living facility in Indiana. Services also extend to in-home services per state statute, though funding limits implementation to facilities primarily.[4] Anyone can contact on behalf of a resident: residents, relatives, friends, facility staff, or community members.[5][6]\"]\n  },\n  \"benefits\": {\n    \"type\": \"advocacy\",\n    \"value\": \"Free, confidential advocacy to resolve complaints including quality of care (e.g., call lights, medications, hygiene), rights violations (e.g., privacy, dignity, verbal abuse), transfers/discharges (e.g., improper discharge, Medicaid discrimination), abuse, restraints. Ombudsmen visit facilities, assist in problem resolution, promote resident rights under federal/state law. Resident-directed; no fixed hours or dollar amounts.[5][6]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: 1-800-622-4484 (toll-free information/complaint line) or 317-232-7134 (State Ombudsman).[6]\", \"Email: Available via state office (specific address not listed; use phone for guidance).[6]\", \"Mail: Office of the Long Term Care Ombudsman, 402 West Washington Street, Room W451, Post Office Box 7083, MS 27, Indianapolis, Indiana 46207-7083.[6]\", \"In-person: Local ombudsman offices across the state (contact state line for nearest).[5]\", \"No formal application form for recipients; contact to file complaint or request assistance directly.[1][5]\"],\n    \"processing_time\": \"Not specified for complaint resolution; volunteer certification applications take 4-6 weeks (not applicable to recipients).[1]\",\n    \"waitlist\": null,\n    \"forms\": [\"No specific forms for service recipients; complaint intake via phone/email/mail. Volunteer applicants submit application with references and background check authorization (not for families).[1]\"],\n    \"documents\": [\"None required; provide details of concern (e.g., facility name, resident info, complaint description). Consent from resident or legal representative if accessing records.[2]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Primarily long-term care facilities (nursing homes, licensed assisted living); in-home services authorized but not fully funded/implemented statewide.[4][5]\",\n    \"regional_variations\": \"Network of local offices across Indiana recruit, train, manage ombudsmen; visits and services via local ombudsmen, but no specified differences in wait times or provision.[1][5]\",\n    \"offices_or_providers\": [\"State office: Indianapolis (402 West Washington Street, Room W451).[6]\", \"Local offices statewide (contact 1-800-622-4484 for nearest).[5]\"]\n  },\n  \"official_source\": \"https://www.in.gov/ombudsman/long-term-care-ombudsman/overview/[5]\",\n  \"gotchas\": [\"Not a direct service provider (e.g., no healthcare, housing, financial aid); purely advocacy/complaint resolution.[5]\", \"Free and confidential, but resident-directed—ombudsman prioritizes resident's wishes.[5]\", \"Not for qualifying for facility admission or payment; for rights protection once in facility.[5][6]\", \"In-home services statutorily mandated but underfunded, so focus on facilities.[4]\", \"Anyone can contact, but access to records needs resident/legal consent.[2]\", \"Volunteer program often confused with recipient services—volunteers aid residents.[1]\"],\n  \"data_shape_notes\": \"no income test; advocacy-only, not financial/service benefits; statewide via local offices; open to public contacts for facility residents; volunteer-focused requirements in sources often misapplied to recipients\"\n}"
+    },
+    {
+      "name": "Indiana's Senior Property Tax Credit and Deduction Programs",
+      "eligibility": {
+        "age": 65,
+        "age_detail": "Must be at least 65 years old on or before December 31 of the year preceding the year in which the credit/deduction is claimed[1][6]",
+        "income_limits": {
+          "over_65_credit": {
+            "tax_year_2026": {
+              "single": "$60,000 AGI",
+              "married_filing_jointly": "$70,000 AGI",
+              "shared_ownership": "$70,000 AGI"
+            },
+            "tax_year_2027": {
+              "single": "$60,000 AGI",
+              "married_filing_jointly": "$70,000 AGI"
+            },
+            "note": "Income limits adjusted annually by Social Security COLA percentage increase[1]"
+          },
+          "circuit_breaker_credit": {
+            "tax_year_2026": {
+              "single": "$60,000 AGI",
+              "married_filing_jointly": "$70,000 AGI"
+            },
+            "tax_year_2027": {
+              "single": "$61,860 AGI",
+              "married_filing_jointly": "$71,960 AGI"
+            },
+            "note": "Income limits adjusted annually[1]"
+          }
+        },
+        "asset_limits": "No assessed value limitation for either credit as of 2026[1][6]",
+        "other_requirements": [
+          "Must own or be buying the home for at least one year before claiming the credit[6]",
+          "If buying under contract, the contract must state you are responsible for property taxes and must be officially recorded with the county[6]",
+          "Must have received the homestead deduction on the property in the prior year, or late spouse must have received it if married at time of spouse's death[6]",
+          "Must qualify for the homestead deduction on the same property in the current year[6]",
+          "Must reside in the home[1]",
+          "Surviving spouse must be at least 60 years old and unmarried; deceased spouse must have been at least 65[1][5]"
+        ]
+      },
+      "benefits": {
+        "programs": [
+          {
+            "name": "Over 65 Credit",
+            "type": "financial",
+            "value": "$150 credit on property tax bill[1][6]",
+            "note": "Replaced the Over 65 Deduction starting with taxes due in 2026[6]",
+            "key_feature": "All eligible property owners receive the same $150 credit regardless of assessed value[6]"
+          },
+          {
+            "name": "Over 65 Deduction (prior to 2026)",
+            "type": "financial",
+            "value": "Reduction in home's assessed value of $14,000 or half the assessed value, whichever is less[3]",
+            "note": "No longer available for taxes based on 2025 assessment year and beyond[6]"
+          },
+          {
+            "name": "Over 65 Circuit Breaker Credit",
+            "type": "financial",
+            "value": "Property tax bill limited to 2% increase from prior year[1]",
+            "note": "Prevents property tax liability from increasing more than 2% compared to prior year[7]"
+          }
+        ],
+        "varies_by": "Program type; all eligible seniors receive same benefit amount within each program"
+      },
+      "application": {
+        "methods": [
+          "Mail: Submit to county auditor's office[7]",
+          "In-person: Visit county auditor's office[7]",
+          "Phone: Contact county auditor's office to request application[7]",
+          "Online: Download application form from county website or state website[7]"
+        ],
+        "processing_time": "Not specified in available sources",
+        "waitlist": null,
+        "forms": [
+          "Application for Senior Citizen Property Tax Benefits Form 43708[7]",
+          "Previous year's federal income tax return (required as proof of income)[1]"
+        ],
+        "documents": [
+          "Copy of previous year's federal income tax return (proof of income for both Over 65 Credit and Circuit Breaker Credit)[1]",
+          "Documentation to substantiate eligibility for the credit[7]"
+        ],
+        "deadline": "January 15 of the year in which taxes are due[1][7]",
+        "renewal": "If eligible in following year, not required to file again; counties may automatically renew[7]"
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "County-administered; each county auditor's office handles applications[1][7]",
+        "regional_variations": "Income limits adjusted annually by Social Security COLA, which is uniform statewide[1]",
+        "offices_or_providers": "County auditor's office in each Indiana county[7]",
+        "application_note": "Contact your specific county auditor's office for application submission and local procedures"
+      },
+      "official_source": "https://www.allencounty.in.gov/262/Senior-Citizen-Property-Tax-Benefits (example county); https://ptaconsumers.aarpfoundation.org/taxpayer-states/indiana/ (AARP Property Tax Aide for Indiana)",
+      "gotchas": [
+        "Program changed significantly in 2026: The Over 65 Deduction was replaced with a new Over 65 Credit of $150[6]. Seniors who were receiving the deduction may have been automatically switched to the credit, but some still needed to file an application by January 15, 2026[6]",
+        "Income limits are based on AGI from two years prior to the tax year, not the current year[4]",
+        "Must have received homestead deduction in prior year to qualify for Over 65 Credit; this is a new requirement as of 2026[6]",
+        "Assessed value no longer matters for eligibility as of 2026, but you must still qualify for the homestead deduction on the property[6]",
+        "Surviving spouses must be unmarried and at least 60 years old; remarriage disqualifies them[1][5]",
+        "The $150 Over 65 Credit is fixed regardless of property value or tax bill size, meaning it provides the same benefit to all eligible seniors[6]",
+        "If applying within 2 weeks of the January 15 deadline, all documentation must be submitted by January 15[1]",
+        "Homestead deduction eligibility is a prerequisite; seniors must qualify for both programs to receive the Over 65 Credit[6]"
+      ],
+      "data_shape_notes": "This program has undergone significant structural changes as of 2026 under Senate Enrolled Act 1. The Over 65 Deduction (which varied by assessed value) was replaced with a flat $150 Over 65 Credit available to all eligible seniors regardless of property value. Income limits are uniform statewide but adjusted annually by Social Security COLA. The program is administered at the county level through county auditors' offices. Eligibility now focuses on income and age rather than property assessed value. The Circuit Breaker Credit provides an alternative benefit (2% tax increase cap) for those who may benefit more from that structure.",
+      "recent_changes": "Effective 2026 (taxes due in 2026), Senate Enrolled Act 1 (SEA 1-2025) made significant changes: (1) Replaced Over 65 Deduction with $150 Over 65 Credit[6][7]; (2) Removed assessed value limits for both credits[1][7]; (3) Expanded Circuit Breaker Credit eligibility by removing assessed-value limits and increasing income limits to $60,000 (individual) and $70,000 (couple)[7]; (4) Estimated to save homeowners $1.3 billion over three years[7]",
+      "_raw": "```json\n{\n  \"name\": \"Indiana's Senior Property Tax Credit and Deduction Programs\",\n  \"eligibility\": {\n    \"age\": 65,\n    \"age_detail\": \"Must be at least 65 years old on or before December 31 of the year preceding the year in which the credit/deduction is claimed[1][6]\",\n    \"income_limits\": {\n      \"over_65_credit\": {\n        \"tax_year_2026\": {\n          \"single\": \"$60,000 AGI\",\n          \"married_filing_jointly\": \"$70,000 AGI\",\n          \"shared_ownership\": \"$70,000 AGI\"\n        },\n        \"tax_year_2027\": {\n          \"single\": \"$60,000 AGI\",\n          \"married_filing_jointly\": \"$70,000 AGI\"\n        },\n        \"note\": \"Income limits adjusted annually by Social Security COLA percentage increase[1]\"\n      },\n      \"circuit_breaker_credit\": {\n        \"tax_year_2026\": {\n          \"single\": \"$60,000 AGI\",\n          \"married_filing_jointly\": \"$70,000 AGI\"\n        },\n        \"tax_year_2027\": {\n          \"single\": \"$61,860 AGI\",\n          \"married_filing_jointly\": \"$71,960 AGI\"\n        },\n        \"note\": \"Income limits adjusted annually[1]\"\n      }\n    },\n    \"asset_limits\": \"No assessed value limitation for either credit as of 2026[1][6]\",\n    \"other_requirements\": [\n      \"Must own or be buying the home for at least one year before claiming the credit[6]\",\n      \"If buying under contract, the contract must state you are responsible for property taxes and must be officially recorded with the county[6]\",\n      \"Must have received the homestead deduction on the property in the prior year, or late spouse must have received it if married at time of spouse's death[6]\",\n      \"Must qualify for the homestead deduction on the same property in the current year[6]\",\n      \"Must reside in the home[1]\",\n      \"Surviving spouse must be at least 60 years old and unmarried; deceased spouse must have been at least 65[1][5]\"\n    ]\n  },\n  \"benefits\": {\n    \"programs\": [\n      {\n        \"name\": \"Over 65 Credit\",\n        \"type\": \"financial\",\n        \"value\": \"$150 credit on property tax bill[1][6]\",\n        \"note\": \"Replaced the Over 65 Deduction starting with taxes due in 2026[6]\",\n        \"key_feature\": \"All eligible property owners receive the same $150 credit regardless of assessed value[6]\"\n      },\n      {\n        \"name\": \"Over 65 Deduction (prior to 2026)\",\n        \"type\": \"financial\",\n        \"value\": \"Reduction in home's assessed value of $14,000 or half the assessed value, whichever is less[3]\",\n        \"note\": \"No longer available for taxes based on 2025 assessment year and beyond[6]\"\n      },\n      {\n        \"name\": \"Over 65 Circuit Breaker Credit\",\n        \"type\": \"financial\",\n        \"value\": \"Property tax bill limited to 2% increase from prior year[1]\",\n        \"note\": \"Prevents property tax liability from increasing more than 2% compared to prior year[7]\"\n      }\n    ],\n    \"varies_by\": \"Program type; all eligible seniors receive same benefit amount within each program\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Mail: Submit to county auditor's office[7]\",\n      \"In-person: Visit county auditor's office[7]\",\n      \"Phone: Contact county auditor's office to request application[7]\",\n      \"Online: Download application form from county website or state website[7]\"\n    ],\n    \"processing_time\": \"Not specified in available sources\",\n    \"waitlist\": null,\n    \"forms\": [\n      \"Application for Senior Citizen Property Tax Benefits Form 43708[7]\",\n      \"Previous year's federal income tax return (required as proof of income)[1]\"\n    ],\n    \"documents\": [\n      \"Copy of previous year's federal income tax return (proof of income for both Over 65 Credit and Circuit Breaker Credit)[1]\",\n      \"Documentation to substantiate eligibility for the credit[7]\"\n    ],\n    \"deadline\": \"January 15 of the year in which taxes are due[1][7]\",\n    \"renewal\": \"If eligible in following year, not required to file again; counties may automatically renew[7]\"\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"County-administered; each county auditor's office handles applications[1][7]\",\n    \"regional_variations\": \"Income limits adjusted annually by Social Security COLA, which is uniform statewide[1]\",\n    \"offices_or_providers\": \"County auditor's office in each Indiana county[7]\",\n    \"application_note\": \"Contact your specific county auditor's office for application submission and local procedures\"\n  },\n  \"official_source\": \"https://www.allencounty.in.gov/262/Senior-Citizen-Property-Tax-Benefits (example county); https://ptaconsumers.aarpfoundation.org/taxpayer-states/indiana/ (AARP Property Tax Aide for Indiana)\",\n  \"gotchas\": [\n    \"Program changed significantly in 2026: The Over 65 Deduction was replaced with a new Over 65 Credit of $150[6]. Seniors who were receiving the deduction may have been automatically switched to the credit, but some still needed to file an application by January 15, 2026[6]\",\n    \"Income limits are based on AGI from two years prior to the tax year, not the current year[4]\",\n    \"Must have received homestead deduction in prior year to qualify for Over 65 Credit; this is a new requirement as of 2026[6]\",\n    \"Assessed value no longer matters for eligibility as of 2026, but you must still qualify for the homestead deduction on the property[6]\",\n    \"Surviving spouses must be unmarried and at least 60 years old; remarriage disqualifies them[1][5]\",\n    \"The $150 Over 65 Credit is fixed regardless of property value or tax bill size, meaning it provides the same benefit to all eligible seniors[6]\",\n    \"If applying within 2 weeks of the January 15 deadline, all documentation must be submitted by January 15[1]\",\n    \"Homestead deduction eligibility is a prerequisite; seniors must qualify for both programs to receive the Over 65 Credit[6]\"\n  ],\n  \"data_shape_notes\": \"This program has undergone significant structural changes as of 2026 under Senate Enrolled Act 1. The Over 65 Deduction (which varied by assessed value) was replaced with a flat $150 Over 65 Credit available to all eligible seniors regardless of property value. Income limits are uniform statewide but adjusted annually by Social Security COLA. The program is administered at the county level through county auditors' offices. Eligibility now focuses on income and age rather than property assessed value. The Circuit Breaker Credit provides an alternative benefit (2% tax increase cap) for those who may benefit more from that structure.\",\n  \"recent_changes\": \"Effective 2026 (taxes due in 2026), Senate Enrolled Act 1 (SEA 1-2025) made significant changes: (1) Replaced Over 65 Deduction with $150 Over 65 Credit[6][7]; (2) Removed assessed value limits for both credits[1][7]; (3) Expanded Circuit Breaker Credit eligibility by removing assessed-value limits and increasing income limits to $60,000 (individual) and $70,000 (couple)[7]; (4) Estimated to save homeowners $1.3 billion over three years[7]\"\n}\n```\n\n## Key Context for Families\n\n**Critical Update**: Indiana's senior property tax program underwent major changes in 2026. If your elderly loved one was receiving benefits before 2026, their benefit structure may have changed[6][7].\n\n**Two Programs Available**:\n- **Over 65 Credit**: A flat $150 credit on the property tax bill (new as of 2026)[6]\n- **Over 65 Circuit Breaker Credit**: Caps property tax increases at 2% year-over-year[1]\n\nSeniors may qualify for one or both programs[7].\n\n**Income Limits Are the Primary Gatekeeper**: For 2026 taxes, AGI cannot exceed $60,000 (single) or $70,000 (married)[1]. These limits increase annually with Social Security adjustments[1].\n\n**Homestead Deduction Is Required**: To qualify for the Over 65 Credit, your loved one must have received (or currently qualify for) the homestead deduction on the same property[6]. This is a prerequisite many families miss.\n\n**Application Deadline**: January 15 of the year taxes are due[1][7]. Contact your county auditor's office to apply; there is no statewide online portal—each county handles applications separately[7]."
+    },
+    {
+      "name": "Structured Family Caregiving",
+      "eligibility": {
+        "age": 18,
+        "income_limits": "Care recipient must qualify for Indiana Medicaid A&D (Aged & Disabled) Waiver or TBI Waiver, which includes limited income (generally $2,982/month in 2026 for applicant; non-applicant spouse income not counted, may receive spousal allowance). Exact limits vary by Medicaid rules and household; no specific SFC table provided[1][2][5].",
+        "asset_limits": "Care recipient must meet Medicaid A&D or TBI Waiver asset limits (generally $2,000 for applicant; married couples combine assets with Community Spouse Resource Allowance for non-applicant spouse). No unique SFC asset rules; standard Medicaid exemptions apply (e.g., home, car often exempt)[2][5].",
+        "other_requirements": [
+          "Care recipient: Indiana resident, eligible for A&D or TBI Medicaid Waiver, needs assistance with at least 2-3 ADLs (e.g., bathing, dressing, eating, toileting, transferring), requires daily support/supervision, prefers home-based care over institution[1][3][4][5].",
+          "Caregiver: 18+ years old, live in same household as recipient, pass criminal background check (no abuse/neglect history), complete assessment/training, willing/able to provide daily care. Can be family (not always spouse), friend, or neighbor; not required to be RN. Some sources note caregiver must be related (not spouse)[1][2][3][4][5][6]."
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "Daily rate/per diem payment to caregiver based on needs assessment level (Level 1: 1-20 hours/week; Level 2: 21-40 hours/week; Level 3: 41+ hours/week until July 1, 2024; post-2024 needs-based). Up to ~$2,000/month possible via providers; includes ongoing training/support from case manager/RN. Can combine with State Plan Home Health if primary caregiver unavailable[1][7][8].",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Contact Indiana FSSA Division of Aging at 1-800-457-8283 or visit in.gov/fssa/aging[1].",
+          "Contact local Area Agency on Aging (AAA)[4].",
+          "Work with approved providers like FreedomCare, ResCare, Careforth, Paid.care (e.g., structuredfamilycaregivingindiana.com, join.careforth.com/in)[1][4][5][8].",
+          "Care manager submits application after assessment (no direct public form; provider/case manager handles)[1]."
+        ],
+        "processing_time": "Not specified; provider-led enrollment moves quickly post-approval[1][8].",
+        "waitlist": "Not mentioned; depends on waiver availability[1].",
+        "forms": [
+          "No specific public form name/number; involves functional needs assessment and waiver eligibility confirmation via care manager[1][4]."
+        ],
+        "documents": [
+          "Medicaid/waiver proof, ID, background check docs, functional needs assessment, proof of residency/cohabitation, financial docs for Medicaid eligibility[1][2][4]."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None; available statewide via Medicaid waivers[1][5].",
+        "regional_variations": "Administered via local Area Agencies on Aging (AAAs); potential waitlist/provider differences by region, but no specifics noted[4].",
+        "offices_or_providers": [
+          "Local AAAs, FSSA Division of Aging, approved providers (e.g., ResCare, FreedomCare)[1][4]."
+        ]
+      },
+      "official_source": "https://www.in.gov/fssa/aging (Division of Aging); FAQ: https://www.in.gov/fssa/files/SFC-FAQ-Families-FINAL.pdf[1][7]",
+      "gotchas": [
+        "Tied to A&D or TBI Medicaid Waiver eligibility (not standard Medicaid); must prefer home over nursing facility[1].",
+        "Caregiver must live in same household; spouse may be excluded by some providers[2][4].",
+        "Levels determined by care manager assessment; temporary rules until July 2024 for under-18[7].",
+        "Cannot manipulate primary caregiver availability for additional Home Health pay[7].",
+        "Provider must have 3+ years experience or accreditation[9]."
+      ],
+      "data_shape_notes": "Requires enrollment in A&D/TBI Waiver with ADL needs (2-3+); tiered daily payments via needs assessment; provider-administered statewide with local AAAs; caregiver training/background mandatory; cohabitation required",
+      "_raw": "{\n  \"name\": \"Structured Family Caregiving\",\n  \"eligibility\": {\n    \"age\": 18,\n    \"income_limits\": \"Care recipient must qualify for Indiana Medicaid A&D (Aged & Disabled) Waiver or TBI Waiver, which includes limited income (generally $2,982/month in 2026 for applicant; non-applicant spouse income not counted, may receive spousal allowance). Exact limits vary by Medicaid rules and household; no specific SFC table provided[1][2][5].\",\n    \"asset_limits\": \"Care recipient must meet Medicaid A&D or TBI Waiver asset limits (generally $2,000 for applicant; married couples combine assets with Community Spouse Resource Allowance for non-applicant spouse). No unique SFC asset rules; standard Medicaid exemptions apply (e.g., home, car often exempt)[2][5].\",\n    \"other_requirements\": [\n      \"Care recipient: Indiana resident, eligible for A&D or TBI Medicaid Waiver, needs assistance with at least 2-3 ADLs (e.g., bathing, dressing, eating, toileting, transferring), requires daily support/supervision, prefers home-based care over institution[1][3][4][5].\",\n      \"Caregiver: 18+ years old, live in same household as recipient, pass criminal background check (no abuse/neglect history), complete assessment/training, willing/able to provide daily care. Can be family (not always spouse), friend, or neighbor; not required to be RN. Some sources note caregiver must be related (not spouse)[1][2][3][4][5][6].\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Daily rate/per diem payment to caregiver based on needs assessment level (Level 1: 1-20 hours/week; Level 2: 21-40 hours/week; Level 3: 41+ hours/week until July 1, 2024; post-2024 needs-based). Up to ~$2,000/month possible via providers; includes ongoing training/support from case manager/RN. Can combine with State Plan Home Health if primary caregiver unavailable[1][7][8].\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact Indiana FSSA Division of Aging at 1-800-457-8283 or visit in.gov/fssa/aging[1].\",\n      \"Contact local Area Agency on Aging (AAA)[4].\",\n      \"Work with approved providers like FreedomCare, ResCare, Careforth, Paid.care (e.g., structuredfamilycaregivingindiana.com, join.careforth.com/in)[1][4][5][8].\",\n      \"Care manager submits application after assessment (no direct public form; provider/case manager handles)[1].\"\n    ],\n    \"processing_time\": \"Not specified; provider-led enrollment moves quickly post-approval[1][8].\",\n    \"waitlist\": \"Not mentioned; depends on waiver availability[1].\",\n    \"forms\": [\"No specific public form name/number; involves functional needs assessment and waiver eligibility confirmation via care manager[1][4].\"],\n    \"documents\": [\"Medicaid/waiver proof, ID, background check docs, functional needs assessment, proof of residency/cohabitation, financial docs for Medicaid eligibility[1][2][4].\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; available statewide via Medicaid waivers[1][5].\",\n    \"regional_variations\": \"Administered via local Area Agencies on Aging (AAAs); potential waitlist/provider differences by region, but no specifics noted[4].\",\n    \"offices_or_providers\": [\"Local AAAs, FSSA Division of Aging, approved providers (e.g., ResCare, FreedomCare)[1][4].\"]\n  },\n  \"official_source\": \"https://www.in.gov/fssa/aging (Division of Aging); FAQ: https://www.in.gov/fssa/files/SFC-FAQ-Families-FINAL.pdf[1][7]\",\n  \"gotchas\": [\n    \"Tied to A&D or TBI Medicaid Waiver eligibility (not standard Medicaid); must prefer home over nursing facility[1].\",\n    \"Caregiver must live in same household; spouse may be excluded by some providers[2][4].\",\n    \"Levels determined by care manager assessment; temporary rules until July 2024 for under-18[7].\",\n    \"Cannot manipulate primary caregiver availability for additional Home Health pay[7].\",\n    \"Provider must have 3+ years experience or accreditation[9].\"\n  ],\n  \"data_shape_notes\": \"Requires enrollment in A&D/TBI Waiver with ADL needs (2-3+); tiered daily payments via needs assessment; provider-administered statewide with local AAAs; caregiver training/background mandatory; cohabitation required\"\n}"
+    },
+    {
+      "name": "Community and Home Options to Institutional Care for the Elderly and Disabled (CHOICE)",
+      "eligibility": {
+        "age": "60 years or older, OR any age with a disability",
+        "income_limits": "No income limits. The CHOICE program does not exclude recipients based on income.[7]",
+        "asset_limits": "Not specified in available sources. Certain medical expenses may not be counted in income or asset calculations.[7]",
+        "other_requirements": [
+          "Must have legal settlement in Indiana[6]",
+          "Must be at risk of losing independence, as measured by impairments affecting Activities of Daily Living (ADLs)[7]",
+          "For individuals with disabilities: must have a disability that creates long-term or lifelong limitations[6]",
+          "ADL limitations include: dependence on others to bathe, dress, eat, or use the bathroom; limitations in expressing personal needs or understanding communication; limitations in learning and maintaining self-care, communication, social, or domestic skills; limitations in moving between environments; limitations in decision-making and judgment[6]"
+        ]
+      },
+      "benefits": {
+        "type": "in_kind",
+        "value": "In-home support services. Specific dollar amounts and hours per week are not detailed in available sources. Services support Activities of Daily Living (ADLs) such as bathing, eating, dressing, using the toilet, taking medication, and mobility/ambulation.[6][7]",
+        "varies_by": "not_applicable",
+        "important_note": "CHOICE does not provide comprehensive healthcare coverage or automatic enrollment in Medicaid or other programs. CHOICE funds may not be used if other funding such as Medicare or Medicaid is available to meet the individual's needs.[7]"
+      },
+      "application": {
+        "methods": [
+          "Phone: Contact your local Area Agency on Aging (AAA). Statewide number: 1-800-713-9023[7]",
+          "In-person: Visit your local Area Agency on Aging office",
+          "Mail: Request application by contacting local AAA"
+        ],
+        "processing_time": "Not specified in available sources",
+        "waitlist": "Waiting lists exist but specific timelines are not provided in available sources.[7]",
+        "forms": [
+          "Long-Term Care Services Eligibility Form (used to assess eligibility)[6]"
+        ],
+        "documents": [
+          "Medical documentation of severe, complex, and unstable medical conditions (if applicable)[6]",
+          "Documentation of substantial medical conditions that may limit Activities of Daily Living[6]",
+          "Proof of Indiana legal settlement[6]",
+          "Age verification (for those claiming disability eligibility)"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Available in all 92 Indiana counties[7]",
+        "regional_variations": "Administration is done regionally by local Area Agency on Aging (AAA) offices. Regional variations in wait times are likely but not detailed in available sources.[7]",
+        "offices_or_providers": [
+          "Central Indiana (Boone, Hamilton, Hancock, Hendricks, Johnson, Marion, Morgan, Shelby counties): Contact CICOA's Aging & Disability Resource Center[6]",
+          "All other counties: Contact your local Area Agency on Aging. Use the state map at https://www.in.gov/fssa/da/files/AAA_Map.pdf to identify your local office[7]"
+        ]
+      },
+      "official_source": "https://www.in.gov/fssa/da/ (Indiana Family and Social Services Administration, Division of Aging)",
+      "gotchas": [
+        "CHOICE does not provide comprehensive healthcare coverage. It is not automatic enrollment in Medicaid or other health programs.[7]",
+        "CHOICE funds cannot be used if other funding (Medicare, Medicaid, Medicaid Waivers, Hoosier Healthwise, Children's Special Health Care Services) is available to meet the individual's needs. Families should explore other programs first.[7]",
+        "Eligibility is based on risk of losing independence due to ADL impairments—not simply having a disability or being elderly. The program requires functional assessment, not just a diagnosis.[6][7]",
+        "The program has been funded statewide since July 1, 1992, but waiting lists exist in some regions. Availability may be limited by county capacity.[7]",
+        "For divorced or separated parents: eligibility of children is determined by the parent with legal custody (this appears to be a note in the source but may not apply to elderly/disabled adults).[3]"
+      ],
+      "data_shape_notes": "This program has no income or asset limits, making it unique among means-tested programs. Eligibility is primarily functional (based on ADL impairments and risk of losing independence) rather than financial. The program is administered regionally by 92 local Area Agencies on Aging, which may create variation in processing times and service availability. Critically, CHOICE is a funding source for in-home services, not a direct service provider—it works in coordination with other programs and cannot be used if other funding is available. Specific benefit amounts, hours of service, and processing timelines are not publicly detailed in available sources.",
+      "_raw": "```json\n{\n  \"name\": \"Community and Home Options to Institutional Care for the Elderly and Disabled (CHOICE)\",\n  \"eligibility\": {\n    \"age\": \"60 years or older, OR any age with a disability\",\n    \"income_limits\": \"No income limits. The CHOICE program does not exclude recipients based on income.[7]\",\n    \"asset_limits\": \"Not specified in available sources. Certain medical expenses may not be counted in income or asset calculations.[7]\",\n    \"other_requirements\": [\n      \"Must have legal settlement in Indiana[6]\",\n      \"Must be at risk of losing independence, as measured by impairments affecting Activities of Daily Living (ADLs)[7]\",\n      \"For individuals with disabilities: must have a disability that creates long-term or lifelong limitations[6]\",\n      \"ADL limitations include: dependence on others to bathe, dress, eat, or use the bathroom; limitations in expressing personal needs or understanding communication; limitations in learning and maintaining self-care, communication, social, or domestic skills; limitations in moving between environments; limitations in decision-making and judgment[6]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"in_kind\",\n    \"value\": \"In-home support services. Specific dollar amounts and hours per week are not detailed in available sources. Services support Activities of Daily Living (ADLs) such as bathing, eating, dressing, using the toilet, taking medication, and mobility/ambulation.[6][7]\",\n    \"varies_by\": \"not_applicable\",\n    \"important_note\": \"CHOICE does not provide comprehensive healthcare coverage or automatic enrollment in Medicaid or other programs. CHOICE funds may not be used if other funding such as Medicare or Medicaid is available to meet the individual's needs.[7]\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: Contact your local Area Agency on Aging (AAA). Statewide number: 1-800-713-9023[7]\",\n      \"In-person: Visit your local Area Agency on Aging office\",\n      \"Mail: Request application by contacting local AAA\"\n    ],\n    \"processing_time\": \"Not specified in available sources\",\n    \"waitlist\": \"Waiting lists exist but specific timelines are not provided in available sources.[7]\",\n    \"forms\": [\n      \"Long-Term Care Services Eligibility Form (used to assess eligibility)[6]\"\n    ],\n    \"documents\": [\n      \"Medical documentation of severe, complex, and unstable medical conditions (if applicable)[6]\",\n      \"Documentation of substantial medical conditions that may limit Activities of Daily Living[6]\",\n      \"Proof of Indiana legal settlement[6]\",\n      \"Age verification (for those claiming disability eligibility)\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Available in all 92 Indiana counties[7]\",\n    \"regional_variations\": \"Administration is done regionally by local Area Agency on Aging (AAA) offices. Regional variations in wait times are likely but not detailed in available sources.[7]\",\n    \"offices_or_providers\": [\n      \"Central Indiana (Boone, Hamilton, Hancock, Hendricks, Johnson, Marion, Morgan, Shelby counties): Contact CICOA's Aging & Disability Resource Center[6]\",\n      \"All other counties: Contact your local Area Agency on Aging. Use the state map at https://www.in.gov/fssa/da/files/AAA_Map.pdf to identify your local office[7]\"\n    ]\n  },\n  \"official_source\": \"https://www.in.gov/fssa/da/ (Indiana Family and Social Services Administration, Division of Aging)\",\n  \"gotchas\": [\n    \"CHOICE does not provide comprehensive healthcare coverage. It is not automatic enrollment in Medicaid or other health programs.[7]\",\n    \"CHOICE funds cannot be used if other funding (Medicare, Medicaid, Medicaid Waivers, Hoosier Healthwise, Children's Special Health Care Services) is available to meet the individual's needs. Families should explore other programs first.[7]\",\n    \"Eligibility is based on risk of losing independence due to ADL impairments—not simply having a disability or being elderly. The program requires functional assessment, not just a diagnosis.[6][7]\",\n    \"The program has been funded statewide since July 1, 1992, but waiting lists exist in some regions. Availability may be limited by county capacity.[7]\",\n    \"For divorced or separated parents: eligibility of children is determined by the parent with legal custody (this appears to be a note in the source but may not apply to elderly/disabled adults).[3]\"\n  ],\n  \"data_shape_notes\": \"This program has no income or asset limits, making it unique among means-tested programs. Eligibility is primarily functional (based on ADL impairments and risk of losing independence) rather than financial. The program is administered regionally by 92 local Area Agencies on Aging, which may create variation in processing times and service availability. Critically, CHOICE is a funding source for in-home services, not a direct service provider—it works in coordination with other programs and cannot be used if other funding is available. Specific benefit amounts, hours of service, and processing timelines are not publicly detailed in available sources.\"\n}\n```\n\n## Key Takeaways for Families\n\n**No income test:** Unlike many elderly/disability programs, CHOICE has no income or asset limits.[7] This makes it accessible to middle- and upper-income families.\n\n**Functional eligibility is the gatekeeper:** The program requires documented impairment in Activities of Daily Living (bathing, dressing, eating, toileting, medication management, mobility).[6][7] Simply being elderly or having a diagnosis is not enough.\n\n**It's a funding source, not a service provider:** CHOICE pays for in-home support services but does not directly provide them. It also cannot be used if Medicare, Medicaid, or other programs can cover the need.[7] Families should verify what other programs their loved one qualifies for first.\n\n**Regional administration creates variation:** All 92 counties are covered, but each is served by a local Area Agency on Aging.[7] Wait times and service availability likely vary by region, though specific data is not publicly available.\n\n**Start by calling your local AAA:** The single entry point is your local Area Agency on Aging. Use the state map or call 1-800-713-9023 to find your office.[7]"
+    },
+    {
+      "name": "SILVER Program (Seniors in Indiana Low-income and Vulnerable Energy Resource)",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "Income-eligible based on household income (total household income per year required on application); specific dollar amounts not detailed in sources but tied to low-income status for NIPSCO gas customers. Must report number of people in household[3][6].",
+        "asset_limits": "No asset limits specified[3][6].",
+        "other_requirements": [
+          "Indiana senior citizen 60 years of age or older",
+          "Primary account holder on active residential gas account with NIPSCO",
+          "Past due balance on NIPSCO gas residential utility account",
+          "Low-income and vulnerable energy needs"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "One-time benefit credited directly to NIPSCO gas residential utility account[3][6].",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Mail: Complete SILVER application form and return to mailing address indicated on form (NIPSCO-specific)[3]",
+          "Online: Submit online SILVER application (via NIPSCO or partners like U Matter 2)[6]"
+        ],
+        "processing_time": "Benefit credited within 30 days of receipt of completed form; eligibility status notified by phone within 30 business days[3][6].",
+        "waitlist": "Funds available until May 31 annually or exhausted; no traditional waitlist mentioned[3].",
+        "forms": [
+          "SILVER (Seniors in Indiana Low-income and Vulnerable Energy Resource) Form[3]"
+        ],
+        "documents": [
+          "Name, address, gas residential utility account number (10 digits), phone number, email, number of people in household, total household income per year, signature, checkboxes confirming senior status (60+), primary account holder, active residential gas account, past due balance[3]"
+        ]
+      },
+      "geography": {
+        "statewide": false,
+        "restrictions": "Limited to NIPSCO gas residential utility customers in NIPSCO service areas in Indiana",
+        "regional_variations": "Provider-specific to NIPSCO service territory; no broader regional differences noted[3][6]",
+        "offices_or_providers": [
+          "NIPSCO (Northern Indiana Public Service Company)"
+        ]
+      },
+      "official_source": "https://www.nipsco.com/docs/librariesprovider11/bills-and-payments/silver-application.pdf (NIPSCO SILVER application PDF)[3]",
+      "gotchas": [
+        "Only for NIPSCO gas customers with past due balances; not general energy assistance",
+        "Program ends annually on May 31 or when funds exhausted—apply early in season (starts October 1)[3][6]",
+        "Must be primary account holder and complete form in entirety[3]",
+        "One-time benefit only, not ongoing assistance",
+        "Not related to Medicaid, Pathways for Aging, or health insurance Silver plans"
+      ],
+      "data_shape_notes": "Utility-specific program restricted to NIPSCO gas customers; income-eligible without published limits table; seasonal with fund exhaustion risk; not statewide Medicaid or health program",
+      "_raw": "{\n  \"name\": \"SILVER Program (Seniors in Indiana Low-income and Vulnerable Energy Resource)\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"Income-eligible based on household income (total household income per year required on application); specific dollar amounts not detailed in sources but tied to low-income status for NIPSCO gas customers. Must report number of people in household[3][6].\",\n    \"asset_limits\": \"No asset limits specified[3][6].\",\n    \"other_requirements\": [\n      \"Indiana senior citizen 60 years of age or older\",\n      \"Primary account holder on active residential gas account with NIPSCO\",\n      \"Past due balance on NIPSCO gas residential utility account\",\n      \"Low-income and vulnerable energy needs\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"One-time benefit credited directly to NIPSCO gas residential utility account[3][6].\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Mail: Complete SILVER application form and return to mailing address indicated on form (NIPSCO-specific)[3]\",\n      \"Online: Submit online SILVER application (via NIPSCO or partners like U Matter 2)[6]\"\n    ],\n    \"processing_time\": \"Benefit credited within 30 days of receipt of completed form; eligibility status notified by phone within 30 business days[3][6].\",\n    \"waitlist\": \"Funds available until May 31 annually or exhausted; no traditional waitlist mentioned[3].\",\n    \"forms\": [\"SILVER (Seniors in Indiana Low-income and Vulnerable Energy Resource) Form[3]\"],\n    \"documents\": [\"Name, address, gas residential utility account number (10 digits), phone number, email, number of people in household, total household income per year, signature, checkboxes confirming senior status (60+), primary account holder, active residential gas account, past due balance[3]\"]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Limited to NIPSCO gas residential utility customers in NIPSCO service areas in Indiana\",\n    \"regional_variations\": \"Provider-specific to NIPSCO service territory; no broader regional differences noted[3][6]\",\n    \"offices_or_providers\": [\"NIPSCO (Northern Indiana Public Service Company)\"]\n  },\n  \"official_source\": \"https://www.nipsco.com/docs/librariesprovider11/bills-and-payments/silver-application.pdf (NIPSCO SILVER application PDF)[3]\",\n  \"gotchas\": [\n    \"Only for NIPSCO gas customers with past due balances; not general energy assistance\",\n    \"Program ends annually on May 31 or when funds exhausted—apply early in season (starts October 1)[3][6]\",\n    \"Must be primary account holder and complete form in entirety[3]\",\n    \"One-time benefit only, not ongoing assistance\",\n    \"Not related to Medicaid, Pathways for Aging, or health insurance Silver plans\"\n  ],\n  \"data_shape_notes\": \"Utility-specific program restricted to NIPSCO gas customers; income-eligible without published limits table; seasonal with fund exhaustion risk; not statewide Medicaid or health program\"\n}"
+    },
+    {
+      "name": "Ramp Up Indiana",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Households must have gross income at or below 80% of Area Median Income (AMI). At least 50% of households assisted per grant must be at or below 50% AMI. Limits vary by location and household size per IHCDA's Federal Program Income Limits. Categorical eligibility applies if receiving SSI, SSDI, TANF, SNAP, or certain other benefits, verified by third-party documentation. Otherwise, use Part 5 Income Verification Process.[1][3][4]",
+        "asset_limits": "No asset limits specified.[1][3]",
+        "other_requirements": [
+          "Must be a homeowner (fee simple title, 99-year leasehold, condo, co-op membership under state law, or life estate right to live rent-free). Excludes land contracts, lease-purchase, or rent-to-own.",
+          "Home must be primary residence.",
+          "Need for accessibility ramp (e.g., mobility impairment allowing aging in place).",
+          "Assistance provided through approved non-profits or local governments, not directly to individuals.[1][3][4]"
+        ]
+      },
+      "benefits": {
+        "type": "in_kind",
+        "value": "Installation of one exterior accessibility ramp (front door, garage, or back door) to improve home access, increase safety, reduce fall risk, and support aging in place. No dollar amount or hours specified per home; small investments per unit with no liens or affordability periods required.[4]",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Families contact local non-profit partners (e.g., Habitat for Humanity, Area Agencies on Aging, MontCares, Thrive West Central) or local government for ramp installation grants. Program closed for new grantee applications as of 2023 flyer, but uses rolling prior funds.[4][5][7]",
+          "IHCDA info: www.in.gov/ihcda/program-partners/ramp-up-indiana",
+          "Phone: 317.232.7777[1][4]"
+        ],
+        "processing_time": "Not specified in sources.",
+        "waitlist": "Not specified; depends on available grantee funds and regional partners.",
+        "forms": [
+          "Certification of Categorical Income Eligibility Form (IHCDA Compliance Form #48) for categorical eligibility.",
+          "Part 5 Income Verification for non-categorical.[1]"
+        ],
+        "documents": [
+          "Proof of income (e.g., benefit letter or card for categorical eligibility).",
+          "Proof of homeownership.",
+          "Income documentation for Part 5 verification.[1][3]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Statewide, but delivered via local non-profits/local governments with experience in disability housing or low-income rehab.",
+        "regional_variations": "Varies by availability of grantees/providers (e.g., MontCares, Thrive West Central in Vigo/Clay Counties); wait times and access depend on local partners. No specific county restrictions.[5][7]",
+        "offices_or_providers": [
+          "Non-profits like Habitat for Humanity, Area Agencies on Aging.",
+          "Local units of government.",
+          "Examples: MontCares (montcares.org), Thrive West Central (thrivewestcentral.com).[5][7]"
+        ]
+      },
+      "official_source": "https://www.in.gov/ihcda/program-partners/ramp-up-indiana",
+      "gotchas": [
+        "Not a direct-to-individual program; families must find/connect with approved non-profit grantees (one active grant per org).",
+        "Program targets organizations, not households directly; may be closed for new grantee apps.",
+        "Only one ramp per home; excludes interior mods or multiple ramps.",
+        "Income targeting: 50% of grantee's households must be ≤50% AMI.",
+        "Homeownership strictly defined; no rent-to-own qualifies.",
+        "No liens, but small funding per home limits scope.[1][3][4]"
+      ],
+      "data_shape_notes": "Grants to non-profits/local govs for ramp installs only; income verified per household but program aggregates targeting (50% at ≤50% AMI, all ≤80% AMI); varies by local partner availability, not household size directly.",
+      "_raw": "{\n  \"name\": \"Ramp Up Indiana\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Households must have gross income at or below 80% of Area Median Income (AMI). At least 50% of households assisted per grant must be at or below 50% AMI. Limits vary by location and household size per IHCDA's Federal Program Income Limits. Categorical eligibility applies if receiving SSI, SSDI, TANF, SNAP, or certain other benefits, verified by third-party documentation. Otherwise, use Part 5 Income Verification Process.[1][3][4]\",\n    \"asset_limits\": \"No asset limits specified.[1][3]\",\n    \"other_requirements\": [\n      \"Must be a homeowner (fee simple title, 99-year leasehold, condo, co-op membership under state law, or life estate right to live rent-free). Excludes land contracts, lease-purchase, or rent-to-own.\",\n      \"Home must be primary residence.\",\n      \"Need for accessibility ramp (e.g., mobility impairment allowing aging in place).\",\n      \"Assistance provided through approved non-profits or local governments, not directly to individuals.[1][3][4]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"in_kind\",\n    \"value\": \"Installation of one exterior accessibility ramp (front door, garage, or back door) to improve home access, increase safety, reduce fall risk, and support aging in place. No dollar amount or hours specified per home; small investments per unit with no liens or affordability periods required.[4]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Families contact local non-profit partners (e.g., Habitat for Humanity, Area Agencies on Aging, MontCares, Thrive West Central) or local government for ramp installation grants. Program closed for new grantee applications as of 2023 flyer, but uses rolling prior funds.[4][5][7]\",\n      \"IHCDA info: www.in.gov/ihcda/program-partners/ramp-up-indiana\",\n      \"Phone: 317.232.7777[1][4]\"\n    ],\n    \"processing_time\": \"Not specified in sources.\",\n    \"waitlist\": \"Not specified; depends on available grantee funds and regional partners.\",\n    \"forms\": [\n      \"Certification of Categorical Income Eligibility Form (IHCDA Compliance Form #48) for categorical eligibility.\",\n      \"Part 5 Income Verification for non-categorical.[1]\"\n    ],\n    \"documents\": [\n      \"Proof of income (e.g., benefit letter or card for categorical eligibility).\",\n      \"Proof of homeownership.\",\n      \"Income documentation for Part 5 verification.[1][3]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Statewide, but delivered via local non-profits/local governments with experience in disability housing or low-income rehab.\",\n    \"regional_variations\": \"Varies by availability of grantees/providers (e.g., MontCares, Thrive West Central in Vigo/Clay Counties); wait times and access depend on local partners. No specific county restrictions.[5][7]\",\n    \"offices_or_providers\": [\n      \"Non-profits like Habitat for Humanity, Area Agencies on Aging.\",\n      \"Local units of government.\",\n      \"Examples: MontCares (montcares.org), Thrive West Central (thrivewestcentral.com).[5][7]\"\n    ]\n  },\n  \"official_source\": \"https://www.in.gov/ihcda/program-partners/ramp-up-indiana\",\n  \"gotchas\": [\n    \"Not a direct-to-individual program; families must find/connect with approved non-profit grantees (one active grant per org).\",\n    \"Program targets organizations, not households directly; may be closed for new grantee apps.\",\n    \"Only one ramp per home; excludes interior mods or multiple ramps.\",\n    \"Income targeting: 50% of grantee's households must be ≤50% AMI.\",\n    \"Homeownership strictly defined; no rent-to-own qualifies.\",\n    \"No liens, but small funding per home limits scope.[1][3][4]\"\n  ],\n  \"data_shape_notes\": \"Grants to non-profits/local govs for ramp installs only; income verified per household but program aggregates targeting (50% at ≤50% AMI, all ≤80% AMI); varies by local partner availability, not household size directly.\"\n}"
+    }
+  ]
+}

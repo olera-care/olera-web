@@ -1,0 +1,197 @@
+{
+  "state": "FL",
+  "stateName": "Florida",
+  "comparedAt": "2026-04-09T08:49:14.728Z",
+  "total": 6,
+  "newPrograms": 5,
+  "withDiffs": 1,
+  "withNovelFields": 1,
+  "benefitTypes": {
+    "service": 3,
+    "financial": 2,
+    "advocacy": 1
+  },
+  "variationPatterns": {
+    "priority_tier": 2,
+    "not_applicable": 2,
+    "living_arrangement": 1,
+    "residency_duration_and_property_value": 1
+  },
+  "novelFieldSummary": {
+    "asset_limits": {
+      "count": 1,
+      "programs": [
+        "SHINE (Serving Health Insurance Needs of Elders)"
+      ],
+      "note": "Our model has no asset limit fields"
+    },
+    "regional_variations": {
+      "count": 1,
+      "programs": [
+        "SHINE (Serving Health Insurance Needs of Elders)"
+      ],
+      "note": "Program varies by region — our model doesn't capture this"
+    },
+    "documents_required": {
+      "count": 1,
+      "programs": [
+        "SHINE (Serving Health Insurance Needs of Elders)"
+      ],
+      "note": "Has document checklist — our model doesn't store per-program documents"
+    }
+  },
+  "comparisons": [
+    {
+      "name": "Home Care for the Elderly (HCE) Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Tied to ICP financial limits with automatic eligibility for SSI/QMB/SLMB; requires approved live-in caregiver and nursing home risk assessment; administered regionally via local AAAs/ADRCs[1]",
+      "gotchas": [
+        "Requires live-in adult caregiver (18+) who meets specific rules; not for those living alone",
+        "Must be at risk of nursing home placement via 701B assessment, not just general home care needs",
+        "Financial eligibility ties to ICP limits or automatic via SSI/QMB/SLMB; exceeding limits disqualifies unless automatic category",
+        "Caregiver must provide full-time family-type care in private home meeting dwelling rules[1]",
+        "Not Medicaid home health; distinct program with caregiver requirement[2]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://elderaffairs.org/programs-services/home-care-for-elderly/ or https://www.agingcarefl.org/uploads/1/3/6/5/136526411/2020-chapter-6-home-care-for-the-elderly-program.pdf[1]"
+    },
+    {
+      "name": "Community Care for the Elderly (CCE) Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "State-funded (not Medicaid); eligibility prioritizes risk level with limited funds; administered regionally via local lead agencies with no statewide income/asset caps specified.",
+      "gotchas": [
+        "No fixed income/asset limits, but funding is limited—eligibility also requires available funds and priority based on institutionalization risk.",
+        "Must complete comprehensive assessment for functional impairment; preliminary intake may lead to referral if clearly ineligible.",
+        "Cannot dual-enroll with Medicaid capitated long-term care programs.",
+        "Services vary by local provider; not all areas have immediate availability.",
+        "Annual reassessment required for ongoing eligibility."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://elderaffairs.org/programs-services/community-care-for-the-elderly/"
+    },
+    {
+      "name": "Respite for Elders Living in Everyday Families (RELIEF) Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "No data available in search results; program not referenced across provided sources, which cover LIHEAP, cash assistance, debt relief, housing waivers, and housing repairs instead.",
+      "gotchas": [
+        "Search results do not contain any information on the RELIEF program; it may not exist under this exact name, be newly established post-search data, or be administered locally without statewide documentation. Families should verify with Florida Department of Elder Affairs (DOEA) directly."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "No official .gov URL identified in search results for this program."
+    },
+    {
+      "name": "Optional State Supplementation (OSS) for SSI Recipients",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Facility-specific payment rates with income offset; state-administered, direct-to-provider model; tied to SSI eligibility but only for licensed residential care settings, not independent living.",
+      "gotchas": [
+        "Payments go directly to the facility, not the individual—facility acts as payee.",
+        "Strictly for specific residential facilities; not for independent living (lower or no supplement).",
+        "Must meet federal SSI asset/income rules exactly; grandfathering only if previously eligible.",
+        "Funding shortfalls can lead to proportional payment cuts.",
+        "Requires ADL assistance need and facility residency; not automatic with SSI alone.",
+        "Apply for other benefits first (SSI/Medicaid); denial impacts OSS.",
+        "Outdated data in some sources (e.g., 2010 SSA table); verify current rates with DCF."
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "living_arrangement",
+      "officialSource": "https://www.myflfamilies.com/service-programs/access/florida-access/ (DCF ACCESS Florida); Fla. Admin. Code Ann. R. 65A-2.032"
+    },
+    {
+      "name": "Additional Homestead Exemption for Seniors (Florida)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "This program has two distinct tiers: (1) Limited-Income Senior Exemption ($50,000 off assessed value) available in most participating counties, and (2) Long-Term Residency Senior Exemption (full assessed value exemption) available only in select counties/municipalities with additional requirements (25-year residency, property value under $250,000). Availability is county-dependent, not statewide. Income limits are uniform statewide but adjusted annually. The exemption applies only to non-school tax millages, creating a significant limitation on benefit value. Application is decentralized through county property appraisers, with no centralized state application process.",
+      "gotchas": [
+        "This exemption is NOT automatic—applicants must apply and meet all requirements[1][7]",
+        "The exemption applies ONLY to county and municipal tax millages, NOT to school district taxes or other taxing units[5][6]",
+        "Income limits are based on PRIOR YEAR income, not current year[7][8]",
+        "The income limit is adjusted annually in January—families must requalify each year if their income changes[2][4]",
+        "Applicants must already have or qualify for a regular Homestead Exemption first; this is an ADDITIONAL exemption, not a standalone benefit[1][2][4]",
+        "The long-term residency exemption (full assessed value) requires 25 consecutive years of permanent residence AND property value under $250,000—both conditions must be met[3][5][7]",
+        "Social Security benefits COUNT toward the income limit[2][7]",
+        "All household members' income counts, even if they are not on the property title[1][4]",
+        "Availability varies significantly by county—not all Florida counties have adopted these exemptions[5]",
+        "First-time applicants must submit a Household Income Sworn Statement (Form DR-501SC); renewal requirements may differ[1]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "residency_duration_and_property_value",
+      "officialSource": "https://floridarevenue.com/property/Documents/AdditionalHomesteadExemptions.pdf"
+    },
+    {
+      "name": "SHINE (Serving Health Insurance Needs of Elders)",
+      "isNew": false,
+      "existingId": "shine-serving-health-insurance-needs-of-elders",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "Free counseling service",
+          "found": "Free, unbiased, confidential one-on-one counseling on Medicare eligibility/enrollment, health plan choices, appeals, Medigap, long-term care insurance, prescription assistance, fraud prevention, and financial aid programs like Extra Help/Medicare Savings Programs. Educational presentations and community outreach also available.[3][5][6]",
+          "source": "www.floridashine.org"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "www.floridashine.org"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits for SHINE access. For assisted programs like Extra Help, resources below $18,090 (excludes home, car, etc.; consult SHINE for details).[8]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Delivered through 11 local Area Agencies on Aging; volunteer networks, counseling sites, and events vary by region (e.g., Senior Connection Center in Tampa serves specific counties; SWFL AAA serves southwest).[4][6][7]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Medicare card, income/resource details for assisted program applications (e.g., Extra Help), insurance documents for review"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Counseling program with no client eligibility barriers; assists applying to tiered financial aid programs with income/resource tests; volunteer-driven via regional Area Agencies on Aging",
+      "gotchas": [
+        "SHINE does not provide direct financial aid or healthcare; it counsels on accessing Medicare-related benefits. Not affiliated with insurers—volunteers neither sell nor recommend specific plans.",
+        "Many eligible for savings programs (e.g., 35,000+ in some areas) remain unenrolled; must consult SHINE for application help.",
+        "Virtual/in-person events vary; check site for availability.",
+        "Assists with Extra Help/MSP but eligibility screened separately (e.g., DEERS for TRICARE)."
+      ],
+      "benefitType": "advocacy",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "www.floridashine.org"
+    }
+  ]
+}

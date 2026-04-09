@@ -1,0 +1,266 @@
+{
+  "state": "MT",
+  "stateName": "Montana",
+  "diveAt": "2026-04-09T09:06:29.401Z",
+  "total": 4,
+  "parsed": 4,
+  "programs": [
+    {
+      "name": "Big Sky Waiver Program",
+      "eligibility": {
+        "age": null,
+        "income_limits": {
+          "description": "2025 limits apply; program serves aged, blind, disabled, and disabled but working individuals",
+          "individual_applicant": "$967/month",
+          "married_both_applying": "$967/month per applicant",
+          "married_one_applying": "Individual limit applies; spouse's income disregarded",
+          "note": "If only one spouse applies, both spouses' assets are counted as jointly owned"
+        },
+        "asset_limits": {
+          "individual": "$2,000",
+          "married_both_applying": "$2,000 each",
+          "married_one_applying": "Both spouses' combined assets limited to $2,000 (counted as jointly owned)",
+          "exempt_assets": [
+            "Primary home (unlimited equity)",
+            "Household furnishings",
+            "One vehicle"
+          ]
+        },
+        "other_requirements": [
+          "Must require Nursing Facility Level of Care (NFLOC)",
+          "Must be financially eligible for Medicaid",
+          "Must demonstrate need for at least one waiver service on a monthly basis",
+          "Must be Montana resident",
+          "Must have unmet need that can only be resolved through BSW services",
+          "In-person or over-the-phone functional needs assessment required to establish NFLOC"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Comprehensive home and community-based services for individuals who would otherwise require nursing facility placement",
+        "services_available": [
+          "Adult Residential Living",
+          "Adult Day Health",
+          "Case Management",
+          "Chemical Dependency Counseling",
+          "Dietician services",
+          "Environmental Adaptations",
+          "Habilitation Services",
+          "Homemaker Services",
+          "Nutrition",
+          "Personal Assistance",
+          "Personal Emergency Response System (PERS)",
+          "Private Duty Nursing",
+          "Psychosocial Consultation",
+          "Respiratory Therapy",
+          "Respite Care",
+          "Special Child Care",
+          "Transportation",
+          "Therapies (Occupational, Physical, Speech)",
+          "Specially Trained Attendant",
+          "Specialized Medical Equipment and Supplies",
+          "Services for Individuals with Traumatic Brain Injury",
+          "Supported Employment",
+          "Community Transition",
+          "Financial Management Services (self-direction)",
+          "Independence Advisor (self-direction)"
+        ],
+        "varies_by": "Individual needs and assessment; specific services determined through care planning"
+      },
+      "application": {
+        "methods": [
+          "Phone: Mountain Pacific (800) 219-7035 or (406) 443-4020 (to make referral to BSW)",
+          "In-person: County Office of Public Assistance (OPA) office for Medicaid eligibility determination",
+          "Contact: Eligibility specialists at your county OPA office"
+        ],
+        "processing_time": "Not specified in available sources",
+        "waitlist": "Currently has a waiting list (specific wait times by region not provided)",
+        "forms": "Not specified in available sources",
+        "documents": "Not specified in available sources; recommend contacting county OPA office for required documentation"
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Montana residency required",
+        "regional_variations": "Managed through Mountain Pacific (appears to be primary contact for referrals); county-level OPA offices handle Medicaid eligibility determination",
+        "offices_or_providers": [
+          "Mountain Pacific (statewide referral contact)",
+          "County Office of Public Assistance (OPA) offices (county-level eligibility)"
+        ]
+      },
+      "official_source": "https://dphhs.mt.gov/sltc/csb/BSW/BigSkyWaiverProgram",
+      "gotchas": [
+        "Program currently has a waiting list — eligibility does not guarantee immediate enrollment",
+        "If only one spouse applies, BOTH spouses' assets are counted as jointly owned and must stay under $2,000 combined — this is a significant limitation for married couples",
+        "Primary home is exempt, but if only one spouse applies and requires care, the non-applicant spouse can continue living in the home (important for married couples)",
+        "Functional needs assessment is required and must demonstrate need for NFLOC — this is not automatic based on age or diagnosis",
+        "Must demonstrate unmet need that can ONLY be resolved through BSW services — other community resources may disqualify applicants",
+        "Income and asset limits are strict ($967/month, $2,000 assets) — Medicaid planning strategies may be necessary for those slightly above limits",
+        "Program operates under Section 1915(c) of Social Security Act, which means it's a waiver program with limited slots and waiting lists",
+        "Services are provided in home and community settings, NOT in institutions — this is the core purpose but means applicants must be able to live in community"
+      ],
+      "data_shape_notes": "This program's eligibility is highly restrictive on assets and income but flexible on age (serves aged, disabled, and disabled-but-working individuals). The key differentiator is functional need (NFLOC requirement) rather than age. Married couples face a significant gotcha: if only one spouse applies, both spouses' assets are pooled and limited to $2,000. The program has a waiting list, so eligibility ≠ immediate access. Services are individualized based on assessment, not tiered or standardized by category. Regional variation exists primarily through county OPA offices and Mountain Pacific as the referral coordinator, but the program itself is statewide.",
+      "_raw": "```json\n{\n  \"name\": \"Big Sky Waiver Program\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": {\n      \"description\": \"2025 limits apply; program serves aged, blind, disabled, and disabled but working individuals\",\n      \"individual_applicant\": \"$967/month\",\n      \"married_both_applying\": \"$967/month per applicant\",\n      \"married_one_applying\": \"Individual limit applies; spouse's income disregarded\",\n      \"note\": \"If only one spouse applies, both spouses' assets are counted as jointly owned\"\n    },\n    \"asset_limits\": {\n      \"individual\": \"$2,000\",\n      \"married_both_applying\": \"$2,000 each\",\n      \"married_one_applying\": \"Both spouses' combined assets limited to $2,000 (counted as jointly owned)\",\n      \"exempt_assets\": [\n        \"Primary home (unlimited equity)\",\n        \"Household furnishings\",\n        \"One vehicle\"\n      ]\n    },\n    \"other_requirements\": [\n      \"Must require Nursing Facility Level of Care (NFLOC)\",\n      \"Must be financially eligible for Medicaid\",\n      \"Must demonstrate need for at least one waiver service on a monthly basis\",\n      \"Must be Montana resident\",\n      \"Must have unmet need that can only be resolved through BSW services\",\n      \"In-person or over-the-phone functional needs assessment required to establish NFLOC\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Comprehensive home and community-based services for individuals who would otherwise require nursing facility placement\",\n    \"services_available\": [\n      \"Adult Residential Living\",\n      \"Adult Day Health\",\n      \"Case Management\",\n      \"Chemical Dependency Counseling\",\n      \"Dietician services\",\n      \"Environmental Adaptations\",\n      \"Habilitation Services\",\n      \"Homemaker Services\",\n      \"Nutrition\",\n      \"Personal Assistance\",\n      \"Personal Emergency Response System (PERS)\",\n      \"Private Duty Nursing\",\n      \"Psychosocial Consultation\",\n      \"Respiratory Therapy\",\n      \"Respite Care\",\n      \"Special Child Care\",\n      \"Transportation\",\n      \"Therapies (Occupational, Physical, Speech)\",\n      \"Specially Trained Attendant\",\n      \"Specialized Medical Equipment and Supplies\",\n      \"Services for Individuals with Traumatic Brain Injury\",\n      \"Supported Employment\",\n      \"Community Transition\",\n      \"Financial Management Services (self-direction)\",\n      \"Independence Advisor (self-direction)\"\n    ],\n    \"varies_by\": \"Individual needs and assessment; specific services determined through care planning\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: Mountain Pacific (800) 219-7035 or (406) 443-4020 (to make referral to BSW)\",\n      \"In-person: County Office of Public Assistance (OPA) office for Medicaid eligibility determination\",\n      \"Contact: Eligibility specialists at your county OPA office\"\n    ],\n    \"processing_time\": \"Not specified in available sources\",\n    \"waitlist\": \"Currently has a waiting list (specific wait times by region not provided)\",\n    \"forms\": \"Not specified in available sources\",\n    \"documents\": \"Not specified in available sources; recommend contacting county OPA office for required documentation\"\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Montana residency required\",\n    \"regional_variations\": \"Managed through Mountain Pacific (appears to be primary contact for referrals); county-level OPA offices handle Medicaid eligibility determination\",\n    \"offices_or_providers\": [\n      \"Mountain Pacific (statewide referral contact)\",\n      \"County Office of Public Assistance (OPA) offices (county-level eligibility)\"\n    ]\n  },\n  \"official_source\": \"https://dphhs.mt.gov/sltc/csb/BSW/BigSkyWaiverProgram\",\n  \"gotchas\": [\n    \"Program currently has a waiting list — eligibility does not guarantee immediate enrollment\",\n    \"If only one spouse applies, BOTH spouses' assets are counted as jointly owned and must stay under $2,000 combined — this is a significant limitation for married couples\",\n    \"Primary home is exempt, but if only one spouse applies and requires care, the non-applicant spouse can continue living in the home (important for married couples)\",\n    \"Functional needs assessment is required and must demonstrate need for NFLOC — this is not automatic based on age or diagnosis\",\n    \"Must demonstrate unmet need that can ONLY be resolved through BSW services — other community resources may disqualify applicants\",\n    \"Income and asset limits are strict ($967/month, $2,000 assets) — Medicaid planning strategies may be necessary for those slightly above limits\",\n    \"Program operates under Section 1915(c) of Social Security Act, which means it's a waiver program with limited slots and waiting lists\",\n    \"Services are provided in home and community settings, NOT in institutions — this is the core purpose but means applicants must be able to live in community\"\n  ],\n  \"data_shape_notes\": \"This program's eligibility is highly restrictive on assets and income but flexible on age (serves aged, disabled, and disabled-but-working individuals). The key differentiator is functional need (NFLOC requirement) rather than age. Married couples face a significant gotcha: if only one spouse applies, both spouses' assets are pooled and limited to $2,000. The program has a waiting list, so eligibility ≠ immediate access. Services are individualized based on assessment, not tiered or standardized by category. Regional variation exists primarily through county OPA offices and Mountain Pacific as the referral coordinator, but the program itself is statewide.\"\n}\n```\n\n## Key Takeaways for Families\n\n**The Core Purpose:** The Big Sky Waiver allows people who would otherwise need to live in a nursing home to receive care in their own home and community instead.[2]\n\n**The Biggest Hurdle:** The program has a **waiting list**.[2] Even if your loved one qualifies, there may be a delay before services begin.\n\n**The Asset Trap for Married Couples:** If only one spouse applies, **both spouses' assets are counted together and must stay under $2,000**.[1] This is more restrictive than many other Medicaid programs. If both spouses apply, each can have $2,000 in assets.\n\n**The Functional Requirement:** Age alone doesn't qualify someone. Your loved one must require **Nursing Facility Level of Care (NFLOC)** — meaning they need the level of care typically provided in a nursing home.[1][2] This is assessed through an in-person or phone interview.\n\n**What's Exempt:** The primary home doesn't count toward the $2,000 asset limit, nor do household furnishings or one vehicle.[1] This is crucial for families trying to preserve the family home.\n\n**Next Steps:** Contact **Mountain Pacific at (800) 219-7035 or (406) 443-4020** to make a referral, or visit your **county Office of Public Assistance (OPA)** to determine Medicaid eligibility.[2] The county OPA office is your starting point for understanding whether your loved one meets the income and asset requirements."
+    },
+    {
+      "name": "TCARE",
+      "eligibility": {
+        "age": null,
+        "income_limits": "No specific income or asset limits mentioned for TCARE; it is a caregiver support program that assesses family caregivers without financial criteria detailed in available sources[7].",
+        "asset_limits": "No asset limits specified[7].",
+        "other_requirements": [
+          "Family caregivers supporting elderly loved ones (likely 60+ or 65+ based on context of Montana aging programs)[7]",
+          "Caregivers experiencing stress, burnout, or depression[7]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Assessment of family caregivers using TCARE software to create individualized care plans addressing burnout, stress, and depression; connects caregivers to programs and resources to reduce stress[7].",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Contact Patrick Kelly by phone at (406) 444-0998 or email Patrick.Kelley@mt.gov for information on participation[7]",
+          "Referrals through local Area Agencies on Aging (AAA) and participating planning and service areas[7]"
+        ],
+        "processing_time": "Not specified; soft launch ongoing in participating areas as of 2024-25[7].",
+        "waitlist": null,
+        "forms": [],
+        "documents": []
+      },
+      "geography": {
+        "statewide": false,
+        "restrictions": "Rolling out in participating planning and service areas via local Area Agencies on Aging[7].",
+        "regional_variations": "Implemented through local AAAs with specialists using TCARE software; varies by participating areas[7].",
+        "offices_or_providers": [
+          "Local Area Agencies on Aging",
+          "DPHHS SLTC Aging Services bureau"
+        ]
+      },
+      "official_source": "https://dphhs.mt.gov/ (contact via Patrick.Kelley@mt.gov or (406) 444-0998)[7]",
+      "gotchas": [
+        "New program with software rollout in soft launch phase; not yet fully statewide—check local AAA availability[7]",
+        "Focuses on caregiver assessment and resource connection, not direct financial aid or personal care services[7]",
+        "Requires referral through participating local agencies, not direct open enrollment[7]"
+      ],
+      "data_shape_notes": "Evidence-based caregiver assessment program using specialized software; rollout via local Area Agencies on Aging in select areas; no financial eligibility test specified",
+      "_raw": "{\n  \"name\": \"TCARE\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No specific income or asset limits mentioned for TCARE; it is a caregiver support program that assesses family caregivers without financial criteria detailed in available sources[7].\",\n    \"asset_limits\": \"No asset limits specified[7].\",\n    \"other_requirements\": [\n      \"Family caregivers supporting elderly loved ones (likely 60+ or 65+ based on context of Montana aging programs)[7]\",\n      \"Caregivers experiencing stress, burnout, or depression[7]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Assessment of family caregivers using TCARE software to create individualized care plans addressing burnout, stress, and depression; connects caregivers to programs and resources to reduce stress[7].\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact Patrick Kelly by phone at (406) 444-0998 or email Patrick.Kelley@mt.gov for information on participation[7]\",\n      \"Referrals through local Area Agencies on Aging (AAA) and participating planning and service areas[7]\"\n    ],\n    \"processing_time\": \"Not specified; soft launch ongoing in participating areas as of 2024-25[7].\",\n    \"waitlist\": null,\n    \"forms\": [],\n    \"documents\": []\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Rolling out in participating planning and service areas via local Area Agencies on Aging[7].\",\n    \"regional_variations\": \"Implemented through local AAAs with specialists using TCARE software; varies by participating areas[7].\",\n    \"offices_or_providers\": [\n      \"Local Area Agencies on Aging\",\n      \"DPHHS SLTC Aging Services bureau\"\n    ]\n  },\n  \"official_source\": \"https://dphhs.mt.gov/ (contact via Patrick.Kelley@mt.gov or (406) 444-0998)[7]\",\n  \"gotchas\": [\n    \"New program with software rollout in soft launch phase; not yet fully statewide—check local AAA availability[7]\",\n    \"Focuses on caregiver assessment and resource connection, not direct financial aid or personal care services[7]\",\n    \"Requires referral through participating local agencies, not direct open enrollment[7]\"\n  ],\n  \"data_shape_notes\": \"Evidence-based caregiver assessment program using specialized software; rollout via local Area Agencies on Aging in select areas; no financial eligibility test specified\"\n}"
+    },
+    {
+      "name": "State Health Insurance Assistance Program (S.H.I.P.)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Not specified in available sources. Search results indicate that some assistance programs coordinated through SHIP (such as Medicare Savings Program, Low-Income Subsidy/Extra Help, and Big Sky RX Program) have income and resource requirements, but specific dollar amounts and household-size tables are not provided in the search results.",
+        "asset_limits": "Big Sky RX Program has no resource limits. Other programs coordinated through SHIP have income/resource requirements, but specific asset limits and exemptions are not detailed in available sources.",
+        "other_requirements": [
+          "Must be a Medicare beneficiary or family member/caregiver of a Medicare beneficiary",
+          "Nationally, SHIP also serves Medicare beneficiaries under age 65 with disabilities and individuals dually eligible for Medicare and Medicaid"
+        ]
+      },
+      "benefits": {
+        "type": "advocacy|service|in_kind",
+        "value": "Free, no-cost counseling and education. Services include: one-on-one counseling via phone and in-person; group presentations; education on Medicare eligibility, enrollment, and benefits; Medicare Part D plan comparisons; Medigap (Supplemental) Insurance guidance; Medicare Health Plans information; Medicare Fraud, Waste and Abuse education; Long Term Care options and information; assistance applying for Medicaid, Medicare Savings Program, Extra Help/Low Income Subsidy, and Big Sky RX Program. Homebound counseling available in-home if transportation is unavailable.",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Phone: 1-800-551-3191 (statewide Montana SHIP line)",
+          "Phone: 406-444-4077 (alternative Montana SHIP contact)",
+          "In-person: Local Area Agency on Aging (referral provided by phone)",
+          "Online: apply.mt.gov (for some assistance programs like Medicare Savings Program)",
+          "Online: SSA.gov (for Low-Income Subsidy/Extra Help application)"
+        ],
+        "processing_time": "Not specified in available sources",
+        "waitlist": "Not mentioned in available sources",
+        "forms": [
+          "No specific SHIP application form name/number provided. Assistance programs coordinated through SHIP (Medicare Savings Program, Low-Income Subsidy/Extra Help) have separate application processes at apply.mt.gov and SSA.gov respectively."
+        ],
+        "documents": "Not specified in available sources. Families should contact a SHIP counselor for guidance on what documentation is needed for specific assistance programs."
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None specified",
+        "regional_variations": "Montana SHIP operates through Area Agencies on Aging by county. Individual counties may have dedicated SHIP counselors (e.g., Roosevelt County has Julie Bach and Alyssa Toavs; Richland County has staff at 406-433-3701). Callers are referred to their local Area Agency on Aging based on county of residence.",
+        "offices_or_providers": [
+          "Montana has more than 150 certified SHIP counselors statewide",
+          "Services delivered through Area Agencies on Aging network",
+          "Specific county-level contacts available through 1-800-551-3191"
+        ]
+      },
+      "official_source": "https://dphhs.mt.gov/SLTC/aging/SHIP",
+      "gotchas": [
+        "SHIP counselors are NOT insurance agents and cannot sell insurance — they provide objective, independent advice",
+        "SHIP is funded by the Administration on Community Living and is not affiliated with the insurance industry",
+        "Counselors will not make decisions for you; they empower you to make your own decisions",
+        "Some assistance programs (Medicare Savings Program, Low-Income Subsidy/Extra Help, Big Sky RX Program) have separate eligibility requirements and application processes — SHIP can help you apply but does not directly provide these benefits",
+        "Income and resource limits for assistance programs vary and must be verified with SHIP counselor or at apply.mt.gov/SSA.gov",
+        "Homebound individuals should specifically request in-home counseling when calling"
+      ],
+      "data_shape_notes": "SHIP is a counseling and advocacy program, not a direct financial benefit program. It coordinates access to multiple assistance programs (Medicare Savings Program, Low-Income Subsidy/Extra Help, Big Sky RX Program) which have their own eligibility and application processes. Specific income limits, asset limits, processing times, and required documents are not provided in Montana SHIP materials — families must contact a counselor or visit program-specific websites (apply.mt.gov, SSA.gov) for detailed eligibility information. The program is delivered through a decentralized network of Area Agencies on Aging, so regional variation exists in specific counselor availability but not in core services offered.",
+      "_raw": "```json\n{\n  \"name\": \"State Health Insurance Assistance Program (S.H.I.P.)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Not specified in available sources. Search results indicate that some assistance programs coordinated through SHIP (such as Medicare Savings Program, Low-Income Subsidy/Extra Help, and Big Sky RX Program) have income and resource requirements, but specific dollar amounts and household-size tables are not provided in the search results.\",\n    \"asset_limits\": \"Big Sky RX Program has no resource limits. Other programs coordinated through SHIP have income/resource requirements, but specific asset limits and exemptions are not detailed in available sources.\",\n    \"other_requirements\": [\n      \"Must be a Medicare beneficiary or family member/caregiver of a Medicare beneficiary\",\n      \"Nationally, SHIP also serves Medicare beneficiaries under age 65 with disabilities and individuals dually eligible for Medicare and Medicaid\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"advocacy|service|in_kind\",\n    \"value\": \"Free, no-cost counseling and education. Services include: one-on-one counseling via phone and in-person; group presentations; education on Medicare eligibility, enrollment, and benefits; Medicare Part D plan comparisons; Medigap (Supplemental) Insurance guidance; Medicare Health Plans information; Medicare Fraud, Waste and Abuse education; Long Term Care options and information; assistance applying for Medicaid, Medicare Savings Program, Extra Help/Low Income Subsidy, and Big Sky RX Program. Homebound counseling available in-home if transportation is unavailable.\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: 1-800-551-3191 (statewide Montana SHIP line)\",\n      \"Phone: 406-444-4077 (alternative Montana SHIP contact)\",\n      \"In-person: Local Area Agency on Aging (referral provided by phone)\",\n      \"Online: apply.mt.gov (for some assistance programs like Medicare Savings Program)\",\n      \"Online: SSA.gov (for Low-Income Subsidy/Extra Help application)\"\n    ],\n    \"processing_time\": \"Not specified in available sources\",\n    \"waitlist\": \"Not mentioned in available sources\",\n    \"forms\": [\n      \"No specific SHIP application form name/number provided. Assistance programs coordinated through SHIP (Medicare Savings Program, Low-Income Subsidy/Extra Help) have separate application processes at apply.mt.gov and SSA.gov respectively.\"\n    ],\n    \"documents\": \"Not specified in available sources. Families should contact a SHIP counselor for guidance on what documentation is needed for specific assistance programs.\"\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None specified\",\n    \"regional_variations\": \"Montana SHIP operates through Area Agencies on Aging by county. Individual counties may have dedicated SHIP counselors (e.g., Roosevelt County has Julie Bach and Alyssa Toavs; Richland County has staff at 406-433-3701). Callers are referred to their local Area Agency on Aging based on county of residence.\",\n    \"offices_or_providers\": [\n      \"Montana has more than 150 certified SHIP counselors statewide\",\n      \"Services delivered through Area Agencies on Aging network\",\n      \"Specific county-level contacts available through 1-800-551-3191\"\n    ]\n  },\n  \"official_source\": \"https://dphhs.mt.gov/SLTC/aging/SHIP\",\n  \"gotchas\": [\n    \"SHIP counselors are NOT insurance agents and cannot sell insurance — they provide objective, independent advice\",\n    \"SHIP is funded by the Administration on Community Living and is not affiliated with the insurance industry\",\n    \"Counselors will not make decisions for you; they empower you to make your own decisions\",\n    \"Some assistance programs (Medicare Savings Program, Low-Income Subsidy/Extra Help, Big Sky RX Program) have separate eligibility requirements and application processes — SHIP can help you apply but does not directly provide these benefits\",\n    \"Income and resource limits for assistance programs vary and must be verified with SHIP counselor or at apply.mt.gov/SSA.gov\",\n    \"Homebound individuals should specifically request in-home counseling when calling\"\n  ],\n  \"data_shape_notes\": \"SHIP is a counseling and advocacy program, not a direct financial benefit program. It coordinates access to multiple assistance programs (Medicare Savings Program, Low-Income Subsidy/Extra Help, Big Sky RX Program) which have their own eligibility and application processes. Specific income limits, asset limits, processing times, and required documents are not provided in Montana SHIP materials — families must contact a counselor or visit program-specific websites (apply.mt.gov, SSA.gov) for detailed eligibility information. The program is delivered through a decentralized network of Area Agencies on Aging, so regional variation exists in specific counselor availability but not in core services offered.\"\n}\n```\n\n## Key Limitations in Available Information\n\nThe search results provide comprehensive information about **what SHIP does** (counseling and advocacy) but are **sparse on specific eligibility thresholds and application logistics**:[1][2][3]\n\n**Missing specifics:**\n- **Exact income limits** for SHIP counseling eligibility (if any exist) — the program appears to serve all Medicare beneficiaries, but some coordinated assistance programs have limits[3]\n- **Processing times** for applications or counseling appointments\n- **Waitlist status** or typical wait times by region\n- **Specific required documents** for initial SHIP contact\n- **Detailed asset limits** and what counts as countable resources\n\n**Why this matters for your guide:** SHIP itself appears to be a **universal access program** (no income test to receive counseling), but it serves as a gateway to multiple means-tested assistance programs. Families should expect to provide income and asset documentation when applying for specific programs *through* SHIP, not necessarily to access SHIP counseling itself.\n\n**Recommendation:** Contact Montana SHIP directly at **1-800-551-3191** to obtain:\n- Current income/asset limits for each coordinated program\n- Typical processing timelines\n- County-specific wait times\n- Required documentation checklist\n- Whether online pre-screening is available"
+    },
+    {
+      "name": "Commodity Supplemental Food Program (CSFP)",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "150% of Federal Poverty Level (effective February 13, 2026)[4]. For a household of 1: $35,213 annual / $2,935 monthly / $677 weekly. For each additional household member, add $8,070 annually / $673 monthly[2]. Income is self-declared and not investigated by local agencies[3].",
+        "asset_limits": "Not specified in available search results",
+        "other_requirements": [
+          "Must be a Montana resident[4]",
+          "Must reside in a county or service area that participates in CSFP[1]",
+          "Cannot simultaneously participate in WIC (Women, Infants, and Children program)[1]",
+          "Women, infants, and children who apply after February 7, 2014 are not eligible for CSFP; they should apply for WIC or SNAP instead[1]"
+        ]
+      },
+      "benefits": {
+        "type": "in_kind",
+        "value": "Monthly food package (approximately 40 pounds) containing: 3 bottles of Ensure Protein Drink, 2 lbs of Cheese, 2 Liquid and/or Powdered Milk, 3 cans/boxes of Fruit, 6-8 cans of variety vegetables/soup/dehydrated potatoes, plus canned meats, pasta/rice, dry beans, peanut butter, fruit juices, dry cereals[3][5]. Foods align with Dietary Guidelines for Americans and contain reduced sodium, saturated fat, and added sugar[4][6].",
+        "varies_by": "fixed"
+      },
+      "application": {
+        "methods": [
+          "In-person: Contact your local county aging services office or CSFP provider (varies by county)",
+          "Mail: Send completed application to your local eligibility office (address varies by county)",
+          "Phone: Call your local eligibility office with questions (numbers vary by county)[4]",
+          "Example: Roosevelt County Aging Services, 124 Custer St, Wolf Point, MT 59201, 406-653-6221[6]; Powell County: 406-846-9789[7]; Richland County Commission on Aging, 2190 W Holly Street, Sidney, MT 59270[2]"
+        ],
+        "processing_time": "Notification of eligibility, waitlist placement, or ineligibility within 10 days of receipt of correctly completed and signed application[3][4]",
+        "waitlist": "Yes, slots are limited and there may be a waiting list[6]",
+        "forms": [
+          "Montana CSFP Application (same form used statewide)[4]",
+          "Form reference: DPHHS-FD-034 (Revised 02/25)[3]"
+        ],
+        "documents": [
+          "Proof of income (self-declared, not investigated)[3]",
+          "Completed application form (both sides)[3]",
+          "Signature on application[3]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Must reside in one of the Montana counties or service areas that participate in CSFP[1]. Not all counties may have equal availability or wait times.",
+        "regional_variations": "Application processing and food distribution are handled by local county agencies. Different counties have different local offices, phone numbers, and potentially different wait times. Examples include Roosevelt County, Powell County, Richland County, and Missoula County, each with separate contact information and application procedures[2][3][6][7].",
+        "offices_or_providers": [
+          "Roosevelt County Aging Services, 124 Custer St, Wolf Point, MT 59201, 406-653-6221[6]",
+          "Powell County Council on Aging, 406-846-9789[7]",
+          "Richland County Commission on Aging, 2190 W Holly Street, Sidney, MT 59270[2]",
+          "Missoula Food Bank (ROOTS application)[3]",
+          "Contact your regional office for local food pantry or agency providing CSFP services in your area[5]"
+        ]
+      },
+      "official_source": "https://dphhs.mt.gov/HCSD/CSFP/[4] and https://www.fns.usda.gov/csfp/eligibility-how-apply[1]",
+      "gotchas": [
+        "Income limits are 150% of Federal Poverty Level in Montana, which is higher than the federal baseline of 130% for elderly participants, making Montana more generous[1][4]",
+        "Income is self-declared and not verified by local agencies, but false statements could have legal consequences[3]",
+        "Slots are limited and waiting lists exist; availability varies by county[6]",
+        "You cannot receive both CSFP and WIC simultaneously[1]",
+        "Women, infants, and children applying after February 7, 2014 are ineligible for CSFP and must apply for WIC or SNAP instead[1]",
+        "The program is federal, so all food must be delivered; you cannot opt out of receiving items[3]",
+        "Some counties have redesigned distribution to allow 'shopping' for items rather than prepackaged bundles, but this varies by provider[2]",
+        "You have the right to appeal any denial or termination decision and request a fair hearing[3][4]",
+        "Contact your specific county office first, as food pantries and agencies providing CSFP services can change annually[5]"
+      ],
+      "data_shape_notes": "This program's data structure is county-based: eligibility is uniform statewide (age 60+, 150% poverty level), but application, processing, and distribution are handled by separate local county agencies with different contact information, offices, and potentially different wait times. The income limit table scales by household size. Benefits are fixed (not tiered) but distribution methods vary by county provider. The program is exclusively for seniors 60+ in Montana (unlike the federal program which also serves women, infants, and children in other states).",
+      "_raw": "```json\n{\n  \"name\": \"Commodity Supplemental Food Program (CSFP)\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"150% of Federal Poverty Level (effective February 13, 2026)[4]. For a household of 1: $35,213 annual / $2,935 monthly / $677 weekly. For each additional household member, add $8,070 annually / $673 monthly[2]. Income is self-declared and not investigated by local agencies[3].\",\n    \"asset_limits\": \"Not specified in available search results\",\n    \"other_requirements\": [\n      \"Must be a Montana resident[4]\",\n      \"Must reside in a county or service area that participates in CSFP[1]\",\n      \"Cannot simultaneously participate in WIC (Women, Infants, and Children program)[1]\",\n      \"Women, infants, and children who apply after February 7, 2014 are not eligible for CSFP; they should apply for WIC or SNAP instead[1]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"in_kind\",\n    \"value\": \"Monthly food package (approximately 40 pounds) containing: 3 bottles of Ensure Protein Drink, 2 lbs of Cheese, 2 Liquid and/or Powdered Milk, 3 cans/boxes of Fruit, 6-8 cans of variety vegetables/soup/dehydrated potatoes, plus canned meats, pasta/rice, dry beans, peanut butter, fruit juices, dry cereals[3][5]. Foods align with Dietary Guidelines for Americans and contain reduced sodium, saturated fat, and added sugar[4][6].\",\n    \"varies_by\": \"fixed\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"In-person: Contact your local county aging services office or CSFP provider (varies by county)\",\n      \"Mail: Send completed application to your local eligibility office (address varies by county)\",\n      \"Phone: Call your local eligibility office with questions (numbers vary by county)[4]\",\n      \"Example: Roosevelt County Aging Services, 124 Custer St, Wolf Point, MT 59201, 406-653-6221[6]; Powell County: 406-846-9789[7]; Richland County Commission on Aging, 2190 W Holly Street, Sidney, MT 59270[2]\"\n    ],\n    \"processing_time\": \"Notification of eligibility, waitlist placement, or ineligibility within 10 days of receipt of correctly completed and signed application[3][4]\",\n    \"waitlist\": \"Yes, slots are limited and there may be a waiting list[6]\",\n    \"forms\": [\n      \"Montana CSFP Application (same form used statewide)[4]\",\n      \"Form reference: DPHHS-FD-034 (Revised 02/25)[3]\"\n    ],\n    \"documents\": [\n      \"Proof of income (self-declared, not investigated)[3]\",\n      \"Completed application form (both sides)[3]\",\n      \"Signature on application[3]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Must reside in one of the Montana counties or service areas that participate in CSFP[1]. Not all counties may have equal availability or wait times.\",\n    \"regional_variations\": \"Application processing and food distribution are handled by local county agencies. Different counties have different local offices, phone numbers, and potentially different wait times. Examples include Roosevelt County, Powell County, Richland County, and Missoula County, each with separate contact information and application procedures[2][3][6][7].\",\n    \"offices_or_providers\": [\n      \"Roosevelt County Aging Services, 124 Custer St, Wolf Point, MT 59201, 406-653-6221[6]\",\n      \"Powell County Council on Aging, 406-846-9789[7]\",\n      \"Richland County Commission on Aging, 2190 W Holly Street, Sidney, MT 59270[2]\",\n      \"Missoula Food Bank (ROOTS application)[3]\",\n      \"Contact your regional office for local food pantry or agency providing CSFP services in your area[5]\"\n    ]\n  },\n  \"official_source\": \"https://dphhs.mt.gov/HCSD/CSFP/[4] and https://www.fns.usda.gov/csfp/eligibility-how-apply[1]\",\n  \"gotchas\": [\n    \"Income limits are 150% of Federal Poverty Level in Montana, which is higher than the federal baseline of 130% for elderly participants, making Montana more generous[1][4]\",\n    \"Income is self-declared and not verified by local agencies, but false statements could have legal consequences[3]\",\n    \"Slots are limited and waiting lists exist; availability varies by county[6]\",\n    \"You cannot receive both CSFP and WIC simultaneously[1]\",\n    \"Women, infants, and children applying after February 7, 2014 are ineligible for CSFP and must apply for WIC or SNAP instead[1]\",\n    \"The program is federal, so all food must be delivered; you cannot opt out of receiving items[3]\",\n    \"Some counties have redesigned distribution to allow 'shopping' for items rather than prepackaged bundles, but this varies by provider[2]\",\n    \"You have the right to appeal any denial or termination decision and request a fair hearing[3][4]\",\n    \"Contact your specific county office first, as food pantries and agencies providing CSFP services can change annually[5]\"\n  ],\n  \"data_shape_notes\": \"This program's data structure is county-based: eligibility is uniform statewide (age 60+, 150% poverty level), but application, processing, and distribution are handled by separate local county agencies with different contact information, offices, and potentially different wait times. The income limit table scales by household size. Benefits are fixed (not tiered) but distribution methods vary by county provider. The program is exclusively for seniors 60+ in Montana (unlike the federal program which also serves women, infants, and children in other states).\"\n}\n```\n\n**Key Context for Families:**\n\nThe CSFP in Montana is a **straightforward program with high eligibility thresholds** compared to federal minimums[1][4]. The main barrier is typically **availability and waitlists**, not income qualification[6]. \n\n**Critical action items:**\n1. **Contact your county office first**—not all counties have equal capacity[5]\n2. **Verify your income against 150% poverty level** using the household size table[2][4]\n3. **Expect 10-day processing** but plan for potential waitlist placement[3][4]\n4. **Bring proof of income** (self-declared, so documentation is flexible)[3]\n\n**What makes this different from similar programs:** Unlike WIC (which serves pregnant women and young children), CSFP is exclusively for seniors 60+[1]. Unlike SNAP, CSFP provides a fixed monthly box rather than flexible purchasing power. The program emphasizes **nutritional supplementation for healthy aging** with foods specifically selected for older adults' dietary needs[4][6]."
+    }
+  ]
+}

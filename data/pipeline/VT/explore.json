@@ -1,0 +1,19 @@
+{
+  "entity": "Vermont",
+  "entitySlug": "vermont",
+  "state": "VT",
+  "stateName": "Vermont",
+  "isRegion": false,
+  "exploredAt": "2026-04-09T09:02:12.661Z",
+  "programCount": 1,
+  "programs": [
+    {
+      "name": "Vermont Senior Companion Program",
+      "what_it_does": "The program matches volunteers aged 55 and older with older neighbors needing companionship and assistance to promote independence and reduce isolation. Senior Companions help with daily tasks like grocery shopping, doctor visits, and provide respite for family caregivers.",
+      "who_its_for": "Volunteers aged 55+ with income under $30,120 (single) or $40,880 (couple), serving 10 hours/week; serves older adults needing support.",
+      "whats_unique": "Statewide volunteer program specifically tailored for Vermont seniors, emphasizing community-based companionship and in-home support not universally replicated in other states.",
+      "official_url": "https://cvcoa.org/senior-companion-program",
+      "benefit_value": "Stipend for volunteers (not specified); free companionship and assistance valued at 10 hours/week."
+    }
+  ]
+}

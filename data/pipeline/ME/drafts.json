@@ -1,0 +1,605 @@
+{
+  "state": "ME",
+  "stateName": "Maine",
+  "draftedAt": "2026-04-09T08:53:36.410Z",
+  "total": 11,
+  "successful": 3,
+  "programs": [
+    {
+      "id": "maine-elderly-disabilities-waiver",
+      "name": "MaineCare Elderly and Adults with Disabilities Waiver",
+      "shortName": "Maine EAD Waiver",
+      "tagline": "Get comprehensive home care services covered by MaineCare so your parent can stay home instead of entering a nursing facility.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "District DHHS offices",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs daily help with bathing, dressing, or medication management but wants to stay home, the MaineCare Elderly and Adults with Disabilities Waiver covers comprehensive home care services that would otherwise require nursing home admission. This program provides personal care, home health services, meal delivery, respite care, and care coordination — all covered by MaineCare at no cost to your parent.\n\nYour parent must be 65+ (or 18+ with physical disabilities), meet Maine's nursing facility level of care requirement through a clinical assessment, and qualify financially under MaineCare rules. Because this program has limited slots, there is a waitlist that can range from no wait to several years depending on your parent's needs and priority level.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+ or 18+ with disabilities",
+          "Maine resident",
+          "Nursing facility level of care",
+          "MaineCare financial eligibility",
+          "At risk of nursing home admission"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must meet Nursing Facility Level of Care through an in-person assessment by a registered nurse using Maine's Medical Eligibility Determination tool — this means your parent needs daily help with activities like bathing, dressing, eating, or medication management",
+        "otherRequirements": [
+          "Maine resident",
+          "At risk of institutionalization (nursing home admission)",
+          "Cannot be receiving another waiver program simultaneously"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online through My Maine Connection or call 855-797-4357 — processing takes up to 90 days plus potential waitlist time.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Submit MaineCare long-term care application",
+            "description": "Apply online at My Maine Connection, call 855-797-4357, or visit your local DHHS office. You'll need the Application for Long Term Care MaineCare form."
+          },
+          {
+            "step": 2,
+            "title": "Financial eligibility review",
+            "description": "The Office for Family Independence reviews your parent's income and assets under MaineCare rules — they'll contact you if additional documents are needed."
+          },
+          {
+            "step": 3,
+            "title": "Functional assessment",
+            "description": "If financially eligible, an Assessing Services Agency nurse conducts an in-person assessment to determine if your parent meets nursing facility level of care."
+          },
+          {
+            "step": 4,
+            "title": "Waitlist placement",
+            "description": "If approved for both financial and functional eligibility, your parent joins the waitlist. Priority depends on their care needs and risk level."
+          }
+        ],
+        "processingTime": "Up to 90 days for eligibility determination",
+        "waitlist": "Waitlist exists with average wait times ranging from immediate to several years depending on needs and priority level",
+        "tip": "Apply even if you think the waitlist is long — your parent's priority level could result in faster placement than expected.",
+        "urls": [
+          {
+            "label": "Apply online at My Maine Connection",
+            "url": "https://www.maine.gov/dhhs/oms/mainecare-options/older-adults-and-adults-with-disabilities"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Social Security card",
+                "Driver's license or state ID",
+                "Birth certificate"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Social Security award letters",
+                "Pension or retirement income statements",
+                "Bank statements (last 3 months)",
+                "Property tax bills",
+                "Insurance policies"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Current medication list",
+                "Recent medical records",
+                "Doctor's notes about care needs",
+                "Hospital discharge summaries if applicable"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Waitlists can extend several years depending on your parent's assessed priority level and care needs. Apply early even if your parent doesn't need services immediately."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Estate recovery applies if your parent receives services after age 55 and has no surviving spouse or qualifying dependent children — the state may seek repayment from the estate after death."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if they qualify for this waiver?",
+          "answer": "Yes, your parent can keep their home while receiving waiver services — that's the whole point of the program. However, be aware that Maine may pursue estate recovery after death if there's no surviving spouse or qualifying dependent children."
+        },
+        {
+          "question": "What if my parent needs nursing home care right now but wants to get on the waiver waitlist?",
+          "answer": "Your parent can receive nursing home care through regular MaineCare while waiting for a waiver slot. Once a waiver slot opens, they can transition from the nursing home back to home-based care."
+        },
+        {
+          "question": "How is the waitlist prioritized — who gets services first?",
+          "answer": "Priority is based on your parent's functional assessment results and risk level for institutionalization. Those with higher care needs and greater risk typically receive priority, but specific prioritization criteria aren't publicly detailed."
+        },
+        {
+          "question": "Can my parent receive both this waiver and other disability services?",
+          "answer": "No, your parent cannot receive multiple waiver programs simultaneously. This waiver is specifically for elderly adults and those with physical disabilities — separate waivers exist for intellectual disabilities."
+        },
+        {
+          "question": "What happens if my parent's condition gets worse while they're receiving waiver services?",
+          "answer": "The program provides care coordination to adjust services as needs change. If your parent's needs exceed what the waiver can safely provide at home, they may need to transition to nursing facility care."
+        },
+        {
+          "question": "Does this program cover 24-hour care if my parent needs constant supervision?",
+          "answer": "The waiver provides attendant care services and personal care, but it's designed for people who can be safely cared for at home with intermittent services, not 24-hour supervision. If your parent needs round-the-clock care, nursing facility placement may be more appropriate."
+        }
+      ],
+      "phone": "855-797-4357",
+      "sourceUrl": "https://www.maine.gov/dhhs/oms/mainecare-options/older-adults-and-adults-with-disabilities",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "maine-hcbs-waiver-mainecare-home-services",
+      "name": "Home and Community-Based Services (HCBS) Waivers (e.g., MaineCare In-Home Services)",
+      "shortName": "HCBS Waiver",
+      "tagline": "Get in-home care services for your parent through MaineCare so they can stay home instead of moving to a nursing facility.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local Aging and Disability Resource Centers (ADRC)",
+            "type": "service-area"
+          },
+          {
+            "name": "DHHS district offices",
+            "type": "service-area"
+          },
+          {
+            "name": "Goold Health Systems for assessments",
+            "type": "service-area"
+          },
+          {
+            "name": "PineView Care (207-707-3004)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs extensive help with daily activities like bathing, dressing, or getting out of bed, Maine's HCBS waiver can provide in-home personal care instead of nursing home placement. The program covers personal care attendants, homemaker services, and even home modifications — all through MaineCare at no cost to families who qualify financially.\n\nYour parent must meet Nursing Home Level of Care (meaning they need extensive help with 3 or more daily activities) and have income under $2,742/month and assets under $10,000 for a single person. Because this replaces nursing home care, the state conducts a thorough functional assessment to ensure your parent truly needs this level of support.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+",
+          "Income under $2,742/month",
+          "Assets under $10,000 (single)",
+          "Needs help with 3+ daily activities",
+          "Maine resident"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 10000,
+          "couple": 13000,
+          "countedAssets": [
+            "Bank accounts",
+            "Investments",
+            "Second vehicles"
+          ],
+          "exemptAssets": [
+            "Primary home (under certain conditions)",
+            "One vehicle"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "Must need extensive or total assistance with 3 or more activities of daily living (bed mobility, transfers, walking, eating, or toilet use) as determined by clinical assessment",
+        "otherRequirements": [
+          "Maine resident with intent to remain",
+          "US citizen or qualified immigrant",
+          "Must enroll in MaineCare"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply through your local Aging and Disability Resource Center — processing takes up to 45 days plus separate functional assessment.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact your local ADRC or call PineView Care",
+            "description": "Call PineView Care at 207-707-3004 for eligibility screening, or find your local Aging and Disability Resource Center to start the Long-Term Care application."
+          },
+          {
+            "step": 2,
+            "title": "Submit MaineCare financial application",
+            "description": "Complete the Long-Term Care application with income, asset, and residency documentation. This determines financial eligibility first."
+          },
+          {
+            "step": 3,
+            "title": "Schedule functional assessment",
+            "description": "If financially eligible, Goold Health Systems will assess whether your parent meets Nursing Home Level of Care through clinical evaluation."
+          },
+          {
+            "step": 4,
+            "title": "Receive care plan",
+            "description": "If approved, a care coordinator will assess specific service needs and authorize hours for personal care, homemaker services, or other supports."
+          }
+        ],
+        "processingTime": "Financial eligibility within 45 days, plus additional time for functional assessment",
+        "waitlist": null,
+        "tip": "Start with PineView Care for a quick eligibility screening before gathering all documents — they can tell you if it's worth pursuing.",
+        "urls": [
+          {
+            "label": "Maine DHHS Home Care Information",
+            "url": "https://www.maine.gov/dhhs/oads/get-support/older-adults-disabilities/home-care"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and savings",
+            "Investments and stocks",
+            "Second vehicles",
+            "Property other than primary home"
+          ],
+          "excluded": [
+            "Primary home (under certain equity conditions)",
+            "One vehicle for transportation",
+            "Personal belongings and household items"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Driver's license or state ID",
+                "Proof of Maine residency",
+                "Social Security card",
+                "Citizenship or immigration documents"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Bank statements (last 3 months)",
+                "Social Security award letter",
+                "Pension or retirement income statements",
+                "Property deeds or mortgage statements"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Medical records showing ADL limitations",
+                "Current medication list",
+                "Documentation of daily care needs"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "The state reviews all asset transfers in the past 60 months. Any gifts or transfers for less than fair value can create a penalty period where your parent is ineligible for services."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Even if approved, your parent may owe most of their monthly income toward care costs, keeping only a $2,430 personal needs allowance. Plan for this reduced monthly income."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if they qualify for HCBS waiver services?",
+          "answer": "Yes, your parent can keep their primary home. The home is typically exempt from asset limits, though there may be equity limits. The goal of HCBS waivers is to help people stay in their own homes rather than move to nursing facilities."
+        },
+        {
+          "question": "What happens to my parent's Social Security and pension income if they get approved?",
+          "answer": "Your parent will likely have to contribute most of their monthly income toward the cost of care, keeping only $2,430 per month for personal needs. This is called patient liability — the state covers care costs above what your parent contributes."
+        },
+        {
+          "question": "How many hours of home care will my parent receive?",
+          "answer": "Hours are individualized based on your parent's assessed needs. There's no set limit, but services must be equivalent to what your parent would receive in a nursing facility. A care coordinator determines the specific mix of personal care, homemaker services, and other supports."
+        },
+        {
+          "question": "What if my parent's income is just over the $2,742 limit?",
+          "answer": "Your parent may still qualify through spend-down, where they pay the excess income toward care costs each month. The program also has different income limits for different waiver types, so ask about all available options during your screening."
+        },
+        {
+          "question": "Can family members be paid to provide the personal care services?",
+          "answer": "Yes, through Consumer Directed Attendant Services, family members can potentially be hired and paid to provide care. This gives your parent more control over who provides their care while still accessing waiver funding."
+        },
+        {
+          "question": "What if my parent needs care immediately but the application takes 45 days?",
+          "answer": "Contact your local ADRC about emergency services or temporary supports while the application is pending. Some areas may have crisis intervention services or expedited processing for urgent situations."
+        }
+      ],
+      "phone": "207-707-3004",
+      "sourceUrl": "https://www.maine.gov/dhhs/oads/get-support/older-adults-disabilities/home-care",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "maine-snap-food-benefits",
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "shortName": "SNAP Food Benefits",
+      "tagline": "Up to $298/month for groceries if your parent is on a limited income",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Office for Family Independence, 114 Corn Shop Lane, Farmington, ME 04938",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent struggles to afford groceries, SNAP provides monthly benefits loaded onto an EBT card that works like a debit card at most grocery stores. Benefits range from $298/month for a single person to $546/month for a couple, with the exact amount based on income and household size.\n\nMaine has more generous rules than many states. There are no asset limits — your parent can own their home, car, and savings and still qualify. If your parent is 60+ or disabled, they only need to meet net income limits (after deductions), not gross income limits, making it easier to qualify at higher income levels.\n\nThe program covers most food items but excludes alcohol, tobacco, vitamins, and prepared hot foods. Medical expenses over $35/month can be deducted from income for seniors and disabled households, potentially increasing eligibility and benefit amounts.",
+      "savingsRange": "$3,576 – $6,552/year in 2026",
+      "savingsSource": "Maximum annual SNAP benefits for 1-2 person households",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Maine resident",
+          "U.S. citizen or lawful resident",
+          "Income below limits (varies by household size)",
+          "Age 60+ households have higher income limits"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2609
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 3525
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 4442
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 5359
+          }
+        ],
+        "assetLimits": {
+          "individual": null,
+          "couple": null,
+          "countedAssets": [],
+          "exemptAssets": [
+            "Home",
+            "One household vehicle",
+            "Income-producing vehicles"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must have Social Security number or proof of application",
+          "Work requirements for able-bodied adults 18-54 without dependents (many exemptions apply)"
+        ],
+        "povertyLevelReference": "200% FPL (100% FPL net income for age 60+ or disabled)"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online at My Maine Connection — fastest option with immediate confirmation.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Gather required documents",
+            "description": "Social Security cards, proof of Maine residency, income statements, and medical bills over $35/month if age 60+ or disabled"
+          },
+          {
+            "step": 2,
+            "title": "Apply online at My Maine Connection",
+            "description": "Create account at www.mymaineconnection.gov and complete SNAP application"
+          },
+          {
+            "step": 3,
+            "title": "Submit documentation",
+            "description": "Upload required documents through the online portal or mail to Office for Family Independence"
+          },
+          {
+            "step": 4,
+            "title": "Complete interview",
+            "description": "Participate in phone or in-person interview to verify information"
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "If your parent is 60+ and has medical expenses over $35/month, include all documentation — these deductions can significantly increase benefit amounts.",
+        "urls": [
+          {
+            "label": "Apply Online - My Maine Connection",
+            "url": "https://www.mymaineconnection.gov"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Gross Income Limits by Household Size",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 2609,
+              "note": "Age 60+ or disabled: net income limit may be lower but no gross limit applies"
+            },
+            {
+              "householdSize": 2,
+              "monthlyLimit": 3525,
+              "note": "Age 60+ or disabled: net income limit may be lower but no gross limit applies"
+            },
+            {
+              "householdSize": 3,
+              "monthlyLimit": 4442
+            },
+            {
+              "householdSize": 4,
+              "monthlyLimit": 5359
+            },
+            {
+              "householdSize": 5,
+              "monthlyLimit": 6275
+            },
+            {
+              "householdSize": 6,
+              "monthlyLimit": 7192
+            }
+          ],
+          "footnote": "Oct. 1, 2025 - Sept. 30, 2026 limits"
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Maine has NO asset limits as of January 2022"
+          ],
+          "excluded": [
+            "Your parent can own their home",
+            "One household vehicle is always exempt",
+            "Income-producing vehicles are exempt",
+            "Savings accounts don't count toward eligibility",
+            "Other vehicles only count if value exceeds $4,650"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Social Security card or proof of application",
+                "Proof of Maine residency (utility bill, lease, mail)",
+                "Proof of citizenship or lawful presence status"
+              ]
+            },
+            {
+              "name": "Income Documentation",
+              "items": [
+                "Pay stubs (last 4 weeks)",
+                "Social Security benefit statements",
+                "Pension or retirement income statements",
+                "Any other income documentation"
+              ]
+            },
+            {
+              "name": "Medical Expenses (Age 60+ or Disabled)",
+              "items": [
+                "Medical bills over $35/month",
+                "Prescription receipts",
+                "Health insurance premiums",
+                "Medicare Part B and D premiums"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Maine's rules are more generous than federal SNAP rules. If your parent was denied SNAP in another state or told they had too many assets, they may still qualify in Maine due to the state's elimination of asset limits."
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Able-bodied adults ages 18-54 without dependents can only receive SNAP for 3 months in a 36-month period unless they work 20+ hours/week or meet exemptions. Veterans, former foster youth under 25, and those experiencing homelessness are exempt from work requirements."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my mom keep her house and savings account if she gets SNAP?",
+          "answer": "Yes. Maine eliminated asset limits in 2022, so your mom can own her home, car, and have money in savings and still qualify for SNAP. This is more generous than federal rules."
+        },
+        {
+          "question": "My dad is 65 and his Social Security is $2,400/month. Does he qualify?",
+          "answer": "Possibly. Because he's over 60, only his net income (after deductions) matters, not gross income. If he has medical expenses over $35/month, those are deducted from his Social Security income. With $200/month in medical costs, his net income would be $2,200, which may qualify him."
+        },
+        {
+          "question": "What if my parent's income is just over the limit?",
+          "answer": "If your parent is 60+ or disabled, medical expenses over $35/month are deducted from income. This includes Medicare premiums, prescription costs, and medical bills. These deductions could bring them under the income limit."
+        },
+        {
+          "question": "Can SNAP benefits be used at any grocery store?",
+          "answer": "Most grocery stores, supermarkets, and many farmers markets accept EBT cards. You cannot use SNAP for alcohol, tobacco, vitamins, supplements, or hot prepared foods. Pet food and household items are also excluded."
+        },
+        {
+          "question": "How long does it take to get approved?",
+          "answer": "Processing times aren't specified in Maine's official materials, but you'll receive an EBT card in the mail once approved. Benefits are automatically loaded monthly. Emergency SNAP may be available for households with immediate need."
+        },
+        {
+          "question": "What if my parent lives with me — does my income count?",
+          "answer": "Only if you buy and prepare food together. If your parent buys and prepares their own meals separately, they can apply as a one-person household regardless of your income. If you share meals and groceries, your income would be counted in the household."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://www.maine.gov/dhhs/ofi/programs-services/food-supplement",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "State Health Insurance Assistance Program (SHIP) - Maine Senior Health Insurance Assistance Program",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Home Delivered Meals (Maine Nutrition Services Program)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Maine Legal Services for the Elderly",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Maine SHIP (State Health Insurance Assistance Program)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Legal Services for Maine Elders (LSE)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    }
+  ],
+  "stateOverview": null
+}

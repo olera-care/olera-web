@@ -1,0 +1,570 @@
+{
+  "state": "PA",
+  "stateName": "Pennsylvania",
+  "classifiedAt": "2026-04-09T08:59:23.245Z",
+  "total": 16,
+  "typeSummary": {
+    "benefit": 12,
+    "resource": 3,
+    "employment": 1
+  },
+  "scopeSummary": {
+    "state": 10,
+    "federal": 6
+  },
+  "complexitySummary": {
+    "deep": 9,
+    "medium": 4,
+    "simple": 3
+  },
+  "programs": [
+    {
+      "name": "Medical Assistance",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local County Assistance Offices (CAO) statewide",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Community HealthChoices",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local Area Agency on Aging (AAA)",
+            "type": "service-area"
+          },
+          {
+            "name": "County Assistance Office (CAO)",
+            "type": "service-area"
+          },
+          {
+            "name": "Managed Care Organizations (MCOs) selected post-approval[1]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "PACE (Pharmaceutical Assistance Contract for the Elderly)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false
+      },
+      "complexity": "medium",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "documents"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": false,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Medicare Savings Programs",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local County Assistance Offices (CAOs) - find via 1-800-692-7462",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local County Assistance Office (CAO)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "LIHEAP",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "County Assistance Offices (statewide list available)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "County-specific agencies listed at https://dced.pa.gov/programs/weatherization-assistance-program-wap/.",
+            "type": "service-area"
+          },
+          {
+            "name": "Philadelphia: PHDC.",
+            "type": "service-area"
+          },
+          {
+            "name": "Erie: Erie County Housing Authority.",
+            "type": "service-area"
+          },
+          {
+            "name": "York: York County Planning Commission.",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Pennsylvania SHIP (State Health Insurance Assistance Program)",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose"
+      ],
+      "signals": {
+        "benefitType": "service|advocacy",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Home-Delivered Meals (Pennsylvania)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "York County Area Agency on Aging[1]",
+            "type": "service-area"
+          },
+          {
+            "name": "Blair Senior Services[2]",
+            "type": "service-area"
+          },
+          {
+            "name": "Montgomery County[7]",
+            "type": "service-area"
+          },
+          {
+            "name": "Philadelphia Corporation for Aging[8]",
+            "type": "service-area"
+          },
+          {
+            "name": "Mom's Meals (Medicaid/Medicare Advantage)[3]",
+            "type": "service-area"
+          },
+          {
+            "name": "Meals America (Montgomery County and all 67 PA counties)[5]",
+            "type": "service-area"
+          },
+          {
+            "name": "Over 500 Senior Community Centers throughout Pennsylvania (congregate meals, not home-delivered)[6]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "in_kind",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Pennsylvania Caregiver Support Program",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local Area Agencies on Aging (AAAs) by county.",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "programType": "employment",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Philadelphia Office: (215) 686-8450",
+            "type": "service-area"
+          },
+          {
+            "name": "Westmoreland County: Westmoreland County Community College, 724-925-4084",
+            "type": "service-area"
+          },
+          {
+            "name": "York/Adams Counties: Crispus Attucks, York",
+            "type": "service-area"
+          },
+          {
+            "name": "Statewide contact via pa.gov/aging",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "medium",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "documents"
+      ],
+      "signals": {
+        "benefitType": "employment",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": false,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": false
+      }
+    },
+    {
+      "name": "Legal Counsel for the Elderly / Pennsylvania Legal Aid Network",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Locate via palegalaid.net providers page with county filter",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Property Tax/Rent Rebate Program",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "PACENET (Pharmaceutical Assistance Contract for the Elderly Needs Enhancement Tier)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "PACE Application Center (statewide, administered by Pennsylvania Department of Aging)",
+            "type": "service-area"
+          },
+          {
+            "name": "Local county aging offices may provide assistance (example: York County has a PACE/PACENET office)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "medium",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "documents",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": false,
+        "hasRegionalVariation": false,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Pennsylvania Options Program",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Montgomery County Office of Aging",
+            "type": "service-area"
+          },
+          {
+            "name": "Chester County Department",
+            "type": "service-area"
+          },
+          {
+            "name": "Lancaster County Office of Aging",
+            "type": "service-area"
+          },
+          {
+            "name": "Butler County agency",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "medium",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "documents",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "APPRISE Insurance Counseling Program (now PA MEDI)",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Pennsylvania Department of Aging statewide[8]",
+            "type": "service-area"
+          },
+          {
+            "name": "Local Area Agencies on Aging (e.g., Franklin County Area Agency on Aging[2], SWPA AAA[4], Wesley Family Services[6], Lehigh County[10])",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    }
+  ]
+}

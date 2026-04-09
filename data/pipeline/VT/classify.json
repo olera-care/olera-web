@@ -1,0 +1,60 @@
+{
+  "state": "VT",
+  "stateName": "Vermont",
+  "classifiedAt": "2026-04-09T09:02:22.745Z",
+  "total": 1,
+  "typeSummary": {
+    "benefit": 1
+  },
+  "scopeSummary": {
+    "state": 1
+  },
+  "complexitySummary": {
+    "deep": 1
+  },
+  "programs": [
+    {
+      "name": "Vermont Senior Companion Program",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Age Well (www.agewellvt.org)",
+            "type": "service-area"
+          },
+          {
+            "name": "Northeast Kingdom Council on Aging (www.nekcouncil.org)",
+            "type": "service-area"
+          },
+          {
+            "name": "Senior Solutions (www.seniorsolutionsvt.org)",
+            "type": "service-area"
+          },
+          {
+            "name": "Southwestern Vermont Council on Aging (www.svcoa.org)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    }
+  ]
+}

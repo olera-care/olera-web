@@ -1,0 +1,258 @@
+{
+  "state": "VT",
+  "stateName": "Vermont",
+  "draftedAt": "2026-04-09T09:03:05.869Z",
+  "total": 1,
+  "successful": 1,
+  "programs": [
+    {
+      "id": "vermont-senior-companion-program",
+      "name": "Vermont Senior Companion Program",
+      "shortName": "Senior Companion",
+      "tagline": "Your parent can get a trained volunteer companion for errands, rides, and daily tasks — while you earn $4/hour if you qualify to volunteer.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Age Well (www.agewellvt.org)",
+            "type": "service-area"
+          },
+          {
+            "name": "Northeast Kingdom Council on Aging (www.nekcouncil.org)",
+            "type": "service-area"
+          },
+          {
+            "name": "Senior Solutions (www.seniorsolutionsvt.org)",
+            "type": "service-area"
+          },
+          {
+            "name": "Southwestern Vermont Council on Aging (www.svcoa.org)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If you're 55+ with limited income, you can earn $4/hour helping elderly Vermonters with shopping, errands, and daily tasks through Vermont's Senior Companion Program. Because this is a volunteer stipend (not wages), the money won't affect your SNAP, housing, or other benefits. Your parent (age 60+) can also receive these companion services — trained volunteers provide friendship, help with bill paying, rides to appointments, and light assistance that helps them stay independent longer.\n\nCompanions work 10-40 hours per week and receive ongoing training, monthly support meetings, and $0.70/mile for travel. Because the program operates through four regional agencies statewide, you can find opportunities throughout Vermont. The program serves dual purposes: providing income support for lower-income seniors while giving elderly Vermonters the help they need to remain in their homes.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+ to volunteer",
+          "Income around $30,000/year limit",
+          "Work 10-40 hours weekly",
+          "Serves elderly 60+"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2593
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 3507
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 4303
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 5200
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Available 10-40 hours per week",
+          "Able to complete training requirements"
+        ],
+        "povertyLevelReference": "200% FPL"
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your regional Area Agency on Aging — they handle applications and can start the process immediately.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact your regional agency",
+            "description": "Call the Area Agency on Aging that serves your area or use the statewide helpline at 1-800-642-5119."
+          },
+          {
+            "step": 2,
+            "title": "Verify income eligibility",
+            "description": "Provide income documentation to show you meet the 200% federal poverty guidelines (around $31,300 for a single person)."
+          },
+          {
+            "step": 3,
+            "title": "Complete orientation training",
+            "description": "Attend the required orientation plus 4 hours of monthly in-service training."
+          },
+          {
+            "step": 4,
+            "title": "Begin companion matching",
+            "description": "The agency will match you with elderly clients who need assistance with errands, companionship, and daily tasks."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Income limits change yearly, so even if you were over the limit before, check again with current guidelines.",
+        "urls": [
+          {
+            "label": "Age Well",
+            "url": "http://www.agewellvt.org"
+          },
+          {
+            "label": "Northeast Kingdom Council on Aging",
+            "url": "http://www.nekcouncil.org"
+          },
+          {
+            "label": "Senior Solutions",
+            "url": "http://www.seniorsolutionsvt.org"
+          },
+          {
+            "label": "Southwestern Vermont Council on Aging",
+            "url": "http://www.svcoa.org"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits for Volunteers (Approximate 2024)",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 2593,
+              "annualLimit": 31116
+            },
+            {
+              "householdSize": 2,
+              "monthlyLimit": 3507,
+              "annualLimit": 42084
+            },
+            {
+              "householdSize": 3,
+              "monthlyLimit": 4303,
+              "annualLimit": 51636
+            },
+            {
+              "householdSize": 4,
+              "monthlyLimit": 5200,
+              "annualLimit": 62400
+            }
+          ],
+          "footnote": "Based on 200% federal poverty level; contact your local agency for current year limits"
+        },
+        {
+          "type": "county-directory",
+          "heading": "Regional Agencies",
+          "offices": [
+            {
+              "name": "Age Well",
+              "type": "service-area",
+              "phone": null,
+              "address": "www.agewellvt.org"
+            },
+            {
+              "name": "Northeast Kingdom Council on Aging",
+              "type": "service-area",
+              "phone": null,
+              "address": "www.nekcouncil.org"
+            },
+            {
+              "name": "Senior Solutions",
+              "type": "service-area",
+              "phone": null,
+              "address": "www.seniorsolutionsvt.org"
+            },
+            {
+              "name": "Southwestern Vermont Council on Aging",
+              "type": "service-area",
+              "phone": null,
+              "address": "www.svcoa.org"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Financial",
+              "items": [
+                "Income verification documents",
+                "Social Security award letter",
+                "Pension statements",
+                "Any other regular income documentation"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "This is a volunteer program where YOU provide services to elderly clients — your parent doesn't apply to receive a companion, but rather gets matched with available volunteers in their area."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Will the $4/hour stipend affect my parent's SNAP or housing benefits?",
+          "answer": "No. The stipend is non-taxable and specifically designed not to affect benefits like 3SquaresVT (SNAP) or housing assistance."
+        },
+        {
+          "question": "Can my parent get a companion even if I don't volunteer?",
+          "answer": "Yes, but it depends on volunteer availability in their area. Your parent (age 60+) can be matched with any qualified companion volunteer — they don't need a family member in the program."
+        },
+        {
+          "question": "What if I can't commit to the full 40 hours per week?",
+          "answer": "You only need to work 10 hours minimum per week. You can work anywhere from 10-40 hours based on your availability and the needs of your assigned elderly clients."
+        },
+        {
+          "question": "What kind of help do companions actually provide?",
+          "answer": "Shopping, errands, rides to appointments, help paying bills, companionship, and light assistance with daily tasks. You won't provide medical care or heavy household work."
+        },
+        {
+          "question": "Do I need special training or experience to be a companion?",
+          "answer": "No prior experience required. You'll receive orientation training and 4 hours of monthly in-service training. The agencies provide ongoing support and monthly gatherings."
+        },
+        {
+          "question": "What if my income is just over the limit?",
+          "answer": "Income limits are updated yearly based on federal poverty guidelines. Contact your regional agency to verify current limits — you might qualify even if you were over the limit in previous years."
+        }
+      ],
+      "phone": "1-800-642-5119",
+      "sourceUrl": null,
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    }
+  ],
+  "stateOverview": {
+    "intro": "Vermont offers a mix of volunteer-based support and benefit programs for seniors, though the state has fewer formal benefit programs than larger states. The Vermont Senior Companion Program stands out as both a resource for your parent and a potential income source for you — trained volunteers provide companionship and practical help, while qualifying volunteers earn $4/hour for their service. Most Vermont senior programs operate through local Area Agencies on Aging, which coordinate services across the state's rural communities. Start by calling your local Area Agency on Aging to understand what's available in your parent's specific region, as services vary significantly between Vermont's more populated areas and rural counties.",
+    "startHere": [
+      {
+        "name": "Vermont Senior Companion Program",
+        "programId": "vermont-senior-companion-program",
+        "why": "Provides immediate practical help for your parent while potentially creating income if you qualify to volunteer."
+      }
+    ],
+    "byNeed": [
+      {
+        "need": "Daily companionship and practical help",
+        "programs": [
+          "Vermont Senior Companion Program"
+        ],
+        "description": "Trained volunteers help with errands, transportation, and daily tasks while providing social connection."
+      }
+    ],
+    "quickFacts": [
+      "Vermont's Senior Companion Program volunteers earn $4/hour, making it one of the few programs that can provide income while helping seniors",
+      "Most Vermont senior services are coordinated through five Area Agencies on Aging that cover different regions of the state",
+      "Vermont's rural geography means some programs have waiting lists or limited availability outside of Burlington and Montpelier areas"
+    ],
+    "resourcesVsBenefits": "Vermont's approach emphasizes volunteer-based resources over cash benefits — programs like the Senior Companion Program are available regardless of your parent's income, focusing on community support rather than financial qualification. This means your parent can access companionship and practical help even if their income is too high for federal benefit programs, but it also means fewer direct financial assistance options than states with more extensive benefit programs."
+  }
+}

@@ -1,0 +1,136 @@
+{
+  "entity": "Pennsylvania",
+  "entitySlug": "pennsylvania",
+  "state": "PA",
+  "stateName": "Pennsylvania",
+  "isRegion": false,
+  "exploredAt": "2026-04-09T08:58:38.700Z",
+  "programCount": 17,
+  "programs": [
+    {
+      "name": "Medical Assistance",
+      "what_it_does": "Provides health coverage for low-income seniors and disabled individuals, including long-term care services. In Pennsylvania, it is administered through the state Department of Human Services.[1][5]",
+      "who_its_for": "Pennsylvania residents aged 65+ or disabled with low income and limited assets.",
+      "official_url": "https://www.dhs.pa.gov/Services/Assistance/Pages/Medical-Assistance.aspx",
+      "benefit_value": "Varies; covers doctor visits, hospital stays, prescriptions, and nursing home care with no or low copays."
+    },
+    {
+      "name": "Community HealthChoices",
+      "what_it_does": "Offers home and community-based services waivers to help seniors and disabled individuals avoid institutional care. Provides personalized care plans including personal assistance and adult day services.[6]",
+      "who_its_for": "Medicaid-eligible PA residents aged 65+ or 21+ with disabilities needing nursing facility level of care.",
+      "official_url": "https://www.pa.gov/aging/aging-programs-and-services/community-healthchoices/",
+      "benefit_value": "Tailored services up to $50,000+ annually depending on care needs, as alternative to nursing homes."
+    },
+    {
+      "name": "PACE (Pharmaceutical Assistance Contract for the Elderly)",
+      "what_it_does": "Offers prescription drug coverage for low-income seniors with copays after meeting eligibility. Provides access to medications at reduced costs through state funding.[1][3]",
+      "who_its_for": "PA residents aged 65+ with annual income under $14,500 (single) or $17,700 (married couples).[1][3]",
+      "whats_unique": "Pennsylvania-specific state-funded pharmaceutical program with defined income tiers and copays, distinct from federal Medicare Part D.[1][3]",
+      "official_url": "https://www.dhs.pa.gov/Services/Assistance/Pages/PACE.aspx",
+      "benefit_value": "Copays on prescriptions; no premium for base tier.[1][3]"
+    },
+    {
+      "name": "Medicare Savings Program",
+      "what_it_does": "Pays Medicare Part A/B premiums, deductibles, and copayments for eligible low-income seniors. Includes QMB (full coverage), SLMB (Part B premium), and QI tiers administered via state Medicaid.[1]",
+      "who_its_for": "PA Medicare beneficiaries with incomes up to 100-135% FPL and limited assets (varies by tier).",
+      "official_url": "https://www.pa.gov/aging/programs/medicare-savings-program/",
+      "benefit_value": "$170+ monthly Part B premium savings; QMB covers all out-of-pocket costs up to $8,850/year."
+    },
+    {
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "what_it_does": "Provides monthly benefits via EBT card for purchasing groceries to combat hunger. PA administers federally with state supplements for seniors.[4]",
+      "who_its_for": "PA households including seniors 60+ with income below 130-200% FPL depending on deductions.",
+      "official_url": "https://www.dhs.pa.gov/Services/Assistance/Pages/SNAP.aspx",
+      "benefit_value": "Average $200-300/month per senior household; max $291/single in 2026."
+    },
+    {
+      "name": "LIHEAP",
+      "what_it_does": "Grants cash payments to help pay heating bills and crisis assistance for fuel emergencies. PA runs annual program November-April with separate summer cooling aid.[1]",
+      "who_its_for": "PA households with income ≤150% FPL, prioritizing seniors 60+, disabled, families with young children.",
+      "official_url": "https://www.pa.gov/services/dhs/apply-for-liheap.html",
+      "benefit_value": "$200-1000+ one-time grant per household based on fuel type, income, household size."
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "what_it_does": "Insulates homes, seals leaks, and upgrades heating systems to reduce energy costs. Free service administered through PA Department of Human Services.[1]",
+      "who_its_for": "Low-income PA households ≤200% FPL, priority to seniors 60+, disabled, families with children.",
+      "official_url": "https://www.dhs.pa.gov/Services/Assistance/Pages/Weatherization.aspx",
+      "benefit_value": "$4,000-7,000 average per home in energy efficiency improvements, 20-30% utility savings."
+    },
+    {
+      "name": "Pennsylvania SHIP (State Health Insurance Assistance Program)",
+      "what_it_does": "Offers free, unbiased counseling on Medicare options, supplements, and assistance programs. Operated through 52 PA Area Agencies on Aging.[2]",
+      "who_its_for": "All PA Medicare beneficiaries, caregivers, and families seeking health coverage guidance.",
+      "official_url": "https://www.pa.gov/aging/programs/ship/",
+      "benefit_value": "Free one-on-one counseling; helps save average $1,500+/year on premiums, wrong plan choices."
+    },
+    {
+      "name": "Home-Delivered Meals",
+      "what_it_does": "Delivers nutritious meals to homebound seniors through Area Agencies on Aging. Provides at least one hot meal/day, 5 days/week with nutrition counseling.[2][6]",
+      "who_its_for": "PA residents 60+ unable to prepare meals due to illness/disability, income not primary factor.",
+      "official_url": "https://www.pa.gov/aging/programs/nutrition/",
+      "benefit_value": "$8-12/meal cost; suggested donation $3/meal, delivers 150+ million meals annually statewide."
+    },
+    {
+      "name": "Pennsylvania Caregiver Support Program",
+      "what_it_does": "Provides financial reimbursements for out-of-pocket caregiver expenses and respite services to support family caregivers of seniors. Helps families maintain in-home care for loved ones.[2]",
+      "who_its_for": "Family caregivers of older adults in Pennsylvania; eligibility through Department of Aging programs.[2]",
+      "whats_unique": "State-funded initiative offering direct reimbursements for caregivers, beyond federal Medicaid waivers available in every state.[2]",
+      "official_url": "https://www.pa.gov/agencies/aging/programs/caregiver-support-program.html",
+      "benefit_value": "Reimbursements for expenses and respite; amounts vary by need.[2]"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "what_it_does": "Offers part-time paid community service work training leading to unsubsidized employment. Federally funded, PA partners with AAAs/nonprofits.[2]",
+      "who_its_for": "Unemployed PA residents 55+ with income ≤125% FPL, priority to veterans, qualified spouses.",
+      "official_url": "https://www.pa.gov/aging/programs/scsep/",
+      "benefit_value": "Minimum wage part-time work (avg $10-15/hr), 20 hrs/week up to 1 year training."
+    },
+    {
+      "name": "Legal Counsel for the Elderly / Pennsylvania Legal Aid Network",
+      "what_it_does": "Provides free legal services for income-eligible seniors on benefits, housing, consumer issues. PA Department of Aging funds statewide legal hotlines.[1][2]",
+      "who_its_for": "PA residents 60+ with income/resources meeting LSC poverty guidelines (~125% FPL).",
+      "official_url": "https://www.pa.gov/aging/programs/legal-services/",
+      "benefit_value": "Free attorney representation; handles 15,000+ cases/year preventing evictions, benefit losses."
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "what_it_does": "Advocates for residents in PA nursing homes, assisted living resolving complaints. 52 local programs investigate abuse/neglect, ensure quality care.[5]",
+      "who_its_for": "All residents/families in PA long-term care facilities (200,000+ residents).",
+      "official_url": "https://www.pa.gov/aging/programs/ombudsman/",
+      "benefit_value": "Free advocacy services; resolves 85% complaints without litigation, protects rights statewide."
+    },
+    {
+      "name": "Property Tax/Rent Rebate Program",
+      "what_it_does": "Provides rebates on property taxes or rent paid by eligible seniors and individuals with disabilities. Offers up to $1,000 in relief, funded by the state Lottery Fund to ease housing costs.[1][3]",
+      "who_its_for": "Pennsylvania residents age 65 or older, widows/widowers age 50 or older, or individuals with disabilities; income limits apply (e.g., deductions for Social Security).[1][3][5]",
+      "whats_unique": "State-funded rebate program unique to Pennsylvania, providing direct cash rebates up to $1,000, not available as a standard federal benefit.[1][3]",
+      "official_url": "https://www.revenue.pa.gov/FormsandPublications/FormsforIndividuals/PTRE/Pages/default.aspx",
+      "benefit_value": "Up to $1,000 rebate (recent updates from $650).[1][3]"
+    },
+    {
+      "name": "PACENET (Pharmaceutical Assistance Contract for the Elderly Needs Enhancement Tier)",
+      "what_it_does": "Extends prescription assistance to seniors with higher incomes via a monthly premium and fixed copays for generics and brand-name drugs. Includes features like free pharmacy delivery.[1][3]",
+      "who_its_for": "PA residents aged 65+ with income up to $23,500 (single) or $31,500 (married); requires monthly premium payment.[1][3][5]",
+      "whats_unique": "State-specific enhanced tier of PACE with premium structure and copays ($8 generic, $15 brand), not replicated in other states' standard programs.[1][3]",
+      "official_url": "https://www.dhs.pa.gov/Services/Assistance/Pages/PACE.aspx",
+      "benefit_value": "Monthly premium ~$37; $8/$15 copays.[3][5]"
+    },
+    {
+      "name": "Pennsylvania Options Program",
+      "what_it_does": "Delivers in-home services including personal care, home health, home-delivered meals, and caregiver support. Enables seniors to age in place with state-coordinated assistance.[1]",
+      "who_its_for": "Older Pennsylvanians needing home-based services, accessed via local Area Agencies on Aging.[1]",
+      "whats_unique": "State-specific program coordinating home care and meals, funded beyond standard federal options like those under Medicaid.[1]",
+      "official_url": "https://www.pa.gov/agencies/aging/programs/pennsylvania-options.html",
+      "benefit_value": "In-home personal care, meals, and support services; value varies.[1]"
+    },
+    {
+      "name": "APPRISE Insurance Counseling Program",
+      "what_it_does": "Offers free, personalized counseling on Medicare, health insurance options, and government programs. Assists seniors in selecting optimal coverage to maximize benefits.[1]",
+      "who_its_for": "Pennsylvania seniors navigating Medicare and related insurance.[1]",
+      "whats_unique": "Statewide free counseling service unique to PA, provided through trained counselors at no cost.[1]",
+      "official_url": "https://www.apprise.org/",
+      "benefit_value": "Free counseling sessions.[1]"
+    }
+  ]
+}

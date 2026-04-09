@@ -1,0 +1,510 @@
+{
+  "state": "WV",
+  "stateName": "West Virginia",
+  "classifiedAt": "2026-04-09T09:04:05.508Z",
+  "total": 15,
+  "typeSummary": {
+    "benefit": 11,
+    "resource": 3,
+    "employment": 1
+  },
+  "scopeSummary": {
+    "state": 6,
+    "local": 3,
+    "federal": 6
+  },
+  "complexitySummary": {
+    "deep": 10,
+    "medium": 2,
+    "simple": 3
+  },
+  "programs": [
+    {
+      "name": "West Virginia Medicaid Personal Care Services Program",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Bureau of Senior Services, 1900 Kanawha Blvd. East, Charleston, WV 25305",
+            "type": "service-area"
+          },
+          {
+            "name": "Acentra Health (Utilization Management Contractor)",
+            "type": "service-area"
+          },
+          {
+            "name": "Local providers like Nicholas Community Action Partnership[7][8]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Aged and Disabled Waiver",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local DHHR county offices",
+            "type": "service-area"
+          },
+          {
+            "name": "Case Management Agencies (listed on KEPRO form)",
+            "type": "service-area"
+          },
+          {
+            "name": "KEPRO for medical review",
+            "type": "service-area"
+          },
+          {
+            "name": "wvseniorservices.gov for forms",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "PACE Your LIFE (https://paceyourlifemwv.com; WV-focused but service area undefined)[3]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": false,
+        "isStatewide": false
+      }
+    },
+    {
+      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "LIEAP (Low Income Energy Assistance Program) & LIHEAP-RRP (Repair and Replace Program)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true
+      },
+      "complexity": "medium",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "unknown",
+        "hasAssetLimits": false,
+        "hasRegionalVariation": true,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local community action agencies throughout West Virginia (contact via county-specific providers).[1][2][3][9]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "SHIP (State Health Insurance Assistance Program)",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Main office: West Virginia Bureau of Senior Services, 1900 Kanawha Boulevard East, 3rd Floor Town Center Mall, Charleston WV 25305-0160[6]",
+            "type": "service-area"
+          },
+          {
+            "name": "County senior centers throughout WV[8]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Caregiver/Respite Support",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Preston County Senior Citizens, Inc.[2]",
+            "type": "service-area"
+          },
+          {
+            "name": "McDowell County Commission on Aging[4]",
+            "type": "service-area"
+          },
+          {
+            "name": "Nicholas Community Action Partnership[6]",
+            "type": "service-area"
+          },
+          {
+            "name": "Kanawha Valley Senior Services[7]",
+            "type": "service-area"
+          },
+          {
+            "name": "DHHR Bureau for Medical Services (waivers)[3]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": false,
+        "isStatewide": false
+      }
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "programType": "employment",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Preston County Senior Citizens, Inc. (Boone, Clay, Doddridge, Harrison, Kanawha, Mercer, Monongalia, Preston, Putnam, Raleigh, Taylor Counties; (304) 329-0464)[1]",
+            "type": "service-area"
+          },
+          {
+            "name": "Human Resource Development Foundation (statewide vision, specific counties TBD)[2]",
+            "type": "service-area"
+          },
+          {
+            "name": "Southwestern Community Action Council (Barbour, Braxton, Cabell, Fayette, Greenbrier, Kanawha, Lincoln, Logan, McDowell, Mercer, Mingo, etc.)[5]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "documents"
+      ],
+      "signals": {
+        "benefitType": "employment",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": false
+      }
+    },
+    {
+      "name": "West Virginia Senior Legal Aid (WVSLA)",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "West Virginia Senior Legal Aid, Inc. (statewide via toll-free phone and website)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Long-Term Care Ombudsman",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "9 regional ombudsmen plus director and training specialist; examples: Huntington office (Cabell, part of Kanawha, Lincoln, Logan, Mingo, Putnam, Wayne counties); Fairmont area served by Director Ed Hopple[4][5]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "advocacy",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Lighthouse Program",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local county senior programs; WV Bureau for Senior Services (state oversight). Examples: Preston County (304) 329-6272; Nicholas CAP; contact via 1-877-987-3646 for county-specific.",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Aging Well, Safe at Home Initiative: WV BoSS Home Modification and Accessibility Program",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "WV Aging & Disability Resource Center (statewide access via central office in Charleston)[6]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Take Me Home, West Virginia Program",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Statewide TMH field staff; administered by Bureau for Medical Services (BMS).[4]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "documents",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "FAIR (Family Alzheimer's In-Home Respite)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Aging and Family Services (source: wvaging.com)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "medium",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": false
+      }
+    }
+  ]
+}

@@ -1,0 +1,119 @@
+{
+  "entity": "Virginia",
+  "entitySlug": "virginia",
+  "state": "VA",
+  "stateName": "Virginia",
+  "isRegion": false,
+  "exploredAt": "2026-04-09T09:02:15.265Z",
+  "programCount": 15,
+  "programs": [
+    {
+      "name": "Medicaid for Seniors/Disabled",
+      "what_it_does": "Provides health coverage for low-income seniors and disabled individuals, covering medical services, long-term care, and prescriptions. In Virginia, it is administered through the Department of Medical Assistance Services (DMAS).",
+      "who_its_for": "Low-income seniors aged 65+ and disabled individuals meeting income and asset limits.",
+      "official_url": "https://www.dmas.virginia.gov/",
+      "benefit_value": "Varies by eligibility; covers premiums, copays, and services up to full Medicaid scope[7]."
+    },
+    {
+      "name": "Home and Community-Based Services (HCBS) Waiver",
+      "what_it_does": "Offers in-home services like personal care and homemaker support to help seniors avoid nursing homes. Virginia administers waivers such as the Community Living Waiver for elderly/disabled.",
+      "who_its_for": "Seniors 65+ or disabled individuals at risk of institutionalization with income under state limits.",
+      "official_url": "https://www.dmas.virginia.gov/",
+      "benefit_value": "Services capped by waiver slots; annual cost limits around $50,000-$100,000 per enrollee[2]."
+    },
+    {
+      "name": "Program of All-Inclusive Care for the Elderly (PACE) in Virginia",
+      "what_it_does": "Delivers comprehensive community-based healthcare services and supports for adults with chronic conditions, combining Medicare and Medicaid to enable living at home longer. Provides flexibility in meeting healthcare needs at nursing home level of care.[3]",
+      "who_its_for": "Virginia residents ages 55+ with chronic healthcare needs or disabilities who qualify for nursing home level of care and are dually eligible for Medicare/Medicaid.[3]",
+      "whats_unique": "State-specific implementation with designated PACE sites across Virginia; while PACE exists federally, Virginia's program includes tailored locations and enrollment resources not uniform nationwide.[3]",
+      "official_url": "https://www.dmas.virginia.gov/for-members/benefits-and-services/other-programs-and-guidelines/pace/",
+      "benefit_value": "All-inclusive coverage of medical, social, and long-term care services; value equivalent to nursing home costs but provided in community setting.[3]"
+    },
+    {
+      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "what_it_does": "Pays Medicare premiums, deductibles, and copays for low-income beneficiaries; QMB covers Part A/B fully, SLMB/QI cover Part B. Administered as Aid Categories in Virginia.",
+      "who_its_for": "Seniors 65+ on Medicare with income up to 100-135% FPL and limited assets.",
+      "official_url": "https://www.dmas.virginia.gov/media/2452/pub600instruct.pdf",
+      "benefit_value": "QMB: Full Part A/B costs ($0 premiums/copays); SLMB: Part B premium ($174.70/mo 2024); QI: Partial[6]."
+    },
+    {
+      "name": "Supplemental Nutrition Assistance Program (SNAP)",
+      "what_it_does": "Provides monthly EBT card for food purchases to low-income households. In Virginia, applied via local DSS offices.",
+      "who_its_for": "Low-income seniors 60+; income <130% FPL, net <100% FPL.",
+      "official_url": "https://www.dss.virginia.gov/benefit/snap/",
+      "benefit_value": "Average $200-$300/month per senior household[7]."
+    },
+    {
+      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "what_it_does": "Offers grants for heating/cooling bills and crisis assistance. Virginia's program run by DSS.",
+      "who_its_for": "Low-income households including seniors; priority for 60+, disabled.",
+      "official_url": "https://www.dss.virginia.gov/benefit/liheap.cgi",
+      "benefit_value": "One-time grants $200-$1,000 depending on fuel type and income[7]."
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "what_it_does": "Funds home energy efficiency upgrades like insulation and furnace repair for low-income homes. Administered via Virginia Dept. of Social Services and CSBG network.",
+      "who_its_for": "Low-income seniors 60+ in owner/renter households below 200% FPL.",
+      "official_url": "https://www.dss.virginia.gov/community/csbgi.htm",
+      "benefit_value": "Free services valued $5,000-$10,000 per home[6]."
+    },
+    {
+      "name": "State Health Insurance Assistance Program (SHIP)",
+      "what_it_does": "Provides free counseling on Medicare, supplements, and savings programs. In Virginia, called Virginia Senior Medicare Patrol (SMP) or SHIP via Area Agencies on Aging.",
+      "who_its_for": "All Medicare beneficiaries 65+, especially low-income seniors.",
+      "official_url": "https://www.vadss.virginia.gov/special_needs/ship/",
+      "benefit_value": "Free one-on-one counseling; helps save $1,000s annually on premiums[2]."
+    },
+    {
+      "name": "Home Delivered Meals (Meals on Wheels)",
+      "what_it_does": "Delivers nutritious meals to homebound seniors via Area Agencies on Aging. Virginia program under Nutrition Services.",
+      "who_its_for": "Homebound seniors 60+ unable to prepare meals.",
+      "official_url": "https://www.vadss.virginia.gov/",
+      "benefit_value": "5-14 meals/week; suggested donation, free for low-income[2]."
+    },
+    {
+      "name": "Caregiver/Respite Support",
+      "what_it_does": "Provides respite care, training, and support for family caregivers. Virginia's National Family Caregiver Support Program via AAAs.",
+      "who_its_for": "Family caregivers of seniors 60+; priority low-income.",
+      "official_url": "https://www.vadss.virginia.gov/special_needs/caregiver/",
+      "benefit_value": "Respite up to $1,500/year; training free[2]."
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "what_it_does": "Subsidized part-time work training in community sites for low-income seniors. Operated by Virginia AAAs and partners.",
+      "who_its_for": "Unemployed low-income 55+ (income ≤125% FPL).",
+      "official_url": "https://www.vadss.virginia.gov/special_needs/scsep/",
+      "benefit_value": "Minimum wage pay for 20 hrs/week[2]."
+    },
+    {
+      "name": "Legal Aid for Seniors",
+      "what_it_does": "Offers free legal help for housing, benefits, abuse via AAAs and Virginia Poverty Law Center. Includes representation and advice.",
+      "who_its_for": "Low-income seniors 60+ facing civil legal issues.",
+      "official_url": "https://www.vadss.virginia.gov/special_needs/legal/",
+      "benefit_value": "Free services; pro bono hours vary[2]."
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "what_it_does": "Advocates for residents in nursing homes/assisted living, resolving complaints. Virginia Office for Aging statewide network.",
+      "who_its_for": "Residents/family in long-term care facilities.",
+      "official_url": "https://www.vadss.virginia.gov/special_needs/ombudsman/",
+      "benefit_value": "Free advocacy; investigates 100% complaints[2]."
+    },
+    {
+      "name": "Commonwealth Coordinated Care Plus (CCC+) Waiver",
+      "what_it_does": "This is Virginia’s main Medicaid managed care program providing long-term care and community-based supports, covering skilled nursing, assisted living, and home health services. Unlike many states' waivers, it has no waiting lists and serves seniors requiring nursing home or hospital level of care.[1][2]",
+      "who_its_for": "Virginia residents aged 65 or older (or disabled if younger) who require nursing home or hospital level of care, as determined by the state’s Uniform Assessment Instrument, and meet income/resource limits.[2]",
+      "whats_unique": "No waiting lists for services, which is uncommon among similar Medicaid waivers in other states; integrates with the No Wrong Door system to connect seniors to providers without bureaucratic barriers.[1][2]",
+      "official_url": "https://www.dmas.virginia.gov/for-members/benefits-and-services/other-programs-and-guidelines/ccc-plus-waiver/",
+      "benefit_value": "Varies by individual needs; covers full spectrum of long-term services including home care, no caps specified but serves over 2 million eligible adults.[1]"
+    },
+    {
+      "name": "Virginia Adult Services Program",
+      "what_it_does": "Provides home-based care and support services to help seniors remain independent in their communities. Care hours are tailored to individual needs and funding availability through local agencies.[1]",
+      "who_its_for": "Virginia residents aged 60 and older, prioritizing low-income individuals, those with limited English proficiency, rural seniors, and those at risk of institutionalization.[1]",
+      "whats_unique": "State-funded program coordinated via SeniorNavigator system and local Area Agencies on Aging, offering personalized home services beyond standard federal home care options.[1]",
+      "official_url": "https://dars.virginia.gov/aging/",
+      "benefit_value": "Home care hours based on assessed needs; exact value depends on funding and individual plan, no fixed dollar amount.[1]"
+    }
+  ]
+}

@@ -1,0 +1,413 @@
+{
+  "state": "ME",
+  "stateName": "Maine",
+  "classifiedAt": "2026-04-09T08:52:58.050Z",
+  "total": 11,
+  "typeSummary": {
+    "benefit": 6,
+    "resource": 3,
+    "employment": 1,
+    "navigator": 1
+  },
+  "scopeSummary": {
+    "state": 5,
+    "federal": 6
+  },
+  "complexitySummary": {
+    "deep": 6,
+    "simple": 4,
+    "medium": 1
+  },
+  "programs": [
+    {
+      "name": "MaineCare Elderly and Adults with Disabilities Waiver",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "District DHHS offices for in-person[1]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Home and Community-Based Services (HCBS) Waivers (e.g., MaineCare In-Home Services)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local Aging and Disability Resource Centers (ADRC)",
+            "type": "service-area"
+          },
+          {
+            "name": "DHHS district offices",
+            "type": "service-area"
+          },
+          {
+            "name": "Goold Health Systems for assessments",
+            "type": "service-area"
+          },
+          {
+            "name": "PineView Care (207-707-3004)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Office for Family Independence, 114 Corn Shop Lane, Farmington, ME 04938 (mail address for applications)[7]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local Community Action Agencies (CAAs); e.g., Community Concepts, Inc. Various others via mainehousing.org.",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "The Opportunity Alliance (Greater Portland area)[1]",
+            "type": "service-area"
+          },
+          {
+            "name": "York County Community Action Corporation (YCCAC) — York County[5]",
+            "type": "service-area"
+          },
+          {
+            "name": "Penquis — serves multiple counties in central/eastern Maine[6]",
+            "type": "service-area"
+          },
+          {
+            "name": "Other regional Community Action Agencies throughout Maine (contact MaineHousing for your local provider)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "in_kind",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "State Health Insurance Assistance Program (SHIP) - Maine Senior Health Insurance Assistance Program",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Sponsored by Office of Aging and Disability Services, Maine's five Area Agencies on Aging, and Legal Services for Maine Elders, Inc.",
+            "type": "service-area"
+          },
+          {
+            "name": "Main office: Office of Aging and Disability Services, 11 State House Station, 41 Anthony Ave., Augusta, ME 04333",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Home Delivered Meals (Maine Nutrition Services Program)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Southern Maine Agency on Aging (Simply Delivered for ME) — York and Cumberland counties[5]",
+            "type": "service-area"
+          },
+          {
+            "name": "Eastern Agency on Aging — serves eastern Maine[2]",
+            "type": "service-area"
+          },
+          {
+            "name": "Three additional regional Area Agencies on Aging (specific names and service areas not detailed in sources)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "medium",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "in_kind",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "programType": "employment",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Maine CareerCenters (statewide)",
+            "type": "service-area"
+          },
+          {
+            "name": "Area Agencies on Aging (5 AAAs statewide)",
+            "type": "service-area"
+          },
+          {
+            "name": "A4TD (national grant provider, https://www.a4td.org)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "documents"
+      ],
+      "signals": {
+        "benefitType": "employment",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Maine Legal Services for the Elderly",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Offices across Maine; coordinated with AAAs[4][5]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Maine SHIP (State Health Insurance Assistance Program)",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Office of Aging and Disability Services (main office): 11 State House Station, 41 Anthony Ave., Augusta, ME 04333[5]",
+            "type": "service-area"
+          },
+          {
+            "name": "Southern Maine Agency on Aging: 207-396-6524[8]",
+            "type": "service-area"
+          },
+          {
+            "name": "Eastern Agency on Aging[9]",
+            "type": "service-area"
+          },
+          {
+            "name": "Maine's five Area Agencies on Aging (specific locations not detailed in search results)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "advocacy|counseling|referral",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": false,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Legal Services for Maine Elders (LSE)",
+      "programType": "navigator",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Offices across the state (specific locations not listed)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "provider-list"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    }
+  ]
+}

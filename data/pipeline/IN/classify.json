@@ -1,0 +1,636 @@
+{
+  "state": "IN",
+  "stateName": "Indiana",
+  "classifiedAt": "2026-04-09T08:52:14.579Z",
+  "total": 17,
+  "typeSummary": {
+    "benefit": 14,
+    "employment": 1,
+    "resource": 2
+  },
+  "scopeSummary": {
+    "state": 10,
+    "local": 2,
+    "federal": 5
+  },
+  "complexitySummary": {
+    "deep": 13,
+    "medium": 2,
+    "simple": 2
+  },
+  "programs": [
+    {
+      "name": "Hoosier Care Connect",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local FSSA Division of Family Resources (DFR) offices",
+            "type": "service-area"
+          },
+          {
+            "name": "Statewide enrollment centers (list via website)",
+            "type": "service-area"
+          },
+          {
+            "name": "MCEs: Anthem, Managed Health Services (MHS), UnitedHealthcare[3][5]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Indiana PathWays for Aging",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Managed by MCEs (Anthem, Humana, UnitedHealthcare); providers join MCE networks.[5]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Program for All-Inclusive Care for the Elderly (PACE)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "PACE of Northeast Indiana, 2927 Lake Avenue, Fort Wayne, IN 46805 (Allen County), 260-469-4148[1][7]",
+            "type": "service-area"
+          },
+          {
+            "name": "Ascension Living St. Vincent PACE, 5435 W Pike Plaza Rd, Indianapolis, IN 46254, 317-754-4565 / 833-949-3777 (St. Joseph County 46552)[7]",
+            "type": "service-area"
+          },
+          {
+            "name": "Reid Health PACE, 2300 National Road West, Richmond, IN 47374[7]",
+            "type": "service-area"
+          },
+          {
+            "name": "Saint Joseph PACE (specific zips: Bremen 46506, Elkhart 46514/16/17)[4][8]",
+            "type": "service-area"
+          },
+          {
+            "name": "Franciscan Health Senior Health & Wellness PACE: Dyer, Michigan City, Lafayette, Indianapolis[6]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": false,
+        "isStatewide": false
+      }
+    },
+    {
+      "name": "Healthy Indiana Plan QMB, SLMB, QI",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local FSSA Division of Family Resources (DFR) offices statewide; find via in.gov/fssa.",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local county FSSA DFR offices (find via https://www.in.gov/fssa/dfr/ or call 1-800-403-0864)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Energy Assistance Program (EAP)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local Service Providers (LSPs) by county via http://eap.ihcda.in.gov",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Weatherization Assistance Program",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Find LSP by county: https://www.in.gov/ihcda/homeowners-and-renters/weatherizationenergy-conservation/.[2]",
+            "type": "service-area"
+          },
+          {
+            "name": "NIPSCO/TRC: 1-800-721-7385.[1]",
+            "type": "service-area"
+          },
+          {
+            "name": "AES Indiana/CLEAResult.[3]",
+            "type": "service-area"
+          },
+          {
+            "name": "Brightpoint: 1-800-589-3506.[4]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Meals on Wheels",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Meals on Wheels of Central Indiana (Indianapolis/Marion County)",
+            "type": "service-area"
+          },
+          {
+            "name": "Meals on Wheels Hamilton County",
+            "type": "service-area"
+          },
+          {
+            "name": "Meals on Wheels Muncie",
+            "type": "service-area"
+          },
+          {
+            "name": "Others via local AAA",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "medium",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": false
+      }
+    },
+    {
+      "name": "Older Americans Act Family Caregiver Support",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "INconnect Alliance member AAAs; find local via https://www.in.gov/fssa/ddars/bba/older-americans-act-family-caregiver-support/[2]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "programType": "employment",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Indiana DWD/Vantage Aging (DWD counties): 765-830-9675[2]",
+            "type": "service-area"
+          },
+          {
+            "name": "Eastern Indiana Works[1]",
+            "type": "service-area"
+          },
+          {
+            "name": "Catholic Charities Fort Wayne/South Bend: Adams, Allen, etc.[9]",
+            "type": "service-area"
+          },
+          {
+            "name": "Community and Family Services: Blackford, Delaware, etc.[9]",
+            "type": "service-area"
+          },
+          {
+            "name": "Northern Indiana Workforce Board: Elkhart, St. Joseph, etc.[6][9]",
+            "type": "service-area"
+          },
+          {
+            "name": "Goodwill Indy (limited processing)[5]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "documents"
+      ],
+      "signals": {
+        "benefitType": "employment",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": false
+      }
+    },
+    {
+      "name": "Indiana Legal Services (Pro Bono for Seniors)",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Fort Wayne: 919 S. Harrison, Suite 200",
+            "type": "service-area"
+          },
+          {
+            "name": "Columbus: 1531 13th Street, Suite G, Columbus, IN 47201-1302 (partners with Area XI Council on Aging)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "State office: Indianapolis (402 West Washington Street, Room W451).[6]",
+            "type": "service-area"
+          },
+          {
+            "name": "Local offices statewide (contact 1-800-622-4484 for nearest).[5]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "advocacy",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Indiana's Senior Property Tax Credit and Deduction Programs",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "unknown",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Structured Family Caregiving",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local AAAs, FSSA Division of Aging, approved providers (e.g., ResCare, FreedomCare)[1][4].",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Community and Home Options to Institutional Care for the Elderly and Disabled (CHOICE)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Central Indiana (Boone, Hamilton, Hancock, Hendricks, Johnson, Marion, Morgan, Shelby counties): Contact CICOA's Aging & Disability Resource Center[6]",
+            "type": "service-area"
+          },
+          {
+            "name": "All other counties: Contact your local Area Agency on Aging. Use the state map at https://www.in.gov/fssa/da/files/AAA_Map.pdf to identify your local office[7]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "medium",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "in_kind",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "SILVER Program (Seniors in Indiana Low-income and Vulnerable Energy Resource)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "NIPSCO (Northern Indiana Public Service Company)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": false
+      }
+    },
+    {
+      "name": "Ramp Up Indiana",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Non-profits like Habitat for Humanity, Area Agencies on Aging.",
+            "type": "service-area"
+          },
+          {
+            "name": "Local units of government.",
+            "type": "service-area"
+          },
+          {
+            "name": "Examples: MontCares (montcares.org), Thrive West Central (thrivewestcentral.com).[5][7]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "in_kind",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    }
+  ]
+}

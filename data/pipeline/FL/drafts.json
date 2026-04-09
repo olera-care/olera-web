@@ -1,0 +1,432 @@
+{
+  "state": "FL",
+  "stateName": "Florida",
+  "draftedAt": "2026-04-09T08:49:47.024Z",
+  "total": 6,
+  "successful": 3,
+  "programs": [
+    {
+      "id": "florida-home-care-elderly-program",
+      "name": "Home Care for the Elderly (HCE) Program",
+      "shortName": "HCE Program",
+      "tagline": "Free home care services for your parent if they're at risk of nursing home placement but have an adult caregiver to live with them.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local AAA, ADRC, or Department of Elder Affairs offices",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and at risk of needing nursing home care, Florida's Home Care for the Elderly program provides free home care services to help them stay in a private home. The catch: your parent must live with an approved adult caregiver (age 18+) who provides full-time care — they cannot live alone.\n\nThis isn't regular home health care. Your parent must meet the same clinical criteria that would qualify them for nursing home placement, but choose to receive care at home instead. The program focuses on preventing nursing home placement by supporting the caregiver arrangement.\n\nIncome must be under $2,982/month and assets under $2,000 for a single person. If your parent receives SSI, QMB, or SLMB benefits, they automatically qualify without additional financial testing.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Income under $2,982/month",
+          "At risk of nursing home placement",
+          "Must live with approved adult caregiver",
+          "Florida resident"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 2000,
+          "couple": null,
+          "countedAssets": [],
+          "exemptAssets": [],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "Must be at risk of nursing home placement based on 701B assessment (clinical evaluation of whether your parent needs daily help with activities like bathing, dressing, or medication management)",
+        "otherRequirements": [
+          "Florida resident with intent to remain",
+          "Live with approved adult caregiver (age 18+) in private home",
+          "Dwelling must meet state safety requirements"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Contact your local Aging and Disability Resource Center for an assessment — no forms to fill out first, but processing time varies by region.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact Local ADRC",
+            "description": "Call your local Aging and Disability Resource Center or Department of Elder Affairs office to request a Home Care for the Elderly assessment."
+          },
+          {
+            "step": 2,
+            "title": "Schedule Assessment",
+            "description": "A case manager will schedule an in-person or phone assessment to evaluate your parent's functional needs, financial situation, and caregiver arrangement."
+          },
+          {
+            "step": 3,
+            "title": "Complete 701B Assessment",
+            "description": "The case manager conducts a clinical assessment to determine if your parent is at risk of nursing home placement."
+          },
+          {
+            "step": 4,
+            "title": "Verify Caregiver Eligibility",
+            "description": "The adult caregiver must be verified as 18+, willing to provide full-time care, and the dwelling must meet safety requirements."
+          },
+          {
+            "step": 5,
+            "title": "Await Determination",
+            "description": "The case manager reviews all information and determines eligibility for home care services."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Gather income/asset proof and identify your adult caregiver before calling — the assessment will cover both financial and caregiver eligibility.",
+        "urls": [
+          {
+            "label": "Find Local Office",
+            "url": "https://elderaffairs.org"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Financial Eligibility: Automatic vs. Asset Testing",
+          "included": [
+            "Monthly income under $2,982 (single person)",
+            "Assets under $2,000 (single person)",
+            "Financial eligibility follows Institutional Care Program (ICP) limits"
+          ],
+          "excluded": [
+            "SSI recipients automatically qualify (no additional financial test)",
+            "QMB (Qualified Medicare Beneficiary) recipients automatically qualify",
+            "SLMB (Specified Low-Income Medicare Beneficiary) recipients automatically qualify"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring for Assessment",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Florida driver's license or state ID",
+                "Proof of Florida residency (utility bill, lease)"
+              ]
+            },
+            {
+              "name": "Financial (unless SSI/QMB/SLMB)",
+              "items": [
+                "Social Security award letter",
+                "Bank statements",
+                "Proof of any other income",
+                "Asset documentation"
+              ]
+            },
+            {
+              "name": "Caregiver Documentation",
+              "items": [
+                "Adult caregiver's ID (must be 18+)",
+                "Caregiver's agreement to provide full-time care",
+                "Dwelling address and contact information"
+              ]
+            },
+            {
+              "name": "Automatic Eligibility",
+              "items": [
+                "SSI award letter (bypasses financial testing)",
+                "QMB or SLMB enrollment documentation"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "This program requires your parent to live with an approved adult caregiver — they cannot live alone. The caregiver must provide full-time, family-type care and meet background check requirements."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If your parent receives SSI, QMB, or SLMB benefits, they automatically meet the financial requirements — no need to gather detailed income and asset documentation."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent live alone and still get these services?",
+          "answer": "No. Your parent must live with an approved adult caregiver (age 18+) who provides full-time care in a private home. This is not a program for people living independently."
+        },
+        {
+          "question": "What if my parent's income is just over $2,982/month?",
+          "answer": "They won't qualify unless they receive SSI, QMB, or SLMB benefits, which provide automatic eligibility regardless of other income. The income limits are strict for regular applicants."
+        },
+        {
+          "question": "Can I be the adult caregiver for my parent?",
+          "answer": "Yes, adult children can serve as the approved caregiver as long as you're 18+, can provide full-time care, and meet the background check and dwelling requirements."
+        },
+        {
+          "question": "How is this different from regular Medicaid home health?",
+          "answer": "HCE requires your parent to live with a full-time caregiver and focuses on preventing nursing home placement. Regular Medicaid home health provides visiting services to people living independently."
+        },
+        {
+          "question": "What happens if the caregiver arrangement doesn't work out?",
+          "answer": "Your parent would lose eligibility for HCE services since the live-in caregiver requirement is mandatory. You'd need to find a new approved caregiver or explore other care options."
+        },
+        {
+          "question": "Does my parent's house count against the $2,000 asset limit?",
+          "answer": "The research doesn't specify which assets are exempt, but this follows Institutional Care Program rules. Contact your local ADRC for details about how the home and other assets are counted."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://elderaffairs.org/programs-services/home-care-for-elderly/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "florida-community-care-elderly-cce",
+      "name": "Community Care for the Elderly (CCE) Program",
+      "shortName": "CCE Program",
+      "tagline": "Get home care services for your 60+ parent in Florida — from personal care to meals — while they stay in their own home.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local CCE Lead Agencies (contact via Florida Department of Elder Affairs for county-specific providers).",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and needs help with daily activities like bathing, dressing, or managing medications, Florida's Community Care for the Elderly (CCE) Program provides home-based services to help them avoid nursing home placement. The program covers personal care, homemaker services, adult day care, respite care, home-delivered meals, medical supplies, and emergency alert systems — all coordinated by a local care team.\n\nUnlike Medicaid programs, CCE has no income or asset limits. Instead, eligibility depends on your parent's functional needs and risk of nursing home placement. Because CCE is state-funded with limited resources, those at highest risk of institutionalization get priority. Services vary by county based on local provider capacity.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Physical or mental limitations with daily activities",
+          "At risk of nursing home placement",
+          "No income or asset limits"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must have physical or mental limitations that restrict ability to perform normal activities of daily living, assessed through comprehensive evaluation",
+        "otherRequirements": [
+          "Live in a community served by a local CCE provider",
+          "Cannot be enrolled in a Medicaid capitated long-term care program",
+          "Must complete annual reassessment"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your local CCE Lead Agency for intake screening — preliminary eligibility determined immediately, full assessment scheduled if qualified.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact your local CCE Lead Agency",
+            "description": "Call or visit in person for preliminary intake screening. They'll ask about your parent's age, functional needs, and living situation."
+          },
+          {
+            "step": 2,
+            "title": "Complete intake screening",
+            "description": "If preliminarily eligible, they'll schedule a comprehensive assessment. If clearly ineligible, they may refer you to other programs."
+          },
+          {
+            "step": 3,
+            "title": "Undergo comprehensive assessment",
+            "description": "Assessor evaluates your parent's functional impairment and risk of nursing home placement to determine priority ranking."
+          },
+          {
+            "step": 4,
+            "title": "Wait for approval based on priority",
+            "description": "Approval depends on available funding and where your parent ranks compared to others on the waiting list."
+          }
+        ],
+        "processingTime": "Intake screening as soon as possible if preliminarily eligible; full assessment and approval based on funds availability and priority ranking",
+        "waitlist": "Waitlists likely in high-demand areas — those at highest risk of nursing home placement get priority",
+        "tip": "Prepare specific examples of daily tasks your parent struggles with — this helps assessors understand their functional needs.",
+        "urls": [
+          {
+            "label": "Find your local CCE provider",
+            "url": "https://elderaffairs.org/programs-services/community-care-for-the-elderly/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Birth certificate or government-issued ID showing age 60+",
+                "Proof of Florida residency"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "List of current medications",
+                "Description of daily activities your parent needs help with",
+                "Recent medical records showing functional limitations"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "CCE has limited funding — even if your parent qualifies, services may not be immediately available. Those at highest risk of nursing home placement get priority, so emphasize specific daily care needs during assessment."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Your parent cannot be enrolled in both CCE and a Medicaid managed long-term care plan at the same time. If they have Medicaid, ask which program offers better services for their specific needs."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent qualify if they have money in the bank?",
+          "answer": "Yes. CCE has no asset or income limits. Eligibility is based only on age (60+), functional needs, and risk of nursing home placement."
+        },
+        {
+          "question": "What if Mom already gets Medicaid long-term care services?",
+          "answer": "She cannot be enrolled in both CCE and a Medicaid capitated long-term care program at the same time. You'll need to choose which program works better for her needs."
+        },
+        {
+          "question": "How long is the waiting list in my area?",
+          "answer": "Wait times vary by county and depend on funding availability. Those at highest risk of nursing home placement get priority. Contact your local CCE Lead Agency for current wait times in your area."
+        },
+        {
+          "question": "What happens if Dad's condition changes after he's approved?",
+          "answer": "CCE requires annual reassessment to continue receiving services. If his needs increase or decrease significantly, contact your local provider — they may adjust his care plan or priority level."
+        },
+        {
+          "question": "Can CCE help if my parent lives in assisted living?",
+          "answer": "CCE is designed for people living in their own homes in the community. If your parent is in assisted living, they may not qualify — ask your local provider about eligibility in their specific living situation."
+        },
+        {
+          "question": "What services are actually available in my county?",
+          "answer": "Services vary significantly by local provider and available funding. Common services include personal care, homemaker services, meals, and medical supplies, but your local CCE Lead Agency can tell you exactly what's offered in your area."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://elderaffairs.org/programs-services/community-care-for-the-elderly/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "florida-relief-respite-program",
+      "name": "Respite for Elders Living in Everyday Families (RELIEF) Program",
+      "shortName": "RELIEF Program",
+      "tagline": "Get temporary caregiver relief so you can take a break while someone else watches your parent",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false
+      },
+      "intro": "If you're caring for an aging parent at home, respite care gives you time away while a trained caregiver steps in. The RELIEF program may offer these services to Florida families, but program details are not publicly documented. This could mean the program operates at the county level, is newly established, or may not currently exist under this exact name. Many Florida families instead access respite through Medicaid waiver programs or Area Agencies on Aging.",
+      "savingsRange": "",
+      "savingsSource": "Program details not available",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Program details not confirmed",
+          "Contact Florida DOEA to verify"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Program eligibility requirements not documented"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Contact Florida Department of Elder Affairs directly to verify if this program exists and how to apply.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call Florida DOEA",
+            "description": "Ask specifically about the RELIEF program and current respite services available in your county"
+          },
+          {
+            "step": 2,
+            "title": "Contact your local Area Agency on Aging",
+            "description": "They manage most respite programs and can tell you what's available locally"
+          },
+          {
+            "step": 3,
+            "title": "Ask about alternatives",
+            "description": "If RELIEF doesn't exist, ask about Medicaid waivers or other respite options"
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Ask for respite services by function, not program name — many agencies offer similar services under different names",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Search results show no documentation of this program. Before spending time looking for RELIEF specifically, call your Area Agency on Aging — they know all respite options in your area and can save you hours of research."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Does the RELIEF program actually exist in Florida?",
+          "answer": "We cannot confirm this program exists under this name. Florida Department of Elder Affairs has no public documentation of RELIEF. It may be a local program, newly created, or may not currently operate."
+        },
+        {
+          "question": "What respite programs are definitely available in Florida?",
+          "answer": "Most counties offer respite through Medicaid waivers (HCBS, ADHC), Area Agencies on Aging, or the National Family Caregiver Support Program. Call 1-800-96-ELDER to find services in your area."
+        },
+        {
+          "question": "How do I find respite care if RELIEF doesn't exist?",
+          "answer": "Start with your county's Area Agency on Aging. They coordinate most respite services and know waiting lists, costs, and eligibility for all local programs."
+        },
+        {
+          "question": "Could this be a brand new program I haven't heard about?",
+          "answer": "Possibly, but new state programs typically appear on official websites within months of launch. Check elderaffairs.org or call them directly at 850-414-2000."
+        },
+        {
+          "question": "What if I heard about RELIEF from another caregiver?",
+          "answer": "They may be referring to a local program with a similar name, or mixing up program names. Ask them which agency runs it and get contact information to verify."
+        },
+        {
+          "question": "Should I keep looking for this program or focus on alternatives?",
+          "answer": "Focus on alternatives. One call to your Area Agency on Aging will tell you every respite option available locally — much faster than searching for a program that may not exist."
+        }
+      ],
+      "phone": "850-414-2000",
+      "sourceUrl": "https://elderaffairs.org",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "name": "Optional State Supplementation (OSS) for SSI Recipients",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Additional Homestead Exemption for Seniors (Florida)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "SHINE (Serving Health Insurance Needs of Elders)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    }
+  ],
+  "stateOverview": null
+}

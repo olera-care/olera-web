@@ -1,0 +1,367 @@
+{
+  "state": "AL",
+  "stateName": "Alabama",
+  "draftedAt": "2026-04-09T08:47:17.285Z",
+  "total": 2,
+  "successful": 2,
+  "programs": [
+    {
+      "id": "alabama-cares-caregiver-support",
+      "name": "Alabama Cares",
+      "shortName": "Alabama Cares",
+      "tagline": "Free respite care, counseling, and caregiver training if you're caring for an aging parent or relative with dementia.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local Area Agencies on Aging (AAAs) and Aging & Disability Resource Centers (ADRCs) statewide.",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If you're the primary caregiver for a parent 60+ or a relative with Alzheimer's or dementia, Alabama Cares provides free respite care, counseling, and support services to prevent caregiver burnout. The program also covers grandparents 55+ caring for grandchildren and older adults caring for disabled adult relatives.\n\nServices include temporary respite care (someone else watches your parent so you can take a break), personal care assistance, adult day care, caregiver education classes, and support groups. Because services are prioritized by need rather than income, caregivers in rural areas, those 60+, and families dealing with dementia or multiple care recipients get priority access.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Primary caregiver for parent 60+",
+          "Caring for someone with dementia/Alzheimer's",
+          "Grandparents 55+ caring for grandchildren",
+          "No income limits"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be primary caregiver providing 20+ hours/week of care",
+          "Care recipient must be frail older adult 60+, have Alzheimer's/dementia, or be disabled",
+          "Grandparent caregivers need legal custody of children living in home"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call 1-800-243-5463 to connect with your local Area Agency on Aging — no forms required to start.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the Alabama AgeLine",
+            "description": "Call 1-800-AGE-LINE (1-800-243-5463) to be connected to your local Area Agency on Aging office."
+          },
+          {
+            "step": 2,
+            "title": "Describe your caregiving situation",
+            "description": "Explain who you're caring for, how many hours per week, and what type of help you need most (respite, counseling, training)."
+          },
+          {
+            "step": 3,
+            "title": "Provide documentation",
+            "description": "Show proof of your caregiving relationship, custody papers if caring for grandchildren, and documentation of care recipient's age or disability."
+          },
+          {
+            "step": 4,
+            "title": "Get prioritized based on need",
+            "description": "Services are assigned based on priority: caregivers 60+, rural areas, dementia care, and those with critical health needs get priority."
+          }
+        ],
+        "processingTime": "Not specified",
+        "waitlist": "Services prioritized by need — non-priority cases may experience delays",
+        "tip": "Emphasize if you're in a rural area, over 60, or caring for someone with dementia — these factors increase your priority for services.",
+        "urls": [
+          {
+            "label": "Alabama Cares website",
+            "url": "https://alabamaageline.gov/alabama-cares/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Alabama Cares doesn't pay family caregivers directly. This program provides support services to help you in your caregiving role, but it's separate from Medicaid waiver programs that might pay for care."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If you're caring for grandchildren, you need legal custody and proof you're providing 20+ hours of care per week. Gather custody papers before you call."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Does Alabama Cares pay me to care for my parent?",
+          "answer": "No. Alabama Cares provides support services like respite care and counseling, but doesn't pay family caregivers. For paid caregiver programs, ask about Medicaid waiver services."
+        },
+        {
+          "question": "What if I work full-time but still help my parent daily?",
+          "answer": "You can still qualify as a primary caregiver. The program looks at your caregiving relationship and responsibilities, not just hours. Explain your situation when you call."
+        },
+        {
+          "question": "My parent doesn't have dementia but needs daily help. Do we qualify?",
+          "answer": "Yes, if your parent is 60+ and frail (needs help with daily activities), you may qualify even without a dementia diagnosis. The program serves caregivers of frail older adults."
+        },
+        {
+          "question": "How long can I use respite care services?",
+          "answer": "The program doesn't specify limits, but services are designed to provide temporary relief to prevent caregiver burnout, not replace long-term care arrangements."
+        },
+        {
+          "question": "What if there's a waiting list in my area?",
+          "answer": "Priority goes to caregivers 60+, rural areas, dementia care, and critical health situations. If you don't get immediate services, ask to be placed on a priority list and what other local resources might help while you wait."
+        },
+        {
+          "question": "Can I get services if my income is too high for Medicaid?",
+          "answer": "Yes. Alabama Cares has no strict income limits. Services are prioritized by social and economic need, but higher-income families can still access support services."
+        }
+      ],
+      "phone": "1-800-243-5463",
+      "sourceUrl": "https://alabamaageline.gov/alabama-cares/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "alabama-elderly-simplified-application-project",
+      "name": "Alabama Elderly Simplified Application Project (AESAP)",
+      "shortName": "AESAP",
+      "tagline": "Streamlined grocery benefits for Alabama seniors 60+ without the usual SNAP paperwork hassles.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local county Department of Human Resources (DHR) Food Assistance offices statewide",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and living on a fixed income in Alabama, AESAP provides the same grocery benefits as regular SNAP but with far less paperwork. Because this is a simplified version of food assistance, your parent gets a 3-year approval period instead of frequent recertifications, no mandatory interview, and can self-declare their income in most cases.\n\nYour parent receives monthly benefits on an EBT debit card to buy groceries at any store that accepts SNAP. The amount depends on household size and income — a single person might receive $23-281 per month based on their income level. The catch: everyone in the household must be 60+ and have no earned income (wages or self-employment) in the month they apply.",
+      "savingsRange": "$276 – $3,372/year in 2026",
+      "savingsSource": "Monthly SNAP benefit amounts of $23-281 for single person households",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "All household members 60+",
+          "No earned income",
+          "Income below $1,396/month (single)",
+          "Assets under $4,250"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1396
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 1888
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 2379
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 2871
+          },
+          {
+            "householdSize": 5,
+            "monthlyLimit": 3363
+          },
+          {
+            "householdSize": 6,
+            "monthlyLimit": 3855
+          }
+        ],
+        "assetLimits": {
+          "individual": 4250,
+          "couple": 4250,
+          "countedAssets": [
+            "Bank accounts",
+            "Cash",
+            "Stocks and bonds",
+            "Second vehicles"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "One vehicle",
+            "Most retirement accounts"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "All household members must be 60+",
+          "No earned income in application month",
+          "U.S. citizen or qualified non-citizen",
+          "Alabama resident"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online through MyDHR portal or call 1-800-382-0499 — processing takes up to 30 days.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Complete the 2-page AESAP application",
+            "description": "Use Form DHR-FSD-2198, available online at dhr.alabama.gov or by calling the hotline. This simplified form replaces the standard lengthy SNAP application."
+          },
+          {
+            "step": 2,
+            "title": "Self-declare your income and assets",
+            "description": "Because you have no earned income, you can state your Social Security, pension, and other unearned income amounts without providing documentation (unless DHR questions it)."
+          },
+          {
+            "step": 3,
+            "title": "Submit to your county DHR office",
+            "description": "Send online through MyDHR, mail, fax, email, or drop off in person. No face-to-face interview required unless you request one."
+          },
+          {
+            "step": 4,
+            "title": "Wait for approval and EBT card",
+            "description": "You'll get a decision within 30 days. If approved, benefits last 3 years before recertification."
+          }
+        ],
+        "processingTime": "Up to 30 days from application date",
+        "waitlist": null,
+        "tip": "Keep medical expense receipts — they can increase your benefit amount even if you don't need them to prove eligibility.",
+        "urls": [
+          {
+            "label": "Apply online via MyDHR",
+            "url": "https://dhr.alabama.gov/food-assistance"
+          },
+          {
+            "label": "Download AESAP application form",
+            "url": "https://dhr.alabama.gov/food-assistance/alabama-elderly-simplified-application-project-aesap/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and cash",
+            "Stocks, bonds, and investments",
+            "Second vehicles beyond primary car"
+          ],
+          "excluded": [
+            "Primary home (any value)",
+            "One vehicle per household",
+            "Most retirement accounts (401k, IRA)",
+            "Life insurance policies",
+            "Burial funds up to certain limits"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Driver's license or state ID",
+                "Birth certificate or passport",
+                "Proof of non-citizen status (if applicable)"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Social Security award letter",
+                "Pension statements",
+                "Medical expense receipts (optional, for higher benefits)",
+                "Bank statements (only if DHR requests verification)"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Don't forget the annual Interim Contact Form — DHR will mail it to you each year, and you must return it to keep benefits active."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my 58-year-old spouse apply with me if I'm 62?",
+          "answer": "No. All household members must be 60+ on the application date. Your spouse would need to wait until they turn 60, or you'd need to apply for regular SNAP instead."
+        },
+        {
+          "question": "What if Mom has a small part-time job?",
+          "answer": "She can't use AESAP if she has any earned income (wages or self-employment) in the month she applies. She'd need to apply for regular SNAP, which has more paperwork but allows earned income."
+        },
+        {
+          "question": "How much will Dad get in grocery benefits?",
+          "answer": "It depends on his income and medical expenses. A single person with $1,000/month Social Security might get around $95/month in benefits. Higher medical costs can increase the amount."
+        },
+        {
+          "question": "Does the house count against the asset limit?",
+          "answer": "No. Your parent's primary home doesn't count toward the $4,250 asset limit, regardless of its value. One vehicle is also exempt."
+        },
+        {
+          "question": "What happens after 3 years?",
+          "answer": "Your parent will need to recertify by completing a new application. DHR will contact them before the benefits expire to start the renewal process."
+        },
+        {
+          "question": "Can I apply for my parent?",
+          "answer": "Yes, you can help complete the application, but your parent needs to sign it. You can also be designated as an authorized representative to handle communications with DHR."
+        }
+      ],
+      "phone": "1-800-382-0499",
+      "sourceUrl": "https://dhr.alabama.gov/food-assistance/alabama-elderly-simplified-application-project-aesap/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    }
+  ],
+  "stateOverview": {
+    "intro": "If you're caring for an aging parent in Alabama, two key programs can reduce your burden and costs. Alabama offers both financial benefits (like streamlined grocery assistance) and free support resources (including respite care and caregiver training). While the state has fewer specialized senior programs than larger states, the available options are designed to cut through bureaucracy. Alabama Cares provides immediate relief if you're caring for someone with dementia, while AESAP simplifies grocery benefits for seniors 60+ without typical SNAP paperwork hurdles. Start by identifying your most pressing need — grocery costs or caregiver support — then apply to the matching program below.",
+    "startHere": [
+      {
+        "name": "Alabama Cares",
+        "programId": "alabama-cares",
+        "why": "Free respite care and counseling available to any caregiver of someone with dementia, regardless of income."
+      },
+      {
+        "name": "Alabama Elderly Simplified Application Project (AESAP)",
+        "programId": "aesap",
+        "why": "Streamlined grocery benefits for Alabama seniors 60+ without the usual SNAP paperwork requirements."
+      }
+    ],
+    "byNeed": [
+      {
+        "need": "Food assistance for your parent",
+        "programs": [
+          "Alabama Elderly Simplified Application Project (AESAP)"
+        ],
+        "description": "Simplified grocery benefits specifically for Alabama seniors 60+ with reduced paperwork."
+      },
+      {
+        "need": "Caregiver support and respite care",
+        "programs": [
+          "Alabama Cares"
+        ],
+        "description": "Free respite care, counseling, and training for families caring for someone with dementia."
+      },
+      {
+        "need": "Dementia-specific resources",
+        "programs": [
+          "Alabama Cares"
+        ],
+        "description": "Specialized support services designed for caregivers dealing with Alzheimer's and related conditions."
+      }
+    ],
+    "quickFacts": [
+      "Alabama has fewer state-specific senior programs than many states, focusing on simplified versions of federal programs",
+      "AESAP is Alabama's streamlined alternative to traditional SNAP for seniors 60+",
+      "Alabama Cares serves caregivers of people with dementia regardless of the caregiver's income or relationship to the person"
+    ],
+    "resourcesVsBenefits": "Alabama offers both qualification-based benefits and free resources. AESAP provides actual grocery money but requires meeting age (60+) and income requirements. Alabama Cares provides free services (respite care, counseling, training) to any caregiver of someone with dementia — no income limits, no fees, no qualification barriers beyond the caregiving situation."
+  }
+}

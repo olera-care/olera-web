@@ -1,0 +1,90 @@
+{
+  "entity": "Tennessee",
+  "entitySlug": "tennessee",
+  "state": "TN",
+  "stateName": "Tennessee",
+  "isRegion": false,
+  "exploredAt": "2026-04-09T09:00:38.213Z",
+  "programCount": 11,
+  "programs": [
+    {
+      "name": "TennCare Medicare Savings Programs (QMB, SLMB, QI)",
+      "what_it_does": "These programs help low-income Medicare beneficiaries by paying Part B premiums and cost-sharing: QMB covers premiums, deductibles, copays; SLMB and QI cover Part B premiums. Administered via TennCare Connect for eligible seniors.[6][7]",
+      "who_its_for": "Medicare enrollees 65+ or disabled with low income/assets: QMB <100% FPL, SLMB <120% FPL, QI 120-135% FPL.[6][7]",
+      "official_url": "https://tenncareconnect.tn.gov/services/homepage",
+      "benefit_value": "Pays Medicare Part B premiums (~$174.70/month in 2024), deductibles/copays for QMB; varies by program."
+    },
+    {
+      "name": "Tennessee LIHEAP",
+      "what_it_does": "Low Income Home Energy Assistance Program provides grants for heating/cooling bills and crisis aid. It helps seniors maintain utility services year-round.[7]",
+      "who_its_for": "Low-income households including seniors 60+ at or below 60% state median income.",
+      "official_url": "https://www.tn.gov/humanservices",
+      "benefit_value": "One-time grants $100-1,000+ depending on fuel type, household size, income."
+    },
+    {
+      "name": "Tennessee Weatherization Assistance Program",
+      "what_it_does": "Federal Weatherization program administered in TN improves energy efficiency in low-income homes through insulation, sealing, and upgrades. It reduces energy costs for seniors long-term.",
+      "who_its_for": "Low-income seniors 60+, disabled, meeting 200% FPL or LIHEAP eligible.",
+      "official_url": "https://www.tn.gov/environment/program-areas/energy/state-energy-program-(sep)/sep-weatherization.html",
+      "benefit_value": "Free home improvements valued $5,000-10,000 per household."
+    },
+    {
+      "name": "Tennessee SHIP",
+      "what_it_does": "State Health Insurance Assistance Program offers free counseling on Medicare, Medigap, and savings programs. SHIP counselors assist with applications and plan choices statewide.[7]",
+      "who_its_for": "All Medicare beneficiaries 65+, caregivers, family members.",
+      "official_url": "https://www.tn.gov/commerce/consumer/ship.html",
+      "benefit_value": "Free one-on-one counseling, application help; saves thousands via proper enrollment."
+    },
+    {
+      "name": "Tennessee Meals on Wheels",
+      "what_it_does": "Administered through Area Agencies on Aging, delivers nutritious meals to homebound seniors. Programs like those via CAC Office on Aging ensure daily nutrition support.",
+      "who_its_for": "Homebound seniors 60+ unable to prepare meals, often low-income.",
+      "official_url": "https://www.knoxseniors.org",
+      "benefit_value": "5-14 meals/week; ~$5-10/meal value, often free/suggested donation."
+    },
+    {
+      "name": "Tennessee Caregiver Respite Support",
+      "what_it_does": "Provided via TennCare CHOICES and AAA programs, offers temporary relief for family caregivers through in-home or facility care. Helps prevent caregiver burnout.",
+      "who_its_for": "Family caregivers of CHOICES-eligible seniors 65+ or disabled adults.",
+      "official_url": "https://www.tn.gov/aging",
+      "benefit_value": "Hours/days of paid respite care; value varies by need, up to thousands annually."
+    },
+    {
+      "name": "Tennessee SCSEP",
+      "what_it_does": "Senior Community Service Employment Program offers part-time paid training jobs in community service. Federal program run through Tennessee Department of Labor.",
+      "who_its_for": "Unemployed low-income seniors 55+ unable to find employment.",
+      "official_url": "https://www.tn.gov/workforce",
+      "benefit_value": "Minimum wage work ~20 hrs/week; wage subsidies, training leading to employment."
+    },
+    {
+      "name": "Tennessee Legal Aid for Seniors",
+      "what_it_does": "Legal services through Legal Aid Society of Middle TN and Highland Rim, plus Elder Law Nashville focus on Medicaid, benefits, abuse. Free representation for civil issues.",
+      "who_its_for": "Low-income seniors 60+ facing housing, benefits, exploitation issues.",
+      "official_url": "https://elderlawofnashville.com",
+      "benefit_value": "Free legal services worth $5,000+ per case."
+    },
+    {
+      "name": "Tennessee Long-Term Care Ombudsman",
+      "what_it_does": "State Ombudsman Program advocates for residents in nursing homes, assisted living. Investigates complaints, ensures quality care and rights protection.",
+      "who_its_for": "Residents/family in TN long-term care facilities.",
+      "official_url": "https://www.tn.gov/aging/ombudsman.html",
+      "benefit_value": "Free advocacy, complaint resolution; prevents abuse/neglect."
+    },
+    {
+      "name": "OPTIONS for Community Living",
+      "what_it_does": "A state-funded program providing home and community-based services including homemaker assistance, home-delivered meals, and personal care assistance. It allows elderly and adults with disabilities to receive support while remaining in their homes or communities.",
+      "who_its_for": "Elderly persons and adults with disabilities seeking to age in place with home and community-based services",
+      "whats_unique": "State-funded alternative to institutional care, administered through local Area Agencies on Aging and Disability across Tennessee",
+      "official_url": "Not provided in search results",
+      "benefit_value": "Not specified in search results"
+    },
+    {
+      "name": "Tennessee State Health Insurance Assistance Program (TN SHIP)",
+      "what_it_does": "Assists seniors and people with disabilities with Medicare questions and concerns while protecting them from healthcare fraud, waste, and abuse. Works in conjunction with Senior Medical Patrol (SMP).[7]",
+      "who_its_for": "Seniors and people with disabilities with Medicare-related questions",
+      "whats_unique": "State program integrated with federal Medicare assistance efforts",
+      "official_url": "https://tnmedicarehelp.com/[7]",
+      "benefit_value": "Free assistance and fraud protection"
+    }
+  ]
+}

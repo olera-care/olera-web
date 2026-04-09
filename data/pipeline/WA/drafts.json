@@ -1,0 +1,605 @@
+{
+  "state": "WA",
+  "stateName": "Washington",
+  "draftedAt": "2026-04-09T09:04:02.953Z",
+  "total": 16,
+  "successful": 3,
+  "programs": [
+    {
+      "id": "washington-apple-health-medicare-savings-programs",
+      "name": "Apple Health Medicare Savings Programs (QMB, SLMB, QI)",
+      "shortName": "Medicare Savings Programs",
+      "tagline": "Washington can pay your parent's Medicare premiums and out-of-pocket costs if their income is below $1,820/month.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local Community Services Offices (CSOs) statewide; find via washingtonconnection.org",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is on Medicare and their monthly income is below $1,820 (single) or $2,453 (couple), Washington's Apple Health Medicare Savings Programs can pay their Medicare premiums, deductibles, and copays. Three tiers provide different levels of help: QMB covers the most costs for those with income below $1,463/month, while SLMB and QI cover Medicare Part B premiums for those with slightly higher incomes.\n\nBecause Washington eliminated asset limits in 2023, your parent won't be disqualified based on savings or property value — only their monthly income matters. Coverage starts the first day of the month after approval, but there's no retroactive coverage, so applying quickly saves money.",
+      "savingsRange": "$174 – $4,140/year in 2026",
+      "savingsSource": "Medicare Part B premium ($174.90/month) plus potential deductibles and copays covered",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "On Medicare",
+          "Income below $1,820/month (single)",
+          "Washington resident",
+          "No asset limits"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1820
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2453
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Enrolled in Medicare Part A and/or B",
+          "U.S. citizen or qualified non-citizen",
+          "Washington resident"
+        ],
+        "povertyLevelReference": "135% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online at washingtonconnection.org or call 1-800-562-3022 — coverage starts the month after approval.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Check which tier your parent qualifies for",
+            "description": "QMB for income below $1,463/month covers the most. SLMB and QI-1 cover Part B premiums only for higher incomes up to $1,820/month."
+          },
+          {
+            "step": 2,
+            "title": "Gather Medicare and income documents",
+            "description": "You'll need proof of Medicare enrollment, Social Security award letters, and bank statements."
+          },
+          {
+            "step": 3,
+            "title": "Apply online or by phone",
+            "description": "Use washingtonconnection.org or call 1-800-562-3022 ext. 16129 to request a mailed application."
+          },
+          {
+            "step": 4,
+            "title": "Submit to your local Community Services Office",
+            "description": "Applications are processed by your local CSO — find yours at washingtonconnection.org."
+          }
+        ],
+        "processingTime": "Coverage starts first day of month after eligibility determination",
+        "waitlist": "QI-1 may have waitlist due to federal funding limits",
+        "tip": "Apply even if your parent's income is slightly over the limit — deductions like the $20 standard disregard might bring them under.",
+        "urls": [
+          {
+            "label": "Apply Online",
+            "url": "https://www.washingtonconnection.org/home/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "2026 Income Limits (After Deductions)",
+          "rows": [
+            {
+              "householdSize": 1,
+              "qmb": 1463,
+              "slmb": 1596,
+              "qi": 1820
+            },
+            {
+              "householdSize": 2,
+              "qmb": 1984,
+              "slmb": 2167,
+              "qi": 2453
+            }
+          ],
+          "footnote": "Limits update each April. Income counted after deductions like $20 standard disregard."
+        },
+        {
+          "type": "tier-comparison",
+          "heading": "Program Tiers: What Each Covers",
+          "tiers": [
+            {
+              "name": "QMB (Qualified Medicare Beneficiary)",
+              "description": "Most comprehensive coverage",
+              "incomeLimit": "≤$1,463/month (single), $1,984 (couple)",
+              "coverage": "Part A premium, Part B premium, deductibles, coinsurance, copayments (except prescriptions), Part C copays"
+            },
+            {
+              "name": "SLMB (Specified Low-income Medicare Beneficiary)",
+              "description": "Premium help only",
+              "incomeLimit": "$1,464-$1,596/month (single), $1,985-$2,167 (couple)",
+              "coverage": "Part B premium only ($174.90/month in 2026)"
+            },
+            {
+              "name": "QI-1 (Qualifying Individual)",
+              "description": "Premium help only, may have waitlist",
+              "incomeLimit": "$1,597-$1,820/month (single), $2,168-$2,453 (couple)",
+              "coverage": "Part B premium only (for non-Medicaid recipients)"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Social Security number",
+                "Birth certificate or ID",
+                "Proof of Washington residency"
+              ]
+            },
+            {
+              "name": "Medicare & Income",
+              "items": [
+                "Medicare card or enrollment proof",
+                "Social Security/SSDI award letters",
+                "Pay stubs if working",
+                "Bank statements"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "No retroactive coverage: If approved April 15th, coverage starts May 1st. You cannot get reimbursed for Medicare costs from previous months, so apply as soon as your parent might qualify."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If your parent is already on other Medicaid programs, they'll be automatically enrolled in the right Medicare Savings Program — no separate application needed."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house and still qualify?",
+          "answer": "Yes. Washington eliminated asset limits in 2023, so your parent's home, savings, or other assets won't disqualify them. Only monthly income matters now."
+        },
+        {
+          "question": "What if Dad's Social Security is $1,500 but he has other small income?",
+          "answer": "He might still qualify for QMB. Income is counted after deductions like the $20 standard disregard, so $1,500 becomes $1,480 — still under the $1,463 QMB limit."
+        },
+        {
+          "question": "Will this affect Mom's other benefits like SNAP?",
+          "answer": "No, Medicare Savings Programs won't reduce other benefits. In fact, QMB automatically qualifies her for full Medicaid benefits in Washington."
+        },
+        {
+          "question": "What if the income limits change next year?",
+          "answer": "Limits update every April based on federal poverty levels. If your parent's income stays the same but limits increase, they might qualify for a higher tier with more benefits."
+        },
+        {
+          "question": "Can Dad apply for QI-1 if there's a waitlist?",
+          "answer": "Yes, but apply early in the year. QI-1 has limited federal funding, so slots fill up. If he doesn't get QI-1, he might still qualify for SLMB if his income is under $1,596/month."
+        },
+        {
+          "question": "What happens to Medicare costs while the application is pending?",
+          "answer": "You'll need to pay Medicare premiums and costs as usual. Coverage only starts the month after approval, with no reimbursement for previous months."
+        }
+      ],
+      "phone": "1-800-562-3022",
+      "sourceUrl": "https://www.washingtonconnection.org/home/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "washington-tsoa-tailored-supports",
+      "name": "Tailored Supports for Older Adults (TSOA)",
+      "shortName": "TSOA",
+      "tagline": "If your parent needs daily care in Washington, TSOA provides housekeeping, respite care, and support services to help them stay home.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local DSHS offices statewide (https://www.dshs.wa.gov/office-locations); partners like Consumer Direct Care Network Washington (CDWA).[4][6]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 55+ and needs daily help with bathing, dressing, or medication management, Washington's Tailored Supports for Older Adults (TSOA) can help them stay home. TSOA provides in-home services like housekeeping, respite care, specialized medical equipment, and support groups — all designed to support both your parent and you as their caregiver.\n\nUnlike standard Medicaid, TSOA has much higher asset limits: $77,052 for singles and up to $149,581 for married couples. Your parent can earn up to $3,868 per month and still qualify. The program requires that your parent needs nursing facility-level care but wants to remain at home with family support.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Income below $3,868/month",
+          "Needs daily care assistance",
+          "Lives at home",
+          "Has unpaid caregiver"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 77052,
+          "couple": 149581,
+          "countedAssets": [
+            "Bank accounts",
+            "Investments",
+            "Second homes"
+          ],
+          "exemptAssets": [
+            "Primary home (if living there or intending to return)",
+            "One car",
+            "Personal belongings"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "Must need Nursing Facility Level of Care — daily help with activities like bathing, dressing, eating, or taking medications, determined through a CARE assessment",
+        "otherRequirements": [
+          "Washington resident",
+          "Has unpaid caregiver (age 18+) or meets specific criteria without one",
+          "U.S. citizen or qualified immigrant",
+          "Not enrolled in full Medicaid"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online through Washington Connection or visit your local DSHS office — processing time varies by location.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Check financial eligibility",
+            "description": "Gather income and asset information. DSHS will verify your parent meets the $3,868 monthly income limit and asset limits."
+          },
+          {
+            "step": 2,
+            "title": "Complete CARE assessment",
+            "description": "If financially eligible, a clinical assessor will evaluate whether your parent needs nursing facility-level care using Washington's CARE assessment tool."
+          },
+          {
+            "step": 3,
+            "title": "Identify unpaid caregiver",
+            "description": "TSOA requires an unpaid family caregiver (you or another relative age 18+) unless your parent meets specific exemption criteria."
+          },
+          {
+            "step": 4,
+            "title": "Receive service plan",
+            "description": "Once approved, DSHS will create a tailored support plan based on your parent's assessed needs and program capacity."
+          }
+        ],
+        "processingTime": "Not specified",
+        "waitlist": null,
+        "tip": "Apply even if you're not sure about the nursing facility requirement — the CARE assessment is free and will determine if your parent qualifies.",
+        "urls": [
+          {
+            "label": "Apply online at Washington Connection",
+            "url": "https://www.washingtonconnection.org/home/"
+          },
+          {
+            "label": "Find local DSHS office",
+            "url": "https://www.dshs.wa.gov/office-locations"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and savings",
+            "Stocks, bonds, and investments",
+            "Second homes or rental properties",
+            "Cash value of life insurance over $1,500"
+          ],
+          "excluded": [
+            "Primary home (if your parent lives there, intends to return, or spouse/dependent lives there)",
+            "One car of any value",
+            "Personal belongings and household items",
+            "Burial funds up to $1,500",
+            "Wedding and engagement rings"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Driver's license or state ID",
+                "Social Security card",
+                "Proof of citizenship or qualified immigration status"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Bank statements (last 3 months)",
+                "Income records (Social Security, pensions, wages)",
+                "Asset documentation (investments, property deeds)",
+                "Insurance policies"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Current medications list",
+                "Recent medical records showing need for daily assistance",
+                "Doctor's contact information"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "TSOA doesn't count spousal income unless both spouses apply separately. This means if only your parent applies, their spouse's income won't affect eligibility — unlike many other Medicaid programs."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if they qualify for TSOA?",
+          "answer": "Yes. The primary home is exempt from asset limits as long as your parent lives there, intends to return there, or a spouse or dependent relative lives there."
+        },
+        {
+          "question": "What if my parent is already on some Medicaid but not full coverage?",
+          "answer": "They may still qualify. TSOA excludes people on full Washington Apple Health (Medicaid) but allows those with limited Medicaid enrollment to participate."
+        },
+        {
+          "question": "Do I have to be the unpaid caregiver for my parent to qualify?",
+          "answer": "TSOA requires an unpaid caregiver age 18 or older, which could be you, a sibling, or another family member. In some cases, your parent may qualify without an unpaid caregiver if they meet specific criteria."
+        },
+        {
+          "question": "What's the difference between TSOA and regular Medicaid home care?",
+          "answer": "TSOA has much higher asset limits ($77,052 vs $2,000 for regular Medicaid) and is specifically designed for people who don't want full Medicaid enrollment but need home care services."
+        },
+        {
+          "question": "How much will my parent's income affect their spouse's benefits?",
+          "answer": "It won't. TSOA counts income individually, so if your parent applies, their spouse's income doesn't count toward the $3,868 monthly limit unless the spouse also applies separately."
+        },
+        {
+          "question": "What happens if my parent's condition gets worse after they're approved?",
+          "answer": "TSOA services are tailored to your parent's needs and can be adjusted as their condition changes. The program includes access to specialized medical equipment and increased support services as needed."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://www.law.cornell.edu/regulations/washington/WAC-182-513-1615",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "washington-medicaid-personal-care",
+      "name": "Medicaid Personal Care (MPC)",
+      "shortName": "Personal Care",
+      "tagline": "Get paid caregivers to help your parent with bathing, dressing, and daily tasks at home.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false
+      },
+      "intro": "If your parent needs help with bathing, dressing, or getting around but doesn't require nursing home care, Medicaid Personal Care can provide paid caregivers in their home. This Washington program covers personal care assistance with daily activities — without the strict nursing facility requirements of other Medicaid programs.\n\nYour parent must need either extensive help with one daily activity OR some help with at least three activities like bathing, dressing, toileting, transferring, or mobility. The program serves low-income Washington residents regardless of age through one of five regional health plans.\n\nUnlike nursing home Medicaid, MPC specifically excludes people who need nursing facility level care — it fills the gap for those who need personal assistance but can remain in community settings like their home, adult family homes, or assisted living facilities.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Washington resident",
+          "Low income (limits change annually)",
+          "Assets under $2,000 single/$3,000 couple",
+          "Need help with 1+ daily activities",
+          "Cannot require nursing facility care"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 2000,
+          "couple": 3000,
+          "countedAssets": [
+            "Bank accounts",
+            "Investments",
+            "Second vehicles",
+            "Property other than primary home"
+          ],
+          "exemptAssets": [
+            "Primary home (if you live in it or intend to return)",
+            "Household furnishings and appliances",
+            "Personal effects",
+            "One vehicle"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "Must need extensive help with one daily activity (bathing, dressing, toileting, transferring, mobility) OR minimal help with at least three of these activities. Assessed through state CARE evaluation.",
+        "otherRequirements": [
+          "Washington State resident",
+          "U.S. citizen, national, permanent resident, or legal alien",
+          "Qualify for noninstitutional Medicaid"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online through Washington Health Plan Finder — processing time not specified by state.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Apply for Medicaid coverage",
+            "description": "Submit application through Washington Health Plan Finder online or call your regional Managed Care Organization. You'll need income documentation and household information."
+          },
+          {
+            "step": 2,
+            "title": "Complete functional assessment",
+            "description": "Schedule a CARE (Comprehensive Assessment Reporting Evaluation) to document your parent's need for help with daily activities. This determines service hours."
+          },
+          {
+            "step": 3,
+            "title": "Get assigned to care coordinator",
+            "description": "Once approved, your regional MCO will assign a care coordinator to arrange personal care services in your parent's home or facility."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Have medical records ready that document your parent's physical limitations or need for assistance with daily activities.",
+        "urls": [
+          {
+            "label": "Washington Health Plan Finder",
+            "url": "https://healthplanfinder.wa.gov"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and savings",
+            "Investments and stocks",
+            "Second vehicles",
+            "Property other than primary home",
+            "Life insurance with cash value"
+          ],
+          "excluded": [
+            "Primary home (if applicant lives in it, intends to return, or spouse/disabled child lives in it)",
+            "Household furnishings and appliances",
+            "Personal effects and clothing",
+            "One vehicle per household",
+            "Burial plots and funeral arrangements"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Social Security numbers for household members",
+                "Dates of birth for household members",
+                "Immigration documents (if applicable)"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Monthly income documentation (Social Security, pensions, wages)",
+                "Bank statements",
+                "Asset documentation"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Doctor records documenting need for help with bathing, dressing, mobility",
+                "Physical therapy evaluations",
+                "Hospital discharge summaries showing functional limitations"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "MPC explicitly excludes people who need nursing facility level care. If your parent needs 24/7 supervision or skilled nursing, they must apply for different Medicaid programs like Community First Choice Option instead."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "A dementia diagnosis alone doesn't qualify — the cognitive impairment must result in documented need for physical assistance with daily activities. Memory problems or difficulty making decisions aren't enough without functional limitations."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house if she qualifies for MPC?",
+          "answer": "Yes, your parent's primary home is exempt from the $2,000 asset limit as long as they live in it, intend to return to it, or a spouse/disabled child lives there. The protection isn't automatic — you must document the living situation."
+        },
+        {
+          "question": "What if Dad needs help but doesn't qualify for nursing home care?",
+          "answer": "MPC is designed exactly for this situation. Your parent must NOT need nursing facility level care to qualify. They need help with daily activities but can remain in community settings like home or assisted living."
+        },
+        {
+          "question": "How many hours of care will my parent receive?",
+          "answer": "Hours vary based on individual assessment through the state's CARE evaluation tool. The assessment determines your parent's specific functional needs and authorizes corresponding service hours."
+        },
+        {
+          "question": "What if my parent's income is just over the Medicaid limit?",
+          "answer": "Income limits for MPC change every April. If your parent is slightly over, they may qualify through spend-down provisions or alternative benefit plans. Contact your regional MCO to explore options."
+        },
+        {
+          "question": "Can personal care services be provided in assisted living?",
+          "answer": "Yes, MPC services can be provided in your parent's home, adult family homes, or licensed assisted living facilities. Availability may vary by region and facility agreements with MCOs."
+        },
+        {
+          "question": "What happens if my parent's condition gets worse and they need nursing home care?",
+          "answer": "If your parent's needs increase to nursing facility level of care, they'll need to transition to different Medicaid programs like Community First Choice Option or Nursing Home Medicaid. Your care coordinator will help with this transition."
+        }
+      ],
+      "phone": "1-877-644-4613",
+      "sourceUrl": "https://healthplanfinder.wa.gov",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "name": "New Freedom Waiver",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Basic Food Program",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Housing and Essential Needs (HEN) Referral Program",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Washington Energy Assistance Program (WEAP)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Health Insurance Counseling and Advocacy Program (HICAP/SHIP)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Home Delivered Meals (via Aging & Disability Resources)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Family Caregiver Support Program",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Legal Aid for Seniors (via Protection & Advocacy)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Washington Charity Care",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Aged, Blind, or Disabled (ABD) Cash Assistance Program",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "WA Cares Fund",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    }
+  ],
+  "stateOverview": null
+}

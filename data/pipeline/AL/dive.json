@@ -1,0 +1,119 @@
+{
+  "state": "AL",
+  "stateName": "Alabama",
+  "diveAt": "2026-04-09T08:46:33.091Z",
+  "total": 2,
+  "parsed": 2,
+  "programs": [
+    {
+      "name": "Alabama Cares",
+      "eligibility": {
+        "age": null,
+        "income_limits": "No strict income limits; services are not income-based, but priority given to those with greatest social and economic needs (e.g., low-income, minority individuals).",
+        "asset_limits": "No asset limits mentioned.",
+        "other_requirements": [
+          "Primary family caregivers of frail older adults age 60+ or of any age with Alzheimer's/other dementia.",
+          "Grandparents/relative caregivers age 55+ (not parents) caring for children 18 and under, or any age with severe disability; must provide 20+ hours/week of care and have custody with child living in home.",
+          "Older relative caregivers/parents age 55+ caring for adults 19-59 with disabilities.",
+          "Priority: older caregivers (60+), rural areas, critical health needs, Alzheimer's/dementia, multiple care recipients."
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Information, assistance, counseling, respite care, supplemental services (e.g., personal care, adult day care, limited homemaker services), free education (Caregiver Colleges, e-newsletters), support groups.",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Phone: Contact local Area Agency on Aging (AAA) and Aging & Disability Resource Center (ADRC) at 1-800-AGE-LINE (1-800-243-5463).",
+          "Website: alabamaageline.gov/alabama-cares/ or local AAA sites (e.g., eastalabamaaging.org, agingsouthalabama.org).",
+          "In-person: Local AAA/ADRC offices."
+        ],
+        "processing_time": "Not specified in sources.",
+        "waitlist": "Not mentioned; services prioritized by need, implying potential delays for non-priority cases.",
+        "forms": [],
+        "documents": [
+          "Proof of caregiver relationship and care hours (e.g., 20+ hours/week for relative caregivers).",
+          "Documentation of care recipient's age, frailty, dementia diagnosis, or disability.",
+          "Custody papers for relative caregivers of children."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None; available through local Area Agencies on Aging (AAAs).",
+        "regional_variations": "Administered by 10 regional AAAs with potential differences in providers, availability, or wait times by region (e.g., Northwest Alabama Council of Local Governments, East Alabama Aging, Aging South Alabama).",
+        "offices_or_providers": [
+          "Local Area Agencies on Aging (AAAs) and Aging & Disability Resource Centers (ADRCs) statewide."
+        ]
+      },
+      "official_source": "https://alabamaageline.gov/alabama-cares/",
+      "gotchas": [
+        "Focuses on caregivers (not direct to elderly); families must qualify as primary caregivers.",
+        "No guaranteed services or payment to caregivers; provides support services only, prioritized by need.",
+        "Not Medicaid; separate from Elderly & Disabled Waiver or paid caregiver programs.",
+        "Relative caregivers need legal custody and proof of 20+ hours/week care.",
+        "Services aim to prevent burnout/delay institutionalization, not long-term paid care."
+      ],
+      "data_shape_notes": "Caregiver-training/respite focused via regional AAAs; priority-based access with no income/asset tests; varies by local AAA providers and priority tiers.",
+      "_raw": "{\n  \"name\": \"Alabama Cares\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No strict income limits; services are not income-based, but priority given to those with greatest social and economic needs (e.g., low-income, minority individuals).\",\n    \"asset_limits\": \"No asset limits mentioned.\",\n    \"other_requirements\": [\n      \"Primary family caregivers of frail older adults age 60+ or of any age with Alzheimer's/other dementia.\",\n      \"Grandparents/relative caregivers age 55+ (not parents) caring for children 18 and under, or any age with severe disability; must provide 20+ hours/week of care and have custody with child living in home.\",\n      \"Older relative caregivers/parents age 55+ caring for adults 19-59 with disabilities.\",\n      \"Priority: older caregivers (60+), rural areas, critical health needs, Alzheimer's/dementia, multiple care recipients.\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Information, assistance, counseling, respite care, supplemental services (e.g., personal care, adult day care, limited homemaker services), free education (Caregiver Colleges, e-newsletters), support groups.\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: Contact local Area Agency on Aging (AAA) and Aging & Disability Resource Center (ADRC) at 1-800-AGE-LINE (1-800-243-5463).\",\n      \"Website: alabamaageline.gov/alabama-cares/ or local AAA sites (e.g., eastalabamaaging.org, agingsouthalabama.org).\",\n      \"In-person: Local AAA/ADRC offices.\"\n    ],\n    \"processing_time\": \"Not specified in sources.\",\n    \"waitlist\": \"Not mentioned; services prioritized by need, implying potential delays for non-priority cases.\",\n    \"forms\": [],\n    \"documents\": [\n      \"Proof of caregiver relationship and care hours (e.g., 20+ hours/week for relative caregivers).\",\n      \"Documentation of care recipient's age, frailty, dementia diagnosis, or disability.\",\n      \"Custody papers for relative caregivers of children.\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; available through local Area Agencies on Aging (AAAs).\",\n    \"regional_variations\": \"Administered by 10 regional AAAs with potential differences in providers, availability, or wait times by region (e.g., Northwest Alabama Council of Local Governments, East Alabama Aging, Aging South Alabama).\",\n    \"offices_or_providers\": [\n      \"Local Area Agencies on Aging (AAAs) and Aging & Disability Resource Centers (ADRCs) statewide.\"\n    ]\n  },\n  \"official_source\": \"https://alabamaageline.gov/alabama-cares/\",\n  \"gotchas\": [\n    \"Focuses on caregivers (not direct to elderly); families must qualify as primary caregivers.\",\n    \"No guaranteed services or payment to caregivers; provides support services only, prioritized by need.\",\n    \"Not Medicaid; separate from Elderly & Disabled Waiver or paid caregiver programs.\",\n    \"Relative caregivers need legal custody and proof of 20+ hours/week care.\",\n    \"Services aim to prevent burnout/delay institutionalization, not long-term paid care.\"\n  ],\n  \"data_shape_notes\": \"Caregiver-training/respite focused via regional AAAs; priority-based access with no income/asset tests; varies by local AAA providers and priority tiers.\"\n}"
+    },
+    {
+      "name": "Alabama Elderly Simplified Application Project (AESAP)",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "Same as standard Alabama Food Assistance (SNAP) program. Gross monthly income limits (effective Oct 1, 2022 - Sep 30, 2023): 1 person: $1,396/$1,073; 2: $1,888/$1,452; 3: $2,379/$1,831; 4: $2,871/$2,210; 5: $3,363/$2,589; 6: $3,855/$2,969; 7: $4,347/$3,348; 8: $4,839/$3,727. Each additional person: $492/$379. Net income limits follow similar scaling. Current limits available via DHR as they adjust annually.",
+        "asset_limits": "Same resource limits as standard Food Assistance households (typically $2,750 for most households or $4,250 if elderly/disabled; primary home, one vehicle, and certain retirement accounts often exempt).",
+        "other_requirements": [
+          "All household members age 60+ on application date",
+          "No earned income (wages, self-employment) in month of application",
+          "U.S. citizen or qualified non-citizen",
+          "Meet standard Food Assistance residency, identity, and other rules"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "Monthly Food Assistance (SNAP) benefits via EBT debit card for groceries. Amount calculated same as standard Food Assistance based on income, deductions (e.g., medical expenses), and household size. Certification period: 36 months (3 years).",
+        "varies_by": "household_size"
+      },
+      "application": {
+        "methods": [
+          "Online: MyDHR portal at dhr.alabama.gov/food-assistance",
+          "Phone: 1-800-382-0499 (Food Assistance hotline) or 1-833-822-2202 (AESAP automated hotline)",
+          "Mail/Fax/Email: Download Form DHR-FSD-2198 (AESAP Application) from dhr.alabama.gov and submit to local county DHR Food Assistance office",
+          "In-person: Local county DHR Food Assistance office (no face-to-face interview required unless requested)"
+        ],
+        "processing_time": "Up to 30 days from application date",
+        "waitlist": null,
+        "forms": [
+          "DHR-FSD-2198 (STATE OF ALABAMA - FOOD ASSISTANCE SIMPLIFIED APPLICATION FOR THE ELDERLY; two-page front/back form)"
+        ],
+        "documents": [
+          "Proof of identity/age (e.g., ID, birth certificate)",
+          "Proof of income if questionable (self-declaration allowed if no earned income)",
+          "Medical expenses (if claiming deduction for higher benefits)",
+          "Proof of non-citizen status (if applicable)",
+          "Annual Interim Contact Form (system-generated after initial approval)"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": null,
+        "regional_variations": "Administered by 67 county DHR offices; processing times may vary slightly by county workload, but core rules uniform statewide",
+        "offices_or_providers": [
+          "Local county Department of Human Resources (DHR) Food Assistance offices statewide"
+        ]
+      },
+      "official_source": "https://dhr.alabama.gov/food-assistance/alabama-elderly-simplified-application-project-aesap/",
+      "gotchas": [
+        "Age discrepancy in some sources (60+ vs. 65+); official DHR uses 60+",
+        "No earned income means zero wages/self-employment; unearned income (Social Security, pensions) allowed if under limits",
+        "All household members must be 60+ (no children or younger adults, even if separate food prep)",
+        "Self-declaration OK unless questionable; verification required for medical expenses or suspicions",
+        "Must submit annual Interim Contact Form or risk closure",
+        "Benefits calculated identically to regular SNAP despite simplified process"
+      ],
+      "data_shape_notes": "Streamlined SNAP variant: 3-year certification, no mandatory interview, self-declaration of income/resources (with exceptions), 2-page form; income/assets match standard SNAP tables (adjust annually); statewide via county offices",
+      "_raw": "{\n  \"name\": \"Alabama Elderly Simplified Application Project (AESAP)\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"Same as standard Alabama Food Assistance (SNAP) program. Gross monthly income limits (effective Oct 1, 2022 - Sep 30, 2023): 1 person: $1,396/$1,073; 2: $1,888/$1,452; 3: $2,379/$1,831; 4: $2,871/$2,210; 5: $3,363/$2,589; 6: $3,855/$2,969; 7: $4,347/$3,348; 8: $4,839/$3,727. Each additional person: $492/$379. Net income limits follow similar scaling. Current limits available via DHR as they adjust annually.\",\n    \"asset_limits\": \"Same resource limits as standard Food Assistance households (typically $2,750 for most households or $4,250 if elderly/disabled; primary home, one vehicle, and certain retirement accounts often exempt).\",\n    \"other_requirements\": [\n      \"All household members age 60+ on application date\",\n      \"No earned income (wages, self-employment) in month of application\",\n      \"U.S. citizen or qualified non-citizen\",\n      \"Meet standard Food Assistance residency, identity, and other rules\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Monthly Food Assistance (SNAP) benefits via EBT debit card for groceries. Amount calculated same as standard Food Assistance based on income, deductions (e.g., medical expenses), and household size. Certification period: 36 months (3 years).\",\n    \"varies_by\": \"household_size\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: MyDHR portal at dhr.alabama.gov/food-assistance\",\n      \"Phone: 1-800-382-0499 (Food Assistance hotline) or 1-833-822-2202 (AESAP automated hotline)\",\n      \"Mail/Fax/Email: Download Form DHR-FSD-2198 (AESAP Application) from dhr.alabama.gov and submit to local county DHR Food Assistance office\",\n      \"In-person: Local county DHR Food Assistance office (no face-to-face interview required unless requested)\"\n    ],\n    \"processing_time\": \"Up to 30 days from application date\",\n    \"waitlist\": null,\n    \"forms\": [\n      \"DHR-FSD-2198 (STATE OF ALABAMA - FOOD ASSISTANCE SIMPLIFIED APPLICATION FOR THE ELDERLY; two-page front/back form)\"\n    ],\n    \"documents\": [\n      \"Proof of identity/age (e.g., ID, birth certificate)\",\n      \"Proof of income if questionable (self-declaration allowed if no earned income)\",\n      \"Medical expenses (if claiming deduction for higher benefits)\",\n      \"Proof of non-citizen status (if applicable)\",\n      \"Annual Interim Contact Form (system-generated after initial approval)\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": null,\n    \"regional_variations\": \"Administered by 67 county DHR offices; processing times may vary slightly by county workload, but core rules uniform statewide\",\n    \"offices_or_providers\": [\"Local county Department of Human Resources (DHR) Food Assistance offices statewide\"]\n  },\n  \"official_source\": \"https://dhr.alabama.gov/food-assistance/alabama-elderly-simplified-application-project-aesap/\",\n  \"gotchas\": [\n    \"Age discrepancy in some sources (60+ vs. 65+); official DHR uses 60+\",\n    \"No earned income means zero wages/self-employment; unearned income (Social Security, pensions) allowed if under limits\",\n    \"All household members must be 60+ (no children or younger adults, even if separate food prep)\",\n    \"Self-declaration OK unless questionable; verification required for medical expenses or suspicions\",\n    \"Must submit annual Interim Contact Form or risk closure\",\n    \"Benefits calculated identically to regular SNAP despite simplified process\"\n  ],\n  \"data_shape_notes\": \"Streamlined SNAP variant: 3-year certification, no mandatory interview, self-declaration of income/resources (with exceptions), 2-page form; income/assets match standard SNAP tables (adjust annually); statewide via county offices\"\n}"
+    }
+  ]
+}

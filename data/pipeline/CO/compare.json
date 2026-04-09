@@ -1,0 +1,554 @@
+{
+  "state": "CO",
+  "stateName": "Colorado",
+  "comparedAt": "2026-04-09T08:48:56.851Z",
+  "total": 11,
+  "newPrograms": 5,
+  "withDiffs": 6,
+  "withNovelFields": 6,
+  "benefitTypes": {
+    "financial": 3,
+    "service": 4,
+    "in_kind": 1,
+    "service|advocacy": 1,
+    "employment": 1,
+    "advocacy": 1
+  },
+  "variationPatterns": {
+    "priority_tier": 3,
+    "region": 3,
+    "household_size": 2,
+    "household_size, region, and funding availability": 1,
+    "Program offerings may vary slightly by location, but core services are consistent statewide": 1,
+    "not_applicable": 1
+  },
+  "novelFieldSummary": {
+    "asset_limits": {
+      "count": 6,
+      "programs": [
+        "Health First Colorado Buy-In (QMB, SLMB, QI)",
+        "Supplemental Nutrition Assistance Program (SNAP)",
+        "Low-Income Energy Assistance Program (LEAP)",
+        "State Health Insurance Assistance Program (SHIP)",
+        "Colorado Legal Services (Seniors)",
+        "Long-Term Care Ombudsman Program"
+      ],
+      "note": "Our model has no asset limit fields"
+    },
+    "regional_variations": {
+      "count": 6,
+      "programs": [
+        "Health First Colorado Buy-In (QMB, SLMB, QI)",
+        "Supplemental Nutrition Assistance Program (SNAP)",
+        "Low-Income Energy Assistance Program (LEAP)",
+        "State Health Insurance Assistance Program (SHIP)",
+        "Colorado Legal Services (Seniors)",
+        "Long-Term Care Ombudsman Program"
+      ],
+      "note": "Program varies by region — our model doesn't capture this"
+    },
+    "waitlist": {
+      "count": 4,
+      "programs": [
+        "Health First Colorado Buy-In (QMB, SLMB, QI)",
+        "Low-Income Energy Assistance Program (LEAP)",
+        "State Health Insurance Assistance Program (SHIP)",
+        "Colorado Legal Services (Seniors)"
+      ],
+      "note": "Has waitlist info — our model has no wait time field"
+    },
+    "documents_required": {
+      "count": 6,
+      "programs": [
+        "Health First Colorado Buy-In (QMB, SLMB, QI)",
+        "Supplemental Nutrition Assistance Program (SNAP)",
+        "Low-Income Energy Assistance Program (LEAP)",
+        "State Health Insurance Assistance Program (SHIP)",
+        "Colorado Legal Services (Seniors)",
+        "Long-Term Care Ombudsman Program"
+      ],
+      "note": "Has document checklist — our model doesn't store per-program documents"
+    },
+    "household_size_table": {
+      "count": 2,
+      "programs": [
+        "Supplemental Nutrition Assistance Program (SNAP)",
+        "Low-Income Energy Assistance Program (LEAP)"
+      ],
+      "note": "Benefits/eligibility vary by household size — we store a single number"
+    }
+  },
+  "comparisons": [
+    {
+      "name": "Health First Colorado Buy-In (QMB, SLMB, QI)",
+      "isNew": false,
+      "existingId": "health-first-colorado-medicaid-for-aged-blind-and-disabled",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$994",
+          "found": "$1,275",
+          "source": "https://hcpf.colorado.gov/medicaid-buy-program (general Buy-In; MSPs via https://www.healthfirstcolorado.com/)"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$5,000 – $20,000/year",
+          "found": "QMB: Pays Medicare Part B premium (~$185/month in 2026), deductibles, copays, coinsurance (covers 20% Medicare does not, providing full coverage). SLMB/QI: Pays only Part B premium; individual pays deductibles, copays, coinsurance.[1]",
+          "source": "https://hcpf.colorado.gov/medicaid-buy-program (general Buy-In; MSPs via https://www.healthfirstcolorado.com/)"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://hcpf.colorado.gov/medicaid-buy-program (general Buy-In; MSPs via https://www.healthfirstcolorado.com/)"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Yes, resource limits apply (three levels by program): typically $9,090 individual/$13,630 couple (2024 figures; may adjust). Counts: bank accounts, stocks, bonds. Exempt: home/land, one vehicle, personal belongings, life insurance (up to $1,500 face value), burial funds/plots.[1]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Processing times and office locations vary by county; no benefit differences.",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "QI may have waitlist due to federal funding caps.",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of income (pay stubs, tax returns), Medicare award letter, bank statements/resource proof, ID (SSN, birth certificate), proof of residency, disability determination if applicable."
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Tiered by QMB/SLMB/QI with escalating income limits but decreasing benefit generosity; asset-tested unlike some Medicaid Buy-Ins; federal MSP standards uniform but county-administered.",
+      "gotchas": [
+        "Confused with Working Adults/Children with Disabilities Buy-In (different program for disabled under 65, premium-based on income).[2]",
+        "QI has limited federal funding—may close enrollment.",
+        "Must already have Medicare Part A; auto-enrollment not guaranteed.",
+        "Assets include non-exempt items people overlook (e.g., second car).",
+        "Income is countable after deductions; SLMB/QI higher thresholds but no copay coverage.[1][3]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://hcpf.colorado.gov/medicaid-buy-program (general Buy-In; MSPs via https://www.healthfirstcolorado.com/)"
+    },
+    {
+      "name": "Home and Community-Based Services (HCBS) Waivers",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Multiple (10) distinct waivers targeting specific populations (e.g., EBD for elderly 65+/disabled 18-64); regional Case Management Agencies handle assessments; waitlists due to limited slots; nursing home level of care required across waivers",
+      "gotchas": [
+        "10 separate HCBS waivers exist (e.g., EBD for elderly/disabled, others for mental health, developmental disabilities)—must choose/target correct one; only one at a time",
+        "Not an entitlement—waitlists common",
+        "Dual eligibility process: financial via county, functional via case management agency",
+        "Persons disabled/blind enrolling before 65 can continue post-65",
+        "Family/friends may be paid caregivers under some waivers like In-Home Support Services"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.medicaid.gov/medicaid/section-1115-demo/demonstration-and-waiver-list/Waiver-Descript-Factsheet/CO"
+    },
+    {
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Restricted to designated service areas (county/zip-specific); no fixed income/asset limits for enrollment (tied to optional Medicaid); benefits fully customized by IDT with no tiers or hours specified; single provider (Colorado PACE) with regional centers.",
+      "gotchas": [
+        "Must live in specific service area; not statewide.",
+        "Requires agreement to receive all care through PACE IDT (cannot keep own doctor outside plan).[1]",
+        "Nursing home level of care required but must be safe in community with PACE support at enrollment.[1][2][3]",
+        "Non-Medicaid eligible pay full premium (Medicare covers part, self-pay remainder).[1]",
+        "Medicaid eligibility not required for PACE but affects costs; staff help determine.[1]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "region",
+      "officialSource": "https://coloradopace.org"
+    },
+    {
+      "name": "Supplemental Nutrition Assistance Program (SNAP)",
+      "isNew": false,
+      "existingId": "colorado-snap-supplemental-nutrition-assistance-program",
+      "existingVerified": null,
+      "diffsFound": 4,
+      "diffs": [
+        {
+          "field": "min_age",
+          "ours": "65",
+          "found": "60",
+          "source": "https://cdhs.colorado.gov/PEAK"
+        },
+        {
+          "field": "income_limit",
+          "ours": "$1980",
+          "found": "$2,608",
+          "source": "https://cdhs.colorado.gov/PEAK"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$1,500 – $3,600/year",
+          "found": "Monthly EBT card for food purchases. Max amounts (2025-2026): 1 person $298, 2 $546, 3 $785, 4 $994, 5 $1,183 (scales with net income, household size).[7]",
+          "source": "https://cdhs.colorado.gov/PEAK"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://cdhs.colorado.gov/PEAK"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limit for most Colorado households (home/vehicles exempt). Households 60+ or disabled failing gross income test must meet $4,500 federal asset limit (exempt: home, vehicles, retirement savings).[1][4]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "household_size_table",
+          "value": "For households with a member 60+ or disabled, gross income limit is 200% FPL (Oct 1, 2025-Sept 30, 2026): 1 person $2,608/mo, 2 $3,526, 3 $4,442, 4 $5,358, 5 $6,276, 6 $7,192, 7 $8,108, +$916 each additional. If over gross, qualify via net income (100% FPL) and asset test. Max shelter deduction applies for some. Net income determines benefit amount ($100 more net = ~$30 less benefit).[1][7]",
+          "note": "Benefits/eligibility vary by household size — we store a single number"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Processing times may vary by county; apply via local office[2][5]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Name, DOB, SSN",
+            "Monthly income (Social Security, pensions, etc.)",
+            "Household size/composition",
+            "Utility expenses (rent/mortgage, electricity, water, trash)",
+            "Proof of medical expenses >$35/mo (for 60+/disabled deduction)",
+            "Proof of identity, residency, citizenship/immigration status"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Elderly/disabled have simplified tests (gross 200% FPL or net 100% FPL + assets); no standard asset limit in CO; benefits/net income scale by household size; county-administered",
+      "gotchas": [
+        "60+ households over gross income (200% FPL) must pass net income + $4,500 asset test (people miss asset trigger)[1][4]",
+        "Medical deduction only if out-of-pocket >$35/mo and documented[2]",
+        "Redetermination every 6-12 months + annual change report; miss deadlines = lapse[2]",
+        "Work requirements for ABAWDs/parents with kids 14+ (recent expansions)[5]",
+        "EBT only for food, not cash/hot meals",
+        "Immigrants: strict rules unless qualified categories[7]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "household_size",
+      "officialSource": "https://cdhs.colorado.gov/PEAK"
+    },
+    {
+      "name": "Low-Income Energy Assistance Program (LEAP)",
+      "isNew": false,
+      "existingId": "colorado-energy-assistance-program-leap",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$2825",
+          "found": "$3,607",
+          "source": "https://cdhs.colorado.gov/leap (state program page; county sites reference state guidelines)"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$500 – $2,000/year",
+          "found": "One-time financial assistance payment toward winter heating bills (exact amount not specified; not intended to cover full heating costs—continue paying bills). Eligible households may also qualify for emergency heating system repair/replacement and free furnace/weatherization services via Energy Saving Partners.[1]",
+          "source": "https://cdhs.colorado.gov/leap (state program page; county sites reference state guidelines)"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://cdhs.colorado.gov/leap (state program page; county sites reference state guidelines)"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits mentioned in program guidelines.[1][2]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "household_size_table",
+          "value": "Gross monthly household income must not exceed 60% of Colorado State Median Income. For the most recent available guidelines (likely applicable to 2025-26 season):\n| Household Size | Maximum Gross Monthly Income |\n|---------------|------------------------------|\n| 1 | $3,607 |\n| 2 | $4,717 |\n| 3 | $5,827 |\n| 4 | $6,938 |\n| 5 | $8,048 |\n| 6 | $9,158 |\n| 7 | $9,366 |\n| 8 | $9,574 |\n| Each Additional | +$208 | Limits are set annually and posted by November 1.[2][1]",
+          "note": "Benefits/eligibility vary by household size — we store a single number"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered by different county human services offices or partners (e.g., Goodwill for some areas, Pueblo/Adams/Mesa Counties directly); income guidelines statewide and uniform, but contact local office for specifics. No noted differences in benefits or wait times by region.[1][2][3][4]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "None mentioned; funding-limited, so apply early (season Nov 1-Apr 30).[1][3]",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of lawful presence for non-U.S. born household members (e.g., Naturalization Certificate, Passport).[2]",
+            "Social Security numbers and birth dates for all household members.[2]",
+            "Proof of all monthly household income (pay stubs, award letters, loans; receipts for self-employment expenses).[2]",
+            "Most recent heating bill or rent receipt (if heat included in rent).[1][2]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Statewide with uniform 60% SMI income guidelines by household size; county-administered with local application contacts; seasonal and funding-capped; no asset test or age restriction",
+      "gotchas": [
+        "Assistance does not cover full heating bill—must continue paying utility/rent.[1][3]",
+        "Funding limited; apply early in season (Nov 1-Apr 30) as processing stops when funds exhausted.[1][3]",
+        "Income based on gross monthly for all household members financially responsible; self-employment requires profit/loss receipts.[2]",
+        "No age requirement, but elderly may qualify if income/heating criteria met—no special elderly priority noted.[1][2]",
+        "Proof of lawful presence strictly required for non-citizens.[2]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "household_size",
+      "officialSource": "https://cdhs.colorado.gov/leap (state program page; county sites reference state guidelines)"
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "This program's eligibility structure is complex and geographically fragmented. Income limits are determined by county, household size, and utility provider, creating multiple overlapping thresholds. The program is administered by multiple regional providers (Pueblo County, NWCCOG, Energy Resource Center, and others), each with potentially different processing times, wait lists, and office locations. Automatic qualification through public assistance programs bypasses income verification but requires current approval letters. The 15-year weatherization history requirement creates a significant eligibility barrier. Funding availability and program capacity vary by region and time, meaning eligibility alone does not guarantee service provision. For elderly applicants, there is no age-based priority or special consideration documented in available search results.",
+      "gotchas": [
+        "Program availability depends on current funding and may vary by utility provider—not all areas may have services available at all times.[3]",
+        "Meeting income requirements alone does not guarantee services will be provided; eligible households may be placed on a waiting list with potentially long timelines.[3]",
+        "Home must not have been weatherized in the past 15 years to qualify—if weatherization was done within this window, the household is ineligible.[1][6]",
+        "For renters, landlord permission is required via a Release Form; without it, renters cannot access services even if otherwise eligible.[1]",
+        "As of July 1, 2024, all applicants must submit a completed lawful presence affidavit with their application.[4]",
+        "Public assistance approval letters must be current to qualify through the automatic pre-qualification route; expired letters require income documentation instead.[2]",
+        "Income limits vary significantly by county and utility provider—a household may qualify in one county but not another, or with one utility but not another.[3]",
+        "Wait times and program capacity vary by region; contact your local provider for current status before applying.[3]"
+      ],
+      "benefitType": "in_kind",
+      "benefitVariesBy": "household_size, region, and funding availability",
+      "officialSource": "https://county.pueblo.org/human-services-department/colorado-energy-office-weatherization-program (Pueblo County example); https://socgov02.my.site.com/ceoweatherization/s/ (Colorado Energy Office central application portal)"
+    },
+    {
+      "name": "State Health Insurance Assistance Program (SHIP)",
+      "isNew": false,
+      "existingId": "colorado-state-health-insurance-assistance-program-ship",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$3,000 – $10,000/year",
+          "found": "Free, personalized one-on-one counseling and education. No dollar limits or hour restrictions specified in available sources.[2][4]",
+          "source": "acl.gov/programs/connecting-people-services/state-health-insurance-assistance-program-ship[2] and shiphelp.org[7]"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "acl.gov/programs/connecting-people-services/state-health-insurance-assistance-program-ship[2] and shiphelp.org[7]"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Not specified in available sources.",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "While SHIP operates statewide through the Department of Regulatory Agencies, local Area Agencies on Aging (such as DRCOG) provide services in specific regions. The search results indicate DRCOG serves three counties, suggesting other regions may have different local providers.[8]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Not specified in available sources.",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Medicare card (if available)[1]",
+            "Prescription medication list[1]",
+            "Healthcare provider and pharmacy information[1]",
+            "Health conditions and upcoming procedures information[1]",
+            "Income and asset details[1]",
+            "Other insurance information and cards[1]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "SHIP is a federally funded, statewide program with no income or asset limits published in standard sources — eligibility determination requires direct contact with counselors. Services are entirely free and unbiased. The program operates through a network of local agencies, so the specific provider and contact method may vary by county. Colorado's SHIP is administered by the Department of Regulatory Agencies but delivered through partnerships with local Area Agencies on Aging. No processing times, waitlists, or formal application forms are specified in available sources, suggesting services are provided on a walk-in or call-in basis without formal application procedures.",
+      "gotchas": [
+        "SHIP counselors are NOT insurance agents and cannot sell insurance products[1]. They provide unbiased, objective advice only.[1]",
+        "SHIP staff and volunteers are not permitted to hold insurance licenses to ensure beneficiaries receive unbiased guidance[1]",
+        "Counselors complete 8-10 hours of required training and testing, but this does not make them licensed insurance professionals[1]",
+        "Income and asset limits exist but are not specified in publicly available search results — you must contact SHIP directly to determine eligibility[2]",
+        "Services are free, but specific eligibility for financial assistance programs (Medicaid, Medicare Savings Program, Extra Help) depends on individual circumstances and must be assessed by a counselor[2]",
+        "Regional variations exist: services may be delivered through different local agencies depending on your county, so contact information and availability may vary[8]",
+        "The program also offers Senior Medicare Patrol (SMP) services in addition to SHIP, which specifically helps detect and report healthcare fraud, errors, and abuse — this is a separate but related service[2]"
+      ],
+      "benefitType": "service|advocacy",
+      "benefitVariesBy": "Program offerings may vary slightly by location, but core services are consistent statewide",
+      "officialSource": "acl.gov/programs/connecting-people-services/state-health-insurance-assistance-program-ship[2] and shiphelp.org[7]"
+    },
+    {
+      "name": "Alzheimer’s Disease and Related Dementia (ADRD) Respite",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Statewide voucher via coalition but funnels through local AAAs/counties with residency rules; ties to Medicaid EBD Waiver for some; multiple overlapping programs (voucher, GUIDE, local); no fixed income table or hours in sources",
+      "gotchas": [
+        "Not an entitlement; waitlists possible via linked Medicaid waivers",
+        "Dementia diagnosis alone insufficient—must meet NFLOC (2+ ADLs or cognitive needs)",
+        "GUIDE requires traditional Medicare only, home-based living",
+        "County-specific residency for some supports",
+        "Limited slots; call 211 first for local options",
+        "Not available in nursing homes or certain facilities"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "region",
+      "officialSource": "https://archrespite.org/ta-center-for-respite/respite-voucher-programs/apply-for-state-lifespan-respite-voucher-programs/ (Colorado Respite Coalition); https://www.211colorado.org/adrd/"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Federally funded via DOL grantees (state agencies/nonprofits like SER, AARP); varies by region/provider with priority enrollment tiers; income at 125% FPL (federal table); 20 hrs/wk wage-based training only, no fixed statewide processing/waitlist data.",
+      "gotchas": [
+        "Limited slots due to federal funding; priority tiers may cause delays for non-priority applicants[3]",
+        "Income test strictly at 125% FPL; participants must be unemployed and actively job-seeking—it's training, not permanent aid[1][3]",
+        "Not direct cash assistance but paid training wages only; goal is bridge to unsubsidized jobs[1][3][5]",
+        "Regional grantees vary; must contact local provider, not a single statewide office[2][6][7]",
+        "No asset test, but proof of low income required; veterans/65+/disabled get first access[3]"
+      ],
+      "benefitType": "employment",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://cdhs.colorado.gov/benefits-assistance/employment-assistance/senior-community-service-employment-program"
+    },
+    {
+      "name": "Colorado Legal Services (Seniors)",
+      "isNew": false,
+      "existingId": "colorado-legal-services-for-seniors",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$500 – $3,000/year",
+          "found": "Free civil legal aid including: advice from attorney, assistance filing cases, full court representation; specific senior issues: estate planning, wills/trusts, power of attorney, guardianship/conservatorship, advance directives, liens, consumer issues, landlord/tenant disputes, Medicaid/Medicare, government benefits (SNAP, SSI), housing, family law, debt/bankruptcy, tax controversies, immigration for eligible categories; holistic support via social workers in some areas (Denver, Colorado Springs)[1][2][3][4]",
+          "source": "https://www.coloradolegalservices.org"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.coloradolegalservices.org"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits mentioned for seniors; not required in documented examples[2]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Case types vary by office resources (e.g., not all handle foreclosures); services via local AAAs contracting private attorneys/legal orgs like CLS; social workers in Denver/Colorado Springs; preference/availability differs (e.g., Pueblo emphasizes low-income preference)[1][2][4][5]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Limited resources may result in turning away cases; prioritization for high-need low-income seniors[2][5][6]",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Not explicitly listed; prepare ID, proof of residency, income details for screening, case-related documents (e.g., eviction notice, benefits denial); available in native language via call/visit[3][4][7]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Seniors 60+ have priority access without strict income/asset tests unlike general low-income program; delivered via statewide CLS offices + regional AAA-contracted providers; services/case acceptance varies by 16 AAA regions and office resources",
+      "gotchas": [
+        "Not a hotline for quick advice—must complete full intake screening[2][3][7]",
+        "Limited resources mean not all cases accepted, even if eligible; turn away rate high[2][6]",
+        "Case types vary by local office—contact specific region first[2][5]",
+        "Prioritizes high social/economic need; low-income get preference but seniors 60+ often qualify without strict limits[1][3][5]",
+        "Operates alongside separate Older Americans Act-funded network via Disability Law Colorado/AAAs, which may overlap or refer[5]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "region",
+      "officialSource": "https://www.coloradolegalservices.org"
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "isNew": false,
+      "existingId": "long-term-care-ombudsman-program",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$10,000 – $30,000/year",
+          "found": "Advocacy to resolve complaints on resident rights violations (e.g., privacy, dignity, abuse), care issues (e.g., medications, hygiene), transfers/discharges; investigation, problem-solving, resource linkage, education, and consultation. Services are free, confidential, and resident-directed.",
+          "source": "https://www.coombudsman.org"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.coombudsman.org"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits; no financial tests apply.",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Operates via network of local offices with recruited/trained staff and volunteers; providers differ by area (e.g., Boulder County LTCO Program, Pueblo SRDA-managed).",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "No documents needed to initiate contact; for action on behalf (if resident cognitively impaired), power of attorney may direct."
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "no income/asset/age test; open to residents/families/public; regionally delivered via local ombudsman offices; advocacy-only, complaint-driven service.",
+      "gotchas": [
+        "Not a healthcare or financial benefits program—purely advocacy for rights in facilities; requires resident direction (or POA if impaired); anyone can contact but action is resident-led; only covers licensed nursing homes/assisted living, not other settings like home care.",
+        "Confidentiality means no action without resident permission."
+      ],
+      "benefitType": "advocacy",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://www.coombudsman.org"
+    }
+  ]
+}

@@ -1,0 +1,91 @@
+{
+  "entity": "Maine",
+  "entitySlug": "maine",
+  "state": "ME",
+  "stateName": "Maine",
+  "isRegion": false,
+  "exploredAt": "2026-04-09T08:52:27.995Z",
+  "programCount": 11,
+  "programs": [
+    {
+      "name": "MaineCare Elderly and Adults with Disabilities Waiver",
+      "what_it_does": "This statewide Medicaid (MaineCare) program provides home and community-based services to prevent premature nursing home admissions for seniors and disabled adults. Services include personal care assistance, assistive technology, home delivered meals, personal emergency response systems, home modifications, and home health services based on an individualized care plan.",
+      "who_its_for": "Maine residents aged 65+ or 18+ with physical disabilities at risk of institutionalization; income up to $2,982/month (2026 limit, 300% FBR).",
+      "whats_unique": "Maine-specific Medicaid waiver administered by DHHS Office of Aging and Disability Services (OADS), offering targeted long-term care benefits not universally available as a standard federal program across all states.",
+      "official_url": "https://www.medicaidplanningassistance.org/maine-elderly-adults-disabilities-waiver/",
+      "benefit_value": "Varies by individualized plan; covers costs of specified home-based services to avoid nursing home expenses (no fixed dollar amount)."
+    },
+    {
+      "name": "Home and Community-Based Services (HCBS) Waivers (e.g., MaineCare In-Home Services)",
+      "what_it_does": "These waivers provide in-home supportive services to elderly and disabled adults to avoid or delay nursing home placement. Services are funded by MaineCare or state funds, accessed via Maximus MED assessment, and may include consumer-directed models.[1]",
+      "who_its_for": "Elderly and disabled adults eligible via functional and financial assessment.[1]",
+      "official_url": "https://www.maine.gov/dhhs/oads/quality-care/long-term-care",
+      "benefit_value": "In-home services like personal care, homemaker support; co-payment possible based on finances.[1]"
+    },
+    {
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "what_it_does": "SNAP provides monthly benefits via EBT card to buy healthy food. In Maine, administered as food assistance for low-income households including seniors.[5]",
+      "who_its_for": "Low-income seniors, elderly, and disabled individuals meeting income tests.[5]",
+      "official_url": "https://www.maine.gov/dhhs/ofi/programs-services/snap",
+      "benefit_value": "Average $200+ monthly per household; higher for seniors/disabled."
+    },
+    {
+      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "what_it_does": "LIHEAP helps with heating costs during winter. Maine's version provides grants to eligible low-income households.[5]",
+      "who_its_for": "Low-income seniors and households, prioritized for elderly/disabled.[5]",
+      "official_url": "https://www.maine.gov/dhhs/ofi/programs-services/liheap",
+      "benefit_value": "One-time grants $200-$1,000+ based on income/fuel type."
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "what_it_does": "WAP funds home energy efficiency improvements like insulation and sealing. In Maine, delivered via Community Action Programs.[2]",
+      "who_its_for": "Low-income homeowners/renters 60+, disabled, or households with elderly.[2]",
+      "official_url": "https://www.mainehousing.org/programs-services/energy-services/weatherization",
+      "benefit_value": "Free upgrades reducing energy bills 20-30%; includes safety repairs."
+    },
+    {
+      "name": "State Health Insurance Assistance Program (SHIP) - Maine Senior Health Insurance Assistance Program",
+      "what_it_does": "SHIP provides free counseling on Medicare, Medigap, and related options. Maine's program helps seniors understand and choose coverage.[5]",
+      "who_its_for": "Maine Medicare beneficiaries, especially seniors.[5]",
+      "official_url": "https://www.maine.gov/pfr/insurance/consumers/seniors-health-insurance",
+      "benefit_value": "Free one-on-one counseling, no cost."
+    },
+    {
+      "name": "Home Delivered Meals",
+      "what_it_does": "Provides nutritious meals delivered to homebound seniors. Funded via Area Agencies on Aging and MaineCare.[1][5]",
+      "who_its_for": "Homebound seniors 60+ unable to prepare meals.[5]",
+      "official_url": "https://www.maine.gov/dhhs/oads/partners/aaas",
+      "benefit_value": "5-14 meals/week; suggested donation for 60+, free for very low-income."
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "what_it_does": "Provides part-time paid community service training and employment for low-income seniors. In Maine, operated by AmeriCorps Seniors partners like Opportunity Alliance.[3]",
+      "who_its_for": "Unemployed low-income seniors 55+.[3]",
+      "official_url": "http://volunteermaine.gov/serve-in-maine/americorps-seniors",
+      "benefit_value": "Minimum wage training jobs 20 hrs/week; leads to unsubsidized employment."
+    },
+    {
+      "name": "Maine Legal Services for the Elderly",
+      "what_it_does": "Provides free legal assistance to low-income seniors on issues like benefits, housing, abuse. Part of Pine Tree Legal Aid network.[5]",
+      "who_its_for": "Low-income seniors 60+ in Maine.[5]",
+      "official_url": "https://www.ptla.org/maine-legal-services-elderly",
+      "benefit_value": "Free legal representation, advice, advocacy."
+    },
+    {
+      "name": "Maine SHIP (State Health Insurance Assistance Program)",
+      "what_it_does": "Provides free, confidential counseling on Medicare, Medicare Advantage, Part D, Medigap, and related programs to help navigate options and reduce costs. Includes help with enrollment in Medicare Savings Programs, bill reviews, fraud reporting, and connections to agencies.",
+      "who_its_for": "Older adults and people with Medicare due to disability in Maine.",
+      "whats_unique": "State-sponsored by OADS and Area Agencies on Aging with partners like Legal Services for Maine Elders; counselors do not sell insurance, focusing on unbiased state-specific Medicare guidance.",
+      "official_url": "https://www.maine.gov/dhhs/oads/get-support/older-adults-disabilities/older-adult-services/ship-medicare-assistance",
+      "benefit_value": "Free services; potential savings on premiums, drugs, and out-of-pocket costs through optimized plans (value varies by individual)."
+    },
+    {
+      "name": "Legal Services for Maine Elders (LSE)",
+      "what_it_does": "Offers free legal advice and representation on health care, Medicare/MaineCare, Social Security, pensions, powers of attorney, consumer issues, abuse, and guardianship. Serves as a key resource for economically needy seniors facing legal barriers to benefits.",
+      "who_its_for": "Socially and economically needy Maine residents aged 60+.",
+      "whats_unique": "Maine-specific nonprofit providing targeted free legal aid for elders, integrated with state aging services; not a standard federal program.",
+      "official_url": "https://aginginmaine.com/senior-assistance-resources/",
+      "benefit_value": "Free legal services; prevents financial loss from disputes (value varies, e.g., securing benefits or defending against abuse)."
+    }
+  ]
+}

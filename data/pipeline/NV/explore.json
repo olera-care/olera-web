@@ -1,0 +1,111 @@
+{
+  "entity": "Nevada",
+  "entitySlug": "nevada",
+  "state": "NV",
+  "stateName": "Nevada",
+  "isRegion": false,
+  "exploredAt": "2026-04-09T08:55:08.144Z",
+  "programCount": 14,
+  "programs": [
+    {
+      "name": "Medicaid Medicare Savings Programs (QMB, SLMB, QI)",
+      "what_it_does": "These programs help pay Medicare premiums, deductibles, and copayments for eligible low-income seniors. QMB covers Part A/B premiums and more; SLMB and QI cover Part B premiums.",
+      "who_its_for": "Medicare beneficiaries with limited income/assets (e.g., QMB: income ≤100% FPL).",
+      "official_url": "https://dhcfp.nv.gov/Programs/Medicaid/MSP/",
+      "benefit_value": "Premium payments: Part B ($174.70/month in 2024); QMB also covers deductibles/copays."
+    },
+    {
+      "name": "Home and Community Based Services Waiver for the Frail Elderly (HCBS FE Waiver)",
+      "what_it_does": "This statewide Medicaid waiver provides long-term services to prevent nursing home placement. Services include adult day care, respite care, homemaker services, and personal emergency response systems tailored to individual needs.",
+      "who_its_for": "Seniors aged 65+ at risk of nursing home admission with income up to 300% of Federal Benefit Rate ($2,982/month in 2026).",
+      "official_url": "https://www.medicaidplanningassistance.org/nevada-waiver-for-the-frail-elderly/",
+      "benefit_value": "Personalized services; does not cover room and board."
+    },
+    {
+      "name": "Nevada PACE (Program of All-Inclusive Care for the Elderly)",
+      "what_it_does": "PACE offers comprehensive medical and social services to eligible seniors in community settings. It includes adult day health care, transportation, and home care to support aging in place.",
+      "who_its_for": "Seniors aged 55+ certified as nursing facility eligible and living in PACE service areas.",
+      "official_url": "https://adsd.nv.gov/Programs/Seniors/PACE/",
+      "benefit_value": "All-inclusive capitated coverage for approved services."
+    },
+    {
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "what_it_does": "SNAP provides monthly benefits via EBT card for purchasing food. In Nevada, it's administered as a federal program with state processing.",
+      "who_its_for": "Low-income seniors aged 60+; higher income disregard for elderly/disabled.",
+      "official_url": "https://dwss.nv.gov/SNAP/",
+      "benefit_value": "Average $200-300/month per eligible senior household."
+    },
+    {
+      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "what_it_does": "LIHEAP assists with heating/cooling bills and crisis energy needs. Nevada administers it through local agencies for utility payments.",
+      "who_its_for": "Low-income households including seniors aged 60+.",
+      "official_url": "https://energy.nv.gov/Programs/LIHEAP/",
+      "benefit_value": "$200-$1,000 one-time grant per season."
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "what_it_does": "WAP funds home energy efficiency improvements like insulation and sealing. It reduces energy costs for low-income homes.",
+      "who_its_for": "Low-income seniors and disabled households.",
+      "official_url": "https://energy.nv.gov/Programs/WAP/",
+      "benefit_value": "Free upgrades valued at $5,000-$10,000 per home."
+    },
+    {
+      "name": "Nevada State Health Insurance Assistance Program (SHIP)",
+      "what_it_does": "SHIP offers free counseling on Medicare options, appeals, and fraud prevention. Also known as Nevada Medicare Assistance Program (MAP).",
+      "who_its_for": "Nevada Medicare beneficiaries aged 65+ or under 65 disabled.",
+      "official_url": "https://adsd.nv.gov/Programs/Seniors/SHIP/",
+      "benefit_value": "Free one-on-one counseling statewide."
+    },
+    {
+      "name": "Home Delivered Meals",
+      "what_it_does": "Provides nutritious meals delivered to homebound seniors. Often through Aging and Disability Services Division or local providers.",
+      "who_its_for": "Homebound seniors aged 60+ unable to prepare meals.",
+      "official_url": "https://www.nevada211.org/senior-services/",
+      "benefit_value": "5-14 meals/week; suggested donation for 60+."
+    },
+    {
+      "name": "Respite Care Vouchers / Senior Respite Care",
+      "what_it_does": "Offers short-term relief for family caregivers through in-home or facility respite. Vouchers fund temporary caregiver breaks.",
+      "who_its_for": "Family caregivers of seniors aged 60+ or disabled adults.",
+      "official_url": "https://www.nevada211.org/senior-services/",
+      "benefit_value": "Vouchers up to $20-30/hour for respite services."
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "what_it_does": "Provides part-time paid training and employment in community service roles. Helps seniors gain skills and income.",
+      "who_its_for": "Unemployed low-income seniors aged 55+.",
+      "official_url": "https://www.dol.gov/agencies/eta/seniors",
+      "benefit_value": "Minimum wage work up to 20 hours/week."
+    },
+    {
+      "name": "Nevada Advocates for Seniors",
+      "what_it_does": "Provides free legal services for issues like Medicaid, guardianship, and consumer problems. Advocates for seniors' rights.",
+      "who_its_for": "Low-income seniors aged 60+.",
+      "official_url": "https://nevadaadvocates.org/",
+      "benefit_value": "Free legal aid consultations and representation."
+    },
+    {
+      "name": "Nevada Long-Term Care Ombudsman Program",
+      "what_it_does": "Advocates for residents in long-term care facilities resolving complaints. Protects rights in nursing homes and assisted living.",
+      "who_its_for": "Residents of nursing homes, group homes, assisted living aged 60+.",
+      "official_url": "https://adsd.nv.gov/Programs/LTCOP/",
+      "benefit_value": "Free advocacy and complaint resolution."
+    },
+    {
+      "name": "Nevada's Senior RX Program",
+      "what_it_does": "Provides subsidies to help seniors cover prescription medication costs, including assistance with Medicare Part D expenses for eligible members and cost-sharing for those not eligible. Offers additional services like the Diabetic Sense program for medication compliance and vision benefits for qualifying members.",
+      "who_its_for": "Nevada residents aged 62 or older with household income not exceeding $25,477 (single) or $33,963 (married couples), who must enroll in an approved Medicare Part D plan if eligible.",
+      "whats_unique": "Nevada's state-funded pharmaceutical assistance program offering up to $5,100 annual subsidy, distinct from federal programs like Medicare Part D Extra Help.",
+      "official_url": "https://www.nyecountynv.gov/673/Nevadas-Senior-RX-Program",
+      "benefit_value": "Up to $5,100 subsidy per year[1]"
+    },
+    {
+      "name": "Community Options Program for the Elderly (COPE)",
+      "what_it_does": "Supplies non-medical services to support seniors remaining in their homes as an alternative to nursing homes. Assesses needs to provide assistance for those at risk of institutionalization.",
+      "who_its_for": "Nevada residents aged 65+ at risk of nursing home placement (meeting nursing home level of care) and financially eligible per current income guidelines.",
+      "whats_unique": "Nevada state program similar to but distinct from the HCBS FE Waiver, administered by Aging and Disability Services Division for home-based independence.",
+      "official_url": "https://adsd.nv.gov/Programs/Seniors/COPE/COPE_Prog/",
+      "benefit_value": "Non-medical services tailored to prevent nursing home placement; value based on individual assessment[4]"
+    }
+  ]
+}

@@ -1,0 +1,179 @@
+{
+  "state": "MT",
+  "stateName": "Montana",
+  "comparedAt": "2026-04-09T09:06:29.404Z",
+  "total": 4,
+  "newPrograms": 3,
+  "withDiffs": 1,
+  "withNovelFields": 1,
+  "benefitTypes": {
+    "service": 2,
+    "advocacy|service|in_kind": 1,
+    "in_kind": 1
+  },
+  "variationPatterns": {
+    "Individual needs and assessment; specific services determined through care planning": 1,
+    "not_applicable": 2,
+    "fixed": 1
+  },
+  "novelFieldSummary": {
+    "asset_limits": {
+      "count": 1,
+      "programs": [
+        "Big Sky Waiver Program"
+      ],
+      "note": "Our model has no asset limit fields"
+    },
+    "regional_variations": {
+      "count": 1,
+      "programs": [
+        "Big Sky Waiver Program"
+      ],
+      "note": "Program varies by region — our model doesn't capture this"
+    },
+    "waitlist": {
+      "count": 1,
+      "programs": [
+        "Big Sky Waiver Program"
+      ],
+      "note": "Has waitlist info — our model has no wait time field"
+    },
+    "documents_required": {
+      "count": 1,
+      "programs": [
+        "Big Sky Waiver Program"
+      ],
+      "note": "Has document checklist — our model doesn't store per-program documents"
+    }
+  },
+  "comparisons": [
+    {
+      "name": "Big Sky Waiver Program",
+      "isNew": false,
+      "existingId": "big-sky-waiver-program",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$10,000 – $30,000/year",
+          "found": "Comprehensive home and community-based services for individuals who would otherwise require nursing facility placement",
+          "source": "https://dphhs.mt.gov/sltc/csb/BSW/BigSkyWaiverProgram"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://dphhs.mt.gov/sltc/csb/BSW/BigSkyWaiverProgram"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": {
+            "individual": "$2,000",
+            "married_both_applying": "$2,000 each",
+            "married_one_applying": "Both spouses' combined assets limited to $2,000 (counted as jointly owned)",
+            "exempt_assets": [
+              "Primary home (unlimited equity)",
+              "Household furnishings",
+              "One vehicle"
+            ]
+          },
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Managed through Mountain Pacific (appears to be primary contact for referrals); county-level OPA offices handle Medicaid eligibility determination",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Currently has a waiting list (specific wait times by region not provided)",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": "Not specified in available sources; recommend contacting county OPA office for required documentation",
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "This program's eligibility is highly restrictive on assets and income but flexible on age (serves aged, disabled, and disabled-but-working individuals). The key differentiator is functional need (NFLOC requirement) rather than age. Married couples face a significant gotcha: if only one spouse applies, both spouses' assets are pooled and limited to $2,000. The program has a waiting list, so eligibility ≠ immediate access. Services are individualized based on assessment, not tiered or standardized by category. Regional variation exists primarily through county OPA offices and Mountain Pacific as the referral coordinator, but the program itself is statewide.",
+      "gotchas": [
+        "Program currently has a waiting list — eligibility does not guarantee immediate enrollment",
+        "If only one spouse applies, BOTH spouses' assets are counted as jointly owned and must stay under $2,000 combined — this is a significant limitation for married couples",
+        "Primary home is exempt, but if only one spouse applies and requires care, the non-applicant spouse can continue living in the home (important for married couples)",
+        "Functional needs assessment is required and must demonstrate need for NFLOC — this is not automatic based on age or diagnosis",
+        "Must demonstrate unmet need that can ONLY be resolved through BSW services — other community resources may disqualify applicants",
+        "Income and asset limits are strict ($967/month, $2,000 assets) — Medicaid planning strategies may be necessary for those slightly above limits",
+        "Program operates under Section 1915(c) of Social Security Act, which means it's a waiver program with limited slots and waiting lists",
+        "Services are provided in home and community settings, NOT in institutions — this is the core purpose but means applicants must be able to live in community"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "Individual needs and assessment; specific services determined through care planning",
+      "officialSource": "https://dphhs.mt.gov/sltc/csb/BSW/BigSkyWaiverProgram"
+    },
+    {
+      "name": "TCARE",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Evidence-based caregiver assessment program using specialized software; rollout via local Area Agencies on Aging in select areas; no financial eligibility test specified",
+      "gotchas": [
+        "New program with software rollout in soft launch phase; not yet fully statewide—check local AAA availability[7]",
+        "Focuses on caregiver assessment and resource connection, not direct financial aid or personal care services[7]",
+        "Requires referral through participating local agencies, not direct open enrollment[7]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://dphhs.mt.gov/ (contact via Patrick.Kelley@mt.gov or (406) 444-0998)[7]"
+    },
+    {
+      "name": "State Health Insurance Assistance Program (S.H.I.P.)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "SHIP is a counseling and advocacy program, not a direct financial benefit program. It coordinates access to multiple assistance programs (Medicare Savings Program, Low-Income Subsidy/Extra Help, Big Sky RX Program) which have their own eligibility and application processes. Specific income limits, asset limits, processing times, and required documents are not provided in Montana SHIP materials — families must contact a counselor or visit program-specific websites (apply.mt.gov, SSA.gov) for detailed eligibility information. The program is delivered through a decentralized network of Area Agencies on Aging, so regional variation exists in specific counselor availability but not in core services offered.",
+      "gotchas": [
+        "SHIP counselors are NOT insurance agents and cannot sell insurance — they provide objective, independent advice",
+        "SHIP is funded by the Administration on Community Living and is not affiliated with the insurance industry",
+        "Counselors will not make decisions for you; they empower you to make your own decisions",
+        "Some assistance programs (Medicare Savings Program, Low-Income Subsidy/Extra Help, Big Sky RX Program) have separate eligibility requirements and application processes — SHIP can help you apply but does not directly provide these benefits",
+        "Income and resource limits for assistance programs vary and must be verified with SHIP counselor or at apply.mt.gov/SSA.gov",
+        "Homebound individuals should specifically request in-home counseling when calling"
+      ],
+      "benefitType": "advocacy|service|in_kind",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://dphhs.mt.gov/SLTC/aging/SHIP"
+    },
+    {
+      "name": "Commodity Supplemental Food Program (CSFP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "This program's data structure is county-based: eligibility is uniform statewide (age 60+, 150% poverty level), but application, processing, and distribution are handled by separate local county agencies with different contact information, offices, and potentially different wait times. The income limit table scales by household size. Benefits are fixed (not tiered) but distribution methods vary by county provider. The program is exclusively for seniors 60+ in Montana (unlike the federal program which also serves women, infants, and children in other states).",
+      "gotchas": [
+        "Income limits are 150% of Federal Poverty Level in Montana, which is higher than the federal baseline of 130% for elderly participants, making Montana more generous[1][4]",
+        "Income is self-declared and not verified by local agencies, but false statements could have legal consequences[3]",
+        "Slots are limited and waiting lists exist; availability varies by county[6]",
+        "You cannot receive both CSFP and WIC simultaneously[1]",
+        "Women, infants, and children applying after February 7, 2014 are ineligible for CSFP and must apply for WIC or SNAP instead[1]",
+        "The program is federal, so all food must be delivered; you cannot opt out of receiving items[3]",
+        "Some counties have redesigned distribution to allow 'shopping' for items rather than prepackaged bundles, but this varies by provider[2]",
+        "You have the right to appeal any denial or termination decision and request a fair hearing[3][4]",
+        "Contact your specific county office first, as food pantries and agencies providing CSFP services can change annually[5]"
+      ],
+      "benefitType": "in_kind",
+      "benefitVariesBy": "fixed",
+      "officialSource": "https://dphhs.mt.gov/HCSD/CSFP/[4] and https://www.fns.usda.gov/csfp/eligibility-how-apply[1]"
+    }
+  ]
+}

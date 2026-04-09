@@ -1,0 +1,205 @@
+{
+  "state": "NE",
+  "stateName": "Nebraska",
+  "diveAt": "2026-04-09T08:55:12.649Z",
+  "total": 4,
+  "parsed": 4,
+  "programs": [
+    {
+      "name": "Nebraska Community Aging Services Act",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "Income limits are not specified in available sources. Eligibility is determined on a case-by-case basis through individual assessment of circumstances and need for services.",
+        "asset_limits": "Asset limits are not specified in available sources for this program. (Note: Medicaid nursing home programs have separate $4,000 asset limits, but this is distinct from the Community Aging Services Act.)",
+        "other_requirements": [
+          "Older individuals (60+), people with disabilities of all ages, family members, caregivers, and advocates are eligible",
+          "For congregate activities: determination left to Area Agency on Aging based on community needs and resources",
+          "For individual services: requires assessment of individual/family circumstances and development of service plan",
+          "Priority given to those in greatest need under the Older Americans Act framework"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Congregate or delivered meals, adult day care, transportation, homemaker services, and other community-based services to help older adults remain independent and avoid institutionalization",
+        "varies_by": "priority_tier and region"
+      },
+      "application": {
+        "methods": [
+          "Contact your local Area Agency on Aging (AAA) — specific phone numbers and websites vary by region",
+          "In-person at Area Agency on Aging office",
+          "Phone contact with AAA"
+        ],
+        "processing_time": "Not specified in available sources",
+        "waitlist": "Not specified in available sources",
+        "forms": "Not specified in available sources",
+        "documents": "Not specified in available sources. Individual assessment required; bring documentation of circumstances and service needs."
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Served through designated Area Agencies on Aging organized by planning-and-service areas (not county-by-county)",
+        "regional_variations": "Services and eligibility determination vary by Area Agency on Aging based on local community needs, resources, and standards. Each AAA develops its own area plan.",
+        "offices_or_providers": "Multiple Area Agencies on Aging throughout Nebraska (specific locations not detailed in sources; Northeast Nebraska Area Agency on Aging is one example)"
+      },
+      "official_source": "https://dhhs.ne.gov/pages/aging.aspx (State Unit on Aging - DHHS)",
+      "gotchas": [
+        "This is NOT the same as Medicaid nursing home programs — it focuses on community-based services to help people stay in their homes, not institutional care",
+        "Eligibility determination is individualized and flexible, not based on strict income/asset cutoffs like Medicaid — this means you may qualify even if you don't meet rigid financial thresholds, but it also means you must go through assessment",
+        "Services available depend on your Area Agency on Aging's specific plan and resources — what's available in one region may differ from another",
+        "Priority is given to those in 'greatest need,' which may affect service availability if demand exceeds capacity",
+        "The program is designed for people who want to remain in their homes/communities, not for institutional placement",
+        "No financial eligibility requirement for some services (like certain nutrition programs), but services are limited by available funding"
+      ],
+      "data_shape_notes": "This program has no published income or asset limits — eligibility is needs-based and individualized through assessment rather than formulaic. Benefits vary significantly by region because each Area Agency on Aging develops its own service plan based on local needs and resources. The program is intentionally flexible to serve diverse populations (older adults, people with disabilities, caregivers) across all of Nebraska through a decentralized network of AAAs. Critical gap: specific application procedures, forms, phone numbers, and processing times are not centralized in state sources and must be obtained from your local AAA.",
+      "_raw": "```json\n{\n  \"name\": \"Nebraska Community Aging Services Act\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"Income limits are not specified in available sources. Eligibility is determined on a case-by-case basis through individual assessment of circumstances and need for services.\",\n    \"asset_limits\": \"Asset limits are not specified in available sources for this program. (Note: Medicaid nursing home programs have separate $4,000 asset limits, but this is distinct from the Community Aging Services Act.)\",\n    \"other_requirements\": [\n      \"Older individuals (60+), people with disabilities of all ages, family members, caregivers, and advocates are eligible\",\n      \"For congregate activities: determination left to Area Agency on Aging based on community needs and resources\",\n      \"For individual services: requires assessment of individual/family circumstances and development of service plan\",\n      \"Priority given to those in greatest need under the Older Americans Act framework\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Congregate or delivered meals, adult day care, transportation, homemaker services, and other community-based services to help older adults remain independent and avoid institutionalization\",\n    \"varies_by\": \"priority_tier and region\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact your local Area Agency on Aging (AAA) — specific phone numbers and websites vary by region\",\n      \"In-person at Area Agency on Aging office\",\n      \"Phone contact with AAA\"\n    ],\n    \"processing_time\": \"Not specified in available sources\",\n    \"waitlist\": \"Not specified in available sources\",\n    \"forms\": \"Not specified in available sources\",\n    \"documents\": \"Not specified in available sources. Individual assessment required; bring documentation of circumstances and service needs.\"\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Served through designated Area Agencies on Aging organized by planning-and-service areas (not county-by-county)\",\n    \"regional_variations\": \"Services and eligibility determination vary by Area Agency on Aging based on local community needs, resources, and standards. Each AAA develops its own area plan.\",\n    \"offices_or_providers\": \"Multiple Area Agencies on Aging throughout Nebraska (specific locations not detailed in sources; Northeast Nebraska Area Agency on Aging is one example)\"\n  },\n  \"official_source\": \"https://dhhs.ne.gov/pages/aging.aspx (State Unit on Aging - DHHS)\",\n  \"gotchas\": [\n    \"This is NOT the same as Medicaid nursing home programs — it focuses on community-based services to help people stay in their homes, not institutional care\",\n    \"Eligibility determination is individualized and flexible, not based on strict income/asset cutoffs like Medicaid — this means you may qualify even if you don't meet rigid financial thresholds, but it also means you must go through assessment\",\n    \"Services available depend on your Area Agency on Aging's specific plan and resources — what's available in one region may differ from another\",\n    \"Priority is given to those in 'greatest need,' which may affect service availability if demand exceeds capacity\",\n    \"The program is designed for people who want to remain in their homes/communities, not for institutional placement\",\n    \"No financial eligibility requirement for some services (like certain nutrition programs), but services are limited by available funding\"\n  ],\n  \"data_shape_notes\": \"This program has no published income or asset limits — eligibility is needs-based and individualized through assessment rather than formulaic. Benefits vary significantly by region because each Area Agency on Aging develops its own service plan based on local needs and resources. The program is intentionally flexible to serve diverse populations (older adults, people with disabilities, caregivers) across all of Nebraska through a decentralized network of AAAs. Critical gap: specific application procedures, forms, phone numbers, and processing times are not centralized in state sources and must be obtained from your local AAA.\"\n}\n```\n\n## Key Context for Families\n\nThe **Nebraska Community Aging Services Act** is fundamentally different from means-tested programs like Medicaid[3]. It's a **needs-based, community-focused program** designed to help older Nebraskans and people with disabilities remain independent in their homes and communities[7].\n\n### What Makes This Program Unique\n\nUnlike programs with strict income cutoffs, the Community Aging Services Act uses **individualized assessment**[3]. There are no published income or asset limits. Instead, eligibility is determined by evaluating your specific circumstances and your need for services[3]. This means you might qualify even if you exceed typical financial thresholds — but you must go through an assessment process.\n\n### The Critical Gap: Decentralized Administration\n\nThe program is delivered through **Area Agencies on Aging (AAAs)**, not a single state office[3][7]. Each AAA serves a planning-and-service area and develops its own service plan based on local needs and resources[3]. This means:\n\n- **Application procedures vary by region** — you must contact your local AAA directly\n- **Available services may differ** depending on your AAA's priorities and funding\n- **Processing times and waitlists are not standardized** across the state\n\n### How to Find Your Local AAA\n\nThe State Unit on Aging oversees the program statewide[7], but you must contact your regional Area Agency on Aging to apply. The search results include Northeast Nebraska Area Agency on Aging as an example[6], but specific contact information for all AAAs is not provided in these sources. You'll need to contact the State Unit on Aging (DHHS) or search for your county's AAA.\n\n### What Services Are Actually Provided\n\nThe program funds **congregate or delivered meals, adult day care, transportation, homemaker services**, and other supports to promote health, safety, and independence[5][7]. Services are designed for people who want to avoid institutionalization — either those struggling to function independently at home or those at risk of prolonged institutionalization[5]."
+    },
+    {
+      "name": "Aging and Disability Resource Center (ADRC)",
+      "eligibility": {
+        "age": "60 and over (or any age if disabled)",
+        "income_limits": null,
+        "asset_limits": null,
+        "other_requirements": [
+          "Nebraska residency",
+          "Age 60+ OR any age with disability",
+          "Family members, caregivers, advocates, and providers of eligible persons also qualify"
+        ]
+      },
+      "benefits": {
+        "type": "service|advocacy|information",
+        "value": "Information and referral services, options counseling, benefits application assistance, access to long-term care programs, person-centered transition support",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Phone: (844) 843-6364 or (308) 535-8195",
+          "In-person at local ADRC offices",
+          "Benefits assistance available Monday-Friday 8 AM-5 PM"
+        ],
+        "processing_time": "Not specified in available sources",
+        "waitlist": null,
+        "forms": "Not specified in available sources",
+        "documents": "Not specified in available sources"
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Local ADRCs serve specific communities; Douglas County ADRC specifically mentioned",
+        "regional_variations": "Multiple local ADRC offices throughout Nebraska; specific locations not fully detailed in search results",
+        "offices_or_providers": [
+          "State Unit on Aging: (402) 471-2307",
+          "Douglas County ADRC mentioned as example"
+        ]
+      },
+      "official_source": "https://dhhs.ne.gov/Pages/Aging-and-Disability-Resource-Center.aspx",
+      "gotchas": [
+        "ADRC is NOT a benefits program itself—it's an information and navigation service that helps people ACCESS other programs like Medicaid",
+        "No income or asset limits because ADRC doesn't provide direct financial assistance",
+        "ADRC helps with applications to OTHER programs (Medicaid, Social Security, etc.) but doesn't determine eligibility for those programs",
+        "This is a 'one-stop shop' for information, not a direct service provider"
+      ],
+      "data_shape_notes": "ADRC is a coordination and information service, not a standalone benefits program. Families use ADRC to learn about and apply for actual benefits programs like Medicaid. The search results do not contain specific processing times, forms, or detailed regional office locations.",
+      "_raw": "I need to clarify an important distinction: the search results describe the **Aging and Disability Resource Center (ADRC)** as a service coordination and information program, not a financial assistance or benefits program with the eligibility structure you're asking about.\n\nBased on the search results provided, here's what I can accurately report:\n\n```json\n{\n  \"name\": \"Aging and Disability Resource Center (ADRC)\",\n  \"eligibility\": {\n    \"age\": \"60 and over (or any age if disabled)\",\n    \"income_limits\": null,\n    \"asset_limits\": null,\n    \"other_requirements\": [\n      \"Nebraska residency\",\n      \"Age 60+ OR any age with disability\",\n      \"Family members, caregivers, advocates, and providers of eligible persons also qualify\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service|advocacy|information\",\n    \"value\": \"Information and referral services, options counseling, benefits application assistance, access to long-term care programs, person-centered transition support\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: (844) 843-6364 or (308) 535-8195\",\n      \"In-person at local ADRC offices\",\n      \"Benefits assistance available Monday-Friday 8 AM-5 PM\"\n    ],\n    \"processing_time\": \"Not specified in available sources\",\n    \"waitlist\": null,\n    \"forms\": \"Not specified in available sources\",\n    \"documents\": \"Not specified in available sources\"\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Local ADRCs serve specific communities; Douglas County ADRC specifically mentioned\",\n    \"regional_variations\": \"Multiple local ADRC offices throughout Nebraska; specific locations not fully detailed in search results\",\n    \"offices_or_providers\": [\n      \"State Unit on Aging: (402) 471-2307\",\n      \"Douglas County ADRC mentioned as example\"\n    ]\n  },\n  \"official_source\": \"https://dhhs.ne.gov/Pages/Aging-and-Disability-Resource-Center.aspx\",\n  \"gotchas\": [\n    \"ADRC is NOT a benefits program itself—it's an information and navigation service that helps people ACCESS other programs like Medicaid\",\n    \"No income or asset limits because ADRC doesn't provide direct financial assistance\",\n    \"ADRC helps with applications to OTHER programs (Medicaid, Social Security, etc.) but doesn't determine eligibility for those programs\",\n    \"This is a 'one-stop shop' for information, not a direct service provider\"\n  ],\n  \"data_shape_notes\": \"ADRC is a coordination and information service, not a standalone benefits program. Families use ADRC to learn about and apply for actual benefits programs like Medicaid. The search results do not contain specific processing times, forms, or detailed regional office locations.\"\n}\n```\n\n## Critical Clarification\n\nThe search results do not describe an \"Aging & Disability Resource Center Act\" as a standalone program with eligibility requirements and benefits. Instead, they describe the **ADRC as a navigation and information service**[6][7]. \n\nIf your guide is intended to help families determine whether an elderly loved one qualifies for **long-term care benefits**, you likely need information about **Nebraska Medicaid programs** (such as the Aged and Disabled Waiver)[1][3], not the ADRC itself. The ADRC helps people apply for those programs, but doesn't administer them.\n\n**What the search results actually show:**\n- The ADRC serves as a \"one-stop shop\" for information[7]\n- It provides options counseling and benefits application assistance[5][6]\n- It helps people access Medicaid, Social Security, and other programs[7]\n- There are no income or asset limits for ADRC services themselves[6]\n\nTo build the comprehensive guide you're describing, you would need to focus on the actual **benefits programs** (like Medicaid) rather than the ADRC, which is the gateway to those programs."
+    },
+    {
+      "name": "Assistance to Aged, Blind or Disabled (AABD)",
+      "eligibility": {
+        "age": "Aged: 65 or older. Blind or Disabled: 64 or younger.[1]",
+        "income_limits": "Specific dollar amounts not detailed in available sources; must meet income requirements per state rules, often for those denied SSI due to short-term disability.[1][6][7]",
+        "asset_limits": "Must meet resource limits as defined in state regulations; specific counts and exemptions not detailed in sources.[1]",
+        "other_requirements": [
+          "Nebraska resident.",
+          "Determined blind or disabled: Blindness defined as central visual acuity of 20/200 or less; disability by SSA (expected to last 12+ months or result in death) or State Review Team for short-term cases (under 12 months, denied SSI).[1][5][7]",
+          "Responsible for relative financial support.",
+          "Cooperate in obtaining third-party medical payments.",
+          "For State Disability Program (SDP) under AABD: Denied SSI because disability expected to last less than 12 months and ineligible for Medicaid otherwise.[7]"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "Monetary payment plus medical coverage; specific dollar amounts or hours not provided in sources.[6][7]",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Online: Nebraska Department of Health and Human Services website (dhhs.ne.gov).[6][8]",
+          "Phone: 402-471-3121 (general), 402-595-1258 (Omaha), 402-323-3900 (Lincoln), 800-383-4278 (toll-free customer service).[6][8]",
+          "Call for mail or in-person options.[8]"
+        ],
+        "processing_time": "Not specified in sources.",
+        "waitlist": null,
+        "forms": [
+          "Application available online via DHHS website; specific form name/number not listed.[6]"
+        ],
+        "documents": [
+          "Call for information; varies by program.[8]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None; available statewide in Nebraska for eligible clients residing in own home, apartment, assisted living, licensed mental health facility, or center for developmentally disabled.[7][8]",
+        "regional_variations": null,
+        "offices_or_providers": [
+          "Statewide via DHHS; regional phone lines for Omaha and Lincoln.[8]"
+        ]
+      },
+      "official_source": "https://dhhs.ne.gov/Pages/Aged-Blind-or-Disabled.aspx[7]",
+      "gotchas": [
+        "Primarily for those denied federal SSI because disability is expected to last less than 12 months; not for long-term SSI-eligible cases.[7]",
+        "Disability determination often by SSA, but state handles other eligibility; state Review Team for short-term cases.[1][3]",
+        "Separate from Medicaid AD Waiver, which has different criteria like nursing facility level of care.[2]",
+        "No family unit can receive both AABD payment and State Disability Program assistance.[1]"
+      ],
+      "data_shape_notes": "State supplement for short-term disabilities denied by SSI; eligibility tied to SSA denial; cash + medical, statewide but phone access varies by region.",
+      "_raw": "{\n  \"name\": \"Assistance to Aged, Blind or Disabled (AABD)\",\n  \"eligibility\": {\n    \"age\": \"Aged: 65 or older. Blind or Disabled: 64 or younger.[1]\",\n    \"income_limits\": \"Specific dollar amounts not detailed in available sources; must meet income requirements per state rules, often for those denied SSI due to short-term disability.[1][6][7]\",\n    \"asset_limits\": \"Must meet resource limits as defined in state regulations; specific counts and exemptions not detailed in sources.[1]\",\n    \"other_requirements\": [\n      \"Nebraska resident.\",\n      \"Determined blind or disabled: Blindness defined as central visual acuity of 20/200 or less; disability by SSA (expected to last 12+ months or result in death) or State Review Team for short-term cases (under 12 months, denied SSI).[1][5][7]\",\n      \"Responsible for relative financial support.\",\n      \"Cooperate in obtaining third-party medical payments.\",\n      \"For State Disability Program (SDP) under AABD: Denied SSI because disability expected to last less than 12 months and ineligible for Medicaid otherwise.[7]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Monetary payment plus medical coverage; specific dollar amounts or hours not provided in sources.[6][7]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: Nebraska Department of Health and Human Services website (dhhs.ne.gov).[6][8]\",\n      \"Phone: 402-471-3121 (general), 402-595-1258 (Omaha), 402-323-3900 (Lincoln), 800-383-4278 (toll-free customer service).[6][8]\",\n      \"Call for mail or in-person options.[8]\"\n    ],\n    \"processing_time\": \"Not specified in sources.\",\n    \"waitlist\": null,\n    \"forms\": [\"Application available online via DHHS website; specific form name/number not listed.[6]\"],\n    \"documents\": [\"Call for information; varies by program.[8]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; available statewide in Nebraska for eligible clients residing in own home, apartment, assisted living, licensed mental health facility, or center for developmentally disabled.[7][8]\",\n    \"regional_variations\": null,\n    \"offices_or_providers\": [\"Statewide via DHHS; regional phone lines for Omaha and Lincoln.[8]\"]\n  },\n  \"official_source\": \"https://dhhs.ne.gov/Pages/Aged-Blind-or-Disabled.aspx[7]\",\n  \"gotchas\": [\n    \"Primarily for those denied federal SSI because disability is expected to last less than 12 months; not for long-term SSI-eligible cases.[7]\",\n    \"Disability determination often by SSA, but state handles other eligibility; state Review Team for short-term cases.[1][3]\",\n    \"Separate from Medicaid AD Waiver, which has different criteria like nursing facility level of care.[2]\",\n    \"No family unit can receive both AABD payment and State Disability Program assistance.[1]\"\n  ],\n  \"data_shape_notes\": \"State supplement for short-term disabilities denied by SSI; eligibility tied to SSA denial; cash + medical, statewide but phone access varies by region.\"\n}"
+    },
+    {
+      "name": "Social Services for the Aged and Disabled (SSAD)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Eligibility is based on the client's income, but specific dollar amounts are not provided in available documentation. Contact DHHS directly for current income thresholds.[7]",
+        "asset_limits": "Not specified in available documentation.",
+        "other_requirements": [
+          "Be aged, blind, or disabled[7]",
+          "Demonstrate need for the requested service[7]",
+          "Be ineligible or unable to receive assistance from other programs (SSAD serves as a safety-net program)[7]"
+        ]
+      },
+      "benefits": {
+        "type": "in_kind",
+        "value": "Specific services include: Chore services (light housekeeping, essential shopping, food preparation, laundry, personal care); Adult Day Care (minimum 3 hours per day in supervised setting); Homemaker Services (in-home instructional-based services); Transportation (non-medical and medical to community resources)[7]",
+        "varies_by": "service_type_and_individual_need"
+      },
+      "application": {
+        "methods": [
+          "Contact Nebraska DHHS directly (specific phone number and online application portal not provided in available documentation)"
+        ],
+        "processing_time": "Not specified in available documentation.",
+        "waitlist": "Not mentioned in available documentation.",
+        "forms": [
+          "Specific form names and numbers not provided in available documentation"
+        ],
+        "documents": [
+          "Income documentation (to establish eligibility based on income)[7]",
+          "Documentation of need for requested service[7]",
+          "Likely: proof of age, disability status, or blindness (not explicitly stated but implied by eligibility criteria)"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "No county or regional restrictions mentioned in available documentation.",
+        "regional_variations": null,
+        "offices_or_providers": [
+          "Administered by Nebraska DHHS; specific local office locations not provided in available documentation"
+        ]
+      },
+      "official_source": "https://dhhs.ne.gov/Pages/Social-Services-Aged-and-Disabled-Adults.aspx",
+      "gotchas": [
+        "SSAD is explicitly a safety-net program for those ineligible for other assistance programs—if you qualify for other programs (like the Aged and Disabled Medicaid Waiver), you may not be eligible for SSAD[7]",
+        "Eligibility is based on both income AND demonstrated need for service—meeting income limits alone is insufficient[7]",
+        "Adult Day Care has a minimum requirement of 3 hours per day; shorter-duration services may not be available[7]",
+        "Available documentation does not specify income limits, asset limits, or processing timelines—families must contact DHHS directly for current, detailed eligibility criteria"
+      ],
+      "data_shape_notes": "SSAD is a needs-based, income-tested program with limited public documentation. Unlike the Aged and Disabled Medicaid Waiver (which has detailed published eligibility criteria including specific home equity limits and functional assessments), SSAD's eligibility thresholds and application process are not fully detailed in publicly available sources. The program functions as a residual safety net for those who don't qualify for other programs. Service provision appears to be individualized based on assessed need rather than tiered or standardized.",
+      "_raw": "```json\n{\n  \"name\": \"Social Services for the Aged and Disabled (SSAD)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Eligibility is based on the client's income, but specific dollar amounts are not provided in available documentation. Contact DHHS directly for current income thresholds.[7]\",\n    \"asset_limits\": \"Not specified in available documentation.\",\n    \"other_requirements\": [\n      \"Be aged, blind, or disabled[7]\",\n      \"Demonstrate need for the requested service[7]\",\n      \"Be ineligible or unable to receive assistance from other programs (SSAD serves as a safety-net program)[7]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"in_kind\",\n    \"value\": \"Specific services include: Chore services (light housekeeping, essential shopping, food preparation, laundry, personal care); Adult Day Care (minimum 3 hours per day in supervised setting); Homemaker Services (in-home instructional-based services); Transportation (non-medical and medical to community resources)[7]\",\n    \"varies_by\": \"service_type_and_individual_need\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact Nebraska DHHS directly (specific phone number and online application portal not provided in available documentation)\"\n    ],\n    \"processing_time\": \"Not specified in available documentation.\",\n    \"waitlist\": \"Not mentioned in available documentation.\",\n    \"forms\": [\n      \"Specific form names and numbers not provided in available documentation\"\n    ],\n    \"documents\": [\n      \"Income documentation (to establish eligibility based on income)[7]\",\n      \"Documentation of need for requested service[7]\",\n      \"Likely: proof of age, disability status, or blindness (not explicitly stated but implied by eligibility criteria)\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"No county or regional restrictions mentioned in available documentation.\",\n    \"regional_variations\": null,\n    \"offices_or_providers\": [\n      \"Administered by Nebraska DHHS; specific local office locations not provided in available documentation\"\n    ]\n  },\n  \"official_source\": \"https://dhhs.ne.gov/Pages/Social-Services-Aged-and-Disabled-Adults.aspx\",\n  \"gotchas\": [\n    \"SSAD is explicitly a safety-net program for those ineligible for other assistance programs—if you qualify for other programs (like the Aged and Disabled Medicaid Waiver), you may not be eligible for SSAD[7]\",\n    \"Eligibility is based on both income AND demonstrated need for service—meeting income limits alone is insufficient[7]\",\n    \"Adult Day Care has a minimum requirement of 3 hours per day; shorter-duration services may not be available[7]\",\n    \"Available documentation does not specify income limits, asset limits, or processing timelines—families must contact DHHS directly for current, detailed eligibility criteria\"\n  ],\n  \"data_shape_notes\": \"SSAD is a needs-based, income-tested program with limited public documentation. Unlike the Aged and Disabled Medicaid Waiver (which has detailed published eligibility criteria including specific home equity limits and functional assessments), SSAD's eligibility thresholds and application process are not fully detailed in publicly available sources. The program functions as a residual safety net for those who don't qualify for other programs. Service provision appears to be individualized based on assessed need rather than tiered or standardized.\"\n}\n```\n\n## Critical Gaps in Available Information\n\nThe search results provide only a high-level overview of SSAD. To build a truly comprehensive family guide, you will need to contact Nebraska DHHS directly to obtain:\n\n- **Exact income limits** (by household size, if applicable)[7]\n- **Asset or resource limits** (if any)[7]\n- **Application forms and form numbers**\n- **Phone numbers and office locations** for local DHHS offices\n- **Processing timelines and current waitlist status**\n- **Whether online application is available**\n- **Regional variations in service availability or wait times**\n\n**Primary contact:** Nebraska Department of Health and Human Services (DHHS) — visit https://dhhs.ne.gov/Pages/Social-Services-Aged-and-Disabled-Adults.aspx for current contact information and application details.[7]"
+    }
+  ]
+}

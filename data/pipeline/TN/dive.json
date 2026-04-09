@@ -1,0 +1,498 @@
+{
+  "state": "TN",
+  "stateName": "Tennessee",
+  "diveAt": "2026-04-09T09:01:21.192Z",
+  "total": 11,
+  "parsed": 9,
+  "programs": [
+    {
+      "name": "TennCare Medicare Savings Programs (QMB, SLMB, QI)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Income limits are based on Federal Poverty Guidelines and vary by program and household size. For 2026:[7] QMB: Individual $1,350/month, Married couple $1,824/month. SLMB: Individual income at least 100% but less than 120% of poverty level. QI: Individual income at least 120% but less than 135% of poverty level. Note: Search results contain varying 2024 figures ($1,526 for SLMB individual, $1,715 for QI individual)[4], indicating annual adjustments. Applicants should verify current limits with TennCare, as these are updated yearly in January.[6]",
+        "asset_limits": "Resource limits for 2026:[7] QMB: Individual $9,950, Married couple $14,910. SLMB and QI: Same as QMB. Assets that COUNT include: money in bank accounts, stocks, and bonds.[3] Assets that DO NOT count include: the house you live in, one car, a burial plot, up to $1,500 in burial expenses, furniture, and household and personal items.[3]",
+        "other_requirements": [
+          "Must be eligible for or enrolled in Medicare Part A and Part B[6]",
+          "Cannot be eligible for another category of Medicaid at the same time (applies to QI)[1]",
+          "For QI specifically: Cannot be eligible for Medicaid[6]"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "QMB:[7] Pays for Part A premiums (if you don't have premium-free Part A), Part B premiums, deductibles, coinsurance, and copayments for services and items Medicare covers. Also provides Extra Help for prescription drugs (maximum $12.65 per drug in 2026).[7] SLMB:[7] Pays for Part B premiums only, plus Extra Help for prescription drugs (maximum $12.65 per drug in 2026).[7] QI:[7] Pays for Part B premiums only, plus Extra Help for prescription drugs (maximum $12.65 per drug in 2026).[7] QMB also covers cost sharing for Medicare Advantage and full extra help for Part D plans.[3]",
+        "varies_by": "program_tier"
+      },
+      "application": {
+        "methods": [
+          "Phone: Call SHIP (State Health Insurance Assistance Program) for free assistance at 1-877-801-0044[4]",
+          "Mail or in-person: Contact the Bureau of TennCare (specific address not provided in search results)",
+          "Online: Visit TN.gov TennCare website (www.tn.gov/tenncare)[1]"
+        ],
+        "processing_time": "Not specified in search results",
+        "waitlist": "QI program operates on first-come, first-served basis until funds run out; priority given to those who received QI benefits in the previous year.[2][3][7]",
+        "forms": [
+          "Specific form names/numbers not provided in search results; contact TennCare or SHIP for application forms"
+        ],
+        "documents": "Search results do not specify required documentation. Applicants should contact SHIP (1-877-801-0044) or TennCare for a complete list of required documents."
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": null,
+        "regional_variations": null,
+        "offices_or_providers": [
+          "Bureau of TennCare processes all MSP applications statewide[4]"
+        ]
+      },
+      "official_source": "https://www.tn.gov/tenncare/members-applicants/eligibility-reference-guide.html",
+      "gotchas": [
+        "QI program is NOT guaranteed funding — it operates on first-come, first-served basis until state funds run out.[2][3][7] Families should apply early in the year.",
+        "QI requires annual reapplication; benefits are not continuous.[3][7]",
+        "If someone qualifies for Medicaid, they cannot use QI — they must use QMB or SLMB instead.[6]",
+        "QI does not affect Medicare Advantage (Part C) or Medigap plans, but only applies to original Medicare (Parts A and B).[6]",
+        "Income and resource limits change every year (new limits released each January).[6] Families should not rely on prior-year figures.",
+        "CHOICES recipients do not qualify for QI-1.[4]",
+        "Medicare providers cannot bill for covered services under QMB, but small Medicaid copayments may still apply.[7]"
+      ],
+      "data_shape_notes": "This program consists of three distinct tiers (QMB, SLMB, QI) with progressively higher income thresholds but decreasing benefits. Income and resource limits scale by household size (individual vs. married couple). QI has unique first-come, first-served funding constraints and annual reapplication requirements, making it less stable than QMB/SLMB. All three programs are administered by a single state entity (Bureau of TennCare) with no regional variation in eligibility or benefits. Income limits are tied to Federal Poverty Guidelines and adjust annually.",
+      "_raw": "```json\n{\n  \"name\": \"TennCare Medicare Savings Programs (QMB, SLMB, QI)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Income limits are based on Federal Poverty Guidelines and vary by program and household size. For 2026:[7] QMB: Individual $1,350/month, Married couple $1,824/month. SLMB: Individual income at least 100% but less than 120% of poverty level. QI: Individual income at least 120% but less than 135% of poverty level. Note: Search results contain varying 2024 figures ($1,526 for SLMB individual, $1,715 for QI individual)[4], indicating annual adjustments. Applicants should verify current limits with TennCare, as these are updated yearly in January.[6]\",\n    \"asset_limits\": \"Resource limits for 2026:[7] QMB: Individual $9,950, Married couple $14,910. SLMB and QI: Same as QMB. Assets that COUNT include: money in bank accounts, stocks, and bonds.[3] Assets that DO NOT count include: the house you live in, one car, a burial plot, up to $1,500 in burial expenses, furniture, and household and personal items.[3]\",\n    \"other_requirements\": [\n      \"Must be eligible for or enrolled in Medicare Part A and Part B[6]\",\n      \"Cannot be eligible for another category of Medicaid at the same time (applies to QI)[1]\",\n      \"For QI specifically: Cannot be eligible for Medicaid[6]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"QMB:[7] Pays for Part A premiums (if you don't have premium-free Part A), Part B premiums, deductibles, coinsurance, and copayments for services and items Medicare covers. Also provides Extra Help for prescription drugs (maximum $12.65 per drug in 2026).[7] SLMB:[7] Pays for Part B premiums only, plus Extra Help for prescription drugs (maximum $12.65 per drug in 2026).[7] QI:[7] Pays for Part B premiums only, plus Extra Help for prescription drugs (maximum $12.65 per drug in 2026).[7] QMB also covers cost sharing for Medicare Advantage and full extra help for Part D plans.[3]\",\n    \"varies_by\": \"program_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: Call SHIP (State Health Insurance Assistance Program) for free assistance at 1-877-801-0044[4]\",\n      \"Mail or in-person: Contact the Bureau of TennCare (specific address not provided in search results)\",\n      \"Online: Visit TN.gov TennCare website (www.tn.gov/tenncare)[1]\"\n    ],\n    \"processing_time\": \"Not specified in search results\",\n    \"waitlist\": \"QI program operates on first-come, first-served basis until funds run out; priority given to those who received QI benefits in the previous year.[2][3][7]\",\n    \"forms\": [\n      \"Specific form names/numbers not provided in search results; contact TennCare or SHIP for application forms\"\n    ],\n    \"documents\": \"Search results do not specify required documentation. Applicants should contact SHIP (1-877-801-0044) or TennCare for a complete list of required documents.\"\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": null,\n    \"regional_variations\": null,\n    \"offices_or_providers\": [\n      \"Bureau of TennCare processes all MSP applications statewide[4]\"\n    ]\n  },\n  \"official_source\": \"https://www.tn.gov/tenncare/members-applicants/eligibility-reference-guide.html\",\n  \"gotchas\": [\n    \"QI program is NOT guaranteed funding — it operates on first-come, first-served basis until state funds run out.[2][3][7] Families should apply early in the year.\",\n    \"QI requires annual reapplication; benefits are not continuous.[3][7]\",\n    \"If someone qualifies for Medicaid, they cannot use QI — they must use QMB or SLMB instead.[6]\",\n    \"QI does not affect Medicare Advantage (Part C) or Medigap plans, but only applies to original Medicare (Parts A and B).[6]\",\n    \"Income and resource limits change every year (new limits released each January).[6] Families should not rely on prior-year figures.\",\n    \"CHOICES recipients do not qualify for QI-1.[4]\",\n    \"Medicare providers cannot bill for covered services under QMB, but small Medicaid copayments may still apply.[7]\"\n  ],\n  \"data_shape_notes\": \"This program consists of three distinct tiers (QMB, SLMB, QI) with progressively higher income thresholds but decreasing benefits. Income and resource limits scale by household size (individual vs. married couple). QI has unique first-come, first-served funding constraints and annual reapplication requirements, making it less stable than QMB/SLMB. All three programs are administered by a single state entity (Bureau of TennCare) with no regional variation in eligibility or benefits. Income limits are tied to Federal Poverty Guidelines and adjust annually.\"\n}\n```\n\n## Key Takeaways for Families\n\n**Start with QMB if income qualifies:** It provides the most comprehensive coverage (Part A and B premiums, deductibles, coinsurance, copayments).[7] If income is too high for QMB, check SLMB next, then QI.\n\n**QI is a safety net with caveats:** If your loved one's income falls between 120–135% of poverty level, QI may help with Part B premiums, but it's not guaranteed—funding is first-come, first-served and must be reapplied for annually.[3][7]\n\n**Contact SHIP immediately:** Call 1-877-801-0044 for free, personalized help determining which program your loved one qualifies for and to start the application process.[4]\n\n**Verify current income/asset limits:** The figures in this guide are for 2026, but limits adjust yearly in January.[6] Always confirm current thresholds with TennCare before applying.\n\n**Asset limits are generous:** Your loved one's home, one car, and burial expenses don't count against resource limits, making these programs accessible to many seniors with modest savings.[3]"
+    },
+    {
+      "name": "Tennessee LIHEAP",
+      "_parseError": true,
+      "_raw": "{\n  \"name\": \"Tennessee LIHEAP\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"At or below 60% of State Median Income (SMI). Gross monthly income limits for 2025: 1 person $2,671; 2 people $3,492; 3 people $4,314; 4 people $5,136; 5 people $5,958; 6 people $6,780. Some regions reference 150% Federal Poverty Level. Priority for households with member under 6, disabled, over 60, or veterans.[1][2][4][5]\",\n    \"asset_limits\": \"No asset limit.[1]\",\n    \"other_requirements\": [\"Household responsible for own energy costs.\", \"Must live in service area of local agency.\", \"Priority populations: elderly (60+), disabled, children under 6, veterans.\", \"Crisis: facing shut-off, out of fuel, or emergency.\"][2][5][6]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"One-time payment to utility or fuel provider. Regular heating/cooling: $174-$750 (varies by energy burden); max $1,000 heating/cooling; min $600. Crisis: up to $1,000. Older data: $250 regular/emergency, $325 summer cooling. Once per program year, up to two programs.[1][3][5]\",\n    \"varies_by\": \"household_size|priority_tier|region\"\n  },\n  \"application\": {\n    \"methods\": [\"Online: SmartSimple portal at thda.org (opens Nov 1, 2025, 8AM CST).\", \"Phone/in-person/mail: Contact local agency (20 agencies statewide; see LIHEAP-Contacts PDF). Examples: ETHRA counties (865-691-2551 etc.), Douglas-Cherokee, Highland Rim (931.289.4101).\", \"Crisis: Call local office for priority.\"][2][3][4][5][6],\n    \"processing_time\": \"Within 60 days of application month end if funds available.[2]\",\n    \"waitlist\": \"Possible; eligible placed on list until funds released (e.g., federal delays). Crisis prioritized.[4]\",\n    \"forms\": [\"2025 LIHEAP Application (local agency form).\", \"Zero-income form if applicable.\", \"Self-employment income form.\"][2][6],\n    \"documents\": [\"Government ID.\", \"SSN for all over age 1.\", \"Proof of gross income (check stubs last 30 days, SSA statements; not bank statements except SSI/SS).\", \"12-month utility usage printout.\", \"Veteran/military proof (DD214, ID).\", \"Zero-income declaration if no income over 18.\"][2][6]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"All 95 counties via 19-20 local non-profit/government agencies.[3][5]\",\n    \"regional_variations\": \"Administered by local providers (e.g., ETHRA for Anderson/Campbell/etc., Douglas-Cherokee, Highland Rim). Varying docs, contacts, waitlists, priority scoring (income, energy %, vulnerable members). Applications year-round or seasonal.[2][4][6]\",\n    \"offices_or_providers\": [\"Network of 20 agencies; contacts at https://s3.amazonaws.com/thda.org/Documents/Business-Partners/Grant-Administrators/LIHEAP-Contacts-2.pdf.[3]\"]\n  },\n  \"official_source\": \"https://thda.org/help-for-homeowners/low-income-home-energy-assistance-program-liheap/[5]\",\n  \"gotchas\": [\"Funding limited; waitlists common due to federal delays (e.g., no 2026 funds yet).\", \"Household includes all at address sharing utility.\", \"One-time per year; priority scoring based on income/energy burden/vulnerable members.\", \"Crisis needs shut-off notice/out of fuel proof.\", \"Apps open Nov 1; prepare docs early.\", \"Benefits to utility/vendor only, not cash.[1][2][4][5]\"],\n  \"data_shape_notes\": \"Administered via 19-20 local agencies with regional providers, docs, and priority systems; benefits scaled by energy burden, household size, and tier; federal funding delays cause waitlists; statewide but county-agency specific.\"\n}"
+    },
+    {
+      "name": "Tennessee Weatherization Assistance Program",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Total countable household income must be at or below 200% of the federal poverty level for the household size, based on the 12 months preceding application. Example for single-person household: $25,550 upper limit; add $8,960 per additional person (figures from 2020, adjust for current year via FPL tables). SSI or TANF recipients automatically qualify. No specific elderly age requirement, but priority for households with individuals over 60, disabled persons, or young children.",
+        "asset_limits": "No asset limits mentioned in program guidelines.",
+        "other_requirements": [
+          "Applicant must be 18 or older.",
+          "U.S. citizen or legal alien (proof required: driver's license, birth certificate, passport, naturalization certificate, etc.).",
+          "Tennessee resident with proof of residence in the home to be weatherized.",
+          "Own or rent the dwelling.",
+          "Home must be single-family or eligible multifamily (for multifamily: subsidized properties or 66% of residents at/below 80% AMI or 200% FPL)."
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Home energy efficiency improvements based on certified energy audit, including air sealing, duct sealing, insulation (attics, walls, floors), caulking, storm windows, window/door replacement. No fixed dollar amount; site-specific measures to reduce heating/cooling costs and improve health/safety.",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Contact local agency serving your county via THDA Weatherization Agency Locator (no direct URL in results; access through THDA site).",
+          "Phone or in-person: Local community agencies/governments in all 95 counties.",
+          "Submit WAP application through THDA-approved local providers (e.g., South Central Human Resource Agency or others)."
+        ],
+        "processing_time": "Not specified; involves energy assessment, scope of work approval, upgrades, and final inspections.",
+        "waitlist": "Availability based on federal funding; potential waitlists due to limited funds (varies by county).",
+        "forms": [
+          "Weatherization Assistance Program (WAP) application.",
+          "Multi-Family Weatherization Assistance Application (for multifamily owners)."
+        ],
+        "documents": [
+          "Proof of identity/citizenship (driver's license, birth certificate, etc.).",
+          "Proof of residence (utility bill, lease, etc.).",
+          "Income documentation for all household members (12 months preceding: pay stubs, tax returns, SSI/TANF awards).",
+          "Household demographics for multifamily."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "All 95 Tennessee counties.",
+        "regional_variations": "Services provided by network of local community agencies/governments; availability, wait times, and processing may vary by county based on funding.",
+        "offices_or_providers": [
+          "Local agencies via THDA Weatherization Agency Locator; examples: South Central Human Resource Agency (SCHRA), Southeast Tennessee Human Resource Agency (SETHRA)."
+        ]
+      },
+      "official_source": "https://thda.org/help-for-homeowners/weatherization-assistance-program/",
+      "gotchas": [
+        "Must contact specific local agency for your county, not apply directly to THDA.",
+        "Priority for elderly/disabled/child households, but no automatic elderly-only qualification.",
+        "Income calculated over full 12 prior months; all countable income included.",
+        "Funding-limited; not all eligible homes served immediately.",
+        "Separate multifamily track with property-level eligibility.",
+        "Citizenship verified per Tennessee law for all applicants."
+      ],
+      "data_shape_notes": "Administered statewide via local subgrantees in 95 counties with funding-based availability; priority tiers for vulnerable households; income at 200% FPL with automatic qualifiers like SSI/TANF.",
+      "_raw": "{\n  \"name\": \"Tennessee Weatherization Assistance Program\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Total countable household income must be at or below 200% of the federal poverty level for the household size, based on the 12 months preceding application. Example for single-person household: $25,550 upper limit; add $8,960 per additional person (figures from 2020, adjust for current year via FPL tables). SSI or TANF recipients automatically qualify. No specific elderly age requirement, but priority for households with individuals over 60, disabled persons, or young children.\",\n    \"asset_limits\": \"No asset limits mentioned in program guidelines.\",\n    \"other_requirements\": [\n      \"Applicant must be 18 or older.\",\n      \"U.S. citizen or legal alien (proof required: driver's license, birth certificate, passport, naturalization certificate, etc.).\",\n      \"Tennessee resident with proof of residence in the home to be weatherized.\",\n      \"Own or rent the dwelling.\",\n      \"Home must be single-family or eligible multifamily (for multifamily: subsidized properties or 66% of residents at/below 80% AMI or 200% FPL).\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Home energy efficiency improvements based on certified energy audit, including air sealing, duct sealing, insulation (attics, walls, floors), caulking, storm windows, window/door replacement. No fixed dollar amount; site-specific measures to reduce heating/cooling costs and improve health/safety.\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact local agency serving your county via THDA Weatherization Agency Locator (no direct URL in results; access through THDA site).\",\n      \"Phone or in-person: Local community agencies/governments in all 95 counties.\",\n      \"Submit WAP application through THDA-approved local providers (e.g., South Central Human Resource Agency or others).\"\n    ],\n    \"processing_time\": \"Not specified; involves energy assessment, scope of work approval, upgrades, and final inspections.\",\n    \"waitlist\": \"Availability based on federal funding; potential waitlists due to limited funds (varies by county).\",\n    \"forms\": [\n      \"Weatherization Assistance Program (WAP) application.\",\n      \"Multi-Family Weatherization Assistance Application (for multifamily owners).\"\n    ],\n    \"documents\": [\n      \"Proof of identity/citizenship (driver's license, birth certificate, etc.).\",\n      \"Proof of residence (utility bill, lease, etc.).\",\n      \"Income documentation for all household members (12 months preceding: pay stubs, tax returns, SSI/TANF awards).\",\n      \"Household demographics for multifamily.\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"All 95 Tennessee counties.\",\n    \"regional_variations\": \"Services provided by network of local community agencies/governments; availability, wait times, and processing may vary by county based on funding.\",\n    \"offices_or_providers\": [\"Local agencies via THDA Weatherization Agency Locator; examples: South Central Human Resource Agency (SCHRA), Southeast Tennessee Human Resource Agency (SETHRA).\"]\n  },\n  \"official_source\": \"https://thda.org/help-for-homeowners/weatherization-assistance-program/\",\n  \"gotchas\": [\n    \"Must contact specific local agency for your county, not apply directly to THDA.\",\n    \"Priority for elderly/disabled/child households, but no automatic elderly-only qualification.\",\n    \"Income calculated over full 12 prior months; all countable income included.\",\n    \"Funding-limited; not all eligible homes served immediately.\",\n    \"Separate multifamily track with property-level eligibility.\",\n    \"Citizenship verified per Tennessee law for all applicants.\"\n  ],\n  \"data_shape_notes\": \"Administered statewide via local subgrantees in 95 counties with funding-based availability; priority tiers for vulnerable households; income at 200% FPL with automatic qualifiers like SSI/TANF.\"\n}"
+    },
+    {
+      "name": "Tennessee SHIP",
+      "eligibility": {
+        "age": null,
+        "income_limits": "No income limits; open to anyone with Medicare questions, focused on Medicare-eligible individuals (typically 65+ or disabled) and their families/caregivers[1][3][8][9]",
+        "asset_limits": "No asset limits or tests apply[9]",
+        "other_requirements": [
+          "Must be Medicare-eligible or have Medicare-related questions; no other restrictions[3][8]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Free, unbiased one-on-one counseling on Medicare (Parts A/B, Advantage, Part D, Medigap), enrollment assistance, Medicare Savings Programs (QMB/SLMB/QI), Extra Help/LIS applications, plan comparisons, billing errors/fraud reporting, preventive services education, community outreach/presentations; no financial payments or fixed hours/dollars[1][2][3][6][7]",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Phone: 1-877-801-0044 (statewide toll-free), local examples 901-222-4111 (Shelby); Email: dda.ship@tn.gov; Online contact form at tn.gov/disability-and-aging; In-person at regional offices; Mail not specified[2][3][7]"
+        ],
+        "processing_time": "Immediate phone/email assistance; in-person appointments scheduled upon request, no fixed processing time[3]",
+        "waitlist": null,
+        "forms": [
+          "Contact form on tn.gov site; worksheets for Part D/Medicare Savings (e.g., Part D Worksheet) available via tnmedicarehelp.com[3][5]"
+        ],
+        "documents": [
+          "No specific documents required for counseling; for assistance programs like Extra Help/MSP, income/asset proofs may be needed during application help[2][6]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None; covers all of Tennessee[1][3][4]",
+        "regional_variations": "Administered via 9 regional SHIPs with local offices/providers (e.g., Aging Commission of Mid-South for Shelby/Fayette/Lauderdale/Tipton; Upper Cumberland for 14-county region); local phone numbers and contacts vary, but services uniform[2][7]",
+        "offices_or_providers": [
+          "Tennessee Commission on Aging and Disability (state), 502 Deaderick St., Nashville TN 37243; regional examples: Aging Commission of Mid-South, Upper Cumberland SHIP[2][4][7]"
+        ]
+      },
+      "official_source": "https://www.tn.gov/disability-and-aging/disability-aging-programs/tn-ship.html[3]",
+      "gotchas": [
+        "Not a direct financial aid program—provides counseling only, not payments; does not sell/endorses insurance; must disenroll from ACA Marketplace upon Medicare eligibility to avoid penalties; focused on Medicare, not general healthcare[3][5]; regional offices handle local service but statewide consistency[2]"
+      ],
+      "data_shape_notes": "No income/asset/age tests; counseling-only service via regional network; open access for Medicare beneficiaries/families statewide",
+      "_raw": "{\n  \"name\": \"Tennessee SHIP\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No income limits; open to anyone with Medicare questions, focused on Medicare-eligible individuals (typically 65+ or disabled) and their families/caregivers[1][3][8][9]\",\n    \"asset_limits\": \"No asset limits or tests apply[9]\",\n    \"other_requirements\": [\"Must be Medicare-eligible or have Medicare-related questions; no other restrictions[3][8]\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free, unbiased one-on-one counseling on Medicare (Parts A/B, Advantage, Part D, Medigap), enrollment assistance, Medicare Savings Programs (QMB/SLMB/QI), Extra Help/LIS applications, plan comparisons, billing errors/fraud reporting, preventive services education, community outreach/presentations; no financial payments or fixed hours/dollars[1][2][3][6][7]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: 1-877-801-0044 (statewide toll-free), local examples 901-222-4111 (Shelby); Email: dda.ship@tn.gov; Online contact form at tn.gov/disability-and-aging; In-person at regional offices; Mail not specified[2][3][7]\"],\n    \"processing_time\": \"Immediate phone/email assistance; in-person appointments scheduled upon request, no fixed processing time[3]\",\n    \"waitlist\": null,\n    \"forms\": [\"Contact form on tn.gov site; worksheets for Part D/Medicare Savings (e.g., Part D Worksheet) available via tnmedicarehelp.com[3][5]\"],\n    \"documents\": [\"No specific documents required for counseling; for assistance programs like Extra Help/MSP, income/asset proofs may be needed during application help[2][6]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; covers all of Tennessee[1][3][4]\",\n    \"regional_variations\": \"Administered via 9 regional SHIPs with local offices/providers (e.g., Aging Commission of Mid-South for Shelby/Fayette/Lauderdale/Tipton; Upper Cumberland for 14-county region); local phone numbers and contacts vary, but services uniform[2][7]\",\n    \"offices_or_providers\": [\"Tennessee Commission on Aging and Disability (state), 502 Deaderick St., Nashville TN 37243; regional examples: Aging Commission of Mid-South, Upper Cumberland SHIP[2][4][7]\"]\n  },\n  \"official_source\": \"https://www.tn.gov/disability-and-aging/disability-aging-programs/tn-ship.html[3]\",\n  \"gotchas\": [\"Not a direct financial aid program—provides counseling only, not payments; does not sell/endorses insurance; must disenroll from ACA Marketplace upon Medicare eligibility to avoid penalties; focused on Medicare, not general healthcare[3][5]; regional offices handle local service but statewide consistency[2]\"],\n  \"data_shape_notes\": \"No income/asset/age tests; counseling-only service via regional network; open access for Medicare beneficiaries/families statewide\"\n}"
+    },
+    {
+      "name": "Tennessee Meals on Wheels",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "No income limits or asset limits apply; income is not a factor in determining eligibility, though programs target low-income seniors and may suggest contributions on a sliding scale based on ability to pay[1][6][8]",
+        "asset_limits": "No asset limits; no information on what counts or exemptions as assets are not tested[1][6]",
+        "other_requirements": [
+          "Homebound due to illness, incapacitation, disability, or mobility challenges that make shopping, preparing meals, or socializing difficult[1][2][3][4][8]",
+          "Reside in the service area or delivery zone of the local provider (varies by region)[1][2]",
+          "Unable to obtain nutritious meals from family, friends, or other resources[2]",
+          "For some programs, spouses or dependents of eligible 60+ individuals may qualify regardless of age; disabled under 60 in specific settings like senior high-rises[2][8]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Home-delivered nutritionally balanced noontime meal providing one-third of daily RDA requirements (typically weekdays); includes friendly volunteer visit and safety check; congregate meals available at senior centers/community sites for socialization and nutrition education[1][2][4][7][8][9]",
+        "varies_by": "region"
+      },
+      "application": {
+        "methods": [
+          "Phone: Toll-free 1-866-836-6678 to contact local Area Agency on Aging and Disability (AAAD)[7][8][9]",
+          "Online: Use screening tool at local AAAD sites (e.g., NWTDD) or find provider via Meals on Wheels America locator[3][9]",
+          "In-person: At local AAAD offices, senior centers, or congregate meal sites[8]",
+          "Referral: Doctor, social worker, or family can refer[3]"
+        ],
+        "processing_time": "Varies; some process within a week, others longer if waitlisted; intake assessment by case manager required[1]",
+        "waitlist": "Possible in some programs/regions due to high demand[1]",
+        "forms": [
+          "Application and needs assessment via local AAAD; no specific statewide form name/number identified[1][3][8]"
+        ],
+        "documents": [
+          "Proof of age, residence, medical information (e.g., dietary restrictions, conditions); financial documents sometimes requested but not required for eligibility; doctor/social worker referral letter may be needed[1]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Must live in the delivery/service area of local provider; available in all 95 Tennessee counties via local AAADs[2][8]",
+        "regional_variations": "Administered by local Area Agencies on Aging and Disability (AAAD) with over 150 congregate sites; specific eligibility nuances, delivery zones, and wait times vary by agency (e.g., Davidson County requires county residency; Mid-Cumberland serves Middle TN; SETAAAD for Southeast TN)[2][4][7][8]",
+        "offices_or_providers": [
+          "Local AAADs (e.g., Mid-Cumberland HRA, SETAAAD, NWTDD, DCEA); contact 1-866-836-6678 for your area[4][7][8][9]"
+        ]
+      },
+      "official_source": "https://www.tn.gov/disability-and-aging/disability-aging-programs/aging-nutrition-program.html",
+      "gotchas": [
+        "Not a single centralized program—must contact local AAAD for your county as rules/zones vary; car ownership or ability to leave home easily may disqualify; some programs funded via Title III (no cost, donations suggested) vs. Medicaid CHOICES (separate qualification); congregate vs. home-delivered have different criteria; outside service areas requires alternatives[1][2][5][8]"
+      ],
+      "data_shape_notes": "Decentralized by  local AAAD per county/region with no statewide income/asset test; homebound requirement strictly assessed; over 150 congregate sites but home delivery zone-restricted",
+      "_raw": "{\n  \"name\": \"Tennessee Meals on Wheels\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"No income limits or asset limits apply; income is not a factor in determining eligibility, though programs target low-income seniors and may suggest contributions on a sliding scale based on ability to pay[1][6][8]\",\n    \"asset_limits\": \"No asset limits; no information on what counts or exemptions as assets are not tested[1][6]\",\n    \"other_requirements\": [\"Homebound due to illness, incapacitation, disability, or mobility challenges that make shopping, preparing meals, or socializing difficult[1][2][3][4][8]\", \"Reside in the service area or delivery zone of the local provider (varies by region)[1][2]\", \"Unable to obtain nutritious meals from family, friends, or other resources[2]\", \"For some programs, spouses or dependents of eligible 60+ individuals may qualify regardless of age; disabled under 60 in specific settings like senior high-rises[2][8]\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Home-delivered nutritionally balanced noontime meal providing one-third of daily RDA requirements (typically weekdays); includes friendly volunteer visit and safety check; congregate meals available at senior centers/community sites for socialization and nutrition education[1][2][4][7][8][9]\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: Toll-free 1-866-836-6678 to contact local Area Agency on Aging and Disability (AAAD)[7][8][9]\", \"Online: Use screening tool at local AAAD sites (e.g., NWTDD) or find provider via Meals on Wheels America locator[3][9]\", \"In-person: At local AAAD offices, senior centers, or congregate meal sites[8]\", \"Referral: Doctor, social worker, or family can refer[3]\"],\n    \"processing_time\": \"Varies; some process within a week, others longer if waitlisted; intake assessment by case manager required[1]\",\n    \"waitlist\": \"Possible in some programs/regions due to high demand[1]\",\n    \"forms\": [\"Application and needs assessment via local AAAD; no specific statewide form name/number identified[1][3][8]\"],\n    \"documents\": [\"Proof of age, residence, medical information (e.g., dietary restrictions, conditions); financial documents sometimes requested but not required for eligibility; doctor/social worker referral letter may be needed[1]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Must live in the delivery/service area of local provider; available in all 95 Tennessee counties via local AAADs[2][8]\",\n    \"regional_variations\": \"Administered by local Area Agencies on Aging and Disability (AAAD) with over 150 congregate sites; specific eligibility nuances, delivery zones, and wait times vary by agency (e.g., Davidson County requires county residency; Mid-Cumberland serves Middle TN; SETAAAD for Southeast TN)[2][4][7][8]\",\n    \"offices_or_providers\": [\"Local AAADs (e.g., Mid-Cumberland HRA, SETAAAD, NWTDD, DCEA); contact 1-866-836-6678 for your area[4][7][8][9]\"]\n  },\n  \"official_source\": \"https://www.tn.gov/disability-and-aging/disability-aging-programs/aging-nutrition-program.html\",\n  \"gotchas\": [\"Not a single centralized program—must contact local AAAD for your county as rules/zones vary; car ownership or ability to leave home easily may disqualify; some programs funded via Title III (no cost, donations suggested) vs. Medicaid CHOICES (separate qualification); congregate vs. home-delivered have different criteria; outside service areas requires alternatives[1][2][5][8]\"],\n  \"data_shape_notes\": \"Decentralized by  local AAAD per county/region with no statewide income/asset test; homebound requirement strictly assessed; over 150 congregate sites but home delivery zone-restricted\"\n}"
+    },
+    {
+      "name": "Tennessee Caregiver Respite Support",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "Contributions encouraged if income at or above 185% of Federal Poverty Guidelines; no strict cutoff, but preference to those with greatest economic need[2][3]",
+        "asset_limits": "No asset limits specified[2][3]",
+        "other_requirements": [
+          "Care receiver 60+ or with Alzheimer's/related dementia; unable to perform at least 2 ADLs without substantial assistance; cognitive impairment requiring supervision to prevent harm[2]",
+          "Caregiver is unpaid family member; caregiver 55+ if caring for minor child[2][3]",
+          "For Lifespan Respite Voucher: family caregiver living in same home as care recipient with disability/chronic illness[7]",
+          "Not eligible if receiving certain Medicaid HCBS waivers like ECF CHOICES[1][6]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "In-home respite up to 6 hours/week; vouchers for respite services (amounts not specified, low/no-cost via Lifespan Respite Grant); may include counseling, training, personal care, homemaker, adult day care[2][3][7]",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Phone: 1-866-836-6678 (NFCSP intake line, statewide AAADs)[2][3]",
+          "Phone: 615-269-8687 (Emergency Respite Voucher, Annisha)[4]",
+          "Email: respite@tnrespite.org (Tennessee Lifespan Respite Voucher, Jack Read)[5]",
+          "Phone assessment followed by in-home visit[2]"
+        ],
+        "processing_time": "Funds within 1 week after approval and documents for Emergency Voucher[4]; varies for others",
+        "waitlist": "Slots availability-based; not all eligible enrolled due to funding/priorities (e.g., Family Support)[2][6]",
+        "forms": [
+          "Intake Form (NFCSP phone intake)[2]"
+        ],
+        "documents": [
+          "Proof of income if above 185% FPL; assessment details on ADLs/cognitive needs; for providers: background checks, insurance, policy manual (not family-facing)[1][2]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Available statewide via AAADs and coalitions; funding limits enrollment[3][7]",
+        "regional_variations": "Administered through local Area Agencies on Aging and Disability (AAADs); availability varies by service area; Local Councils prioritize for Family Support[3][6]",
+        "offices_or_providers": [
+          "Area Agencies on Aging and Disability (AAADs), contact 1-866-836-6678[2][3]",
+          "Tennessee Caregiver Coalition[5][7][8]"
+        ]
+      },
+      "official_source": "https://www.tn.gov/disability-and-aging/disability-aging-programs/caregiving.html[3]",
+      "gotchas": [
+        "Multiple programs (NFCSP, Lifespan Respite Voucher, Emergency Voucher, Medicaid waivers, Family Support) often lumped as 'respite'; check specific fit[1][3][5][6]",
+        "Caregiver is the client; preference to greatest needs; slots limited, eligibility ≠ enrollment[2][6]",
+        "Excludes those on certain Medicaid waivers; not substitute for comprehensive services[1][6]",
+        "Varies by AAAD region; contributions if higher income[2][3]"
+      ],
+      "data_shape_notes": "Decentralized via 10+ AAADs with local variation; voucher-based self-direction; ties to federal OAA/NFCSP and state grants; priority tiers and funding caps limit access",
+      "_raw": "{\n  \"name\": \"Tennessee Caregiver Respite Support\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"Contributions encouraged if income at or above 185% of Federal Poverty Guidelines; no strict cutoff, but preference to those with greatest economic need[2][3]\",\n    \"asset_limits\": \"No asset limits specified[2][3]\",\n    \"other_requirements\": [\n      \"Care receiver 60+ or with Alzheimer's/related dementia; unable to perform at least 2 ADLs without substantial assistance; cognitive impairment requiring supervision to prevent harm[2]\",\n      \"Caregiver is unpaid family member; caregiver 55+ if caring for minor child[2][3]\",\n      \"For Lifespan Respite Voucher: family caregiver living in same home as care recipient with disability/chronic illness[7]\",\n      \"Not eligible if receiving certain Medicaid HCBS waivers like ECF CHOICES[1][6]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"In-home respite up to 6 hours/week; vouchers for respite services (amounts not specified, low/no-cost via Lifespan Respite Grant); may include counseling, training, personal care, homemaker, adult day care[2][3][7]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: 1-866-836-6678 (NFCSP intake line, statewide AAADs)[2][3]\",\n      \"Phone: 615-269-8687 (Emergency Respite Voucher, Annisha)[4]\",\n      \"Email: respite@tnrespite.org (Tennessee Lifespan Respite Voucher, Jack Read)[5]\",\n      \"Phone assessment followed by in-home visit[2]\"\n    ],\n    \"processing_time\": \"Funds within 1 week after approval and documents for Emergency Voucher[4]; varies for others\",\n    \"waitlist\": \"Slots availability-based; not all eligible enrolled due to funding/priorities (e.g., Family Support)[2][6]\",\n    \"forms\": [\"Intake Form (NFCSP phone intake)[2]\"],\n    \"documents\": [\"Proof of income if above 185% FPL; assessment details on ADLs/cognitive needs; for providers: background checks, insurance, policy manual (not family-facing)[1][2]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Available statewide via AAADs and coalitions; funding limits enrollment[3][7]\",\n    \"regional_variations\": \"Administered through local Area Agencies on Aging and Disability (AAADs); availability varies by service area; Local Councils prioritize for Family Support[3][6]\",\n    \"offices_or_providers\": [\"Area Agencies on Aging and Disability (AAADs), contact 1-866-836-6678[2][3]\", \"Tennessee Caregiver Coalition[5][7][8]\"]\n  },\n  \"official_source\": \"https://www.tn.gov/disability-and-aging/disability-aging-programs/caregiving.html[3]\",\n  \"gotchas\": [\n    \"Multiple programs (NFCSP, Lifespan Respite Voucher, Emergency Voucher, Medicaid waivers, Family Support) often lumped as 'respite'; check specific fit[1][3][5][6]\",\n    \"Caregiver is the client; preference to greatest needs; slots limited, eligibility ≠ enrollment[2][6]\",\n    \"Excludes those on certain Medicaid waivers; not substitute for comprehensive services[1][6]\",\n    \"Varies by AAAD region; contributions if higher income[2][3]\"\n  ],\n  \"data_shape_notes\": \"Decentralized via 10+ AAADs with local variation; voucher-based self-direction; ties to federal OAA/NFCSP and state grants; priority tiers and funding caps limit access\"\n}"
+    },
+    {
+      "name": "Tennessee SCSEP",
+      "eligibility": {
+        "age": 55,
+        "income_limits": "Family income must not exceed 125% of the federal poverty level, as established by the U.S. Department of Health and Human Services, based on family size. Exact dollar amounts vary annually and by household size; families must contact a local provider or check current HHS poverty guidelines for the table (e.g., via ASPE.hhs.gov). No specific dollar figures or table provided in state manual[1][2][4].",
+        "asset_limits": "No asset limits mentioned; eligibility focuses on income, not assets[1][2].",
+        "other_requirements": [
+          "Current resident of Tennessee[1][5]",
+          "Unemployed and actively seeking employment[2][3][4][5]",
+          "U.S. citizen or legally able to work[6]"
+        ]
+      },
+      "benefits": {
+        "type": "employment",
+        "value": "Paid on-the-job training averaging 20 hours per week at the highest of federal ($7.25/hour), state, or local minimum wage. Training roles include child care provider, customer service representative, teachers’ aide, computer technician, building maintenance worker, health care worker, nurse’s aide, library clerk, adult/child day care assistance, maintenance workers. Typically lasts about 6 months, bridging to permanent unsubsidized employment. Includes skills training (e.g., computer use) and support services[1][2][3][4][5].",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Contact local SCSEP provider (e.g., East Tennessee: (865) 691-2551 ext 4347, rhawkins@ethra.org for specific counties[3]; First Tennessee Human Resource Agency for Carter, Greene, Hancock, Hawkins, Johnson, Sullivan, Unicoi, Washington counties[8]; Knox Seniors for Knox County[6]; find via CWI Works state selector for Tennessee[4])",
+          "In-person or phone intake at local American Job Centers or sub-grantees (e.g., TN Virtual AJC[5])",
+          "Complete application at local SCSEP office; no central online form specified, but SER National has a general SCSEP Application for Services[7]"
+        ],
+        "processing_time": "Not specified; enrollment if eligible and no waitlist[2].",
+        "waitlist": "Possible waitlist depending on local capacity; contact local office to check[2].",
+        "forms": [
+          "SCSEP Application for Services (general form via providers like SER National[7]); intake assessment during enrollment[1]"
+        ],
+        "documents": [
+          "Proof of Social Security Number",
+          "Identification",
+          "Citizenship status",
+          "Date of birth",
+          "Low income status (income verification for 125% FPL)",
+          "Proof of Tennessee residency[1][5]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Available statewide for Tennessee residents, administered through local sub-grantees and providers (e.g., ETHRA for Blount, Anderson, Morgan, Cocke, Grainger, Jefferson, Loudon, Monroe, Roane, Sevier counties[3]; FTHRA for First Tennessee counties[8]; Knox Seniors[6])[1][3][4][8]",
+        "regional_variations": "Administered by regional providers (e.g., East Tennessee Human Resource Agency, First Tennessee Human Resource Agency, CWI Works sub-grantees); contact info, host sites, and availability vary by county/region. Priority and slots may differ locally[1][3][4][8]",
+        "offices_or_providers": [
+          "East Tennessee Human Resource Agency (ETHRA): specific East TN counties, (865) 691-2551[3]",
+          "First Tennessee Human Resource Agency (FTHRA): Carter, Greene, Hancock, Hawkins, Johnson, Sullivan, Unicoi, Washington counties[8]",
+          "Knox Seniors: Knox County[6]",
+          "TN American Job Centers (required registration within 90 days of enrollment[1])",
+          "CWI Works for Tennessee[4]"
+        ]
+      },
+      "official_source": "https://www.tn.gov/content/dam/tn/workforce-services-tn/documents/SCSEP-Procedure-Manual.pdf",
+      "gotchas": [
+        "Must register at nearest TN American Job Center within 90 days of enrollment for dual WIOA eligibility[1]",
+        "Enrollment priority: veterans/qualified spouses first, then over age 65[4]",
+        "Unemployed status required; program is temporary training (avg. 6 months) to bridge to unsubsidized jobs, not permanent income support[2][4]",
+        "Income calculated for family size at 125% FPL using HHS guidelines; verify current levels as they update annually[1][2]",
+        "No health questions during intake; focus on skills, barriers, job interests[1]",
+        "Local waitlists and slots vary; not guaranteed immediate entry[2]"
+      ],
+      "data_shape_notes": "Administered statewide via regional sub-grantees with county-specific providers and contacts; income test at 125% FPL by family size (annual HHS table); priority tiers for veterans/65+; temporary paid training slots limited by federal funding and local capacity",
+      "_raw": "{\n  \"name\": \"Tennessee SCSEP\",\n  \"eligibility\": {\n    \"age\": 55,\n    \"income_limits\": \"Family income must not exceed 125% of the federal poverty level, as established by the U.S. Department of Health and Human Services, based on family size. Exact dollar amounts vary annually and by household size; families must contact a local provider or check current HHS poverty guidelines for the table (e.g., via ASPE.hhs.gov). No specific dollar figures or table provided in state manual[1][2][4].\",\n    \"asset_limits\": \"No asset limits mentioned; eligibility focuses on income, not assets[1][2].\",\n    \"other_requirements\": [\n      \"Current resident of Tennessee[1][5]\",\n      \"Unemployed and actively seeking employment[2][3][4][5]\",\n      \"U.S. citizen or legally able to work[6]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"employment\",\n    \"value\": \"Paid on-the-job training averaging 20 hours per week at the highest of federal ($7.25/hour), state, or local minimum wage. Training roles include child care provider, customer service representative, teachers’ aide, computer technician, building maintenance worker, health care worker, nurse’s aide, library clerk, adult/child day care assistance, maintenance workers. Typically lasts about 6 months, bridging to permanent unsubsidized employment. Includes skills training (e.g., computer use) and support services[1][2][3][4][5].\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact local SCSEP provider (e.g., East Tennessee: (865) 691-2551 ext 4347, rhawkins@ethra.org for specific counties[3]; First Tennessee Human Resource Agency for Carter, Greene, Hancock, Hawkins, Johnson, Sullivan, Unicoi, Washington counties[8]; Knox Seniors for Knox County[6]; find via CWI Works state selector for Tennessee[4])\",\n      \"In-person or phone intake at local American Job Centers or sub-grantees (e.g., TN Virtual AJC[5])\",\n      \"Complete application at local SCSEP office; no central online form specified, but SER National has a general SCSEP Application for Services[7]\"\n    ],\n    \"processing_time\": \"Not specified; enrollment if eligible and no waitlist[2].\",\n    \"waitlist\": \"Possible waitlist depending on local capacity; contact local office to check[2].\",\n    \"forms\": [\"SCSEP Application for Services (general form via providers like SER National[7]); intake assessment during enrollment[1]\"],\n    \"documents\": [\n      \"Proof of Social Security Number\",\n      \"Identification\",\n      \"Citizenship status\",\n      \"Date of birth\",\n      \"Low income status (income verification for 125% FPL)\",\n      \"Proof of Tennessee residency[1][5]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Available statewide for Tennessee residents, administered through local sub-grantees and providers (e.g., ETHRA for Blount, Anderson, Morgan, Cocke, Grainger, Jefferson, Loudon, Monroe, Roane, Sevier counties[3]; FTHRA for First Tennessee counties[8]; Knox Seniors[6])[1][3][4][8]\",\n    \"regional_variations\": \"Administered by regional providers (e.g., East Tennessee Human Resource Agency, First Tennessee Human Resource Agency, CWI Works sub-grantees); contact info, host sites, and availability vary by county/region. Priority and slots may differ locally[1][3][4][8]\",\n    \"offices_or_providers\": [\n      \"East Tennessee Human Resource Agency (ETHRA): specific East TN counties, (865) 691-2551[3]\",\n      \"First Tennessee Human Resource Agency (FTHRA): Carter, Greene, Hancock, Hawkins, Johnson, Sullivan, Unicoi, Washington counties[8]\",\n      \"Knox Seniors: Knox County[6]\",\n      \"TN American Job Centers (required registration within 90 days of enrollment[1])\",\n      \"CWI Works for Tennessee[4]\"\n    ]\n  },\n  \"official_source\": \"https://www.tn.gov/content/dam/tn/workforce-services-tn/documents/SCSEP-Procedure-Manual.pdf\",\n  \"gotchas\": [\n    \"Must register at nearest TN American Job Center within 90 days of enrollment for dual WIOA eligibility[1]\",\n    \"Enrollment priority: veterans/qualified spouses first, then over age 65[4]\",\n    \"Unemployed status required; program is temporary training (avg. 6 months) to bridge to unsubsidized jobs, not permanent income support[2][4]\",\n    \"Income calculated for family size at 125% FPL using HHS guidelines; verify current levels as they update annually[1][2]\",\n    \"No health questions during intake; focus on skills, barriers, job interests[1]\",\n    \"Local waitlists and slots vary; not guaranteed immediate entry[2]\"\n  ],\n  \"data_shape_notes\": \"Administered statewide via regional sub-grantees with county-specific providers and contacts; income test at 125% FPL by family size (annual HHS table); priority tiers for veterans/65+; temporary paid training slots limited by federal funding and local capacity\"\n}"
+    },
+    {
+      "name": "Tennessee Legal Aid for Seniors",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "Varies by program; some like Legal Aid of East Tennessee require income under 125% of Federal Poverty Guidelines (exact dollar amounts not specified in sources and vary by household size/year); others like Free Senior Legal Helpline have no income limits[1][7][8].",
+        "asset_limits": "No asset limits mentioned for senior-specific programs; Free Senior Legal Helpline explicitly states no asset test[7].",
+        "other_requirements": [
+          "Must personally contact program office (waivable in emergencies)[1]",
+          "Civil legal issues only (e.g., not criminal cases)[1][4]",
+          "Priority for emergencies threatening harm or death[1]",
+          "Specific case types set by state priority categories[1]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Free confidential legal advice, representation, and referrals on civil matters including landlord/tenant, probate, healthcare access (TennCare/Medicare), domestic violence family issues, Medicaid eligibility, guardianship/conservatorship; no charge for attorney time (may have court costs); remote delivery available[1][4][7].",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Phone: Free Senior Legal Helpline 844-435-7486 (statewide)[7]",
+          "Phone: ETHRA Legal Assistance for Elderly (865) 691-2551 ext 4212 or ext 4216 (East TN)[1]",
+          "Website: https://www.ethra.org/programs/21/legal-assistance-for-the-elderly (East TN)[1]",
+          "Website: https://www.tals.org/page/453/free-senior-legal-helpline[7]",
+          "Website: https://www.laet.org (Legal Aid East TN)[10]",
+          "In-person: ETHRA Knoxville office 1514 E. Fifth Avenue, Knoxville, TN 37917; Legal Aid offices vary by region[1]",
+          "Online legal advice: https://tn.freelegalanswers.org/ (statewide for qualifying seniors)[5]"
+        ],
+        "processing_time": "Emergencies given priority; others first-come first-served as capacity allows; no specific timelines stated[1].",
+        "waitlist": "Yes, when caseload maxed; option for waiting list or referral to others[1].",
+        "forms": [
+          "No specific form names/numbers listed; intake via phone or online questions[1][5][7]"
+        ],
+        "documents": [
+          "Income proof for income-based programs; details on legal problem; no full list specified[2][4]"
+        ]
+      },
+      "geography": {
+        "statewide": false,
+        "restrictions": "Regional providers cover specific areas (e.g., ETHRA East TN: Blount, Claiborne, etc. counties; Legal Aid offices by region)[1]",
+        "regional_variations": "Different providers by region (East TN: ETHRA/LAET; Middle TN: varies; Upper Cumberland noted); wait times vary by caseload capacity; 8 Legal Aid orgs total[1][4][5].",
+        "offices_or_providers": [
+          "ETHRA (East TN)[1]",
+          "Legal Aid of East Tennessee[10]",
+          "Tennessee Alliance for Legal Services (helpline statewide)[7]",
+          "Regional Legal Aid offices (8 total)[4]"
+        ]
+      },
+      "official_source": "https://www.tals.org/page/453/free-senior-legal-helpline (statewide helpline); https://www.ethra.org/programs/21/legal-assistance-for-the-elderly (East TN example)",
+      "gotchas": [
+        "Not all civil cases covered (e.g., no criminal, no fee-generating like car accidents)[1][4]",
+        "May need to pay court costs despite free legal help[4]",
+        "Personal contact required (waivable only in emergencies)[1]",
+        "Limited capacity leads to waitlists/referrals[1]",
+        "Income screening even if not always disqualifying[2][4][8]"
+      ],
+      "data_shape_notes": "Regionally administered via multiple providers (not single statewide program); priority tiers by case type/emergency; some no income test but most Legal Aid have poverty guideline limits; varies heavily by East/Middle/West TN",
+      "_raw": "{\n  \"name\": \"Tennessee Legal Aid for Seniors\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"Varies by program; some like Legal Aid of East Tennessee require income under 125% of Federal Poverty Guidelines (exact dollar amounts not specified in sources and vary by household size/year); others like Free Senior Legal Helpline have no income limits[1][7][8].\",\n    \"asset_limits\": \"No asset limits mentioned for senior-specific programs; Free Senior Legal Helpline explicitly states no asset test[7].\",\n    \"other_requirements\": [\"Must personally contact program office (waivable in emergencies)[1]\", \"Civil legal issues only (e.g., not criminal cases)[1][4]\", \"Priority for emergencies threatening harm or death[1]\", \"Specific case types set by state priority categories[1]\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free confidential legal advice, representation, and referrals on civil matters including landlord/tenant, probate, healthcare access (TennCare/Medicare), domestic violence family issues, Medicaid eligibility, guardianship/conservatorship; no charge for attorney time (may have court costs); remote delivery available[1][4][7].\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: Free Senior Legal Helpline 844-435-7486 (statewide)[7]\", \"Phone: ETHRA Legal Assistance for Elderly (865) 691-2551 ext 4212 or ext 4216 (East TN)[1]\", \"Website: https://www.ethra.org/programs/21/legal-assistance-for-the-elderly (East TN)[1]\", \"Website: https://www.tals.org/page/453/free-senior-legal-helpline[7]\", \"Website: https://www.laet.org (Legal Aid East TN)[10]\", \"In-person: ETHRA Knoxville office 1514 E. Fifth Avenue, Knoxville, TN 37917; Legal Aid offices vary by region[1]\", \"Online legal advice: https://tn.freelegalanswers.org/ (statewide for qualifying seniors)[5]\"],\n    \"processing_time\": \"Emergencies given priority; others first-come first-served as capacity allows; no specific timelines stated[1].\",\n    \"waitlist\": \"Yes, when caseload maxed; option for waiting list or referral to others[1].\",\n    \"forms\": [\"No specific form names/numbers listed; intake via phone or online questions[1][5][7]\"],\n    \"documents\": [\"Income proof for income-based programs; details on legal problem; no full list specified[2][4]\"]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Regional providers cover specific areas (e.g., ETHRA East TN: Blount, Claiborne, etc. counties; Legal Aid offices by region)[1]\",\n    \"regional_variations\": \"Different providers by region (East TN: ETHRA/LAET; Middle TN: varies; Upper Cumberland noted); wait times vary by caseload capacity; 8 Legal Aid orgs total[1][4][5].\",\n    \"offices_or_providers\": [\"ETHRA (East TN)[1]\", \"Legal Aid of East Tennessee[10]\", \"Tennessee Alliance for Legal Services (helpline statewide)[7]\", \"Regional Legal Aid offices (8 total)[4]\"]\n  },\n  \"official_source\": \"https://www.tals.org/page/453/free-senior-legal-helpline (statewide helpline); https://www.ethra.org/programs/21/legal-assistance-for-the-elderly (East TN example)\",\n  \"gotchas\": [\"Not all civil cases covered (e.g., no criminal, no fee-generating like car accidents)[1][4]\", \"May need to pay court costs despite free legal help[4]\", \"Personal contact required (waivable only in emergencies)[1]\", \"Limited capacity leads to waitlists/referrals[1]\", \"Income screening even if not always disqualifying[2][4][8]\"],\n  \"data_shape_notes\": \"Regionally administered via multiple providers (not single statewide program); priority tiers by case type/emergency; some no income test but most Legal Aid have poverty guideline limits; varies heavily by East/Middle/West TN\"\n}"
+    },
+    {
+      "name": "Tennessee Long-Term Care Ombudsman",
+      "_parseError": true,
+      "_raw": "I need to clarify an important distinction: the **Tennessee Long-Term Care Ombudsman is not an eligibility-based assistance program**—it's an **advocacy and complaint resolution service** available to all residents of long-term care facilities and their families. There are no income limits, asset limits, or age requirements to use it.\n\nBased on the search results provided, I cannot construct the JSON template you've requested because this program's structure fundamentally differs from the eligibility-based benefit programs that template assumes. Here's what the search results actually show:\n\n## What This Program Actually Is\n\nThe Tennessee Long-Term Care Ombudsman is a **federally mandated advocacy program** established under the Older Americans Act of 1965[2]. It provides **free and confidential** services to help residents and families resolve problems related to long-term care[2].\n\n## Who It Serves\n\n**Anyone with long-term care questions or concerns can contact the ombudsman**, including[3]:\n- Residents of long-term care facilities\n- Families of residents\n- LTC providers with regulatory questions\n- Facility leaders seeking staff training resources\n\nThe program advocates for residents in[1]:\n- Nursing homes\n- Assisted living care facilities\n- Homes for the aged\n- Adult care homes\n\n## What It Provides (Specific Services)\n\nThe ombudsman can[1]:\n- Provide information about the admission process\n- Clarify nursing home and assisted living regulations\n- Make referrals to other agencies\n- Help resolve problems before they escalate\n- Respect requests for anonymity\n- Serve as a resource for staff training\n\nTrained volunteer representatives visit facilities regularly to[1]:\n- Provide information about resident rights, quality of care, and quality of life\n- Observe conditions\n- Advocate for residents\n- Handle complaints\n\n## How to Access\n\n**Statewide toll-free number**: 877-236-0013[1]\n\n**Primary website**: https://www.tn.gov/disability-and-aging/disability-aging-programs/long-term-care-ombudsman.html[1]\n\nThe program is structured with[2]:\n- One State Long-Term Care Ombudsman\n- Nine district ombudsman offices serving different regions\n\n## Key Distinction\n\nThis is **not** a program families \"apply to\" for benefits. It's a **complaint resolution and advocacy service** that residents and families can contact for help. There are no processing times, waitlists, income documentation, or eligibility determinations—it's universally available to anyone with long-term care concerns.\n\nIf you're looking for **financial assistance or care services** for elderly relatives, you would need to research different programs (such as Medicaid/TennCare, which the search results reference but don't detail)."
+    },
+    {
+      "name": "OPTIONS for Community Living",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "No strict upper income limit; if income exceeds Federal Poverty Guidelines, a cost share is required. Medicaid-related programs like CHOICES have separate limits (e.g., $2,982/month for 2026, or 3x SSI Federal Benefit Rate).[3][4]",
+        "asset_limits": "No asset limits mentioned for OPTIONS; Medicaid-linked programs like CHOICES limit countable assets to $2,000 (home exempt if equity ≤$730,000 in 2025, or if spouse/child lives there).[1][3]",
+        "other_requirements": [
+          "Tennessee resident.",
+          "Require assistance with at least 3 Activities of Daily Living (ADLs) or Instrumental ADLs (IADLs), such as mobility, toileting, hygiene, dressing, housekeeping, cooking, shopping, bathing; certified by medical professional.",
+          "For ages 18-60, must be disabled per Social Security determination.[2][4]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Light housekeeping, assistance with bathing, home-delivered meals, case management.[4]",
+        "varies_by": "income (cost share if over FPL); physical need and availability (prioritization on waitlist); region (via local Area Agencies on Aging).[2][4]"
+      },
+      "application": {
+        "methods": [
+          "Phone: Call FTAAAD Information and Assistance line at 1-866-836-6678 for screening and application.[2][4]",
+          "In-person or mail: Contact local Area Agency on Aging and Disability (e.g., ETHRA for specific counties); download intake form from agency website.[4]"
+        ],
+        "processing_time": "Intake screening by phone; if eligible and slot available, in-home assessment by case manager (timeline not specified).[4]",
+        "waitlist": "Waiting lists have existed in past years; prioritization based on income and physical need. Slots must be available.[2][4]",
+        "forms": [
+          "Intake Form (download from local agency website, e.g., ETHRA).[4]"
+        ],
+        "documents": [
+          "Medical certification of ADL/IADL needs; income details for cost share determination; have intake form details ready (health, income, support info).[2][4]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Administered through regional Area Agencies on Aging and Disability (e.g., ETHRA serves Blount, Claiborne, Campbell, Anderson, Knox, Morgan, Cocke, Grainger, Hamblen, Jefferson, Loudon, Monroe, Roane, Scott, Sevier, Union Counties).[4]",
+        "regional_variations": "Delivered by local Area Agencies; potential differences in providers, wait times, and availability by region.[2][4]",
+        "offices_or_providers": [
+          "FTAAAD (statewide intake: 1-866-836-6678); local agencies like ETHRA.[2][4]"
+        ]
+      },
+      "official_source": "https://www.ftaaad.org/options-subpage[2]",
+      "gotchas": [
+        "Waiting lists common; eligibility doesn't guarantee immediate services—prioritized by income/need.[2]",
+        "Cost share if income over FPL—often missed.[4]",
+        "Must have at least 3 ADL/IADL deficits; re-screen if previously denied due to health changes.[2][4]",
+        "Separate from TennCare CHOICES (which requires NFLOC and has stricter financial rules)—don't confuse.[1][3]"
+      ],
+      "data_shape_notes": "State-funded via Tennessee Commission on Aging and Disability; no strict income/asset caps but cost share applies; regional delivery through Area Agencies with waitlists and prioritization; functional need (3+ ADLs) drives eligibility, not Medicaid linkage.",
+      "_raw": "{\n  \"name\": \"OPTIONS for Community Living\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"No strict upper income limit; if income exceeds Federal Poverty Guidelines, a cost share is required. Medicaid-related programs like CHOICES have separate limits (e.g., $2,982/month for 2026, or 3x SSI Federal Benefit Rate).[3][4]\",\n    \"asset_limits\": \"No asset limits mentioned for OPTIONS; Medicaid-linked programs like CHOICES limit countable assets to $2,000 (home exempt if equity ≤$730,000 in 2025, or if spouse/child lives there).[1][3]\",\n    \"other_requirements\": [\n      \"Tennessee resident.\",\n      \"Require assistance with at least 3 Activities of Daily Living (ADLs) or Instrumental ADLs (IADLs), such as mobility, toileting, hygiene, dressing, housekeeping, cooking, shopping, bathing; certified by medical professional.\",\n      \"For ages 18-60, must be disabled per Social Security determination.[2][4]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Light housekeeping, assistance with bathing, home-delivered meals, case management.[4]\",\n    \"varies_by\": \"income (cost share if over FPL); physical need and availability (prioritization on waitlist); region (via local Area Agencies on Aging).[2][4]\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: Call FTAAAD Information and Assistance line at 1-866-836-6678 for screening and application.[2][4]\",\n      \"In-person or mail: Contact local Area Agency on Aging and Disability (e.g., ETHRA for specific counties); download intake form from agency website.[4]\"\n    ],\n    \"processing_time\": \"Intake screening by phone; if eligible and slot available, in-home assessment by case manager (timeline not specified).[4]\",\n    \"waitlist\": \"Waiting lists have existed in past years; prioritization based on income and physical need. Slots must be available.[2][4]\",\n    \"forms\": [\"Intake Form (download from local agency website, e.g., ETHRA).[4]\"],\n    \"documents\": [\"Medical certification of ADL/IADL needs; income details for cost share determination; have intake form details ready (health, income, support info).[2][4]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Administered through regional Area Agencies on Aging and Disability (e.g., ETHRA serves Blount, Claiborne, Campbell, Anderson, Knox, Morgan, Cocke, Grainger, Hamblen, Jefferson, Loudon, Monroe, Roane, Scott, Sevier, Union Counties).[4]\",\n    \"regional_variations\": \"Delivered by local Area Agencies; potential differences in providers, wait times, and availability by region.[2][4]\",\n    \"offices_or_providers\": [\"FTAAAD (statewide intake: 1-866-836-6678); local agencies like ETHRA.[2][4]\"]\n  },\n  \"official_source\": \"https://www.ftaaad.org/options-subpage[2]\",\n  \"gotchas\": [\n    \"Waiting lists common; eligibility doesn't guarantee immediate services—prioritized by income/need.[2]\",\n    \"Cost share if income over FPL—often missed.[4]\",\n    \"Must have at least 3 ADL/IADL deficits; re-screen if previously denied due to health changes.[2][4]\",\n    \"Separate from TennCare CHOICES (which requires NFLOC and has stricter financial rules)—don't confuse.[1][3]\"\n  ],\n  \"data_shape_notes\": \"State-funded via Tennessee Commission on Aging and Disability; no strict income/asset caps but cost share applies; regional delivery through Area Agencies with waitlists and prioritization; functional need (3+ ADLs) drives eligibility, not Medicaid linkage.\"\n}"
+    },
+    {
+      "name": "Tennessee State Health Insurance Assistance Program (TN SHIP)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "No income limits specified in available documentation. Program serves 'people with limited incomes' but does not enforce strict thresholds.",
+        "asset_limits": "Not specified in available documentation",
+        "other_requirements": [
+          "Must be Medicare-eligible or currently enrolled in Medicare",
+          "No formal eligibility requirements stated — assistance provided to general public who calls"
+        ]
+      },
+      "benefits": {
+        "type": "service|advocacy",
+        "value": "Free, one-on-one counseling and education; assistance with Medicare enrollment, plan comparisons, applications for low-income programs (Medicare Savings Plans, Extra Help), fraud investigation, and billing issue resolution. No direct financial payments to beneficiaries.",
+        "varies_by": "not_applicable — counseling services are standardized; specific assistance depends on individual circumstances"
+      },
+      "application": {
+        "methods": [
+          "Phone: 1-877-801-0044 (statewide toll-free)",
+          "Phone: 844-887-7447 (East Tennessee regional line)",
+          "Phone: 901-222-4111 (local, Shelby County area)",
+          "Email: dda.ship@tn.gov",
+          "Online form: Available at tn.gov/disability-and-aging/disability-aging-programs/tn-ship.html",
+          "In-person: Contact local SHIP coordinator (varies by region)"
+        ],
+        "processing_time": "Not specified in available documentation",
+        "waitlist": "Not mentioned in available documentation",
+        "forms": [
+          "Part D Worksheet (2022 version available in English and Spanish)",
+          "Online contact form on official TN SHIP website"
+        ],
+        "documents": "Not specified in available documentation. Recommend contacting SHIP directly to confirm what documentation is needed for specific assistance requests."
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Nine regional SHIP offices serve different areas of Tennessee",
+        "regional_variations": "Regional offices include: (1) Aging Commission of the Mid-South (serves Shelby, Fayette, Lauderdale, Tipton counties); (2) East Tennessee SHIP (serves Blount, Claiborne, Campbell, Anderson, Knox, Morgan, Cocke, Grainger, Hamblen, Jefferson, Loudon, Monroe, Roane, Scott, Sevier, Union counties). Other regions have separate coordinators but specific coverage areas not detailed in available sources.",
+        "offices_or_providers": [
+          "Tennessee Commission on Aging and Disability, Andrew Jackson Bldg., 9th Floor, 502 Deaderick St., Nashville, TN 37243 (state office)",
+          "Aging Commission of the Mid-South (Shelby County area): 901-222-4111",
+          "East Tennessee SHIP: 844-887-7447",
+          "Nine total regional offices statewide"
+        ]
+      },
+      "official_source": "https://www.tn.gov/disability-and-aging/disability-aging-programs/tn-ship.html",
+      "gotchas": [
+        "SHIP does NOT provide direct financial assistance or pay premiums — it provides counseling and helps beneficiaries apply for OTHER programs (Medicare Savings Plans, Extra Help) that may pay premiums or copays. Families expecting direct payment should understand this distinction.",
+        "Medicare enrollment is mandatory once eligible; failure to enroll timely can result in penalties. SHIP can help navigate this transition, especially for those currently on ACA Marketplace plans.",
+        "SHIP is free and unbiased — it does not sell insurance or endorse any company. This is a strength, but means it cannot provide personalized recommendations, only objective information.",
+        "Program created in early 1990s but significantly expanded after Medicare Part D launched in 2006; families should not assume outdated information about program scope.",
+        "Regional variation means wait times, counselor availability, and local outreach may differ significantly by county.",
+        "No eligibility screening mentioned — anyone can call, but actual assistance depends on Medicare eligibility and specific needs."
+      ],
+      "data_shape_notes": "TN SHIP is a counseling and advocacy program, not a direct-benefit program. It has no income or asset limits, no formal application process, and no waiting period — beneficiaries simply call to access services. The program's value lies in helping beneficiaries navigate complex Medicare options and apply for OTHER assistance programs. Regional variation is significant: nine separate offices serve different areas with different phone numbers and coverage areas. The program is federally funded but state-administered, creating a hybrid governance structure. Unlike many assistance programs, there is no 'approval' or 'denial' — SHIP provides services to anyone who contacts them and is Medicare-eligible.",
+      "_raw": "```json\n{\n  \"name\": \"Tennessee State Health Insurance Assistance Program (TN SHIP)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No income limits specified in available documentation. Program serves 'people with limited incomes' but does not enforce strict thresholds.\",\n    \"asset_limits\": \"Not specified in available documentation\",\n    \"other_requirements\": [\n      \"Must be Medicare-eligible or currently enrolled in Medicare\",\n      \"No formal eligibility requirements stated — assistance provided to general public who calls\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service|advocacy\",\n    \"value\": \"Free, one-on-one counseling and education; assistance with Medicare enrollment, plan comparisons, applications for low-income programs (Medicare Savings Plans, Extra Help), fraud investigation, and billing issue resolution. No direct financial payments to beneficiaries.\",\n    \"varies_by\": \"not_applicable — counseling services are standardized; specific assistance depends on individual circumstances\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: 1-877-801-0044 (statewide toll-free)\",\n      \"Phone: 844-887-7447 (East Tennessee regional line)\",\n      \"Phone: 901-222-4111 (local, Shelby County area)\",\n      \"Email: dda.ship@tn.gov\",\n      \"Online form: Available at tn.gov/disability-and-aging/disability-aging-programs/tn-ship.html\",\n      \"In-person: Contact local SHIP coordinator (varies by region)\"\n    ],\n    \"processing_time\": \"Not specified in available documentation\",\n    \"waitlist\": \"Not mentioned in available documentation\",\n    \"forms\": [\n      \"Part D Worksheet (2022 version available in English and Spanish)\",\n      \"Online contact form on official TN SHIP website\"\n    ],\n    \"documents\": \"Not specified in available documentation. Recommend contacting SHIP directly to confirm what documentation is needed for specific assistance requests.\"\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Nine regional SHIP offices serve different areas of Tennessee\",\n    \"regional_variations\": \"Regional offices include: (1) Aging Commission of the Mid-South (serves Shelby, Fayette, Lauderdale, Tipton counties); (2) East Tennessee SHIP (serves Blount, Claiborne, Campbell, Anderson, Knox, Morgan, Cocke, Grainger, Hamblen, Jefferson, Loudon, Monroe, Roane, Scott, Sevier, Union counties). Other regions have separate coordinators but specific coverage areas not detailed in available sources.\",\n    \"offices_or_providers\": [\n      \"Tennessee Commission on Aging and Disability, Andrew Jackson Bldg., 9th Floor, 502 Deaderick St., Nashville, TN 37243 (state office)\",\n      \"Aging Commission of the Mid-South (Shelby County area): 901-222-4111\",\n      \"East Tennessee SHIP: 844-887-7447\",\n      \"Nine total regional offices statewide\"\n    ]\n  },\n  \"official_source\": \"https://www.tn.gov/disability-and-aging/disability-aging-programs/tn-ship.html\",\n  \"gotchas\": [\n    \"SHIP does NOT provide direct financial assistance or pay premiums — it provides counseling and helps beneficiaries apply for OTHER programs (Medicare Savings Plans, Extra Help) that may pay premiums or copays. Families expecting direct payment should understand this distinction.\",\n    \"Medicare enrollment is mandatory once eligible; failure to enroll timely can result in penalties. SHIP can help navigate this transition, especially for those currently on ACA Marketplace plans.\",\n    \"SHIP is free and unbiased — it does not sell insurance or endorse any company. This is a strength, but means it cannot provide personalized recommendations, only objective information.\",\n    \"Program created in early 1990s but significantly expanded after Medicare Part D launched in 2006; families should not assume outdated information about program scope.\",\n    \"Regional variation means wait times, counselor availability, and local outreach may differ significantly by county.\",\n    \"No eligibility screening mentioned — anyone can call, but actual assistance depends on Medicare eligibility and specific needs.\"\n  ],\n  \"data_shape_notes\": \"TN SHIP is a counseling and advocacy program, not a direct-benefit program. It has no income or asset limits, no formal application process, and no waiting period — beneficiaries simply call to access services. The program's value lies in helping beneficiaries navigate complex Medicare options and apply for OTHER assistance programs. Regional variation is significant: nine separate offices serve different areas with different phone numbers and coverage areas. The program is federally funded but state-administered, creating a hybrid governance structure. Unlike many assistance programs, there is no 'approval' or 'denial' — SHIP provides services to anyone who contacts them and is Medicare-eligible.\"\n}\n```\n\n## Key Takeaways for Families\n\n**No Eligibility Barriers**: Unlike most assistance programs, TN SHIP has no income limits, asset limits, or formal application process[8]. Your elderly loved one simply needs to be Medicare-eligible or enrolled in Medicare[3].\n\n**What SHIP Actually Does**: SHIP provides free counseling and helps beneficiaries understand and apply for Medicare benefits[3]. Critically, SHIP itself does not pay premiums or copays — instead, it helps beneficiaries apply for programs like Medicare Savings Plans (QMB, SLMB, QI-1) and Extra Help that *do* provide financial assistance[1][2].\n\n**How to Access**: Call the statewide number **1-877-801-0044** to reach the appropriate regional counselor[3]. Regional offices also have direct lines (e.g., East Tennessee: 844-887-7447; Shelby County: 901-222-4111)[2][7]. You can also email dda.ship@tn.gov or fill out an online form[3].\n\n**Regional Structure**: Tennessee has nine separate SHIP offices serving different regions[2]. The Aging Commission of the Mid-South covers Shelby, Fayette, Lauderdale, and Tipton counties; East Tennessee SHIP covers 16 counties in that region; other areas have separate coordinators[2][7].\n\n**What to Expect**: Trained counselors provide one-on-one assistance with Medicare enrollment, plan comparisons, prescription drug coverage, supplemental insurance, and applications for low-income assistance programs[2]. SHIP also helps investigate billing issues and suspected fraud[7].\n\n**The Critical Distinction**: SHIP is a *counseling service*, not a *benefit program*. Families should not expect SHIP to pay bills directly. Instead, SHIP helps beneficiaries navigate options and apply for programs that provide financial relief[3][4]."
+    }
+  ]
+}

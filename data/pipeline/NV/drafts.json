@@ -1,0 +1,571 @@
+{
+  "state": "NV",
+  "stateName": "Nevada",
+  "draftedAt": "2026-04-09T08:56:26.443Z",
+  "total": 12,
+  "successful": 3,
+  "programs": [
+    {
+      "name": "Medicaid Medicare Savings Programs (QMB, SLMB, QI)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "id": "nevada-hcbs-frail-elderly-waiver",
+      "name": "Home and Community Based Services Waiver for the Frail Elderly (HCBS FE Waiver)",
+      "shortName": "HCBS FE Waiver",
+      "tagline": "If your parent needs daily help with bathing or medication but wants to stay home, this Nevada program covers in-home care instead of nursing home placement.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Aging and Disability Services Division (ADSD)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 65+ and needs significant daily help but wants to avoid a nursing home, Nevada's HCBS Frail Elderly Waiver can provide in-home caregivers, adult day care, and emergency response systems. Because this waiver covers comprehensive home care services, your parent can stay in their own home even when they need help with bathing, dressing, medication management, or meal preparation.\n\nYour parent must qualify for nursing home level of care (meaning they need help with at least 3 major daily activities) and meet strict income limits: $2,901/month for individuals or $5,802/month for married couples in 2025. The program requires full Medicaid eligibility and has a waitlist when at capacity.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+",
+          "Income below $2,901/month (individual)",
+          "Need help with 3+ daily activities",
+          "Nevada resident"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2901
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 5802
+          }
+        ],
+        "assetLimits": {
+          "individual": 2000,
+          "couple": null,
+          "countedAssets": [
+            "Bank accounts",
+            "Investments",
+            "Second homes"
+          ],
+          "exemptAssets": [
+            "Primary home (up to $752,000 equity)",
+            "One vehicle",
+            "Personal belongings"
+          ],
+          "homeEquityCap": 752000
+        },
+        "functionalRequirement": "Must need nursing home level of care (minimum 3 functional deficits covering medication management, bathing, dressing, mobility, or supervision needs)",
+        "otherRequirements": [
+          "Nevada resident",
+          "U.S. citizen or lawful permanent resident",
+          "Must qualify for full Medicaid"
+        ],
+        "povertyLevelReference": "300% Federal Benefit Rate"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply through two agencies: ADSD for functional assessment and DWSS for Medicaid financial eligibility, taking several weeks to months total.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact ADSD for functional assessment",
+            "description": "Call Aging and Disability Services Division to start the nursing home level of care evaluation through in-person or phone interview."
+          },
+          {
+            "step": 2,
+            "title": "Apply for Medicaid financial eligibility",
+            "description": "Submit financial application through Division of Welfare and Supportive Services (DWSS) with income, asset, and residency documentation."
+          },
+          {
+            "step": 3,
+            "title": "Complete OCL Program Application",
+            "description": "Submit the OCL Program Application (Rev 01-23) through ADSD once functional assessment is scheduled."
+          },
+          {
+            "step": 4,
+            "title": "Wait for dual approval",
+            "description": "Both agencies must approve eligibility before services can begin. If approved but program is full, join waitlist for next available slot."
+          }
+        ],
+        "processingTime": "Several weeks to months for eligibility and assessments",
+        "waitlist": "Waitlist exists when program is at capacity; approved applicants wait additional time for services to begin",
+        "tip": "Start both applications simultaneously — you need approval from both ADSD and DWSS before services can begin.",
+        "urls": [
+          {
+            "label": "ADSD Contact",
+            "url": "https://adsd.nv.gov"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits by Household Size",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 2901
+            },
+            {
+              "householdSize": 2,
+              "monthlyLimit": 5802
+            }
+          ],
+          "footnote": "2025 limits at 300% Federal Benefit Rate. When only one spouse applies, individual limit applies and spouse's income is disregarded."
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and savings",
+            "Investments and retirement accounts",
+            "Second homes or rental property",
+            "Vehicles beyond one car"
+          ],
+          "excluded": [
+            "Primary home (up to $752,000 equity in 2026)",
+            "One vehicle of any value",
+            "Personal belongings and household items",
+            "Life insurance under $1,500 face value"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Social Security card",
+                "Birth certificate or citizenship proof",
+                "Nevada residency documentation"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "3 months of bank statements",
+                "Social Security award letter",
+                "Pension or retirement income proof",
+                "Property deeds and home equity information"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "List of current medications",
+                "Recent medical records showing functional limitations",
+                "Documentation of help needed with daily activities"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Even after approval, you may face a waitlist. Nevada has limited waiver slots, so approved applicants often wait additional weeks or months before services actually begin."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "A dementia diagnosis alone doesn't guarantee qualification. Your parent must demonstrate they need hands-on help with at least 3 specific daily activities like bathing, dressing, or medication management during the functional assessment."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house if she qualifies for this waiver?",
+          "answer": "Yes, as long as her home equity doesn't exceed $752,000 (2026 limit) and she lives there or intends to return. The home is completely exempt from the $2,000 asset limit if she, her spouse, or a dependent child under 21 lives there."
+        },
+        {
+          "question": "What if Dad's income is just over $2,901 per month?",
+          "answer": "He won't qualify for this waiver. Nevada uses strict income limits at 300% of the Federal Benefit Rate ($2,901 for individuals in 2025) with no spend-down option for this program."
+        },
+        {
+          "question": "Does having dementia automatically qualify my parent?",
+          "answer": "No. Your parent must demonstrate they need hands-on help with at least 3 specific daily activities during the functional assessment. The evaluator scores 13 areas including medication management, bathing, dressing, and mobility — dementia diagnosis alone isn't enough."
+        },
+        {
+          "question": "How long will we wait after approval before services actually start?",
+          "answer": "It varies. Even after both agencies approve eligibility, you may join a waitlist if Nevada has filled all available waiver slots. The research shows approved applicants often wait additional weeks or months before services begin."
+        },
+        {
+          "question": "What happens if my parents are married but only one needs the waiver?",
+          "answer": "Good news: if only one spouse applies, the other spouse's income doesn't count toward the $2,901 monthly limit. But if both spouses need the waiver, their combined income must stay under $5,802/month."
+        },
+        {
+          "question": "What services will the waiver actually provide?",
+          "answer": "The waiver covers case management, in-home personal care, homemaker services, adult day care, emergency response systems, chore services, and respite care. Your parent must use at least one service monthly, and the specific services depend on their assessed needs."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://adsd.nv.gov",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Nevada State Health Insurance Assistance Program (SHIP)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "id": "nevada-home-delivered-meals",
+      "name": "Home Delivered Meals",
+      "shortName": "Meal Delivery",
+      "tagline": "Free meal delivery for homebound parents 60+ who can't shop or cook independently.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Washoe County Seniors: 1155 E. 9th St., Reno, NV 89512; 775-328-2575",
+            "type": "service-area"
+          },
+          {
+            "name": "Catholic Charities of Southern Nevada (Las Vegas area)",
+            "type": "service-area"
+          },
+          {
+            "name": "Mom's Meals for Medicaid waiver participants",
+            "type": "service-area"
+          },
+          {
+            "name": "Nevada 211 for statewide referrals",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and homebound due to illness, disability, or isolation, they can receive 5-7 free meals delivered weekly to their door. Each meal provides at least one-third of daily nutrition requirements, including one hot meal on delivery day plus frozen meals for the week. Your parent also gets up to 7 additional meals through the Second Home Delivered Meal Program and 2 shelf-stable emergency meals annually.\n\nThis isn't a single statewide program — different local agencies serve different areas. In Washoe County, seniors can receive up to 14 meals per week. In Las Vegas, Catholic Charities serves homebound seniors. If your parent is already enrolled in a Medicaid waiver like Frail Elderly, they may qualify for additional meal delivery through their health plan.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Homebound due to illness or disability",
+          "Unable to shop or prepare meals",
+          "Live within service area"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must be homebound due to illness, disability, or geographic isolation that prevents attending congregate meal sites. Must be unable to shop for or prepare meals independently.",
+        "otherRequirements": [
+          "Live within delivery area of local provider",
+          "Have refrigerator, freezer, and microwave for meal storage"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your local provider for a phone assessment followed by a required home visit for certification.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call your local provider",
+            "description": "Contact Washoe County Seniors at 775-328-2575 (Reno area), Catholic Charities (Las Vegas area), or Nevada 211 statewide for referrals."
+          },
+          {
+            "step": 2,
+            "title": "Complete phone assessment",
+            "description": "Provider staff will assess your parent's need for meal delivery and homebound status over the phone."
+          },
+          {
+            "step": 3,
+            "title": "Schedule home visit",
+            "description": "Staff will visit your parent's home to confirm need and verify they have proper appliances (refrigerator, freezer, microwave) for meal storage."
+          },
+          {
+            "step": 4,
+            "title": "Receive certification",
+            "description": "If approved, certification lasts up to 12 months before reassessment is required."
+          }
+        ],
+        "processingTime": "Not specified — includes initial home visit for certification",
+        "waitlist": null,
+        "tip": "Priority goes to the frailest seniors, so emphasize specific health conditions or disabilities that prevent your parent from shopping or cooking.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "Local Providers by Area",
+          "offices": [
+            {
+              "name": "Washoe County (Reno area)",
+              "type": "service-area",
+              "phone": "775-328-2575",
+              "address": "1155 E. 9th St., Reno, NV 89512"
+            },
+            {
+              "name": "Las Vegas Area",
+              "type": "service-area",
+              "phone": "Contact Catholic Charities of Southern Nevada directly",
+              "address": "Catholic Charities of Southern Nevada"
+            },
+            {
+              "name": "Statewide Referrals",
+              "type": "service-area",
+              "phone": "2-1-1",
+              "address": "Nevada 211"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Have Ready",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Proof of age (driver's license, birth certificate)",
+                "Proof of Nevada residency"
+              ]
+            },
+            {
+              "name": "For Medicaid Waiver Participants",
+              "items": [
+                "Referral from case manager",
+                "Medicaid ID card",
+                "Current address verification"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "This isn't one statewide program. You must find the specific local provider that serves your parent's area. If your parent lives in a rural area, geographic isolation may limit access to delivery."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If your parent is already on Medicaid and enrolled in a waiver like Frail Elderly, contact their case manager first — they may qualify for additional meal delivery through their health plan."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent lives in a rural area not served by these providers?",
+          "answer": "Call Nevada 211 for referrals to local providers. Geographic isolation may actually help qualify your parent if it prevents them from accessing congregate meal sites or grocery stores."
+        },
+        {
+          "question": "Can my parent choose what meals they receive?",
+          "answer": "Meals are pre-prepared by the agency and must comply with federal nutrition guidelines. Your parent cannot choose specific meals, but providers accommodate dietary restrictions and cultural preferences when possible."
+        },
+        {
+          "question": "What happens if my parent's condition improves and they can shop again?",
+          "answer": "Certification lasts up to 12 months, but your parent should notify the provider if their situation changes. They may be reassessed or transitioned to congregate meal sites instead."
+        },
+        {
+          "question": "Does my parent need to be on Medicaid to qualify?",
+          "answer": "No. The main senior programs have no income limits — they're based on age (60+) and need. Medicaid waiver participants can access additional meal delivery, but it requires separate enrollment in programs like Frail Elderly."
+        },
+        {
+          "question": "What if my parent doesn't have a microwave or freezer?",
+          "answer": "Your parent must have a refrigerator, freezer, and microwave for meal storage. This is confirmed during the required home visit. Without proper appliances, they won't qualify for the program."
+        },
+        {
+          "question": "How many meals can my parent receive per week?",
+          "answer": "Typically 5-7 meals per week, including one hot meal on delivery day plus frozen meals. In Washoe County, your parent can receive up to 7 additional meals through the Second Home Delivered Meal Program for a total of 14 meals per week."
+        }
+      ],
+      "phone": "775-328-2575",
+      "sourceUrl": "https://adsd.nv.gov",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "nevada-respite-care-vouchers",
+      "name": "Respite Care Vouchers / Senior Respite Care",
+      "shortName": "Respite Care Vouchers",
+      "tagline": "Up to $1,000 annually to pay for professional caregiver relief when you need a break from caring for your parent at home.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Seniors in Service Nevada (main office 1380 Greg Street, Reno area)",
+            "type": "service-area"
+          },
+          {
+            "name": "Nevada Care Connection for statewide emergency assistance",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If you're living with and caring for a parent who needs daily help with bathing, dressing, or staying safe at home, Nevada's Respite Care Voucher program provides up to $1,000 annually to pay for professional caregiver relief. Because you qualify regardless of your parent's income or assets, this program focuses on functional need — your parent must require supervision or assistance with multiple daily activities and be at risk when left alone.\n\nThe vouchers reimburse you for hiring professional respite care or agency services, giving you time to work, run errands, or simply rest. Because funding comes from state grants with limited availability, applications go through a selection process rather than automatic approval. Only available in Northern Nevada through Carson City and south to Tonopah.",
+      "savingsRange": "$1,000/year in 2026",
+      "savingsSource": "Annual voucher maximum",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Lives at home (not in facility)",
+          "Needs daily care supervision",
+          "Live-in family caregiver",
+          "Northern Nevada only"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must need supervision or assistance with multiple daily living activities (bathing, feeding, walking) and be at risk when left alone",
+        "otherRequirements": [
+          "Parent lives in community (not assisted living, care facility, or nursing home)",
+          "You must live at the same address as your parent",
+          "Parent does not have dementia/Alzheimer's (separate program available)",
+          "Available in Northern Nevada counties only"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "mail",
+        "summary": "Download application form and mail to Seniors in Service Nevada — selected applicants are notified by phone and mail.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Download application form",
+            "description": "Get the Respite Voucher Application (SIS Respite Application 24-25) from Seniors in Service Nevada website or ADSD documents"
+          },
+          {
+            "step": 2,
+            "title": "Gather required documents",
+            "description": "Collect Nevada photo ID for both you and your parent, proof of age for parent, and proof you both live at same address"
+          },
+          {
+            "step": 3,
+            "title": "Complete and mail application",
+            "description": "Mail completed application and documents to Seniors in Service Nevada, 1380 Greg Street"
+          },
+          {
+            "step": 4,
+            "title": "Wait for selection notification",
+            "description": "Selected applicants are contacted by phone and mail — funding is limited and selection-based"
+          }
+        ],
+        "processingTime": "Not specified; those selected are notified by phone and mail",
+        "waitlist": "Funding contingent on availability; program uses selection process rather than first-come basis",
+        "tip": "Apply early in the program year as funding is limited through state grants",
+        "urls": [
+          {
+            "label": "Seniors in Service Nevada",
+            "url": "https://seniorsinservicenevada.org/respite-voucher-program/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity and Residency",
+              "items": [
+                "Nevada photo ID for both you and your parent",
+                "Proof of age for your parent",
+                "Proof you both live at same address (photocopies of driver's licenses work)"
+              ]
+            },
+            {
+              "name": "Application",
+              "items": [
+                "Completed Respite Voucher Application (SIS Respite Application 24-25)"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "county-directory",
+          "heading": "Local Offices",
+          "offices": [
+            {
+              "name": "Seniors in Service Nevada",
+              "type": "service-area",
+              "phone": null,
+              "address": "1380 Greg Street, Reno area"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "If your parent has dementia or Alzheimer's, you cannot use this program. Instead, call the Alzheimer's Association of Northern Nevada at 775-786-8061 for specialized respite services."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "You must live at the same address as your parent to qualify. This program specifically supports live-in family caregivers, not those who visit or live nearby."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can I use this if my parent lives in assisted living?",
+          "answer": "No. Your parent must live in the community at home, not in assisted living, care facilities, or nursing homes."
+        },
+        {
+          "question": "What if my parent has some income or savings?",
+          "answer": "Income and assets don't matter for this program. Eligibility is based on your parent's functional needs and your role as live-in caregiver."
+        },
+        {
+          "question": "Can I hire my friend or neighbor as the respite caregiver?",
+          "answer": "The voucher reimburses for professional agencies or paid respite care providers, but check with Seniors in Service Nevada about specific provider requirements."
+        },
+        {
+          "question": "What if I don't get selected this year?",
+          "answer": "You can reapply the following year. The program operates on annual funding cycles with limited grants, so selection isn't guaranteed."
+        },
+        {
+          "question": "My parent has mild memory issues but not diagnosed dementia — can we still apply?",
+          "answer": "Yes, unless your parent has been diagnosed with dementia or Alzheimer's. Mild memory issues that don't rise to dementia diagnosis should qualify."
+        },
+        {
+          "question": "I live in Las Vegas — is there a similar program in Southern Nevada?",
+          "answer": "This specific voucher program only covers Northern Nevada. Contact Nevada Care Connection for information about respite assistance in other parts of the state."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://adsd.nv.gov",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Nevada Advocates for Seniors",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Nevada Long-Term Care Ombudsman Program",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Community Options Program for the Elderly (COPE)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    }
+  ],
+  "stateOverview": null
+}

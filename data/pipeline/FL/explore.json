@@ -1,0 +1,59 @@
+{
+  "entity": "Florida",
+  "entitySlug": "florida",
+  "state": "FL",
+  "stateName": "Florida",
+  "isRegion": false,
+  "exploredAt": "2026-04-09T08:48:55.110Z",
+  "programCount": 6,
+  "programs": [
+    {
+      "name": "Home Care for the Elderly (HCE) Program",
+      "what_it_does": "Provides a basic subsidy to support family-type living arrangements for seniors age 60 and older within private homes. This state-funded program helps elders remain in community settings rather than institutional care.",
+      "who_its_for": "Florida residents aged 60+ in family-type living arrangements with income and asset limits.",
+      "whats_unique": "Florida-specific state-funded subsidy unique to private home care arrangements, not a federal program.",
+      "official_url": "https://elderaffairs.org/programs-services/community-services/home-care-for-the-elderly/",
+      "benefit_value": "Basic monthly subsidy (amount varies by income, up to ~$160/month based on state guidelines)"
+    },
+    {
+      "name": "Community Care for the Elderly (CCE) Program",
+      "what_it_does": "Delivers community-based services including medical supplies, emergency alert response, and therapeutic services to functionally impaired elders. Services are organized to enable living in the least restrictive, cost-effective environment.",
+      "who_its_for": "Functionally impaired Florida elders needing community-based support, based on assessed needs, income, and residency.",
+      "whats_unique": "Florida's state-administered non-Medicaid program providing a continuum of care services tailored to avoid institutionalization.",
+      "official_url": "https://elderaffairs.org/programs-services/community-services/community-care-for-the-elderly/",
+      "benefit_value": "Varies by service package; can include in-home care, meals, and supplies worth thousands annually"
+    },
+    {
+      "name": "Respite for Elders Living in Everyday Families (RELIEF) Program",
+      "what_it_does": "Offers in-home respite care to give family caregivers breaks from responsibilities for homebound elderly individuals. This increases the family unit's ability to continue providing care at home.",
+      "who_its_for": "Family caregivers of homebound Florida elders, with eligibility based on elder's age, frailty, and family income.",
+      "whats_unique": "State-funded respite specifically for everyday family caregivers in Florida, distinct from federal OAA allotments.",
+      "official_url": "https://elderaffairs.org/programs-services/community-services/relief/",
+      "benefit_value": "In-home respite hours (typically 20-360 hours/year depending on priority level)"
+    },
+    {
+      "name": "Optional State Supplementation (OSS) for SSI Recipients",
+      "what_it_does": "Provides monthly cash supplements to SSI recipients in assisted living or adult family care homes. Supports basic expenses for qualifying seniors in residential care facilities.",
+      "who_its_for": "SSI-eligible Florida seniors in adult family care homes or assisted living facilities meeting federal resource limits.",
+      "whats_unique": "Florida's state-level supplement to federal SSI, optional and targeted at specific residential care settings (unlike states without OSS).",
+      "official_url": "https://www.myflfamilies.com/service-programs/supplemental-security-income-state-supplementation/",
+      "benefit_value": "$78.40 monthly for residential care (2025 rate)"
+    },
+    {
+      "name": "Additional Homestead Exemption for Seniors",
+      "what_it_does": "Offers supplemental property tax exemption beyond the standard $25,000 homestead for qualifying seniors. Reduces taxable property value by up to $50,000 in some areas, saving on annual taxes.",
+      "who_its_for": "Florida homeowners aged 65+ meeting income thresholds (varies by county, e.g., $35,000 or less).",
+      "whats_unique": "State-authorized extra exemption stacking on federal homestead, with local variations like $50,000 in Tampa—beyond standard federal tax relief.",
+      "official_url": "https://floridarevenue.com/property/Documents/pt109.pdf",
+      "benefit_value": "Up to $50,000 exemption; ~$600-$2,400 annual tax savings depending on millage rate"
+    },
+    {
+      "name": "SHINE (Serving Health Insurance Needs of Elders)",
+      "what_it_does": "Provides free, unbiased one-on-one counseling on Medicare, Medicaid, and health insurance options. Empowers seniors through volunteer-assisted guidance to select optimal coverage.",
+      "who_its_for": "All Florida elders (primarily 65+) seeking health insurance counseling, no income restrictions.",
+      "whats_unique": "Florida Department of Elder Affairs' statewide volunteer network for personalized insurance help, not replicated identically in every state.",
+      "official_url": "https://www.floridashine.org",
+      "benefit_value": "Free counseling; potential savings of thousands via optimized Medicare/Part D plans"
+    }
+  ]
+}

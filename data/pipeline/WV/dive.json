@@ -1,0 +1,827 @@
+{
+  "state": "WV",
+  "stateName": "West Virginia",
+  "diveAt": "2026-04-09T09:04:05.495Z",
+  "total": 17,
+  "parsed": 15,
+  "programs": [
+    {
+      "name": "West Virginia Medicaid Personal Care Services Program",
+      "eligibility": {
+        "age": 18,
+        "income_limits": "Must meet West Virginia Medicaid financial eligibility criteria, which includes a Medically Needy Pathway (Spenddown Program) allowing applicants to spend excess income on medical expenses to qualify. Specific dollar amounts not detailed in sources; varies by Medicaid category (e.g., aged, blind, disabled). Use American Council on Aging Medicaid Eligibility Test for precise limits.[1]",
+        "asset_limits": "Must meet West Virginia Medicaid asset limits (specific amounts not provided in sources; standard Medicaid rules apply with exemptions typical for the program such as primary home, one vehicle, personal belongings). Applying over limits results in denial.[1]",
+        "other_requirements": [
+          "West Virginia resident",
+          "Eligible for West Virginia State Medicaid (must have Medicaid card)",
+          "Medically eligible: Physician-prescribed need for assistance in at least three activities of daily living (e.g., eating, bathing, dressing, grooming, hygiene, mobility, toileting); confirmed by RN in-home evaluation (Pre-Admission Screening via PC-MNER)",
+          "Services necessary for long-term health and safety; plan of care by RN[1][2][3][4][8]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "In-home personal care services by trained para-professionals supervised by RN, including hands-on assistance with: meals, grooming, hygiene, bathing, dressing, toileting, mobility, other personal care needs; limited housekeeping only if paired with personal care; also grocery shopping, errands, housework, budget management, transportation to doctor appointments if personal care needs exist. Hours per month based on assessed personal care needs (greater need = more hours). Excludes skilled nursing, medications, wound care, injections.[2][3][4]",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Submit completed Personal Care Program Medical Necessity Evaluation Request (PC-MNER) to doctor (MD/DO), physician assistant, or RN for completion, then to Bureau of Senior Services. Already on Medicaid: initiate via PC-MNER for in-home assessment scheduling.[1][3]",
+          "Phone: Bureau of Senior Services Medicaid helpline at 866-767-1575 or (304) 558-2241; Toll Free Information Line 1-866-767-1575[1][3][7]",
+          "Mail/In-person: Bureau of Senior Services, 1900 Kanawha Blvd. East, Charleston, WV 25305[7]"
+        ],
+        "processing_time": "RN contacts for in-home evaluation (Pre-Admission Screening) after PC-MNER receipt; timeline not specified[1][3]",
+        "waitlist": "None - entitlement program; Medicaid eligibility guarantees services[1]",
+        "forms": [
+          "Personal Care Program Medical Necessity Evaluation Request (PC-MNER)[1][3]"
+        ],
+        "documents": [
+          "West Virginia State Medicaid card",
+          "Completed and signed PC-MNER (patient portion), physician/RN/PA completed medical necessity section",
+          "Proof of Medicaid eligibility if not already enrolled",
+          "Documentation for Medicaid financial eligibility if applying concurrently[1][3]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None",
+        "regional_variations": "No regional differences noted; statewide Medicaid program with centralized Bureau of Senior Services oversight. Possible variation in local providers or wait times for assessments not specified.[1][7]",
+        "offices_or_providers": [
+          "Bureau of Senior Services, 1900 Kanawha Blvd. East, Charleston, WV 25305",
+          "Acentra Health (Utilization Management Contractor)",
+          "Local providers like Nicholas Community Action Partnership[7][8]"
+        ]
+      },
+      "official_source": "https://bms.wv.gov/media/30546/download?inline (WV Medicaid Personal Care Services Program PDF); https://wvaging.com/personal-care/[3][4]",
+      "gotchas": [
+        "Must already have or qualify for Medicaid first (financial eligibility strict; use spenddown if over income)",
+        "Medical eligibility requires needs in at least 3 ADLs and physician order; not just any impairment",
+        "Housekeeping only if combined with personal care - not standalone",
+        "No skilled tasks (meds, wounds, injections); compare to waivers like I/DD Waiver which have different criteria (e.g., developmental disability diagnosis)[1][2][3][4]",
+        "Entitlement but apply only if eligible to avoid denial[1]"
+      ],
+      "data_shape_notes": "Entitlement (no waitlist); hours scale by assessed personal care needs/medical necessity tier; requires prior Medicaid eligibility + separate medical assessment; statewide with RN-supervised in-home services",
+      "_raw": "{\n  \"name\": \"West Virginia Medicaid Personal Care Services Program\",\n  \"eligibility\": {\n    \"age\": 18,\n    \"income_limits\": \"Must meet West Virginia Medicaid financial eligibility criteria, which includes a Medically Needy Pathway (Spenddown Program) allowing applicants to spend excess income on medical expenses to qualify. Specific dollar amounts not detailed in sources; varies by Medicaid category (e.g., aged, blind, disabled). Use American Council on Aging Medicaid Eligibility Test for precise limits.[1]\",\n    \"asset_limits\": \"Must meet West Virginia Medicaid asset limits (specific amounts not provided in sources; standard Medicaid rules apply with exemptions typical for the program such as primary home, one vehicle, personal belongings). Applying over limits results in denial.[1]\",\n    \"other_requirements\": [\n      \"West Virginia resident\",\n      \"Eligible for West Virginia State Medicaid (must have Medicaid card)\",\n      \"Medically eligible: Physician-prescribed need for assistance in at least three activities of daily living (e.g., eating, bathing, dressing, grooming, hygiene, mobility, toileting); confirmed by RN in-home evaluation (Pre-Admission Screening via PC-MNER)\",\n      \"Services necessary for long-term health and safety; plan of care by RN[1][2][3][4][8]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"In-home personal care services by trained para-professionals supervised by RN, including hands-on assistance with: meals, grooming, hygiene, bathing, dressing, toileting, mobility, other personal care needs; limited housekeeping only if paired with personal care; also grocery shopping, errands, housework, budget management, transportation to doctor appointments if personal care needs exist. Hours per month based on assessed personal care needs (greater need = more hours). Excludes skilled nursing, medications, wound care, injections.[2][3][4]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Submit completed Personal Care Program Medical Necessity Evaluation Request (PC-MNER) to doctor (MD/DO), physician assistant, or RN for completion, then to Bureau of Senior Services. Already on Medicaid: initiate via PC-MNER for in-home assessment scheduling.[1][3]\",\n      \"Phone: Bureau of Senior Services Medicaid helpline at 866-767-1575 or (304) 558-2241; Toll Free Information Line 1-866-767-1575[1][3][7]\",\n      \"Mail/In-person: Bureau of Senior Services, 1900 Kanawha Blvd. East, Charleston, WV 25305[7]\"\n    ],\n    \"processing_time\": \"RN contacts for in-home evaluation (Pre-Admission Screening) after PC-MNER receipt; timeline not specified[1][3]\",\n    \"waitlist\": \"None - entitlement program; Medicaid eligibility guarantees services[1]\",\n    \"forms\": [\n      \"Personal Care Program Medical Necessity Evaluation Request (PC-MNER)[1][3]\"\n    ],\n    \"documents\": [\n      \"West Virginia State Medicaid card\",\n      \"Completed and signed PC-MNER (patient portion), physician/RN/PA completed medical necessity section\",\n      \"Proof of Medicaid eligibility if not already enrolled\",\n      \"Documentation for Medicaid financial eligibility if applying concurrently[1][3]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None\",\n    \"regional_variations\": \"No regional differences noted; statewide Medicaid program with centralized Bureau of Senior Services oversight. Possible variation in local providers or wait times for assessments not specified.[1][7]\",\n    \"offices_or_providers\": [\n      \"Bureau of Senior Services, 1900 Kanawha Blvd. East, Charleston, WV 25305\",\n      \"Acentra Health (Utilization Management Contractor)\",\n      \"Local providers like Nicholas Community Action Partnership[7][8]\"\n    ]\n  },\n  \"official_source\": \"https://bms.wv.gov/media/30546/download?inline (WV Medicaid Personal Care Services Program PDF); https://wvaging.com/personal-care/[3][4]\",\n  \"gotchas\": [\n    \"Must already have or qualify for Medicaid first (financial eligibility strict; use spenddown if over income)\",\n    \"Medical eligibility requires needs in at least 3 ADLs and physician order; not just any impairment\",\n    \"Housekeeping only if combined with personal care - not standalone\",\n    \"No skilled tasks (meds, wounds, injections); compare to waivers like I/DD Waiver which have different criteria (e.g., developmental disability diagnosis)[1][2][3][4]\",\n    \"Entitlement but apply only if eligible to avoid denial[1]\"\n  ],\n  \"data_shape_notes\": \"Entitlement (no waitlist); hours scale by assessed personal care needs/medical necessity tier; requires prior Medicaid eligibility + separate medical assessment; statewide with RN-supervised in-home services\"\n}"
+    },
+    {
+      "name": "Aged and Disabled Waiver",
+      "eligibility": {
+        "age": 18,
+        "income_limits": "Must meet Medicaid Waiver financial eligibility criteria as determined by West Virginia DHHR county office or SSA for SSI recipients. Specific dollar amounts not listed in sources; may qualify via Medically Needy Program if medical costs reduce income to $209/month remaining. No household size table provided.[1][2][7]",
+        "asset_limits": "Home equity interest no greater than $730,000 (2025 limit) if living in home or intent to return. Exemptions: spouse or dependent relative (child, grandchild, parent, aunt/uncle, sibling, niece/nephew) living in home.[1]",
+        "other_requirements": [
+          "West Virginia resident (permanent, with proof).",
+          "Nursing Facility Level of Care (NFLOC): 5 functional deficits via Pre-Admission Screening (PAS) by RN, including ADLs (bathing, dressing, walking, eating, continence), bedsores, emergency evacuation inability, skilled needs (sterile dressings, tracheostomy), medication self-administration inability.[1][2][3]",
+          "Choose home/community-based services over nursing home.",
+          "Safe environment for staff.",
+          "Enrollment dependent on funded slot availability.[2][4]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "In-home and community-based services equivalent to nursing home care, including personal care/attendant services, case management. Specific services: support for ADLs (eating, bathing, dressing, grooming, mobility, restroom). Exact hours/dollars not specified; person-centered to promote independence.[3][4][5][6]",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Physician/PA/NP completes Medically Necessity Evaluation Request (MNER) form from www.wvseniorservices.gov, sends to KEPRO.[3][5]",
+          "Submit MNER and KEPRO letter to local DHHR office for financial eligibility.[5]",
+          "Call 1-866-767-1575 for questions.[3]",
+          "RN schedules in-home assessment after financial approval.[3][5]",
+          "Select provider/case management agency via KEPRO form.[5]"
+        ],
+        "processing_time": "Case manager contacts within 5 days of provider selection.[5]",
+        "waitlist": "Enrollment dependent on availability of funded ADW slot.[2]",
+        "forms": [
+          "Medically Necessity Evaluation Request (MNER).[3][5]"
+        ],
+        "documents": [
+          "Proof of WV residency.",
+          "MNER completed by doctor.",
+          "Financial documents for DHHR review (income, assets).[2][5]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None; available statewide for WV residents. Discharge/transfer from any county nursing home allowed if permanent WV resident.[2]",
+        "regional_variations": "Administered via local DHHR county offices; potential waitlist/funded slot variations by region not detailed.[2]",
+        "offices_or_providers": [
+          "Local DHHR county offices",
+          "Case Management Agencies (listed on KEPRO form)",
+          "KEPRO for medical review",
+          "wvseniorservices.gov for forms"
+        ]
+      },
+      "official_source": "https://www.wvseniorservices.gov (MNER form); https://bms.wv.gov (Bureau for Medical Services)",
+      "gotchas": [
+        "Must have exactly 5 functional deficits for NFLOC; dementia diagnosis alone insufficient.[1]",
+        "Home equity limit $730,000 (2025); exemptions narrow.[1]",
+        "Slot availability limits enrollment; waitlist possible.[2]",
+        "SSI recipients determined by SSA, others by DHHR.[2]",
+        "Must choose waiver over nursing home; safe environment required.[4]",
+        "Financial eligibility separate from medical; Medically Needy pathway for over-limit.[7]"
+      ],
+      "data_shape_notes": "Financial eligibility via Medicaid standards (SSI/DHHR), no fixed income table; tiered by NFLOC with 5 deficits; statewide but county DHHR offices handle finances; funded slots create waitlist variability.",
+      "_raw": "{\n  \"name\": \"Aged and Disabled Waiver\",\n  \"eligibility\": {\n    \"age\": 18,\n    \"income_limits\": \"Must meet Medicaid Waiver financial eligibility criteria as determined by West Virginia DHHR county office or SSA for SSI recipients. Specific dollar amounts not listed in sources; may qualify via Medically Needy Program if medical costs reduce income to $209/month remaining. No household size table provided.[1][2][7]\",\n    \"asset_limits\": \"Home equity interest no greater than $730,000 (2025 limit) if living in home or intent to return. Exemptions: spouse or dependent relative (child, grandchild, parent, aunt/uncle, sibling, niece/nephew) living in home.[1]\",\n    \"other_requirements\": [\n      \"West Virginia resident (permanent, with proof).\",\n      \"Nursing Facility Level of Care (NFLOC): 5 functional deficits via Pre-Admission Screening (PAS) by RN, including ADLs (bathing, dressing, walking, eating, continence), bedsores, emergency evacuation inability, skilled needs (sterile dressings, tracheostomy), medication self-administration inability.[1][2][3]\",\n      \"Choose home/community-based services over nursing home.\",\n      \"Safe environment for staff.\",\n      \"Enrollment dependent on funded slot availability.[2][4]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"In-home and community-based services equivalent to nursing home care, including personal care/attendant services, case management. Specific services: support for ADLs (eating, bathing, dressing, grooming, mobility, restroom). Exact hours/dollars not specified; person-centered to promote independence.[3][4][5][6]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Physician/PA/NP completes Medically Necessity Evaluation Request (MNER) form from www.wvseniorservices.gov, sends to KEPRO.[3][5]\",\n      \"Submit MNER and KEPRO letter to local DHHR office for financial eligibility.[5]\",\n      \"Call 1-866-767-1575 for questions.[3]\",\n      \"RN schedules in-home assessment after financial approval.[3][5]\",\n      \"Select provider/case management agency via KEPRO form.[5]\"\n    ],\n    \"processing_time\": \"Case manager contacts within 5 days of provider selection.[5]\",\n    \"waitlist\": \"Enrollment dependent on availability of funded ADW slot.[2]\",\n    \"forms\": [\n      \"Medically Necessity Evaluation Request (MNER).[3][5]\"\n    ],\n    \"documents\": [\n      \"Proof of WV residency.\",\n      \"MNER completed by doctor.\",\n      \"Financial documents for DHHR review (income, assets).[2][5]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; available statewide for WV residents. Discharge/transfer from any county nursing home allowed if permanent WV resident.[2]\",\n    \"regional_variations\": \"Administered via local DHHR county offices; potential waitlist/funded slot variations by region not detailed.[2]\",\n    \"offices_or_providers\": [\"Local DHHR county offices\", \"Case Management Agencies (listed on KEPRO form)\", \"KEPRO for medical review\", \"wvseniorservices.gov for forms\"]\n  },\n  \"official_source\": \"https://www.wvseniorservices.gov (MNER form); https://bms.wv.gov (Bureau for Medical Services)\",\n  \"gotchas\": [\n    \"Must have exactly 5 functional deficits for NFLOC; dementia diagnosis alone insufficient.[1]\",\n    \"Home equity limit $730,000 (2025); exemptions narrow.[1]\",\n    \"Slot availability limits enrollment; waitlist possible.[2]\",\n    \"SSI recipients determined by SSA, others by DHHR.[2]\",\n    \"Must choose waiver over nursing home; safe environment required.[4]\",\n    \"Financial eligibility separate from medical; Medically Needy pathway for over-limit.[7]\"\n  ],\n  \"data_shape_notes\": \"Financial eligibility via Medicaid standards (SSI/DHHR), no fixed income table; tiered by NFLOC with 5 deficits; statewide but county DHHR offices handle finances; funded slots create waitlist variability.\"\n}"
+    },
+    {
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "eligibility": {
+        "age": 55,
+        "income_limits": "No specific income limits or dollar amounts mentioned in available sources; most participants are dually eligible for Medicare and Medicaid, but private pay may be possible[3][4][5][7]",
+        "asset_limits": "No asset limits, what counts, or exemptions specified in sources",
+        "other_requirements": [
+          "Live in the service area of a PACE organization (specific WV areas not detailed; one provider at paceyourlifemwv.com suggests limited availability)[3]",
+          "Certified by the state as meeting nursing home level of care[1][4][7]",
+          "Able to live safely in the community (at home) without jeopardizing health or safety at time of enrollment[1][4][7]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Comprehensive medical and social services coordinated by an interdisciplinary team, provided at PACE centers, home, or community; specific services include: primary/nursing/specialist care, prescription medications (management/home delivery), medical equipment/supplies, preventative care (dental, vision, podiatry), nutritional counseling/meals/snacks, physical/occupational/recreational therapy, behavioral health/social services, home health/personal care assistance, transportation to appointments/center, adult day programs/social activities, hospital/nursing home care when needed, emergency services. No specific dollar amounts or hours per week stated[1][2][3]",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Contact PACE Your LIFE provider via https://paceyourlifemwv.com (WV-specific)[3]",
+          "Phone/website not specified in sources; general CMS/Medicare guidance applies but no WV numbers provided",
+          "No mail or in-person details given"
+        ],
+        "processing_time": "Not specified in sources",
+        "waitlist": null,
+        "forms": [],
+        "documents": []
+      },
+      "geography": {
+        "statewide": false,
+        "restrictions": "Limited to service area of PACE organization(s); not statewide in WV (one emerging provider at paceyourlifemwv.com; op-ed suggests WV should expand but currently not fully available)[3][9]",
+        "regional_variations": "Not detailed; likely varies by provider service area (no county specifics found)",
+        "offices_or_providers": [
+          "PACE Your LIFE (https://paceyourlifemwv.com; WV-focused but service area undefined)[3]"
+        ]
+      },
+      "official_source": "No WV-specific .gov URL found; general: https://www.cms.gov/medicare/medicaid-coordination/about/pace[5]; https://www.medicaid.gov/medicaid/long-term-services-supports/program-of-all-inclusive-care-for-elderly[7]",
+      "gotchas": [
+        "Not yet widely available in WV; may be limited to specific areas/providers unlike VA examples[9]",
+        "Becomes sole source of Medicare/Medicaid benefits; disenroll anytime but coordinate other coverage[4][7]",
+        "Must live safely in community at enrollment; nursing home-level need required[1][4]",
+        "No WV state certification process or income/asset details in sources; contact provider directly",
+        "Private pay possible but most dually eligible[3]"
+      ],
+      "data_shape_notes": "Limited WV-specific data; not statewide, only at select providers/centers; no income/asset tests detailed; eligibility tied to service area and state nursing home certification; expansion advocated but not confirmed as of sources[3][9]",
+      "_raw": "{\n  \"name\": \"Program of All-Inclusive Care for the Elderly (PACE)\",\n  \"eligibility\": {\n    \"age\": 55,\n    \"income_limits\": \"No specific income limits or dollar amounts mentioned in available sources; most participants are dually eligible for Medicare and Medicaid, but private pay may be possible[3][4][5][7]\",\n    \"asset_limits\": \"No asset limits, what counts, or exemptions specified in sources\",\n    \"other_requirements\": [\n      \"Live in the service area of a PACE organization (specific WV areas not detailed; one provider at paceyourlifemwv.com suggests limited availability)[3]\",\n      \"Certified by the state as meeting nursing home level of care[1][4][7]\",\n      \"Able to live safely in the community (at home) without jeopardizing health or safety at time of enrollment[1][4][7]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Comprehensive medical and social services coordinated by an interdisciplinary team, provided at PACE centers, home, or community; specific services include: primary/nursing/specialist care, prescription medications (management/home delivery), medical equipment/supplies, preventative care (dental, vision, podiatry), nutritional counseling/meals/snacks, physical/occupational/recreational therapy, behavioral health/social services, home health/personal care assistance, transportation to appointments/center, adult day programs/social activities, hospital/nursing home care when needed, emergency services. No specific dollar amounts or hours per week stated[1][2][3]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact PACE Your LIFE provider via https://paceyourlifemwv.com (WV-specific)[3]\",\n      \"Phone/website not specified in sources; general CMS/Medicare guidance applies but no WV numbers provided\",\n      \"No mail or in-person details given\"\n    ],\n    \"processing_time\": \"Not specified in sources\",\n    \"waitlist\": null,\n    \"forms\": [],\n    \"documents\": []\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Limited to service area of PACE organization(s); not statewide in WV (one emerging provider at paceyourlifemwv.com; op-ed suggests WV should expand but currently not fully available)[3][9]\",\n    \"regional_variations\": \"Not detailed; likely varies by provider service area (no county specifics found)\",\n    \"offices_or_providers\": [\n      \"PACE Your LIFE (https://paceyourlifemwv.com; WV-focused but service area undefined)[3]\"\n    ]\n  },\n  \"official_source\": \"No WV-specific .gov URL found; general: https://www.cms.gov/medicare/medicaid-coordination/about/pace[5]; https://www.medicaid.gov/medicaid/long-term-services-supports/program-of-all-inclusive-care-for-elderly[7]\",\n  \"gotchas\": [\n    \"Not yet widely available in WV; may be limited to specific areas/providers unlike VA examples[9]\",\n    \"Becomes sole source of Medicare/Medicaid benefits; disenroll anytime but coordinate other coverage[4][7]\",\n    \"Must live safely in community at enrollment; nursing home-level need required[1][4]\",\n    \"No WV state certification process or income/asset details in sources; contact provider directly\",\n    \"Private pay possible but most dually eligible[3]\"\n  ],\n  \"data_shape_notes\": \"Limited WV-specific data; not statewide, only at select providers/centers; no income/asset tests detailed; eligibility tied to service area and state nursing home certification; expansion advocated but not confirmed as of sources[3][9]\"\n}"
+    },
+    {
+      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Income limits are based on Federal Poverty Level (FPL) and change annually on April 1. For 2026, West Virginia uses 135% FPL as the maximum threshold[4]. Specific monthly income limits for 2026 are: QMB: Individual $1,350, Married couple $1,824[6]; SLMB: Individual $1,526, Married couple $2,064[2]; QI: Individual $1,715, Married couple $2,320[2]. Note: Income limits may be slightly higher in Alaska and Hawaii, and some states have more generous standards than federal minimums[1][6].",
+        "asset_limits": "Total asset limits for QMB, SLMB, and QI programs in West Virginia are: Individual $9,660, Married couple $14,470[3]. Countable resources include: cash, money in checking or savings accounts, stocks, bonds, annuities, and CDs[3]. Some states (e.g., Connecticut) have no asset limit for QI[1].",
+        "other_requirements": [
+          "Must be eligible for Medicare Part A (even if not currently enrolled)[1]",
+          "Must be U.S. citizen, permanent resident, or qualified non-citizen[4]",
+          "For SLMB and QI: Must have both Part A and Part B[2][5]",
+          "For QI: Cannot be eligible for Medicaid (if eligible for Medicaid, may qualify for another MSP instead)[5]",
+          "For QDWI: Must have a disability, be working, and have lost Social Security disability benefits and Medicare premium-free Part A because of returning to work[6]"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "QMB: Pays Medicare Part A monthly premiums (when applicable), Part B monthly premiums and annual deductible, and co-insurance and deductible amounts for services covered under Parts A and B[1]. SLMB: Pays Medicare Part B premium for the calendar year[1]. QI: Helps pay for Part B premiums[6]. All programs that qualify you for Original Medicare also automatically qualify you for Medicare Part D Extra Help, with maximum out-of-pocket drug costs of $12.65 per drug in 2026[2][6].",
+        "varies_by": "program_tier"
+      },
+      "application": {
+        "methods": [
+          "Contact your state's Medicaid office (West Virginia Department of Health and Human Resources)[1][2]",
+          "Mail: Submit completed form DFA-QSQ-1 (QMB, SLMB, QI-1)[8]",
+          "In-person: Visit local Medicaid office"
+        ],
+        "processing_time": "Eligibility for QMB is effective on the first day of the month following approval[1]. Specific processing timelines for West Virginia not provided in search results.",
+        "waitlist": "For QI Program specifically: States approve applications on a first-come, first-served basis with priority given to people who received QI benefits the previous year[6]. General waitlist status for West Virginia not specified in search results.",
+        "forms": [
+          "DFA-QSQ-1 (QMB, SLMB, QI-1 application form)[8]"
+        ],
+        "documents": [
+          "Proof of Medicare eligibility (Part A enrollment documentation)",
+          "Proof of income (recent pay stubs, Social Security statements, tax returns, or other income documentation)",
+          "Proof of resources/assets (bank statements, investment statements)",
+          "Proof of citizenship or qualified non-citizen status",
+          "Identification"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Program is available statewide in West Virginia[4]",
+        "regional_variations": "Search results do not specify regional variations within West Virginia for processing times, benefit amounts, or application procedures. However, general guidance notes that states may have more generous standards than federal minimums, suggesting potential variation by state but not by region within West Virginia[1][6].",
+        "offices_or_providers": "Contact West Virginia Department of Health and Human Resources (DHHR) for local Medicaid office locations. Specific office addresses and phone numbers not provided in search results."
+      },
+      "official_source": "https://www.medicare.gov/basics/costs/help/medicare-savings-programs and West Virginia DHHR (https://www.wvdhhr.org/)",
+      "gotchas": [
+        "Income limits change every April 1[1]. Families must reapply annually to maintain eligibility, especially for QI (which explicitly requires annual reapplication)[6].",
+        "QI has a first-come, first-served approval process with priority only for prior-year recipients[6]. This means funding may run out mid-year in some states.",
+        "If someone is eligible for Medicaid, they cannot use QI but may qualify for QMB or SLMB instead[5].",
+        "QI only applies to Original Medicare (Parts A and B) and does not affect Medicare Advantage (Part C) or Medigap plans[5].",
+        "Asset limits are relatively low ($9,660 individual / $14,470 couple in West Virginia)[3]. Savings, investments, and CDs all count toward this limit.",
+        "Some states have more generous income or asset limits than federal standards[1][6]. West Virginia families should verify current limits with their state Medicaid office.",
+        "Eligibility is effective on the first day of the month following approval[1], not the application date.",
+        "The programs help with premiums and cost-sharing but do not cover all Medicare expenses."
+      ],
+      "data_shape_notes": "Medicare Savings Programs are tiered by income level: QMB (lowest income, most comprehensive benefits), SLMB (middle income, Part B premium only), QI (higher income, Part B premium only). Income limits are pegged to Federal Poverty Level and reset annually on April 1. West Virginia uses 135% FPL as the maximum eligibility threshold across all programs[4]. All three programs share the same asset limits. Eligibility and benefits vary significantly by program tier but not by region within West Virginia based on available information. QI has a first-come, first-served funding model, making it distinct from QMB and SLMB.",
+      "_raw": "```json\n{\n  \"name\": \"Medicare Savings Programs (QMB, SLMB, QI)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Income limits are based on Federal Poverty Level (FPL) and change annually on April 1. For 2026, West Virginia uses 135% FPL as the maximum threshold[4]. Specific monthly income limits for 2026 are: QMB: Individual $1,350, Married couple $1,824[6]; SLMB: Individual $1,526, Married couple $2,064[2]; QI: Individual $1,715, Married couple $2,320[2]. Note: Income limits may be slightly higher in Alaska and Hawaii, and some states have more generous standards than federal minimums[1][6].\",\n    \"asset_limits\": \"Total asset limits for QMB, SLMB, and QI programs in West Virginia are: Individual $9,660, Married couple $14,470[3]. Countable resources include: cash, money in checking or savings accounts, stocks, bonds, annuities, and CDs[3]. Some states (e.g., Connecticut) have no asset limit for QI[1].\",\n    \"other_requirements\": [\n      \"Must be eligible for Medicare Part A (even if not currently enrolled)[1]\",\n      \"Must be U.S. citizen, permanent resident, or qualified non-citizen[4]\",\n      \"For SLMB and QI: Must have both Part A and Part B[2][5]\",\n      \"For QI: Cannot be eligible for Medicaid (if eligible for Medicaid, may qualify for another MSP instead)[5]\",\n      \"For QDWI: Must have a disability, be working, and have lost Social Security disability benefits and Medicare premium-free Part A because of returning to work[6]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"QMB: Pays Medicare Part A monthly premiums (when applicable), Part B monthly premiums and annual deductible, and co-insurance and deductible amounts for services covered under Parts A and B[1]. SLMB: Pays Medicare Part B premium for the calendar year[1]. QI: Helps pay for Part B premiums[6]. All programs that qualify you for Original Medicare also automatically qualify you for Medicare Part D Extra Help, with maximum out-of-pocket drug costs of $12.65 per drug in 2026[2][6].\",\n    \"varies_by\": \"program_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact your state's Medicaid office (West Virginia Department of Health and Human Resources)[1][2]\",\n      \"Mail: Submit completed form DFA-QSQ-1 (QMB, SLMB, QI-1)[8]\",\n      \"In-person: Visit local Medicaid office\"\n    ],\n    \"processing_time\": \"Eligibility for QMB is effective on the first day of the month following approval[1]. Specific processing timelines for West Virginia not provided in search results.\",\n    \"waitlist\": \"For QI Program specifically: States approve applications on a first-come, first-served basis with priority given to people who received QI benefits the previous year[6]. General waitlist status for West Virginia not specified in search results.\",\n    \"forms\": [\n      \"DFA-QSQ-1 (QMB, SLMB, QI-1 application form)[8]\"\n    ],\n    \"documents\": [\n      \"Proof of Medicare eligibility (Part A enrollment documentation)\",\n      \"Proof of income (recent pay stubs, Social Security statements, tax returns, or other income documentation)\",\n      \"Proof of resources/assets (bank statements, investment statements)\",\n      \"Proof of citizenship or qualified non-citizen status\",\n      \"Identification\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Program is available statewide in West Virginia[4]\",\n    \"regional_variations\": \"Search results do not specify regional variations within West Virginia for processing times, benefit amounts, or application procedures. However, general guidance notes that states may have more generous standards than federal minimums, suggesting potential variation by state but not by region within West Virginia[1][6].\",\n    \"offices_or_providers\": \"Contact West Virginia Department of Health and Human Resources (DHHR) for local Medicaid office locations. Specific office addresses and phone numbers not provided in search results.\"\n  },\n  \"official_source\": \"https://www.medicare.gov/basics/costs/help/medicare-savings-programs and West Virginia DHHR (https://www.wvdhhr.org/)\",\n  \"gotchas\": [\n    \"Income limits change every April 1[1]. Families must reapply annually to maintain eligibility, especially for QI (which explicitly requires annual reapplication)[6].\",\n    \"QI has a first-come, first-served approval process with priority only for prior-year recipients[6]. This means funding may run out mid-year in some states.\",\n    \"If someone is eligible for Medicaid, they cannot use QI but may qualify for QMB or SLMB instead[5].\",\n    \"QI only applies to Original Medicare (Parts A and B) and does not affect Medicare Advantage (Part C) or Medigap plans[5].\",\n    \"Asset limits are relatively low ($9,660 individual / $14,470 couple in West Virginia)[3]. Savings, investments, and CDs all count toward this limit.\",\n    \"Some states have more generous income or asset limits than federal standards[1][6]. West Virginia families should verify current limits with their state Medicaid office.\",\n    \"Eligibility is effective on the first day of the month following approval[1], not the application date.\",\n    \"The programs help with premiums and cost-sharing but do not cover all Medicare expenses.\"\n  ],\n  \"data_shape_notes\": \"Medicare Savings Programs are tiered by income level: QMB (lowest income, most comprehensive benefits), SLMB (middle income, Part B premium only), QI (higher income, Part B premium only). Income limits are pegged to Federal Poverty Level and reset annually on April 1. West Virginia uses 135% FPL as the maximum eligibility threshold across all programs[4]. All three programs share the same asset limits. Eligibility and benefits vary significantly by program tier but not by region within West Virginia based on available information. QI has a first-come, first-served funding model, making it distinct from QMB and SLMB.\"\n}\n```\n\n## Key Guidance for Families\n\n**Start here:** Contact the West Virginia Department of Health and Human Resources (DHHR) to determine which program your loved one qualifies for. Income is the primary determining factor—if monthly income is at or below 100% FPL, they likely qualify for QMB (the most comprehensive); between 100-120% FPL, SLMB; between 120-135% FPL, QI[1][4].\n\n**Critical timing:** Income limits reset April 1 each year[1]. If your loved one's income changes or they were previously denied, reapply after April 1 to see if new limits make them eligible.\n\n**The asset trap:** Even if income qualifies, assets over $9,660 (individual) or $14,470 (couple) disqualify applicants[3]. This includes bank accounts, stocks, and CDs—but not the home or car.\n\n**QI caveat:** If your loved one qualifies for Medicaid, they cannot use QI[5]. They should apply for QMB or SLMB instead, which may provide better benefits anyway.\n\n**Automatic bonus:** Qualifying for any of these programs automatically qualifies your loved one for Medicare Part D Extra Help, capping drug costs at $12.65 per medication in 2026[6]."
+    },
+    {
+      "name": "SNAP",
+      "_parseError": true,
+      "_raw": "{\n  \"name\": \"SNAP\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"For households with a member 60+ or disabled (Oct 1, 2025 - Sept 30, 2026): No gross income test required. Qualify via Net Income test (limits not explicitly stated in sources, but must be below standard SNAP net limits) and Asset test if gross exceeds 200% FPL. Gross income limits at 200% FPL if applied: 1 person $2608/mo, 2 $3526, 3 $4442, 4 $5358, 5 $6276, 6 $7192, 7 $8108, +$916 each additional. Net income determines benefit amount (e.g., $100 more net income = ~$30 less benefits).[1][2]\",\n    \"asset_limits\": \"Most households exempt from asset test. Households with member 60+ or disabled: $4500 limit (vs $3000 standard). Counts: cash, bank accounts, non-exempt property. Exempt: primary home, household goods, retirement savings, life insurance cash value (varies), one vehicle (standard exemptions apply).[2][1]\",\n    \"other_requirements\": [\"West Virginia resident\", \"U.S. citizen or qualified non-citizen\", \"Household includes all who buy/prepare food together\", \"Social Security, pensions, disability count as income\", \"Medical expenses >$35/mo deductible for 60+/disabled\", \"Higher shelter deductions allowed\", \"ABAWD work rules may not apply to 60+ or disabled\"][1][2][3]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Monthly EBT card for food purchases. Amount based on household net income after deductions (e.g., max allotment for 2-person elderly/disabled: ~$546/mo minus 30% net income). Average $140/person/mo in WV (FY2022 data). Minimum/maximum allotments apply; scales with household size and income.[1][4][7]\",\n    \"varies_by\": \"household_size\"\n  },\n  \"application\": {\n    \"methods\": [\"Online: https://apps.wvpath.wv.gov (via WV PATH portal)\", \"Phone: Local Income Maintenance office or 1-877-716-1212\", \"In-person: Local DHHR Income Maintenance office\", \"Mail: Form to local office (download from bfa.wv.gov)\"],\n    \"processing_time\": \"Typically 30 days; expedited if very low income (7 days). No specific WV elderly timeline stated.\",\n    \"waitlist\": null,\n    \"forms\": [\"SNAP Application (via WV PATH or Form SNAP-1 downloadable from bfa.wv.gov/snap)\"],\n    \"documents\": [\"Proof of ID\", \"Income (pay stubs, Social Security award letters, pensions)\", \"Expenses (rent/mortgage receipts, utility bills, medical costs >$35/mo for 60+/disabled)\", \"Assets if applicable (bank statements)\", \"Household size proof\", \"Disability verification if claimed\"][2]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": null,\n    \"regional_variations\": \"Administered uniformly statewide by Bureau for Family Assistance via local Income Maintenance offices; no major differences noted in eligibility/benefits, but processing/wait times may vary by local office workload.\",\n    \"offices_or_providers\": [\"Local DHHR Income Maintenance offices by county (find via bfa.wv.gov/snap)\"]\n  },\n  \"official_source\": \"https://bfa.wv.gov/snap\",\n  \"gotchas\": [\"Elderly/disabled skip gross income test but must meet net income/asset if gross >200% FPL\", \"Only ~34% eligible seniors receive benefits (underutilization)\", \"Medical expenses over $35/mo and excess shelter costs deductible—key for qualification\", \"Include all household who share food prep\", \"Assets $4500 limit applies only if gross income test failed\", \"Social Security/pensions count as income\", \"No gross test makes WV broader than federal standard\"][1][2][3][7],\n  \"data_shape_notes\": \"Elderly/disabled households exempt from gross income test (net + asset only if needed); expanded deductions for medical/shelter; benefits scale by household size and net income; statewide with local offices\"\n}"
+    },
+    {
+      "name": "LIEAP (Low Income Energy Assistance Program) & LIHEAP-RRP (Repair and Replace Program)",
+      "note": "These are two separate but related federal programs administered in West Virginia. LIEAP provides cash assistance for heating bills; LIHEAP-RRP repairs or replaces unsafe heating systems.",
+      "eligibility": {
+        "lieap": {
+          "age": null,
+          "income_limits": "For FY 2026: 60% of state median income for households up to 7 individuals; 150% of federal poverty level for households with 8+ members[1]. Specific dollar amounts vary by household size but are not fully detailed in available sources. Alternative source states 130% of Federal Poverty Income Guidelines[4].",
+          "asset_limits": "Not specified in search results",
+          "other_requirements": [
+            "Household must be responsible for paying heating expenses[1]",
+            "Must meet all program guidelines for every household member[1]",
+            "Some types of income may be excluded (e.g., Social Security and Veterans income in some years)[5]",
+            "Applicants may need to be enrolled in qualifying social service programs (SNAP, Temporary Assistance, or Code A SSI) OR meet income guidelines[2]"
+          ]
+        },
+        "liheap_rrp": {
+          "age": null,
+          "household_composition_requirement": "Household must include at least one individual meeting one of these criteria[3]:",
+          "household_composition_details": [
+            "Child age 5 or under",
+            "Individual age 60 or over",
+            "Individual with diagnosed disability"
+          ],
+          "income_limits": "At or below 60% of State Median Income[3]",
+          "heating_system_requirement": "Primary heating system must meet at least one criterion[3]:",
+          "heating_system_details": [
+            "Non-operable or severely malfunctioning and/or unsafe heating system",
+            "Using portable heating devices (electric/kerosene space heaters) as primary heat",
+            "Using unvented gas/propane space heaters as primary heat",
+            "Using unsafe fireplace or solid fuel",
+            "Have fireplace/stove but no access to or means to purchase solid fuel",
+            "Using gas-fired cooking appliance as heating source"
+          ]
+        }
+      },
+      "benefits": {
+        "lieap": {
+          "type": "financial",
+          "value": "Direct cash payments or payments to utility companies on behalf of households for home heating costs[7]. Specific dollar amounts per household not provided in search results.",
+          "crisis_component": "Available for households without resources facing loss of heating source[7]",
+          "varies_by": "household_size, heating_costs, type_of_heating_payment"
+        },
+        "liheap_rrp": {
+          "type": "in_kind",
+          "value": "Repair or replacement of non-operable or unsafe heating systems[3]",
+          "annual_funding": "Approximately $6,000,000 annually (varies based on U.S. Department of Health and Human Resources allocation)[3]",
+          "varies_by": "funding_availability, system_condition"
+        }
+      },
+      "application": {
+        "lieap": {
+          "methods": [
+            "Online: www.wvpath.wv.gov[1] or https://mylitt.com/[7]",
+            "In-person: Local Department of Human Services (DoHS) offices[1]",
+            "In-person: Participating community agencies including West Virginia Community Action Agencies and West Virginia Senior Centers[1]",
+            "Phone: 1-800-642-8589 (toll-free)[4]"
+          ],
+          "application_window_fy2026": "February 2, 2026 through February 20, 2026, or until funding exhausted[1]",
+          "processing_time": "Not specified in search results",
+          "waitlist": "Not specified; program closes when funding exhausted[7]",
+          "forms": "Not specified by name/number in search results",
+          "documents": "Income verification required; specific documents not detailed in search results"
+        },
+        "liheap_rrp": {
+          "methods": [
+            "Apply through local non-profit Community Action Agencies (not directly through state)[3]",
+            "Find your county's provider at: wvcap.org/agencies/[3]"
+          ],
+          "processing_time": "Not specified in search results",
+          "waitlist": "Not specified in search results",
+          "forms": "Not specified in search results",
+          "documents": "Income verification required at initial point of contact[3]"
+        }
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "LIEAP: Statewide[1]. LIHEAP-RRP: Available in all 55 counties of West Virginia through local Community Action Agencies[3]",
+        "regional_variations": "LIHEAP-RRP services provided by different Community Action Agencies by county; no other regional variations specified[3]",
+        "offices_or_providers": "LIEAP: Local DoHS field offices, Community Action Agencies, Senior Centers[7]. LIHEAP-RRP: Local Community Action Agencies (55 county coverage)[3]"
+      },
+      "official_source": "https://bfa.wv.gov/utility-assistancelieap (LIEAP)[7]; https://wvcad.org/sustainability/liheap (LIHEAP-RRP)[3]",
+      "gotchas": [
+        "Two separate programs: LIEAP is for heating bill assistance; LIHEAP-RRP is for system repair/replacement. Families may qualify for one, both, or neither[1][3]",
+        "Income limits vary by household size AND by program (LIEAP uses 60% state median income OR 150% federal poverty level; LIHEAP-RRP uses 60% state median income)[1][3]",
+        "LIEAP has a narrow application window (typically February in FY2026) and closes when funding exhausted—missing the deadline means waiting until next year[1][7]",
+        "LIHEAP-RRP requires household to include someone age 60+, under 6, or disabled—elderly alone may not qualify[3]",
+        "Some income types are excluded from LIEAP calculations (varies by year)[5]",
+        "LIHEAP-RRP is administered through Community Action Agencies, not directly through state—must contact local agency for your county[3]",
+        "For LIEAP, households must be responsible for paying heating expenses; renters whose landlord pays may not qualify[1]",
+        "Online LIEAP application requires creating an account; in-person assistance available at Senior Centers and Community Action Agencies[2]",
+        "Crisis LIEAP component exists for emergencies but requires separate application/evaluation[7]"
+      ],
+      "data_shape_notes": "LIEAP benefits scale by household size and heating costs; income limits vary by household size. LIHEAP-RRP has strict household composition requirements (must include vulnerable individual) in addition to income limits. Both programs are federally funded with annual variations. LIEAP operates on a seasonal window (winter months); LIHEAP-RRP operates year-round but with limited annual funding (~$6M). Application methods differ: LIEAP can be applied for online or in-person; LIHEAP-RRP must go through local Community Action Agencies.",
+      "_raw": "I need to clarify an important distinction before providing your guide: the search results contain information about **LIEAP** (Low Income Energy Assistance Program) and **LIHEAP-RRP** (Low Income Home Energy Assistance Program - Repair and Replace Program), which are related but distinct programs. Based on your query mentioning \"LIHEAP,\" I'm providing information on both, as they serve complementary purposes in West Virginia.\n\n```json\n{\n  \"name\": \"LIEAP (Low Income Energy Assistance Program) & LIHEAP-RRP (Repair and Replace Program)\",\n  \"note\": \"These are two separate but related federal programs administered in West Virginia. LIEAP provides cash assistance for heating bills; LIHEAP-RRP repairs or replaces unsafe heating systems.\",\n  \"eligibility\": {\n    \"lieap\": {\n      \"age\": null,\n      \"income_limits\": \"For FY 2026: 60% of state median income for households up to 7 individuals; 150% of federal poverty level for households with 8+ members[1]. Specific dollar amounts vary by household size but are not fully detailed in available sources. Alternative source states 130% of Federal Poverty Income Guidelines[4].\",\n      \"asset_limits\": \"Not specified in search results\",\n      \"other_requirements\": [\n        \"Household must be responsible for paying heating expenses[1]\",\n        \"Must meet all program guidelines for every household member[1]\",\n        \"Some types of income may be excluded (e.g., Social Security and Veterans income in some years)[5]\",\n        \"Applicants may need to be enrolled in qualifying social service programs (SNAP, Temporary Assistance, or Code A SSI) OR meet income guidelines[2]\"\n      ]\n    },\n    \"liheap_rrp\": {\n      \"age\": null,\n      \"household_composition_requirement\": \"Household must include at least one individual meeting one of these criteria[3]:\",\n      \"household_composition_details\": [\n        \"Child age 5 or under\",\n        \"Individual age 60 or over\",\n        \"Individual with diagnosed disability\"\n      ],\n      \"income_limits\": \"At or below 60% of State Median Income[3]\",\n      \"heating_system_requirement\": \"Primary heating system must meet at least one criterion[3]:\",\n      \"heating_system_details\": [\n        \"Non-operable or severely malfunctioning and/or unsafe heating system\",\n        \"Using portable heating devices (electric/kerosene space heaters) as primary heat\",\n        \"Using unvented gas/propane space heaters as primary heat\",\n        \"Using unsafe fireplace or solid fuel\",\n        \"Have fireplace/stove but no access to or means to purchase solid fuel\",\n        \"Using gas-fired cooking appliance as heating source\"\n      ]\n    }\n  },\n  \"benefits\": {\n    \"lieap\": {\n      \"type\": \"financial\",\n      \"value\": \"Direct cash payments or payments to utility companies on behalf of households for home heating costs[7]. Specific dollar amounts per household not provided in search results.\",\n      \"crisis_component\": \"Available for households without resources facing loss of heating source[7]\",\n      \"varies_by\": \"household_size, heating_costs, type_of_heating_payment\"\n    },\n    \"liheap_rrp\": {\n      \"type\": \"in_kind\",\n      \"value\": \"Repair or replacement of non-operable or unsafe heating systems[3]\",\n      \"annual_funding\": \"Approximately $6,000,000 annually (varies based on U.S. Department of Health and Human Resources allocation)[3]\",\n      \"varies_by\": \"funding_availability, system_condition\"\n    }\n  },\n  \"application\": {\n    \"lieap\": {\n      \"methods\": [\n        \"Online: www.wvpath.wv.gov[1] or https://mylitt.com/[7]\",\n        \"In-person: Local Department of Human Services (DoHS) offices[1]\",\n        \"In-person: Participating community agencies including West Virginia Community Action Agencies and West Virginia Senior Centers[1]\",\n        \"Phone: 1-800-642-8589 (toll-free)[4]\"\n      ],\n      \"application_window_fy2026\": \"February 2, 2026 through February 20, 2026, or until funding exhausted[1]\",\n      \"processing_time\": \"Not specified in search results\",\n      \"waitlist\": \"Not specified; program closes when funding exhausted[7]\",\n      \"forms\": \"Not specified by name/number in search results\",\n      \"documents\": \"Income verification required; specific documents not detailed in search results\"\n    },\n    \"liheap_rrp\": {\n      \"methods\": [\n        \"Apply through local non-profit Community Action Agencies (not directly through state)[3]\",\n        \"Find your county's provider at: wvcap.org/agencies/[3]\"\n      ],\n      \"processing_time\": \"Not specified in search results\",\n      \"waitlist\": \"Not specified in search results\",\n      \"forms\": \"Not specified in search results\",\n      \"documents\": \"Income verification required at initial point of contact[3]\"\n    }\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"LIEAP: Statewide[1]. LIHEAP-RRP: Available in all 55 counties of West Virginia through local Community Action Agencies[3]\",\n    \"regional_variations\": \"LIHEAP-RRP services provided by different Community Action Agencies by county; no other regional variations specified[3]\",\n    \"offices_or_providers\": \"LIEAP: Local DoHS field offices, Community Action Agencies, Senior Centers[7]. LIHEAP-RRP: Local Community Action Agencies (55 county coverage)[3]\"\n  },\n  \"official_source\": \"https://bfa.wv.gov/utility-assistancelieap (LIEAP)[7]; https://wvcad.org/sustainability/liheap (LIHEAP-RRP)[3]\",\n  \"gotchas\": [\n    \"Two separate programs: LIEAP is for heating bill assistance; LIHEAP-RRP is for system repair/replacement. Families may qualify for one, both, or neither[1][3]\",\n    \"Income limits vary by household size AND by program (LIEAP uses 60% state median income OR 150% federal poverty level; LIHEAP-RRP uses 60% state median income)[1][3]\",\n    \"LIEAP has a narrow application window (typically February in FY2026) and closes when funding exhausted—missing the deadline means waiting until next year[1][7]\",\n    \"LIHEAP-RRP requires household to include someone age 60+, under 6, or disabled—elderly alone may not qualify[3]\",\n    \"Some income types are excluded from LIEAP calculations (varies by year)[5]\",\n    \"LIHEAP-RRP is administered through Community Action Agencies, not directly through state—must contact local agency for your county[3]\",\n    \"For LIEAP, households must be responsible for paying heating expenses; renters whose landlord pays may not qualify[1]\",\n    \"Online LIEAP application requires creating an account; in-person assistance available at Senior Centers and Community Action Agencies[2]\",\n    \"Crisis LIEAP component exists for emergencies but requires separate application/evaluation[7]\"\n  ],\n  \"data_shape_notes\": \"LIEAP benefits scale by household size and heating costs; income limits vary by household size. LIHEAP-RRP has strict household composition requirements (must include vulnerable individual) in addition to income limits. Both programs are federally funded with annual variations. LIEAP operates on a seasonal window (winter months); LIHEAP-RRP operates year-round but with limited annual funding (~$6M). Application methods differ: LIEAP can be applied for online or in-person; LIHEAP-RRP must go through local Community Action Agencies.\"\n}\n```\n\n## Key Takeaways for Families with Elderly Loved Ones\n\n**For heating bill assistance:** Your elderly relative should apply for **LIEAP** during the February application window[1]. If they're over 60, they may have additional eligibility pathways through SNAP or SSI enrollment[7].\n\n**For unsafe heating systems:** If their heating system is broken or dangerous, they should apply for **LIHEAP-RRP**, which requires the household to include someone age 60+ (which your elderly relative likely satisfies)[3]. Contact your county's Community Action Agency directly[3].\n\n**Critical timing issue:** LIEAP applications for FY2026 closed February 20, 2026[1]. If your family missed this window, you'll need to wait for the next fiscal year's application period or contact a DHHR worker if a heating emergency exists[5].\n\n**Best first step:** Call **1-800-642-8589** (toll-free) to determine which program(s) apply and get directed to your local application site[4]."
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Income must be less than or equal to 200% of the Federal Poverty Guidelines (updated annually; guidelines effective April 8, 2025): 1: $31,300; 2: $42,300; 3: $53,300; 4: $64,300; 5: $75,300; 6: $86,300; add $11,000 per additional member. Income is gross cash receipts before taxes from the prior tax year; excludes child support, tax refunds, college scholarships, etc.[1]",
+        "asset_limits": "No asset limits mentioned.[1][2]",
+        "other_requirements": [
+          "Must reside in West Virginia.",
+          "Dwelling must meet building eligibility requirements (structurally adaptable for weatherization materials).",
+          "Renters need landlord permission.",
+          "Priority on waitlist for elderly (60+), disabled, children (18 or younger), high energy burden, or high energy use.[1][2][3]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Installation of cost-effective energy-saving measures including insulation (walls/floors), air infiltration sealing, duct sealing/repair, heating/cooling system repair/replacement, ventilation fans, energy-efficient lighting, health/safety checks (e.g., carbon monoxide testing, CO/fire alarms). Exact measures depend on energy audit; no fixed dollar amount or hours—services provided once per home based on federal funding ($4,325,662 for PY2024).[1][8]",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Contact local community action agency serving your county (in-person, phone, or visit; list available via agencies like wvcad.org).[1][2]",
+          "Apply in person at community action agency (application ~20 minutes).[2]"
+        ],
+        "processing_time": "Eligibility determination after application and income verification (time-consuming process); then placed on waitlist for energy audit and services.[1][2]",
+        "waitlist": "Yes, all eligible applicants placed on waitlist; prioritized by points for elderly (60+), disabled, children, high energy burden/use.[1][2]",
+        "forms": [
+          "Standard application form at local community action agency (no specific name/number listed).[2]"
+        ],
+        "documents": [
+          "Written proof of all gross income for prior year (e.g., tax returns, pay stubs, etc.).",
+          "Household details: number of people, home construction date, utility providers/account numbers.",
+          "For renters: landlord permission.[1][2]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Must live in home located in West Virginia; served through local community action agencies by county.[1][2]",
+        "regional_variations": "Administered by local community action agencies/providers varying by county/region (e.g., CASEWV, Southwestern Community Action Council); potential differences in wait times or processing.[1][2][3][9]",
+        "offices_or_providers": [
+          "Local community action agencies throughout West Virginia (contact via county-specific providers).[1][2][3][9]"
+        ]
+      },
+      "official_source": "https://wvcad.org/sustainability/weatherization-assistance-program",
+      "gotchas": [
+        "Income verification is time-consuming with official documentation required for ALL sources from prior year.[2]",
+        "Dwelling must meet building eligibility (not all homes qualify).[1]",
+        "Renters need landlord permission first.[2]",
+        "Services once per home; waitlist prioritization favors elderly/disabled/children—others may wait longer.[1][2]",
+        "Not for utility bill payment; energy efficiency/weatherization only.[8]",
+        "Funding varies annually by federal appropriations—may impact availability.[1]"
+      ],
+      "data_shape_notes": "Administered county-by-county via local community action agencies; waitlist with priority tiers (elderly 60+ get points); income at exactly 200% FPG with prior-year gross proof and exclusions; building eligibility required.",
+      "_raw": "{\n  \"name\": \"Weatherization Assistance Program (WAP)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Income must be less than or equal to 200% of the Federal Poverty Guidelines (updated annually; guidelines effective April 8, 2025): 1: $31,300; 2: $42,300; 3: $53,300; 4: $64,300; 5: $75,300; 6: $86,300; add $11,000 per additional member. Income is gross cash receipts before taxes from the prior tax year; excludes child support, tax refunds, college scholarships, etc.[1]\",\n    \"asset_limits\": \"No asset limits mentioned.[1][2]\",\n    \"other_requirements\": [\n      \"Must reside in West Virginia.\",\n      \"Dwelling must meet building eligibility requirements (structurally adaptable for weatherization materials).\",\n      \"Renters need landlord permission.\",\n      \"Priority on waitlist for elderly (60+), disabled, children (18 or younger), high energy burden, or high energy use.[1][2][3]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Installation of cost-effective energy-saving measures including insulation (walls/floors), air infiltration sealing, duct sealing/repair, heating/cooling system repair/replacement, ventilation fans, energy-efficient lighting, health/safety checks (e.g., carbon monoxide testing, CO/fire alarms). Exact measures depend on energy audit; no fixed dollar amount or hours—services provided once per home based on federal funding ($4,325,662 for PY2024).[1][8]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact local community action agency serving your county (in-person, phone, or visit; list available via agencies like wvcad.org).[1][2]\",\n      \"Apply in person at community action agency (application ~20 minutes).[2]\"\n    ],\n    \"processing_time\": \"Eligibility determination after application and income verification (time-consuming process); then placed on waitlist for energy audit and services.[1][2]\",\n    \"waitlist\": \"Yes, all eligible applicants placed on waitlist; prioritized by points for elderly (60+), disabled, children, high energy burden/use.[1][2]\",\n    \"forms\": [\"Standard application form at local community action agency (no specific name/number listed).[2]\"],\n    \"documents\": [\n      \"Written proof of all gross income for prior year (e.g., tax returns, pay stubs, etc.).\",\n      \"Household details: number of people, home construction date, utility providers/account numbers.\",\n      \"For renters: landlord permission.[1][2]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Must live in home located in West Virginia; served through local community action agencies by county.[1][2]\",\n    \"regional_variations\": \"Administered by local community action agencies/providers varying by county/region (e.g., CASEWV, Southwestern Community Action Council); potential differences in wait times or processing.[1][2][3][9]\",\n    \"offices_or_providers\": [\"Local community action agencies throughout West Virginia (contact via county-specific providers).[1][2][3][9]\"]\n  },\n  \"official_source\": \"https://wvcad.org/sustainability/weatherization-assistance-program\",\n  \"gotchas\": [\n    \"Income verification is time-consuming with official documentation required for ALL sources from prior year.[2]\",\n    \"Dwelling must meet building eligibility (not all homes qualify).[1]\",\n    \"Renters need landlord permission first.[2]\",\n    \"Services once per home; waitlist prioritization favors elderly/disabled/children—others may wait longer.[1][2]\",\n    \"Not for utility bill payment; energy efficiency/weatherization only.[8]\",\n    \"Funding varies annually by federal appropriations—may impact availability.[1]\"\n  ],\n  \"data_shape_notes\": \"Administered county-by-county via local community action agencies; waitlist with priority tiers (elderly 60+ get points); income at exactly 200% FPG with prior-year gross proof and exclusions; building eligibility required.\"\n}"
+    },
+    {
+      "name": "SHIP (State Health Insurance Assistance Program)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "No income or asset limits. Open to all West Virginia Medicare beneficiaries seeking health insurance counseling.[4][8]",
+        "asset_limits": "No asset limits or tests apply.[4]",
+        "other_requirements": [
+          "Must reside in West Virginia[6][8]",
+          "Must be a Medicare beneficiary (typically age 65+ or under 65 with certain disabilities)[4][8]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Free, one-on-one personalized health insurance counseling; information and printed materials; referrals to agencies; assistance with Medicare Part A/B, Part D, Medigap, Medicare Advantage (HMOs/PPOs), long-term care insurance, Medicare Savings Programs (QMB/SLMB/QI), prescription drug assistance, Medicaid, and other insurance/free health care programs. Counselors help understand benefits, compare options, and avoid overpaying.[4][8]",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Phone: 1-877-987-4463[7]",
+          "In-person: County senior centers throughout WV or main office at West Virginia Bureau of Senior Services, 1900 Kanawha Boulevard East, 3rd Floor Town Center Mall, Charleston WV 25305-0160[6][8]",
+          "Website: West Virginia Website (via shiphelp.org link, for contact and appointments)[7]"
+        ],
+        "processing_time": "No formal processing; services provided via appointment scheduling upon contact. No specified timeline.[4]",
+        "waitlist": null,
+        "forms": [
+          "No specific forms required; contact to make an appointment[4]"
+        ],
+        "documents": [
+          "No documents typically needed upfront; may request Medicare card or insurance details during counseling session (not specified for application)[4]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None; available statewide to WV residents[6][7][8]",
+        "regional_variations": "Delivered through main office in Charleston and many county senior centers; potential differences in local counselor availability or appointment scheduling by county, but core services uniform[8]",
+        "offices_or_providers": [
+          "Main office: West Virginia Bureau of Senior Services, 1900 Kanawha Boulevard East, 3rd Floor Town Center Mall, Charleston WV 25305-0160[6]",
+          "County senior centers throughout WV[8]"
+        ]
+      },
+      "official_source": "https://www.shiphelp.org/ships/west-virginia/ (links to WV SHIP site); Bureau of Senior Services contact via CMS[6][7]",
+      "gotchas": [
+        "Not a financial aid or healthcare provision program—only free counseling and information, no direct payments or coverage[4]",
+        "People confuse with CHIP (children's program) or Medicaid due to similar acronyms; SHIP is Medicare-specific[1][4][8]",
+        "Must be Medicare beneficiary; does not cover non-Medicare individuals[4][8]",
+        "Services are appointment-based; call ahead as no walk-in guarantee at county centers[8]"
+      ],
+      "data_shape_notes": "no income test; counseling-only service, not benefits-paying; delivered via statewide network of senior centers with central phone line",
+      "_raw": "{\n  \"name\": \"SHIP (State Health Insurance Assistance Program)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No income or asset limits. Open to all West Virginia Medicare beneficiaries seeking health insurance counseling.[4][8]\",\n    \"asset_limits\": \"No asset limits or tests apply.[4]\",\n    \"other_requirements\": [\"Must reside in West Virginia[6][8]\", \"Must be a Medicare beneficiary (typically age 65+ or under 65 with certain disabilities)[4][8]\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free, one-on-one personalized health insurance counseling; information and printed materials; referrals to agencies; assistance with Medicare Part A/B, Part D, Medigap, Medicare Advantage (HMOs/PPOs), long-term care insurance, Medicare Savings Programs (QMB/SLMB/QI), prescription drug assistance, Medicaid, and other insurance/free health care programs. Counselors help understand benefits, compare options, and avoid overpaying.[4][8]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: 1-877-987-4463[7]\", \"In-person: County senior centers throughout WV or main office at West Virginia Bureau of Senior Services, 1900 Kanawha Boulevard East, 3rd Floor Town Center Mall, Charleston WV 25305-0160[6][8]\", \"Website: West Virginia Website (via shiphelp.org link, for contact and appointments)[7]\"],\n    \"processing_time\": \"No formal processing; services provided via appointment scheduling upon contact. No specified timeline.[4]\",\n    \"waitlist\": null,\n    \"forms\": [\"No specific forms required; contact to make an appointment[4]\"],\n    \"documents\": [\"No documents typically needed upfront; may request Medicare card or insurance details during counseling session (not specified for application)[4]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; available statewide to WV residents[6][7][8]\",\n    \"regional_variations\": \"Delivered through main office in Charleston and many county senior centers; potential differences in local counselor availability or appointment scheduling by county, but core services uniform[8]\",\n    \"offices_or_providers\": [\"Main office: West Virginia Bureau of Senior Services, 1900 Kanawha Boulevard East, 3rd Floor Town Center Mall, Charleston WV 25305-0160[6]\", \"County senior centers throughout WV[8]\"]\n  },\n  \"official_source\": \"https://www.shiphelp.org/ships/west-virginia/ (links to WV SHIP site); Bureau of Senior Services contact via CMS[6][7]\",\n  \"gotchas\": [\"Not a financial aid or healthcare provision program—only free counseling and information, no direct payments or coverage[4]\", \"People confuse with CHIP (children's program) or Medicaid due to similar acronyms; SHIP is Medicare-specific[1][4][8]\", \"Must be Medicare beneficiary; does not cover non-Medicare individuals[4][8]\", \"Services are appointment-based; call ahead as no walk-in guarantee at county centers[8]\"],\n  \"data_shape_notes\": \"no income test; counseling-only service, not benefits-paying; delivered via statewide network of senior centers with central phone line\"\n}"
+    },
+    {
+      "name": "Meals on Wheels",
+      "_parseError": true,
+      "_raw": "I cannot provide the comprehensive JSON guide you've requested because the search results contain significant gaps in the specific data you need. Here's what I can and cannot confirm:\n\n## What the Search Results Confirm\n\n**Eligibility (Partial):**\n- **Age:** 60+ years old[1][2]\n- **Homebound status:** Unable to leave home without considerable difficulty and/or assistance; medical treatment and infrequent absences (religious services, barber) are permitted[3]\n- **Nutritional need:** Unable to prepare or obtain at least one nutritious meal daily due to physical or mental limitations[3]\n- **Service area residency:** Must live within the program's delivery zone[1]\n- **Income limits:** NOT stated in search results. One source mentions programs \"adjust fees based on financial ability\" and use \"sliding scale\" pricing, but no dollar amounts are provided[2]\n- **Asset limits:** NOT mentioned in search results\n- **Spouses/dependents:** Spouses of any age and disabled household members (related or unrelated) may qualify[3][5]\n\n**What You Get:**\n- At least five meals per week (specific to Mason County)[3]\n- Hot meals delivered on weekdays[7]\n- Meals contain one-third of recommended daily allowance for vitamins and minerals[6]\n- No specific dollar value or hourly service details provided\n\n**Application Process:**\n- Contact your local Area Agency on Aging[1]\n- Complete an application and needs assessment[2]\n- May require referral letter from doctor or social worker[2]\n- Processing time: \"Some programs process applications within a week, but others take longer if there's a waiting list\"[1]\n- Documents typically include proof of age, residence, and medical information[1]\n\n**Regional Variations:**\nThe search results show Meals on Wheels operates through multiple local providers in West Virginia (Mason County, Preston County mentioned), but do NOT provide:\n- A comprehensive list of all providers by county\n- Specific phone numbers beyond Mason County (304-675-2369)[3]\n- Different eligibility criteria by region\n- Regional wait time variations\n- Different benefit levels by county\n\n## Critical Gaps\n\nThe search results do **not** contain:\n1. **Income limits** (specific dollar amounts for individuals, couples, or household sizes)\n2. **Asset limits** or exemptions\n3. **Statewide coordination information** or primary state agency contact\n4. **Online application URLs** or specific form names/numbers\n5. **Complete provider directory** for all West Virginia counties\n6. **Waitlist information** beyond \"some programs have waiting lists\"\n7. **Comparison data** to similar programs\n8. **Official state .gov website** for the program\n\n## Recommendation\n\nTo build an accurate comprehensive guide, you would need to:\n- Contact the West Virginia Bureau of Senior Services directly\n- Reach out to each county's Area Agency on Aging for regional specifics\n- Request official program documentation including income/asset limits\n- Verify current application procedures and processing times with each provider\n\nI cannot ethically populate the JSON template with incomplete or inferred data, as families making decisions about their elderly relatives need verified, current information."
+    },
+    {
+      "name": "Caregiver/Respite Support",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "Varies by local program; no statewide uniform limits. Nicholas CAP: Care recipient not eligible for Medicaid. Kanawha Valley: Fee based on income of care recipient, no specific dollar amounts. Medicaid waivers (not primary elderly program): Single applicant under $2,982/month (300% SSI) or $994/month (100% SSI) depending on waiver vs state plan[1].",
+        "asset_limits": "No statewide asset limits specified for elderly caregiver respite. Medicaid waivers: Under $2,000 for applicant[1]. Local programs generally do not mention assets.",
+        "other_requirements": [
+          "Caregiver must be full-time, unpaid family member[2][4][6].",
+          "Care recipient frail, elderly (60+), ill, or with dementia/Alzheimer's[2][4][6][7].",
+          "Not Medicaid-eligible in some local programs (e.g., Nicholas CAP)[6].",
+          "For dementia-specific: Diagnosis of Alzheimer's or related dementia[7].",
+          "Regional: Limited to specific counties (e.g., Preston, McDowell, Nicholas, Kanawha)[2][4][6][7].",
+          "WV IDD Waiver (not elderly-focused): Developmental/intellectual disability manifesting before age 22, ICF/IID level of care[3]."
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "In-home or out-of-home short-term respite care for caregiver relief. Specifics: Up to 12 hours/week in Nicholas CAP[6]; in-home relief in McDowell/Preston[2][4]; congregate adult day care (8:30am-3:30pm M-F) or in-home for dementia in Kanawha Valley[7]. Funding via donations in McDowell[4]; opportunity to contribute (not mandatory) in Nicholas[6].",
+        "varies_by": "region"
+      },
+      "application": {
+        "methods": [
+          "Contact local providers: Preston County Senior Citizens, Inc. (preston county-specific)[2]; McDowell County Commission on Aging (mcdowellcoa.org)[4]; Nicholas Community Action Partnership (ncapwv.org)[6]; Kanawha Valley Senior Services (kvss.org, 1710 Pennsylvania Ave, Charleston)[7].",
+          "Medicaid waivers: WV DHHR Bureau for Medical Services, 350 Capitol Street Room 251, Charleston WV 25301 or https://dhhr.wv.gov/bms/Members/Apply/Pages/default.aspx[3].",
+          "No statewide centralized phone/website for elderly respite; apply via county senior centers or area agencies on aging."
+        ],
+        "processing_time": "Not specified in sources.",
+        "waitlist": "Not mentioned for local programs; Medicaid waivers may have slots (e.g., IDD waiver enrollment 4634 as of 2020)[3].",
+        "forms": [
+          "No specific form names/numbers listed; contact local provider or DHHR for waiver applications[3]."
+        ],
+        "documents": [
+          "Proof of care recipient age (60+), frailty/illness/dementia diagnosis, caregiver unpaid status; Medicaid ineligibility if required[6]; WV citizenship for some programs[5]."
+        ]
+      },
+      "geography": {
+        "statewide": false,
+        "restrictions": "County-specific via local senior centers/commissions on aging (e.g., Preston[2], McDowell[4], Nicholas[6], Kanawha[7]).",
+        "regional_variations": "Services, eligibility details, funding (donations vs contributions), hours vary by county/provider. No statewide elderly respite program; Medicaid does not fund aged/disabled respite directly[1].",
+        "offices_or_providers": [
+          "Preston County Senior Citizens, Inc.[2]",
+          "McDowell County Commission on Aging[4]",
+          "Nicholas Community Action Partnership[6]",
+          "Kanawha Valley Senior Services[7]",
+          "DHHR Bureau for Medical Services (waivers)[3]"
+        ]
+      },
+      "official_source": "https://dhhr.wv.gov/bms/Members/Apply/Pages/default.aspx (Medicaid); local AAAs via aging.wv.gov",
+      "gotchas": [
+        "No unified statewide program for elderly; must contact county-specific providers[1][2][4][6][7].",
+        "Medicaid does not offer respite for aged/disabled in WV (unlike some states); adult day care may substitute[1].",
+        "Many programs county-restricted; rural areas may have limited access.",
+        "Some exclude Medicaid-eligible[6]; others fee-based on income[7].",
+        "Caregiver cannot be legally responsible person in some waivers[3].",
+        "Funding donation-based in areas like McDowell, potentially limiting availability[4]."
+      ],
+      "data_shape_notes": "Highly fragmented by county/local providers; no statewide elderly caregiver respite with uniform eligibility/benefits; Medicaid waivers target IDD not general elderly; access via 55+ Area Agencies on Aging centers.",
+      "_raw": "{\n  \"name\": \"Caregiver/Respite Support\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"Varies by local program; no statewide uniform limits. Nicholas CAP: Care recipient not eligible for Medicaid. Kanawha Valley: Fee based on income of care recipient, no specific dollar amounts. Medicaid waivers (not primary elderly program): Single applicant under $2,982/month (300% SSI) or $994/month (100% SSI) depending on waiver vs state plan[1].\",\n    \"asset_limits\": \"No statewide asset limits specified for elderly caregiver respite. Medicaid waivers: Under $2,000 for applicant[1]. Local programs generally do not mention assets.\",\n    \"other_requirements\": [\n      \"Caregiver must be full-time, unpaid family member[2][4][6].\",\n      \"Care recipient frail, elderly (60+), ill, or with dementia/Alzheimer's[2][4][6][7].\",\n      \"Not Medicaid-eligible in some local programs (e.g., Nicholas CAP)[6].\",\n      \"For dementia-specific: Diagnosis of Alzheimer's or related dementia[7].\",\n      \"Regional: Limited to specific counties (e.g., Preston, McDowell, Nicholas, Kanawha)[2][4][6][7].\",\n      \"WV IDD Waiver (not elderly-focused): Developmental/intellectual disability manifesting before age 22, ICF/IID level of care[3].\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"In-home or out-of-home short-term respite care for caregiver relief. Specifics: Up to 12 hours/week in Nicholas CAP[6]; in-home relief in McDowell/Preston[2][4]; congregate adult day care (8:30am-3:30pm M-F) or in-home for dementia in Kanawha Valley[7]. Funding via donations in McDowell[4]; opportunity to contribute (not mandatory) in Nicholas[6].\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact local providers: Preston County Senior Citizens, Inc. (preston county-specific)[2]; McDowell County Commission on Aging (mcdowellcoa.org)[4]; Nicholas Community Action Partnership (ncapwv.org)[6]; Kanawha Valley Senior Services (kvss.org, 1710 Pennsylvania Ave, Charleston)[7].\",\n      \"Medicaid waivers: WV DHHR Bureau for Medical Services, 350 Capitol Street Room 251, Charleston WV 25301 or https://dhhr.wv.gov/bms/Members/Apply/Pages/default.aspx[3].\",\n      \"No statewide centralized phone/website for elderly respite; apply via county senior centers or area agencies on aging.\"\n    ],\n    \"processing_time\": \"Not specified in sources.\",\n    \"waitlist\": \"Not mentioned for local programs; Medicaid waivers may have slots (e.g., IDD waiver enrollment 4634 as of 2020)[3].\",\n    \"forms\": [\"No specific form names/numbers listed; contact local provider or DHHR for waiver applications[3].\"],\n    \"documents\": [\"Proof of care recipient age (60+), frailty/illness/dementia diagnosis, caregiver unpaid status; Medicaid ineligibility if required[6]; WV citizenship for some programs[5].\"]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"County-specific via local senior centers/commissions on aging (e.g., Preston[2], McDowell[4], Nicholas[6], Kanawha[7]).\",\n    \"regional_variations\": \"Services, eligibility details, funding (donations vs contributions), hours vary by county/provider. No statewide elderly respite program; Medicaid does not fund aged/disabled respite directly[1].\",\n    \"offices_or_providers\": [\n      \"Preston County Senior Citizens, Inc.[2]\",\n      \"McDowell County Commission on Aging[4]\",\n      \"Nicholas Community Action Partnership[6]\",\n      \"Kanawha Valley Senior Services[7]\",\n      \"DHHR Bureau for Medical Services (waivers)[3]\"\n    ]\n  },\n  \"official_source\": \"https://dhhr.wv.gov/bms/Members/Apply/Pages/default.aspx (Medicaid); local AAAs via aging.wv.gov\",\n  \"gotchas\": [\n    \"No unified statewide program for elderly; must contact county-specific providers[1][2][4][6][7].\",\n    \"Medicaid does not offer respite for aged/disabled in WV (unlike some states); adult day care may substitute[1].\",\n    \"Many programs county-restricted; rural areas may have limited access.\",\n    \"Some exclude Medicaid-eligible[6]; others fee-based on income[7].\",\n    \"Caregiver cannot be legally responsible person in some waivers[3].\",\n    \"Funding donation-based in areas like McDowell, potentially limiting availability[4].\"\n  ],\n  \"data_shape_notes\": \"Highly fragmented by county/local providers; no statewide elderly caregiver respite with uniform eligibility/benefits; Medicaid waivers target IDD not general elderly; access via 55+ Area Agencies on Aging centers.\"\n}"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "eligibility": {
+        "age": 55,
+        "income_limits": "Family income no more than 125% of the federal poverty level. Exact dollar amounts vary annually and by household size; families must contact a local provider to confirm current thresholds based on HHS poverty guidelines[3][4].",
+        "asset_limits": "No asset limits mentioned in available sources[3][4].",
+        "other_requirements": [
+          "Unemployed",
+          "Low-income (≤125% FPL)",
+          "Priority to veterans and qualified spouses, individuals over 65, those with disabilities, low literacy or limited English proficiency, rural residents, homeless or at-risk, low employment prospects, or American Job Center users[3]"
+        ]
+      },
+      "benefits": {
+        "type": "employment",
+        "value": "Part-time community service job training (average 20 hours/week) at highest of federal, state, or local minimum wage; skill development; annual physical exam; support services (Social Security info, tax requirements, nutrition, consumer education, grooming); bridge to unsubsidized employment[1][3][4].",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Phone: Regional providers (e.g., Preston County Senior Citizens, Inc. at (304) 329-0464 for Boone, Clay, Doddridge, Harrison, Kanawha, Mercer, Monongalia, Preston, Putnam, Raleigh, Taylor Counties[1])",
+          "Contact local providers like Human Resource Development Foundation (hrdfwv.org) or Southwestern Community Action Council (scacwv.org)[2][5]",
+          "AARP Foundation locator for nearby programs (my.aarpfoundation.org/locator/scsep/)[7]"
+        ],
+        "processing_time": "Not specified; most participants trained for about 6 months before job placement[4].",
+        "waitlist": "Not mentioned; may vary by region and funding[4].",
+        "forms": [
+          "No specific form names/numbers identified; intake handled by local grantees."
+        ],
+        "documents": [
+          "Proof of age, income, unemployment status, and priority factors (e.g., veteran status); contact provider for exact list."
+        ]
+      },
+      "geography": {
+        "statewide": false,
+        "restrictions": "Coverage by specific grantees, not all counties (e.g., Preston County Senior Citizens covers 11 counties; Southwestern Community Action Council covers Barbour, Braxton, Cabell, Fayette, Greenbrier, Kanawha, Lincoln, Logan, McDowell, Mercer, Mingo, etc.[1][5]).",
+        "regional_variations": "Administered by different nonprofits (e.g., Preston County Senior Citizens, Inc., Human Resource Development Foundation, Southwestern Community Action Council); services in specific counties with local offices and contacts[1][2][5].",
+        "offices_or_providers": [
+          "Preston County Senior Citizens, Inc. (Boone, Clay, Doddridge, Harrison, Kanawha, Mercer, Monongalia, Preston, Putnam, Raleigh, Taylor Counties; (304) 329-0464)[1]",
+          "Human Resource Development Foundation (statewide vision, specific counties TBD)[2]",
+          "Southwestern Community Action Council (Barbour, Braxton, Cabell, Fayette, Greenbrier, Kanawha, Lincoln, Logan, McDowell, Mercer, Mingo, etc.)[5]"
+        ]
+      },
+      "official_source": "https://www.dol.gov/agencies/eta/seniors",
+      "gotchas": [
+        "Not statewide—must confirm county coverage with specific grantee; contact local provider first[1][5]",
+        "Income at ≤125% FPL requires verification; priority groups get preference, potentially longer waits for others[3]",
+        "Temporary training (avg. 20 hrs/wk, ~6 months), not permanent job or full income replacement[3][4]",
+        "Wage is minimum (highest federal/state/local), modest pay only[3][4]"
+      ],
+      "data_shape_notes": "Grantee-based by county clusters (not uniform statewide); priority enrollment tiers; no fixed income table or asset test in sources—income verified locally against current 125% FPL",
+      "_raw": "{\n  \"name\": \"Senior Community Service Employment Program (SCSEP)\",\n  \"eligibility\": {\n    \"age\": 55,\n    \"income_limits\": \"Family income no more than 125% of the federal poverty level. Exact dollar amounts vary annually and by household size; families must contact a local provider to confirm current thresholds based on HHS poverty guidelines[3][4].\",\n    \"asset_limits\": \"No asset limits mentioned in available sources[3][4].\",\n    \"other_requirements\": [\n      \"Unemployed\",\n      \"Low-income (≤125% FPL)\",\n      \"Priority to veterans and qualified spouses, individuals over 65, those with disabilities, low literacy or limited English proficiency, rural residents, homeless or at-risk, low employment prospects, or American Job Center users[3]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"employment\",\n    \"value\": \"Part-time community service job training (average 20 hours/week) at highest of federal, state, or local minimum wage; skill development; annual physical exam; support services (Social Security info, tax requirements, nutrition, consumer education, grooming); bridge to unsubsidized employment[1][3][4].\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: Regional providers (e.g., Preston County Senior Citizens, Inc. at (304) 329-0464 for Boone, Clay, Doddridge, Harrison, Kanawha, Mercer, Monongalia, Preston, Putnam, Raleigh, Taylor Counties[1])\",\n      \"Contact local providers like Human Resource Development Foundation (hrdfwv.org) or Southwestern Community Action Council (scacwv.org)[2][5]\",\n      \"AARP Foundation locator for nearby programs (my.aarpfoundation.org/locator/scsep/)[7]\"\n    ],\n    \"processing_time\": \"Not specified; most participants trained for about 6 months before job placement[4].\",\n    \"waitlist\": \"Not mentioned; may vary by region and funding[4].\",\n    \"forms\": [\"No specific form names/numbers identified; intake handled by local grantees.\"],\n    \"documents\": [\"Proof of age, income, unemployment status, and priority factors (e.g., veteran status); contact provider for exact list.\"]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Coverage by specific grantees, not all counties (e.g., Preston County Senior Citizens covers 11 counties; Southwestern Community Action Council covers Barbour, Braxton, Cabell, Fayette, Greenbrier, Kanawha, Lincoln, Logan, McDowell, Mercer, Mingo, etc.[1][5]).\",\n    \"regional_variations\": \"Administered by different nonprofits (e.g., Preston County Senior Citizens, Inc., Human Resource Development Foundation, Southwestern Community Action Council); services in specific counties with local offices and contacts[1][2][5].\",\n    \"offices_or_providers\": [\n      \"Preston County Senior Citizens, Inc. (Boone, Clay, Doddridge, Harrison, Kanawha, Mercer, Monongalia, Preston, Putnam, Raleigh, Taylor Counties; (304) 329-0464)[1]\",\n      \"Human Resource Development Foundation (statewide vision, specific counties TBD)[2]\",\n      \"Southwestern Community Action Council (Barbour, Braxton, Cabell, Fayette, Greenbrier, Kanawha, Lincoln, Logan, McDowell, Mercer, Mingo, etc.)[5]\"\n    ]\n  },\n  \"official_source\": \"https://www.dol.gov/agencies/eta/seniors\",\n  \"gotchas\": [\n    \"Not statewide—must confirm county coverage with specific grantee; contact local provider first[1][5]\",\n    \"Income at ≤125% FPL requires verification; priority groups get preference, potentially longer waits for others[3]\",\n    \"Temporary training (avg. 20 hrs/wk, ~6 months), not permanent job or full income replacement[3][4]\",\n    \"Wage is minimum (highest federal/state/local), modest pay only[3][4]\"\n  ],\n  \"data_shape_notes\": \"Grantee-based by county clusters (not uniform statewide); priority enrollment tiers; no fixed income table or asset test in sources—income verified locally against current 125% FPL\"\n}"
+    },
+    {
+      "name": "West Virginia Senior Legal Aid (WVSLA)",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "No strict income limits for basic eligibility; all WV residents age 60+ qualify. Higher levels of service (e.g., legal advice, advocacy) prioritized for low-income, minority, disabled, very rural, LGBT, or very elderly seniors.",
+        "asset_limits": "No asset limits mentioned.",
+        "other_requirements": [
+          "Must be a resident of West Virginia.",
+          "The senior age 60+ must contact the program directly (not a family member on their behalf)."
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Free civil legal services, including legal advice, advocacy, and representation in civil matters relevant to seniors (e.g., government benefits, housing, consumer issues). Basic services available to all eligible; enhanced services for priority groups.",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Phone: Toll-free 1-800-229-5068",
+          "Website: https://www.seniorlegalaid.org/blank-2 (request services page)"
+        ],
+        "processing_time": "Not specified in available data.",
+        "waitlist": null,
+        "forms": [
+          "No specific form name/number listed; intake via phone or online request."
+        ],
+        "documents": [
+          "Not explicitly listed; prepare to discuss legal issue, household, and financial situation during intake."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None; available to all West Virginia residents age 60+.",
+        "regional_variations": "Higher service levels may vary based on factors like rural location, but program is statewide with no specified regional differences in eligibility or wait times.",
+        "offices_or_providers": [
+          "West Virginia Senior Legal Aid, Inc. (statewide via toll-free phone and website)"
+        ]
+      },
+      "official_source": "https://www.seniorlegalaid.org",
+      "gotchas": [
+        "The person age 60+ must call themselves—family cannot apply on their behalf.",
+        "Basic eligibility is open, but full advocacy/representation prioritized for vulnerable groups (low-income, etc.); others may get limited brief advice.",
+        "Does not handle criminal cases, accidents, personal injury, or class actions.",
+        "Intake requires personal details on legal issue, household, and finances."
+      ],
+      "data_shape_notes": "No income or asset tests for entry; services tiered by vulnerability/priority rather than strict financial cutoffs; senior must self-initiate contact.",
+      "_raw": "{\n  \"name\": \"West Virginia Senior Legal Aid (WVSLA)\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"No strict income limits for basic eligibility; all WV residents age 60+ qualify. Higher levels of service (e.g., legal advice, advocacy) prioritized for low-income, minority, disabled, very rural, LGBT, or very elderly seniors.\",\n    \"asset_limits\": \"No asset limits mentioned.\",\n    \"other_requirements\": [\"Must be a resident of West Virginia.\", \"The senior age 60+ must contact the program directly (not a family member on their behalf).\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free civil legal services, including legal advice, advocacy, and representation in civil matters relevant to seniors (e.g., government benefits, housing, consumer issues). Basic services available to all eligible; enhanced services for priority groups.\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: Toll-free 1-800-229-5068\", \"Website: https://www.seniorlegalaid.org/blank-2 (request services page)\"],\n    \"processing_time\": \"Not specified in available data.\",\n    \"waitlist\": null,\n    \"forms\": [\"No specific form name/number listed; intake via phone or online request.\"],\n    \"documents\": [\"Not explicitly listed; prepare to discuss legal issue, household, and financial situation during intake.\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; available to all West Virginia residents age 60+.\",\n    \"regional_variations\": \"Higher service levels may vary based on factors like rural location, but program is statewide with no specified regional differences in eligibility or wait times.\",\n    \"offices_or_providers\": [\"West Virginia Senior Legal Aid, Inc. (statewide via toll-free phone and website)\"]\n  },\n  \"official_source\": \"https://www.seniorlegalaid.org\",\n  \"gotchas\": [\"The person age 60+ must call themselves—family cannot apply on their behalf.\", \"Basic eligibility is open, but full advocacy/representation prioritized for vulnerable groups (low-income, etc.); others may get limited brief advice.\", \"Does not handle criminal cases, accidents, personal injury, or class actions.\", \"Intake requires personal details on legal issue, household, and finances.\"],\n  \"data_shape_notes\": \"No income or asset tests for entry; services tiered by vulnerability/priority rather than strict financial cutoffs; senior must self-initiate contact.\"\n}"
+    },
+    {
+      "name": "Long-Term Care Ombudsman",
+      "eligibility": {
+        "age": null,
+        "income_limits": "No income limits; services are free and available to any long-term care resident, family, or concerned party[4][5]",
+        "asset_limits": "No asset limits or tests apply[4][5]",
+        "other_requirements": [
+          "Resident must be in a long-term care facility such as nursing home, assisted living, residential care community, or legally unlicensed home in West Virginia[4][5]"
+        ]
+      },
+      "benefits": {
+        "type": "advocacy",
+        "value": "Identifying, investigating, and resolving complaints; routine unannounced facility visits to monitor care; representing interests to government agencies for administrative, legal, or other remedies; all services free and confidential[4][5][7]",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Phone: Toll Free 1-800-834-0598 (various extensions for regions and director); Regional offices e.g., Huntington: 304-697-2070 ext. 2520; Director Ed Hopple: 304-449-4755 or 1-800-834-0598 ext. 3912; In-person at regional offices e.g., 418 8th Street, Second Floor, Huntington, WV 25701[5]"
+        ],
+        "processing_time": "Immediate response for complaints and advocacy; no formal processing as it's not an entitlement program[4][5]",
+        "waitlist": null,
+        "forms": [
+          "No specific forms required; contact ombudsman directly to report concerns[4][5]"
+        ],
+        "documents": [
+          "No documents needed to initiate contact or receive advocacy; provide details of complaint or concern verbally or in writing[4][5]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Limited to residents in long-term care facilities within West Virginia[4][5]",
+        "regional_variations": "State divided into 9 regions with dedicated regional ombudsmen serving specific counties; different contact points and offices per region, but services consistent statewide[4][5]",
+        "offices_or_providers": [
+          "9 regional ombudsmen plus director and training specialist; examples: Huntington office (Cabell, part of Kanawha, Lincoln, Logan, Mingo, Putnam, Wayne counties); Fairmont area served by Director Ed Hopple[4][5]"
+        ]
+      },
+      "official_source": "https://legalaidwv.org/our-programs/long-term-care/ (operated by Legal Aid of WV); https://code.wvlegislature.gov/16-5L/ (enabling WV Code)",
+      "gotchas": [
+        "Not a healthcare or financial benefits program—purely advocacy for complaints and rights in facilities; ombudsmen are non-attorneys, though they pursue remedies[4][5]; anyone can contact on behalf of resident, including families considering placement[5][7]; volunteer program available but separate from resident services[5]"
+      ],
+      "data_shape_notes": "no income/asset test; advocacy only for long-term care facility residents; 9 regional structure with county-specific ombudsmen; free/confidential for residents/families/anyone concerned",
+      "_raw": "{\n  \"name\": \"Long-Term Care Ombudsman\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No income limits; services are free and available to any long-term care resident, family, or concerned party[4][5]\",\n    \"asset_limits\": \"No asset limits or tests apply[4][5]\",\n    \"other_requirements\": [\"Resident must be in a long-term care facility such as nursing home, assisted living, residential care community, or legally unlicensed home in West Virginia[4][5]\"]\n  },\n  \"benefits\": {\n    \"type\": \"advocacy\",\n    \"value\": \"Identifying, investigating, and resolving complaints; routine unannounced facility visits to monitor care; representing interests to government agencies for administrative, legal, or other remedies; all services free and confidential[4][5][7]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: Toll Free 1-800-834-0598 (various extensions for regions and director); Regional offices e.g., Huntington: 304-697-2070 ext. 2520; Director Ed Hopple: 304-449-4755 or 1-800-834-0598 ext. 3912; In-person at regional offices e.g., 418 8th Street, Second Floor, Huntington, WV 25701[5]\"],\n    \"processing_time\": \"Immediate response for complaints and advocacy; no formal processing as it's not an entitlement program[4][5]\",\n    \"waitlist\": null,\n    \"forms\": [\"No specific forms required; contact ombudsman directly to report concerns[4][5]\"],\n    \"documents\": [\"No documents needed to initiate contact or receive advocacy; provide details of complaint or concern verbally or in writing[4][5]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Limited to residents in long-term care facilities within West Virginia[4][5]\",\n    \"regional_variations\": \"State divided into 9 regions with dedicated regional ombudsmen serving specific counties; different contact points and offices per region, but services consistent statewide[4][5]\",\n    \"offices_or_providers\": [\"9 regional ombudsmen plus director and training specialist; examples: Huntington office (Cabell, part of Kanawha, Lincoln, Logan, Mingo, Putnam, Wayne counties); Fairmont area served by Director Ed Hopple[4][5]\"]\n  },\n  \"official_source\": \"https://legalaidwv.org/our-programs/long-term-care/ (operated by Legal Aid of WV); https://code.wvlegislature.gov/16-5L/ (enabling WV Code)\",\n  \"gotchas\": [\"Not a healthcare or financial benefits program—purely advocacy for complaints and rights in facilities; ombudsmen are non-attorneys, though they pursue remedies[4][5]; anyone can contact on behalf of resident, including families considering placement[5][7]; volunteer program available but separate from resident services[5]\"],\n  \"data_shape_notes\": \"no income/asset test; advocacy only for long-term care facility residents; 9 regional structure with county-specific ombudsmen; free/confidential for residents/families/anyone concerned\"\n}"
+    },
+    {
+      "name": "Lighthouse Program",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "No strict income limits or asset disqualification; eligibility is financial based on a sliding fee scale according to the individual's (and spouse's, if applicable) annual income. Designed as a program of last resort for those whose income/assets disqualify them from Medicaid but cannot afford private pay without hardship. Exact dollar thresholds not specified in sources; determined locally.[1][2][3][4][5]",
+        "asset_limits": "No asset test mentioned; program targets those disqualified from Medicaid by income/assets but facing financial hardship for private care. Assets do not disqualify.[2][4][5]",
+        "other_requirements": [
+          "West Virginia resident.[3][4]",
+          "Medically eligible based on functional evaluation/assessment by the local senior aging program's registered nurse (RN), assessing needs in areas like personal care, mobility, nutrition, and environment.[1][2][3][4][5]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "In-home supportive services up to 60 hours per month, based on need and caregiver availability. Services include: personal care (bathing, dressing, grooming, eating, toileting); mobility (transferring in/out of bed, walking); nutrition (meal preparation, eating, grocery/pharmacy shopping); environment (light housecleaning, making/changing bed, laundry). Provided by caregivers employed by local senior aging programs.[1][2][3][4][5]",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Contact your local county senior program (specific contacts vary by county, e.g., Preston County: (304) 329-6272).[2]",
+          "Call West Virginia Bureau for Senior Services toll-free: 1-877-987-3646.[1][3]"
+        ],
+        "processing_time": "Not specified in sources.",
+        "waitlist": "Services limited by need and availability of caregivers; potential wait implied but no formal waitlist details.[3]",
+        "forms": [],
+        "documents": [
+          "Income documentation for sliding fee determination (individual and spouse if applicable).[2][5]",
+          "Prepare for RN functional evaluation (no specific documents listed; assessment determines medical eligibility).[1][2][3][4][5]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Available in each county of West Virginia.",
+        "regional_variations": "Administered by over 140 local senior aging organizations/providers (e.g., Preston County Senior Citizens, Inc.; Nicholas Community Action Partnership; CCCSO). Services, contacts, and processing may vary by county/provider, but core eligibility and benefits consistent statewide.[1][2][3][4][5]",
+        "offices_or_providers": [
+          "Local county senior programs; WV Bureau for Senior Services (state oversight). Examples: Preston County (304) 329-6272; Nicholas CAP; contact via 1-877-987-3646 for county-specific."
+        ]
+      },
+      "official_source": "https://www.wvseniorservices.gov",
+      "gotchas": [
+        "Not free—uses sliding fee scale based on income; not income-disregarded.[1][2][3][5]",
+        "Program of last resort for non-Medicaid eligible; won't substitute for Medicaid or private pay.[4][5]",
+        "Hours capped at 60/month, based on need/availability—may not meet full needs.[2][3]",
+        "Must contact local county program (not centralized); statewide hotline routes to locals.[1][2][3]",
+        "Medical eligibility requires RN assessment; functional needs in ADLs (activities of daily living) essential.[1][2][3][4][5]"
+      ],
+      "data_shape_notes": "State-funded, county-administered via local aging agencies; sliding fee (not asset-tested); up to 60 hours/month capped by need/availability; targets Medicaid-ineligible seniors with functional needs.",
+      "_raw": "{\n  \"name\": \"Lighthouse Program\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"No strict income limits or asset disqualification; eligibility is financial based on a sliding fee scale according to the individual's (and spouse's, if applicable) annual income. Designed as a program of last resort for those whose income/assets disqualify them from Medicaid but cannot afford private pay without hardship. Exact dollar thresholds not specified in sources; determined locally.[1][2][3][4][5]\",\n    \"asset_limits\": \"No asset test mentioned; program targets those disqualified from Medicaid by income/assets but facing financial hardship for private care. Assets do not disqualify.[2][4][5]\",\n    \"other_requirements\": [\n      \"West Virginia resident.[3][4]\",\n      \"Medically eligible based on functional evaluation/assessment by the local senior aging program's registered nurse (RN), assessing needs in areas like personal care, mobility, nutrition, and environment.[1][2][3][4][5]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"In-home supportive services up to 60 hours per month, based on need and caregiver availability. Services include: personal care (bathing, dressing, grooming, eating, toileting); mobility (transferring in/out of bed, walking); nutrition (meal preparation, eating, grocery/pharmacy shopping); environment (light housecleaning, making/changing bed, laundry). Provided by caregivers employed by local senior aging programs.[1][2][3][4][5]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact your local county senior program (specific contacts vary by county, e.g., Preston County: (304) 329-6272).[2]\",\n      \"Call West Virginia Bureau for Senior Services toll-free: 1-877-987-3646.[1][3]\"\n    ],\n    \"processing_time\": \"Not specified in sources.\",\n    \"waitlist\": \"Services limited by need and availability of caregivers; potential wait implied but no formal waitlist details.[3]\",\n    \"forms\": [],\n    \"documents\": [\n      \"Income documentation for sliding fee determination (individual and spouse if applicable).[2][5]\",\n      \"Prepare for RN functional evaluation (no specific documents listed; assessment determines medical eligibility).[1][2][3][4][5]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Available in each county of West Virginia.\",\n    \"regional_variations\": \"Administered by over 140 local senior aging organizations/providers (e.g., Preston County Senior Citizens, Inc.; Nicholas Community Action Partnership; CCCSO). Services, contacts, and processing may vary by county/provider, but core eligibility and benefits consistent statewide.[1][2][3][4][5]\",\n    \"offices_or_providers\": [\"Local county senior programs; WV Bureau for Senior Services (state oversight). Examples: Preston County (304) 329-6272; Nicholas CAP; contact via 1-877-987-3646 for county-specific.\"]\n  },\n  \"official_source\": \"https://www.wvseniorservices.gov\",\n  \"gotchas\": [\n    \"Not free—uses sliding fee scale based on income; not income-disregarded.[1][2][3][5]\",\n    \"Program of last resort for non-Medicaid eligible; won't substitute for Medicaid or private pay.[4][5]\",\n    \"Hours capped at 60/month, based on need/availability—may not meet full needs.[2][3]\",\n    \"Must contact local county program (not centralized); statewide hotline routes to locals.[1][2][3]\",\n    \"Medical eligibility requires RN assessment; functional needs in ADLs (activities of daily living) essential.[1][2][3][4][5]\"\n  ],\n  \"data_shape_notes\": \"State-funded, county-administered via local aging agencies; sliding fee (not asset-tested); up to 60 hours/month capped by need/availability; targets Medicaid-ineligible seniors with functional needs.\"\n}"
+    },
+    {
+      "name": "Aging Well, Safe at Home Initiative: WV BoSS Home Modification and Accessibility Program",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "No specific income limits or tables mentioned in available sources; eligibility based on demonstrated need rather than financial thresholds[1][4][6]",
+        "asset_limits": "No asset limits specified, including no details on what counts or is exempt[1][4][6]",
+        "other_requirements": [
+          "Must demonstrate a need for home modifications and/or accessibility devices to live more independently at home[1][4][6]"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "Funds to assist with costs of home modifications and/or accessibility devices; specific dollar amounts, service details, or tiers not specified[1][4][6]",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Phone: 866-981-2372[6]",
+          "Email: adrc@wvseniorservices.org[6]",
+          "Mail: WV Aging & Disability Resource Center, 824 Cross Lanes Drive, Charleston, WV 25313[6]",
+          "In-person: Through local WV Aging and Disability Resource Center (ADRC)[6]"
+        ],
+        "processing_time": "Not specified in sources",
+        "waitlist": null,
+        "forms": [
+          "Home Modification and Accessibility Program application (available through ADRC; instructions and links provided for mail submission)[6]"
+        ],
+        "documents": "Not specifically listed for this program; general grant applications may require project narrative, budget justification, organizational capability statement, and key personnel CVs, but confirm with official source[1]"
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None specified; available statewide through ADRC[6]",
+        "regional_variations": "No regional differences in program operation, providers, or wait times detailed; ADRC available in each county via state contact[2][6]",
+        "offices_or_providers": [
+          "WV Aging & Disability Resource Center (statewide access via central office in Charleston)[6]"
+        ]
+      },
+      "official_source": "https://www.wvadrc.com/assistance-programs.html",
+      "gotchas": [
+        "No mention of income or asset limits, but similar programs like Lighthouse exclude based on income/assets disqualifying from Medicaid—confirm no hidden financial test[1][2][5]",
+        "Must demonstrate specific need for modifications/devices, not automatic approval[1][6]",
+        "Documents and exact funding amounts not detailed; applicants should verify with ADRC to avoid generic assumptions[1][6]",
+        "Potentially confused with Medicaid waivers (e.g., ADW) which have strict financial and medical criteria[2][5]"
+      ],
+      "data_shape_notes": "no income test; eligibility hinges on age 60+ and demonstrated need only; administered via statewide ADRC with central mail/phone application[1][6]",
+      "_raw": "{\n  \"name\": \"Aging Well, Safe at Home Initiative: WV BoSS Home Modification and Accessibility Program\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"No specific income limits or tables mentioned in available sources; eligibility based on demonstrated need rather than financial thresholds[1][4][6]\",\n    \"asset_limits\": \"No asset limits specified, including no details on what counts or is exempt[1][4][6]\",\n    \"other_requirements\": [\"Must demonstrate a need for home modifications and/or accessibility devices to live more independently at home[1][4][6]\"]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Funds to assist with costs of home modifications and/or accessibility devices; specific dollar amounts, service details, or tiers not specified[1][4][6]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: 866-981-2372[6]\", \"Email: adrc@wvseniorservices.org[6]\", \"Mail: WV Aging & Disability Resource Center, 824 Cross Lanes Drive, Charleston, WV 25313[6]\", \"In-person: Through local WV Aging and Disability Resource Center (ADRC)[6]\"],\n    \"processing_time\": \"Not specified in sources\",\n    \"waitlist\": null,\n    \"forms\": [\"Home Modification and Accessibility Program application (available through ADRC; instructions and links provided for mail submission)[6]\"],\n    \"documents\": \"Not specifically listed for this program; general grant applications may require project narrative, budget justification, organizational capability statement, and key personnel CVs, but confirm with official source[1]\"\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None specified; available statewide through ADRC[6]\",\n    \"regional_variations\": \"No regional differences in program operation, providers, or wait times detailed; ADRC available in each county via state contact[2][6]\",\n    \"offices_or_providers\": [\"WV Aging & Disability Resource Center (statewide access via central office in Charleston)[6]\"]\n  },\n  \"official_source\": \"https://www.wvadrc.com/assistance-programs.html\",\n  \"gotchas\": [\"No mention of income or asset limits, but similar programs like Lighthouse exclude based on income/assets disqualifying from Medicaid—confirm no hidden financial test[1][2][5]\", \"Must demonstrate specific need for modifications/devices, not automatic approval[1][6]\", \"Documents and exact funding amounts not detailed; applicants should verify with ADRC to avoid generic assumptions[1][6]\", \"Potentially confused with Medicaid waivers (e.g., ADW) which have strict financial and medical criteria[2][5]\"],\n  \"data_shape_notes\": \"no income test; eligibility hinges on age 60+ and demonstrated need only; administered via statewide ADRC with central mail/phone application[1][6]\"\n}"
+    },
+    {
+      "name": "Take Me Home, West Virginia Program",
+      "eligibility": {
+        "age": null,
+        "income_limits": "No specific income limits stated for the program itself; participants must be Medicaid-eligible on the last day prior to transitioning. General WV Medicaid long-term care limits (2026): single applicant income under $2,982/month.[3]",
+        "asset_limits": "No specific asset limits stated for the program; follows WV Medicaid rules (e.g., single applicant assets under $2,000; primary home exempt if spouse/child under 21/permanently disabled child lives there or intent to return, with home equity limit of $752,000).[3]",
+        "other_requirements": [
+          "Residing in a nursing facility, hospital, institution for mental disease, or combination for at least 60 consecutive days (excluding Medicare rehab days; previously 90 days).[1][2][4]",
+          "Receive Medicaid benefits on the last day prior to transitioning from the facility to the community.[1][4]",
+          "Nursing Home Level of Care required via Medicaid eligibility.[3]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Comprehensive transition supports including rental/utility deposits, basic household items, community support, transition plan development, and person-centered services to move from long-term care facilities to own home/apartment/family home/group home (4 or fewer residents).[1][4]",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Phone: 1-855-519-7557 (toll-free) or 304-352-4281; also 1-866-981-2372 via Aging & Disability Resource Network.[2][4][6]",
+          "Website: TMHWV.org.[2]",
+          "Mail: Take Me Home, West Virginia, Bureau for Medical Services, 350 Capitol St., Room 251, Charleston, WV 25301-3702.[4]",
+          "In-person: Network of TMH field staff throughout the state.[4]"
+        ],
+        "processing_time": "Not specified in sources.",
+        "waitlist": null,
+        "forms": [],
+        "documents": [
+          "Identification for housing: birth certificate, social security card, driver's license or state ID, any other relevant IDs.[8]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": null,
+        "regional_variations": "Network of field staff located throughout the state; no specific differences in services, wait times, or providers by region noted.[4]",
+        "offices_or_providers": [
+          "Statewide TMH field staff; administered by Bureau for Medical Services (BMS).[4]"
+        ]
+      },
+      "official_source": "https://bms.wv.gov/take-me-home-tmh-transition-program",
+      "gotchas": [
+        "Must be Medicaid-eligible at transition; program supports but does not replace Medicaid requirements like Nursing Home Level of Care.[1][3][4]",
+        "60-day minimum institutional stay (excluding Medicare rehab); intent to return to community required.[1][2][3]",
+        "Focuses on transition support only—not ongoing long-term care; success measured by 365-day community retention.[2]",
+        "No explicit details on processing times, waitlists, or exact service dollar amounts/hours."
+      ],
+      "data_shape_notes": "Tied to Medicaid MFP grant; eligibility hinges on institutional stay duration and Medicaid status rather than age/income/assets directly; services person-centered via field staff statewide.",
+      "_raw": "{\n  \"name\": \"Take Me Home, West Virginia Program\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No specific income limits stated for the program itself; participants must be Medicaid-eligible on the last day prior to transitioning. General WV Medicaid long-term care limits (2026): single applicant income under $2,982/month.[3]\",\n    \"asset_limits\": \"No specific asset limits stated for the program; follows WV Medicaid rules (e.g., single applicant assets under $2,000; primary home exempt if spouse/child under 21/permanently disabled child lives there or intent to return, with home equity limit of $752,000).[3]\",\n    \"other_requirements\": [\n      \"Residing in a nursing facility, hospital, institution for mental disease, or combination for at least 60 consecutive days (excluding Medicare rehab days; previously 90 days).[1][2][4]\",\n      \"Receive Medicaid benefits on the last day prior to transitioning from the facility to the community.[1][4]\",\n      \"Nursing Home Level of Care required via Medicaid eligibility.[3]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Comprehensive transition supports including rental/utility deposits, basic household items, community support, transition plan development, and person-centered services to move from long-term care facilities to own home/apartment/family home/group home (4 or fewer residents).[1][4]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: 1-855-519-7557 (toll-free) or 304-352-4281; also 1-866-981-2372 via Aging & Disability Resource Network.[2][4][6]\",\n      \"Website: TMHWV.org.[2]\",\n      \"Mail: Take Me Home, West Virginia, Bureau for Medical Services, 350 Capitol St., Room 251, Charleston, WV 25301-3702.[4]\",\n      \"In-person: Network of TMH field staff throughout the state.[4]\"\n    ],\n    \"processing_time\": \"Not specified in sources.\",\n    \"waitlist\": null,\n    \"forms\": [],\n    \"documents\": [\n      \"Identification for housing: birth certificate, social security card, driver's license or state ID, any other relevant IDs.[8]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": null,\n    \"regional_variations\": \"Network of field staff located throughout the state; no specific differences in services, wait times, or providers by region noted.[4]\",\n    \"offices_or_providers\": [\n      \"Statewide TMH field staff; administered by Bureau for Medical Services (BMS).[4]\"\n    ]\n  },\n  \"official_source\": \"https://bms.wv.gov/take-me-home-tmh-transition-program\",\n  \"gotchas\": [\n    \"Must be Medicaid-eligible at transition; program supports but does not replace Medicaid requirements like Nursing Home Level of Care.[1][3][4]\",\n    \"60-day minimum institutional stay (excluding Medicare rehab); intent to return to community required.[1][2][3]\",\n    \"Focuses on transition support only—not ongoing long-term care; success measured by 365-day community retention.[2]\",\n    \"No explicit details on processing times, waitlists, or exact service dollar amounts/hours.\"\n  ],\n  \"data_shape_notes\": \"Tied to Medicaid MFP grant; eligibility hinges on institutional stay duration and Medicaid status rather than age/income/assets directly; services person-centered via field staff statewide.\"\n}"
+    },
+    {
+      "name": "FAIR (Family Alzheimer's In-Home Respite)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "No income limits specified.",
+        "asset_limits": "No asset limits specified.",
+        "other_requirements": [
+          "Diagnosis of Alzheimer’s disease OR another dementia",
+          "A resident of Mineral County"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Up to 16 hours of respite care per week. This service allows the caregiver to have a regular break from caregiving responsibilities and provides stimulation and socialization for the person with dementia.",
+        "varies_by": "fixed"
+      },
+      "application": {
+        "methods": [],
+        "processing_time": "No information available",
+        "waitlist": null,
+        "forms": [],
+        "documents": []
+      },
+      "geography": {
+        "statewide": false,
+        "restrictions": "Mineral County only",
+        "regional_variations": "Limited to Mineral County; no information on other regions.",
+        "offices_or_providers": [
+          "Aging and Family Services (source: wvaging.com)"
+        ]
+      },
+      "official_source": "https://wvaging.com/fair/",
+      "gotchas": [
+        "Not statewide—restricted to Mineral County residents only.",
+        "Requires formal diagnosis of Alzheimer’s or related dementia.",
+        "Limited information available on application process, processing times, or required documents; families should contact provider directly."
+      ],
+      "data_shape_notes": "County-restricted to Mineral County; no financial eligibility tests mentioned; fixed benefit of up to 16 hours/week respite care.",
+      "_raw": "{\n  \"name\": \"FAIR (Family Alzheimer's In-Home Respite)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No income limits specified.\",\n    \"asset_limits\": \"No asset limits specified.\",\n    \"other_requirements\": [\"Diagnosis of Alzheimer’s disease OR another dementia\", \"A resident of Mineral County\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Up to 16 hours of respite care per week. This service allows the caregiver to have a regular break from caregiving responsibilities and provides stimulation and socialization for the person with dementia.\",\n    \"varies_by\": \"fixed\"\n  },\n  \"application\": {\n    \"methods\": [],\n    \"processing_time\": \"No information available\",\n    \"waitlist\": null,\n    \"forms\": [],\n    \"documents\": []\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Mineral County only\",\n    \"regional_variations\": \"Limited to Mineral County; no information on other regions.\",\n    \"offices_or_providers\": [\"Aging and Family Services (source: wvaging.com)\"]\n  },\n  \"official_source\": \"https://wvaging.com/fair/\",\n  \"gotchas\": [\"Not statewide—restricted to Mineral County residents only.\", \"Requires formal diagnosis of Alzheimer’s or related dementia.\", \"Limited information available on application process, processing times, or required documents; families should contact provider directly.\"],\n  \"data_shape_notes\": \"County-restricted to Mineral County; no financial eligibility tests mentioned; fixed benefit of up to 16 hours/week respite care.\"\n}"
+    }
+  ]
+}

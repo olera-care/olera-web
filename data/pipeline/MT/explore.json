@@ -1,0 +1,43 @@
+{
+  "entity": "Montana",
+  "entitySlug": "montana",
+  "state": "MT",
+  "stateName": "Montana",
+  "isRegion": false,
+  "exploredAt": "2026-04-09T09:06:02.690Z",
+  "programCount": 4,
+  "programs": [
+    {
+      "name": "Big Sky Waiver Program",
+      "what_it_does": "Montana's Big Sky Waiver is a Medicaid 1915(c) HCBS waiver providing long-term services and supports to help elderly or disabled residents avoid nursing home placement and live independently in their homes, family homes, or community settings like assisted living.[1][2] Benefits include adult day care, personal care, homemaker services, skilled nursing, home modifications, companion services, meal delivery, respite care, and transitional support for nursing home residents.[1][2]",
+      "who_its_for": "Montana residents aged 65+ or physically disabled adults under 65 at risk of institutionalization; 2025 income limit $967/month (individual), asset limit $2,000.[1][2]",
+      "whats_unique": "State-specific Medicaid waiver (not federal entitlement) with capped slots (2,783 max, including reserves for assisted living and nursing home transitions via Money Follows the Person); tailored to Montana's needs for rural and elderly populations.[2]",
+      "official_url": "https://dphhs.mt.gov/sltc/",
+      "benefit_value": "Individualized service plan with comprehensive HCBS; prevents institutionalization, no fixed dollar value but covers services like skilled nursing and home mods up to eligibility limits.[1][2]"
+    },
+    {
+      "name": "TCARE",
+      "what_it_does": "TCARE is a program through Montana's Area Agencies on Aging offering guided assessments and support to help caregivers of seniors manage stress and prevent burnout.[3][5]",
+      "who_its_for": "Caregivers of older adults (60+) and adults with disabilities in Montana.[3]",
+      "whats_unique": "Montana-specific initiative via state Area Agencies on Aging, focused on caregiver wellness in a rural state with unique aging challenges.[3][5]",
+      "official_url": "https://dphhs.mt.gov/sltc/aging/",
+      "benefit_value": "Guided assessment and support services; no monetary value specified, emphasizes prevention of caregiver burnout.[3]"
+    },
+    {
+      "name": "State Health Insurance Assistance Program (S.H.I.P.)",
+      "what_it_does": "S.H.I.P. provides free one-on-one counseling to help seniors understand Medicare, Medicaid, private insurance, and long-term care insurance options.[6]",
+      "who_its_for": "Older and disabled Montanans seeking insurance guidance.[6]",
+      "whats_unique": "State-delivered through local agencies with in-home counseling by certified technicians; independent, no sales pressure, tailored to Montana's rural access needs.[6]",
+      "official_url": "https://area6aging.com",
+      "benefit_value": "Free personalized counseling sessions; saves on insurance errors, no direct monetary benefit.[6]"
+    },
+    {
+      "name": "Commodity Supplemental Food Program (CSFP)",
+      "what_it_does": "CSFP delivers monthly food boxes to low-income seniors to supplement their diet and improve nutrition.[5]",
+      "who_its_for": "Low-income residents aged 60+ in areas like Silver-Bow County, Montana.[5]",
+      "whats_unique": "Administered locally via Montana aging/disability services in specific counties; state-coordinated beyond federal CSFP standards.[5]",
+      "official_url": "https://www.swmads.org",
+      "benefit_value": "Monthly food boxes; nutritional supplement valued at market cost of groceries (exact $ not specified).[5]"
+    }
+  ]
+}

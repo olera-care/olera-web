@@ -1,0 +1,683 @@
+{
+  "state": "ID",
+  "stateName": "Idaho",
+  "diveAt": "2026-04-09T08:50:49.009Z",
+  "total": 14,
+  "parsed": 12,
+  "programs": [
+    {
+      "name": "Idaho Medicaid for the Aged, Blind, and Disabled (ABD)",
+      "eligibility": {
+        "age": 65,
+        "income_limits": "Specific dollar amounts for AABD Medicaid income limits are not detailed in available sources for 2026; financial eligibility requires meeting an income limit that varies by marital status and program specifics. For context, single nursing home applicants (related criteria) must have income under $3,002/month. ABD focuses on countable income assessment with no fixed table provided here; consult official sources for household size adjustments.[1][2]",
+        "asset_limits": "For a single applicant in 2026, countable assets must be $2,000 or less. Countable assets include most financial resources; exempt assets generally include primary home (if applicant lives there or intends to return, with home equity ≤$752,000), household furnishings, appliances, personal effects, and one vehicle. Assets given away or sold below fair market value within 60 months trigger a Look-Back Rule penalty period.[1][3]",
+        "other_requirements": [
+          "U.S. citizen or eligible non-citizen living in Idaho.",
+          "Aged (65+), blind, or disabled (per Social Security Act criteria).",
+          "For basic coverage: functional need limited to age/blind/disabled status.",
+          "For long-term care services: assessment of Activities of Daily Living (ADLs: mobility, bathing, dressing, eating, toileting) and Instrumental ADLs (shopping, cooking, cleaning, medications); cognitive impairments like dementia considered. Nursing Facility Level of Care (NFLOC) may apply for certain supports.[1][5]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Basic healthcare coverage including physician visits, prescription medications, emergency room visits, and short-term hospital stays. For long-term care needs, covers services/supports based on ADL/IADL assessment (e.g., home/community-based services); specific services like nursing home or HCBS waivers require NFLOC but no fixed dollar amounts or hours stated.[1][2]",
+        "varies_by": "functional_need"
+      },
+      "application": {
+        "methods": [
+          "Online: https://healthandwelfare.idaho.gov/services-programs/medicaid-health/apply-medicaid (via Idaho Department of Health and Welfare).[4]",
+          "Phone: 1-877-456-1233 for assistance.[4]",
+          "Mail or in-person: Contact local office via phone or website for addresses.[4]"
+        ],
+        "processing_time": "Not specified in sources.",
+        "waitlist": null,
+        "forms": [
+          "No specific form name/number listed; use online application portal or call for forms."
+        ],
+        "documents": [
+          "Proof of residency in Idaho, U.S. citizenship/immigration status, income verification, asset statements, disability/age proof (e.g., Social Security determination, birth certificate), medical records for functional assessment if seeking long-term care.[1][5]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": null,
+        "regional_variations": "No regional differences specified; assessments may occur via in-person/telephone statewide. Processing/wait times not detailed by region.[1][3]",
+        "offices_or_providers": []
+      },
+      "official_source": "https://healthandwelfare.idaho.gov/services-programs/medicaid-health/about-medicaid-elderly-or-adults-disabilities",
+      "gotchas": [
+        "Financial eligibility varies by marital status and specific program (e.g., nursing home vs. HCBS); ABD provides basic coverage but long-term services require separate functional/NFLOC assessment.[1]",
+        "60-month Look-Back Rule penalizes asset transfers; home equity limit $752,000 applies.[3]",
+        "Not all ABD applicants automatically get long-term care—needs-based assessment determines services.[1][2]",
+        "Must meet both financial and functional criteria; income limits not explicitly tabled for ABD by household size in sources.[1]"
+      ],
+      "data_shape_notes": "Eligibility tied to ABD status with asset cap at $2,000 (single); benefits scale by assessed functional needs/ADLs rather than fixed amounts or household size; separate from expansion Medicaid (138% FPL, no assets) or waivers requiring NFLOC.",
+      "_raw": "{\n  \"name\": \"Idaho Medicaid for the Aged, Blind, and Disabled (ABD)\",\n  \"eligibility\": {\n    \"age\": 65,\n    \"income_limits\": \"Specific dollar amounts for AABD Medicaid income limits are not detailed in available sources for 2026; financial eligibility requires meeting an income limit that varies by marital status and program specifics. For context, single nursing home applicants (related criteria) must have income under $3,002/month. ABD focuses on countable income assessment with no fixed table provided here; consult official sources for household size adjustments.[1][2]\",\n    \"asset_limits\": \"For a single applicant in 2026, countable assets must be $2,000 or less. Countable assets include most financial resources; exempt assets generally include primary home (if applicant lives there or intends to return, with home equity ≤$752,000), household furnishings, appliances, personal effects, and one vehicle. Assets given away or sold below fair market value within 60 months trigger a Look-Back Rule penalty period.[1][3]\",\n    \"other_requirements\": [\n      \"U.S. citizen or eligible non-citizen living in Idaho.\",\n      \"Aged (65+), blind, or disabled (per Social Security Act criteria).\",\n      \"For basic coverage: functional need limited to age/blind/disabled status.\",\n      \"For long-term care services: assessment of Activities of Daily Living (ADLs: mobility, bathing, dressing, eating, toileting) and Instrumental ADLs (shopping, cooking, cleaning, medications); cognitive impairments like dementia considered. Nursing Facility Level of Care (NFLOC) may apply for certain supports.[1][5]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Basic healthcare coverage including physician visits, prescription medications, emergency room visits, and short-term hospital stays. For long-term care needs, covers services/supports based on ADL/IADL assessment (e.g., home/community-based services); specific services like nursing home or HCBS waivers require NFLOC but no fixed dollar amounts or hours stated.[1][2]\",\n    \"varies_by\": \"functional_need\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: https://healthandwelfare.idaho.gov/services-programs/medicaid-health/apply-medicaid (via Idaho Department of Health and Welfare).[4]\",\n      \"Phone: 1-877-456-1233 for assistance.[4]\",\n      \"Mail or in-person: Contact local office via phone or website for addresses.[4]\"\n    ],\n    \"processing_time\": \"Not specified in sources.\",\n    \"waitlist\": null,\n    \"forms\": [\"No specific form name/number listed; use online application portal or call for forms.\"],\n    \"documents\": [\"Proof of residency in Idaho, U.S. citizenship/immigration status, income verification, asset statements, disability/age proof (e.g., Social Security determination, birth certificate), medical records for functional assessment if seeking long-term care.[1][5]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": null,\n    \"regional_variations\": \"No regional differences specified; assessments may occur via in-person/telephone statewide. Processing/wait times not detailed by region.[1][3]\",\n    \"offices_or_providers\": []\n  },\n  \"official_source\": \"https://healthandwelfare.idaho.gov/services-programs/medicaid-health/about-medicaid-elderly-or-adults-disabilities\",\n  \"gotchas\": [\n    \"Financial eligibility varies by marital status and specific program (e.g., nursing home vs. HCBS); ABD provides basic coverage but long-term services require separate functional/NFLOC assessment.[1]\",\n    \"60-month Look-Back Rule penalizes asset transfers; home equity limit $752,000 applies.[3]\",\n    \"Not all ABD applicants automatically get long-term care—needs-based assessment determines services.[1][2]\",\n    \"Must meet both financial and functional criteria; income limits not explicitly tabled for ABD by household size in sources.[1]\"\n  ],\n  \"data_shape_notes\": \"Eligibility tied to ABD status with asset cap at $2,000 (single); benefits scale by assessed functional needs/ADLs rather than fixed amounts or household size; separate from expansion Medicaid (138% FPL, no assets) or waivers requiring NFLOC.\"\n}"
+    },
+    {
+      "name": "Idaho Aged and Disabled Waiver",
+      "eligibility": {
+        "age": "65 or older, OR 18-64 with a disability diagnosis under the Social Security Act",
+        "income_limits": "Not explicitly stated in search results. Search results indicate income limits exist but do not provide specific dollar amounts or household-based tables. Contact Idaho Department of Health and Welfare for current income thresholds.",
+        "asset_limits": {
+          "countable_asset_limit_single": "$2,000 (2026)",
+          "countable_asset_limit_couple": "Not specified in search results",
+          "exempt_assets": [
+            "Primary home (if applicant lives in it or has intent to return, with home equity interest not exceeding $752,000 in 2026)",
+            "Household furnishings and appliances",
+            "Personal effects",
+            "One vehicle"
+          ],
+          "critical_rule": "Assets cannot be given away or sold for less than fair market value within 60 months of long-term care Medicaid application. Violating the Look-Back Rule results in a Penalty Period of Medicaid ineligibility."
+        },
+        "other_requirements": [
+          "Must live in Idaho",
+          "Must be a U.S. citizen or eligible non-citizen",
+          "Must require Nursing Facility Level of Care (NFLOC) — assessed through in-person or telephone interview using the Uniform Assessment Instrument (UAI)",
+          "Functional need determined by limitations in Activities of Daily Living (ADL: bathing, dressing, mobility, eating, toileting) and Instrumental Activities of Daily Living (IADL: preparing meals, laundry, housecleaning)",
+          "Cognitive impairments such as Alzheimer's disease and other dementias are considered in the assessment",
+          "Must be eligible for Medicaid under IDAPA 16.03.05 (Aid to the Aged, Blind, and Disabled)"
+        ]
+      },
+      "benefits": {
+        "type": "in_kind",
+        "value": "Comprehensive home and community-based services including: adult day health, day habilitation, homemaker services, residential habilitation, respite care, supported employment, attendant care, adult residential care, chore services, companion services, consultation, environmental accessibility adaptations, home-delivered meals, non-medical transportation, personal emergency response system, skilled nursing, specialized medical equipment and supplies, and transition services[7]",
+        "specific_services": {
+          "adult_day_health": "Supervised, structured service generally furnished 4 or more hours per day on a regularly scheduled basis, including medication assistance, ADL assistance, meals (including special diets), housekeeping, laundry, transportation, socialization, recreation, and assistance with personal finances[6]",
+          "personal_assistance_services": "Direct assistance with grooming, bathing, eating, assistance with self-administered medications, supervision, communication assistance, household tasks essential to health care (general cleaning, laundry, meal planning and preparation, shopping, correspondence)[6]",
+          "transition_services": "May include security deposits required to obtain a lease on an apartment or home[6]"
+        },
+        "varies_by": "Individual need (based on NFLOC assessment and service plan negotiation)"
+      },
+      "application": {
+        "methods": [
+          "Contact Idaho Department of Health and Welfare (specific URL and phone number not provided in search results)",
+          "The American Council on Aging offers a Medicaid Eligibility Test for Idaho seniors at their website (specific URL not provided in search results)"
+        ],
+        "processing_time": "Not specified in search results",
+        "waitlist": "Not mentioned in search results",
+        "forms": [
+          "Uniform Assessment Instrument (UAI) — used to assess functional need",
+          "Individual Service Plan — must be negotiated between participant/legal representative and facility representative[6]"
+        ],
+        "documents": [
+          "Verification of household information",
+          "Income documentation",
+          "Asset documentation",
+          "Medical records and disability diagnosis documentation",
+          "Proof of Idaho residency",
+          "Proof of U.S. citizenship or eligible non-citizen status"
+        ],
+        "application_note": "Applicants should gather all supporting documentation before applying to avoid delays and prevent denial based on procedural error[4]"
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Must be an Idaho resident[1][5]",
+        "regional_variations": null,
+        "offices_or_providers": "Administered by Idaho Department of Health and Welfare or its contractor[3]"
+      },
+      "official_source": "https://healthandwelfare.idaho.gov/services-programs/medicaid-health/about-medicaid-elderly-or-adults-disabilities",
+      "gotchas": [
+        "The 60-month Look-Back Rule is critical: any assets given away or sold below fair market value within 60 months of application will trigger a Penalty Period of Medicaid ineligibility. This is a common mistake that can delay or deny eligibility[1]",
+        "Home equity limit of $752,000 (2026) applies only if applicant lives in the home or has intent to return; this limit may change annually[1]",
+        "Functional need assessment is mandatory and requires demonstrating inability to independently perform ADLs and IADLs. This is not automatic based on age or diagnosis alone[1][2]",
+        "Idaho also offers a separate Personal Care Services Program with slightly different eligibility requirements — families should verify which program best fits their needs[1]",
+        "Income limits exist but are not detailed in publicly available search results — applicants must contact the state directly for current thresholds",
+        "Asset limits are strict ($2,000 for single applicants in 2026) and only specific assets are exempt; careful planning is needed",
+        "Cognitive impairments like Alzheimer's are considered in the assessment, but the applicant must still meet the NFLOC standard[2]"
+      ],
+      "data_shape_notes": "This program's eligibility is highly individualized, based on functional need assessment rather than automatic qualification by age or diagnosis. Benefits are service-based rather than cash-based, with the specific mix of services determined through an individual service plan. The program operates statewide with no apparent regional variations in eligibility or benefits, but processing timelines and waitlist status are not documented in available sources. Income limits are referenced but not publicly specified in search results, requiring direct contact with the state. The 60-month Look-Back Rule for asset transfers is a critical planning consideration that differs from some other Medicaid programs.",
+      "_raw": "```json\n{\n  \"name\": \"Idaho Aged and Disabled Waiver\",\n  \"eligibility\": {\n    \"age\": \"65 or older, OR 18-64 with a disability diagnosis under the Social Security Act\",\n    \"income_limits\": \"Not explicitly stated in search results. Search results indicate income limits exist but do not provide specific dollar amounts or household-based tables. Contact Idaho Department of Health and Welfare for current income thresholds.\",\n    \"asset_limits\": {\n      \"countable_asset_limit_single\": \"$2,000 (2026)\",\n      \"countable_asset_limit_couple\": \"Not specified in search results\",\n      \"exempt_assets\": [\n        \"Primary home (if applicant lives in it or has intent to return, with home equity interest not exceeding $752,000 in 2026)\",\n        \"Household furnishings and appliances\",\n        \"Personal effects\",\n        \"One vehicle\"\n      ],\n      \"critical_rule\": \"Assets cannot be given away or sold for less than fair market value within 60 months of long-term care Medicaid application. Violating the Look-Back Rule results in a Penalty Period of Medicaid ineligibility.\"\n    },\n    \"other_requirements\": [\n      \"Must live in Idaho\",\n      \"Must be a U.S. citizen or eligible non-citizen\",\n      \"Must require Nursing Facility Level of Care (NFLOC) — assessed through in-person or telephone interview using the Uniform Assessment Instrument (UAI)\",\n      \"Functional need determined by limitations in Activities of Daily Living (ADL: bathing, dressing, mobility, eating, toileting) and Instrumental Activities of Daily Living (IADL: preparing meals, laundry, housecleaning)\",\n      \"Cognitive impairments such as Alzheimer's disease and other dementias are considered in the assessment\",\n      \"Must be eligible for Medicaid under IDAPA 16.03.05 (Aid to the Aged, Blind, and Disabled)\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"in_kind\",\n    \"value\": \"Comprehensive home and community-based services including: adult day health, day habilitation, homemaker services, residential habilitation, respite care, supported employment, attendant care, adult residential care, chore services, companion services, consultation, environmental accessibility adaptations, home-delivered meals, non-medical transportation, personal emergency response system, skilled nursing, specialized medical equipment and supplies, and transition services[7]\",\n    \"specific_services\": {\n      \"adult_day_health\": \"Supervised, structured service generally furnished 4 or more hours per day on a regularly scheduled basis, including medication assistance, ADL assistance, meals (including special diets), housekeeping, laundry, transportation, socialization, recreation, and assistance with personal finances[6]\",\n      \"personal_assistance_services\": \"Direct assistance with grooming, bathing, eating, assistance with self-administered medications, supervision, communication assistance, household tasks essential to health care (general cleaning, laundry, meal planning and preparation, shopping, correspondence)[6]\",\n      \"transition_services\": \"May include security deposits required to obtain a lease on an apartment or home[6]\"\n    },\n    \"varies_by\": \"Individual need (based on NFLOC assessment and service plan negotiation)\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact Idaho Department of Health and Welfare (specific URL and phone number not provided in search results)\",\n      \"The American Council on Aging offers a Medicaid Eligibility Test for Idaho seniors at their website (specific URL not provided in search results)\"\n    ],\n    \"processing_time\": \"Not specified in search results\",\n    \"waitlist\": \"Not mentioned in search results\",\n    \"forms\": [\n      \"Uniform Assessment Instrument (UAI) — used to assess functional need\",\n      \"Individual Service Plan — must be negotiated between participant/legal representative and facility representative[6]\"\n    ],\n    \"documents\": [\n      \"Verification of household information\",\n      \"Income documentation\",\n      \"Asset documentation\",\n      \"Medical records and disability diagnosis documentation\",\n      \"Proof of Idaho residency\",\n      \"Proof of U.S. citizenship or eligible non-citizen status\"\n    ],\n    \"application_note\": \"Applicants should gather all supporting documentation before applying to avoid delays and prevent denial based on procedural error[4]\"\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Must be an Idaho resident[1][5]\",\n    \"regional_variations\": null,\n    \"offices_or_providers\": \"Administered by Idaho Department of Health and Welfare or its contractor[3]\"\n  },\n  \"official_source\": \"https://healthandwelfare.idaho.gov/services-programs/medicaid-health/about-medicaid-elderly-or-adults-disabilities\",\n  \"gotchas\": [\n    \"The 60-month Look-Back Rule is critical: any assets given away or sold below fair market value within 60 months of application will trigger a Penalty Period of Medicaid ineligibility. This is a common mistake that can delay or deny eligibility[1]\",\n    \"Home equity limit of $752,000 (2026) applies only if applicant lives in the home or has intent to return; this limit may change annually[1]\",\n    \"Functional need assessment is mandatory and requires demonstrating inability to independently perform ADLs and IADLs. This is not automatic based on age or diagnosis alone[1][2]\",\n    \"Idaho also offers a separate Personal Care Services Program with slightly different eligibility requirements — families should verify which program best fits their needs[1]\",\n    \"Income limits exist but are not detailed in publicly available search results — applicants must contact the state directly for current thresholds\",\n    \"Asset limits are strict ($2,000 for single applicants in 2026) and only specific assets are exempt; careful planning is needed\",\n    \"Cognitive impairments like Alzheimer's are considered in the assessment, but the applicant must still meet the NFLOC standard[2]\"\n  ],\n  \"data_shape_notes\": \"This program's eligibility is highly individualized, based on functional need assessment rather than automatic qualification by age or diagnosis. Benefits are service-based rather than cash-based, with the specific mix of services determined through an individual service plan. The program operates statewide with no apparent regional variations in eligibility or benefits, but processing timelines and waitlist status are not documented in available sources. Income limits are referenced but not publicly specified in search results, requiring direct contact with the state. The 60-month Look-Back Rule for asset transfers is a critical planning consideration that differs from some other Medicaid programs.\"\n}\n```\n\n## Key Takeaways for Families\n\n**Start with the functional assessment.** This waiver is not primarily age-based—it's need-based. Your loved one must require a Nursing Facility Level of Care, meaning they cannot independently perform basic daily activities like bathing, dressing, or eating. This is determined through a formal interview using the Uniform Assessment Instrument[1][2].\n\n**Asset planning matters significantly.** With a $2,000 asset limit for single applicants (2026), families often need to engage in Medicaid planning strategies[4]. However, the 60-month Look-Back Rule means any assets transferred below fair market value within 5 years of application will disqualify your loved one for a period of time[1]. This is where professional guidance is essential.\n\n**The home is protected (mostly).** Your loved one's primary residence is exempt from asset limits if they live in it or intend to return, but only if home equity doesn't exceed $752,000 (2026)[1]. This protection also applies if a spouse, child under 21, or disabled/blind child lives in the home[1].\n\n**Services are comprehensive but individualized.** Rather than a fixed dollar benefit, the waiver provides specific services—from adult day health to skilled nursing to home modifications—based on what's documented in an individual service plan[6][7]. This means the \"value\" of the benefit varies by person.\n\n**Contact the state directly for current details.** The search results do not provide specific phone numbers, online application portals, processing timelines, or current income limits. Families should contact the Idaho Department of Health and Welfare directly to get these specifics and to begin the eligibility determination process."
+    },
+    {
+      "name": "Program of All-Inclusive Care for the Elderly (PACE) - Limited Availability in Idaho",
+      "eligibility": {
+        "age": null,
+        "income_limits": "No PACE programs operate in Idaho, so no income limits apply. Nationally, PACE targets dually eligible Medicare/Medicaid individuals with no specific dollar amounts listed for Idaho.[2][8]",
+        "asset_limits": "No asset limits apply in Idaho due to lack of programs. National PACE does not specify asset tests in available data.[2]",
+        "other_requirements": [
+          "No PACE programs available in Idaho, so no eligibility requirements apply.[1]",
+          "Nationally: Age 55+, nursing facility eligible level of care, able to live safely in community with PACE services, reside in PACE service area.[2][8]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "No benefits available in Idaho. Nationally: Comprehensive medical and social services including primary care, hospitalization, prescription drugs, social services, therapeutic activities, minor home modifications, home care, durable medical equipment for frail elderly living in community.[2]",
+        "varies_by": "region"
+      },
+      "application": {
+        "methods": [
+          "No application methods in Idaho due to no programs.[1]",
+          "Nationally: Contact local PACE organization via NPA finder tool.[1]"
+        ],
+        "processing_time": "Not applicable in Idaho",
+        "waitlist": "Not applicable in Idaho",
+        "forms": [
+          "No specific forms for Idaho.[1]"
+        ],
+        "documents": [
+          "No documents needed in Idaho.[1]"
+        ]
+      },
+      "geography": {
+        "statewide": false,
+        "restrictions": "No PACE programs anywhere in Idaho.[1]",
+        "regional_variations": "No programs, so no variations.[1]",
+        "offices_or_providers": []
+      },
+      "official_source": "https://www.npaonline.org/find-a-pace-program (confirms no Idaho programs); https://www.cms.gov/medicare/medicaid-coordination/about/pace[1][2]",
+      "gotchas": [
+        "PACE does not exist in Idaho—search confirms zero programs despite national availability in 33 states.[1]",
+        "Do not confuse with Idaho's C-PACE (Commercial Property Assessed Clean Energy financing for buildings).[3][4][5][6][7][9][10]",
+        "Families must explore alternatives like Idaho Medicaid Home and Community-Based Services (HCBS) waivers.",
+        "Limited to community-living frail elderly nationally; requires nursing home level of care certification.[2][8]"
+      ],
+      "data_shape_notes": "no programs available in Idaho; national PACE is provider-specific and geographically restricted; search results polluted with unrelated commercial C-PACE financing programs active in cities like Boise, Coeur d'Alene, Rexburg.[1][3][4][5]",
+      "_raw": "{\n  \"name\": \"Program of All-Inclusive Care for the Elderly (PACE) - Limited Availability in Idaho\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No PACE programs operate in Idaho, so no income limits apply. Nationally, PACE targets dually eligible Medicare/Medicaid individuals with no specific dollar amounts listed for Idaho.[2][8]\",\n    \"asset_limits\": \"No asset limits apply in Idaho due to lack of programs. National PACE does not specify asset tests in available data.[2]\",\n    \"other_requirements\": [\"No PACE programs available in Idaho, so no eligibility requirements apply.[1]\", \"Nationally: Age 55+, nursing facility eligible level of care, able to live safely in community with PACE services, reside in PACE service area.[2][8]\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"No benefits available in Idaho. Nationally: Comprehensive medical and social services including primary care, hospitalization, prescription drugs, social services, therapeutic activities, minor home modifications, home care, durable medical equipment for frail elderly living in community.[2]\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\"No application methods in Idaho due to no programs.[1]\", \"Nationally: Contact local PACE organization via NPA finder tool.[1]\"],\n    \"processing_time\": \"Not applicable in Idaho\",\n    \"waitlist\": \"Not applicable in Idaho\",\n    \"forms\": [\"No specific forms for Idaho.[1]\"],\n    \"documents\": [\"No documents needed in Idaho.[1]\"]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"No PACE programs anywhere in Idaho.[1]\",\n    \"regional_variations\": \"No programs, so no variations.[1]\",\n    \"offices_or_providers\": []\n  },\n  \"official_source\": \"https://www.npaonline.org/find-a-pace-program (confirms no Idaho programs); https://www.cms.gov/medicare/medicaid-coordination/about/pace[1][2]\",\n  \"gotchas\": [\"PACE does not exist in Idaho—search confirms zero programs despite national availability in 33 states.[1]\", \"Do not confuse with Idaho's C-PACE (Commercial Property Assessed Clean Energy financing for buildings).[3][4][5][6][7][9][10]\", \"Families must explore alternatives like Idaho Medicaid Home and Community-Based Services (HCBS) waivers.\", \"Limited to community-living frail elderly nationally; requires nursing home level of care certification.[2][8]\"],\n  \"data_shape_notes\": \"no programs available in Idaho; national PACE is provider-specific and geographically restricted; search results polluted with unrelated commercial C-PACE financing programs active in cities like Boise, Coeur d'Alene, Rexburg.[1][3][4][5]\"\n}"
+    },
+    {
+      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Must be entitled to Medicare Part A (even if not enrolled). Income limits for Idaho (2024 figures from state-specific source; federal 2026 standards are higher at QMB individual $1,350/month, but use current state-verified): QMB: $1,235 single/$1,663 couple; SLMB: $1,478 single/$1,992 couple; QI: $1,660 single/$2,239 couple. Limits based on % FPL (100% QMB, 120% SLMB, 135% QI) and updated annually in April. No variation by larger household sizes shown; typically individual or couple[2][6][7].",
+        "asset_limits": "Federal limits apply in Idaho: $9,090 single/$13,630 couple across QMB/SLMB/QI. Counts: bank accounts, stocks, bonds. Exempt: home, one car, burial plots, life insurance (up to $1,500 face value), personal belongings[2][5].",
+        "other_requirements": [
+          "Entitled to Medicare Part A (premium-free or not)",
+          "Idaho resident",
+          "U.S. citizen or qualified immigrant"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "QMB: Medicare Part A premiums (if applicable), Part B premiums/deductible, Part A/B coinsurance/copays/deductibles. SLMB: Part B premiums only. QI: Part B premiums only (auto-qualifies for Extra Help low-income subsidy for drugs, $12.65 max copay/drug in 2026)[1][2][6][7].",
+        "varies_by": "program_tier"
+      },
+      "application": {
+        "methods": [
+          "Phone: Contact Idaho DHW at regional offices or SHIBA 1-800-247-4422",
+          "Website: healthandwelfare.idaho.gov/services-programs/medicaid-health/medicare-savings-program (request application)",
+          "Mail/In-person: Local DHW Medicaid offices (find via healthandwelfare.idaho.gov/locations)"
+        ],
+        "processing_time": "QMB: Up to 45 days, effective first of month after complete info. SLMB/QI: Up to 3 months retroactive[1].",
+        "waitlist": "QI has first-come-first-served with priority to prior recipients; potential waitlist if funding limited[7].",
+        "forms": [
+          "Medicaid application (MSP-specific form requested from state Medicaid agency/DHW)"
+        ],
+        "documents": [
+          "Proof of income (SSI award, pay stubs, tax return)",
+          "Proof of resources (bank statements)",
+          "Medicare card",
+          "ID (birth certificate, SSN)",
+          "Proof of residency"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": null,
+        "regional_variations": "Administered uniformly statewide by Idaho DHW, but apply via local/regional offices; no noted differences in eligibility/benefits[6].",
+        "offices_or_providers": [
+          "Idaho Department of Health and Welfare regional offices (locations at healthandwelfare.idaho.gov/locations)"
+        ]
+      },
+      "official_source": "https://healthandwelfare.idaho.gov/services-programs/medicaid-health/medicare-savings-program",
+      "gotchas": [
+        "Income/asset limits updated yearly (April); verify current FPL-based amounts as search shows variance (e.g., 2024 vs 2026 federal)",
+        "QI requires annual reapplication, first-come-first-served, possible funding caps",
+        "Must have Part A entitlement; QMB protects from provider billing for copays (no balance billing)",
+        "States can be more generous (Idaho uses federal asset limits)"
+      ],
+      "data_shape_notes": "Tiered by program (QMB/SLMB/QI) with escalating income thresholds; couple limits ~1.35x single; assets fixed federal minimums; QI funding-limited",
+      "_raw": "{\n  \"name\": \"Medicare Savings Programs (QMB, SLMB, QI)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Must be entitled to Medicare Part A (even if not enrolled). Income limits for Idaho (2024 figures from state-specific source; federal 2026 standards are higher at QMB individual $1,350/month, but use current state-verified): QMB: $1,235 single/$1,663 couple; SLMB: $1,478 single/$1,992 couple; QI: $1,660 single/$2,239 couple. Limits based on % FPL (100% QMB, 120% SLMB, 135% QI) and updated annually in April. No variation by larger household sizes shown; typically individual or couple[2][6][7].\",\n    \"asset_limits\": \"Federal limits apply in Idaho: $9,090 single/$13,630 couple across QMB/SLMB/QI. Counts: bank accounts, stocks, bonds. Exempt: home, one car, burial plots, life insurance (up to $1,500 face value), personal belongings[2][5].\",\n    \"other_requirements\": [\"Entitled to Medicare Part A (premium-free or not)\", \"Idaho resident\", \"U.S. citizen or qualified immigrant\"]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"QMB: Medicare Part A premiums (if applicable), Part B premiums/deductible, Part A/B coinsurance/copays/deductibles. SLMB: Part B premiums only. QI: Part B premiums only (auto-qualifies for Extra Help low-income subsidy for drugs, $12.65 max copay/drug in 2026)[1][2][6][7].\",\n    \"varies_by\": \"program_tier\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: Contact Idaho DHW at regional offices or SHIBA 1-800-247-4422\", \"Website: healthandwelfare.idaho.gov/services-programs/medicaid-health/medicare-savings-program (request application)\", \"Mail/In-person: Local DHW Medicaid offices (find via healthandwelfare.idaho.gov/locations)\"],\n    \"processing_time\": \"QMB: Up to 45 days, effective first of month after complete info. SLMB/QI: Up to 3 months retroactive[1].\",\n    \"waitlist\": \"QI has first-come-first-served with priority to prior recipients; potential waitlist if funding limited[7].\",\n    \"forms\": [\"Medicaid application (MSP-specific form requested from state Medicaid agency/DHW)\"],\n    \"documents\": [\"Proof of income (SSI award, pay stubs, tax return)\", \"Proof of resources (bank statements)\", \"Medicare card\", \"ID (birth certificate, SSN)\", \"Proof of residency\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": null,\n    \"regional_variations\": \"Administered uniformly statewide by Idaho DHW, but apply via local/regional offices; no noted differences in eligibility/benefits[6].\",\n    \"offices_or_providers\": [\"Idaho Department of Health and Welfare regional offices (locations at healthandwelfare.idaho.gov/locations)\"]\n  },\n  \"official_source\": \"https://healthandwelfare.idaho.gov/services-programs/medicaid-health/medicare-savings-program\",\n  \"gotchas\": [\"Income/asset limits updated yearly (April); verify current FPL-based amounts as search shows variance (e.g., 2024 vs 2026 federal)\", \"QI requires annual reapplication, first-come-first-served, possible funding caps\", \"Must have Part A entitlement; QMB protects from provider billing for copays (no balance billing)\", \"States can be more generous (Idaho uses federal asset limits)\"],\n  \"data_shape_notes\": \"Tiered by program (QMB/SLMB/QI) with escalating income thresholds; couple limits ~1.35x single; assets fixed federal minimums; QI funding-limited\"\n}"
+    },
+    {
+      "name": "Supplemental Nutrition Assistance Program (SNAP)",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "For households with a member 60+ or disabled: No gross income limit in Idaho. Net income must be below limits after deductions (e.g., medical expenses over $35/month for elderly/disabled, shelter costs, utilities). General gross income limits (Oct 1, 2025–Sept 30, 2026): 1 person $1,255/month; 2 $1,704; 3 $2,152; 4 $2,600; 5 $3,049; +$449 per additional. For 2025 seniors: ~$15,060/year (1 person), $20,440 (2 people). Benefits based on net income ($100 more net = ~$30 less benefits).[1][2][5]",
+        "asset_limits": "Generally under $5,000 for most households. Exemptions not fully detailed; primary home, retirement savings, and certain vehicles often do not count toward limit. Households with elderly/disabled may have expanded rules.[3][5]",
+        "other_requirements": [
+          "U.S. citizen or legal immigrant",
+          "Idaho resident",
+          "No work requirements if household is entirely elderly (60+)",
+          "Meet net income test after deductions (e.g., excess shelter, medical >$35/month for 60+, utilities)"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "Monthly EBT card for food purchases. Amount based on household size, net income, and deductions (e.g., max allotment for 2-person elderly household minus 30% of net income). Minimum/maximum allotments apply; e.g., example 2-person: $415/month.[1][4]",
+        "varies_by": "household_size"
+      },
+      "application": {
+        "methods": [
+          "Online: healthandwelfare.idaho.gov/services-programs/food-assistance/apply-snap[7]",
+          "Phone: Regional offices or 2-1-1 (general assistance); Idaho Hunger Relief Task Force at 208-639-0030 for seniors[3][6]",
+          "Mail/email/fax/in-person: Submit to local Idaho DHW office; applications available on DHW website[3][5][7]"
+        ],
+        "processing_time": "Standard processing not specified; expedited benefits within 7 days if meet criteria (e.g., very low income).[8]",
+        "waitlist": null,
+        "forms": [
+          "SNAP application from healthandwelfare.idaho.gov (no specific form number listed)"
+        ],
+        "documents": [
+          "ID card",
+          "Proof of income (paystubs, Social Security, pension)",
+          "Housing costs (rent/mortgage receipts)",
+          "Monthly expenses (utilities, medical bills >$35 for elderly)",
+          "Social Security numbers/birth dates for household",
+          "Immigration status if applicable",
+          "Bank statements/resources, vehicle values if applicable[5][7]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": null,
+        "regional_variations": "Administered statewide by Idaho DHW with regional offices; apply to local office. No specific wait time or provider differences noted by region.[7]",
+        "offices_or_providers": [
+          "Local Idaho Department of Health and Welfare (DHW) offices; senior assistance via Idaho Hunger Relief Task Force[3][6]"
+        ]
+      },
+      "official_source": "https://healthandwelfare.idaho.gov/services-programs/food-assistance[7]",
+      "gotchas": [
+        "No gross income limit for households with 60+ or disabled, but net income test applies after deductions—many miss deducting medical/shelter costs[1][3]",
+        "Assets under $5,000 generally, but home/retirement often exempt[5]",
+        "64% of eligible Idaho seniors not enrolled—apply even if in subsidized housing or receiving meals[3][6]",
+        "Social Security/pensions count as income[2]",
+        "Household includes those who buy/prepare food together[2]"
+      ],
+      "data_shape_notes": "Expanded eligibility for elderly/disabled (no gross income limit, key deductions for medical/shelter); benefits scale by household size and net income; statewide but local offices handle applications",
+      "_raw": "{\n  \"name\": \"Supplemental Nutrition Assistance Program (SNAP)\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"For households with a member 60+ or disabled: No gross income limit in Idaho. Net income must be below limits after deductions (e.g., medical expenses over $35/month for elderly/disabled, shelter costs, utilities). General gross income limits (Oct 1, 2025–Sept 30, 2026): 1 person $1,255/month; 2 $1,704; 3 $2,152; 4 $2,600; 5 $3,049; +$449 per additional. For 2025 seniors: ~$15,060/year (1 person), $20,440 (2 people). Benefits based on net income ($100 more net = ~$30 less benefits).[1][2][5]\",\n    \"asset_limits\": \"Generally under $5,000 for most households. Exemptions not fully detailed; primary home, retirement savings, and certain vehicles often do not count toward limit. Households with elderly/disabled may have expanded rules.[3][5]\",\n    \"other_requirements\": [\n      \"U.S. citizen or legal immigrant\",\n      \"Idaho resident\",\n      \"No work requirements if household is entirely elderly (60+)\",\n      \"Meet net income test after deductions (e.g., excess shelter, medical >$35/month for 60+, utilities)\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Monthly EBT card for food purchases. Amount based on household size, net income, and deductions (e.g., max allotment for 2-person elderly household minus 30% of net income). Minimum/maximum allotments apply; e.g., example 2-person: $415/month.[1][4]\",\n    \"varies_by\": \"household_size\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: healthandwelfare.idaho.gov/services-programs/food-assistance/apply-snap[7]\",\n      \"Phone: Regional offices or 2-1-1 (general assistance); Idaho Hunger Relief Task Force at 208-639-0030 for seniors[3][6]\",\n      \"Mail/email/fax/in-person: Submit to local Idaho DHW office; applications available on DHW website[3][5][7]\"\n    ],\n    \"processing_time\": \"Standard processing not specified; expedited benefits within 7 days if meet criteria (e.g., very low income).[8]\",\n    \"waitlist\": null,\n    \"forms\": [\"SNAP application from healthandwelfare.idaho.gov (no specific form number listed)\"],\n    \"documents\": [\n      \"ID card\",\n      \"Proof of income (paystubs, Social Security, pension)\",\n      \"Housing costs (rent/mortgage receipts)\",\n      \"Monthly expenses (utilities, medical bills >$35 for elderly)\",\n      \"Social Security numbers/birth dates for household\",\n      \"Immigration status if applicable\",\n      \"Bank statements/resources, vehicle values if applicable[5][7]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": null,\n    \"regional_variations\": \"Administered statewide by Idaho DHW with regional offices; apply to local office. No specific wait time or provider differences noted by region.[7]\",\n    \"offices_or_providers\": [\"Local Idaho Department of Health and Welfare (DHW) offices; senior assistance via Idaho Hunger Relief Task Force[3][6]\"]\n  },\n  \"official_source\": \"https://healthandwelfare.idaho.gov/services-programs/food-assistance[7]\",\n  \"gotchas\": [\n    \"No gross income limit for households with 60+ or disabled, but net income test applies after deductions—many miss deducting medical/shelter costs[1][3]\",\n    \"Assets under $5,000 generally, but home/retirement often exempt[5]\",\n    \"64% of eligible Idaho seniors not enrolled—apply even if in subsidized housing or receiving meals[3][6]\",\n    \"Social Security/pensions count as income[2]\",\n    \"Household includes those who buy/prepare food together[2]\"\n  ],\n  \"data_shape_notes\": \"Expanded eligibility for elderly/disabled (no gross income limit, key deductions for medical/shelter); benefits scale by household size and net income; statewide but local offices handle applications\"\n}"
+    },
+    {
+      "name": "Idaho Energy Assistance (LIHEAP)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Household gross monthly income must be at or below 150% of the Federal Poverty Level (FPL)[1][3]. For most household sizes, this is 150% FPL; however, some Community Action Agencies use 60% of State Median Income for household sizes 1-7, with 150% FPL applying to household sizes 8 and above[5]. Exact dollar amounts vary annually based on HHS poverty guidelines and are updated each year. Families with children under age six, elderly members, or disabled members can apply starting in October; all other families can apply starting in November[4].",
+        "asset_limits": null,
+        "other_requirements": [
+          "U.S. citizen, permanent resident, or qualified non-citizen; at least one household member must be a U.S. citizen or lawful permanent resident[1][8]",
+          "Must be an Idaho resident[8]",
+          "Must have a heating expense (proof of heating bill required)[8]",
+          "Funds are limited and distributed on a first-come, first-serve basis[4]"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "$400–$1,800 per year ($200–$600 per season)[1]. Benefit amount is determined individually based on household income, location within Idaho, household composition, and what the household pays for services[4]. Crisis LIHEAP provides emergency assistance for situations like broken furnaces or utility shutoff notices[2].",
+        "varies_by": "household_size|region|fuel_type"
+      },
+      "application": {
+        "methods": [
+          "Online through the U.S. Department of Health & Human Services[1]",
+          "Contact your local Idaho Community Action Agency (serves every county in Idaho)[4]",
+          "Mail completed application to your local office[5]",
+          "Email completed application to your local office[5]"
+        ],
+        "processing_time": "7–30 days[1]",
+        "waitlist": "No formal waitlist described, but funding is limited and distributed first-come, first-serve; applications should be submitted as early as possible each season[1][4]",
+        "forms": [
+          "Application for Energy Assistance & CSBG Services (SEICAA form, available as fillable PDF)[6]"
+        ],
+        "documents": [
+          "Proof of identity[1]",
+          "Proof of residency[1]",
+          "Most recent utility bill (heating bill with account number in household member's name)[1][5]",
+          "Current electric bill with account number in household member's name[5]",
+          "Proof of income (gross income from the previous month for every household member)[1][5]",
+          "Social Security cards and dates of birth for every household member[5]",
+          "Proof of citizenship for each household member or legal status in the U.S. for non-citizens[6]",
+          "Social Security numbers for each household member[6]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None; LIHEAP is provided by Community Action Agencies serving every county in Idaho[4]",
+        "regional_variations": "Some Community Action Agencies may use different income eligibility calculations (60% State Median Income for household sizes 1-7 vs. 150% FPL for sizes 8+)[5]. Application deadlines and fund availability may vary by local office; applicants should check with their local LIHEAP office for exact deadlines[2]",
+        "offices_or_providers": "Community Action Agencies in every Idaho county; contact your local office for specific location and contact information[4]"
+      },
+      "official_source": "https://healthandwelfare.idaho.gov/services-programs/financial-assistance/home-heating-and-utility-assistance/about-heating-assistance",
+      "gotchas": [
+        "Cooling assistance from LIHEAP is NOT offered in Idaho; only heating assistance is available[2]",
+        "Heating assistance is typically available only in fall and winter (November 1 – March 31)[2][5], not year-round",
+        "Crisis assistance is available only in emergencies (broken furnace, utility shutoff notice, running out of fuel), not for regular heating costs[2]",
+        "Roommates living at the same address and covered by the same utility bill are counted as part of the same LIHEAP household, even if they don't share most expenses[2]",
+        "Families with children under age six, elderly, or disabled members can apply starting in October; all other families must wait until November[4]",
+        "Funds are limited and some local agencies may stop accepting applications early if funds run out before the season ends[2]",
+        "The Weatherization Assistance Program is a separate but related program that helps improve energy efficiency through home upgrades; it is not the same as regular LIHEAP[2]",
+        "Online portal for applications may be unavailable at some Community Action Agencies; email or mail may be required[5]"
+      ],
+      "data_shape_notes": "This program's benefits scale by household income, location, household composition, and fuel type. Income eligibility thresholds may vary slightly by Community Action Agency (150% FPL vs. 60% State Median Income for certain household sizes). Availability is seasonal (fall/winter only) and funding is first-come, first-serve, making application timing critical. The program includes three distinct assistance types: regular seasonal heating, crisis assistance, and weatherization upgrades. Elderly and disabled households have earlier application windows (October vs. November).",
+      "_raw": "```json\n{\n  \"name\": \"Idaho Energy Assistance (LIHEAP)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Household gross monthly income must be at or below 150% of the Federal Poverty Level (FPL)[1][3]. For most household sizes, this is 150% FPL; however, some Community Action Agencies use 60% of State Median Income for household sizes 1-7, with 150% FPL applying to household sizes 8 and above[5]. Exact dollar amounts vary annually based on HHS poverty guidelines and are updated each year. Families with children under age six, elderly members, or disabled members can apply starting in October; all other families can apply starting in November[4].\",\n    \"asset_limits\": null,\n    \"other_requirements\": [\n      \"U.S. citizen, permanent resident, or qualified non-citizen; at least one household member must be a U.S. citizen or lawful permanent resident[1][8]\",\n      \"Must be an Idaho resident[8]\",\n      \"Must have a heating expense (proof of heating bill required)[8]\",\n      \"Funds are limited and distributed on a first-come, first-serve basis[4]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"$400–$1,800 per year ($200–$600 per season)[1]. Benefit amount is determined individually based on household income, location within Idaho, household composition, and what the household pays for services[4]. Crisis LIHEAP provides emergency assistance for situations like broken furnaces or utility shutoff notices[2].\",\n    \"varies_by\": \"household_size|region|fuel_type\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online through the U.S. Department of Health & Human Services[1]\",\n      \"Contact your local Idaho Community Action Agency (serves every county in Idaho)[4]\",\n      \"Mail completed application to your local office[5]\",\n      \"Email completed application to your local office[5]\"\n    ],\n    \"processing_time\": \"7–30 days[1]\",\n    \"waitlist\": \"No formal waitlist described, but funding is limited and distributed first-come, first-serve; applications should be submitted as early as possible each season[1][4]\",\n    \"forms\": [\n      \"Application for Energy Assistance & CSBG Services (SEICAA form, available as fillable PDF)[6]\"\n    ],\n    \"documents\": [\n      \"Proof of identity[1]\",\n      \"Proof of residency[1]\",\n      \"Most recent utility bill (heating bill with account number in household member's name)[1][5]\",\n      \"Current electric bill with account number in household member's name[5]\",\n      \"Proof of income (gross income from the previous month for every household member)[1][5]\",\n      \"Social Security cards and dates of birth for every household member[5]\",\n      \"Proof of citizenship for each household member or legal status in the U.S. for non-citizens[6]\",\n      \"Social Security numbers for each household member[6]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; LIHEAP is provided by Community Action Agencies serving every county in Idaho[4]\",\n    \"regional_variations\": \"Some Community Action Agencies may use different income eligibility calculations (60% State Median Income for household sizes 1-7 vs. 150% FPL for sizes 8+)[5]. Application deadlines and fund availability may vary by local office; applicants should check with their local LIHEAP office for exact deadlines[2]\",\n    \"offices_or_providers\": \"Community Action Agencies in every Idaho county; contact your local office for specific location and contact information[4]\"\n  },\n  \"official_source\": \"https://healthandwelfare.idaho.gov/services-programs/financial-assistance/home-heating-and-utility-assistance/about-heating-assistance\",\n  \"gotchas\": [\n    \"Cooling assistance from LIHEAP is NOT offered in Idaho; only heating assistance is available[2]\",\n    \"Heating assistance is typically available only in fall and winter (November 1 – March 31)[2][5], not year-round\",\n    \"Crisis assistance is available only in emergencies (broken furnace, utility shutoff notice, running out of fuel), not for regular heating costs[2]\",\n    \"Roommates living at the same address and covered by the same utility bill are counted as part of the same LIHEAP household, even if they don't share most expenses[2]\",\n    \"Families with children under age six, elderly, or disabled members can apply starting in October; all other families must wait until November[4]\",\n    \"Funds are limited and some local agencies may stop accepting applications early if funds run out before the season ends[2]\",\n    \"The Weatherization Assistance Program is a separate but related program that helps improve energy efficiency through home upgrades; it is not the same as regular LIHEAP[2]\",\n    \"Online portal for applications may be unavailable at some Community Action Agencies; email or mail may be required[5]\"\n  ],\n  \"data_shape_notes\": \"This program's benefits scale by household income, location, household composition, and fuel type. Income eligibility thresholds may vary slightly by Community Action Agency (150% FPL vs. 60% State Median Income for certain household sizes). Availability is seasonal (fall/winter only) and funding is first-come, first-serve, making application timing critical. The program includes three distinct assistance types: regular seasonal heating, crisis assistance, and weatherization upgrades. Elderly and disabled households have earlier application windows (October vs. November).\"\n}\n```\n\n**Key Context for Families with Elderly Loved Ones:**\n\nElderly household members qualify your family for **earlier application access**—you can apply starting in October rather than waiting until November[4]. This is significant because funds are limited and distributed first-come, first-serve[1][4].\n\nThe program provides **one-time seasonal payments** applied directly to utility companies, not ongoing monthly assistance[2]. Maximum annual benefit is $1,800, but actual amounts depend on your specific household situation[1].\n\n**Critical timing note:** Heating assistance runs November 1 – March 31[5]. If you're reading this in April 2026, the current heating season has ended; you would need to reapply in October 2026 for the next season[2]."
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Income must meet state-specific guidelines at or below approximately 150% of federal poverty level, varying by household size and region. Examples: EICAP region - Family of 1: $31,300 annual/$2,608 monthly; Family of 2: $42,300 annual/$3,525 monthly. Idaho Power program (electric-heated homes): Monthly - 1: $2,146; 2: $2,903; 3: $3,660; 4: $4,416; 5: $5,173. Exact limits verified with local Community Action Agency as they vary by program funding[1][3][6].",
+        "asset_limits": "No asset limits mentioned in sources[1][3].",
+        "other_requirements": [
+          "Live in Idaho",
+          "One household member must be a US Citizen or lawful permanent resident",
+          "Proof of identity",
+          "Proof of utility expense",
+          "Proof of homeownership or written permission from landlord for rentals",
+          "Home not weatherized in past 15 years",
+          "Priority for households with children, elderly, disabled members, or heating emergencies[1][3]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Energy efficiency upgrades including insulation, caulking, weather-stripping, air filtration repairs, broken windows, heating system checks, health/safety repairs, and material improvements based on professional energy audit. Services aim to lower utility costs, improve comfort, health, safety, and air quality. No fixed dollar amount; prioritized by cost-effectiveness and funding[3][5].",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Contact local Community Action Agency (CAA) or Partnership (CAP) by phone or in-person; no statewide online application listed",
+          "Idaho Dept. of Health & Welfare directs to local CAA: https://healthandwelfare.idaho.gov/services-programs/financial-assistance/home-heating-and-utility-assistance/apply-weatherization[1]",
+          "Examples: SEICAA (Southeastern Idaho), EICAP; call local agency for region-specific contacts[5][6]"
+        ],
+        "processing_time": "Varies; energy audit after waitlist priority[5][6]",
+        "waitlist": "Yes, first-come first-served; up to 3 years in some areas (e.g., EICAP); prioritized by heating emergencies, high energy use, elderly/disabled members; dependent on funding[3][4][6]",
+        "forms": [
+          "No specific form names/numbers listed; apply via local CAA intake[1]"
+        ],
+        "documents": [
+          "Proof of identity",
+          "Proof of US citizenship or lawful permanent residency for one member",
+          "Proof of utility expense",
+          "Proof of homeownership or landlord permission for rentals",
+          "Income verification[1]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Available statewide via local Community Action Agencies; some programs (e.g., Idaho Power) limited to electrically heated homes served by Idaho Power[1][2]",
+        "regional_variations": "Administered by regional Community Action Agencies/Partnerships with varying income tables, wait times (e.g., up to 3 years in eastern Idaho), and contacts; priority and funding availability differ[4][5][6]",
+        "offices_or_providers": [
+          "Local Community Action Agencies (CAAs) or Partnerships (CAPs) throughout Idaho; contact via https://healthandwelfare.idaho.gov or regional sites like SEICAA, EICAP, CAP4Action[1][4][5][6]"
+        ]
+      },
+      "official_source": "https://healthandwelfare.idaho.gov/services-programs/financial-assistance/home-heating-and-utility-assistance/about-weatherization",
+      "gotchas": [
+        "Must contact local CAA, not apply statewide online/phone directly",
+        "Renters need landlord's written permission and landlord may share costs in some programs",
+        "Homes weatherized in past 15 years ineligible",
+        "Long waitlists (up to 3 years); priority for elderly/disabled but funding limited year-round",
+        "Income limits vary by agency/program; verify locally as not uniform",
+        "Services based on energy audit cost-effectiveness, not all requested repairs done[1][3][6]"
+      ],
+      "data_shape_notes": "Administered regionally by local Community Action Agencies with varying income tables, waitlists up to 3 years, and priority tiers; no statewide uniform income table or central application; eligibility ties to LIHEAP-like poverty guidelines",
+      "_raw": "{\n  \"name\": \"Weatherization Assistance Program (WAP)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Income must meet state-specific guidelines at or below approximately 150% of federal poverty level, varying by household size and region. Examples: EICAP region - Family of 1: $31,300 annual/$2,608 monthly; Family of 2: $42,300 annual/$3,525 monthly. Idaho Power program (electric-heated homes): Monthly - 1: $2,146; 2: $2,903; 3: $3,660; 4: $4,416; 5: $5,173. Exact limits verified with local Community Action Agency as they vary by program funding[1][3][6].\",\n    \"asset_limits\": \"No asset limits mentioned in sources[1][3].\",\n    \"other_requirements\": [\n      \"Live in Idaho\",\n      \"One household member must be a US Citizen or lawful permanent resident\",\n      \"Proof of identity\",\n      \"Proof of utility expense\",\n      \"Proof of homeownership or written permission from landlord for rentals\",\n      \"Home not weatherized in past 15 years\",\n      \"Priority for households with children, elderly, disabled members, or heating emergencies[1][3]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Energy efficiency upgrades including insulation, caulking, weather-stripping, air filtration repairs, broken windows, heating system checks, health/safety repairs, and material improvements based on professional energy audit. Services aim to lower utility costs, improve comfort, health, safety, and air quality. No fixed dollar amount; prioritized by cost-effectiveness and funding[3][5].\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact local Community Action Agency (CAA) or Partnership (CAP) by phone or in-person; no statewide online application listed\",\n      \"Idaho Dept. of Health & Welfare directs to local CAA: https://healthandwelfare.idaho.gov/services-programs/financial-assistance/home-heating-and-utility-assistance/apply-weatherization[1]\",\n      \"Examples: SEICAA (Southeastern Idaho), EICAP; call local agency for region-specific contacts[5][6]\"\n    ],\n    \"processing_time\": \"Varies; energy audit after waitlist priority[5][6]\",\n    \"waitlist\": \"Yes, first-come first-served; up to 3 years in some areas (e.g., EICAP); prioritized by heating emergencies, high energy use, elderly/disabled members; dependent on funding[3][4][6]\",\n    \"forms\": [\"No specific form names/numbers listed; apply via local CAA intake[1]\"],\n    \"documents\": [\n      \"Proof of identity\",\n      \"Proof of US citizenship or lawful permanent residency for one member\",\n      \"Proof of utility expense\",\n      \"Proof of homeownership or landlord permission for rentals\",\n      \"Income verification[1]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Available statewide via local Community Action Agencies; some programs (e.g., Idaho Power) limited to electrically heated homes served by Idaho Power[1][2]\",\n    \"regional_variations\": \"Administered by regional Community Action Agencies/Partnerships with varying income tables, wait times (e.g., up to 3 years in eastern Idaho), and contacts; priority and funding availability differ[4][5][6]\",\n    \"offices_or_providers\": [\"Local Community Action Agencies (CAAs) or Partnerships (CAPs) throughout Idaho; contact via https://healthandwelfare.idaho.gov or regional sites like SEICAA, EICAP, CAP4Action[1][4][5][6]\"]\n  },\n  \"official_source\": \"https://healthandwelfare.idaho.gov/services-programs/financial-assistance/home-heating-and-utility-assistance/about-weatherization\",\n  \"gotchas\": [\n    \"Must contact local CAA, not apply statewide online/phone directly\",\n    \"Renters need landlord's written permission and landlord may share costs in some programs\",\n    \"Homes weatherized in past 15 years ineligible\",\n    \"Long waitlists (up to 3 years); priority for elderly/disabled but funding limited year-round\",\n    \"Income limits vary by agency/program; verify locally as not uniform\",\n    \"Services based on energy audit cost-effectiveness, not all requested repairs done[1][3][6]\"\n  ],\n  \"data_shape_notes\": \"Administered regionally by local Community Action Agencies with varying income tables, waitlists up to 3 years, and priority tiers; no statewide uniform income table or central application; eligibility ties to LIHEAP-like poverty guidelines\"\n}"
+    },
+    {
+      "name": "Senior Health Insurance Benefit Advisors (SHIBA) Program",
+      "eligibility": {
+        "age": null,
+        "income_limits": "No income limits; open to all Idaho residents needing Medicare counseling[1][2][3]",
+        "asset_limits": "No asset limits; no financial tests apply[1][3]",
+        "other_requirements": [
+          "Idaho resident",
+          "Typically seniors or disabled individuals with Medicare questions, but no strict requirements stated[1][2][3]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Free one-on-one health insurance counseling, information and printed materials, referrals to agencies; covers Medicare Parts A/B/D, Medigap, Medicare Advantage, long-term care insurance, Medicare Savings Programs (QMB/SLMB/QI), prescription assistance, Medicaid, and other programs; helps understand benefits, compare options, avoid overpaying[1][2][3]",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Phone: 1-800-247-4422[2][4][5]",
+          "Online form: https://doi.idaho.gov/shiba/[4]",
+          "Email: Shannon.Hohl@doi.idaho.gov[2]",
+          "In-person or phone appointments available statewide via counselors in every county[3][4]"
+        ],
+        "processing_time": "Not specified; appointments scheduled upon contact[1][4]",
+        "waitlist": null,
+        "forms": [
+          "Online contact form on https://doi.idaho.gov/shiba/[4]"
+        ],
+        "documents": [
+          "No specific documents required for initial counseling; may need Medicare card or insurance details for detailed advice[1]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": null,
+        "regional_variations": "Counselors trained and available in every county, but delivered through local volunteers; no differences in services noted[3]",
+        "offices_or_providers": [
+          "Main office: Idaho Department of Insurance, 700 West State St., 3rd Floor, Boise ID 83720; local counselors statewide[2][3]"
+        ]
+      },
+      "official_source": "https://doi.idaho.gov/shiba/[2][4]",
+      "gotchas": [
+        "Not an insurance seller or policy recommender—provides unbiased info only[3]",
+        "Free service, but users may confuse it with paid advising or direct benefits enrollment[1][3]",
+        "Relies on volunteer counselors, so availability may depend on local scheduling[3]",
+        "Focused solely on Medicare/health insurance navigation, not direct healthcare or financial aid[1]"
+      ],
+      "data_shape_notes": "no income or asset test; counseling service only via statewide volunteer network in every county; not a benefit-paying program",
+      "_raw": "{\n  \"name\": \"Senior Health Insurance Benefit Advisors (SHIBA) Program\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No income limits; open to all Idaho residents needing Medicare counseling[1][2][3]\",\n    \"asset_limits\": \"No asset limits; no financial tests apply[1][3]\",\n    \"other_requirements\": [\"Idaho resident\", \"Typically seniors or disabled individuals with Medicare questions, but no strict requirements stated[1][2][3]\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free one-on-one health insurance counseling, information and printed materials, referrals to agencies; covers Medicare Parts A/B/D, Medigap, Medicare Advantage, long-term care insurance, Medicare Savings Programs (QMB/SLMB/QI), prescription assistance, Medicaid, and other programs; helps understand benefits, compare options, avoid overpaying[1][2][3]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: 1-800-247-4422[2][4][5]\", \"Online form: https://doi.idaho.gov/shiba/[4]\", \"Email: Shannon.Hohl@doi.idaho.gov[2]\", \"In-person or phone appointments available statewide via counselors in every county[3][4]\"],\n    \"processing_time\": \"Not specified; appointments scheduled upon contact[1][4]\",\n    \"waitlist\": null,\n    \"forms\": [\"Online contact form on https://doi.idaho.gov/shiba/[4]\"],\n    \"documents\": [\"No specific documents required for initial counseling; may need Medicare card or insurance details for detailed advice[1]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": null,\n    \"regional_variations\": \"Counselors trained and available in every county, but delivered through local volunteers; no differences in services noted[3]\",\n    \"offices_or_providers\": [\"Main office: Idaho Department of Insurance, 700 West State St., 3rd Floor, Boise ID 83720; local counselors statewide[2][3]\"]\n  },\n  \"official_source\": \"https://doi.idaho.gov/shiba/[2][4]\",\n  \"gotchas\": [\"Not an insurance seller or policy recommender—provides unbiased info only[3]\", \"Free service, but users may confuse it with paid advising or direct benefits enrollment[1][3]\", \"Relies on volunteer counselors, so availability may depend on local scheduling[3]\", \"Focused solely on Medicare/health insurance navigation, not direct healthcare or financial aid[1]\"],\n  \"data_shape_notes\": \"no income or asset test; counseling service only via statewide volunteer network in every county; not a benefit-paying program\"\n}"
+    },
+    {
+      "name": "Meals on Wheels (via Area Agencies on Aging)",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "No means test or income limits; low-income individuals may receive partial or full scholarships on a case-by-case basis[1][5]",
+        "asset_limits": "No asset limits or tests mentioned[5]",
+        "other_requirements": [
+          "Homebound or unable to prepare meals due to physical/mental health conditions, mobility limitations, chronic illness, or cognitive impairment[1][2][8]",
+          "Typically live alone without regular meal preparation support[1]",
+          "Spouse of eligible participant (60+), regardless of age[1][3][5]",
+          "Person under 60 with disability living with or in housing facility of eligible 60+ person[1][3][5]",
+          "Person under 60 providing volunteer services during mealtimes[1][3][5]",
+          "Determined case-by-case; assessment of needs may be required[1][2][6]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Home-delivered nutritionally balanced meals: warm plate (entrée + 2 sides) + cold plate (salad, fruit, dessert); minimum 1/3 of Required Dietary Allowance; delivered 11:30 AM–2:30 PM weekdays; no customization for allergies/dietary restrictions (may contain animal products, gluten, lactose, tree nuts, shellfish)[1][5]",
+        "varies_by": "region"
+      },
+      "application": {
+        "methods": [
+          "Contact local Area Agency on Aging (AAA) by phone for referral and assessment, e.g., Nampa area: 208-332-1745[6]; Senior Connection (example provider): 208-727-7198 or molly@seniorconnectionidaho.org[1]",
+          "Complete provider-specific registration form, e.g., Meals-On-Wheels Registration Form from Senior Connection[1]",
+          "Referrals accepted from anyone (family, doctor, social worker)[2][6]"
+        ],
+        "processing_time": "Not specified; assessment performed after referral, then service begins[6]",
+        "waitlist": "Not mentioned in sources",
+        "forms": [
+          "Meals-On-Wheels Registration Form (example from Senior Connection, includes nutritional risk score)[1]"
+        ],
+        "documents": [
+          "No specific documents listed; may require assessment of needs, possible referral letter from doctor/social worker[2]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Available via local AAAs; must contact local provider[2][6][8]",
+        "regional_variations": "Varies by AAA and provider (e.g., different coordinators, delivery times, scholarship availability); eligibility assessed case-by-case per provider; different organizations like Senior Connection, Saint Alphonsus[1][6]",
+        "offices_or_providers": [
+          "Local Area Agencies on Aging (contact via aging.idaho.gov for list)[8]",
+          "Senior Connection: (208) 727-7198[1]",
+          "Saint Alphonsus Nampa: via AAA at 208-332-1745[6]"
+        ]
+      },
+      "official_source": "https://aging.idaho.gov/stay-at-home/home-delivered-meals/[8]",
+      "gotchas": [
+        "No means test, but scholarships for low-income are case-by-case, not guaranteed[1][5]",
+        "No dietary customization; meals may not suit allergies/restrictions[1]",
+        "Must be homebound/frail/unable to prepare meals; not for general food assistance[6][8]",
+        "Younger spouses/disabled household members eligible only if tied to 60+ participant[3][5]",
+        "Refer through local AAA/provider; no central statewide application[6]",
+        "Voluntary contributions encouraged, but no mandatory fees[5][9]"
+      ],
+      "data_shape_notes": "Administered via 7 regional Area Agencies on Aging with case-by-case eligibility and provider variations; no fixed income/asset tests; tied to Older Americans Act standards",
+      "_raw": "{\n  \"name\": \"Meals on Wheels (via Area Agencies on Aging)\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"No means test or income limits; low-income individuals may receive partial or full scholarships on a case-by-case basis[1][5]\",\n    \"asset_limits\": \"No asset limits or tests mentioned[5]\",\n    \"other_requirements\": [\n      \"Homebound or unable to prepare meals due to physical/mental health conditions, mobility limitations, chronic illness, or cognitive impairment[1][2][8]\",\n      \"Typically live alone without regular meal preparation support[1]\",\n      \"Spouse of eligible participant (60+), regardless of age[1][3][5]\",\n      \"Person under 60 with disability living with or in housing facility of eligible 60+ person[1][3][5]\",\n      \"Person under 60 providing volunteer services during mealtimes[1][3][5]\",\n      \"Determined case-by-case; assessment of needs may be required[1][2][6]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Home-delivered nutritionally balanced meals: warm plate (entrée + 2 sides) + cold plate (salad, fruit, dessert); minimum 1/3 of Required Dietary Allowance; delivered 11:30 AM–2:30 PM weekdays; no customization for allergies/dietary restrictions (may contain animal products, gluten, lactose, tree nuts, shellfish)[1][5]\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact local Area Agency on Aging (AAA) by phone for referral and assessment, e.g., Nampa area: 208-332-1745[6]; Senior Connection (example provider): 208-727-7198 or molly@seniorconnectionidaho.org[1]\",\n      \"Complete provider-specific registration form, e.g., Meals-On-Wheels Registration Form from Senior Connection[1]\",\n      \"Referrals accepted from anyone (family, doctor, social worker)[2][6]\"\n    ],\n    \"processing_time\": \"Not specified; assessment performed after referral, then service begins[6]\",\n    \"waitlist\": \"Not mentioned in sources\",\n    \"forms\": [\n      \"Meals-On-Wheels Registration Form (example from Senior Connection, includes nutritional risk score)[1]\"\n    ],\n    \"documents\": [\n      \"No specific documents listed; may require assessment of needs, possible referral letter from doctor/social worker[2]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Available via local AAAs; must contact local provider[2][6][8]\",\n    \"regional_variations\": \"Varies by AAA and provider (e.g., different coordinators, delivery times, scholarship availability); eligibility assessed case-by-case per provider; different organizations like Senior Connection, Saint Alphonsus[1][6]\",\n    \"offices_or_providers\": [\n      \"Local Area Agencies on Aging (contact via aging.idaho.gov for list)[8]\",\n      \"Senior Connection: (208) 727-7198[1]\",\n      \"Saint Alphonsus Nampa: via AAA at 208-332-1745[6]\"\n    ]\n  },\n  \"official_source\": \"https://aging.idaho.gov/stay-at-home/home-delivered-meals/[8]\",\n  \"gotchas\": [\n    \"No means test, but scholarships for low-income are case-by-case, not guaranteed[1][5]\",\n    \"No dietary customization; meals may not suit allergies/restrictions[1]\",\n    \"Must be homebound/frail/unable to prepare meals; not for general food assistance[6][8]\",\n    \"Younger spouses/disabled household members eligible only if tied to 60+ participant[3][5]\",\n    \"Refer through local AAA/provider; no central statewide application[6]\",\n    \"Voluntary contributions encouraged, but no mandatory fees[5][9]\"\n  ],\n  \"data_shape_notes\": \"Administered via 7 regional Area Agencies on Aging with case-by-case eligibility and provider variations; no fixed income/asset tests; tied to Older Americans Act standards\"\n}"
+    },
+    {
+      "name": "Family Caregiver Support Program (FCSP)",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "No strict income limits specified for FCSP itself; caregivers support care recipients aged 60+ or with Alzheimer's (any age). Related Medicaid PCS (often required for services): single $1,047/month, couple $1,511/month.[1]",
+        "asset_limits": "No asset limits specified for FCSP. For related Medicaid PCS: home exempt if applicant, spouse, minor child, or blind/disabled child lives there; other assets counted under Medicaid rules.[1]",
+        "other_requirements": [
+          "Caregiver must be adult family member or informal caregiver for individual 60+ or with Alzheimer's/related disorders.",
+          "Care recipient must demonstrate functional need (e.g., assistance with ADLs/IADLs like bathing, dressing, meal prep).",
+          "Services often tied to Medicaid eligibility for care recipient in Idaho implementations.[3][9]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Information, assistance, respite care, caregiver training, counseling, and support groups; no direct cash payments to family caregivers in Idaho. Specific hours/dollars not fixed statewide; varies by local AAA funding and needs assessment.[3][9]",
+        "varies_by": "region"
+      },
+      "application": {
+        "methods": [
+          "Contact local Area Agency on Aging (AAA) via Idaho Commission on Aging: aging.idaho.gov or 208-334-3833.",
+          "No specific online form or central phone listed; regional AAAs handle intake (e.g., in-person, phone).[9]"
+        ],
+        "processing_time": "Not specified in sources.",
+        "waitlist": "Possible due to funding limits; varies regionally.",
+        "forms": [
+          "No specific FCSP form named; uses Uniform Assessment Instrument (UAI) for functional needs in related assessments.[1]"
+        ],
+        "documents": [
+          "Proof of relationship to care recipient.",
+          "Care recipient's functional assessment details (ADLs/IADLs).",
+          "Medicaid eligibility docs if applicable (income verification, assets).[1][9]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Administered through 7 regional Area Agencies on Aging (AAAs) covering all Idaho counties.",
+        "regional_variations": "Services, availability, wait times, and providers differ by AAA region; contact local AAA for specifics.[9]",
+        "offices_or_providers": [
+          "Area Agencies on Aging via Idaho Commission on Aging (aging.idaho.gov)."
+        ]
+      },
+      "official_source": "https://aging.idaho.gov/stay-at-home/national-family-caregiver-support-program/",
+      "gotchas": [
+        "Idaho does not pay family caregivers directly via FCSP; must use Medicaid-approved agencies or Certified Family Homes for payment (care recipient needs Medicaid).[2][4]",
+        "Often confused with Medicaid PCS, which funds services but not direct family pay.[1][5]",
+        "No statewide fixed hours/dollars; limited by federal OAA funding and local resources.[3][9]",
+        "Functional need required, not just age or diagnosis.[1]"
+      ],
+      "data_shape_notes": "Federally funded via OAA, locally administered by AAAs with no direct payments; services vary regionally and often require Medicaid linkage for paid in-home care; no income/asset test for core FCSP but applies to tied programs.",
+      "_raw": "{\n  \"name\": \"Family Caregiver Support Program (FCSP)\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"No strict income limits specified for FCSP itself; caregivers support care recipients aged 60+ or with Alzheimer's (any age). Related Medicaid PCS (often required for services): single $1,047/month, couple $1,511/month.[1]\",\n    \"asset_limits\": \"No asset limits specified for FCSP. For related Medicaid PCS: home exempt if applicant, spouse, minor child, or blind/disabled child lives there; other assets counted under Medicaid rules.[1]\",\n    \"other_requirements\": [\"Caregiver must be adult family member or informal caregiver for individual 60+ or with Alzheimer's/related disorders.\", \"Care recipient must demonstrate functional need (e.g., assistance with ADLs/IADLs like bathing, dressing, meal prep).\", \"Services often tied to Medicaid eligibility for care recipient in Idaho implementations.[3][9]\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Information, assistance, respite care, caregiver training, counseling, and support groups; no direct cash payments to family caregivers in Idaho. Specific hours/dollars not fixed statewide; varies by local AAA funding and needs assessment.[3][9]\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\"Contact local Area Agency on Aging (AAA) via Idaho Commission on Aging: aging.idaho.gov or 208-334-3833.\", \"No specific online form or central phone listed; regional AAAs handle intake (e.g., in-person, phone).[9]\"],\n    \"processing_time\": \"Not specified in sources.\",\n    \"waitlist\": \"Possible due to funding limits; varies regionally.\",\n    \"forms\": [\"No specific FCSP form named; uses Uniform Assessment Instrument (UAI) for functional needs in related assessments.[1]\"],\n    \"documents\": [\"Proof of relationship to care recipient.\", \"Care recipient's functional assessment details (ADLs/IADLs).\", \"Medicaid eligibility docs if applicable (income verification, assets).[1][9]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Administered through 7 regional Area Agencies on Aging (AAAs) covering all Idaho counties.\",\n    \"regional_variations\": \"Services, availability, wait times, and providers differ by AAA region; contact local AAA for specifics.[9]\",\n    \"offices_or_providers\": [\"Area Agencies on Aging via Idaho Commission on Aging (aging.idaho.gov).\"]\n  },\n  \"official_source\": \"https://aging.idaho.gov/stay-at-home/national-family-caregiver-support-program/\",\n  \"gotchas\": [\"Idaho does not pay family caregivers directly via FCSP; must use Medicaid-approved agencies or Certified Family Homes for payment (care recipient needs Medicaid).[2][4]\", \"Often confused with Medicaid PCS, which funds services but not direct family pay.[1][5]\", \"No statewide fixed hours/dollars; limited by federal OAA funding and local resources.[3][9]\", \"Functional need required, not just age or diagnosis.[1]\"],\n  \"data_shape_notes\": \"Federally funded via OAA, locally administered by AAAs with no direct payments; services vary regionally and often require Medicaid linkage for paid in-home care; no income/asset test for core FCSP but applies to tied programs.\"\n}"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "eligibility": {
+        "age": 55,
+        "income_limits": "Family income of no more than 125% of the federal poverty level[1][2][3]. The search results do not provide specific dollar amounts or household-size tables. Contact your local SCSEP office to determine if your household qualifies, as poverty thresholds vary by household composition[1].",
+        "asset_limits": "Not specified in available search results.",
+        "other_requirements": [
+          "Must be unemployed[1][2][3]",
+          "Enrollment priority given to: veterans and qualified spouses of veterans, then individuals over 65, individuals with disabilities, those with low literacy skills or limited English proficiency, those in rural areas, homeless or at-risk individuals, those with low employment prospects, and those who have exhausted American Job Center services[3]"
+        ]
+      },
+      "benefits": {
+        "type": "employment",
+        "value": "Paid on-the-job training at approximately 20 hours per week[2][3]. Participants are paid the highest of federal, state, or local minimum wage[2][3]. Training assignments typically last 6 to 12 months[6]. Additional support includes resume updating, interview skills practice, and job search assistance[6].",
+        "varies_by": "fixed"
+      },
+      "application": {
+        "methods": [
+          "In-person at local SCSEP office[1]",
+          "Contact information for Idaho-specific offices not provided in search results"
+        ],
+        "processing_time": "Not specified in available search results. One source notes that 'if you're eligible and there is no waiting list, you will be enrolled to train at a non-profit organization in your community'[1], suggesting enrollment can be immediate but does not specify typical processing timelines.",
+        "waitlist": "Waiting lists may exist but are not detailed in available search results[1].",
+        "forms": "Specific form names and numbers not provided in search results.",
+        "documents": "Not specified in available search results."
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "SCSEP operates in Idaho through Easterseals-Goodwill Northern Rocky Mountain, which serves Idaho, Montana, and Utah[6]. The program operates 'predominantly through a sub grantee network of approximately 50 local partner organizations in more than 400 counties across a dozen plus states'[2], but Idaho-specific county coverage is not detailed.",
+        "regional_variations": "Search results indicate that 'local availability may vary' and 'participation and start times can depend on your location and current funding levels'[1]. However, specific regional differences within Idaho are not documented in available search results.",
+        "offices_or_providers": [
+          "Easterseals-Goodwill Northern Rocky Mountain Inc. (serves Idaho, Montana, Utah)[6]",
+          "Specific local office addresses and phone numbers for Idaho not provided in search results"
+        ]
+      },
+      "official_source": "U.S. Department of Labor: https://www.dol.gov/agencies/eta/seniors[3]",
+      "gotchas": [
+        "Funding is currently in flux. Some organizations experienced pauses or slowdowns in 2025, while others received funding later and resumed services[1]. Availability may be limited depending on current funding cycles.",
+        "This is a competitive program with enrollment priorities. Veterans and those over 65 receive priority, followed by individuals with disabilities, limited English proficiency, and other vulnerable populations[3].",
+        "The program requires participants to be unemployed. Those with any current employment may not qualify[1][2][3].",
+        "Income limits are strict at 125% of federal poverty level. For 2026, this would be approximately $1,548/month for a single person or $3,200/month for a family of four, but exact thresholds should be verified with local offices[1].",
+        "Participants work part-time (approximately 20 hours/week), not full-time, and assignments are temporary (6-12 months)[6].",
+        "The program is designed as a 'bridge to employment'—it is not permanent employment but rather training to help participants find unsubsidized jobs[3]."
+      ],
+      "data_shape_notes": "The search results provide national program structure but lack Idaho-specific implementation details. Critical gaps include: (1) exact poverty-level dollar amounts for Idaho households; (2) specific local office locations, phone numbers, and websites for Idaho; (3) current processing times and waitlist status in Idaho; (4) county-by-county availability within Idaho; (5) specific training positions available in Idaho; (6) application forms and required documentation. The program is currently experiencing funding fluctuations (as of 2025), which may affect availability and enrollment timelines. Families should contact Easterseals-Goodwill Northern Rocky Mountain directly for current Idaho-specific information.",
+      "_raw": "I can provide a comprehensive guide based on the available search results, but I must be transparent about significant gaps in the Idaho-specific data you've requested.\n\n```json\n{\n  \"name\": \"Senior Community Service Employment Program (SCSEP)\",\n  \"eligibility\": {\n    \"age\": 55,\n    \"income_limits\": \"Family income of no more than 125% of the federal poverty level[1][2][3]. The search results do not provide specific dollar amounts or household-size tables. Contact your local SCSEP office to determine if your household qualifies, as poverty thresholds vary by household composition[1].\",\n    \"asset_limits\": \"Not specified in available search results.\",\n    \"other_requirements\": [\n      \"Must be unemployed[1][2][3]\",\n      \"Enrollment priority given to: veterans and qualified spouses of veterans, then individuals over 65, individuals with disabilities, those with low literacy skills or limited English proficiency, those in rural areas, homeless or at-risk individuals, those with low employment prospects, and those who have exhausted American Job Center services[3]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"employment\",\n    \"value\": \"Paid on-the-job training at approximately 20 hours per week[2][3]. Participants are paid the highest of federal, state, or local minimum wage[2][3]. Training assignments typically last 6 to 12 months[6]. Additional support includes resume updating, interview skills practice, and job search assistance[6].\",\n    \"varies_by\": \"fixed\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"In-person at local SCSEP office[1]\",\n      \"Contact information for Idaho-specific offices not provided in search results\"\n    ],\n    \"processing_time\": \"Not specified in available search results. One source notes that 'if you're eligible and there is no waiting list, you will be enrolled to train at a non-profit organization in your community'[1], suggesting enrollment can be immediate but does not specify typical processing timelines.\",\n    \"waitlist\": \"Waiting lists may exist but are not detailed in available search results[1].\",\n    \"forms\": \"Specific form names and numbers not provided in search results.\",\n    \"documents\": \"Not specified in available search results.\"\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"SCSEP operates in Idaho through Easterseals-Goodwill Northern Rocky Mountain, which serves Idaho, Montana, and Utah[6]. The program operates 'predominantly through a sub grantee network of approximately 50 local partner organizations in more than 400 counties across a dozen plus states'[2], but Idaho-specific county coverage is not detailed.\",\n    \"regional_variations\": \"Search results indicate that 'local availability may vary' and 'participation and start times can depend on your location and current funding levels'[1]. However, specific regional differences within Idaho are not documented in available search results.\",\n    \"offices_or_providers\": [\n      \"Easterseals-Goodwill Northern Rocky Mountain Inc. (serves Idaho, Montana, Utah)[6]\",\n      \"Specific local office addresses and phone numbers for Idaho not provided in search results\"\n    ]\n  },\n  \"official_source\": \"U.S. Department of Labor: https://www.dol.gov/agencies/eta/seniors[3]\",\n  \"gotchas\": [\n    \"Funding is currently in flux. Some organizations experienced pauses or slowdowns in 2025, while others received funding later and resumed services[1]. Availability may be limited depending on current funding cycles.\",\n    \"This is a competitive program with enrollment priorities. Veterans and those over 65 receive priority, followed by individuals with disabilities, limited English proficiency, and other vulnerable populations[3].\",\n    \"The program requires participants to be unemployed. Those with any current employment may not qualify[1][2][3].\",\n    \"Income limits are strict at 125% of federal poverty level. For 2026, this would be approximately $1,548/month for a single person or $3,200/month for a family of four, but exact thresholds should be verified with local offices[1].\",\n    \"Participants work part-time (approximately 20 hours/week), not full-time, and assignments are temporary (6-12 months)[6].\",\n    \"The program is designed as a 'bridge to employment'—it is not permanent employment but rather training to help participants find unsubsidized jobs[3].\"\n  ],\n  \"data_shape_notes\": \"The search results provide national program structure but lack Idaho-specific implementation details. Critical gaps include: (1) exact poverty-level dollar amounts for Idaho households; (2) specific local office locations, phone numbers, and websites for Idaho; (3) current processing times and waitlist status in Idaho; (4) county-by-county availability within Idaho; (5) specific training positions available in Idaho; (6) application forms and required documentation. The program is currently experiencing funding fluctuations (as of 2025), which may affect availability and enrollment timelines. Families should contact Easterseals-Goodwill Northern Rocky Mountain directly for current Idaho-specific information.\"\n}\n```\n\n## Critical Gaps for Your Guide\n\nThe search results provide strong national-level information but are **severely limited on Idaho-specific details**. To complete this guide, you will need to:\n\n1. **Contact Easterseals-Goodwill Northern Rocky Mountain directly** for Idaho-specific phone numbers, office locations, and current application procedures[6].\n\n2. **Verify current poverty thresholds** with the U.S. Department of Health and Human Services for 2026, as the 125% threshold translates to specific dollar amounts that vary by household size[1].\n\n3. **Confirm current funding status** in Idaho, as the program experienced disruptions in 2025[1].\n\n4. **Obtain Idaho-specific application forms** and required documentation lists from local SCSEP offices.\n\n5. **Map regional variations** by contacting each of Idaho's local partner organizations under the Easterseals-Goodwill umbrella.\n\nThe program itself is well-established (founded in 1965[4]) and remains active[1], but the Idaho implementation details you need for a comprehensive family guide are not available in these search results."
+    },
+    {
+      "name": "Legal Assistance for Seniors (via AAAs)",
+      "_parseError": true,
+      "_raw": "I cannot provide the comprehensive JSON guide you've requested because the search results contain insufficient specific data about Idaho's legal assistance programs for seniors through Area Agencies on Aging (AAAs).\n\nHere's what the search results **do** establish:\n\n**What exists:**\n- Idaho Legal Aid Services (ILAS) operates legal assistance programs for seniors 60+ through partnerships with Area Agencies on Aging[2][5]\n- Two regional AAA programs are documented: Area IV (serving 8 counties: Blaine, Camas, Cassia, Gooding, Jerome, Lincoln, Minidoka, Twin Falls)[2] and Southwest Idaho Area Agency on Aging (serving Ada, Adams, Boise, Canyon, Elmore, Gem, Owyhee, Payette, Valley, Washington)[3]\n- Priority issues include income, health care, long-term care, nutrition, housing, utilities, protective services, guardianship defense, abuse/neglect, and age discrimination[2]\n- Contact numbers: Statewide ILAS number is 208-746-7541[4]; Area IV is 208-736-2122[2]; Southwest Idaho is 208-898-7060 or 1-844-850-2883[3]\n\n**Critical gaps in the search results:**\n- No income limits or asset limits are specified\n- No processing times or waitlist information\n- No application forms are named or numbered\n- No required documents are listed\n- No eligibility criteria beyond age 60+ and residency in specific counties\n- No benefit amounts, service hours, or tier structures\n- No explanation of how programs differ across Idaho's other regions\n\n**To build your guide accurately, you need to:**\n1. Call the regional AAA offices directly (numbers above) and ask for their specific eligibility criteria, benefit structures, and application procedures\n2. Request written program guidelines or eligibility documents\n3. Contact ILAS at 208-746-7541 for statewide policy details\n4. Check aging.idaho.gov and individual AAA websites for downloadable materials\n\nThe search results confirm these programs exist and serve seniors, but lack the operational specifics your guide requires."
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "No income limits; program is free and open to all eligible residents regardless of financial status.",
+        "asset_limits": "No asset limits or tests; no financial qualifications required.",
+        "other_requirements": [
+          "Resident of a long-term care facility (e.g., skilled nursing, rehabilitation, assisted living, residential care facilities) in Idaho.",
+          "Complaints made by or on behalf of residents aged 60 or older.",
+          "Also available to families, friends, concerned staff, or any person/group worried about resident treatment.",
+          "Online reporting limited to mandated reporters (e.g., physicians, nurses, law enforcement) or financial institutions; others must call local Area Agency on Aging."
+        ]
+      },
+      "benefits": {
+        "type": "advocacy",
+        "value": "Investigates complaints about health, safety, welfare, and rights; provides advocacy on resident care issues (e.g., rehabilitation, restraints, maintenance of function); offers information, education, referrals on long-term care and benefits; conducts routine facility visits, attends resident council meetings; participates in licensure surveys; resolves issues in nursing homes, assisted living, skilled nursing, and rehabilitation facilities.",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Phone: Contact State Ombudsman at Idaho Commission on Aging or local Area Agency on Aging (specific regional numbers, e.g., Area Agency on Aging of North Idaho or CSI Office on Aging at 208-736-2122 or 1-800-574-8656).",
+          "Online: Limited to mandated reporters via designated online report form.",
+          "In-person: Local Ombudsman at Area Agencies on Aging.",
+          "Note: No specific application form; report complaints directly by phone or online for eligible reporters."
+        ],
+        "processing_time": "Not specified; immediate access to residents permitted, investigations handled promptly during business hours.",
+        "waitlist": null,
+        "forms": [
+          "No formal application forms; complaint reporting via phone or online for mandated reporters."
+        ],
+        "documents": [
+          "No documents required for reporting complaints; provide details of the concern (e.g., resident name, facility, issue description)."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Limited to long-term care facilities (nursing homes, assisted living, skilled nursing, rehabilitation); some programs note limited home care advocacy.",
+        "regional_variations": "Administered through regional Area Agencies on Aging with local ombudsmen (e.g., Area Agency on Aging of North Idaho, CSI Office on Aging serving specific facilities); different contact numbers and offices by region, but core services consistent statewide.",
+        "offices_or_providers": [
+          "Idaho Commission on Aging (State Ombudsman).",
+          "Area Agency on Aging of North Idaho.",
+          "CSI Office on Aging (208-736-2122 or 1-800-574-8656).",
+          "Other local Area Agencies on Aging."
+        ]
+      },
+      "official_source": "https://aging.idaho.gov/ombudsman-program/",
+      "gotchas": [
+        "Not a direct service provider (e.g., no healthcare, financial aid, or personal care); focuses solely on advocacy and complaint resolution.",
+        "Online reporting only for mandated reporters; families must call local office.",
+        "Limited to facility residents aged 60+; does not typically cover home care except in limited cases.",
+        "Volunteers/ombudsmen undergo background checks, but reporters do not.",
+        "Anyone can report, but access to residents requires facility permission and resident consent."
+      ],
+      "data_shape_notes": "no income test; advocacy-only for facility residents via regional Area Agencies on Aging; complaint-driven, not application-based enrollment",
+      "_raw": "{\n  \"name\": \"Long-Term Care Ombudsman Program\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"No income limits; program is free and open to all eligible residents regardless of financial status.\",\n    \"asset_limits\": \"No asset limits or tests; no financial qualifications required.\",\n    \"other_requirements\": [\"Resident of a long-term care facility (e.g., skilled nursing, rehabilitation, assisted living, residential care facilities) in Idaho.\", \"Complaints made by or on behalf of residents aged 60 or older.\", \"Also available to families, friends, concerned staff, or any person/group worried about resident treatment.\", \"Online reporting limited to mandated reporters (e.g., physicians, nurses, law enforcement) or financial institutions; others must call local Area Agency on Aging.\"]\n  },\n  \"benefits\": {\n    \"type\": \"advocacy\",\n    \"value\": \"Investigates complaints about health, safety, welfare, and rights; provides advocacy on resident care issues (e.g., rehabilitation, restraints, maintenance of function); offers information, education, referrals on long-term care and benefits; conducts routine facility visits, attends resident council meetings; participates in licensure surveys; resolves issues in nursing homes, assisted living, skilled nursing, and rehabilitation facilities.\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: Contact State Ombudsman at Idaho Commission on Aging or local Area Agency on Aging (specific regional numbers, e.g., Area Agency on Aging of North Idaho or CSI Office on Aging at 208-736-2122 or 1-800-574-8656).\", \"Online: Limited to mandated reporters via designated online report form.\", \"In-person: Local Ombudsman at Area Agencies on Aging.\", \"Note: No specific application form; report complaints directly by phone or online for eligible reporters.\"],\n    \"processing_time\": \"Not specified; immediate access to residents permitted, investigations handled promptly during business hours.\",\n    \"waitlist\": null,\n    \"forms\": [\"No formal application forms; complaint reporting via phone or online for mandated reporters.\"],\n    \"documents\": [\"No documents required for reporting complaints; provide details of the concern (e.g., resident name, facility, issue description).\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Limited to long-term care facilities (nursing homes, assisted living, skilled nursing, rehabilitation); some programs note limited home care advocacy.\",\n    \"regional_variations\": \"Administered through regional Area Agencies on Aging with local ombudsmen (e.g., Area Agency on Aging of North Idaho, CSI Office on Aging serving specific facilities); different contact numbers and offices by region, but core services consistent statewide.\",\n    \"offices_or_providers\": [\"Idaho Commission on Aging (State Ombudsman).\", \"Area Agency on Aging of North Idaho.\", \"CSI Office on Aging (208-736-2122 or 1-800-574-8656).\", \"Other local Area Agencies on Aging.\"]\n  },\n  \"official_source\": \"https://aging.idaho.gov/ombudsman-program/\",\n  \"gotchas\": [\"Not a direct service provider (e.g., no healthcare, financial aid, or personal care); focuses solely on advocacy and complaint resolution.\", \"Online reporting only for mandated reporters; families must call local office.\", \"Limited to facility residents aged 60+; does not typically cover home care except in limited cases.\", \"Volunteers/ombudsmen undergo background checks, but reporters do not.\", \"Anyone can report, but access to residents requires facility permission and resident consent.\"],\n  \"data_shape_notes\": \"no income test; advocacy-only for facility residents via regional Area Agencies on Aging; complaint-driven, not application-based enrollment\"\n}"
+    },
+    {
+      "name": "LEARN Idaho Free Senior Education Program",
+      "_parseError": true,
+      "_raw": "I cannot provide the comprehensive JSON guide you've requested because the search results do not contain the specific program details necessary to complete it accurately.\n\nHere's what the search results reveal about LEARN Idaho:\n\n**What is confirmed:**\nLEARN Idaho is a 501(c)(3) nonprofit organization that provides **free community education** on aging and caregiving topics[2]. The organization offers educational content through video libraries, article libraries, and in-person classes—not financial assistance or direct services[3]. Programs include technology training for seniors (TechEd for Seniors) offered in partnership with Senior Planet from AARP, with in-person classes at the Dick Eardley Senior Center in Boise for adults 60 and over[4].\n\n**Critical gaps in available information:**\nThe search results do not contain:\n- Specific eligibility requirements (age thresholds beyond \"60+\" for some classes, income limits, asset limits, or residency requirements)\n- Application procedures (no phone numbers, URLs, forms, or application methods are detailed)\n- Processing timelines or waitlist information\n- Required documentation\n- Regional variations or service limitations\n- Pricing structure or what \"free\" encompasses (whether fees apply for materials, etc.)\n\n**Important distinction:**\nLEARN Idaho appears to be an **educational nonprofit**, not a benefits program. It provides learning resources and classes, not financial aid or direct services. This is fundamentally different from programs like Medicaid or Supplemental Security Income that have income limits, asset tests, and application processes.\n\nTo build an accurate guide, you would need to contact LEARN Idaho directly at **(208) 631-7603** or **(208) 342-3535**[1] or visit **learnidaho.org** to request their specific eligibility criteria, enrollment procedures, and program structure."
+    }
+  ]
+}

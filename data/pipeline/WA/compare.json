@@ -1,0 +1,691 @@
+{
+  "state": "WA",
+  "stateName": "Washington",
+  "comparedAt": "2026-04-09T09:03:28.100Z",
+  "total": 16,
+  "newPrograms": 9,
+  "withDiffs": 7,
+  "withNovelFields": 7,
+  "benefitTypes": {
+    "financial": 5,
+    "service": 6,
+    "in_kind": 1,
+    "financial|in_kind|service": 1,
+    "service|advocacy": 1,
+    "employment": 1,
+    "advocacy": 1
+  },
+  "variationPatterns": {
+    "priority_tier": 6,
+    "Individual functional need assessment": 1,
+    "region": 1,
+    "household_size": 2,
+    "priority_tier|region": 2,
+    "household_size|priority_tier|region": 1,
+    "not_applicable": 1,
+    "income_tier": 1,
+    "contribution_history": 1
+  },
+  "novelFieldSummary": {
+    "asset_limits": {
+      "count": 7,
+      "programs": [
+        "Apple Health Medicare Savings Programs (QMB, SLMB, QI)",
+        "Tailored Supports for Older Adults (TSOA)",
+        "Basic Food Program",
+        "Washington Energy Assistance Program (WEAP)",
+        "Health Insurance Counseling and Advocacy Program (HICAP/SHIP)",
+        "Home Delivered Meals (via Aging & Disability Resources)",
+        "Family Caregiver Support Program"
+      ],
+      "note": "Our model has no asset limit fields"
+    },
+    "regional_variations": {
+      "count": 7,
+      "programs": [
+        "Apple Health Medicare Savings Programs (QMB, SLMB, QI)",
+        "Tailored Supports for Older Adults (TSOA)",
+        "Basic Food Program",
+        "Washington Energy Assistance Program (WEAP)",
+        "Health Insurance Counseling and Advocacy Program (HICAP/SHIP)",
+        "Home Delivered Meals (via Aging & Disability Resources)",
+        "Family Caregiver Support Program"
+      ],
+      "note": "Program varies by region — our model doesn't capture this"
+    },
+    "waitlist": {
+      "count": 5,
+      "programs": [
+        "Apple Health Medicare Savings Programs (QMB, SLMB, QI)",
+        "Basic Food Program",
+        "Washington Energy Assistance Program (WEAP)",
+        "Home Delivered Meals (via Aging & Disability Resources)",
+        "Family Caregiver Support Program"
+      ],
+      "note": "Has waitlist info — our model has no wait time field"
+    },
+    "documents_required": {
+      "count": 7,
+      "programs": [
+        "Apple Health Medicare Savings Programs (QMB, SLMB, QI)",
+        "Tailored Supports for Older Adults (TSOA)",
+        "Basic Food Program",
+        "Washington Energy Assistance Program (WEAP)",
+        "Health Insurance Counseling and Advocacy Program (HICAP/SHIP)",
+        "Home Delivered Meals (via Aging & Disability Resources)",
+        "Family Caregiver Support Program"
+      ],
+      "note": "Has document checklist — our model doesn't store per-program documents"
+    },
+    "household_size_table": {
+      "count": 1,
+      "programs": [
+        "Basic Food Program"
+      ],
+      "note": "Benefits/eligibility vary by household size — we store a single number"
+    }
+  },
+  "comparisons": [
+    {
+      "name": "Apple Health Medicare Savings Programs (QMB, SLMB, QI)",
+      "isNew": false,
+      "existingId": "medicare-savings-programs",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$967",
+          "found": "$1,463",
+          "source": "https://www.washingtonconnection.org/home/ (Apple Health portal); https://www.hca.wa.gov/ (Health Care Authority)"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$2,000 – $8,000/year",
+          "found": "- **QMB**: Pays Part A premium (if any), Part B premium, deductibles, coinsurance, copayments (except prescriptions), Part C copays[1][3][4]\n- **SLMB**: Pays Part B premium only[1][3]\n- **QI-1**: Pays Part B premium only (for non-Medicaid clients)[1][2][3]",
+          "source": "https://www.washingtonconnection.org/home/ (Apple Health portal); https://www.hca.wa.gov/ (Health Care Authority)"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.washingtonconnection.org/home/ (Apple Health portal); https://www.hca.wa.gov/ (Health Care Authority)"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "As of January 1, 2023, no resource (asset) limits for QMB, SLMB, QI in Washington (eliminated statewide)[3]. Older sources list ~$7,860-$8,400 individual/$12,600 couple, but current policy supersedes[1][2].",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Uniform eligibility/benefits statewide, but local CSO offices handle applications (e.g., King County CHAP for help). No noted differences in wait times/providers[1][3]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "QI-1 may have waitlist or funding limits (federal program); apply early[1]",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of income (SS/SSDI awards, pay stubs)",
+            "Proof of Medicare enrollment",
+            "ID (SSN, birth certificate)",
+            "Proof of residency",
+            "Bank/resource statements (if still requested regionally, though limits eliminated)",
+            "Household size details"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Tiered by income brackets (QMB/SLMB/QI-1) with escalating benefits; no asset test since 2023; household size scales limits (single/couple primary); federal FPL-based with state deductions",
+      "gotchas": [
+        "No retroactive coverage for QMB (unlike other Medicaid)[1]",
+        "Auto-enrollment if on other Medicaid; no separate QI/SLMB app needed[2]",
+        "QI-1 limited funding/waitlist; not for Medicaid recipients[1][4]",
+        "Income after deductions (people miss allowable disregards like $20 standard)[4]",
+        "Must apply even if on SS/Medicare if income <$1,463 single for QMB[1]",
+        "Limits update April annually; check current FPL[5]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.washingtonconnection.org/home/ (Apple Health portal); https://www.hca.wa.gov/ (Health Care Authority)"
+    },
+    {
+      "name": "Tailored Supports for Older Adults (TSOA)",
+      "isNew": false,
+      "existingId": "tailored-supports-for-older-adults",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$2901",
+          "found": "$3,868",
+          "source": "https://www.law.cornell.edu/regulations/washington/WAC-182-513-1615 (WAC 182-513-1615); https://www.dshs.wa.gov/office-locations[2][4]"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$1,000 – $5,000/year",
+          "found": "Tailored in-home supports for unpaid family caregivers and care recipients (age 55+), including: housekeeping and errands, support groups and counseling, specialized medical equipment/supplies, respite care, training opportunities, adult day health/care, caregiving information and community resources.[6][7]",
+          "source": "https://www.law.cornell.edu/regulations/washington/WAC-182-513-1615 (WAC 182-513-1615); https://www.dshs.wa.gov/office-locations[2][4]"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.law.cornell.edu/regulations/washington/WAC-182-513-1615 (WAC 182-513-1615); https://www.dshs.wa.gov/office-locations[2][4]"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Countable resources: $77,052 if single, $145,353-$149,581 if married (slight source variation). Exempt: primary home (if applicant lives there, intends to return, spouse or dependent relative lives there), car, personal items.[1][3][4]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered via local DSHS offices; potential wait time/provider differences by region not detailed.",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of income, resources/assets.",
+            "Proof of residency, age, Social Security number, citizenship/immigration status.",
+            "Medical/functional info for CARE assessment (handled post-financial eligibility).[1][2][3]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "High asset limits distinguish from standard Medicaid ($2,000 single/$3,000 couple); services tailored post-assessment by need/priority; requires unpaid caregiver or specific no-caregiver criteria; statewide but local DSHS processing.",
+      "gotchas": [
+        "Not for Medicaid enrollees (except limited Apple Health); separate from MAC (for Medicaid-eligible opting out).[2][3]",
+        "No spousal income allowance (unlike COPES Waiver).[1]",
+        "Requires NFLOC via CARE tool post-financial eligibility; unpaid caregiver usually needed.[1][2]",
+        "Home exempt only under specific conditions (intent to return, spouse/dependent living there).[1]",
+        "Income/assets counted individually; married couples assessed separately if both apply.[1]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.law.cornell.edu/regulations/washington/WAC-182-513-1615 (WAC 182-513-1615); https://www.dshs.wa.gov/office-locations[2][4]"
+    },
+    {
+      "name": "Medicaid Personal Care (MPC)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "MPC is a state-plan benefit with no age requirement, making it unique among long-term care Medicaid programs. The program is defined by functional need (ADL assistance) rather than care setting or diagnosis. Eligibility is based on noninstitutional CN/ABP income standards that are not explicitly stated in available sources but change annually. The program explicitly excludes those needing NFLOC, creating a specific niche between community care and institutional care. Benefits are individualized based on CARE assessment rather than tiered or standardized.",
+      "gotchas": [
+        "CRITICAL FUNCTIONAL REQUIREMENT: Unlike many Medicaid long-term care programs, MPC does NOT require Nursing Facility Level of Care (NFLOC). However, applicants MUST meet specific functional criteria: either (1) extensive assistance with ONE ADL, OR (2) minimal assistance/supervision with at least THREE ADLs. A dementia diagnosis alone does not qualify; cognitive impairment must result in documented need for assistance.[1]",
+        "MPC is explicitly NOT available to persons who require NFLOC—those individuals must use other programs like Nursing Home Medicaid or CFCO (Community First Choice Option).[1][2]",
+        "Home ownership is generally protected (exempt asset), but only if applicant lives in it, has intent to return, or specific family members live in it. This protection is not automatic.[1]",
+        "Income standards change annually in April; families should verify current limits each year.[3][4]",
+        "MPC services can be provided in home, adult family home (AFH), or licensed assisted living facility—not all settings may be available in all regions.[5]",
+        "Cognitive impairment requires documented functional need; memory loss or difficulty making plans alone do not automatically qualify.[1]",
+        "Asset limits are strict ($2,000 single/$3,000 couple); exceeding these limits by even small amounts can affect eligibility.[1]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "Individual functional need assessment",
+      "officialSource": "Washington State Department of Social and Health Services (DSHS); Washington Administrative Code § 182-513-1225; Washington Health Plan Finder"
+    },
+    {
+      "name": "New Freedom Waiver",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "County-restricted to 7 areas; participant-directed budget model; no household income table (per applicant); functional need via CARE tool; non-entitlement with implied waitlist",
+      "gotchas": [
+        "Not an entitlement: eligibility does not guarantee enrollment due to limited slots",
+        "County-restricted (only 7 counties; check residency)",
+        "Income assessed per applicant, not household (spouses separate)",
+        "Home equity limit applies only if intending to return; specific exemptions required",
+        "Must be at risk of nursing home (NFLOC via CARE tool)",
+        "Participant-directed but requires developing individual budget/spending plan"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.medicaid.gov/medicaid/section-1115-demo/demonstration-and-waiver-list/83491 (CMS waiver approval); state details via ALTSA"
+    },
+    {
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Limited to specific provider service areas (e.g., 1 main in King County); no direct income/asset test for PACE but tied to Medicaid/CFC-COPES financials; nursing home cert by DSHS social worker; slots capped with waitlists",
+      "gotchas": [
+        "Not statewide—must live in limited service area (e.g., King County) or relocate",
+        "Nursing home level certification required by DSHS, not automatic",
+        "Becomes sole Medicare/Medicaid service source—disenroll prior plans (no MA, hospice)",
+        "Waitlists common due to slots; private pay option if not Medicaid-eligible but must match Medicaid rate",
+        "Voluntary but can leave anytime; if on CFC/COPES, participation levels stay similar",
+        "90% dually eligible—private pay expensive long-term"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "region",
+      "officialSource": "https://www.hca.wa.gov/free-or-low-cost-health-care/i-need-medical-dental-or-vision-care/pace-washington (WA HCA/DSHS); https://www.providence.org/services/pace-and-adult-day-programs/elderplace-in-wa"
+    },
+    {
+      "name": "Basic Food Program",
+      "isNew": false,
+      "existingId": "basic-food-program",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$2212",
+          "found": "$2,510",
+          "source": "https://kingcounty.gov/en/dept/dph/health-safety/health-centers-programs-services/access-outreach-program/basic-food-program and https://www.washingtonconnection.org"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$1,500 – $3,600/year",
+          "found": "Monthly electronic benefits (EBT card) to purchase food at participating grocery stores. Maximum monthly benefit allotments vary by household size:[1] 1 person: $292; 2 people: $536; 3 people: $768; 4 people: $975; 5 people: $1,158. Actual benefits vary based on household income and living expenses (rent/mortgage, utilities, child care, child support).[1]",
+          "source": "https://kingcounty.gov/en/dept/dph/health-safety/health-centers-programs-services/access-outreach-program/basic-food-program and https://www.washingtonconnection.org"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://kingcounty.gov/en/dept/dph/health-safety/health-centers-programs-services/access-outreach-program/basic-food-program and https://www.washingtonconnection.org"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Not specified in search results.",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "household_size_table",
+          "value": "Household income must be at or below 200% of the Federal Poverty Level (FPL). As of April 1, 2025, the maximum monthly gross income limits are:[1][3] Family of 1: $2,510–$2,608; Family of 2: $3,407–$3,525; Family of 3: $4,303–$4,442; Family of 4: $5,200–$5,358; Family of 5: $6,097–$6,275; Family of 6: $6,993–$7,192; Family of 7: $7,890–$8,108; Family of 8: $8,787–$9,025. For each additional household member, add approximately $897–$917. Income is calculated as gross monthly income (before taxes or deductions).[2][3]",
+          "note": "Benefits/eligibility vary by household size — we store a single number"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Application can be completed through local Community Services Offices or by phone; specific office locations vary by county/region but search results do not detail regional processing time variations.[2]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Not specified in search results.",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Social security number[2][3]",
+            "Proof of identity[2][3]",
+            "Proof of income[1][3]",
+            "Proof of living expenses (rent/mortgage, utilities, child care, child support)[1][3]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Benefits scale by household size and income; income limits are set at 200% of Federal Poverty Level and updated annually (most recent data from April 1, 2025). Maximum benefit allotments are provided for households up to 5 people, with indication that larger households exist but specific amounts not detailed in search results. Program is statewide with no county-level restrictions mentioned. No waitlist or processing time data available in search results. Asset limits not specified. Application routes are multiple (online, phone, mail, in-person) but no indication of which is fastest or preferred.",
+      "gotchas": [
+        "Submitting an application does not guarantee eligibility.[1]",
+        "Income is calculated as gross monthly income (before taxes/deductions), not net income—this is a common point of confusion.[2][3]",
+        "An interview is required after application submission; this is a mandatory step, not optional.[2]",
+        "Non-citizens have restricted eligibility; undocumented immigrants cannot qualify, but their U.S. citizen children may be eligible separately.[1][3]",
+        "The program requires agreement to participate in work and training programs if applicable—this is a condition of eligibility.[1]",
+        "Benefits are not fixed; they vary based on both household size AND income AND documented living expenses, meaning two households of the same size may receive different amounts.[1]",
+        "The program is called 'Basic Food' in Washington but is the federal SNAP (Supplemental Nutrition Assistance Program).[3]",
+        "School children are automatically enrolled in free school meal programs as a separate benefit.[3]"
+      ],
+      "benefitType": "in_kind",
+      "benefitVariesBy": "household_size",
+      "officialSource": "https://kingcounty.gov/en/dept/dph/health-safety/health-centers-programs-services/access-outreach-program/basic-food-program and https://www.washingtonconnection.org"
+    },
+    {
+      "name": "Housing and Essential Needs (HEN) Referral Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "referral-only (DSHS first, then county provider); varies heavily by county provider/funding; 12-month cap; no fixed $ benefits, case-by-case with waitlists",
+      "gotchas": [
+        "Two-step process: DSHS approves referral, but local provider determines final service eligibility/funding[1][3]",
+        "12-month time limit even if incapacity continues; DSHS may cut off after 1 year[6]",
+        "Limited funds/not entitlement: waitlists common (e.g., King County), not all eligible get services[6][8]",
+        "ABD recipients now eligible (recent law change), but cannot be in correctional facility[1][4]",
+        "Referrals expire; must stay in contact and report changes[1][2]",
+        "Incapacity must be temporary/permanent, verified by DSHS health screening[1][2]",
+        "Prioritizes rent/utility from waitlists as funding allows; essentials/transport more available[8]"
+      ],
+      "benefitType": "financial|in_kind|service",
+      "benefitVariesBy": "priority_tier|region",
+      "officialSource": "https://www.law.cornell.edu/regulations/washington/WAC-388-400-0070 (primary reg); www.washingtonconnection.org (DSHS apply)"
+    },
+    {
+      "name": "Washington Energy Assistance Program (WEAP)",
+      "isNew": false,
+      "existingId": "washington-energy-assistance-program",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$3095",
+          "found": "$1,956",
+          "source": "https://www.commerce.wa.gov/community-opportunities/liheap/"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$500 – $2,000/year",
+          "found": "One-time grant for utility bills (heating max $1,250, min $250); crisis assistance up to $10,000 for emergencies like shutoffs or broken heaters; repair/replace unsafe heating/cooling units; energy efficiency improvements via Weatherization Program.[1][4]",
+          "source": "https://www.commerce.wa.gov/community-opportunities/liheap/"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.commerce.wa.gov/community-opportunities/liheap/"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits mentioned in program guidelines.[1]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Different providers per county (e.g., Rural Resources for Lincoln/Ferry/Stevens/Pend Oreille; Opportunity Council for Whatcom/Island/San Juan; Chelan-Douglas CAC for Chelan); documentation and processing may vary; income guidelines consistent at 150% FPL but applied locally[1][2][5]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Possible during high-demand periods, especially winter; funding limited per program year[2]",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of identity",
+            "Proof of residence",
+            "Proof of heat/utility costs (bills or lease)",
+            "Proof of income for prior month (earnings, SS/SSI, VA, TANF, unemployment, etc.; varies by provider)",
+            "Names, DOB, SSN for household members (SSN not always required)"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Administered locally via county providers with uniform 150% FPL income test but varying docs/processing; one-time per year; includes crisis/weatherization components; no age/assets test",
+      "gotchas": [
+        "One grant per household per program year (Oct-Sep); cannot reapply until next year[1][9]",
+        "Must contact local provider for exact eligibility/docs; state site is guide only[1]",
+        "No direct statewide application; delays if wrong provider contacted[2]",
+        "Renters with included utilities may have limited eligibility or need extra criteria[4]",
+        "Funding limited; apply early in season (e.g., 2025-2026 season started)[2]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "household_size|priority_tier|region",
+      "officialSource": "https://www.commerce.wa.gov/community-opportunities/liheap/"
+    },
+    {
+      "name": "Health Insurance Counseling and Advocacy Program (HICAP/SHIP)",
+      "isNew": false,
+      "existingId": "washington-state-health-insurance-assistance-program",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$3,000 – $10,000/year",
+          "found": "Free, one-on-one counseling, education, and assistance on Medicare (Parts A, B, C, D), Medigap supplements, prescription drug plans, Medicare Savings Programs, Extra Help/Low-Income Subsidy, appeals, billing issues, fraud prevention, and coordination with other insurance; group outreach, presentations, and enrollment events; no dollar amounts, hours, or fixed limits specified[3][4][6][7]",
+          "source": "https://www.insurance.wa.gov/about-us/office-insurance-commissioner-shiba (primary Washington SHIBA page, based on program context[4])"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.insurance.wa.gov/about-us/office-insurance-commissioner-shiba (primary Washington SHIBA page, based on program context[4])"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits or tests apply[3][7]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Delivered statewide by Statewide Health Insurance Benefits Advisors (SHIBA) through the Office of the Insurance Commissioner, in partnership with local area agencies on aging and community organizations; local providers may handle in-person services, but core services uniform[3][4]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Medicare card, current insurance details, prescription drug list, income documents if applying for savings programs like Extra Help during counseling (optional, prepared in advance for efficiency)[3][6]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "no income/asset test; counseling-only service, not benefits/entitlements; volunteer/staff delivered via statewide hotline and local partners; part of national SHIP network focused on Medicare navigation[3][4][7]",
+      "gotchas": [
+        "Not an insurance plan or financial aid program—provides counseling only, does not pay premiums or provide healthcare; free and unbiased (no sales commissions), unlike agents; often confused with WSHIP (high-risk pool) or Apple Health (Medicaid); best for education/appeals, not personalized plan sales[1][3][7]",
+        "Services rely on trained volunteers/staff, so availability may depend on call volume or local events[3][6]"
+      ],
+      "benefitType": "service|advocacy",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://www.insurance.wa.gov/about-us/office-insurance-commissioner-shiba (primary Washington SHIBA page, based on program context[4])"
+    },
+    {
+      "name": "Home Delivered Meals (via Aging & Disability Resources)",
+      "isNew": false,
+      "existingId": "home-delivered-meals",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$1,500 – $3,600/year",
+          "found": "Nutritionally balanced meals (hot, pre-packaged, or box meals) delivered to home; frequency varies: daily, weekly, semi-weekly, or twice monthly. Examples: 1 meal per day (Sound Generations), 2 meals/day for 14 days post-discharge (CHPW MA). Suggested donation $6.50/meal (Sound Generations) or free via Medicaid/referral.",
+          "source": "https://www.o3a.org/programs/nutrition-transportation/senior-nutrition-programs/"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.o3a.org/programs/nutrition-transportation/senior-nutrition-programs/"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits mentioned in sources.",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Different providers, eligibility nuances (e.g., age 60+ statewide but 55+ for Native in O3A), delivery frequency, donation vs. free; funded by Older Americans Act via local AAA.",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Possible regional waitlists due to funding/provider capacity; not explicitly detailed.",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of age/residency",
+            "Income verification for income-based programs",
+            "Background checks for providers/volunteers",
+            "Liability insurance for providers",
+            "Referral info for Medicaid (ID, address, meal quantity, case manager details)"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Administered regionally via Area Agencies on Aging with Older Americans Act funding; eligibility combines age, income (<185% FPL), homebound status; varies by county/provider; no uniform statewide application or asset test.",
+      "gotchas": [
+        "Not fully statewide—must contact local Area Agency on Aging; often requires homebound status, not just age/income; Medicaid/free meals need case manager referral; suggested donations common even if 'free'; post-discharge benefits temporary (e.g., 14 days); providers handle background checks/insurance, delaying access."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier|region",
+      "officialSource": "https://www.o3a.org/programs/nutrition-transportation/senior-nutrition-programs/"
+    },
+    {
+      "name": "Family Caregiver Support Program",
+      "isNew": false,
+      "existingId": "family-caregiver-support-program",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$2,000 – $8,000/year",
+          "found": "Paid caregiving via Medicaid Personal Care (MPC) or Community First Choice: Hours based on CARE assessment for ADLs (personal hygiene, dressing, toileting, transferring, mobility); family caregivers paid as Individual Providers through CDWA (rates not specified in sources). Training: 5 hours orientation/safety + 30 hours basic. VA: Stipends, respite, mental health, travel, health insurance.[1][2][3][4]",
+          "source": "https://www.dshs.wa.gov (DSHS Apple Health LTSS; no single page for exact 'Family Caregiver Support Program'; closest is MPC via Washington Connection: https://www.washingtonconnection.org)"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.dshs.wa.gov (DSHS Apple Health LTSS; no single page for exact 'Family Caregiver Support Program'; closest is MPC via Washington Connection: https://www.washingtonconnection.org)"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "MPC: $2,000 countable assets for singles (slightly higher for couples). Home exempt if applicant lives there, intends to return, spouse/disabled child/minor child lives there.[2][3]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Varies by local DSHS office for assessments/wait times; CDWA statewide employer.[3][4]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Not mentioned in sources; may depend on regional DSHS offices.[4]",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Medicaid LTSS: Income/asset proof, functional needs via CARE assessment; background check for caregiver; VA: Disability rating proof, discharge papers.[1][2][4]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Tied to Medicaid LTSS/MPC (income/asset tested, ADL-based); statewide via CDWA for paid family caregivers (excludes spouses); separate VA track for Veterans; no fixed hours/dollars, assessment-driven.",
+      "gotchas": [
+        "Not a standalone program; routes through Medicaid MPC/LTSS or VA (Veterans only). Spouses ineligible as paid caregivers in MPC.[3][4]",
+        "Must qualify for Medicaid LTSS first; no NFLOC needed for MPC but ADL help required via CARE tool.[2]",
+        "Background check mandatory; training required (35+ hours).[4]",
+        "MPC doesn't cover room/board in assisted living.[3]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.dshs.wa.gov (DSHS Apple Health LTSS; no single page for exact 'Family Caregiver Support Program'; closest is MPC via Washington Connection: https://www.washingtonconnection.org)"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Grantee-administered with regional providers (e.g., AARP Foundation, NAPCA); priority enrollment tiers; no WA statewide centralized application; income at 125% FPL without asset test specified",
+      "gotchas": [
+        "Grantee-specific (not centralized state agency); must contact local provider (e.g., AARP or NAPCA in WA)",
+        "Priority tiers may delay non-priority applicants",
+        "Temporary training (bridge to unsubsidized work); not guaranteed permanent job or ongoing wage subsidy",
+        "Income test is strict at 125% FPL; excludes most assets but verify with grantee",
+        "Funding via DOL grants to nonprofits/state agencies; slots limited by grant allocations"
+      ],
+      "benefitType": "employment",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.dol.gov/agencies/eta/seniors"
+    },
+    {
+      "name": "Legal Aid for Seniors (via Protection & Advocacy)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Decentralized statewide via NJP/CLEAR with regional contractors; no strict income/asset tables published; priority-based on need (eviction, abuse); age 60+ (55+ Tribal); clinic services ended in some regions post-2025[2][3]",
+      "gotchas": [
+        "Not a single centralized program; delivered via NJP/CLEAR and regional partners—call specific hotline for issue[2][3]",
+        "O3A Senior Legal Advice Clinics (SLAC) ended June 30, 2025; shifted to NJP[3]",
+        "Priority for low-income, those facing eviction/foreclosure/abuse; not general estate planning (use WA Law Help or State Bar)[3][5]",
+        "Tribal Elders qualify at 55+, others 60+[3]",
+        "Free services but may involve intake screening for eligibility[2]"
+      ],
+      "benefitType": "advocacy",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://nwjustice.org (Northwest Justice Project, primary provider)[8]"
+    },
+    {
+      "name": "Washington Charity Care",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Hospital-by-hospital policies with state-mandated floors (300%/350% FPL tiers); no central app/form—must contact care hospital; income-based tiers, asset test only on partial-discount tier; presumptive eligibility at 200% FPL",
+      "gotchas": [
+        "Program is hospital-specific—not statewide single app; excludes non-hospital-employed providers (e.g., ER radiologists); must request app (hospitals notify but families should ask); assets only tested above 300% FPL; insured patients still qualify for deductibles/co-pays; no coverage for outpatient clinics or non-medically necessary care.[1][3][5]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "income_tier",
+      "officialSource": "https://www.washingtonlawhelp.org/en/guide-charity-care (consumer guide); hospital policies via WA DOH hospital list or direct hospital contact"
+    },
+    {
+      "name": "Aged, Blind, or Disabled (ABD) Cash Assistance Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "State-funded interim cash to SSI applicants; fixed amounts by household size (individual/couple); repayment required until 2025; bundled with HEN referral; no TANF/SSI overlap.",
+      "gotchas": [
+        "Must sign repayment agreement for ABD benefits if SSI approved (continues until Oct 2025).[4]",
+        "Ineligible if receiving TANF (higher benefit) or SSI; apply for TANF first if possible.[3]",
+        "ABD is interim/bridge to SSI; facilitator helps apply, but SSI process takes ~7 months.[2][3][4]",
+        "Disability must not be primarily substance abuse-related; medical verification required.[1][3]",
+        "No eligibility if in correctional facility.[1]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "household_size",
+      "officialSource": "https://www.dshs.wa.gov/esa/community-services-offices or WAC 388-400-0060 (https://www.law.cornell.edu/regulations/washington/WAC-388-400-0060).[1]"
+    },
+    {
+      "name": "WA Cares Fund",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "No income/asset tests; eligibility tied to payroll contributions and work hours over specific periods; exemptions can block benefits; partial vesting for older workers; statewide payroll-funded LTC insurance.",
+      "gotchas": [
+        "Permanent exemptions (e.g., 70%+ veteran disability) make you ineligible for benefits unless rescinded[1].",
+        "Conditional exemptions pause contributions; must notify ESD/employer within 90 days if status changes[3].",
+        "Must work 500 hours/year for contribution years to count[1][2][3].",
+        "Breaks over 5 consecutive years reset 10-year vesting clock[2][3].",
+        "Benefits start Jan 1, 2025; near-retirees (born pre-1968) get only partial benefits[3][4].",
+        "Requires qualifying health needs, not automatic upon vesting[2]."
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "contribution_history",
+      "officialSource": "https://esd.wa.gov/ (inferred from ESD references; specific WA Cares page not directly linked in results)[1]."
+    }
+  ]
+}

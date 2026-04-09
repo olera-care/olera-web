@@ -1,0 +1,702 @@
+{
+  "state": "CA",
+  "stateName": "California",
+  "diveAt": "2026-04-09T08:48:35.646Z",
+  "total": 12,
+  "parsed": 12,
+  "programs": [
+    {
+      "name": "Medi-Cal Medicare Savings Programs (QMB, SLMB, QI)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Income limits are based on Federal Poverty Level (FPL), updated annually (typically April 1), and apply to net countable income. Limits vary by program and household size (individual or couple). For 2025: QMB ≤100% FPL ($1,305 single; $1,763 couple); SLMB ≤120% FPL ($1,566 single; $2,116 couple); QI ≤135% FPL ($1,762 single; $2,381 couple). Older sources list slightly different figures (e.g., QMB $1,074 single/$1,452 couple), reflecting prior years. 2026 limits available via Medicare.gov. Household size primarily individual/couple; larger households rare but follow FPL scaling.[5][6][7]",
+        "asset_limits": "Resources ≤$130,000 individual; ≤$195,000 couple (some sources confirm). States like California may adjust; federal standards allow more generous rules. Counts typical countable assets (e.g., bank accounts, stocks); exempts home, one car, personal belongings, burial plots. Exact countable/exempt list per Medi-Cal rules.[7]",
+        "other_requirements": [
+          "Eligible for Medicare Part A (QMB/SLMB; state auto-enrolls if eligible post-approval) and enrolled in Medicare Part B (all programs).",
+          "California resident.",
+          "U.S. citizen or qualified non-citizen eligible for full-scope Medi-Cal.",
+          "Meet other Medi-Cal requirements (e.g., complete forms, verifications, report changes within 10 days, annual redetermination)."
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "QMB: Pays Medicare Part A premiums (if applicable; auto-buy-in starting 2025), Part B premiums/deductibles/coinsurance/copayments for Medicare-covered services. SLMB/QI: Pays Medicare Part B premiums only (QI allows slightly higher income). No direct healthcare services; covers specific Medicare costs.[1][3][5]",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Mail form to local county social services agency.",
+          "Contact state Medi-Cal agency or county office (requests for applications go to state Medicaid/Medi-Cal agency).",
+          "In-person at county social services office.",
+          "Phone via county welfare office (county-specific numbers via dhcs.ca.gov). No central online portal specified; check county sites."
+        ],
+        "processing_time": "QMB: Up to 45 days (effective 1st of month after all info verified). SLMB/QI: May be retroactive up to 3 months prior.[1]",
+        "waitlist": "QI may have funding limits/priority (not explicitly stated for CA; federal QI can have waitlists).[1]",
+        "forms": [
+          "MC 14A (Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), Qualifying Individual (QI) form)"
+        ],
+        "documents": [
+          "Proof of income (e.g., pay stubs, benefit statements).",
+          "Proof of resources/assets.",
+          "Medicare enrollment proof (Parts A/B cards).",
+          "ID/residency (e.g., birth certificate, utility bill).",
+          "MC 13 (Rights and Responsibilities), verifications via IEVS.",
+          "Any changes reported."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Administered statewide via counties; must reside in California.",
+        "regional_variations": "Applied via local county social services agencies; processing may vary by county (e.g., Santa Clara County specifics noted). No major benefit differences.[2]",
+        "offices_or_providers": [
+          "Local county social services/welfare offices (find via dhcs.ca.gov or county sites)"
+        ]
+      },
+      "official_source": "https://www.dhcs.ca.gov/individuals/Pages/Medicare-Savings-Programs-in-California.aspx",
+      "gotchas": [
+        "Must be enrolled in Medicare Part B before QMB evaluation; Part A auto-enrolled if eligible (post-2025 buy-in).[2][3]",
+        "Income is net countable (after deductions); limits change yearly April 1—verify current FPL.[1][5]",
+        "QI may have limited funding/priority nationally; check availability.[1]",
+        "Over income? May qualify for Medi-Cal share-of-cost.[6]",
+        "Report changes within 10 days; annual redetermination required.[2]",
+        "Not retroactive for QMB (unlike SLMB/QI).[1]"
+      ],
+      "data_shape_notes": "Three tiers (QMB/SLMB/QI) with escalating income limits (100%/120%/135% FPL) and narrowing benefits; couple limits ~1.35x single; asset caps high ($130k/$195k); county-administered statewide with annual FPL updates.",
+      "_raw": "{\n  \"name\": \"Medi-Cal Medicare Savings Programs (QMB, SLMB, QI)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Income limits are based on Federal Poverty Level (FPL), updated annually (typically April 1), and apply to net countable income. Limits vary by program and household size (individual or couple). For 2025: QMB ≤100% FPL ($1,305 single; $1,763 couple); SLMB ≤120% FPL ($1,566 single; $2,116 couple); QI ≤135% FPL ($1,762 single; $2,381 couple). Older sources list slightly different figures (e.g., QMB $1,074 single/$1,452 couple), reflecting prior years. 2026 limits available via Medicare.gov. Household size primarily individual/couple; larger households rare but follow FPL scaling.[5][6][7]\",\n    \"asset_limits\": \"Resources ≤$130,000 individual; ≤$195,000 couple (some sources confirm). States like California may adjust; federal standards allow more generous rules. Counts typical countable assets (e.g., bank accounts, stocks); exempts home, one car, personal belongings, burial plots. Exact countable/exempt list per Medi-Cal rules.[7]\",\n    \"other_requirements\": [\n      \"Eligible for Medicare Part A (QMB/SLMB; state auto-enrolls if eligible post-approval) and enrolled in Medicare Part B (all programs).\",\n      \"California resident.\",\n      \"U.S. citizen or qualified non-citizen eligible for full-scope Medi-Cal.\",\n      \"Meet other Medi-Cal requirements (e.g., complete forms, verifications, report changes within 10 days, annual redetermination).\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"QMB: Pays Medicare Part A premiums (if applicable; auto-buy-in starting 2025), Part B premiums/deductibles/coinsurance/copayments for Medicare-covered services. SLMB/QI: Pays Medicare Part B premiums only (QI allows slightly higher income). No direct healthcare services; covers specific Medicare costs.[1][3][5]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Mail form to local county social services agency.\",\n      \"Contact state Medi-Cal agency or county office (requests for applications go to state Medicaid/Medi-Cal agency).\",\n      \"In-person at county social services office.\",\n      \"Phone via county welfare office (county-specific numbers via dhcs.ca.gov). No central online portal specified; check county sites.\"\n    ],\n    \"processing_time\": \"QMB: Up to 45 days (effective 1st of month after all info verified). SLMB/QI: May be retroactive up to 3 months prior.[1]\",\n    \"waitlist\": \"QI may have funding limits/priority (not explicitly stated for CA; federal QI can have waitlists).[1]\",\n    \"forms\": [\"MC 14A (Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), Qualifying Individual (QI) form)\"],\n    \"documents\": [\n      \"Proof of income (e.g., pay stubs, benefit statements).\",\n      \"Proof of resources/assets.\",\n      \"Medicare enrollment proof (Parts A/B cards).\",\n      \"ID/residency (e.g., birth certificate, utility bill).\",\n      \"MC 13 (Rights and Responsibilities), verifications via IEVS.\",\n      \"Any changes reported.\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Administered statewide via counties; must reside in California.\",\n    \"regional_variations\": \"Applied via local county social services agencies; processing may vary by county (e.g., Santa Clara County specifics noted). No major benefit differences.[2]\",\n    \"offices_or_providers\": [\"Local county social services/welfare offices (find via dhcs.ca.gov or county sites)\"]\n  },\n  \"official_source\": \"https://www.dhcs.ca.gov/individuals/Pages/Medicare-Savings-Programs-in-California.aspx\",\n  \"gotchas\": [\n    \"Must be enrolled in Medicare Part B before QMB evaluation; Part A auto-enrolled if eligible (post-2025 buy-in).[2][3]\",\n    \"Income is net countable (after deductions); limits change yearly April 1—verify current FPL.[1][5]\",\n    \"QI may have limited funding/priority nationally; check availability.[1]\",\n    \"Over income? May qualify for Medi-Cal share-of-cost.[6]\",\n    \"Report changes within 10 days; annual redetermination required.[2]\",\n    \"Not retroactive for QMB (unlike SLMB/QI).[1]\"\n  ],\n  \"data_shape_notes\": \"Three tiers (QMB/SLMB/QI) with escalating income limits (100%/120%/135% FPL) and narrowing benefits; couple limits ~1.35x single; asset caps high ($130k/$195k); county-administered statewide with annual FPL updates.\"\n}"
+    },
+    {
+      "name": "Multipurpose Senior Services Program (MSSP) Waiver",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "No specific dollar amounts or household size table stated; requires Medi-Cal eligibility (income and assets assessed under Medi-Cal rules, which include spousal impoverishment protections for married applicants). Medi-Cal with no share of cost may be required by some providers.",
+        "asset_limits": "No specific dollar amounts stated; follows Medi-Cal asset rules (assets assessed under Medi-Cal; primary home, car, and certain exempt items typically not counted).",
+        "other_requirements": [
+          "Medi-Cal eligible",
+          "Require Nursing Facility (NF) level of care but for the provision of waiver services",
+          "Reside in a county with an MSSP site (statewide expansion authorized but implementation ongoing)",
+          "Enrolled in only one HCBS waiver at a time",
+          "Functionally impaired or have medical condition making daily activities difficult (e.g., bathing, dressing, medications, meals)"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Home and community-based services including in-home personal care assistance, home-delivered meals, personal emergency response systems, adult day care, respite care, ongoing care management and coordination by nurses and social workers, links to community services, coordination with health providers, and purchase of needed services not otherwise available. Total annual cost of care management and services must be lower than skilled nursing facility cost.",
+        "varies_by": "region"
+      },
+      "application": {
+        "methods": [
+          "Contact local DHCS county office",
+          "Contact local Area Agency on Aging (AAA) directly or call 1-800-510-2020",
+          "Contact local MSSP provider (approx. 40 agencies contracted by CDA; e.g., in San Gabriel/Pomona Valley: (800) 664-4664 or (626) 397-3110 option 1)"
+        ],
+        "processing_time": "Not specified",
+        "waitlist": "Wait-lists can last from months to years; statewide slots capped (e.g., 11,940 maximum per year for 2024-2029).",
+        "forms": [],
+        "documents": [
+          "Medi-Cal eligibility proof",
+          "Documentation of nursing facility level of care need (e.g., functional assessments for daily activities like bathing, dressing, medications, meals)"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Must reside in county with MSSP site; previously 48 of 58 counties, statewide expansion effective July 1, 2024 but full implementation pending.",
+        "regional_variations": "Administered by ~40 local agencies contracted by CDA; services provided through local vendors; some providers specify local areas (e.g., San Gabriel/Pomona Valley); wait times and availability vary.",
+        "offices_or_providers": [
+          "Local DHCS county offices",
+          "Local Area Agencies on Aging (AAA)",
+          "~40 CDA-contracted local agencies"
+        ]
+      },
+      "official_source": "https://www.dhcs.ca.gov/services/medi-cal/Pages/MSSPMedi-CalWaiver.aspx",
+      "gotchas": [
+        "Requires Nursing Facility level of care assessment—not just general aging or mild needs",
+        "Long waitlists (months to years) due to slot caps; alternatives may offer faster access",
+        "Must be Medi-Cal eligible first; married couples may qualify even if one is ineligible due to income/assets via spousal protections",
+        "Only one HCBS waiver at a time; cannot stack with others",
+        "Statewide expansion authorized but not fully implemented—check local availability",
+        "Services purchased only if not otherwise available and total cost < nursing home"
+      ],
+      "data_shape_notes": "Administered via ~40 local CDA-contracted providers; slot-capped with waitlists; requires prior Medi-Cal and NF-level assessment; recent statewide expansion (July 2024) with ongoing implementation",
+      "_raw": "{\n  \"name\": \"Multipurpose Senior Services Program (MSSP) Waiver\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"No specific dollar amounts or household size table stated; requires Medi-Cal eligibility (income and assets assessed under Medi-Cal rules, which include spousal impoverishment protections for married applicants). Medi-Cal with no share of cost may be required by some providers.\",\n    \"asset_limits\": \"No specific dollar amounts stated; follows Medi-Cal asset rules (assets assessed under Medi-Cal; primary home, car, and certain exempt items typically not counted).\",\n    \"other_requirements\": [\n      \"Medi-Cal eligible\",\n      \"Require Nursing Facility (NF) level of care but for the provision of waiver services\",\n      \"Reside in a county with an MSSP site (statewide expansion authorized but implementation ongoing)\",\n      \"Enrolled in only one HCBS waiver at a time\",\n      \"Functionally impaired or have medical condition making daily activities difficult (e.g., bathing, dressing, medications, meals)\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Home and community-based services including in-home personal care assistance, home-delivered meals, personal emergency response systems, adult day care, respite care, ongoing care management and coordination by nurses and social workers, links to community services, coordination with health providers, and purchase of needed services not otherwise available. Total annual cost of care management and services must be lower than skilled nursing facility cost.\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact local DHCS county office\",\n      \"Contact local Area Agency on Aging (AAA) directly or call 1-800-510-2020\",\n      \"Contact local MSSP provider (approx. 40 agencies contracted by CDA; e.g., in San Gabriel/Pomona Valley: (800) 664-4664 or (626) 397-3110 option 1)\"\n    ],\n    \"processing_time\": \"Not specified\",\n    \"waitlist\": \"Wait-lists can last from months to years; statewide slots capped (e.g., 11,940 maximum per year for 2024-2029).\",\n    \"forms\": [],\n    \"documents\": [\n      \"Medi-Cal eligibility proof\",\n      \"Documentation of nursing facility level of care need (e.g., functional assessments for daily activities like bathing, dressing, medications, meals)\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Must reside in county with MSSP site; previously 48 of 58 counties, statewide expansion effective July 1, 2024 but full implementation pending.\",\n    \"regional_variations\": \"Administered by ~40 local agencies contracted by CDA; services provided through local vendors; some providers specify local areas (e.g., San Gabriel/Pomona Valley); wait times and availability vary.\",\n    \"offices_or_providers\": [\"Local DHCS county offices\", \"Local Area Agencies on Aging (AAA)\", \"~40 CDA-contracted local agencies\"]\n  },\n  \"official_source\": \"https://www.dhcs.ca.gov/services/medi-cal/Pages/MSSPMedi-CalWaiver.aspx\",\n  \"gotchas\": [\n    \"Requires Nursing Facility level of care assessment—not just general aging or mild needs\",\n    \"Long waitlists (months to years) due to slot caps; alternatives may offer faster access\",\n    \"Must be Medi-Cal eligible first; married couples may qualify even if one is ineligible due to income/assets via spousal protections\",\n    \"Only one HCBS waiver at a time; cannot stack with others\",\n    \"Statewide expansion authorized but not fully implemented—check local availability\",\n    \"Services purchased only if not otherwise available and total cost < nursing home\"\n  ],\n  \"data_shape_notes\": \"Administered via ~40 local CDA-contracted providers; slot-capped with waitlists; requires prior Medi-Cal and NF-level assessment; recent statewide expansion (July 2024) with ongoing implementation\"\n}"
+    },
+    {
+      "name": "PACE (Program of All-Inclusive Care for the Elderly)",
+      "eligibility": {
+        "age": 55,
+        "income_limits": "No income limits are applied to determine PACE eligibility[3]. However, if a person meets Medicaid income and asset limits, Medicaid pays a portion of the monthly PACE premium; if they do not qualify for Medicaid, they are responsible for the portion Medicaid would have paid[2]. Approximately 90 percent of PACE participants are dually eligible for Medicare and Medicaid[3].",
+        "asset_limits": "No asset limits are specified in eligibility criteria[3]. However, Medicaid asset limits may apply if the participant is seeking Medicaid to cover premium costs.",
+        "other_requirements": [
+          "Must reside in a community designated as a PACE service area (specific county and zip code)[2]",
+          "Must be certified by the California Department of Health Care Services (DHCS) as meeting the need for skilled nursing home level of care[2]",
+          "Must be able to live safely in the community with PACE services without jeopardizing health or safety[2]",
+          "Cannot be enrolled in a Medicare Advantage (Part C) plan, Medicare prepayment plan, or Medicare prescription drug plan[3]",
+          "Cannot be enrolled in hospice services or certain other programs[3]",
+          "Do not need to be enrolled in Medicare or Medicaid to qualify, but approximately 90 percent are dually eligible[3]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Comprehensive all-inclusive care including: primary care at PACE center, specialist referrals, all prescriptions (no formulary restrictions), dental/vision/hearing exams and equipment, physical and occupational therapy, mental health and counseling, adult day center activities, nutritious meals (at center and home-delivered), transportation to PACE center and all appointments, in-home personal care and housekeeping, and 24/7 emergency coordination[4]. For dual-eligible participants with both Medicare and Medi-Cal, PACE is typically free — no premiums, copays, or deductibles[4].",
+        "varies_by": "Medicaid eligibility status (affects premium responsibility)"
+      },
+      "application": {
+        "methods": [
+          "Phone: (818) 581-4101 (California-based, free, no obligation, licensed in California)[4]",
+          "In-person home visit: PACE organization will schedule a no-cost interdisciplinary assessment to complete a Level of Care application[1]",
+          "Contact local PACE program directly: National PACE Association provides locator at https://www.npaonline.org[3]",
+          "CalOptima Health PACE enrollment: https://www.caloptima.org/fa-ir/health-insurance-plans/pace/how-to-enroll[6]"
+        ],
+        "processing_time": "Not specified in search results. After home visit assessment, DHCS will review and decide on enrollment[1].",
+        "waitlist": "Not specified in search results.",
+        "forms": [
+          "Level of Care application (required by DHCS)[1]"
+        ],
+        "documents": "Not specified in search results. Recommend contacting local PACE program for specific documentation requirements."
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Must live in a PACE service area (specific county and zip code served by a PACE organization)[2]. California has over 40 PACE programs across 28 counties serving 28,000+ participants through 117 centers statewide[4].",
+        "regional_variations": "Not specified in search results. Regional variations in wait times, specific services, or enrollment processes are not documented.",
+        "offices_or_providers": [
+          "Over 40 PACE programs across 28 counties in California[4]",
+          "West PACE operates in San Marcos, CA[5]",
+          "CalOptima Health offers PACE enrollment[6]",
+          "Innovage provides PACE services[9]"
+        ]
+      },
+      "official_source": "https://www.dhcs.ca.gov/provgovpart/Pages/PACE.aspx (California Department of Health Care Services)",
+      "gotchas": [
+        "Only about 5 percent of PACE participants nationally reside in a nursing home, despite all participants being certified to need nursing home-level care[1] — this is a key distinction: certification for nursing home care does not mean you must live in one.",
+        "PACE is NOT available everywhere in California — you must live in a designated PACE service area; check your specific county and zip code[2].",
+        "If you do not qualify for Medicaid, you are responsible for paying the portion of the monthly premium that Medicaid would have covered[2] — this can be substantial.",
+        "You cannot be enrolled in Medicare Advantage (Part C), Medicare prepayment plans, or prescription drug plans while in PACE[3] — this is a mandatory exclusion.",
+        "The program is voluntary enrollment, but once enrolled, you must meet ongoing requirements to remain in the program.",
+        "Average PACE participant is 76 years old with multiple complex medical conditions[3] — the program is designed for high-need seniors, not general preventive care.",
+        "No income or asset limits are used to determine eligibility[3], but Medicaid eligibility (which has income/asset limits) affects your out-of-pocket costs."
+      ],
+      "data_shape_notes": "PACE eligibility is NOT means-tested (no income/asset limits for enrollment), but cost responsibility varies dramatically based on Medicaid eligibility. The program is geographically restricted to designated service areas with 40+ providers across 28 California counties. All participants must meet nursing home-level care certification, but 95 percent live in the community. Benefits are comprehensive and all-inclusive with no variation by tier — the program is designed as a complete care model, not a tiered benefit structure. Processing timeline and waitlist information are not publicly documented in available sources.",
+      "_raw": "```json\n{\n  \"name\": \"PACE (Program of All-Inclusive Care for the Elderly)\",\n  \"eligibility\": {\n    \"age\": 55,\n    \"income_limits\": \"No income limits are applied to determine PACE eligibility[3]. However, if a person meets Medicaid income and asset limits, Medicaid pays a portion of the monthly PACE premium; if they do not qualify for Medicaid, they are responsible for the portion Medicaid would have paid[2]. Approximately 90 percent of PACE participants are dually eligible for Medicare and Medicaid[3].\",\n    \"asset_limits\": \"No asset limits are specified in eligibility criteria[3]. However, Medicaid asset limits may apply if the participant is seeking Medicaid to cover premium costs.\",\n    \"other_requirements\": [\n      \"Must reside in a community designated as a PACE service area (specific county and zip code)[2]\",\n      \"Must be certified by the California Department of Health Care Services (DHCS) as meeting the need for skilled nursing home level of care[2]\",\n      \"Must be able to live safely in the community with PACE services without jeopardizing health or safety[2]\",\n      \"Cannot be enrolled in a Medicare Advantage (Part C) plan, Medicare prepayment plan, or Medicare prescription drug plan[3]\",\n      \"Cannot be enrolled in hospice services or certain other programs[3]\",\n      \"Do not need to be enrolled in Medicare or Medicaid to qualify, but approximately 90 percent are dually eligible[3]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Comprehensive all-inclusive care including: primary care at PACE center, specialist referrals, all prescriptions (no formulary restrictions), dental/vision/hearing exams and equipment, physical and occupational therapy, mental health and counseling, adult day center activities, nutritious meals (at center and home-delivered), transportation to PACE center and all appointments, in-home personal care and housekeeping, and 24/7 emergency coordination[4]. For dual-eligible participants with both Medicare and Medi-Cal, PACE is typically free — no premiums, copays, or deductibles[4].\",\n    \"varies_by\": \"Medicaid eligibility status (affects premium responsibility)\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: (818) 581-4101 (California-based, free, no obligation, licensed in California)[4]\",\n      \"In-person home visit: PACE organization will schedule a no-cost interdisciplinary assessment to complete a Level of Care application[1]\",\n      \"Contact local PACE program directly: National PACE Association provides locator at https://www.npaonline.org[3]\",\n      \"CalOptima Health PACE enrollment: https://www.caloptima.org/fa-ir/health-insurance-plans/pace/how-to-enroll[6]\"\n    ],\n    \"processing_time\": \"Not specified in search results. After home visit assessment, DHCS will review and decide on enrollment[1].\",\n    \"waitlist\": \"Not specified in search results.\",\n    \"forms\": [\n      \"Level of Care application (required by DHCS)[1]\"\n    ],\n    \"documents\": \"Not specified in search results. Recommend contacting local PACE program for specific documentation requirements.\"\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Must live in a PACE service area (specific county and zip code served by a PACE organization)[2]. California has over 40 PACE programs across 28 counties serving 28,000+ participants through 117 centers statewide[4].\",\n    \"regional_variations\": \"Not specified in search results. Regional variations in wait times, specific services, or enrollment processes are not documented.\",\n    \"offices_or_providers\": [\n      \"Over 40 PACE programs across 28 counties in California[4]\",\n      \"West PACE operates in San Marcos, CA[5]\",\n      \"CalOptima Health offers PACE enrollment[6]\",\n      \"Innovage provides PACE services[9]\"\n    ]\n  },\n  \"official_source\": \"https://www.dhcs.ca.gov/provgovpart/Pages/PACE.aspx (California Department of Health Care Services)\",\n  \"gotchas\": [\n    \"Only about 5 percent of PACE participants nationally reside in a nursing home, despite all participants being certified to need nursing home-level care[1] — this is a key distinction: certification for nursing home care does not mean you must live in one.\",\n    \"PACE is NOT available everywhere in California — you must live in a designated PACE service area; check your specific county and zip code[2].\",\n    \"If you do not qualify for Medicaid, you are responsible for paying the portion of the monthly premium that Medicaid would have covered[2] — this can be substantial.\",\n    \"You cannot be enrolled in Medicare Advantage (Part C), Medicare prepayment plans, or prescription drug plans while in PACE[3] — this is a mandatory exclusion.\",\n    \"The program is voluntary enrollment, but once enrolled, you must meet ongoing requirements to remain in the program.\",\n    \"Average PACE participant is 76 years old with multiple complex medical conditions[3] — the program is designed for high-need seniors, not general preventive care.\",\n    \"No income or asset limits are used to determine eligibility[3], but Medicaid eligibility (which has income/asset limits) affects your out-of-pocket costs.\"\n  ],\n  \"data_shape_notes\": \"PACE eligibility is NOT means-tested (no income/asset limits for enrollment), but cost responsibility varies dramatically based on Medicaid eligibility. The program is geographically restricted to designated service areas with 40+ providers across 28 California counties. All participants must meet nursing home-level care certification, but 95 percent live in the community. Benefits are comprehensive and all-inclusive with no variation by tier — the program is designed as a complete care model, not a tiered benefit structure. Processing timeline and waitlist information are not publicly documented in available sources.\"\n}\n```\n\n## Key Takeaways for Families\n\n**The Core Eligibility Test:** Your loved one qualifies if they are 55+, live in a PACE service area, are certified as needing nursing home-level care, and can live safely in the community with support[2][7].\n\n**The Financial Reality:** There are no income or asset limits to *qualify*, but if your loved one doesn't qualify for Medicaid, you'll pay out-of-pocket for the portion Medicaid would have covered[2]. For dual-eligible seniors (Medicare + Medi-Cal), PACE is typically free[4].\n\n**What You Actually Get:** This is not insurance — it's an all-inclusive care team providing primary care, specialists, all medications, dental/vision/hearing, therapy, meals, transportation, adult day activities, and in-home support[4]. No copays or deductibles for dual-eligible participants[4].\n\n**The Application Path:** Call your local PACE program or (818) 581-4101 to start[4]. They'll schedule a free home visit for assessment, then submit your application to DHCS for approval[1].\n\n**The Geographic Catch:** California has excellent PACE coverage with 40+ programs across 28 counties[4], but you must verify your specific county and zip code are served[2].\n\n**What People Miss:** Despite being certified for nursing home care, 95 percent of PACE participants live at home[1] — this program is specifically designed to keep seniors independent in the community, not to place them in facilities."
+    },
+    {
+      "name": "CalFresh",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "Most households must have gross monthly income at or below 200% of the federal poverty level (FPL). For elderly/disabled households (age 60+ or disabled), net income test applies instead of gross, with special deductions for medical expenses over $35 (standard up to $185, actual over $185) including Medicare premiums, medications, transportation. SSI/SSP recipients often automatically eligible without income test; recent CA movers may qualify pre-SSP. Examples: For seniors, max ~$1,580/month (1 person), $2,137 (2 people) at 130% FPL in some contexts, but full 200% FPL gross for general. Varies by household size; report housing/medical costs to maximize. Minimum: gross <$150/month and liquid resources <$100 for expedited.[1][2][3][6]",
+        "asset_limits": "No resource limit in most cases, especially for households with elderly (60+) or disabled members. If applicable (non-elderly/disabled), countable resources ≤$3,250. Exempt: home, household goods, cars (any value), retirement accounts (IRAs, pensions, Keogh), personal items, EITC, federal tax refunds, burial plots, Native American funds.[3][4]",
+        "other_requirements": [
+          "California resident.",
+          "Low/no income; household defined as those who buy/prepare meals together.",
+          "Elderly/disabled exempt from work registration (ABAWD rules start June 1, 2026 for 18-64 able-bodied without dependents).",
+          "Some legal immigrants, homeless, students eligible.",
+          "SSI/SSP recipients often auto-eligible."
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "EBT card for purchasing food at authorized retailers (groceries, some prepared meals via statewide Restaurant Meals Program for elderly/disabled). Amount based on household size, income, expenses; minimum $15/month for many senior/disabled households; scales with deductions.[1][2][3][5]",
+        "varies_by": "household_size"
+      },
+      "application": {
+        "methods": [
+          "Online: https://www.getcalfresh.org/ (statewide)",
+          "Phone: 1-877-847-3663 (statewide helpline)",
+          "Mail/fax: Request form CF 285 from county office",
+          "In-person: Local county social services office (e.g., Alameda, LA, Riverside vary by county)"
+        ],
+        "processing_time": "Generally 30 days; expedited (3 days) if gross income <$150/month and liquid resources <$100. Seniors (all 60+) may waive face-to-face interview, use phone.[1][4][8]",
+        "waitlist": null,
+        "forms": [
+          "CF 285 (Application for CalFresh Benefits)"
+        ],
+        "documents": [
+          "Proof of income (pay stubs, SSI/SSDI awards)",
+          "ID (driver's license, birth certificate)",
+          "Proof of expenses (rent receipts, utility bills, medical costs over $35 for elderly/disabled)",
+          "Immigration status if applicable",
+          "Bank statements if resources counted"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Administered by counties; available statewide in CA.",
+        "regional_variations": "County-administered: different offices, potential processing variations; e.g., Alameda, LA County, Riverside have local sites. Restaurant Meals Program statewide since 2021, but authorized vendors may vary. Recertification every 24 months for all-senior households.[1][4][6][8]",
+        "offices_or_providers": [
+          "County social services agencies (e.g., Alameda SSA, LA DPSS, Riverside DPSS)"
+        ]
+      },
+      "official_source": "https://www.cdss.ca.gov/calfresh or https://www.getcalfresh.org/",
+      "gotchas": [
+        "Elderly/disabled get special rules (no asset test, net income test, medical/housing deductions, separate household option, longer certification, Restaurant Meals), but must report expenses to qualify for more.",
+        "SSI/SSP recipients think they're ineligible—most are eligible separately.",
+        "Household definition: can separate elderly from high-income others.",
+        "No resource limit often missed; own home/car/retirement OK.",
+        "ABAWD limits resume June 2026 (not for elderly).",
+        "Apply even if on Social Security/Disability."
+      ],
+      "data_shape_notes": "Special rules for elderly/disabled households (no asset test, net income, deductions, separate HH option); benefits scale by household size/income/expenses; county-administered statewide with local offices.",
+      "_raw": "{\n  \"name\": \"CalFresh\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"Most households must have gross monthly income at or below 200% of the federal poverty level (FPL). For elderly/disabled households (age 60+ or disabled), net income test applies instead of gross, with special deductions for medical expenses over $35 (standard up to $185, actual over $185) including Medicare premiums, medications, transportation. SSI/SSP recipients often automatically eligible without income test; recent CA movers may qualify pre-SSP. Examples: For seniors, max ~$1,580/month (1 person), $2,137 (2 people) at 130% FPL in some contexts, but full 200% FPL gross for general. Varies by household size; report housing/medical costs to maximize. Minimum: gross <$150/month and liquid resources <$100 for expedited.[1][2][3][6]\",\n    \"asset_limits\": \"No resource limit in most cases, especially for households with elderly (60+) or disabled members. If applicable (non-elderly/disabled), countable resources ≤$3,250. Exempt: home, household goods, cars (any value), retirement accounts (IRAs, pensions, Keogh), personal items, EITC, federal tax refunds, burial plots, Native American funds.[3][4]\",\n    \"other_requirements\": [\n      \"California resident.\",\n      \"Low/no income; household defined as those who buy/prepare meals together.\",\n      \"Elderly/disabled exempt from work registration (ABAWD rules start June 1, 2026 for 18-64 able-bodied without dependents).\",\n      \"Some legal immigrants, homeless, students eligible.\",\n      \"SSI/SSP recipients often auto-eligible.\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"EBT card for purchasing food at authorized retailers (groceries, some prepared meals via statewide Restaurant Meals Program for elderly/disabled). Amount based on household size, income, expenses; minimum $15/month for many senior/disabled households; scales with deductions.[1][2][3][5]\",\n    \"varies_by\": \"household_size\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: https://www.getcalfresh.org/ (statewide)\",\n      \"Phone: 1-877-847-3663 (statewide helpline)\",\n      \"Mail/fax: Request form CF 285 from county office\",\n      \"In-person: Local county social services office (e.g., Alameda, LA, Riverside vary by county)\"\n    ],\n    \"processing_time\": \"Generally 30 days; expedited (3 days) if gross income <$150/month and liquid resources <$100. Seniors (all 60+) may waive face-to-face interview, use phone.[1][4][8]\",\n    \"waitlist\": null,\n    \"forms\": [\"CF 285 (Application for CalFresh Benefits)\"],\n    \"documents\": [\n      \"Proof of income (pay stubs, SSI/SSDI awards)\",\n      \"ID (driver's license, birth certificate)\",\n      \"Proof of expenses (rent receipts, utility bills, medical costs over $35 for elderly/disabled)\",\n      \"Immigration status if applicable\",\n      \"Bank statements if resources counted\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Administered by counties; available statewide in CA.\",\n    \"regional_variations\": \"County-administered: different offices, potential processing variations; e.g., Alameda, LA County, Riverside have local sites. Restaurant Meals Program statewide since 2021, but authorized vendors may vary. Recertification every 24 months for all-senior households.[1][4][6][8]\",\n    \"offices_or_providers\": [\"County social services agencies (e.g., Alameda SSA, LA DPSS, Riverside DPSS)\"]\n  },\n  \"official_source\": \"https://www.cdss.ca.gov/calfresh or https://www.getcalfresh.org/\",\n  \"gotchas\": [\n    \"Elderly/disabled get special rules (no asset test, net income test, medical/housing deductions, separate household option, longer certification, Restaurant Meals), but must report expenses to qualify for more.\",\n    \"SSI/SSP recipients think they're ineligible—most are eligible separately.\",\n    \"Household definition: can separate elderly from high-income others.\",\n    \"No resource limit often missed; own home/car/retirement OK.\",\n    \"ABAWD limits resume June 2026 (not for elderly).\",\n    \"Apply even if on Social Security/Disability.\"\n  ],\n  \"data_shape_notes\": \"Special rules for elderly/disabled households (no asset test, net income, deductions, separate HH option); benefits scale by household size/income/expenses; county-administered statewide with local offices.\"\n}"
+    },
+    {
+      "name": "LIHEAP (Low Income Home Energy Assistance Program)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Gross monthly household income must be at or below the 2026 Federal Income Guidelines: 1: $3,331.66; 2: $4,356.83; 3: $5,382.00; 4: $6,407.16; 5: $7,432.25; 6: $8,457.41; 7: $8,649.66; 8: $8,841.83; 9: $9,034.08; 10: $9,226.25 (add $192.21 per additional person beyond 10). Eligibility also uses a priority point system favoring households with high energy burdens, elderly (60+), people with disabilities, medical life-threatening conditions, or children 5 and under. Automatic eligibility possible if enrolled in SNAP, SSI, TANF, or certain veterans' programs. Must be responsible for heating/cooling bills; excludes board-and-care, nursing homes, jails, prisons.[5][1][2][4]",
+        "asset_limits": "No asset limits mentioned in guidelines.[1][5]",
+        "other_requirements": [
+          "California resident.",
+          "Responsible for paying home heating or cooling bills (homeowners and renters eligible; public/subsidized housing depends on payment method).",
+          "U.S. citizen or permanent resident (proof required).",
+          "Local agency determines final eligibility based on income sources and factors."
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "One-time payment via dual/single party warrant or direct payment to utility company. Amount based on income, household size, home energy cost/need (up to 60% of state median income); prioritized for vulnerable households. Exact amounts vary; agent contacts to explain.[3][4][6]",
+        "varies_by": "household_size|priority_tier|region"
+      },
+      "application": {
+        "methods": [
+          "Contact local service provider: pick up application in office, call for mailed application, or apply online if offered by provider.",
+          "Phone examples: Dial 1-866-675-6623 for PG&E area guidelines and agencies; local agencies like (925) for specific counties.",
+          "Find local provider via state site or Benefits Enrollment Center (BEC) for older adults/disabled.",
+          "No statewide central online/mail; must use local agency."
+        ],
+        "processing_time": "Several weeks; staff contacts regarding status.[1][4]",
+        "waitlist": "No formal waitlist mentioned; funding limited, so even eligible households may not receive benefits if funds exhausted. Apply early when funds available; prioritizes greatest need.[3][6]",
+        "forms": [
+          "Application Packet (includes Education & Information Acknowledgement, Energy Intake Form, Certification of Income and Expenses if no income, Account Holder Authorization if accounts not in applicant's name).",
+          "Statement of Citizenship or Non-Citizen Status (CSD 600)."
+        ],
+        "documents": [
+          "Most recent home energy bill (plus past due/termination notice if applicable).",
+          "Proof of income for all household members (gross wages, self-employment, cash jobs, TANF/cash aid, unemployment, child support, Social Security/pensions/annuities, tribal per caps, pay stubs, bank statements).",
+          "Photo ID.",
+          "Social Security cards/numbers for all household members.",
+          "Proof of U.S. citizenship/permanent residence (birth certificate, green card).",
+          "If zero income: Certification of Income and Expenses + living expenses proof.",
+          "If applicable: Birth certificates for children 0-5; ID for 60+ members."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Available statewide but administered by local community services agencies/energy providers; must contact local agency.",
+        "regional_variations": "Administered locally with varying providers, offices, online options, wait times, and processing; benefit amounts and prioritization may differ by region based on energy costs and local factors.[3][5][6][7]",
+        "offices_or_providers": [
+          "Local energy agencies/service providers (find via csd.ca.gov or 1-866-675-6623); examples: IMACA, EHSD, PG&E partners."
+        ]
+      },
+      "official_source": "https://www.csd.ca.gov/pages/liheapprogram.aspx",
+      "gotchas": [
+        "Funding limited ($212M for FFY 2026); eligible households may be denied to prioritize vulnerable (elderly, disabled, young children, high energy burden).",
+        "Must continue paying bills during processing (several weeks); seek utility payment plans.",
+        "Not automatic even if income-qualified; priority points and local agency discretion apply.",
+        "Excludes certain housing (nursing homes, jails); renters in subsidized housing may be ineligible if utilities included.",
+        "Income is gross monthly total; deductions possible in some areas for high medical expenses.",
+        "Apply early as funds exhaust quickly."
+      ],
+      "data_shape_notes": "Administered by local agencies with statewide income guidelines but regional providers, varying benefit calculations (income + household size + energy need + priority), limited funding leads to prioritization over universal eligibility.",
+      "_raw": "{\n  \"name\": \"LIHEAP (Low Income Home Energy Assistance Program)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Gross monthly household income must be at or below the 2026 Federal Income Guidelines: 1: $3,331.66; 2: $4,356.83; 3: $5,382.00; 4: $6,407.16; 5: $7,432.25; 6: $8,457.41; 7: $8,649.66; 8: $8,841.83; 9: $9,034.08; 10: $9,226.25 (add $192.21 per additional person beyond 10). Eligibility also uses a priority point system favoring households with high energy burdens, elderly (60+), people with disabilities, medical life-threatening conditions, or children 5 and under. Automatic eligibility possible if enrolled in SNAP, SSI, TANF, or certain veterans' programs. Must be responsible for heating/cooling bills; excludes board-and-care, nursing homes, jails, prisons.[5][1][2][4]\",\n    \"asset_limits\": \"No asset limits mentioned in guidelines.[1][5]\",\n    \"other_requirements\": [\n      \"California resident.\",\n      \"Responsible for paying home heating or cooling bills (homeowners and renters eligible; public/subsidized housing depends on payment method).\",\n      \"U.S. citizen or permanent resident (proof required).\",\n      \"Local agency determines final eligibility based on income sources and factors.\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"One-time payment via dual/single party warrant or direct payment to utility company. Amount based on income, household size, home energy cost/need (up to 60% of state median income); prioritized for vulnerable households. Exact amounts vary; agent contacts to explain.[3][4][6]\",\n    \"varies_by\": \"household_size|priority_tier|region\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact local service provider: pick up application in office, call for mailed application, or apply online if offered by provider.\",\n      \"Phone examples: Dial 1-866-675-6623 for PG&E area guidelines and agencies; local agencies like (925) for specific counties.\",\n      \"Find local provider via state site or Benefits Enrollment Center (BEC) for older adults/disabled.\",\n      \"No statewide central online/mail; must use local agency.\"\n    ],\n    \"processing_time\": \"Several weeks; staff contacts regarding status.[1][4]\",\n    \"waitlist\": \"No formal waitlist mentioned; funding limited, so even eligible households may not receive benefits if funds exhausted. Apply early when funds available; prioritizes greatest need.[3][6]\",\n    \"forms\": [\n      \"Application Packet (includes Education & Information Acknowledgement, Energy Intake Form, Certification of Income and Expenses if no income, Account Holder Authorization if accounts not in applicant's name).\",\n      \"Statement of Citizenship or Non-Citizen Status (CSD 600).\"\n    ],\n    \"documents\": [\n      \"Most recent home energy bill (plus past due/termination notice if applicable).\",\n      \"Proof of income for all household members (gross wages, self-employment, cash jobs, TANF/cash aid, unemployment, child support, Social Security/pensions/annuities, tribal per caps, pay stubs, bank statements).\",\n      \"Photo ID.\",\n      \"Social Security cards/numbers for all household members.\",\n      \"Proof of U.S. citizenship/permanent residence (birth certificate, green card).\",\n      \"If zero income: Certification of Income and Expenses + living expenses proof.\",\n      \"If applicable: Birth certificates for children 0-5; ID for 60+ members.\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Available statewide but administered by local community services agencies/energy providers; must contact local agency.\",\n    \"regional_variations\": \"Administered locally with varying providers, offices, online options, wait times, and processing; benefit amounts and prioritization may differ by region based on energy costs and local factors.[3][5][6][7]\",\n    \"offices_or_providers\": [\"Local energy agencies/service providers (find via csd.ca.gov or 1-866-675-6623); examples: IMACA, EHSD, PG&E partners.\"]\n  },\n  \"official_source\": \"https://www.csd.ca.gov/pages/liheapprogram.aspx\",\n  \"gotchas\": [\n    \"Funding limited ($212M for FFY 2026); eligible households may be denied to prioritize vulnerable (elderly, disabled, young children, high energy burden).\",\n    \"Must continue paying bills during processing (several weeks); seek utility payment plans.\",\n    \"Not automatic even if income-qualified; priority points and local agency discretion apply.\",\n    \"Excludes certain housing (nursing homes, jails); renters in subsidized housing may be ineligible if utilities included.\",\n    \"Income is gross monthly total; deductions possible in some areas for high medical expenses.\",\n    \"Apply early as funds exhaust quickly.\"\n  ],\n  \"data_shape_notes\": \"Administered by local agencies with statewide income guidelines but regional providers, varying benefit calculations (income + household size + energy need + priority), limited funding leads to prioritization over universal eligibility.\"\n}"
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Varies by program component and region; generally at or below 200% of federal poverty guidelines or SSI receipt federally, but California-specific: DOE WAP varies by income sources and factors (contact local provider); LIHEAP Weatherization at or below 60% state median income (SMI) in areas like Riverside County; exact dollar amounts not listed in sources—must check current tables via local providers as they update annually and differ by household size[1][2][5][6]. Priority for elderly 60+, disabled, children, high energy users[1][2].",
+        "asset_limits": "No asset limits mentioned in sources[1][2][5][6].",
+        "other_requirements": [
+          "Household must meet income, household size, energy use, and other factors determined by local provider[2][3][5].",
+          "Eligible homeowners, renters, mobile home owners[1].",
+          "Home at least 5 years old for some related programs like PG&E ESA[9].",
+          "California resident; some programs target farmworker/multi-family housing (LIWP)[2].",
+          "Priority for vulnerable populations: elderly, disabled, young children[1][2]."
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Free energy efficiency upgrades to homes including insulation, air sealing, duct repairs, efficient appliances, health/safety measures (e.g., furnace repair); reduces energy costs, improves health/safety; education on energy practices; no specific dollar amounts or hours stated—comprehensive whole-home assessment and customized services[1][3][6][8][9].",
+        "varies_by": "priority_tier|region"
+      },
+      "application": {
+        "methods": [
+          "Contact local service provider: Use CSD map or state site to find agency by region (no direct URL in results); e.g., CSET Hotline 1-844-224-1316[3]; Riverside CAP 951-955-4900[6]; Siskiyou 530.938.4115 ext. 117[4].",
+          "Submit application with proof of income; some online via local agency sites[1].",
+          "In-person or phone via local providers (administered by CA Dept. of Community Services & Development - CSD)[2][3]."
+        ],
+        "processing_time": "Not specified; energy specialist schedules home assessment after application review[9].",
+        "waitlist": "Funding limited; prioritization by need may create effective waitlists, varies regionally[2][6].",
+        "forms": [
+          "LIHEAP and Weatherization application packet (e.g., 2016 English Instructions-WX, requires supporting docs within 30 days)[4]; specific forms via local providers."
+        ],
+        "documents": [
+          "Proof of income for all household members over 18 (last 4 weeks, dated within 30 days: pay stubs, SSI, etc.)[3][4][9].",
+          "Most recent electric/gas/propane bill[3].",
+          "Social Security Card[3].",
+          "Proof of residency (e.g., utility bill)[3][6]."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Services via local providers; some components like LIWP for farmworker/multi-family or disadvantaged communities[2][7].",
+        "regional_variations": "Administered regionally by local agencies (e.g., CSET, CAP Riverside, BayREN); income thresholds differ (e.g., 60% SMI in Riverside vs. DOE guidelines elsewhere); providers, wait times, services vary; use CSD/local maps for specifics[2][3][5][6][7].",
+        "offices_or_providers": [
+          "CA CSD (csd.ca.gov); local e.g., CSET (1-844-224-1316), Riverside CAP (951-955-4900), Siskiyou (530.938.4115)[2][3][4][6]."
+        ]
+      },
+      "official_source": "https://www.csd.ca.gov/Pages/Residential-Energy-Efficiency.aspx",
+      "gotchas": [
+        "No uniform statewide income table—varies by local provider, funding source (DOE WAP vs. LIHEAP vs. LIWP), must contact specific agency[2][5][6].",
+        "Outdated guidelines in some docs (e.g., 2015/2016)—always verify current with provider[4].",
+        "Funding limited, prioritizes highest need (elderly get priority but not guaranteed)[1][2][6].",
+        "Separate from similar programs like PG&E ESA or LIWP (multi-family focus)[2][9].",
+        "Renters need landlord permission (inferred from standard WAP)[1]."
+      ],
+      "data_shape_notes": "Administered statewide via regional local providers with varying income guidelines (e.g., %SMI or %FPL), priority tiers for elderly/disabled; no fixed dollar tables in sources—household size-adjusted via local verification; funding-limited with regional wait variations.",
+      "_raw": "{\n  \"name\": \"Weatherization Assistance Program (WAP)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Varies by program component and region; generally at or below 200% of federal poverty guidelines or SSI receipt federally, but California-specific: DOE WAP varies by income sources and factors (contact local provider); LIHEAP Weatherization at or below 60% state median income (SMI) in areas like Riverside County; exact dollar amounts not listed in sources—must check current tables via local providers as they update annually and differ by household size[1][2][5][6]. Priority for elderly 60+, disabled, children, high energy users[1][2].\",\n    \"asset_limits\": \"No asset limits mentioned in sources[1][2][5][6].\",\n    \"other_requirements\": [\n      \"Household must meet income, household size, energy use, and other factors determined by local provider[2][3][5].\",\n      \"Eligible homeowners, renters, mobile home owners[1].\",\n      \"Home at least 5 years old for some related programs like PG&E ESA[9].\",\n      \"California resident; some programs target farmworker/multi-family housing (LIWP)[2].\",\n      \"Priority for vulnerable populations: elderly, disabled, young children[1][2].\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free energy efficiency upgrades to homes including insulation, air sealing, duct repairs, efficient appliances, health/safety measures (e.g., furnace repair); reduces energy costs, improves health/safety; education on energy practices; no specific dollar amounts or hours stated—comprehensive whole-home assessment and customized services[1][3][6][8][9].\",\n    \"varies_by\": \"priority_tier|region\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact local service provider: Use CSD map or state site to find agency by region (no direct URL in results); e.g., CSET Hotline 1-844-224-1316[3]; Riverside CAP 951-955-4900[6]; Siskiyou 530.938.4115 ext. 117[4].\",\n      \"Submit application with proof of income; some online via local agency sites[1].\",\n      \"In-person or phone via local providers (administered by CA Dept. of Community Services & Development - CSD)[2][3].\"\n    ],\n    \"processing_time\": \"Not specified; energy specialist schedules home assessment after application review[9].\",\n    \"waitlist\": \"Funding limited; prioritization by need may create effective waitlists, varies regionally[2][6].\",\n    \"forms\": [\"LIHEAP and Weatherization application packet (e.g., 2016 English Instructions-WX, requires supporting docs within 30 days)[4]; specific forms via local providers.\"],\n    \"documents\": [\n      \"Proof of income for all household members over 18 (last 4 weeks, dated within 30 days: pay stubs, SSI, etc.)[3][4][9].\",\n      \"Most recent electric/gas/propane bill[3].\",\n      \"Social Security Card[3].\",\n      \"Proof of residency (e.g., utility bill)[3][6].\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Services via local providers; some components like LIWP for farmworker/multi-family or disadvantaged communities[2][7].\",\n    \"regional_variations\": \"Administered regionally by local agencies (e.g., CSET, CAP Riverside, BayREN); income thresholds differ (e.g., 60% SMI in Riverside vs. DOE guidelines elsewhere); providers, wait times, services vary; use CSD/local maps for specifics[2][3][5][6][7].\",\n    \"offices_or_providers\": [\"CA CSD (csd.ca.gov); local e.g., CSET (1-844-224-1316), Riverside CAP (951-955-4900), Siskiyou (530.938.4115)[2][3][4][6].\"]\n  },\n  \"official_source\": \"https://www.csd.ca.gov/Pages/Residential-Energy-Efficiency.aspx\",\n  \"gotchas\": [\n    \"No uniform statewide income table—varies by local provider, funding source (DOE WAP vs. LIHEAP vs. LIWP), must contact specific agency[2][5][6].\",\n    \"Outdated guidelines in some docs (e.g., 2015/2016)—always verify current with provider[4].\",\n    \"Funding limited, prioritizes highest need (elderly get priority but not guaranteed)[1][2][6].\",\n    \"Separate from similar programs like PG&E ESA or LIWP (multi-family focus)[2][9].\",\n    \"Renters need landlord permission (inferred from standard WAP)[1].\"\n  ],\n  \"data_shape_notes\": \"Administered statewide via regional local providers with varying income guidelines (e.g., %SMI or %FPL), priority tiers for elderly/disabled; no fixed dollar tables in sources—household size-adjusted via local verification; funding-limited with regional wait variations.\"\n}"
+    },
+    {
+      "name": "Health Insurance Counseling & Advocacy Program (HICAP)",
+      "eligibility": {
+        "age": "65 or older, OR younger than 65 with a disability",
+        "income_limits": "No income limits specified in available sources",
+        "asset_limits": "No asset limits specified in available sources",
+        "other_requirements": [
+          "Must be eligible for Medicare (or soon to be eligible)",
+          "Can be the beneficiary themselves, family member, friend, or caregiver of a Medicare beneficiary"
+        ]
+      },
+      "benefits": {
+        "type": "service|advocacy",
+        "value": "Free, unbiased one-on-one counseling and community education. Specific services include: Medicare Parts A, B, C (Advantage), and D (Prescription Drug) counseling; Medicare Supplement Insurance (Medigap) guidance; Medicare Savings Programs (QMB, SLMB, QI) applications; long-term care insurance consultations; prescription drug assistance program information; plan comparisons; Medicare claim appeal assistance; billing problem resolution; Medicare fraud and abuse education. No dollar limits or hourly caps specified.",
+        "varies_by": "fixed"
+      },
+      "application": {
+        "methods": [
+          "Phone: Statewide toll-free number 800-434-0222",
+          "Phone: County-specific numbers — Orange County 714-560-0424; Riverside, San Bernardino, Inyo, Mono Counties 909-256-8369; Santa Clara County 408-350-3245",
+          "In-person: Local HICAP offices (county-based)",
+          "Online registration: Available through local county HICAP websites (e.g., Sourcewise for Santa Clara, COASC for Orange/Riverside/San Bernardino/Inyo/Mono)",
+          "Email: hicapinterest@mysourcewise.com (Santa Clara County volunteer inquiries)"
+        ],
+        "processing_time": "Not specified in available sources. Appointments scheduled after initial contact.",
+        "waitlist": "Not specified in available sources",
+        "forms": [
+          "HICAP Screening Questions (for volunteer counselor registration, not beneficiary application)",
+          "No specific beneficiary application form name/number provided in sources"
+        ],
+        "documents": "Not specified in available sources. Likely beneficial to have Medicare card and current insurance documents available, but not explicitly stated."
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "HICAP operates statewide through county-based offices. Each county has its own local HICAP provider.",
+        "regional_variations": "Program is administered by different organizations by county/region (e.g., Council on Aging serves Orange, San Bernardino, Riverside, Inyo, Mono; Sourcewise serves Santa Clara; Kern County Aging and Adult Services serves Kern County). Contact information and specific services may vary slightly by county, but core services remain consistent.",
+        "offices_or_providers": [
+          "Orange County: Council on Aging (714-560-0424)",
+          "Riverside, San Bernardino, Inyo, Mono Counties: Council on Aging (909-256-8369)",
+          "Santa Clara County: Sourcewise (408-350-3245)",
+          "Kern County: Kern County Aging and Adult Services, 5357 Truxtun Ave., Bakersfield, CA 93309 (661-868-1000)",
+          "Statewide coordination: California Department of Aging, 1300 National Drive, Suite 200, Sacramento, CA 95834-1992"
+        ]
+      },
+      "official_source": "https://www.aging.ca.gov/hicap/",
+      "gotchas": [
+        "HICAP does NOT sell, endorse, promote, or recommend commercial insurance products — counselors provide unbiased information only",
+        "HICAP volunteers cannot be licensed insurance agents, insurance brokers, or financial planners — this is a restriction on who can volunteer, but ensures counselor neutrality",
+        "No income or asset limits means this is a universal program for Medicare-eligible individuals, not means-tested",
+        "HICAP is part of the national State Health Insurance Assistance Program (SHIP) network — if someone moves out of California, they can access SHIP in their new state",
+        "The program is funded through the Older Americans Act and federal Administration for Community Living (ACL) grants, not state general fund",
+        "Medicare.gov and toll-free Medicare numbers are helpful but do not substitute for HICAP's personalized counseling, especially for complex situations",
+        "Services are completely free — there are no hidden fees or charges"
+      ],
+      "data_shape_notes": "HICAP is a universal, non-means-tested program with no income or asset limits. Benefits are service-based (counseling and education) rather than financial. The program is statewide but county-administered, so contact information and specific office locations vary by region. Eligibility is straightforward (age 65+ or disabled + Medicare-eligible) with no complex verification requirements documented in available sources. The program's unique structure is that it provides unbiased, free counseling specifically designed to help beneficiaries navigate complex Medicare choices without commercial bias.",
+      "_raw": "```json\n{\n  \"name\": \"Health Insurance Counseling & Advocacy Program (HICAP)\",\n  \"eligibility\": {\n    \"age\": \"65 or older, OR younger than 65 with a disability\",\n    \"income_limits\": \"No income limits specified in available sources\",\n    \"asset_limits\": \"No asset limits specified in available sources\",\n    \"other_requirements\": [\n      \"Must be eligible for Medicare (or soon to be eligible)\",\n      \"Can be the beneficiary themselves, family member, friend, or caregiver of a Medicare beneficiary\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service|advocacy\",\n    \"value\": \"Free, unbiased one-on-one counseling and community education. Specific services include: Medicare Parts A, B, C (Advantage), and D (Prescription Drug) counseling; Medicare Supplement Insurance (Medigap) guidance; Medicare Savings Programs (QMB, SLMB, QI) applications; long-term care insurance consultations; prescription drug assistance program information; plan comparisons; Medicare claim appeal assistance; billing problem resolution; Medicare fraud and abuse education. No dollar limits or hourly caps specified.\",\n    \"varies_by\": \"fixed\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: Statewide toll-free number 800-434-0222\",\n      \"Phone: County-specific numbers — Orange County 714-560-0424; Riverside, San Bernardino, Inyo, Mono Counties 909-256-8369; Santa Clara County 408-350-3245\",\n      \"In-person: Local HICAP offices (county-based)\",\n      \"Online registration: Available through local county HICAP websites (e.g., Sourcewise for Santa Clara, COASC for Orange/Riverside/San Bernardino/Inyo/Mono)\",\n      \"Email: hicapinterest@mysourcewise.com (Santa Clara County volunteer inquiries)\"\n    ],\n    \"processing_time\": \"Not specified in available sources. Appointments scheduled after initial contact.\",\n    \"waitlist\": \"Not specified in available sources\",\n    \"forms\": [\n      \"HICAP Screening Questions (for volunteer counselor registration, not beneficiary application)\",\n      \"No specific beneficiary application form name/number provided in sources\"\n    ],\n    \"documents\": \"Not specified in available sources. Likely beneficial to have Medicare card and current insurance documents available, but not explicitly stated.\"\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"HICAP operates statewide through county-based offices. Each county has its own local HICAP provider.\",\n    \"regional_variations\": \"Program is administered by different organizations by county/region (e.g., Council on Aging serves Orange, San Bernardino, Riverside, Inyo, Mono; Sourcewise serves Santa Clara; Kern County Aging and Adult Services serves Kern County). Contact information and specific services may vary slightly by county, but core services remain consistent.\",\n    \"offices_or_providers\": [\n      \"Orange County: Council on Aging (714-560-0424)\",\n      \"Riverside, San Bernardino, Inyo, Mono Counties: Council on Aging (909-256-8369)\",\n      \"Santa Clara County: Sourcewise (408-350-3245)\",\n      \"Kern County: Kern County Aging and Adult Services, 5357 Truxtun Ave., Bakersfield, CA 93309 (661-868-1000)\",\n      \"Statewide coordination: California Department of Aging, 1300 National Drive, Suite 200, Sacramento, CA 95834-1992\"\n    ]\n  },\n  \"official_source\": \"https://www.aging.ca.gov/hicap/\",\n  \"gotchas\": [\n    \"HICAP does NOT sell, endorse, promote, or recommend commercial insurance products — counselors provide unbiased information only\",\n    \"HICAP volunteers cannot be licensed insurance agents, insurance brokers, or financial planners — this is a restriction on who can volunteer, but ensures counselor neutrality\",\n    \"No income or asset limits means this is a universal program for Medicare-eligible individuals, not means-tested\",\n    \"HICAP is part of the national State Health Insurance Assistance Program (SHIP) network — if someone moves out of California, they can access SHIP in their new state\",\n    \"The program is funded through the Older Americans Act and federal Administration for Community Living (ACL) grants, not state general fund\",\n    \"Medicare.gov and toll-free Medicare numbers are helpful but do not substitute for HICAP's personalized counseling, especially for complex situations\",\n    \"Services are completely free — there are no hidden fees or charges\"\n  ],\n  \"data_shape_notes\": \"HICAP is a universal, non-means-tested program with no income or asset limits. Benefits are service-based (counseling and education) rather than financial. The program is statewide but county-administered, so contact information and specific office locations vary by region. Eligibility is straightforward (age 65+ or disabled + Medicare-eligible) with no complex verification requirements documented in available sources. The program's unique structure is that it provides unbiased, free counseling specifically designed to help beneficiaries navigate complex Medicare choices without commercial bias.\"\n}\n```\n\n## Key Takeaways for Families\n\n**Eligibility is broad:** Your elderly loved one qualifies if they're 65+ and Medicare-eligible (or disabled and Medicare-eligible at any age). There are no income or asset tests, making this universally accessible.[1][3][5]\n\n**What you actually get:** One-on-one counseling to understand Medicare Parts A, B, C, and D; help comparing Medigap and Medicare Advantage plans; assistance applying for Medicare Savings Programs; help resolving billing disputes and appealing claim denials; and education on long-term care insurance and prescription drug assistance.[2][3][7]\n\n**How to start:** Call the statewide toll-free number **800-434-0222** or your county-specific number.[1][4] You can also visit your local county HICAP office in person or complete online registration through your county's HICAP website. The program will contact you to schedule a free appointment.[1]\n\n**What makes HICAP different:** Unlike commercial insurance agents or financial advisors, HICAP counselors are trained, state-registered volunteers who provide completely unbiased information and cannot sell or promote any insurance products.[2][3] This neutrality is the program's core strength — counselors help beneficiaries make decisions based on individual needs, not commissions.\n\n**Regional access:** HICAP operates in every California county through local providers. While the core services are consistent statewide, each county has its own office and phone number, so contact your specific county for fastest service.[1][3][4]"
+    },
+    {
+      "name": "Home Delivered Meals (via AAA/Nutrition Services)",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "No income requirement or means test[7]. However, the program prioritizes low-income and disadvantaged populations[1].",
+        "asset_limits": "Not specified in available sources",
+        "other_requirements": [
+          "Must be homebound by reason of illness, disability, or otherwise isolated[3]",
+          "Must have limited ability to leave home unassisted or to shop for and prepare nutritious meals[3]",
+          "Must meet at least one of: too frail to travel to congregate nutrition site, acute illness, convalescing from acute illness, incapacitated by chronic illness, or incapable of shopping and preparing meals[4]",
+          "Must reside in service area[2]",
+          "Spouses of eligible participants may receive meals regardless of age if beneficial to the participant[3][4]",
+          "Disabled individuals under 60 may receive meals if residing at home with an eligible older individual[3][4]"
+        ]
+      },
+      "benefits": {
+        "type": "in_kind",
+        "value": "Minimum one meal per day; option for two meals available in some areas[4]. Meals are nutritious and may be delivered hot, chilled, or frozen[4]. Program also provides nutrition education, nutrition risk screening, and nutrition counseling in some areas[3]. Meals can be tailored to specific medical conditions including celiac disease, cancer recovery, dysphagia, autoimmune diseases, kidney/liver disease, cardiovascular disease, surgery recovery, and allergies/food sensitivities[1].",
+        "varies_by": "region"
+      },
+      "application": {
+        "methods": [
+          "Contact your local Area Agency on Aging (AAA) — lookup available at aging.ca.gov[3]",
+          "Phone: Contact AAA directly (specific numbers vary by county)",
+          "In-person: Visit local AAA office",
+          "Mail: Contact AAA for mailing address",
+          "Online: Some AAAs have updated websites with HDM provider lists and designated email for referrals[2]"
+        ],
+        "processing_time": "Not specified in available sources",
+        "waitlist": "Not specified in available sources",
+        "forms": [
+          "Nutrition Referral/Assessment for HDMs (standardized form used by AAAs)[2]",
+          "In-home assessment or telephone assessment (conducted by CCU, MCO, or Nutrition Provider)[2]"
+        ],
+        "documents": [
+          "Proof of age (60+)",
+          "Documentation of homebound status, illness, disability, or isolation",
+          "Evidence of inability to shop for or prepare meals",
+          "Proof of residency in service area",
+          "Medical documentation if applicable to specific condition-based meal needs"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Must reside in service area of local AAA[2]. Program operates through Area Agencies on Aging throughout California[3].",
+        "regional_variations": "Eligibility determination and assessment processes may vary by planning and service area. Some areas have CCUs (Care Coordination Units) conducting assessments; others have HDM nutrition services providers determining eligibility[2]. Criteria for distribution of second meals must be developed and approved by individual AAAs[4]. Specific meal options and nutrition counseling availability varies by region[3].",
+        "offices_or_providers": "Over 3,500 home-delivered meal providers operate through the aging network[7]. Each county has an Area Agency on Aging that coordinates services."
+      },
+      "official_source": "https://aging.ca.gov/Providers_and_Partners/Home-Delivered_Nutrition/Program_Narrative_and_Fact_Sheets/",
+      "gotchas": [
+        "No income test exists, but program is designed for disadvantaged populations — don't assume you won't qualify based on income alone[7]",
+        "Meals are referred to as having a 'suggested donation' rather than being 'free,' though they are funded at federal level at no cost to recipients[2][5]",
+        "Determination of Need (DON) is not required if client only needs home delivered meals, but annual reassessment is mandatory (or sooner if high nutritional risk)[2]",
+        "Spouses and disabled household members may qualify even if they don't meet primary eligibility criteria — ask about this[3][4]",
+        "Assessment can be conducted by telephone if in-home assessment is not possible (e.g., during pandemic or hospitalization)[2]",
+        "Program provides meals but does not cover grocery shopping or meal preparation assistance beyond the delivered meals themselves",
+        "Some Medicaid plans and Medicare Advantage plans may cover home-delivered meals as alternative to or in addition to AAA program[1][5]",
+        "Specific medical condition-based meals (celiac, kidney disease, etc.) availability depends on provider — confirm when applying[1]"
+      ],
+      "data_shape_notes": "This is a federally funded program under the Older Americans Act (OAA Title III C-2) with statewide availability but highly decentralized administration through county-level Area Agencies on Aging. There is no income test, making it unusual among nutrition assistance programs. Eligibility is primarily functional (homebound status, inability to prepare meals) rather than financial. Benefits are fixed at minimum one meal per day but vary by region for second meal availability. Application process and wait times are not standardized across California — they depend entirely on local AAA capacity and procedures. The program explicitly prioritizes frail, isolated, and disadvantaged older adults, though income is not a barrier to eligibility.",
+      "_raw": "```json\n{\n  \"name\": \"Home Delivered Meals (via AAA/Nutrition Services)\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"No income requirement or means test[7]. However, the program prioritizes low-income and disadvantaged populations[1].\",\n    \"asset_limits\": \"Not specified in available sources\",\n    \"other_requirements\": [\n      \"Must be homebound by reason of illness, disability, or otherwise isolated[3]\",\n      \"Must have limited ability to leave home unassisted or to shop for and prepare nutritious meals[3]\",\n      \"Must meet at least one of: too frail to travel to congregate nutrition site, acute illness, convalescing from acute illness, incapacitated by chronic illness, or incapable of shopping and preparing meals[4]\",\n      \"Must reside in service area[2]\",\n      \"Spouses of eligible participants may receive meals regardless of age if beneficial to the participant[3][4]\",\n      \"Disabled individuals under 60 may receive meals if residing at home with an eligible older individual[3][4]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"in_kind\",\n    \"value\": \"Minimum one meal per day; option for two meals available in some areas[4]. Meals are nutritious and may be delivered hot, chilled, or frozen[4]. Program also provides nutrition education, nutrition risk screening, and nutrition counseling in some areas[3]. Meals can be tailored to specific medical conditions including celiac disease, cancer recovery, dysphagia, autoimmune diseases, kidney/liver disease, cardiovascular disease, surgery recovery, and allergies/food sensitivities[1].\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact your local Area Agency on Aging (AAA) — lookup available at aging.ca.gov[3]\",\n      \"Phone: Contact AAA directly (specific numbers vary by county)\",\n      \"In-person: Visit local AAA office\",\n      \"Mail: Contact AAA for mailing address\",\n      \"Online: Some AAAs have updated websites with HDM provider lists and designated email for referrals[2]\"\n    ],\n    \"processing_time\": \"Not specified in available sources\",\n    \"waitlist\": \"Not specified in available sources\",\n    \"forms\": [\n      \"Nutrition Referral/Assessment for HDMs (standardized form used by AAAs)[2]\",\n      \"In-home assessment or telephone assessment (conducted by CCU, MCO, or Nutrition Provider)[2]\"\n    ],\n    \"documents\": [\n      \"Proof of age (60+)\",\n      \"Documentation of homebound status, illness, disability, or isolation\",\n      \"Evidence of inability to shop for or prepare meals\",\n      \"Proof of residency in service area\",\n      \"Medical documentation if applicable to specific condition-based meal needs\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Must reside in service area of local AAA[2]. Program operates through Area Agencies on Aging throughout California[3].\",\n    \"regional_variations\": \"Eligibility determination and assessment processes may vary by planning and service area. Some areas have CCUs (Care Coordination Units) conducting assessments; others have HDM nutrition services providers determining eligibility[2]. Criteria for distribution of second meals must be developed and approved by individual AAAs[4]. Specific meal options and nutrition counseling availability varies by region[3].\",\n    \"offices_or_providers\": \"Over 3,500 home-delivered meal providers operate through the aging network[7]. Each county has an Area Agency on Aging that coordinates services.\"\n  },\n  \"official_source\": \"https://aging.ca.gov/Providers_and_Partners/Home-Delivered_Nutrition/Program_Narrative_and_Fact_Sheets/\",\n  \"gotchas\": [\n    \"No income test exists, but program is designed for disadvantaged populations — don't assume you won't qualify based on income alone[7]\",\n    \"Meals are referred to as having a 'suggested donation' rather than being 'free,' though they are funded at federal level at no cost to recipients[2][5]\",\n    \"Determination of Need (DON) is not required if client only needs home delivered meals, but annual reassessment is mandatory (or sooner if high nutritional risk)[2]\",\n    \"Spouses and disabled household members may qualify even if they don't meet primary eligibility criteria — ask about this[3][4]\",\n    \"Assessment can be conducted by telephone if in-home assessment is not possible (e.g., during pandemic or hospitalization)[2]\",\n    \"Program provides meals but does not cover grocery shopping or meal preparation assistance beyond the delivered meals themselves\",\n    \"Some Medicaid plans and Medicare Advantage plans may cover home-delivered meals as alternative to or in addition to AAA program[1][5]\",\n    \"Specific medical condition-based meals (celiac, kidney disease, etc.) availability depends on provider — confirm when applying[1]\"\n  ],\n  \"data_shape_notes\": \"This is a federally funded program under the Older Americans Act (OAA Title III C-2) with statewide availability but highly decentralized administration through county-level Area Agencies on Aging. There is no income test, making it unusual among nutrition assistance programs. Eligibility is primarily functional (homebound status, inability to prepare meals) rather than financial. Benefits are fixed at minimum one meal per day but vary by region for second meal availability. Application process and wait times are not standardized across California — they depend entirely on local AAA capacity and procedures. The program explicitly prioritizes frail, isolated, and disadvantaged older adults, though income is not a barrier to eligibility.\"\n}\n```\n\n**Critical notes for your guide:**\n\n1. **No single statewide application process exists.** Families must contact their local AAA directly. The California Department of Aging website[3] is the starting point to find local AAA contact information.\n\n2. **Assessment is the gatekeeper.** Eligibility is determined through a formal Nutrition Referral/Assessment conducted by the AAA, Care Coordination Unit, or nutrition provider[2]. This is not a simple form submission — it involves evaluation of functional status.\n\n3. **The \"no income test\" is a feature, not a bug.** Unlike many assistance programs, this program does not screen out middle-income seniors. However, it is designed for those with genuine need (homebound, unable to prepare meals)[7].\n\n4. **Regional variation is substantial.** Processing times, second meal availability, specific meal options, and even who conducts the assessment varies significantly by county[2][4]. Your guide should emphasize contacting the local AAA for specifics.\n\n5. **Missing data:** The search results do not provide specific phone numbers, processing timelines, or waitlist information — these must be obtained directly from local AAAs."
+    },
+    {
+      "name": "Family Caregiver Support Program (FCSP)",
+      "eligibility": {
+        "age": {
+          "caregiver_minimum": 18,
+          "caregiver_minimum_for_grandparent_relative": 55,
+          "care_recipient_minimum": 60,
+          "care_recipient_minimum_with_alzheimers": "any age"
+        },
+        "income_limits": "No income requirement[2][4]",
+        "asset_limits": "No asset limit requirement[2]",
+        "other_requirements": [
+          "Caregiver must provide unpaid care[1][4]",
+          "Care recipient must be age 60 or older, OR any age with Alzheimer's disease or related disorders[1][4]",
+          "For grandparent/relative caregivers: must be age 55 or older, raising a child under 18 or an adult with disabilities ages 18-59, and must live with the child[1][4]",
+          "Verification of caregiver age and residency required[1]",
+          "Verification of care recipient age (60+) and condition may be required[1]",
+          "Older relative caregivers must provide proof of relationship and residency[1]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Services include: information and assistance; individual counseling, support groups, and caregiver training; respite care (temporary in-home or out-of-home relief); assessments to identify caregiver needs and develop support plans; assistive devices; home modifications for safety and accessibility; access to registries of independent care workers; limited assistance with supplies or services related to caregiving needs; limited supplemental services such as transportation[1][4][6]",
+        "varies_by": "region",
+        "note": "No specific dollar amounts or hour limits provided in search results; services are described as 'limited' supplemental support"
+      },
+      "application": {
+        "methods": [
+          "Phone: 1 (800) 510-2020 — ask for the Family Caregiver Support Program provider in your area[1]",
+          "Contact your local Area Agency on Aging (AAA)[2][6]",
+          "Some services administered through California Caregiver Resource Centers (CCRCs) contracted with AAAs[2][4]"
+        ],
+        "processing_time": "Not specified in search results",
+        "waitlist": "Not specified in search results",
+        "forms": "Not specified in search results",
+        "documents": [
+          "Verification of caregiver's age and residency[1]",
+          "Verification of care recipient's age (60+) and condition[1]",
+          "For older relative caregivers: proof of relationship and residency[1]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Program is administered through local Area Agencies on Aging (AAAs) throughout California[2][6]",
+        "regional_variations": "Services are provided through local AAAs, which may contract with California Caregiver Resource Centers (CCRCs) to administer the program[2][4]. This suggests potential variation in service delivery by region, though specific regional differences are not detailed in search results.",
+        "offices_or_providers": "Contact local AAA or call 1 (800) 510-2020 to identify your area provider[1]"
+      },
+      "official_source": "https://www.aging.ca.gov/Providers_and_Partners/Area_Agencies_on_Aging/Family_Caregiver_Support/Program_Narrative_and_Fact_Sheets/",
+      "gotchas": [
+        "No income or asset limits means the program is available to families at all income levels, but this also means it is not means-tested[2][4]",
+        "FCSP is a support program for caregivers, not a payment program — it provides services and assistance, not direct cash payments to caregivers[1][4]",
+        "If seeking paid caregiver employment, families should investigate IHSS (In-Home Supportive Services) instead, which does allow payment to family members but has different eligibility requirements including Medi-Cal income and asset limits[3][6]",
+        "Services are described as 'limited' supplemental support, not comprehensive care coverage[1][4]",
+        "Reassessments are typically conducted annually or as needed, meaning eligibility and service plans may change[1]",
+        "The program serves both older adult caregivers and younger caregivers (age 18+), but grandparent/relative caregivers must be age 55 or older[1][4]",
+        "Caregiver must provide unpaid care to qualify — paid caregivers are not eligible for FCSP[1][4]"
+      ],
+      "data_shape_notes": "FCSP is a service-based support program with no income or asset limits, making it universally accessible to qualifying caregivers. The program is administered regionally through local Area Agencies on Aging, which may result in variation in service availability and delivery methods by county or region. Unlike IHSS, FCSP does not provide direct payment to family caregivers but rather offers support services, counseling, respite care, and supplemental assistance. The search results do not provide specific dollar amounts, hour limits, or detailed processing timelines, suggesting these may vary by region or provider.",
+      "_raw": "```json\n{\n  \"name\": \"Family Caregiver Support Program (FCSP)\",\n  \"eligibility\": {\n    \"age\": {\n      \"caregiver_minimum\": 18,\n      \"caregiver_minimum_for_grandparent_relative\": 55,\n      \"care_recipient_minimum\": 60,\n      \"care_recipient_minimum_with_alzheimers\": \"any age\"\n    },\n    \"income_limits\": \"No income requirement[2][4]\",\n    \"asset_limits\": \"No asset limit requirement[2]\",\n    \"other_requirements\": [\n      \"Caregiver must provide unpaid care[1][4]\",\n      \"Care recipient must be age 60 or older, OR any age with Alzheimer's disease or related disorders[1][4]\",\n      \"For grandparent/relative caregivers: must be age 55 or older, raising a child under 18 or an adult with disabilities ages 18-59, and must live with the child[1][4]\",\n      \"Verification of caregiver age and residency required[1]\",\n      \"Verification of care recipient age (60+) and condition may be required[1]\",\n      \"Older relative caregivers must provide proof of relationship and residency[1]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Services include: information and assistance; individual counseling, support groups, and caregiver training; respite care (temporary in-home or out-of-home relief); assessments to identify caregiver needs and develop support plans; assistive devices; home modifications for safety and accessibility; access to registries of independent care workers; limited assistance with supplies or services related to caregiving needs; limited supplemental services such as transportation[1][4][6]\",\n    \"varies_by\": \"region\",\n    \"note\": \"No specific dollar amounts or hour limits provided in search results; services are described as 'limited' supplemental support\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: 1 (800) 510-2020 — ask for the Family Caregiver Support Program provider in your area[1]\",\n      \"Contact your local Area Agency on Aging (AAA)[2][6]\",\n      \"Some services administered through California Caregiver Resource Centers (CCRCs) contracted with AAAs[2][4]\"\n    ],\n    \"processing_time\": \"Not specified in search results\",\n    \"waitlist\": \"Not specified in search results\",\n    \"forms\": \"Not specified in search results\",\n    \"documents\": [\n      \"Verification of caregiver's age and residency[1]\",\n      \"Verification of care recipient's age (60+) and condition[1]\",\n      \"For older relative caregivers: proof of relationship and residency[1]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Program is administered through local Area Agencies on Aging (AAAs) throughout California[2][6]\",\n    \"regional_variations\": \"Services are provided through local AAAs, which may contract with California Caregiver Resource Centers (CCRCs) to administer the program[2][4]. This suggests potential variation in service delivery by region, though specific regional differences are not detailed in search results.\",\n    \"offices_or_providers\": \"Contact local AAA or call 1 (800) 510-2020 to identify your area provider[1]\"\n  },\n  \"official_source\": \"https://www.aging.ca.gov/Providers_and_Partners/Area_Agencies_on_Aging/Family_Caregiver_Support/Program_Narrative_and_Fact_Sheets/\",\n  \"gotchas\": [\n    \"No income or asset limits means the program is available to families at all income levels, but this also means it is not means-tested[2][4]\",\n    \"FCSP is a support program for caregivers, not a payment program — it provides services and assistance, not direct cash payments to caregivers[1][4]\",\n    \"If seeking paid caregiver employment, families should investigate IHSS (In-Home Supportive Services) instead, which does allow payment to family members but has different eligibility requirements including Medi-Cal income and asset limits[3][6]\",\n    \"Services are described as 'limited' supplemental support, not comprehensive care coverage[1][4]\",\n    \"Reassessments are typically conducted annually or as needed, meaning eligibility and service plans may change[1]\",\n    \"The program serves both older adult caregivers and younger caregivers (age 18+), but grandparent/relative caregivers must be age 55 or older[1][4]\",\n    \"Caregiver must provide unpaid care to qualify — paid caregivers are not eligible for FCSP[1][4]\"\n  ],\n  \"data_shape_notes\": \"FCSP is a service-based support program with no income or asset limits, making it universally accessible to qualifying caregivers. The program is administered regionally through local Area Agencies on Aging, which may result in variation in service availability and delivery methods by county or region. Unlike IHSS, FCSP does not provide direct payment to family caregivers but rather offers support services, counseling, respite care, and supplemental assistance. The search results do not provide specific dollar amounts, hour limits, or detailed processing timelines, suggesting these may vary by region or provider.\"\n}\n```\n\n## Key Takeaways for Families\n\n**The critical distinction:** FCSP is a **support program for caregivers**, not a payment program. If your family needs to pay a relative to provide care, you likely need **IHSS (In-Home Supportive Services)** instead, which has different eligibility rules including Medi-Cal income limits[3][6].\n\n**Universal eligibility on income:** Unlike many social programs, FCSP has **no income or asset limits**[2][4], making it available to families across all economic levels. The only requirements are age (caregiver 18+, care recipient 60+) and the unpaid caregiving relationship[1][4].\n\n**Regional delivery matters:** Because FCSP is administered through local Area Agencies on Aging, the specific services, wait times, and application processes may differ by county[2][4]. Calling 1 (800) 510-2020 is essential to identify your local provider and understand what's available in your region[1].\n\n**What you actually get:** Respite care (temporary relief), counseling and support groups, caregiver training, home modifications, assistive devices, and limited supplemental services—but not direct financial assistance to the caregiver[1][4][6]."
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "eligibility": {
+        "age": 55,
+        "income_limits": "Family income must be at or below 125% of the federal poverty level. The search results do not provide specific dollar amounts by household size, as federal poverty guidelines are updated annually. Families should verify current limits at the federal poverty guidelines website or contact their local SCSEP provider.",
+        "asset_limits": "Not specified in available search results",
+        "other_requirements": [
+          "Must be unemployed at time of enrollment and throughout participation",
+          "Must be a resident of California (specific county restrictions apply by provider)",
+          "Enrollment priority given to: veterans and qualified spouses, individuals over 65, people with disabilities, those with limited English proficiency or low literacy skills, rural residents, homeless or at-risk-of-homelessness individuals, those with low employment prospects, those who failed to find employment through American Job Center services, and formerly incarcerated individuals"
+        ]
+      },
+      "benefits": {
+        "type": "employment",
+        "value": "Paid part-time work averaging 20 hours per week at the highest of federal, state, or local minimum wage; on-the-job training in computer or vocational skills; work experience for resume; professional job placement assistance; access to American Job Centers for job readiness assistance; supportive services including food insecurity assistance, housing support, medical care access, and transportation assistance",
+        "varies_by": "fixed (20 hours/week average, though Orange County notes 16-29 hours depending on funding availability)"
+      },
+      "application": {
+        "methods": [
+          "Phone: Contact local SCSEP provider (varies by region; example: Felton Institute in San Francisco/Marin/San Mateo area: 415-982-7007, extension 334)",
+          "Email: Send resume to local provider (example: Felton Institute: [email protected])",
+          "In-person: Visit local SCSEP provider office",
+          "Online: Contact through local provider website (varies by region)"
+        ],
+        "processing_time": "Not specified in search results",
+        "waitlist": "Not specified in search results",
+        "forms": "Not specified in search results",
+        "documents": [
+          "Resume (required for some providers)",
+          "Proof of age (55+)",
+          "Proof of unemployment status",
+          "Proof of income (to verify 125% federal poverty level threshold)",
+          "Proof of residency in service area",
+          "Specific documents may vary by provider"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Program is available statewide through California Department of Aging, but specific service areas vary by contracted provider. Examples include: Orange County (Orange County Department of Aging), San Francisco/Marin/San Benito/San Mateo/Santa Clara/Santa Cruz counties (Felton Institute), Northern California and Wyoming (NEW Solutions)",
+        "regional_variations": "Different providers operate in different regions with potentially different contact information, application processes, and supportive services. Orange County specifies 16-29 hours/week depending on funding; other regions reference 20 hours/week average. Some providers offer expanded services (e.g., Felton Institute's B2W program for San Francisco residents age 60+ or younger with disabilities).",
+        "offices_or_providers": [
+          "California Department of Aging (state administrator)",
+          "Orange County Department of Aging (Orange County)",
+          "Felton Institute (San Francisco, Marin, San Benito, San Mateo, Santa Clara, Santa Cruz counties)",
+          "NEW Solutions (Northern California and Wyoming)",
+          "AARP Foundation (operates SCSEP in multiple regions)",
+          "NAPCA (operates SCSEP with 400+ nonprofit and government partners)"
+        ]
+      },
+      "official_source": "https://aging.ca.gov/Programs_and_Services/Senior_Employment_and_Training/",
+      "gotchas": [
+        "Income limit is 125% of federal poverty level, which is significantly lower than many other senior programs — families should verify current dollar amounts as poverty guidelines change annually",
+        "Participant must remain unemployed throughout program participation — taking any job disqualifies them",
+        "Program is designed as a bridge to unsubsidized employment, not permanent subsidized work — it is temporary, part-time training",
+        "Service area varies dramatically by provider — eligibility depends on which county/region you live in and which provider serves that area",
+        "Enrollment priority system means even if eligible, acceptance depends on priority status (veterans/spouses get first priority, then 65+, disabled, etc.)",
+        "Hours per week vary by funding availability (Orange County explicitly notes 16-29 hours depending on funding)",
+        "No information provided about processing times or waitlists — families should expect to ask about this when contacting providers",
+        "Program provides supportive services (food, housing, transportation, medical care access) but search results do not specify whether these are guaranteed or subject to availability"
+      ],
+      "data_shape_notes": "SCSEP is a decentralized program administered by California Department of Aging but delivered through multiple contracted providers (state agencies and 19 national nonprofits). This creates significant regional variation in application processes, contact information, and potentially service levels. Income eligibility is fixed at 125% federal poverty level but actual dollar amounts vary annually and by household size. Benefits are largely fixed (20 hours/week, minimum wage) but with noted variations by funding availability. The program prioritizes certain populations but does not guarantee enrollment even for eligible applicants. No specific processing times, waitlist information, or required forms are documented in available sources.",
+      "_raw": "```json\n{\n  \"name\": \"Senior Community Service Employment Program (SCSEP)\",\n  \"eligibility\": {\n    \"age\": 55,\n    \"income_limits\": \"Family income must be at or below 125% of the federal poverty level. The search results do not provide specific dollar amounts by household size, as federal poverty guidelines are updated annually. Families should verify current limits at the federal poverty guidelines website or contact their local SCSEP provider.\",\n    \"asset_limits\": \"Not specified in available search results\",\n    \"other_requirements\": [\n      \"Must be unemployed at time of enrollment and throughout participation\",\n      \"Must be a resident of California (specific county restrictions apply by provider)\",\n      \"Enrollment priority given to: veterans and qualified spouses, individuals over 65, people with disabilities, those with limited English proficiency or low literacy skills, rural residents, homeless or at-risk-of-homelessness individuals, those with low employment prospects, those who failed to find employment through American Job Center services, and formerly incarcerated individuals\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"employment\",\n    \"value\": \"Paid part-time work averaging 20 hours per week at the highest of federal, state, or local minimum wage; on-the-job training in computer or vocational skills; work experience for resume; professional job placement assistance; access to American Job Centers for job readiness assistance; supportive services including food insecurity assistance, housing support, medical care access, and transportation assistance\",\n    \"varies_by\": \"fixed (20 hours/week average, though Orange County notes 16-29 hours depending on funding availability)\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: Contact local SCSEP provider (varies by region; example: Felton Institute in San Francisco/Marin/San Mateo area: 415-982-7007, extension 334)\",\n      \"Email: Send resume to local provider (example: Felton Institute: [email protected])\",\n      \"In-person: Visit local SCSEP provider office\",\n      \"Online: Contact through local provider website (varies by region)\"\n    ],\n    \"processing_time\": \"Not specified in search results\",\n    \"waitlist\": \"Not specified in search results\",\n    \"forms\": \"Not specified in search results\",\n    \"documents\": [\n      \"Resume (required for some providers)\",\n      \"Proof of age (55+)\",\n      \"Proof of unemployment status\",\n      \"Proof of income (to verify 125% federal poverty level threshold)\",\n      \"Proof of residency in service area\",\n      \"Specific documents may vary by provider\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Program is available statewide through California Department of Aging, but specific service areas vary by contracted provider. Examples include: Orange County (Orange County Department of Aging), San Francisco/Marin/San Benito/San Mateo/Santa Clara/Santa Cruz counties (Felton Institute), Northern California and Wyoming (NEW Solutions)\",\n    \"regional_variations\": \"Different providers operate in different regions with potentially different contact information, application processes, and supportive services. Orange County specifies 16-29 hours/week depending on funding; other regions reference 20 hours/week average. Some providers offer expanded services (e.g., Felton Institute's B2W program for San Francisco residents age 60+ or younger with disabilities).\",\n    \"offices_or_providers\": [\n      \"California Department of Aging (state administrator)\",\n      \"Orange County Department of Aging (Orange County)\",\n      \"Felton Institute (San Francisco, Marin, San Benito, San Mateo, Santa Clara, Santa Cruz counties)\",\n      \"NEW Solutions (Northern California and Wyoming)\",\n      \"AARP Foundation (operates SCSEP in multiple regions)\",\n      \"NAPCA (operates SCSEP with 400+ nonprofit and government partners)\"\n    ]\n  },\n  \"official_source\": \"https://aging.ca.gov/Programs_and_Services/Senior_Employment_and_Training/\",\n  \"gotchas\": [\n    \"Income limit is 125% of federal poverty level, which is significantly lower than many other senior programs — families should verify current dollar amounts as poverty guidelines change annually\",\n    \"Participant must remain unemployed throughout program participation — taking any job disqualifies them\",\n    \"Program is designed as a bridge to unsubsidized employment, not permanent subsidized work — it is temporary, part-time training\",\n    \"Service area varies dramatically by provider — eligibility depends on which county/region you live in and which provider serves that area\",\n    \"Enrollment priority system means even if eligible, acceptance depends on priority status (veterans/spouses get first priority, then 65+, disabled, etc.)\",\n    \"Hours per week vary by funding availability (Orange County explicitly notes 16-29 hours depending on funding)\",\n    \"No information provided about processing times or waitlists — families should expect to ask about this when contacting providers\",\n    \"Program provides supportive services (food, housing, transportation, medical care access) but search results do not specify whether these are guaranteed or subject to availability\"\n  ],\n  \"data_shape_notes\": \"SCSEP is a decentralized program administered by California Department of Aging but delivered through multiple contracted providers (state agencies and 19 national nonprofits). This creates significant regional variation in application processes, contact information, and potentially service levels. Income eligibility is fixed at 125% federal poverty level but actual dollar amounts vary annually and by household size. Benefits are largely fixed (20 hours/week, minimum wage) but with noted variations by funding availability. The program prioritizes certain populations but does not guarantee enrollment even for eligible applicants. No specific processing times, waitlist information, or required forms are documented in available sources.\"\n}\n```\n\n## Critical Gaps in Available Information\n\nThe search results provide strong foundational information about SCSEP but lack several specifics your guide will need:\n\n**Missing Data:**\n- **Exact income dollar amounts** by household size (you'll need to direct families to current federal poverty guidelines)[2][3]\n- **Processing timelines** — no information on how long from application to enrollment\n- **Waitlist status** — unclear if waitlists exist or vary by region\n- **Specific required forms** — no form names or numbers provided\n- **Asset limits** — not addressed in any source\n- **Statewide provider directory** — only examples given, not comprehensive list\n\n**What to Do:**\nContact the California Department of Aging directly at the official source URL[3] to request:\n1. Current income limits table by household size\n2. Complete provider directory with contact information\n3. Standard application forms and required documentation checklist\n4. Average processing times by region\n5. Information about waitlists or enrollment caps\n\n**Regional Application Strategy:**\nSince SCSEP operates through multiple providers, your guide should instruct families to:\n1. Identify their county\n2. Contact California Department of Aging to learn which provider serves their area\n3. Contact that specific provider for application details, as processes vary significantly[1][4]"
+    },
+    {
+      "name": "Legal Services for Seniors (via AAAs/Legal Aid)",
+      "eligibility": {
+        "age": "60 years or older (50 and older for guardianship cases in some programs)[2][3]",
+        "income_limits": "No specific income limits stated in search results. Program is described as serving 'older individuals with economic or social needs' and 'low-income adults,' but exact dollar thresholds are not provided[3][4]",
+        "asset_limits": "Not specified in search results",
+        "other_requirements": [
+          "Reside in California[3]",
+          "For some programs: reside in specific county (e.g., Alameda County for Legal Assistance for Seniors)[2]",
+          "Some programs prioritize those 'most at risk for losing their homes, benefits, independence, or financial security'[5]"
+        ]
+      },
+      "benefits": {
+        "type": "service|advocacy",
+        "value": "Free legal advice, counseling, and representation. Senior Legal Services offers free 30-minute consultations[1]. Specific services include: housing issues, consumer fraud, elder abuse, Social Security/SSI/SSDI, Medicare, Medi-Cal, age discrimination, pensions, nursing homes, protective services, conservatorships, advance directives, guardianship, foreclosure/eviction defense, powers of attorney, wills, conflict resolution, and financial elder abuse[3][4][5]",
+        "varies_by": "region — practice areas and specific services vary by local provider"
+      },
+      "application": {
+        "methods": [
+          "Phone: Contact your local Area Agency on Aging (AAA) — find yours at aging.ca.gov by selecting your county[3]",
+          "Phone: Statewide Eldercare Locator: 1-800-677-1116 (for those outside California or needing referral)[3]",
+          "In-person: Visit senior centers or attorney offices by appointment[5]",
+          "In-person: Visit local AAA office in your county[3]",
+          "Phone or in-person: Contact specific regional providers (e.g., Legal Assistance for Seniors: 510-832-3040; Monterey County: 831-899-0492; Tulare County via local senior centers)[2][5][6]"
+        ],
+        "processing_time": "Not specified in search results",
+        "waitlist": "Not specified in search results",
+        "forms": "Not specified in search results",
+        "documents": "Not specified in search results"
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Services are coordinated through local Area Agencies on Aging (AAAs) by county. Specific practice areas and availability vary by county and local provider[3]",
+        "regional_variations": "Significant variation by region. For example: Legal Assistance for Seniors serves Alameda County only[2]; Monterey County has Legal Services for Seniors (831-899-0492)[6]; Tulare County has its own Senior Legal Services program[5]; Los Angeles has partnerships with Bet Tzedek Legal Services and Legal Aid Foundation of Los Angeles[7]. Each region has different practice areas and contact information[2][5][6][7]",
+        "offices_or_providers": [
+          "Legal Aid Association of California (Berkeley): 1832 Second Street, Suite 105, Berkeley, CA 94710; (510) 893-3000[1]",
+          "Legal Assistance for Seniors (Alameda County): 333 Hegenberger Road, Suite 850, Oakland, CA 94612; 510-832-3040[2]",
+          "Legal Services for Seniors (Monterey County): 11 Thomas Owens Way, Suite #101, Monterey; 831-899-0492; Monday-Thursday 9am-3pm[6]",
+          "Tulare County Senior Legal Services: Available by phone or at senior centers[5]",
+          "Los Angeles: Bet Tzedek Legal Services (323-939-0506) and Legal Aid Foundation of Los Angeles (800-399-4529)[7]"
+        ]
+      },
+      "official_source": "aging.ca.gov/Programs_and_Services/Legal_Services/[3]",
+      "gotchas": [
+        "No statewide uniform application process — you must contact your local AAA or regional provider. There is no single state application[3]",
+        "Income limits are not clearly defined in public materials. Eligibility appears to be based on 'economic or social need' rather than strict income thresholds, which may require individual assessment[4]",
+        "Age requirement varies: most programs serve 60+, but guardianship services may start at age 50[2]",
+        "Services and practice areas differ significantly by county. What's available in one county may not be available in another[2][5][6][7]",
+        "Processing time and waitlist information is not publicly available — you must contact your local provider directly",
+        "Some programs (like Senior Legal Services in Berkeley) offer only 30-minute free consultations, not full representation[1]",
+        "Geographic restrictions: Some programs serve only specific counties (e.g., Legal Assistance for Seniors serves Alameda County only)[2]"
+      ],
+      "data_shape_notes": "This is a decentralized, county-based program network rather than a single statewide program. Eligibility, benefits, application process, and availability vary significantly by county and local provider. The California Department of Aging oversees coordination through local AAAs, but each AAA contracts with different legal service providers. No uniform income limits, asset limits, processing times, or application forms are specified in public materials. Families must contact their specific county AAA or local legal services provider for detailed eligibility and application information.",
+      "_raw": "```json\n{\n  \"name\": \"Legal Services for Seniors (via AAAs/Legal Aid)\",\n  \"eligibility\": {\n    \"age\": \"60 years or older (50 and older for guardianship cases in some programs)[2][3]\",\n    \"income_limits\": \"No specific income limits stated in search results. Program is described as serving 'older individuals with economic or social needs' and 'low-income adults,' but exact dollar thresholds are not provided[3][4]\",\n    \"asset_limits\": \"Not specified in search results\",\n    \"other_requirements\": [\n      \"Reside in California[3]\",\n      \"For some programs: reside in specific county (e.g., Alameda County for Legal Assistance for Seniors)[2]\",\n      \"Some programs prioritize those 'most at risk for losing their homes, benefits, independence, or financial security'[5]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service|advocacy\",\n    \"value\": \"Free legal advice, counseling, and representation. Senior Legal Services offers free 30-minute consultations[1]. Specific services include: housing issues, consumer fraud, elder abuse, Social Security/SSI/SSDI, Medicare, Medi-Cal, age discrimination, pensions, nursing homes, protective services, conservatorships, advance directives, guardianship, foreclosure/eviction defense, powers of attorney, wills, conflict resolution, and financial elder abuse[3][4][5]\",\n    \"varies_by\": \"region — practice areas and specific services vary by local provider\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: Contact your local Area Agency on Aging (AAA) — find yours at aging.ca.gov by selecting your county[3]\",\n      \"Phone: Statewide Eldercare Locator: 1-800-677-1116 (for those outside California or needing referral)[3]\",\n      \"In-person: Visit senior centers or attorney offices by appointment[5]\",\n      \"In-person: Visit local AAA office in your county[3]\",\n      \"Phone or in-person: Contact specific regional providers (e.g., Legal Assistance for Seniors: 510-832-3040; Monterey County: 831-899-0492; Tulare County via local senior centers)[2][5][6]\"\n    ],\n    \"processing_time\": \"Not specified in search results\",\n    \"waitlist\": \"Not specified in search results\",\n    \"forms\": \"Not specified in search results\",\n    \"documents\": \"Not specified in search results\"\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Services are coordinated through local Area Agencies on Aging (AAAs) by county. Specific practice areas and availability vary by county and local provider[3]\",\n    \"regional_variations\": \"Significant variation by region. For example: Legal Assistance for Seniors serves Alameda County only[2]; Monterey County has Legal Services for Seniors (831-899-0492)[6]; Tulare County has its own Senior Legal Services program[5]; Los Angeles has partnerships with Bet Tzedek Legal Services and Legal Aid Foundation of Los Angeles[7]. Each region has different practice areas and contact information[2][5][6][7]\",\n    \"offices_or_providers\": [\n      \"Legal Aid Association of California (Berkeley): 1832 Second Street, Suite 105, Berkeley, CA 94710; (510) 893-3000[1]\",\n      \"Legal Assistance for Seniors (Alameda County): 333 Hegenberger Road, Suite 850, Oakland, CA 94612; 510-832-3040[2]\",\n      \"Legal Services for Seniors (Monterey County): 11 Thomas Owens Way, Suite #101, Monterey; 831-899-0492; Monday-Thursday 9am-3pm[6]\",\n      \"Tulare County Senior Legal Services: Available by phone or at senior centers[5]\",\n      \"Los Angeles: Bet Tzedek Legal Services (323-939-0506) and Legal Aid Foundation of Los Angeles (800-399-4529)[7]\"\n    ]\n  },\n  \"official_source\": \"aging.ca.gov/Programs_and_Services/Legal_Services/[3]\",\n  \"gotchas\": [\n    \"No statewide uniform application process — you must contact your local AAA or regional provider. There is no single state application[3]\",\n    \"Income limits are not clearly defined in public materials. Eligibility appears to be based on 'economic or social need' rather than strict income thresholds, which may require individual assessment[4]\",\n    \"Age requirement varies: most programs serve 60+, but guardianship services may start at age 50[2]\",\n    \"Services and practice areas differ significantly by county. What's available in one county may not be available in another[2][5][6][7]\",\n    \"Processing time and waitlist information is not publicly available — you must contact your local provider directly\",\n    \"Some programs (like Senior Legal Services in Berkeley) offer only 30-minute free consultations, not full representation[1]\",\n    \"Geographic restrictions: Some programs serve only specific counties (e.g., Legal Assistance for Seniors serves Alameda County only)[2]\"\n  ],\n  \"data_shape_notes\": \"This is a decentralized, county-based program network rather than a single statewide program. Eligibility, benefits, application process, and availability vary significantly by county and local provider. The California Department of Aging oversees coordination through local AAAs, but each AAA contracts with different legal service providers. No uniform income limits, asset limits, processing times, or application forms are specified in public materials. Families must contact their specific county AAA or local legal services provider for detailed eligibility and application information.\"\n}\n```\n\n## Critical Gaps in Available Information\n\nThe search results do not contain several key details you requested:\n\n- **Exact income limits**: Programs are described as serving those with \"economic or social needs\" but specific dollar amounts are not provided[4]\n- **Asset limits**: Not mentioned in any search result\n- **Processing times and waitlists**: Not specified\n- **Required documents**: Not specified\n- **Specific form names/numbers**: Not provided\n\n## How to Get Missing Information\n\nTo complete this guide, contact your county's Area Agency on Aging directly. Find yours at aging.ca.gov by selecting your county[3]. They can provide:\n- Exact income and asset limits for your county\n- Specific application forms and required documents\n- Current processing times and waitlist status\n- Detailed eligibility criteria for your region\n\nAlternatively, call the Eldercare Locator at 1-800-677-1116 for referral to your local provider[3]."
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "eligibility": {
+        "age": null,
+        "income_limits": "No requirement[4][6]",
+        "asset_limits": "No requirement; not applicable[4][6]",
+        "other_requirements": [
+          "Must be a resident of a long-term care (LTC) facility in California, such as skilled nursing facilities, intermediate care facilities, or residential care facilities for the elderly (RCFEs). Applies regardless of age, including younger adults with disabilities[4][6]"
+        ]
+      },
+      "benefits": {
+        "type": "advocacy",
+        "value": "Advocacy services including: investigating complaints about day-to-day care, health, safety, personal preferences; addressing violations of residents' rights or dignity; physical, verbal, mental, or financial abuse; poor quality of care; dietary concerns; medical care, therapy, rehabilitation; Medicare/Medi-Cal issues; improper transfer/discharge; inappropriate restraints. Ombudsman representatives review and investigate reports of abuse/neglect, follow resident wishes (or those of their representatives), conduct unannounced facility visits, and resolve issues confidentially[4][5]",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Phone: Call local Ombudsman program (statewide 24/7 CRISISline available via state office; example San Diego: 800-640-4661[5][6])",
+          "Contact local program office in person or by email (e.g., San Diego: 5560 Overland Ave., Ste 310, San Diego, CA 92123[5])",
+          "No specific online application form; contact local program directly for assistance[4][6]"
+        ],
+        "processing_time": "Immediate response to complaints; no formal processing time as services are provided on-demand by representatives[4][6]",
+        "waitlist": null,
+        "forms": [
+          "No specific application forms required; families/residents contact Ombudsman directly to report issues or seek assistance[4]"
+        ],
+        "documents": [
+          "No documents needed to request services; provide details of the resident's situation, facility name, and specific concerns. Ombudsman handles investigation confidentially[4][5]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Services limited to residents of licensed LTC facilities (1,189 skilled nursing/intermediate care + 7,798 RCFEs)[6]",
+        "regional_variations": "Administered by 35 local Ombudsman programs overseen by the state Office of the State Long-Term Care Ombudsman. Local programs handle services with potential differences in contact points, office locations, and coordinators, but core services uniform statewide[4][6]",
+        "offices_or_providers": [
+          "35 local programs throughout California; contact via California Department of Aging for local office[6]"
+        ]
+      },
+      "official_source": "https://aging.ca.gov/Programs_and_Services/Long-Term_Care_Ombudsman/[4]",
+      "gotchas": [
+        "This is not a benefits/payment program with income/asset tests—it's free advocacy for LTC residents only; cannot assist those not in licensed facilities[4][6]",
+        "Services are complaint-driven or issue-specific, not ongoing personal care; focuses on rights protection and resolution[4][5]",
+        "Families can contact on behalf of residents, but Ombudsman prioritizes resident's expressed wishes[4]",
+        "Not for facility staff/volunteers (separate certification process); public-facing for residents/families[1][2]"
+      ],
+      "data_shape_notes": "no income test; available only to residents of licensed LTC facilities statewide via 35 local programs; advocacy services on-demand, not tiered or quantified by hours/dollars",
+      "_raw": "{\n  \"name\": \"Long-Term Care Ombudsman Program\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No requirement[4][6]\",\n    \"asset_limits\": \"No requirement; not applicable[4][6]\",\n    \"other_requirements\": [\"Must be a resident of a long-term care (LTC) facility in California, such as skilled nursing facilities, intermediate care facilities, or residential care facilities for the elderly (RCFEs). Applies regardless of age, including younger adults with disabilities[4][6]\"]\n  },\n  \"benefits\": {\n    \"type\": \"advocacy\",\n    \"value\": \"Advocacy services including: investigating complaints about day-to-day care, health, safety, personal preferences; addressing violations of residents' rights or dignity; physical, verbal, mental, or financial abuse; poor quality of care; dietary concerns; medical care, therapy, rehabilitation; Medicare/Medi-Cal issues; improper transfer/discharge; inappropriate restraints. Ombudsman representatives review and investigate reports of abuse/neglect, follow resident wishes (or those of their representatives), conduct unannounced facility visits, and resolve issues confidentially[4][5]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: Call local Ombudsman program (statewide 24/7 CRISISline available via state office; example San Diego: 800-640-4661[5][6])\", \"Contact local program office in person or by email (e.g., San Diego: 5560 Overland Ave., Ste 310, San Diego, CA 92123[5])\", \"No specific online application form; contact local program directly for assistance[4][6]\"],\n    \"processing_time\": \"Immediate response to complaints; no formal processing time as services are provided on-demand by representatives[4][6]\",\n    \"waitlist\": null,\n    \"forms\": [\"No specific application forms required; families/residents contact Ombudsman directly to report issues or seek assistance[4]\"],\n    \"documents\": [\"No documents needed to request services; provide details of the resident's situation, facility name, and specific concerns. Ombudsman handles investigation confidentially[4][5]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Services limited to residents of licensed LTC facilities (1,189 skilled nursing/intermediate care + 7,798 RCFEs)[6]\",\n    \"regional_variations\": \"Administered by 35 local Ombudsman programs overseen by the state Office of the State Long-Term Care Ombudsman. Local programs handle services with potential differences in contact points, office locations, and coordinators, but core services uniform statewide[4][6]\",\n    \"offices_or_providers\": [\"35 local programs throughout California; contact via California Department of Aging for local office[6]\"]\n  },\n  \"official_source\": \"https://aging.ca.gov/Programs_and_Services/Long-Term_Care_Ombudsman/[4]\",\n  \"gotchas\": [\"This is not a benefits/payment program with income/asset tests—it's free advocacy for LTC residents only; cannot assist those not in licensed facilities[4][6]\", \"Services are complaint-driven or issue-specific, not ongoing personal care; focuses on rights protection and resolution[4][5]\", \"Families can contact on behalf of residents, but Ombudsman prioritizes resident's expressed wishes[4]\", \"Not for facility staff/volunteers (separate certification process); public-facing for residents/families[1][2]\"],\n  \"data_shape_notes\": \"no income test; available only to residents of licensed LTC facilities statewide via 35 local programs; advocacy services on-demand, not tiered or quantified by hours/dollars\"\n}"
+    }
+  ]
+}

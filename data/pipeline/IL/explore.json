@@ -1,0 +1,119 @@
+{
+  "entity": "Illinois",
+  "entitySlug": "illinois",
+  "state": "IL",
+  "stateName": "Illinois",
+  "isRegion": false,
+  "exploredAt": "2026-04-09T09:06:09.348Z",
+  "programCount": 15,
+  "programs": [
+    {
+      "name": "Medical Assistance/Medicaid",
+      "what_it_does": "Provides healthcare coverage for low-income seniors and disabled individuals, including long-term medical and personal care services. In Illinois, it is administered through the Department of Healthcare and Family Services for eligible older adults.",
+      "who_its_for": "Low-income seniors aged 65+ and disabled individuals meeting income and asset limits.",
+      "official_url": "https://hfs.illinois.gov/medicalclients/medicaid.html",
+      "benefit_value": "Varies by eligibility; covers medical costs, long-term care, and waivers for home services."
+    },
+    {
+      "name": "Home Services Program (HSP) Waiver",
+      "what_it_does": "Offers home and community-based services waiver under Medicaid to help seniors avoid nursing home placement. Provides personal care assistance, home-delivered meals, homemaker services, and transportation.",
+      "who_its_for": "Medicaid-eligible seniors aged 65+ who meet nursing facility level of care but prefer home-based care.",
+      "official_url": "https://www2.illinois.gov/hfs/MedicalClients/Pages/HomeServicesProgram.aspx",
+      "benefit_value": "Customized services based on assessed needs; prevents institutionalization."
+    },
+    {
+      "name": "Illinois PACE (Program of All-Inclusive Care for the Elderly)",
+      "what_it_does": "Delivers comprehensive medical and social services to frail seniors in community settings, including adult day health care and home care. Integrates Medicaid and Medicare benefits for eligible participants.",
+      "who_its_for": "Seniors aged 55+ certified for nursing facility level of care but able to live safely in the community.",
+      "official_url": "https://www2.illinois.gov/aging/Providers/Pages/PACE.aspx",
+      "benefit_value": "All-inclusive care; one-stop coordination of primary, acute, and long-term care services."
+    },
+    {
+      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "what_it_does": "Helps pay Medicare premiums, deductibles, and cost-sharing through Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), and Qualifying Individual (QI) programs. Administered via Illinois Medicaid as assistance for low-income Medicare enrollees.",
+      "who_its_for": "Low-income seniors on Medicare meeting specific income/asset thresholds (e.g., QMB up to 100% FPL).",
+      "official_url": "https://hfs.illinois.gov/medicalclients/medicare/medicaresavings.html",
+      "benefit_value": "QMB: Full premiums/cost-sharing; SLMB: Part B premium; QI: Part B premium (up to $130+/mo savings)."
+    },
+    {
+      "name": "Supplemental Nutrition Assistance Program (SNAP)",
+      "what_it_does": "Provides funds via EBT card for low-income seniors to purchase food. Administered by Illinois Department of Human Services with senior-specific outreach.",
+      "who_its_for": "Low-income seniors aged 60+ (higher asset limits); households meeting income guidelines.",
+      "official_url": "https://www.dhs.state.il.us/page.aspx?item=37750",
+      "benefit_value": "Average $200-300/month per person for eligible seniors."
+    },
+    {
+      "name": "Illinois Home Weatherization Assistance Program (IHWAP)",
+      "what_it_does": "Offers energy assistance and home weatherization to reduce heating/cooling costs for low-income households. Includes insulation, sealing, and furnace repairs administered through local agencies.",
+      "who_its_for": "Low-income seniors (priority for 60+) meeting income limits (e.g., ≤200% FPL).",
+      "official_url": "https://www2.illinois.gov/aging/programs/IHWAP/Pages/default.aspx",
+      "benefit_value": "Free weatherization services; energy savings up to $1,500+ annually."
+    },
+    {
+      "name": "Senior Health Insurance Program (SHIP)",
+      "what_it_does": "Offers free counseling on Medicare, Medicare Advantage, Part D, and supplemental insurance options. Helps Illinois seniors select and understand coverage to avoid errors and save money.",
+      "who_its_for": "All Medicare beneficiaries aged 65+, especially low-income and underserved seniors.",
+      "official_url": "https://www2.illinois.gov/aging/programs/SHIP/Pages/default.aspx",
+      "benefit_value": "Free one-on-one assistance; potential savings of thousands on premiums/drugs."
+    },
+    {
+      "name": "Community Care Program (CCP) Home Delivered Meals",
+      "what_it_does": "Delivers nutritious meals to homebound seniors through the Illinois Department on Aging's CCP. Provides at least one hot meal per day, 5 days/week, with nutritional support.",
+      "who_its_for": "Homebound seniors aged 60+ assessed under CCP with functional or financial need.",
+      "official_url": "https://ilaging.illinois.gov/benefitsaccess.html",
+      "benefit_value": "$7-10 per meal (often free/sliding scale); supports independence."
+    },
+    {
+      "name": "Illinois Caregiver Support Program",
+      "what_it_does": "Provides assistance including respite care, training, and counseling to family caregivers of older adults. Administered statewide by the Department on Aging to reduce caregiver strain.",
+      "who_its_for": "Unpaid family caregivers of adults aged 60+ or 55+ with Alzheimer's; income-based.",
+      "official_url": "https://ilaging.illinois.gov/programs/caregiver.html",
+      "benefit_value": "Respite grants up to $1,000/year; training and support services."
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "what_it_does": "Offers part-time paid community service work training for low-income seniors to gain skills and transition to unsubsidized employment. Administered through Illinois Department on Aging grantees.",
+      "who_its_for": "Unemployed low-income seniors aged 55+ (priority for hardest-to-serve).",
+      "official_url": "https://ilaging.illinois.gov/programs/scsep.html",
+      "benefit_value": "Minimum wage pay (~$15/hr IL); work experience and job placement."
+    },
+    {
+      "name": "Illinois Legal Aid Online / Senior Legal Helpline",
+      "what_it_does": "Provides free legal assistance for common senior issues like benefits, housing, and consumer problems. Operates through statewide network including Legal Council for Health Justice.",
+      "who_its_for": "Low-income seniors aged 60+ across Illinois.",
+      "official_url": "https://www.illinoislegalaid.org/legalaidonline",
+      "benefit_value": "Free advice/representation; resolves issues like denied benefits."
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "what_it_does": "Advocates for residents in long-term care facilities, investigating complaints and ensuring quality care. Statewide program under Illinois Department on Aging protects rights.",
+      "who_its_for": "Residents of nursing homes, assisted living, and other LTC facilities in Illinois.",
+      "official_url": "https://ilaging.illinois.gov/programs/ombudsman.html",
+      "benefit_value": "Free advocacy; resolves 80%+ of complaints without litigation."
+    },
+    {
+      "name": "Illinois Senior Citizens and Persons with Disabilities Property Tax Relief",
+      "what_it_does": "Provides exemptions or freezes on property taxes for eligible seniors. Offers savings up to $750 yearly or tax deferral up to $7,500.",
+      "who_its_for": "Seniors 65+ with income under $65,000 who own and occupy their residence in counties like Cook.",
+      "whats_unique": "State-specific property tax exemptions and freezes beyond federal standards, varying by county like Cook County benefits.",
+      "official_url": "https://ilaging.illinois.gov",
+      "benefit_value": "Up to $750 yearly savings or $7,500 tax deferral[1][5]"
+    },
+    {
+      "name": "Benefit Access Program (Seniors Ride Free & License Plate Discount)",
+      "what_it_does": "Offers free rides on CTA, Metra, Pace transit and reduces license plate sticker fees to $10. Streamlines application for multiple state transportation benefits.",
+      "who_its_for": "Illinois residents 65+ with household income up to $33,562 (1 person), $44,533 (2 people).",
+      "whats_unique": "Statewide consolidated program for free senior transit and vehicle discounts not universally available elsewhere.",
+      "official_url": "https://ilaging.illinois.gov",
+      "benefit_value": "Free transit + $141 sticker savings ($10 vs $151); renews every 2 years[1][2]"
+    },
+    {
+      "name": "Health Benefits for Immigrant Seniors (HBIS)",
+      "what_it_does": "Provides Medicaid-like health coverage with no premiums or copays, including doctor visits, hospital care, prescriptions, dental, vision, and therapy. Covers seniors ineligible for federal Medicare/Medicaid due to immigration status.",
+      "who_its_for": "Low-income Illinois seniors 65+ regardless of immigration status; enrollment paused as of 2025.",
+      "whats_unique": "First-in-nation state-funded health insurance for undocumented immigrant seniors, beyond federal programs.",
+      "official_url": "https://hfs.illinois.gov",
+      "benefit_value": "Full coverage (doctor, hospital, Rx, dental, vision); served 11,000+ enrollees[3]"
+    }
+  ]
+}

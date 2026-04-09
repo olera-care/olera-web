@@ -1,0 +1,693 @@
+{
+  "state": "MS",
+  "stateName": "Mississippi",
+  "diveAt": "2026-04-09T08:54:39.620Z",
+  "total": 13,
+  "parsed": 12,
+  "programs": [
+    {
+      "name": "Medicaid Medicare Savings Programs (QMB, SLMB, QI)",
+      "eligibility": {
+        "age": null,
+        "income_limits": {
+          "note": "Income limits are based on Federal Poverty Guidelines and change annually. The following are 2024 limits from Mississippi Medicaid; 2026 limits may differ slightly.",
+          "QMB": {
+            "individual_monthly": "$1,305",
+            "couple_monthly": "$1,754",
+            "basis": "100% of Federal Poverty Level"
+          },
+          "SLMB": {
+            "individual_monthly": "Above QMB up to $1,585",
+            "couple_monthly": "Above QMB up to $2,135",
+            "basis": "120% of Federal Poverty Level"
+          },
+          "QI": {
+            "individual_monthly": "Above SLMB up to $1,781",
+            "couple_monthly": "Above SLMB up to $2,400",
+            "basis": "135% of Federal Poverty Level"
+          }
+        },
+        "asset_limits": {
+          "QMB": "No resource test — assets do not matter[6]",
+          "SLMB": "Not specified in search results",
+          "QI": "Individual: $9,660; Married couple: $14,470[3]"
+        },
+        "other_requirements": [
+          "Must be eligible for Medicare Part A (Hospital Insurance)[5]",
+          "Must be enrolled in both Part A and Part B for QI[7]",
+          "If eligible for Medicaid, you cannot use QI program but may qualify for QMB or SLMB[7]"
+        ]
+      },
+      "benefits": {
+        "QMB": {
+          "type": "financial",
+          "covers": [
+            "Medicare Part A premiums (if you don't have premium-free Part A)[4]",
+            "Medicare Part B premiums[4]",
+            "Original Medicare deductibles[1]",
+            "Coinsurance for Original Medicare services[1]",
+            "Copayments for services and items Medicare covers[4]",
+            "Some Medicare Part D prescription drug plan premiums[1]",
+            "A portion of Original Medicare drug costs[1]"
+          ],
+          "additional": "Automatic enrollment in Medicare Part D Extra Help program, which limits prescription drug costs to no more than $12.65 per covered drug in 2026[4]",
+          "provider_billing": "Medicare providers are not allowed to bill you for covered services, deductibles, coinsurance, or copayments[4]",
+          "medicaid_copay": "You may get a bill for a small Medicaid copayment if one applies[4]",
+          "value": "Potential savings of up to several thousand dollars per year[3]"
+        },
+        "SLMB": {
+          "type": "financial",
+          "covers": [
+            "Medicare Part B monthly premium only[2][3]"
+          ],
+          "does_not_cover": "No Medicare co-pays, deductibles, or coinsurance amounts[3]",
+          "value": "Potential savings of more than $1,000 per year[3]",
+          "medicaid_benefits": "SLMB does not qualify for any additional Medicaid benefits[5]"
+        },
+        "QI": {
+          "type": "financial",
+          "covers": [
+            "All or part of Medicare Part B monthly premium[3]"
+          ],
+          "does_not_cover": "No Medicare co-pays, deductibles, or coinsurance amounts[3]",
+          "medicaid_benefits": "QI does not qualify for any additional Medicaid benefits[5]",
+          "funding_note": "This group is funded by a limited federal allotment. If funds run out, this group could be affected[5]"
+        },
+        "varies_by": "program_tier (QMB > SLMB > QI in terms of coverage breadth)"
+      },
+      "application": {
+        "methods": [
+          "Contact Mississippi Division of Medicaid directly (specific phone number and online portal URL not provided in search results)",
+          "In-person at local Medicaid office (specific locations not provided in search results)",
+          "Mail application to Mississippi Division of Medicaid (specific mailing address not provided in search results)"
+        ],
+        "processing_time": "Not specified in search results",
+        "waitlist": "QI program has limited federal funding and operates on first-come, first-served basis until money runs out; you must reapply annually[3][10]",
+        "forms": "Specific form names and numbers not provided in search results",
+        "documents": "Not specified in search results",
+        "eligibility_start": {
+          "QMB": "Eligibility begins the month after the month you are approved; no retroactive coverage[6]",
+          "SLMB": "Eligibility begins with the month a person is qualified, which may be up to three months before the month of application[5]",
+          "QI": "Eligibility begins with the month a person is qualified, which may be up to three months before the month of application[5]"
+        }
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": null,
+        "regional_variations": null,
+        "offices_or_providers": "Administered by Mississippi Division of Medicaid; specific office locations not provided in search results",
+        "contact_info": "Mississippi Division of Medicaid (specific contact details not provided in search results)"
+      },
+      "official_source": "https://medicaid.ms.gov/medicaid-coverage/who-qualifies-for-coverage/medicare-cost-sharing/",
+      "gotchas": [
+        "QI program has limited federal funding and operates on first-come, first-served basis — you must reapply every year, and if funds run out, the program could be affected[5][10]",
+        "If you are already eligible for Medicaid, you cannot use the QI program but may qualify for QMB or SLMB instead[7]",
+        "QMB has no retroactive coverage — eligibility begins the month after approval, not before[6]",
+        "SLMB and QI do not cover deductibles, coinsurance, or copayments — only Part B premiums[3]",
+        "Income limits change annually based on Federal Poverty Guidelines; families should verify current limits each year[7]",
+        "SLMB and QI do not provide a Medicaid card, while QMB does[5]",
+        "QI program only applies to Original Medicare (Parts A and B), not Medicare Advantage (Part C) or Medigap plans[7]"
+      ],
+      "data_shape_notes": "This program consists of three distinct tiers (QMB, SLMB, QI) with progressively higher income limits but fewer benefits. QMB is the most comprehensive but has the lowest income threshold. QI has the highest income limit but only covers Part B premiums and has limited federal funding. Income limits are tied to Federal Poverty Guidelines and change annually. Asset limits apply only to QI and not to QMB. Eligibility start dates vary by program (retroactive for SLMB/QI, not for QMB). The search results do not provide specific application procedures, form numbers, phone numbers, processing times, or regional office locations for Mississippi.",
+      "data_gaps": [
+        "Specific phone number for Mississippi Division of Medicaid",
+        "Online application portal URL",
+        "Specific form names and numbers",
+        "Required documents for application",
+        "Processing time for applications",
+        "Specific office locations and hours in Mississippi",
+        "2026 income and asset limits (only 2024 limits available in search results)",
+        "Regional variations in processing or eligibility within Mississippi"
+      ],
+      "_raw": "```json\n{\n  \"name\": \"Medicaid Medicare Savings Programs (QMB, SLMB, QI)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": {\n      \"note\": \"Income limits are based on Federal Poverty Guidelines and change annually. The following are 2024 limits from Mississippi Medicaid; 2026 limits may differ slightly.\",\n      \"QMB\": {\n        \"individual_monthly\": \"$1,305\",\n        \"couple_monthly\": \"$1,754\",\n        \"basis\": \"100% of Federal Poverty Level\"\n      },\n      \"SLMB\": {\n        \"individual_monthly\": \"Above QMB up to $1,585\",\n        \"couple_monthly\": \"Above QMB up to $2,135\",\n        \"basis\": \"120% of Federal Poverty Level\"\n      },\n      \"QI\": {\n        \"individual_monthly\": \"Above SLMB up to $1,781\",\n        \"couple_monthly\": \"Above SLMB up to $2,400\",\n        \"basis\": \"135% of Federal Poverty Level\"\n      }\n    },\n    \"asset_limits\": {\n      \"QMB\": \"No resource test — assets do not matter[6]\",\n      \"SLMB\": \"Not specified in search results\",\n      \"QI\": \"Individual: $9,660; Married couple: $14,470[3]\"\n    },\n    \"other_requirements\": [\n      \"Must be eligible for Medicare Part A (Hospital Insurance)[5]\",\n      \"Must be enrolled in both Part A and Part B for QI[7]\",\n      \"If eligible for Medicaid, you cannot use QI program but may qualify for QMB or SLMB[7]\"\n    ]\n  },\n  \"benefits\": {\n    \"QMB\": {\n      \"type\": \"financial\",\n      \"covers\": [\n        \"Medicare Part A premiums (if you don't have premium-free Part A)[4]\",\n        \"Medicare Part B premiums[4]\",\n        \"Original Medicare deductibles[1]\",\n        \"Coinsurance for Original Medicare services[1]\",\n        \"Copayments for services and items Medicare covers[4]\",\n        \"Some Medicare Part D prescription drug plan premiums[1]\",\n        \"A portion of Original Medicare drug costs[1]\"\n      ],\n      \"additional\": \"Automatic enrollment in Medicare Part D Extra Help program, which limits prescription drug costs to no more than $12.65 per covered drug in 2026[4]\",\n      \"provider_billing\": \"Medicare providers are not allowed to bill you for covered services, deductibles, coinsurance, or copayments[4]\",\n      \"medicaid_copay\": \"You may get a bill for a small Medicaid copayment if one applies[4]\",\n      \"value\": \"Potential savings of up to several thousand dollars per year[3]\"\n    },\n    \"SLMB\": {\n      \"type\": \"financial\",\n      \"covers\": [\n        \"Medicare Part B monthly premium only[2][3]\"\n      ],\n      \"does_not_cover\": \"No Medicare co-pays, deductibles, or coinsurance amounts[3]\",\n      \"value\": \"Potential savings of more than $1,000 per year[3]\",\n      \"medicaid_benefits\": \"SLMB does not qualify for any additional Medicaid benefits[5]\"\n    },\n    \"QI\": {\n      \"type\": \"financial\",\n      \"covers\": [\n        \"All or part of Medicare Part B monthly premium[3]\"\n      ],\n      \"does_not_cover\": \"No Medicare co-pays, deductibles, or coinsurance amounts[3]\",\n      \"medicaid_benefits\": \"QI does not qualify for any additional Medicaid benefits[5]\",\n      \"funding_note\": \"This group is funded by a limited federal allotment. If funds run out, this group could be affected[5]\"\n    },\n    \"varies_by\": \"program_tier (QMB > SLMB > QI in terms of coverage breadth)\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact Mississippi Division of Medicaid directly (specific phone number and online portal URL not provided in search results)\",\n      \"In-person at local Medicaid office (specific locations not provided in search results)\",\n      \"Mail application to Mississippi Division of Medicaid (specific mailing address not provided in search results)\"\n    ],\n    \"processing_time\": \"Not specified in search results\",\n    \"waitlist\": \"QI program has limited federal funding and operates on first-come, first-served basis until money runs out; you must reapply annually[3][10]\",\n    \"forms\": \"Specific form names and numbers not provided in search results\",\n    \"documents\": \"Not specified in search results\",\n    \"eligibility_start\": {\n      \"QMB\": \"Eligibility begins the month after the month you are approved; no retroactive coverage[6]\",\n      \"SLMB\": \"Eligibility begins with the month a person is qualified, which may be up to three months before the month of application[5]\",\n      \"QI\": \"Eligibility begins with the month a person is qualified, which may be up to three months before the month of application[5]\"\n    }\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": null,\n    \"regional_variations\": null,\n    \"offices_or_providers\": \"Administered by Mississippi Division of Medicaid; specific office locations not provided in search results\",\n    \"contact_info\": \"Mississippi Division of Medicaid (specific contact details not provided in search results)\"\n  },\n  \"official_source\": \"https://medicaid.ms.gov/medicaid-coverage/who-qualifies-for-coverage/medicare-cost-sharing/\",\n  \"gotchas\": [\n    \"QI program has limited federal funding and operates on first-come, first-served basis — you must reapply every year, and if funds run out, the program could be affected[5][10]\",\n    \"If you are already eligible for Medicaid, you cannot use the QI program but may qualify for QMB or SLMB instead[7]\",\n    \"QMB has no retroactive coverage — eligibility begins the month after approval, not before[6]\",\n    \"SLMB and QI do not cover deductibles, coinsurance, or copayments — only Part B premiums[3]\",\n    \"Income limits change annually based on Federal Poverty Guidelines; families should verify current limits each year[7]\",\n    \"SLMB and QI do not provide a Medicaid card, while QMB does[5]\",\n    \"QI program only applies to Original Medicare (Parts A and B), not Medicare Advantage (Part C) or Medigap plans[7]\"\n  ],\n  \"data_shape_notes\": \"This program consists of three distinct tiers (QMB, SLMB, QI) with progressively higher income limits but fewer benefits. QMB is the most comprehensive but has the lowest income threshold. QI has the highest income limit but only covers Part B premiums and has limited federal funding. Income limits are tied to Federal Poverty Guidelines and change annually. Asset limits apply only to QI and not to QMB. Eligibility start dates vary by program (retroactive for SLMB/QI, not for QMB). The search results do not provide specific application procedures, form numbers, phone numbers, processing times, or regional office locations for Mississippi.\",\n  \"data_gaps\": [\n    \"Specific phone number for Mississippi Division of Medicaid\",\n    \"Online application portal URL\",\n    \"Specific form names and numbers\",\n    \"Required documents for application\",\n    \"Processing time for applications\",\n    \"Specific office locations and hours in Mississippi\",\n    \"2026 income and asset limits (only 2024 limits available in search results)\",\n    \"Regional variations in processing or eligibility within Mississippi\"\n  ]\n}\n```\n\n## Critical Notes for Your Guide\n\n**The search results provide program structure but lack critical operational details.** To complete this guide for families, you will need to contact the **Mississippi Division of Medicaid directly** to obtain:\n\n1. **Current 2026 income and asset limits** — the search results contain 2024 figures, which may have changed[6]\n2. **Step-by-step application process** — specific forms, phone numbers, and online portals\n3. **Processing timelines** — how long approval typically takes\n4. **Required documentation** — what families should prepare before applying\n5. **Regional office locations** — where to apply in-person across Mississippi\n6. **QI funding status** — whether QI is currently accepting applications or if funds have been exhausted\n\n**Key distinction for families:** QMB is the most valuable program (covers premiums, deductibles, and coinsurance) but has the lowest income limit. If your loved one's income exceeds QMB limits, they may still qualify for SLMB or QI, which cover only Part B premiums but allow higher incomes[3][7]. However, QI funding is limited and operates on a first-come, first-served basis, so availability may vary[5]."
+    },
+    {
+      "name": "Mississippi Elderly and Disabled (E&D) Waiver",
+      "eligibility": {
+        "age": "21 or older (65+ for elderly; 21-64 for physically disabled; those enrolled before 65 can continue after)[1][2]",
+        "income_limits": "Qualify as SSI beneficiary or up to 300% of SSI federal benefit rate (exact 2026 dollar amount not specified in sources; if exceeds 300% SSI, pay excess via income trust to Division of Medicaid). No household size table provided; applies to applicant[2][3][4]",
+        "asset_limits": "Follows Medicaid rules (specifics not detailed); home equity limit of $752,000 in 2026 if applicant lives in home or intends to return (exempt if spouse or minor/permanently disabled child lives there)[1]",
+        "other_requirements": [
+          "Mississippi resident",
+          "Medicaid eligible",
+          "Nursing Facility Level of Care (NFLOC) via in-person LTSS assessment by RN and social worker (ADLs, IADLs, cognitive deficits scored numerically)[1][2][3][4]",
+          "Physician certification of NFLOC, re-certified every 12 months[3][4]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Adult day health care, home-delivered meals, personal care services, institutional respite, in-home respite, expanded/extended home health (skilled nursing, nurse aide, physical therapy, speech therapy after state plan exhausted), community transition services, medication management, environmental safety services, case management[2][5][7]",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Contact Office of Long Term Care or Planning and Development Districts for case management (RN and social worker screen and assess); no specific phone/URL/form listed in sources[2]",
+          "Administered by Mississippi Division of Medicaid, Office of Long Term Care[2]"
+        ],
+        "processing_time": "Not specified",
+        "waitlist": "Not mentioned (may exist due to waiver caps, but no data provided)",
+        "forms": [
+          "No specific form names/numbers identified"
+        ],
+        "documents": [
+          "Proof of income/resources for Medicaid/SSI or 300% SSI (income trust if over limit)",
+          "Physician NFLOC certification",
+          "LTSS assessment documents",
+          "Home equity proof if applicable"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None; Mississippi residents[1][2][6]",
+        "regional_variations": "Case management by regional Planning and Development Districts; providers must meet enrollment via Office of Long Term Care (possible differences in availability/wait times not detailed)[2]",
+        "offices_or_providers": [
+          "Planning and Development Districts (e.g., SMPDD, NCPDD); Office of Long Term Care[2][4][7]"
+        ]
+      },
+      "official_source": "https://medicaid.ms.gov/programs/elderly-and-disabled-waiver/[2]",
+      "gotchas": [
+        "Income over 300% SSI requires monthly payment of excess via income trust (not a spend-down)[2][3][4]",
+        "Must meet strict NFLOC via scored in-person assessment; dementia diagnosis alone insufficient[1]",
+        "Home equity limit $752,000 (2026) applies unless exemptions met[1]",
+        "Distinguish from Independent Living Waiver (ILW, ages 16-64 severe impairments) or Assisted Living Waiver[5][6]",
+        "Services only after Medicaid state plan benefits exhausted (e.g., extended home health)[7]"
+      ],
+      "data_shape_notes": "Tied to SSI levels (no fixed dollar table or household variations specified); NFLOC physician-certified and reassessed annually; statewide but case-managed regionally by districts; income trust for excess over 300% SSI",
+      "_raw": "{\n  \"name\": \"Mississippi Elderly and Disabled (E&D) Waiver\",\n  \"eligibility\": {\n    \"age\": \"21 or older (65+ for elderly; 21-64 for physically disabled; those enrolled before 65 can continue after)[1][2]\",\n    \"income_limits\": \"Qualify as SSI beneficiary or up to 300% of SSI federal benefit rate (exact 2026 dollar amount not specified in sources; if exceeds 300% SSI, pay excess via income trust to Division of Medicaid). No household size table provided; applies to applicant[2][3][4]\",\n    \"asset_limits\": \"Follows Medicaid rules (specifics not detailed); home equity limit of $752,000 in 2026 if applicant lives in home or intends to return (exempt if spouse or minor/permanently disabled child lives there)[1]\",\n    \"other_requirements\": [\n      \"Mississippi resident\",\n      \"Medicaid eligible\",\n      \"Nursing Facility Level of Care (NFLOC) via in-person LTSS assessment by RN and social worker (ADLs, IADLs, cognitive deficits scored numerically)[1][2][3][4]\",\n      \"Physician certification of NFLOC, re-certified every 12 months[3][4]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Adult day health care, home-delivered meals, personal care services, institutional respite, in-home respite, expanded/extended home health (skilled nursing, nurse aide, physical therapy, speech therapy after state plan exhausted), community transition services, medication management, environmental safety services, case management[2][5][7]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact Office of Long Term Care or Planning and Development Districts for case management (RN and social worker screen and assess); no specific phone/URL/form listed in sources[2]\",\n      \"Administered by Mississippi Division of Medicaid, Office of Long Term Care[2]\"\n    ],\n    \"processing_time\": \"Not specified\",\n    \"waitlist\": \"Not mentioned (may exist due to waiver caps, but no data provided)\",\n    \"forms\": [\"No specific form names/numbers identified\"],\n    \"documents\": [\n      \"Proof of income/resources for Medicaid/SSI or 300% SSI (income trust if over limit)\",\n      \"Physician NFLOC certification\",\n      \"LTSS assessment documents\",\n      \"Home equity proof if applicable\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; Mississippi residents[1][2][6]\",\n    \"regional_variations\": \"Case management by regional Planning and Development Districts; providers must meet enrollment via Office of Long Term Care (possible differences in availability/wait times not detailed)[2]\",\n    \"offices_or_providers\": [\"Planning and Development Districts (e.g., SMPDD, NCPDD); Office of Long Term Care[2][4][7]\"]\n  },\n  \"official_source\": \"https://medicaid.ms.gov/programs/elderly-and-disabled-waiver/[2]\",\n  \"gotchas\": [\n    \"Income over 300% SSI requires monthly payment of excess via income trust (not a spend-down)[2][3][4]\",\n    \"Must meet strict NFLOC via scored in-person assessment; dementia diagnosis alone insufficient[1]\",\n    \"Home equity limit $752,000 (2026) applies unless exemptions met[1]\",\n    \"Distinguish from Independent Living Waiver (ILW, ages 16-64 severe impairments) or Assisted Living Waiver[5][6]\",\n    \"Services only after Medicaid state plan benefits exhausted (e.g., extended home health)[7]\"\n  ],\n  \"data_shape_notes\": \"Tied to SSI levels (no fixed dollar table or household variations specified); NFLOC physician-certified and reassessed annually; statewide but case-managed regionally by districts; income trust for excess over 300% SSI\"\n}"
+    },
+    {
+      "name": "Program of All-Inclusive Care for the Elderly (PACE) - Not available in MS",
+      "eligibility": {
+        "age": 55,
+        "income_limits": "No income limits; no financial criteria considered for eligibility[1][4][5]",
+        "asset_limits": "No asset limits; financial status does not affect eligibility[1][4]",
+        "other_requirements": [
+          "Live in the service area of a PACE organization (none in Mississippi)",
+          "Certified by the state as needing nursing home level of care",
+          "Able to live safely in the community with PACE services",
+          "Not enrolled in Medicare Advantage, Medicare prepayment plan, Medicare prescription drug plan, or hospice[1][5]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Comprehensive services including adult day care, transportation, primary medical care, in-home/outpatient therapy, meals/nutrition, prescription drugs, and all Medicare/Medicaid-covered services without copays/deductibles for enrollees[2][4]",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [],
+        "processing_time": null,
+        "waitlist": "Waitlists common where available, but irrelevant in MS[3]",
+        "forms": [],
+        "documents": []
+      },
+      "geography": {
+        "statewide": false,
+        "restrictions": "Not available in Mississippi; as of June 2025, 33 states + DC have PACE, MS not included[4]",
+        "regional_variations": null,
+        "offices_or_providers": []
+      },
+      "official_source": "https://www.medicare.gov/health-drug-plans/health-plans/your-coverage-options/other-medicare-health-plans/PACE[5]",
+      "gotchas": [
+        "PACE is unavailable in Mississippi, so families cannot enroll regardless of meeting other criteria[4]",
+        "Must live in a PACE service area, which excludes all of MS[1][3][5]",
+        "Even if eligible elsewhere, cannot be in Medicare Advantage or hospice[1]",
+        "Non-Medicaid enrollees may pay premiums for long-term care and Part D drugs[3][7]"
+      ],
+      "data_shape_notes": "Not available in Mississippi; no providers, no service areas, no applications possible; eligibility hinges on geographic availability which MS lacks",
+      "_raw": "{\n  \"name\": \"Program of All-Inclusive Care for the Elderly (PACE) - Not available in MS\",\n  \"eligibility\": {\n    \"age\": 55,\n    \"income_limits\": \"No income limits; no financial criteria considered for eligibility[1][4][5]\",\n    \"asset_limits\": \"No asset limits; financial status does not affect eligibility[1][4]\",\n    \"other_requirements\": [\n      \"Live in the service area of a PACE organization (none in Mississippi)\",\n      \"Certified by the state as needing nursing home level of care\",\n      \"Able to live safely in the community with PACE services\",\n      \"Not enrolled in Medicare Advantage, Medicare prepayment plan, Medicare prescription drug plan, or hospice[1][5]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Comprehensive services including adult day care, transportation, primary medical care, in-home/outpatient therapy, meals/nutrition, prescription drugs, and all Medicare/Medicaid-covered services without copays/deductibles for enrollees[2][4]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [],\n    \"processing_time\": null,\n    \"waitlist\": \"Waitlists common where available, but irrelevant in MS[3]\",\n    \"forms\": [],\n    \"documents\": []\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Not available in Mississippi; as of June 2025, 33 states + DC have PACE, MS not included[4]\",\n    \"regional_variations\": null,\n    \"offices_or_providers\": []\n  },\n  \"official_source\": \"https://www.medicare.gov/health-drug-plans/health-plans/your-coverage-options/other-medicare-health-plans/PACE[5]\",\n  \"gotchas\": [\n    \"PACE is unavailable in Mississippi, so families cannot enroll regardless of meeting other criteria[4]\",\n    \"Must live in a PACE service area, which excludes all of MS[1][3][5]\",\n    \"Even if eligible elsewhere, cannot be in Medicare Advantage or hospice[1]\",\n    \"Non-Medicaid enrollees may pay premiums for long-term care and Part D drugs[3][7]\"\n  ],\n  \"data_shape_notes\": \"Not available in Mississippi; no providers, no service areas, no applications possible; eligibility hinges on geographic availability which MS lacks\"\n}"
+    },
+    {
+      "name": "Mississippi SNAP (Supplemental Nutrition Assistance Program)",
+      "eligibility": {
+        "age": null,
+        "income_limits": {
+          "general_households": "Maximum net monthly income (100% Federal Poverty Level): 1 person: $1,255 | 2 people: $1,704 | 3 people: $2,152 | 4 people: $2,600 | 5 people: $3,049 | Each additional person: +$449[3]",
+          "households_with_member_60_or_older_or_disabled": "No gross income limit in Mississippi[4]. Only the net income test applies (gross income minus allowable deductions)[2][4]",
+          "seniors_60_and_older": "For 2025: $15,060 for one person or $20,440 for two people (federal SNAP standard for seniors)[2]"
+        },
+        "asset_limits": {
+          "general_households": "$3,000 in countable resources[3]",
+          "households_with_member_60_or_older_or_disabled": "$4,500 in countable resources[3]",
+          "what_counts": "Bank accounts, cash, real estate, personal property, and vehicles[3]",
+          "what_is_exempt": "Your house and at least one vehicle per household are not counted toward the limit[3]"
+        },
+        "other_requirements": [
+          "Work for low wages, be unemployed, work part-time, or receive TANF, SSI, or other assistance payments[5]",
+          "Be a resident of Mississippi[6]",
+          "Household members must be included in the application if they live with you and buy and prepare food with you[2]"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "Monthly benefits provided on an Electronic Benefits Transfer (EBT) card to help low-income households buy food[5]. Specific benefit amounts vary by household size and income but are not detailed in available search results.",
+        "varies_by": "household_size"
+      },
+      "application": {
+        "methods": [
+          "In-person at Mississippi Department of Human Services (MDHS) offices[5]",
+          "Phone: Not specified in search results",
+          "Online: Not specified in search results",
+          "Mail: Not specified in search results"
+        ],
+        "processing_time": "Not specified in search results",
+        "waitlist": null,
+        "forms": [
+          "Standard SNAP application[3]",
+          "SNAP Simplified Application for the Elderly (ESAP) — available if all household members are age 60 or older (or all members 60+ purchase and prepare food separately), no household member receives earned income, and household is not mandatory for MSCAP[1][3]"
+        ],
+        "documents": "Not specified in search results"
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": null,
+        "regional_variations": null,
+        "offices_or_providers": "Mississippi Department of Human Services (MDHS) operates SNAP locally[5]"
+      },
+      "official_source": "https://www.mdhs.ms.gov/help/snap/",
+      "gotchas": [
+        "Elderly Simplified Application Project (ESAP) has strict requirements: ALL household members must be 60 or older, AND no one can have earned income. If even one household member is under 60 or has earned income, the household does not qualify for ESAP and must use the standard application[1][3]",
+        "If a household qualifies for ESAP, they are MANDATORY for ESAP and ineligible for regular SNAP[1]",
+        "Seniors (60+) only need to meet the net income test, not the gross income test, which can be advantageous[2][4]",
+        "Social Security, veterans' benefits, and disability payments all count toward total income[2]",
+        "About half of eligible seniors do not receive SNAP benefits, suggesting significant underutilization[2]",
+        "Mississippi Combined Application Project (MSCAP) is a separate streamlined process for individuals receiving SSI benefits[5]",
+        "The search results do not provide specific phone numbers, online application URLs, processing times, required documents, or regional office locations — families will need to contact MDHS directly for these details"
+      ],
+      "data_shape_notes": "Mississippi SNAP has a bifurcated eligibility structure: households with members 60+ or disabled face no gross income limit and only the net income test, while other households must pass both gross and net income tests. The program offers a simplified application pathway (ESAP) exclusively for elderly households with no earned income, which streamlines enrollment but has strict eligibility gates. Benefits are provided via EBT card and scale by household size, but specific benefit amounts are not detailed in available sources.",
+      "_raw": "```json\n{\n  \"name\": \"Mississippi SNAP (Supplemental Nutrition Assistance Program)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": {\n      \"general_households\": \"Maximum net monthly income (100% Federal Poverty Level): 1 person: $1,255 | 2 people: $1,704 | 3 people: $2,152 | 4 people: $2,600 | 5 people: $3,049 | Each additional person: +$449[3]\",\n      \"households_with_member_60_or_older_or_disabled\": \"No gross income limit in Mississippi[4]. Only the net income test applies (gross income minus allowable deductions)[2][4]\",\n      \"seniors_60_and_older\": \"For 2025: $15,060 for one person or $20,440 for two people (federal SNAP standard for seniors)[2]\"\n    },\n    \"asset_limits\": {\n      \"general_households\": \"$3,000 in countable resources[3]\",\n      \"households_with_member_60_or_older_or_disabled\": \"$4,500 in countable resources[3]\",\n      \"what_counts\": \"Bank accounts, cash, real estate, personal property, and vehicles[3]\",\n      \"what_is_exempt\": \"Your house and at least one vehicle per household are not counted toward the limit[3]\"\n    },\n    \"other_requirements\": [\n      \"Work for low wages, be unemployed, work part-time, or receive TANF, SSI, or other assistance payments[5]\",\n      \"Be a resident of Mississippi[6]\",\n      \"Household members must be included in the application if they live with you and buy and prepare food with you[2]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Monthly benefits provided on an Electronic Benefits Transfer (EBT) card to help low-income households buy food[5]. Specific benefit amounts vary by household size and income but are not detailed in available search results.\",\n    \"varies_by\": \"household_size\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"In-person at Mississippi Department of Human Services (MDHS) offices[5]\",\n      \"Phone: Not specified in search results\",\n      \"Online: Not specified in search results\",\n      \"Mail: Not specified in search results\"\n    ],\n    \"processing_time\": \"Not specified in search results\",\n    \"waitlist\": null,\n    \"forms\": [\n      \"Standard SNAP application[3]\",\n      \"SNAP Simplified Application for the Elderly (ESAP) — available if all household members are age 60 or older (or all members 60+ purchase and prepare food separately), no household member receives earned income, and household is not mandatory for MSCAP[1][3]\"\n    ],\n    \"documents\": \"Not specified in search results\"\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": null,\n    \"regional_variations\": null,\n    \"offices_or_providers\": \"Mississippi Department of Human Services (MDHS) operates SNAP locally[5]\"\n  },\n  \"official_source\": \"https://www.mdhs.ms.gov/help/snap/\",\n  \"gotchas\": [\n    \"Elderly Simplified Application Project (ESAP) has strict requirements: ALL household members must be 60 or older, AND no one can have earned income. If even one household member is under 60 or has earned income, the household does not qualify for ESAP and must use the standard application[1][3]\",\n    \"If a household qualifies for ESAP, they are MANDATORY for ESAP and ineligible for regular SNAP[1]\",\n    \"Seniors (60+) only need to meet the net income test, not the gross income test, which can be advantageous[2][4]\",\n    \"Social Security, veterans' benefits, and disability payments all count toward total income[2]\",\n    \"About half of eligible seniors do not receive SNAP benefits, suggesting significant underutilization[2]\",\n    \"Mississippi Combined Application Project (MSCAP) is a separate streamlined process for individuals receiving SSI benefits[5]\",\n    \"The search results do not provide specific phone numbers, online application URLs, processing times, required documents, or regional office locations — families will need to contact MDHS directly for these details\"\n  ],\n  \"data_shape_notes\": \"Mississippi SNAP has a bifurcated eligibility structure: households with members 60+ or disabled face no gross income limit and only the net income test, while other households must pass both gross and net income tests. The program offers a simplified application pathway (ESAP) exclusively for elderly households with no earned income, which streamlines enrollment but has strict eligibility gates. Benefits are provided via EBT card and scale by household size, but specific benefit amounts are not detailed in available sources.\"\n}\n```\n\n**Critical gaps in available information:** The search results do not contain specific phone numbers, online application URLs, processing timelines, required documentation, or regional office locations. To complete this guide, families should contact the Mississippi Department of Human Services directly at their official website[5] or visit a local MDHS office. The ESAP program[3][5] is particularly relevant for elderly families, as it simplifies the application process and extends benefit periods, but requires that all household members be 60 or older with no earned income."
+    },
+    {
+      "name": "Mississippi LIHEAP (Low-Income Home Energy Assistance Program)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Household gross monthly income at or below 60% of state median income: 1 person $2,228/month; 2 people $2,914/month; 3 people $3,599/month; 4 people $4,285/month; 5 people $4,970/month; 6 people $5,656/month (2025 figures). Annual example around $27,906 for qualifying household.[1][2][4]",
+        "asset_limits": "No asset limits mentioned in program rules.[3]",
+        "other_requirements": [
+          "U.S. citizen or legal permanent resident.",
+          "Resident of Mississippi in the county where applying; must have energy bill obligation to utility or landlord.",
+          "Homeless households may apply if seeking services.",
+          "Priority for vulnerable households: elderly (60+), disabled, or children 5 or younger.[1][3]"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "Payments for home energy bills (power, gas), energy crisis, purchase/repair/replacement of AC/heaters. Heating/cooling max $1,500, min $1; crisis max $1,500. Amounts based on income, household size, fuel type.[1][2][4]",
+        "varies_by": "household_size|priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Online: https://www.mdhs.ms.gov/community/liheap/ (select 'Community Services').[1]",
+          "Phone: Contact local Community Action Agency (CAA) by county; statewide LIHEAP hotline 1-866-674-6327.[1][5]",
+          "In-person/mail: Local CAA offices in each of 82 counties.[1][3]"
+        ],
+        "processing_time": "Not specified; appointment notice sent after application with instructions.[1]",
+        "waitlist": "Funding limited; apply early as funds may run out. Vulnerable households prioritized.[1][2][3]",
+        "forms": [
+          "No specific form name/number; apply via online portal selecting 'Community Services' or CAA intake.[1]"
+        ],
+        "documents": [
+          "Proof of identity (over 18): photo ID, passport, driver’s license, etc.",
+          "Income proof: award letters (SS, SSI), pay stubs (30 days), W2, 1099, tax forms, unemployment letter.",
+          "Residency: utility bills, lease, mortgage/deed.",
+          "Household members verification.[1]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Apply in county of residence; available in all 82 counties pending funds.[1][3]",
+        "regional_variations": "Administered by local Community Action Agencies (CAAs) per county; potential differences in processing/wait times/funding availability by local provider.[1][3]",
+        "offices_or_providers": [
+          "Local Community Action Agencies (CAAs) in each county.[1]"
+        ]
+      },
+      "official_source": "https://www.mdhs.ms.gov/community/liheap/",
+      "gotchas": [
+        "Funding limited and not year-round: heating Oct-Apr, cooling May-Sep, crisis year-round; apply early.[2]",
+        "Must apply in own county; priority to elderly/disabled/young children but all qualifying get considered.[1][3]",
+        "No automatic eligibility specified; verify via local CAA as roommates count as household.[2]",
+        "Weatherization separate (200% FPL, DOE rules).[3]"
+      ],
+      "data_shape_notes": "County-administered via CAAs with priority tiers for vulnerable; seasonal components; benefits scaled by income/household size/fuel; limited funds drive early application urgency.",
+      "_raw": "{\n  \"name\": \"Mississippi LIHEAP (Low-Income Home Energy Assistance Program)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Household gross monthly income at or below 60% of state median income: 1 person $2,228/month; 2 people $2,914/month; 3 people $3,599/month; 4 people $4,285/month; 5 people $4,970/month; 6 people $5,656/month (2025 figures). Annual example around $27,906 for qualifying household.[1][2][4]\",\n    \"asset_limits\": \"No asset limits mentioned in program rules.[3]\",\n    \"other_requirements\": [\n      \"U.S. citizen or legal permanent resident.\",\n      \"Resident of Mississippi in the county where applying; must have energy bill obligation to utility or landlord.\",\n      \"Homeless households may apply if seeking services.\",\n      \"Priority for vulnerable households: elderly (60+), disabled, or children 5 or younger.[1][3]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Payments for home energy bills (power, gas), energy crisis, purchase/repair/replacement of AC/heaters. Heating/cooling max $1,500, min $1; crisis max $1,500. Amounts based on income, household size, fuel type.[1][2][4]\",\n    \"varies_by\": \"household_size|priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: https://www.mdhs.ms.gov/community/liheap/ (select 'Community Services').[1]\",\n      \"Phone: Contact local Community Action Agency (CAA) by county; statewide LIHEAP hotline 1-866-674-6327.[1][5]\",\n      \"In-person/mail: Local CAA offices in each of 82 counties.[1][3]\"\n    ],\n    \"processing_time\": \"Not specified; appointment notice sent after application with instructions.[1]\",\n    \"waitlist\": \"Funding limited; apply early as funds may run out. Vulnerable households prioritized.[1][2][3]\",\n    \"forms\": [\"No specific form name/number; apply via online portal selecting 'Community Services' or CAA intake.[1]\"],\n    \"documents\": [\n      \"Proof of identity (over 18): photo ID, passport, driver’s license, etc.\",\n      \"Income proof: award letters (SS, SSI), pay stubs (30 days), W2, 1099, tax forms, unemployment letter.\",\n      \"Residency: utility bills, lease, mortgage/deed.\",\n      \"Household members verification.[1]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Apply in county of residence; available in all 82 counties pending funds.[1][3]\",\n    \"regional_variations\": \"Administered by local Community Action Agencies (CAAs) per county; potential differences in processing/wait times/funding availability by local provider.[1][3]\",\n    \"offices_or_providers\": [\"Local Community Action Agencies (CAAs) in each county.[1]\"]\n  },\n  \"official_source\": \"https://www.mdhs.ms.gov/community/liheap/\",\n  \"gotchas\": [\n    \"Funding limited and not year-round: heating Oct-Apr, cooling May-Sep, crisis year-round; apply early.[2]\",\n    \"Must apply in own county; priority to elderly/disabled/young children but all qualifying get considered.[1][3]\",\n    \"No automatic eligibility specified; verify via local CAA as roommates count as household.[2]\",\n    \"Weatherization separate (200% FPL, DOE rules).[3]\"\n  ],\n  \"data_shape_notes\": \"County-administered via CAAs with priority tiers for vulnerable; seasonal components; benefits scaled by income/household size/fuel; limited funds drive early application urgency.\"\n}"
+    },
+    {
+      "name": "Mississippi Weatherization Assistance Program (WAP)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "At or below 200% of the current Federal Poverty Guidelines. Exact dollar amounts vary annually and by household size; refer to the current FPG table on the MDHS website as no specific yearly figures are listed in sources. For example, priorities include seniors (60+), but no strict age cutoff for eligibility.[1][2]",
+        "asset_limits": "No asset limits mentioned in program rules.[1][2]",
+        "other_requirements": [
+          "Mississippi resident.",
+          "Household must complete full application process for eligibility determination, including verification of income, residence, and household members.",
+          "Dwelling must meet eligibility (e.g., primary residence; proof of ownership or rental status required; energy audit confirms suitability). Renters may qualify—contact local CAA for details.",
+          "Priority populations (not requirements): seniors 60+, people with disabilities, households with children 5 and under, high residential energy users, households with high energy burden.[1][2]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Free weatherization services to make homes more energy efficient, including installation of cost-effective measures based on energy audit (e.g., addressing insulation, air sealing, heating/cooling systems, health/safety issues). Improves comfort, air quality, and reduces energy costs. Energy efficiency education provided.[1][5]",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Online pre-application via Common Web Portal on Access MS (information forwarded to local Community Action Agency (CAA)).[1]",
+          "In-person: CAA staff contact to schedule appointment for full application.[1]",
+          "Phone: Contact local CAA (e.g., Southwest Mississippi Opportunity, Inc. at (601) 684-1777 or toll-free (877) 891-1271 for specific counties).[5]",
+          "Regional CAA offices handle intake—search for local CAA via MDHS.[1]"
+        ],
+        "processing_time": "Not specified; CAA contacts to schedule after pre-application submission.[1]",
+        "waitlist": "Funds availability varies (e.g., announced as 'currently available' in some areas); may depend on federal funding like ARRA.[5]",
+        "forms": [
+          "Pre-application through Access MS Common Web Portal; full application completed in-person with CAA.[1]"
+        ],
+        "documents": [
+          "Proof of residence (utility bills, lease, mortgage/deed).",
+          "Proof of identity for all over 18 (photo ID, driver's license, passport, etc.).",
+          "Proof of income for household (award letters like SSI/SS/disability, W2/pay stubs within 30 days, 1099, tax forms, unemployment letter).",
+          "Proof of ownership (valid deed) or rental status.",
+          "Appointment notice provides exact instructions; other documents may be required.[1]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Available statewide to Mississippi residents via local Community Action Agencies (CAAs).[1][2][5]",
+        "regional_variations": "Administered by local CAAs, which cover specific counties (e.g., Southwest Mississippi Opportunity, Inc. serves Adams, Amite, Claiborne, Copiah, Franklin, Jefferson, Lincoln, Pike, Walthall, Wilkinson counties). Contact local CAA for area-specific availability, wait times, or funds.[1][5]",
+        "offices_or_providers": [
+          "Local Community Action Agencies (CAAs); find via MDHS or Access MS.[1][5]"
+        ]
+      },
+      "official_source": "https://www.mdhs.ms.gov/wap/",
+      "gotchas": [
+        "Must submit pre-application online first via Access MS; full app is in-person only—no direct mail/online completion.[1]",
+        "Renters may qualify but need local CAA confirmation; not automatic.[1]",
+        "Priority for elderly/disabled/young children/high energy burden, but all ≤200% FPG eligible if funds allow.[1]",
+        "Dwelling eligibility requires pre-audit and proof of ownership/residency.[2]",
+        "Income verified at time of application using current FPG; non-applicants (e.g., certain citizenship statuses) must still disclose income.[2]",
+        "Availability tied to federal funds; may have regional shortages.[5]"
+      ],
+      "data_shape_notes": "Administered statewide via local CAAs with county-based providers; priority tiers for vulnerable groups like elderly; income at 200% FPG with full household verification; pre-app online, full app in-person.",
+      "_raw": "{\n  \"name\": \"Mississippi Weatherization Assistance Program (WAP)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"At or below 200% of the current Federal Poverty Guidelines. Exact dollar amounts vary annually and by household size; refer to the current FPG table on the MDHS website as no specific yearly figures are listed in sources. For example, priorities include seniors (60+), but no strict age cutoff for eligibility.[1][2]\",\n    \"asset_limits\": \"No asset limits mentioned in program rules.[1][2]\",\n    \"other_requirements\": [\n      \"Mississippi resident.\",\n      \"Household must complete full application process for eligibility determination, including verification of income, residence, and household members.\",\n      \"Dwelling must meet eligibility (e.g., primary residence; proof of ownership or rental status required; energy audit confirms suitability). Renters may qualify—contact local CAA for details.\",\n      \"Priority populations (not requirements): seniors 60+, people with disabilities, households with children 5 and under, high residential energy users, households with high energy burden.[1][2]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free weatherization services to make homes more energy efficient, including installation of cost-effective measures based on energy audit (e.g., addressing insulation, air sealing, heating/cooling systems, health/safety issues). Improves comfort, air quality, and reduces energy costs. Energy efficiency education provided.[1][5]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online pre-application via Common Web Portal on Access MS (information forwarded to local Community Action Agency (CAA)).[1]\",\n      \"In-person: CAA staff contact to schedule appointment for full application.[1]\",\n      \"Phone: Contact local CAA (e.g., Southwest Mississippi Opportunity, Inc. at (601) 684-1777 or toll-free (877) 891-1271 for specific counties).[5]\",\n      \"Regional CAA offices handle intake—search for local CAA via MDHS.[1]\"\n    ],\n    \"processing_time\": \"Not specified; CAA contacts to schedule after pre-application submission.[1]\",\n    \"waitlist\": \"Funds availability varies (e.g., announced as 'currently available' in some areas); may depend on federal funding like ARRA.[5]\",\n    \"forms\": [\"Pre-application through Access MS Common Web Portal; full application completed in-person with CAA.[1]\"],\n    \"documents\": [\n      \"Proof of residence (utility bills, lease, mortgage/deed).\",\n      \"Proof of identity for all over 18 (photo ID, driver's license, passport, etc.).\",\n      \"Proof of income for household (award letters like SSI/SS/disability, W2/pay stubs within 30 days, 1099, tax forms, unemployment letter).\",\n      \"Proof of ownership (valid deed) or rental status.\",\n      \"Appointment notice provides exact instructions; other documents may be required.[1]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Available statewide to Mississippi residents via local Community Action Agencies (CAAs).[1][2][5]\",\n    \"regional_variations\": \"Administered by local CAAs, which cover specific counties (e.g., Southwest Mississippi Opportunity, Inc. serves Adams, Amite, Claiborne, Copiah, Franklin, Jefferson, Lincoln, Pike, Walthall, Wilkinson counties). Contact local CAA for area-specific availability, wait times, or funds.[1][5]\",\n    \"offices_or_providers\": [\"Local Community Action Agencies (CAAs); find via MDHS or Access MS.[1][5]\"]\n  },\n  \"official_source\": \"https://www.mdhs.ms.gov/wap/\",\n  \"gotchas\": [\n    \"Must submit pre-application online first via Access MS; full app is in-person only—no direct mail/online completion.[1]\",\n    \"Renters may qualify but need local CAA confirmation; not automatic.[1]\",\n    \"Priority for elderly/disabled/young children/high energy burden, but all ≤200% FPG eligible if funds allow.[1]\",\n    \"Dwelling eligibility requires pre-audit and proof of ownership/residency.[2]\",\n    \"Income verified at time of application using current FPG; non-applicants (e.g., certain citizenship statuses) must still disclose income.[2]\",\n    \"Availability tied to federal funds; may have regional shortages.[5]\"\n  ],\n  \"data_shape_notes\": \"Administered statewide via local CAAs with county-based providers; priority tiers for vulnerable groups like elderly; income at 200% FPG with full household verification; pre-app online, full app in-person.\"\n}"
+    },
+    {
+      "name": "Mississippi SHIP (State Health Insurance Assistance Program)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "No income limits; open to all Medicare beneficiaries, their families, caregivers, and representatives of disabled persons[1][2][3]",
+        "asset_limits": "No asset limits or tests apply[1][2]",
+        "other_requirements": [
+          "Must be a Medicare beneficiary, disabled person, or inquiry on their behalf; no other restrictions[1][2][3]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Free one-on-one counseling on Medicare Parts A/B/C/D, Medigap, Medicare Savings Programs, Extra Help/LIS, Medicaid, long-term care options, SenioRxMS, appeals, claims, bill organization, fraud prevention via SMP; outreach events, presentations, printed materials, referrals[1][2][3][6]",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Phone: 1-844-822-4622 or 601-709-0624 (M-F 8am-5pm)[3][8]",
+          "Website: https://www.mdhs.ms.gov/adults-seniors/services-for-seniors/state-health-insurance-assistance-program/[3]",
+          "In-person and phone-based counseling available statewide[3]"
+        ],
+        "processing_time": "Immediate assistance via phone or in-person; no formal application processing[3]",
+        "waitlist": null,
+        "forms": [
+          "No specific forms required; contact for counseling[1][7]"
+        ],
+        "documents": [
+          "No documents needed for initial counseling; may require Medicare info, bills, or plan details for specific help[3][6][7]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None; available to all Mississippi Medicare beneficiaries[1][3][4]",
+        "regional_variations": "Uniform statewide administration through MDHS Division of Aging and Adult Services; local counseling via network but no specified differences in services, wait times, or providers by region[1][3][4]",
+        "offices_or_providers": [
+          "Main office: Mississippi Department of Human Services, 750 North State Street, Jackson MS 39202[4]"
+        ]
+      },
+      "official_source": "https://www.mdhs.ms.gov/adults-seniors/services-for-seniors/state-health-insurance-assistance-program/",
+      "gotchas": [
+        "Not a financial aid or healthcare provider program—only free counseling and education, no direct payments or services; distinguish from Small Rural Hospital Improvement (SHIP) grant which is unrelated[5]; services are unbiased and objective, not sales-oriented; counselors must be CMS-trained annually[1][2][3]"
+      ],
+      "data_shape_notes": "no income/asset/age test; purely counseling service with statewide phone/in-person access; funded by federal grants to MDHS, volunteer/staff network",
+      "_raw": "{\n  \"name\": \"Mississippi SHIP (State Health Insurance Assistance Program)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No income limits; open to all Medicare beneficiaries, their families, caregivers, and representatives of disabled persons[1][2][3]\",\n    \"asset_limits\": \"No asset limits or tests apply[1][2]\",\n    \"other_requirements\": [\"Must be a Medicare beneficiary, disabled person, or inquiry on their behalf; no other restrictions[1][2][3]\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free one-on-one counseling on Medicare Parts A/B/C/D, Medigap, Medicare Savings Programs, Extra Help/LIS, Medicaid, long-term care options, SenioRxMS, appeals, claims, bill organization, fraud prevention via SMP; outreach events, presentations, printed materials, referrals[1][2][3][6]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: 1-844-822-4622 or 601-709-0624 (M-F 8am-5pm)[3][8]\", \"Website: https://www.mdhs.ms.gov/adults-seniors/services-for-seniors/state-health-insurance-assistance-program/[3]\", \"In-person and phone-based counseling available statewide[3]\"],\n    \"processing_time\": \"Immediate assistance via phone or in-person; no formal application processing[3]\",\n    \"waitlist\": null,\n    \"forms\": [\"No specific forms required; contact for counseling[1][7]\"],\n    \"documents\": [\"No documents needed for initial counseling; may require Medicare info, bills, or plan details for specific help[3][6][7]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; available to all Mississippi Medicare beneficiaries[1][3][4]\",\n    \"regional_variations\": \"Uniform statewide administration through MDHS Division of Aging and Adult Services; local counseling via network but no specified differences in services, wait times, or providers by region[1][3][4]\",\n    \"offices_or_providers\": [\"Main office: Mississippi Department of Human Services, 750 North State Street, Jackson MS 39202[4]\"]\n  },\n  \"official_source\": \"https://www.mdhs.ms.gov/adults-seniors/services-for-seniors/state-health-insurance-assistance-program/\",\n  \"gotchas\": [\"Not a financial aid or healthcare provider program—only free counseling and education, no direct payments or services; distinguish from Small Rural Hospital Improvement (SHIP) grant which is unrelated[5]; services are unbiased and objective, not sales-oriented; counselors must be CMS-trained annually[1][2][3]\"],\n  \"data_shape_notes\": \"no income/asset/age test; purely counseling service with statewide phone/in-person access; funded by federal grants to MDHS, volunteer/staff network\"\n}"
+    },
+    {
+      "name": "Mississippi Meals on Wheels (via Aging and Disability Resource Centers)",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "No income limits or means testing; program is not income-based[2].",
+        "asset_limits": "No asset limits or means testing[2].",
+        "other_requirements": [
+          "Homebound or unable to shop for food, prepare meals, or socialize due to mobility challenges[1][5][6]",
+          "Potentially at risk for early institutionalization[6]",
+          "Priority to those on no congregate meals waiting list; spouses of eligible adults may qualify regardless of age[2][5]",
+          "Nutrition risk assessment via Consumer Information Form (CIF)[2]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Minimum five frozen meals per week, each providing at least 33 1/3% of dietary reference intakes (DRIs); may include hot noon meals 5 days/week in some areas[2][4][6]. Meals meet Older Americans Act nutrition standards[2]. Suggested donation or sliding scale possible, but voluntary contributions only[1][2].",
+        "varies_by": "region"
+      },
+      "application": {
+        "methods": [
+          "Contact local Aging and Disability Resource Center (ADRC) or Area Agency on Aging via MDHS search tool at https://www.mdhs.ms.gov/aging/services/[6]",
+          "Phone examples: 662-844-1441 ext. 1056 for Lee County (Mississippi Methodist Senior Services)[4]",
+          "Application and needs assessment required; possible doctor/social worker referral[1]"
+        ],
+        "processing_time": "Not specified in sources",
+        "waitlist": "Priority access if no one on home-delivered waiting list; waitlists exist and may limit availability[2]",
+        "forms": [
+          "Nutrition Risk Assessment via Consumer Information Form (CIF) or state client tracking system[2]"
+        ],
+        "documents": [
+          "Application form, possible referral letter from doctor or social worker[1]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Available through local providers and Area Agencies on Aging; varies by county availability[1][4][6]",
+        "regional_variations": "Delivery type (frozen vs. hot), frequency, and providers differ by region (e.g., 5 hot meals/week in Lee County via Mississippi Methodist Senior Services; minimum 5 frozen statewide)[2][4][6]. Use local ADRC search for specifics[6].",
+        "offices_or_providers": [
+          "Local Area Agencies on Aging/ADRCs statewide; example: Mississippi Methodist Senior Services, 2800 West Main St., Tupelo, MS 38801 for Lee County[4][6]"
+        ]
+      },
+      "official_source": "https://www.mdhs.ms.gov/aging/services/",
+      "gotchas": [
+        "Not means-tested, but priority to homebound 60+ with no congregate options; meals may be frozen (min 5/week) not always hot/fresh[2][6]",
+        "Availability limited by waitlists and local providers; contact ADRC first, not national Meals on Wheels[1][2][6]",
+        "Spouses under 60 may qualify if linked to eligible adult, but under-60 generally only with disabilities[5]",
+        "Voluntary contributions expected but not required; private options like Mom's Meals ($9.49/meal) if ineligible[3]"
+      ],
+      "data_shape_notes": "Administered statewide via local Area Agencies on Aging/ADRCs with no income/asset test; priority-based access with regional provider and meal format variations (frozen minimum vs. hot in some counties)",
+      "_raw": "{\n  \"name\": \"Mississippi Meals on Wheels (via Aging and Disability Resource Centers)\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"No income limits or means testing; program is not income-based[2].\",\n    \"asset_limits\": \"No asset limits or means testing[2].\",\n    \"other_requirements\": [\"Homebound or unable to shop for food, prepare meals, or socialize due to mobility challenges[1][5][6]\", \"Potentially at risk for early institutionalization[6]\", \"Priority to those on no congregate meals waiting list; spouses of eligible adults may qualify regardless of age[2][5]\", \"Nutrition risk assessment via Consumer Information Form (CIF)[2]\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Minimum five frozen meals per week, each providing at least 33 1/3% of dietary reference intakes (DRIs); may include hot noon meals 5 days/week in some areas[2][4][6]. Meals meet Older Americans Act nutrition standards[2]. Suggested donation or sliding scale possible, but voluntary contributions only[1][2].\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\"Contact local Aging and Disability Resource Center (ADRC) or Area Agency on Aging via MDHS search tool at https://www.mdhs.ms.gov/aging/services/[6]\", \"Phone examples: 662-844-1441 ext. 1056 for Lee County (Mississippi Methodist Senior Services)[4]\", \"Application and needs assessment required; possible doctor/social worker referral[1]\"],\n    \"processing_time\": \"Not specified in sources\",\n    \"waitlist\": \"Priority access if no one on home-delivered waiting list; waitlists exist and may limit availability[2]\",\n    \"forms\": [\"Nutrition Risk Assessment via Consumer Information Form (CIF) or state client tracking system[2]\"],\n    \"documents\": [\"Application form, possible referral letter from doctor or social worker[1]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Available through local providers and Area Agencies on Aging; varies by county availability[1][4][6]\",\n    \"regional_variations\": \"Delivery type (frozen vs. hot), frequency, and providers differ by region (e.g., 5 hot meals/week in Lee County via Mississippi Methodist Senior Services; minimum 5 frozen statewide)[2][4][6]. Use local ADRC search for specifics[6].\",\n    \"offices_or_providers\": [\"Local Area Agencies on Aging/ADRCs statewide; example: Mississippi Methodist Senior Services, 2800 West Main St., Tupelo, MS 38801 for Lee County[4][6]\"]\n  },\n  \"official_source\": \"https://www.mdhs.ms.gov/aging/services/\",\n  \"gotchas\": [\"Not means-tested, but priority to homebound 60+ with no congregate options; meals may be frozen (min 5/week) not always hot/fresh[2][6]\", \"Availability limited by waitlists and local providers; contact ADRC first, not national Meals on Wheels[1][2][6]\", \"Spouses under 60 may qualify if linked to eligible adult, but under-60 generally only with disabilities[5]\", \"Voluntary contributions expected but not required; private options like Mom's Meals ($9.49/meal) if ineligible[3]\"],\n  \"data_shape_notes\": \"Administered statewide via local Area Agencies on Aging/ADRCs with no income/asset test; priority-based access with regional provider and meal format variations (frozen minimum vs. hot in some counties)\"\n}"
+    },
+    {
+      "name": "Mississippi Family Caregiver Support Program",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Priority given to low-income older individuals with greatest social and economic need; no specific dollar amounts or household size table provided in sources[5][6].",
+        "asset_limits": "No asset limits specified[6].",
+        "other_requirements": [
+          "Caregivers: Adults age 18+ caring for eligible care recipients; special populations include adults 55+ caring for non-child adults 18+ with developmental disabilities, or grandparents/relatives 60+ caring for children 18 or younger[3][5][6].",
+          "Care recipients: Older adults (typically 60+) or people with disabilities; also children under 18 for relative caregivers 60+[6].",
+          "Priority to older individuals with greatest social/economic need, low-income, and those caring for persons with mental retardation/related developmental disabilities[5]."
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Five core services: 1) Information about available services; 2) Assistance gaining access to services; 3) Individual counseling, support groups, caregiver training; 4) Respite care (one unit = one hour); 5) Supplemental services on limited basis to complement care. No fixed dollar amounts or weekly hours specified beyond respite unit definition[5][6][7].",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Phone: Contact Mississippi Access to Care (MAC) Center at 844-822-4622[6].",
+          "Partnerships: Through community-based Area Agencies on Aging (AAA) and local providers[6]."
+        ],
+        "processing_time": "Not specified in sources.",
+        "waitlist": null,
+        "forms": [],
+        "documents": [
+          "Not specified; prepare proof of relationship, care needs, and any disability documentation as assessed by providers[6]."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None specified; delivered statewide via local AAAs and providers[6].",
+        "regional_variations": "Administered through local community service providers and AAAs, potentially varying by provider availability or wait times, but no specific differences detailed[6].",
+        "offices_or_providers": [
+          "Area Agencies on Aging (AAA), local community providers; contact via MAC Center[6]."
+        ]
+      },
+      "official_source": "https://www.mdhs.ms.gov/aging/caregivers/[6]",
+      "gotchas": [
+        "Not a paid caregiving program (no direct payments to family caregivers); focuses on support services like respite and counseling[6].",
+        "Often confused with Medicaid EDWP (pays family caregivers) or VA PCAFC (veteran-specific)[1][4].",
+        "Priority-based access may limit availability for non-priority caregivers[5].",
+        "Separate from Mississippi Dementia Care Program, which provides ~27 hours/month respite for ADRD caregivers[6]."
+      ],
+      "data_shape_notes": "Services delivered via local AAAs/providers with priority tiers for low-income/greatest need; no strict income/asset tests or fixed benefits; not payment-based",
+      "_raw": "{\n  \"name\": \"Mississippi Family Caregiver Support Program\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Priority given to low-income older individuals with greatest social and economic need; no specific dollar amounts or household size table provided in sources[5][6].\",\n    \"asset_limits\": \"No asset limits specified[6].\",\n    \"other_requirements\": [\n      \"Caregivers: Adults age 18+ caring for eligible care recipients; special populations include adults 55+ caring for non-child adults 18+ with developmental disabilities, or grandparents/relatives 60+ caring for children 18 or younger[3][5][6].\",\n      \"Care recipients: Older adults (typically 60+) or people with disabilities; also children under 18 for relative caregivers 60+[6].\",\n      \"Priority to older individuals with greatest social/economic need, low-income, and those caring for persons with mental retardation/related developmental disabilities[5].\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Five core services: 1) Information about available services; 2) Assistance gaining access to services; 3) Individual counseling, support groups, caregiver training; 4) Respite care (one unit = one hour); 5) Supplemental services on limited basis to complement care. No fixed dollar amounts or weekly hours specified beyond respite unit definition[5][6][7].\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: Contact Mississippi Access to Care (MAC) Center at 844-822-4622[6].\",\n      \"Partnerships: Through community-based Area Agencies on Aging (AAA) and local providers[6].\"\n    ],\n    \"processing_time\": \"Not specified in sources.\",\n    \"waitlist\": null,\n    \"forms\": [],\n    \"documents\": [\"Not specified; prepare proof of relationship, care needs, and any disability documentation as assessed by providers[6].\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None specified; delivered statewide via local AAAs and providers[6].\",\n    \"regional_variations\": \"Administered through local community service providers and AAAs, potentially varying by provider availability or wait times, but no specific differences detailed[6].\",\n    \"offices_or_providers\": [\"Area Agencies on Aging (AAA), local community providers; contact via MAC Center[6].\"]\n  },\n  \"official_source\": \"https://www.mdhs.ms.gov/aging/caregivers/[6]\",\n  \"gotchas\": [\n    \"Not a paid caregiving program (no direct payments to family caregivers); focuses on support services like respite and counseling[6].\",\n    \"Often confused with Medicaid EDWP (pays family caregivers) or VA PCAFC (veteran-specific)[1][4].\",\n    \"Priority-based access may limit availability for non-priority caregivers[5].\",\n    \"Separate from Mississippi Dementia Care Program, which provides ~27 hours/month respite for ADRD caregivers[6].\"\n  ],\n  \"data_shape_notes\": \"Services delivered via local AAAs/providers with priority tiers for low-income/greatest need; no strict income/asset tests or fixed benefits; not payment-based\"\n}"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP) - Mississippi",
+      "_parseError": true,
+      "_raw": "{\n  \"name\": \"Senior Community Service Employment Program (SCSEP) - Mississippi\",\n  \"eligibility\": {\n    \"age\": 55,\n    \"income_limits\": \"Family income at or below 125% of the federal poverty level, determined by size of family unit per HHS poverty guidelines (2025 guidelines effective January 15, 2025; contact local office for current table as exact dollar amounts not specified in sources)[1][2][3]\",\n    \"asset_limits\": \"No asset limits mentioned[1][2][3]\",\n    \"other_requirements\": [\"Unemployed\", \"Mississippi resident\", \"Few employment prospects\", \"U.S. citizen or authorized to work in U.S.\", \"If male, meet U.S. Military Selective Service registration requirements\", \"Priority for veterans, qualified spouses, and those with 'most in need' characteristics\"][2][3][4]\n  },\n  \"benefits\": {\n    \"type\": \"employment\",\n    \"value\": \"Part-time subsidized community service work experience (average 20 hours/week) at non-profit/government host agencies; training in skills for roles like child care, customer service, teachers' aide, computer technician, building maintenance, health care; pay at highest of federal/state/local minimum wage; typically 6 months training before job placement assistance[1][2][6]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"Contact local SCSEP office via Mississippi Department of Employment Security (MDES) (no specific statewide phone listed; email GWood@mdes.ms.gov for waiver info)\", \"In-person or mail application through local providers like area agencies on aging, non-profits (e.g., Copiah-Lincoln Community College, SMPDD)\", \"Programs administered in all 82 counties; find local office through MDES site http://mdes.ms.gov/i-need-a-job/senior-employment-program/\"][2][6]],\n    \"processing_time\": \"If eligible and no waiting list, enrolled immediately; no specific statewide timeline given[1]\",\n    \"waitlist\": \"Possible waiting list depending on local availability[1]\",\n    \"forms\": [\"Complete an application at local SCSEP office; no specific form name/number listed\"],\n    \"documents\": [\"Eligibility documentation (income proof, age, residency, employment status, citizenship/work authorization, Selective Service if applicable); maintain confidential files\"][3]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Available in all 82 counties; Mississippi residents only[2]\",\n    \"regional_variations\": \"Administered by MDES through varying local providers (area agencies on aging, non-profits like Copiah-Lincoln Community College, SMPDD); potential differences in wait times, availability, offices by county/region[2][5][6]\",\n    \"offices_or_providers\": [\"Mississippi Department of Employment Security (MDES)\", \"Area agencies on aging\", \"Non-profit organizations (e.g., Copiah-Lincoln Community College, South Mississippi Planning and Development District (SMPDD))\"][2][3][5][6]\n  },\n  \"official_source\": \"http://mdes.ms.gov/i-need-a-job/senior-employment-program/\",\n  \"gotchas\": [\"Priority service for veterans/qualified spouses and 'most in need' must be ensured[3][4]\", \"Eligibility determined and documented before any services[3]\", \"Limited duration (typically 6 months) focused on transition to unsubsidized employment, not long-term[1][2]\", \"Income based on 125% poverty level by family size—verify current HHS table[2][3]\", \"Potential waitlists vary locally[1]\", \"Funded under Title V Older Americans Act; subject to federal DOL rules and state waivers[2][3]\"],\n  \"data_shape_notes\": \"Administered statewide via 82 counties with multiple local non-profit/area agency providers; income test at 125% poverty by family size; priority tiers for veterans/most in need; no fixed asset limits or statewide processing times\"\n}"
+    },
+    {
+      "name": "Mississippi Legal Services (Senior Legal Helpline)",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "Household gross income at or below 125% of federal poverty guidelines. Exact dollar amounts vary annually by household size (based on HHS federal poverty guidelines); exceptions possible for seniors. Total receipts include wages, salaries before deductions, and regular public assistance payments (e.g., Social Security, SSI, TANF) from all resident household members contributing to support.[1][2][3][5]",
+        "asset_limits": "No asset limits mentioned in available sources.",
+        "other_requirements": [
+          "Reside in service area (central/southern Mississippi for MCLSC or northern for NMRLS)",
+          "Not prisoners",
+          "Civil legal issues only (e.g., consumer, housing, family, elder care)"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Free civil legal assistance including phone advice, document review, letter writing, advocacy, and representation in areas like elder care, housing, family, consumer, income maintenance. No attorney fees charged. Limited to phone advice in some cases with possible referrals.[1][3][4][5][8]",
+        "varies_by": "region"
+      },
+      "application": {
+        "methods": [
+          "Phone: MCLSC (central/southern MS) 1-800-519-2915 or 1-800-498-1804; NMRLS (north MS) 1-800-898-8731",
+          "Website: mscenterforlegalservices.org (apply online), mslegalservices.org (intake guide)",
+          "In-person: e.g., Jackson Office at 414 South State Street, Third Floor, Jackson, MS 39205"
+        ],
+        "processing_time": "Not specified in sources.",
+        "waitlist": null,
+        "forms": [
+          "Online intake form via mscenterforlegalservices.org or mslegalservices.org"
+        ],
+        "documents": [
+          "Proof of income (e.g., pay stubs, benefit statements), household size details, zip code/county for service area verification"
+        ]
+      },
+      "geography": {
+        "statewide": false,
+        "restrictions": "Divided by region: North Mississippi (NMRLS), central/southern Mississippi (MCLSC, 43 counties)",
+        "regional_variations": "Separate providers (NMRLS vs. MCLSC) with distinct intake hotlines as of January 1, 2026; NMRLS focuses on elder care, domestic violence; MCLSC on consumer, education, housing. Online intake for NMRLS temporarily closed.[5][7][8]",
+        "offices_or_providers": [
+          "North Mississippi Rural Legal Services (NMRLS): north MS, nmrls.com",
+          "Mississippi Center for Legal Services (MCLSC): central/southern MS (43 counties), mscenterforlegalservices.org"
+        ]
+      },
+      "official_source": "https://mscenterforlegalservices.org and https://www.mslegalservices.org",
+      "gotchas": [
+        "Not fully statewide—must use correct regional hotline/provider based on zip code/county (north vs. central/southern MS)",
+        "Income is gross household total from all contributing members; seniors may get exceptions but still screened",
+        "Excludes prisoners and criminal cases; only civil matters",
+        "Online intake for north MS temporarily closed—use phone",
+        "Hotline numbers changed January 2026; older numbers (e.g., 888-660-0008) may be outdated"
+      ],
+      "data_shape_notes": "Regionally divided with separate providers/hotlines; income at 125% FPL with senior exceptions; no asset test or exact dollar tables in sources (varies yearly by household size)",
+      "_raw": "{\n  \"name\": \"Mississippi Legal Services (Senior Legal Helpline)\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"Household gross income at or below 125% of federal poverty guidelines. Exact dollar amounts vary annually by household size (based on HHS federal poverty guidelines); exceptions possible for seniors. Total receipts include wages, salaries before deductions, and regular public assistance payments (e.g., Social Security, SSI, TANF) from all resident household members contributing to support.[1][2][3][5]\",\n    \"asset_limits\": \"No asset limits mentioned in available sources.\",\n    \"other_requirements\": [\"Reside in service area (central/southern Mississippi for MCLSC or northern for NMRLS)\", \"Not prisoners\", \"Civil legal issues only (e.g., consumer, housing, family, elder care)\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free civil legal assistance including phone advice, document review, letter writing, advocacy, and representation in areas like elder care, housing, family, consumer, income maintenance. No attorney fees charged. Limited to phone advice in some cases with possible referrals.[1][3][4][5][8]\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: MCLSC (central/southern MS) 1-800-519-2915 or 1-800-498-1804; NMRLS (north MS) 1-800-898-8731\",\n      \"Website: mscenterforlegalservices.org (apply online), mslegalservices.org (intake guide)\",\n      \"In-person: e.g., Jackson Office at 414 South State Street, Third Floor, Jackson, MS 39205\"\n    ],\n    \"processing_time\": \"Not specified in sources.\",\n    \"waitlist\": null,\n    \"forms\": [\"Online intake form via mscenterforlegalservices.org or mslegalservices.org\"],\n    \"documents\": [\"Proof of income (e.g., pay stubs, benefit statements), household size details, zip code/county for service area verification\"]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Divided by region: North Mississippi (NMRLS), central/southern Mississippi (MCLSC, 43 counties)\",\n    \"regional_variations\": \"Separate providers (NMRLS vs. MCLSC) with distinct intake hotlines as of January 1, 2026; NMRLS focuses on elder care, domestic violence; MCLSC on consumer, education, housing. Online intake for NMRLS temporarily closed.[5][7][8]\",\n    \"offices_or_providers\": [\"North Mississippi Rural Legal Services (NMRLS): north MS, nmrls.com\", \"Mississippi Center for Legal Services (MCLSC): central/southern MS (43 counties), mscenterforlegalservices.org\"]\n  },\n  \"official_source\": \"https://mscenterforlegalservices.org and https://www.mslegalservices.org\",\n  \"gotchas\": [\n    \"Not fully statewide—must use correct regional hotline/provider based on zip code/county (north vs. central/southern MS)\",\n    \"Income is gross household total from all contributing members; seniors may get exceptions but still screened\",\n    \"Excludes prisoners and criminal cases; only civil matters\",\n    \"Online intake for north MS temporarily closed—use phone\",\n    \"Hotline numbers changed January 2026; older numbers (e.g., 888-660-0008) may be outdated\"\n  ],\n  \"data_shape_notes\": \"Regionally divided with separate providers/hotlines; income at 125% FPL with senior exceptions; no asset test or exact dollar tables in sources (varies yearly by household size)\"\n}"
+    },
+    {
+      "name": "Mississippi Long-Term Care Ombudsman Program",
+      "eligibility": {
+        "age": null,
+        "income_limits": "No income limits; available regardless of ability to pay.",
+        "asset_limits": "No asset limits; no financial requirements.",
+        "other_requirements": [
+          "Resides in or is a potential resident of a long-term care facility subject to regulation or licensure by the Mississippi State Department of Health (e.g., nursing homes, assisted living facilities, personal care homes, adult day care, long-term rehab centers, hospice centers).",
+          "Complainants (e.g., family members) can contact on behalf of residents without residency requirement."
+        ]
+      },
+      "benefits": {
+        "type": "advocacy",
+        "value": "Assists with complaints (abuse, neglect, improper discharge, food quality, medication issues); conducts facility visits and assessments; provides information on rights; helps select facilities; systems advocacy for groups; resolves problems to improve quality of life. In 2023: 973 individuals assisted, 151,094 visits, 2,352 complaints fully resolved.",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Phone: 1-888-844-0041 (toll-free) or 601-359-4927 (State Ombudsman Lisa M. Smith)",
+          "Website: https://www.mdhs.ms.gov/aging/ombudsman/",
+          "Mail: MDHS, 200 South Lamar St., Jackson, MS 39201"
+        ],
+        "processing_time": "Timely responses to requests and complaints required, but no specific timeline stated.",
+        "waitlist": null,
+        "forms": [],
+        "documents": [
+          "No specific documents required; provide details of complaint or issue (facility name, resident info, description of problem)."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Limited to licensed long-term care facilities across all 82 counties.",
+        "regional_variations": "Services provided through contracts with Area Agencies on Aging (AAAs); 19 local ombudsmen (2 staff) cover statewide; each AAA must have at least one designated ombudsman; access ensured via travel funds.",
+        "offices_or_providers": [
+          "Delivered via Division of Aging and Adult Services (DAAS) contracts with AAAs; central office in Jackson."
+        ]
+      },
+      "official_source": "https://www.mdhs.ms.gov/aging/ombudsman/",
+      "gotchas": [
+        "Not a direct service provider (e.g., no personal care, meals, or financial aid); purely advocacy and complaint resolution.",
+        "No Medicaid or financial eligibility test—open to all, but only for regulated long-term care facilities.",
+        "Family/complainants drive access; residents don't apply independently.",
+        "Volunteers must be certified; public contacts staff or designated ombudsmen.",
+        "Not for community/home-based care—facility-focused only."
+      ],
+      "data_shape_notes": "No income/asset/age tests; advocacy-only (non-financial); delivered via 19 local ombudsmen through AAAs covering all counties; complaint-driven access.",
+      "_raw": "{\n  \"name\": \"Mississippi Long-Term Care Ombudsman Program\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No income limits; available regardless of ability to pay.\",\n    \"asset_limits\": \"No asset limits; no financial requirements.\",\n    \"other_requirements\": [\n      \"Resides in or is a potential resident of a long-term care facility subject to regulation or licensure by the Mississippi State Department of Health (e.g., nursing homes, assisted living facilities, personal care homes, adult day care, long-term rehab centers, hospice centers).\",\n      \"Complainants (e.g., family members) can contact on behalf of residents without residency requirement.\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"advocacy\",\n    \"value\": \"Assists with complaints (abuse, neglect, improper discharge, food quality, medication issues); conducts facility visits and assessments; provides information on rights; helps select facilities; systems advocacy for groups; resolves problems to improve quality of life. In 2023: 973 individuals assisted, 151,094 visits, 2,352 complaints fully resolved.\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: 1-888-844-0041 (toll-free) or 601-359-4927 (State Ombudsman Lisa M. Smith)\",\n      \"Website: https://www.mdhs.ms.gov/aging/ombudsman/\",\n      \"Mail: MDHS, 200 South Lamar St., Jackson, MS 39201\"\n    ],\n    \"processing_time\": \"Timely responses to requests and complaints required, but no specific timeline stated.\",\n    \"waitlist\": null,\n    \"forms\": [],\n    \"documents\": [\n      \"No specific documents required; provide details of complaint or issue (facility name, resident info, description of problem).\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Limited to licensed long-term care facilities across all 82 counties.\",\n    \"regional_variations\": \"Services provided through contracts with Area Agencies on Aging (AAAs); 19 local ombudsmen (2 staff) cover statewide; each AAA must have at least one designated ombudsman; access ensured via travel funds.\",\n    \"offices_or_providers\": [\"Delivered via Division of Aging and Adult Services (DAAS) contracts with AAAs; central office in Jackson.\"]\n  },\n  \"official_source\": \"https://www.mdhs.ms.gov/aging/ombudsman/\",\n  \"gotchas\": [\n    \"Not a direct service provider (e.g., no personal care, meals, or financial aid); purely advocacy and complaint resolution.\",\n    \"No Medicaid or financial eligibility test—open to all, but only for regulated long-term care facilities.\",\n    \"Family/complainants drive access; residents don't apply independently.\",\n    \"Volunteers must be certified; public contacts staff or designated ombudsmen.\",\n    \"Not for community/home-based care—facility-focused only.\"\n  ],\n  \"data_shape_notes\": \"No income/asset/age tests; advocacy-only (non-financial); delivered via 19 local ombudsmen through AAAs covering all counties; complaint-driven access.\"\n}"
+    },
+    {
+      "name": "Mississippi Access to Care (MAC) Network",
+      "eligibility": {
+        "age": 21,
+        "income_limits": "Must be Medicaid eligible under Aged, Blind, or Disabled (ABD) category; specific dollar amounts not listed in sources but tied to Mississippi Medicaid ABD income limits (typically around 100% FPL for individuals, varying by household; e.g., ~$1,255/month for single in 2026 per general Medicaid ABD rules, consult medicaid.ms.gov for exact FPL table). No separate MAC-specific income table provided.",
+        "asset_limits": "Medicaid ABD rules apply: $2,000 individual resource limit (exempt: primary home if equity ≤$752,000 in 2026 or spouse/minor/disabled child lives there, one vehicle, personal belongings, burial plots).",
+        "other_requirements": [
+          "Mississippi resident",
+          "Medicaid eligible",
+          "Require Nursing Facility Level of Care (NFLOC) assessed in-person via ADLs/IADLs/cognitive deficits by licensed social worker/nurse",
+          "Medically stable",
+          "Live in home or have intent to return"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Case Management, Adult Day Services, Expanded Home Health Services, Home Delivered Meals, Personal Care Services, Institutional Respite and/or In-Home Respite, Transition Assistance",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Website: https://www.mississippiaccesstocare.org (primary entry point for info/programs)",
+          "Phone: Not specified in results; contact Mississippi Division of Medicaid at general line or local Area Agency on Aging (search medicaid.ms.gov)",
+          "Mail/In-person: Apply via Mississippi Medicaid at medicaid.ms.gov or local offices; Pre-Admission Screening via eLTSS system"
+        ],
+        "processing_time": "Not specified",
+        "waitlist": "Likely due to waiver slots (common for HCBS); not detailed",
+        "forms": [
+          "Long Term Services and Supports (LTSS) assessment tool for NFLOC; Medicaid application via medicaid.ms.gov"
+        ],
+        "documents": [
+          "Proof of income/resources, Medicaid ID if applicable, medical records for disability/NFLOC, proof of residency, physician certification of medical necessity"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Statewide for eligible Mississippi residents",
+        "regional_variations": "Delivered via local providers/Area Agencies on Aging; potential differences in wait times/providers by region, but not detailed",
+        "offices_or_providers": [
+          "Local long-term care providers; contact via mississippiaccesstocare.org"
+        ]
+      },
+      "official_source": "https://www.mississippiaccesstocare.org",
+      "gotchas": [
+        "Must first qualify for Medicaid ABD (people miss the strict NFLOC assessment—not just age/disability)",
+        "Home equity limit $752,000 excludes many with home ownership",
+        "Waiver has limited slots leading to waitlists",
+        "Must accept all other benefits (e.g., VA/SSI) or lose eligibility",
+        "Dementia diagnosis alone does not guarantee NFLOC"
+      ],
+      "data_shape_notes": "Tied to Medicaid E&D Waiver; eligibility via Medicaid ABD + NFLOC; services fixed list, no dollar/hour caps specified; statewide but provider-delivered with potential regional wait/provider variations",
+      "_raw": "{\n  \"name\": \"Mississippi Access to Care (MAC) Network\",\n  \"eligibility\": {\n    \"age\": 21,\n    \"income_limits\": \"Must be Medicaid eligible under Aged, Blind, or Disabled (ABD) category; specific dollar amounts not listed in sources but tied to Mississippi Medicaid ABD income limits (typically around 100% FPL for individuals, varying by household; e.g., ~$1,255/month for single in 2026 per general Medicaid ABD rules, consult medicaid.ms.gov for exact FPL table). No separate MAC-specific income table provided.\",\n    \"asset_limits\": \"Medicaid ABD rules apply: $2,000 individual resource limit (exempt: primary home if equity ≤$752,000 in 2026 or spouse/minor/disabled child lives there, one vehicle, personal belongings, burial plots).\",\n    \"other_requirements\": [\"Mississippi resident\", \"Medicaid eligible\", \"Require Nursing Facility Level of Care (NFLOC) assessed in-person via ADLs/IADLs/cognitive deficits by licensed social worker/nurse\", \"Medically stable\", \"Live in home or have intent to return\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Case Management, Adult Day Services, Expanded Home Health Services, Home Delivered Meals, Personal Care Services, Institutional Respite and/or In-Home Respite, Transition Assistance\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"Website: https://www.mississippiaccesstocare.org (primary entry point for info/programs)\", \"Phone: Not specified in results; contact Mississippi Division of Medicaid at general line or local Area Agency on Aging (search medicaid.ms.gov)\", \"Mail/In-person: Apply via Mississippi Medicaid at medicaid.ms.gov or local offices; Pre-Admission Screening via eLTSS system\"],\n    \"processing_time\": \"Not specified\",\n    \"waitlist\": \"Likely due to waiver slots (common for HCBS); not detailed\",\n    \"forms\": [\"Long Term Services and Supports (LTSS) assessment tool for NFLOC; Medicaid application via medicaid.ms.gov\"],\n    \"documents\": [\"Proof of income/resources, Medicaid ID if applicable, medical records for disability/NFLOC, proof of residency, physician certification of medical necessity\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Statewide for eligible Mississippi residents\",\n    \"regional_variations\": \"Delivered via local providers/Area Agencies on Aging; potential differences in wait times/providers by region, but not detailed\",\n    \"offices_or_providers\": [\"Local long-term care providers; contact via mississippiaccesstocare.org\"]\n  },\n  \"official_source\": \"https://www.mississippiaccesstocare.org\",\n  \"gotchas\": [\"Must first qualify for Medicaid ABD (people miss the strict NFLOC assessment—not just age/disability)\", \"Home equity limit $752,000 excludes many with home ownership\", \"Waiver has limited slots leading to waitlists\", \"Must accept all other benefits (e.g., VA/SSI) or lose eligibility\", \"Dementia diagnosis alone does not guarantee NFLOC\"],\n  \"data_shape_notes\": \"Tied to Medicaid E&D Waiver; eligibility via Medicaid ABD + NFLOC; services fixed list, no dollar/hour caps specified; statewide but provider-delivered with potential regional wait/provider variations\"\n}"
+    }
+  ]
+}

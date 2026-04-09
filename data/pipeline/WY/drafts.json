@@ -1,0 +1,714 @@
+{
+  "state": "WY",
+  "stateName": "Wyoming",
+  "draftedAt": "2026-04-09T09:05:36.472Z",
+  "total": 15,
+  "successful": 3,
+  "programs": [
+    {
+      "name": "Wyoming Medicaid",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Community Choices Waiver (CCW)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "PACE (Program of All-Inclusive Care for the Elderly)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "id": "wyoming-snap-food-benefits",
+      "name": "SNAP (Food Stamps)",
+      "shortName": "SNAP",
+      "tagline": "Monthly food assistance of $100-500+ for parents on limited income",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "County Department of Family Services offices (list at dfs.wyo.gov/field-offices)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is struggling to afford groceries on a fixed income, SNAP provides monthly food assistance loaded onto an EBT card. Your parent can use this card like a debit card at grocery stores and farmers markets. The amount depends on household size and income — a single person might receive $100-300+ per month, while couples could get up to $546 monthly.\n\nParents age 60+ get special advantages in Wyoming: no gross income limit (only net income matters after deductions), higher asset limits ($4,500 vs $3,000), and unlimited deductions for medical expenses over $35/month and shelter costs. Because medical and housing expenses can significantly reduce countable income, many seniors qualify even if their initial income seems too high.",
+      "savingsRange": "$1,200 – $6,500/year in 2026",
+      "savingsSource": "Monthly benefit amounts based on household size and net income calculations",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+ = no gross income limit",
+          "Net income below $1,255/month (1 person)",
+          "Assets under $4,500 (age 60+)",
+          "Wyoming resident"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1255
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 1704
+          }
+        ],
+        "assetLimits": {
+          "individual": 4500,
+          "couple": 4500,
+          "countedAssets": [
+            "Bank accounts",
+            "Cash",
+            "Savings"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "Vehicles",
+            "SSI recipients fully exempt"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must live in Wyoming",
+          "Apply in county of residence",
+          "U.S. citizen or qualified non-citizen"
+        ],
+        "povertyLevelReference": "100% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online at dfs.wyo.gov or at your county office — typically processed within 30 days.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your county office",
+            "description": "You must apply in the county where your parent lives. Find offices at dfs.wyo.gov/field-offices."
+          },
+          {
+            "step": 2,
+            "title": "Gather income and expense documents",
+            "description": "Collect Social Security letters, bank statements, rent receipts, and medical bills over $35/month (these reduce countable income)."
+          },
+          {
+            "step": 3,
+            "title": "Submit application",
+            "description": "Apply online through My Wyoming portal or visit/mail to your county Department of Family Services office."
+          },
+          {
+            "step": 4,
+            "title": "Complete interview",
+            "description": "County office will schedule phone or in-person interview to review application and documents."
+          }
+        ],
+        "processingTime": "Typically 30 days; expedited processing within 7 days if very low income",
+        "waitlist": null,
+        "tip": "If your parent has high medical or housing costs, document everything over $35/month — these deductions can make the difference in qualifying.",
+        "urls": [
+          {
+            "label": "Apply Online (My Wyoming Portal)",
+            "url": "https://dfs.wyo.gov/assistance-programs/food-assistance"
+          },
+          {
+            "label": "Find Your County Office",
+            "url": "https://dfs.wyo.gov/field-offices"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Net Income Limits by Household Size (2026)",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 1255,
+              "notes": "After deductions for medical, shelter, etc."
+            },
+            {
+              "householdSize": 2,
+              "monthlyLimit": 1704,
+              "notes": "After deductions for medical, shelter, etc."
+            }
+          ],
+          "footnote": "Age 60+ households have no gross income limit — only these net limits apply after deductions"
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and savings",
+            "Cash on hand",
+            "Stocks and bonds"
+          ],
+          "excluded": [
+            "Primary home (any value)",
+            "Vehicles",
+            "SSI recipients are fully exempt from asset limits",
+            "POWER or Tribal TANF households exempt"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Driver's license or state ID",
+                "Proof of Wyoming residence"
+              ]
+            },
+            {
+              "name": "Income",
+              "items": [
+                "Social Security award letters",
+                "Pension statements",
+                "Pay stubs if working",
+                "Bank statements"
+              ]
+            },
+            {
+              "name": "Expenses (Critical for Seniors)",
+              "items": [
+                "Medical bills over $35/month",
+                "Rent or mortgage receipts",
+                "Utility bills",
+                "Prescription receipts"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Age 60+ households get unlimited deductions for medical expenses over $35/month and shelter costs. Even if your parent's Social Security seems too high, medical bills and housing costs often bring them under the net income limit."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "My mom gets $1,400/month in Social Security. Can she still qualify?",
+          "answer": "Possibly. Parents 60+ have no gross income limit in Wyoming — only net income matters after deductions. If she has medical expenses over $35/month or high housing costs, these deductions could bring her net income under $1,255/month. Medical deductions are unlimited for seniors."
+        },
+        {
+          "question": "Does my parent's house count against the asset limit?",
+          "answer": "No. The primary home doesn't count regardless of value. Only countable assets like bank accounts matter — $4,500 limit for households with someone 60+ or disabled, vs $3,000 for younger households."
+        },
+        {
+          "question": "Can my parent use SNAP benefits at farmers markets?",
+          "answer": "Yes. SNAP EBT cards work at authorized grocery stores, supermarkets, and many farmers markets. They cannot be used for alcohol, tobacco, hot prepared foods, or non-food items."
+        },
+        {
+          "question": "What if my parent lives in a different county than where I live?",
+          "answer": "Your parent must apply in the county where they live, not where you live. Each county has its own Department of Family Services office that processes applications for residents of that county."
+        },
+        {
+          "question": "How much would my parent actually receive each month?",
+          "answer": "It depends on net income after deductions. Maximum for a single person is around $291/month, but most people receive less based on their income. The formula subtracts 30% of net income from the maximum benefit amount."
+        },
+        {
+          "question": "My parent gets SSI. Does that help with SNAP?",
+          "answer": "Yes, significantly. SSI recipients are completely exempt from asset limits — they don't need to worry about the $4,500 limit at all. SSI income still counts toward income limits, but the asset exemption makes qualification much easier."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://dfs.wyo.gov/assistance-programs/food-assistance/supplemental-nutrition-assistance-program-snap",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "wyoming-energy-assistance-liheap",
+      "name": "Wyoming Energy Assistance (LIHEAP)",
+      "shortName": "Energy Assistance",
+      "tagline": "Help with heating bills for Wyoming families — up to $2,176 per heating season if your parent qualifies.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local Community Action Agency",
+            "type": "service-area"
+          },
+          {
+            "name": "Area Agency on Aging",
+            "type": "service-area"
+          },
+          {
+            "name": "Wyoming Department of Family Services LIEAP office",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent struggles with heating bills in Wyoming, this federal program pays between $49 and $2,176 directly to their utility or fuel company each heating season. Because the program prioritizes households with someone 60 or older, your parent gets first access to applications before October 1st.\n\nThe program covers all heating fuel types — natural gas, propane, oil, electricity, wood, pellets, even coal. If your parent faces a utility shutoff or runs out of fuel, crisis assistance provides up to $550 for emergencies. Income limits are $2,985/month for a single person or $3,904/month for a couple.",
+      "savingsRange": "$49 – $2,176/year in 2026",
+      "savingsSource": "Official Wyoming LIHEAP benefit amounts per heating season",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+ gets priority",
+          "Income below $2,985/month (single)",
+          "Responsible for home energy costs",
+          "All heating fuel types covered"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2985
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 3904
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 4823
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 5741
+          },
+          {
+            "householdSize": 5,
+            "monthlyLimit": 6660
+          },
+          {
+            "householdSize": 6,
+            "monthlyLimit": 7579
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be responsible for home energy costs (homeowners, renters, or permanently parked RVs)",
+          "U.S. citizen or eligible immigration status",
+          "All people sharing the utility bill count as one household"
+        ],
+        "povertyLevelReference": "60% Wyoming state median income"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online at lieapwyo.org or call 1-800-246-4221 — payments begin October 1st for most cases.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Choose your application method",
+            "description": "Apply online at lieapwyo.org, call 1-800-246-4221 for phone callback system, or visit your local Community Action Agency or Area Agency on Aging"
+          },
+          {
+            "step": 2,
+            "title": "Gather required documents",
+            "description": "Collect proof of identity, 12 months of income for all household members, recent utility bill, Social Security numbers, and citizenship documentation"
+          },
+          {
+            "step": 3,
+            "title": "Submit during priority window if eligible",
+            "description": "If your parent is 60+, disabled, or has children under 6, apply before October 1st for priority processing"
+          },
+          {
+            "step": 4,
+            "title": "Wait for direct payment",
+            "description": "Program pays utility or fuel vendor directly — your parent doesn't handle the money"
+          }
+        ],
+        "processingTime": "Payments start October 1st for crisis/disconnection cases; varies by application volume",
+        "waitlist": "Higher-than-normal applications reported; phone callback system manages demand",
+        "tip": "Use the phone callback system at 1-800-246-4221 to hold your place in line rather than waiting on hold",
+        "urls": [
+          {
+            "label": "Apply Online",
+            "url": "https://lieapwyo.org"
+          },
+          {
+            "label": "Program Information",
+            "url": "https://dfs.wyo.gov/assistance-programs/home-utilities-energy-assistance/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits by Household Size",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 2985,
+              "annualLimit": 35820
+            },
+            {
+              "householdSize": 2,
+              "monthlyLimit": 3904,
+              "annualLimit": 46848
+            },
+            {
+              "householdSize": 3,
+              "monthlyLimit": 4823,
+              "annualLimit": 57876
+            },
+            {
+              "householdSize": 4,
+              "monthlyLimit": 5741,
+              "annualLimit": 68892
+            },
+            {
+              "householdSize": 5,
+              "monthlyLimit": 6660,
+              "annualLimit": 79920
+            },
+            {
+              "householdSize": 6,
+              "monthlyLimit": 7579,
+              "annualLimit": 90948
+            }
+          ],
+          "footnote": "2026 limits based on 60% Wyoming state median income. SSI or SNAP recipients may qualify automatically."
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Status",
+              "items": [
+                "Photo ID for applicant",
+                "Social Security numbers for all household members",
+                "Proof of U.S. citizenship or eligible immigration status"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "12 months of income documentation for all household members",
+                "Recent utility bill showing account information",
+                "For crisis cases: shutoff notice or proof of empty fuel tank"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Applications are accepted October 1st through April 30th only. Priority window for people 60+ ends October 1st — apply early for faster processing."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If your parent and other people share a utility bill, they all count as one household for income calculation — this affects both eligibility and benefit amount."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent's income is just over the limit?",
+          "answer": "If your parent receives SSI or SNAP benefits, they may qualify automatically regardless of the income chart. Otherwise, income must be at or below the monthly limits shown."
+        },
+        {
+          "question": "Can my parent get help if they're facing a utility shutoff right now?",
+          "answer": "Yes, crisis assistance provides up to $550 for emergencies like utility disconnection or empty fuel tanks. You'll need the shutoff notice or proof of emergency when applying."
+        },
+        {
+          "question": "Does this program help with air conditioning costs in summer?",
+          "answer": "No, Wyoming LIHEAP only covers heating costs during the October-April heating season. There is no routine cooling assistance available."
+        },
+        {
+          "question": "What if my parent heats with wood or propane instead of natural gas?",
+          "answer": "The program covers all heating fuel types — natural gas, oil, propane, electricity, wood, pellets, and coal. Payment goes directly to the fuel vendor."
+        },
+        {
+          "question": "Can my parent apply if they live in a mobile home or RV?",
+          "answer": "Yes, as long as the RV is permanently parked and your parent is responsible for the energy costs. Homeowners and renters also qualify."
+        },
+        {
+          "question": "How long does it take to get help after applying?",
+          "answer": "Payments begin October 1st for most cases, but crisis situations may be processed faster. High application volume can cause delays — use the callback system at 1-800-246-4221."
+        }
+      ],
+      "phone": "1-800-246-4221",
+      "sourceUrl": "https://dfs.wyo.gov/assistance-programs/home-utilities-energy-assistance/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "wyoming-wap-weatherization-assistance",
+      "name": "Weatherization Assistance Program (WAP)",
+      "shortName": "Wyoming WAP",
+      "tagline": "Free home weatherization services that can cut your parent's heating bills by 5-25%.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Johnson County: 307-686-2730",
+            "type": "service-area"
+          },
+          {
+            "name": "Other regional offices available through 1-800-246-4221",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent struggles with high heating bills, Wyoming's Weatherization Assistance Program provides free home improvements like insulation, window sealing, and heating system repairs. These services can reduce heating costs by 5-25% annually — meaning hundreds in savings for a typical Wyoming home.\n\nUp to $4,000 in weatherization work is available per household at no cost. Your parent must meet income limits (up to 200% of Federal Poverty Level in most cases) and live in the home year-round. Because this program uses a priority system favoring elderly residents, seniors often move faster through the waiting list than younger applicants.\n\nThe program combines with Wyoming's energy assistance (LIEAP) through one application, but approval doesn't guarantee immediate service. A professional energy audit determines what work your parent's home needs before any improvements begin.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Wyoming resident",
+          "Income up to 200% FPL",
+          "Own home or have landlord permission",
+          "Live in home year-round"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2337
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 3162
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 3987
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 4812
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be Wyoming resident",
+          "Legal owner of residence OR renter with written landlord permission",
+          "Must live in residence during program year",
+          "Home cannot be listed for sale or rent within 12 months",
+          "Home cannot have received prior DOE weatherization assistance"
+        ],
+        "povertyLevelReference": "200% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online year-round at lieapwyo.org or call 1-800-246-4221 — processing begins October 1st annually.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Submit joint LIEAP/WAP application",
+            "description": "Complete the combined application online at lieapwyo.org or by calling 1-800-246-4221. Include proof of income and residency."
+          },
+          {
+            "step": 2,
+            "title": "Provide landlord documentation (renters only)",
+            "description": "Submit written landlord permission, signed rental agreement, and completed Weatherization Landlord Agreement form."
+          },
+          {
+            "step": 3,
+            "title": "Wait for priority scoring",
+            "description": "Your application receives priority points based on factors like age, disability, and presence of young children. Elderly applicants get priority."
+          },
+          {
+            "step": 4,
+            "title": "Schedule energy audit",
+            "description": "If selected for services, a weatherization contractor will contact you to schedule a comprehensive home energy audit."
+          },
+          {
+            "step": 5,
+            "title": "Receive weatherization services",
+            "description": "Approved improvements (insulation, sealing, heating repairs) are completed at no cost up to $4,000 per home."
+          }
+        ],
+        "processingTime": "Application processing begins October 1st annually. Crisis applications (lost heat, insufficient fuel) are expedited.",
+        "waitlist": "Approval does not guarantee services will be received that year. Services based on priority point system with waiting list.",
+        "tip": "If your parent receives SNAP, SSI, or TANF, they automatically meet income requirements — no additional income documentation needed.",
+        "urls": [
+          {
+            "label": "Apply online",
+            "url": "https://lieapwyo.org"
+          },
+          {
+            "label": "Program information",
+            "url": "https://dfs.wyo.gov/assistance-programs/home-utilities-energy-assistance/weatherization-assistance-program-wap-2/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits by Household Size (200% Federal Poverty Level)",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 2337,
+              "annualLimit": 28044
+            },
+            {
+              "householdSize": 2,
+              "monthlyLimit": 3162,
+              "annualLimit": 37944
+            },
+            {
+              "householdSize": 3,
+              "monthlyLimit": 3987,
+              "annualLimit": 47844
+            },
+            {
+              "householdSize": 4,
+              "monthlyLimit": 4812,
+              "annualLimit": 57744
+            }
+          ],
+          "footnote": "2026 Federal Poverty Guidelines. Automatic qualification if receiving SNAP, SSI, or TANF."
+        },
+        {
+          "type": "tier-comparison",
+          "heading": "Priority System",
+          "tiers": [
+            {
+              "name": "High Priority",
+              "description": "Elderly residents, disabled individuals, homes with children under 5",
+              "incomeLimit": "Up to 200% FPL",
+              "coverage": "Move faster through waiting list"
+            },
+            {
+              "name": "Standard Priority",
+              "description": "All other eligible households",
+              "incomeLimit": "Up to 200% FPL",
+              "coverage": "Standard waiting list placement"
+            }
+          ]
+        },
+        {
+          "type": "county-directory",
+          "heading": "Regional Contacts",
+          "offices": [
+            {
+              "name": "Johnson County",
+              "type": "service-area",
+              "phone": "307-686-2730",
+              "address": null
+            },
+            {
+              "name": "Statewide Application Line",
+              "type": "service-area",
+              "phone": "1-800-246-4221",
+              "address": null
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Residency",
+              "items": [
+                "Proof of Wyoming residency",
+                "Proof of legal ownership OR landlord-signed rental verification form"
+              ]
+            },
+            {
+              "name": "Income (if not receiving SNAP/SSI/TANF)",
+              "items": [
+                "Pay stubs or benefit statements",
+                "Social Security statements",
+                "Pension documentation"
+              ]
+            },
+            {
+              "name": "For Renters Only",
+              "items": [
+                "Written landlord permission",
+                "Signed rental agreement",
+                "Completed Weatherization Landlord Agreement form"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Approval doesn't guarantee service this year. Wyoming uses a priority point system, and elderly applicants get preference, but even approved applicants may wait on a list for actual weatherization work."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If your parent's home has already received weatherization through any Department of Energy program, they're not eligible. Check with the program office if you're unsure about past weatherization history."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent apply if they're renting their home?",
+          "answer": "Yes, but they need written permission from their landlord and must submit a signed rental agreement. The landlord must also complete a Weatherization Landlord Agreement form."
+        },
+        {
+          "question": "What if Mom's income is just over the limit?",
+          "answer": "Federal funds are restricted to 60% of statewide median income (about $33,600 for a family of four), but Wyoming offers a state supplement for those earning up to 185% of Federal Poverty Level. Call 1-800-246-4221 to discuss your parent's specific situation."
+        },
+        {
+          "question": "How long does the waiting list take?",
+          "answer": "There's no set timeline. The program uses a priority system where elderly residents, disabled individuals, and homes with children under 5 move faster. Even after approval, you may wait months or longer for actual weatherization work."
+        },
+        {
+          "question": "What happens if Dad wants to sell his house after weatherization?",
+          "answer": "The home cannot be listed for sale or rent within 12 months of receiving weatherization services. Make sure your parent plans to stay put for at least a year before applying."
+        },
+        {
+          "question": "Can Mom get both energy bill help and weatherization?",
+          "answer": "Yes. The same application covers both LIEAP (energy bill assistance) and WAP (weatherization services). LIEAP provides immediate help with heating bills, while WAP provides long-term home improvements."
+        },
+        {
+          "question": "What if the power company is threatening to shut off heat?",
+          "answer": "Apply immediately for crisis assistance. Crisis applications for lost heat, insufficient fuel, or impending disconnection are expedited. Crisis assistance is available until April 15, 2025, with possible extension for severe weather."
+        }
+      ],
+      "phone": "1-800-246-4221",
+      "sourceUrl": "https://dfs.wyo.gov/assistance-programs/home-utilities-energy-assistance/weatherization-assistance-program-wap-2/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "name": "Wyoming State Health Insurance Information Program (WSHIIP/SHIP)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Meals on Wheels (via Title III-B Support Services)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "National Family Caregiver Support Program",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Legal Assistance for Seniors (via Wyoming Senior Services Board)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Wyoming Home Services Program",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Wyoming Senior Companion Program",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    }
+  ],
+  "stateOverview": null
+}

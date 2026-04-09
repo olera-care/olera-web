@@ -1,0 +1,111 @@
+{
+  "entity": "Idaho",
+  "entitySlug": "idaho",
+  "state": "ID",
+  "stateName": "Idaho",
+  "isRegion": false,
+  "exploredAt": "2026-04-09T08:50:16.224Z",
+  "programCount": 14,
+  "programs": [
+    {
+      "name": "Idaho Medicaid for the Aged, Blind, and Disabled (ABD)",
+      "what_it_does": "Provides medical coverage for eligible seniors and disabled individuals, including long-term care services. It covers doctor visits, hospital stays, prescription drugs, and other health needs for those who qualify financially.",
+      "who_its_for": "Seniors aged 65+ or disabled individuals with low income and limited assets meeting Idaho's Medicaid ABD eligibility criteria.",
+      "official_url": "https://healthandwelfare.idaho.gov/services-programs/medicaid-health",
+      "benefit_value": "Varies by services; covers eligible medical costs including nursing home care and home health."
+    },
+    {
+      "name": "Idaho Aged and Disabled Waiver",
+      "what_it_does": "Offers home and community-based services to help seniors and disabled individuals avoid institutionalization. Services include personal care, homemaker assistance, and adult day health to support independent living.",
+      "who_its_for": "Seniors aged 65+ or disabled adults at risk of nursing home placement with income/assets meeting Medicaid waiver limits.",
+      "official_url": "https://healthandwelfare.idaho.gov/services-programs/aged-disabled-waiver",
+      "benefit_value": "Varies; up to $50,000+ annually in services depending on assessed needs."
+    },
+    {
+      "name": "Program of All-Inclusive Care for the Elderly (PACE) - Limited Availability in Idaho",
+      "what_it_does": "Delivers comprehensive medical and social services to frail seniors in community settings, including adult day care and transportation. It coordinates all Medicare and Medicaid-covered care through interdisciplinary teams.",
+      "who_its_for": "Seniors aged 55+ certified as nursing home eligible who live in PACE service areas (not widely available in ID).",
+      "official_url": "https://www.medicare.gov/health-drug-plans/health-plans/pace",
+      "benefit_value": "Full coverage of approved services; no additional premiums for dual-eligible participants."
+    },
+    {
+      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "what_it_does": "Pays Medicare premiums, deductibles, and copayments for low-income beneficiaries. QMB covers Part A/B premiums and costs; SLMB covers Part B; QI offers additional Part B help.",
+      "who_its_for": "Seniors on Medicare with incomes below 100-135% FPL and limited assets (administered via Idaho Medicaid).",
+      "official_url": "https://healthandwelfare.idaho.gov/services-programs/medicare-savings-programs",
+      "benefit_value": "QMB: Full Part A/B cost coverage; SLMB/QI: Part B premium ($174.70/month in 2024)."
+    },
+    {
+      "name": "Supplemental Nutrition Assistance Program (SNAP)",
+      "what_it_does": "Provides monthly benefits via EBT card for purchasing groceries at approved retailers. Seniors get deductions for medical expenses over $35/month to increase eligibility.",
+      "who_its_for": "Seniors 60+ with net income under 100% FPL ($1,580/month gross for individual).",
+      "official_url": "https://healthandwelfare.idaho.gov/services-programs/snap-food-assistance",
+      "benefit_value": "Up to $291/month max for individual; average $105-125/month for seniors 60+."
+    },
+    {
+      "name": "Idaho Energy Assistance (LIHEAP)",
+      "what_it_does": "Offers grants to help pay heating and cooling bills during winter months. Reduces energy costs for low-income households through direct payments to utilities.",
+      "who_its_for": "Low-income seniors (typically <150% FPL) during October-March application period.",
+      "official_url": "https://healthandwelfare.idaho.gov/services-programs/energy-assistance",
+      "benefit_value": "$500–$1,000 per year."
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "what_it_does": "Improves home energy efficiency through insulation, sealing leaks, and efficient appliances/heaters. Free services reduce utility bills and improve health/safety.",
+      "who_its_for": "Low-income seniors (often <200% FPL) and disabled homeowners or renters.",
+      "official_url": "https://www.liheap-idaho.org/weatherization",
+      "benefit_value": "Free home upgrades; average energy savings 20-30% on bills."
+    },
+    {
+      "name": "Senior Health Insurance Benefit Advisors (SHIBA) Program",
+      "what_it_does": "SHIBA offers free, statewide counseling, information, and referrals on Medicare, Medicaid, and long-term care insurance choices. It assists seniors in navigating health insurance options and resolving related issues.[6]",
+      "who_its_for": "All Idaho residents, particularly seniors dealing with Medicare, Medicaid, or long-term care insurance.[6]",
+      "whats_unique": "Idaho Department of Insurance-run program providing unbiased, expert assistance on senior health insurance, not a standard federal offering and varies by state implementation.[6]",
+      "official_url": "https://doi.idaho.gov/SHIBA/",
+      "benefit_value": "Free counseling services; potential savings on insurance premiums through informed choices, no fixed monetary benefit.[6]"
+    },
+    {
+      "name": "Meals on Wheels (via Area Agencies on Aging)",
+      "what_it_does": "Delivers nutritious meals to homebound seniors to combat malnutrition and isolation. Often includes safety checks and friendly visits by volunteers.",
+      "who_its_for": "Homebound seniors 60+ unable to prepare meals, often on low income via AAAs.",
+      "official_url": "http://www.aging.idaho.gov/",
+      "benefit_value": "1-2 meals/day, 5 days/week; ~$5-10/meal subsidized (often free/suggested donation)."
+    },
+    {
+      "name": "Family Caregiver Support Program (FCSP)",
+      "what_it_does": "Offers respite care, training, and support groups to ease caregiver burden. Provides supplemental services like personal care to enable family caregiving.",
+      "who_its_for": "Family caregivers of seniors 60+ or disabled adults via Area Agencies on Aging.",
+      "official_url": "http://www.aging.idaho.gov/",
+      "benefit_value": "Varies; respite up to $20-30/hour, training free."
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "what_it_does": "Provides part-time paid work training at community sites leading to unsubsidized jobs. Combines employment with supportive services for older workers.",
+      "who_its_for": "Unemployed low-income seniors 55+ seeking work experience.",
+      "official_url": "https://www.dol.gov/agencies/eta/seniors",
+      "benefit_value": "Minimum wage part-time work (~20 hrs/week); training and job placement."
+    },
+    {
+      "name": "Legal Assistance for Seniors (via AAAs)",
+      "what_it_does": "Offers free legal advice, representation for benefits, housing, and abuse issues. Helps navigate Medicare, Medicaid, and elder rights matters.",
+      "who_its_for": "Low-income seniors 60+ through Area Agencies on Aging.",
+      "official_url": "http://www.aging.idaho.gov/",
+      "benefit_value": "Free consultations and representation; value varies by case."
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "what_it_does": "Advocates for residents in long-term care facilities resolving complaints and ensuring quality care. Provides confidential assistance and education on rights.",
+      "who_its_for": "Seniors in nursing homes, assisted living, or similar facilities in Idaho.",
+      "official_url": "http://www.aging.idaho.gov/programs/ombudsman",
+      "benefit_value": "Free advocacy services; protects rights and improves facility conditions."
+    },
+    {
+      "name": "LEARN Idaho Free Senior Education Program",
+      "what_it_does": "LEARN Idaho provides free education resources including video libraries, in-person tech classes, online courses, and community events focused on caregiving, technology, health, and digital literacy for seniors. It empowers older adults statewide through accessible, no-cost lifelong learning tailored to regional needs.[1]",
+      "who_its_for": "Idaho residents aged 60 and older, caregivers, and professionals.[1]",
+      "whats_unique": "Statewide nonprofit offering free senior-specific tech education and elder care video libraries not universally available in other states; partners with universities like Boise State for fee-waived class audits.[1]",
+      "official_url": "https://learnidaho.org",
+      "benefit_value": "Free access to video libraries, in-person classes, online modules, and events; no monetary value specified, fully no-cost.[1]"
+    }
+  ]
+}

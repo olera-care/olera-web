@@ -1,0 +1,134 @@
+{
+  "entity": "West Virginia",
+  "entitySlug": "west-virginia",
+  "state": "WV",
+  "stateName": "West Virginia",
+  "isRegion": false,
+  "exploredAt": "2026-04-09T09:03:27.717Z",
+  "programCount": 17,
+  "programs": [
+    {
+      "name": "West Virginia Medicaid Personal Care Services Program",
+      "what_it_does": "This in-home care program provides trained direct-care workers to assist with Activities of Daily Living (ADLs) like eating, bathing, and dressing in the home, workplace, or community. A registered nurse evaluates medical eligibility based on ADL needs.[6]",
+      "who_its_for": "West Virginia Medicaid members needing help in at least three ADLs; seniors/disabled aiming for independent living.[6]",
+      "official_url": "https://pcs.wv.gov",
+      "benefit_value": "In-home personal care services tailored to assessed ADL deficits; hours based on nurse evaluation."
+    },
+    {
+      "name": "Aged and Disabled Waiver",
+      "what_it_does": "The Aged and Disabled Waiver is a Home and Community Based Services (HCBS) Medicaid waiver providing long-term care alternatives to nursing homes. It offers services like personal care to help eligible seniors and disabled individuals live in their homes or communities.[5]",
+      "who_its_for": "Medicaid-eligible seniors aged 65+ or disabled WV residents meeting medical and financial criteria for nursing facility level of care.[5]",
+      "official_url": "https://bfa.wv.gov/medicaid-and-medicaid-long-term-care",
+      "benefit_value": "Covers HCBS such as personal care, home modifications; prevents or delays institutionalization; value based on assessed needs."
+    },
+    {
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "what_it_does": "PACE provides comprehensive medical and social services to eligible frail seniors, including primary care, hospitalization, prescription drugs, and supportive services to avoid nursing home placement. In WV, availability is limited; no specific WV-branded name identified in results.",
+      "who_its_for": "Community-dwelling adults 55+ certified for nursing facility level of care, able to live safely at home with services; Medicaid/Medicare eligible.[1]",
+      "official_url": "https://www.cms.gov/medicare/health-plans/pace",
+      "benefit_value": "Full capitation coverage of Medicare/Medicaid benefits plus extras; prevents institutionalization (limited WV programs per general knowledge)."
+    },
+    {
+      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "what_it_does": "These programs help pay Medicare Part A/B premiums, deductibles, coinsurance, and copayments for low-income beneficiaries. Administered via WV Medicaid as Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), and Qualifying Individual (QI).",
+      "who_its_for": "Low-income Medicare enrollees aged 65+ meeting WV-specific income/asset limits (e.g., higher thresholds than full Medicaid).[1]",
+      "official_url": "https://bfa.wv.gov/medicaid-and-medicaid-long-term-care",
+      "benefit_value": "QMB: Full premiums/costs; SLMB: Part B premium; QI: Part B premium; 2026 income limits apply (e.g., ~135-150% FPL)."
+    },
+    {
+      "name": "SNAP",
+      "what_it_does": "The Supplemental Nutrition Assistance Program provides monthly benefits via EBT card to buy food for eligible low-income households. Seniors aged 60+ have simplified rules and higher deductions in WV.[7][8]",
+      "who_its_for": "Low-income WV seniors 60+, disabled, or families meeting income tests (elderly defined as 60+ for SNAP).[8]",
+      "official_url": "https://www.wvpath.wv.gov",
+      "benefit_value": "Average monthly benefit ~$200-300/person (varies by income/household; max for elderly higher with deductions)."
+    },
+    {
+      "name": "LIHEAP",
+      "what_it_does": "Low Income Home Energy Assistance Program provides grants to help with heating/cooling bills, crisis assistance, and weatherproofing. WV administers federally funded grants seasonally.",
+      "who_its_for": "Low-income WV households including seniors 60+ meeting income guidelines (up to 150% FPL typically).",
+      "official_url": "https://dhhr.wv.gov/bcf/services/Pages/LIHEAP.aspx",
+      "benefit_value": "One-time grants $200-$1,000+ for heating; crisis aid immediate (varies by fuel type/need)."
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "what_it_does": "WAP funds energy efficiency upgrades like insulation, sealing, and furnace repairs to reduce energy costs and improve home safety. Administered via WV agencies for low-income homes.",
+      "who_its_for": "Low-income WV households, prioritizing seniors 60+, disabled, with children.",
+      "official_url": "https://www.wvweatherization.com",
+      "benefit_value": "Free home improvements valued $3,000-$8,000 avg.; long-term energy savings 20-30%."
+    },
+    {
+      "name": "SHIP (State Health Insurance Assistance Program)",
+      "what_it_does": "Free counseling on Medicare options, appeals, and extra help; WV's SHIP provides unbiased assistance via local agencies. Helps seniors choose plans and maximize benefits.",
+      "who_its_for": "WV Medicare beneficiaries 65+, caregivers, family seeking Medicare guidance.",
+      "official_url": "https://www.wvseniorservices.org/ship",
+      "benefit_value": "Free one-on-one counseling; saves avg. $1,000+/year via optimal plan selection."
+    },
+    {
+      "name": "Meals on Wheels",
+      "what_it_does": "Delivers nutritious meals to homebound seniors to promote health and independence. Provided via WV Area Agencies on Aging like Metro AAA.",
+      "who_its_for": "Homebound WV seniors 60+ unable to prepare meals, often low-income.",
+      "official_url": "http://www.metroaaa.com/programs--services.html",
+      "benefit_value": "5-14 meals/week at $3-7/suggested donation; full subsidy for low-income."
+    },
+    {
+      "name": "Caregiver/Respite Support",
+      "what_it_does": "Provides temporary relief for family caregivers through in-home aides, adult day care, or facility respite. Offered via WV Aged & Disabled Waiver or AAA programs.",
+      "who_its_for": "Family caregivers of WV seniors/disabled on Medicaid waivers or via local AAAs.",
+      "official_url": "https://www.wvseniorservices.org",
+      "benefit_value": "Hourly respite up to 240/year; reduces caregiver burnout (value based on assessed needs)."
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "what_it_does": "Subsidized part-time community service jobs with training for low-income seniors to gain skills and transition to unsubsidized employment. Administered nationally in WV.",
+      "who_its_for": "Unemployed low-income WV residents 55+ (income <125% FPL).",
+      "official_url": "https://www.dol.gov/agencies/eta/seniors",
+      "benefit_value": "20 hrs/week at min. wage (~$7,000/year); work experience/training."
+    },
+    {
+      "name": "Legal Aid for Seniors",
+      "what_it_does": "Free legal services for income-eligible seniors on issues like benefits, housing, abuse. Provided by Legal Aid of WV and Senior Legal Aid.",
+      "who_its_for": "Low-income WV seniors 60+ facing civil legal problems.",
+      "official_url": "https://www.seniorlegalaid.org",
+      "benefit_value": "Pro bono representation; resolves benefits/housing disputes (saves thousands in costs)."
+    },
+    {
+      "name": "Long-Term Care Ombudsman",
+      "what_it_does": "Advocates for residents in nursing homes/assisted living, investigating complaints and ensuring quality care rights. WV program operates statewide via AAAs.",
+      "who_its_for": "WV seniors in long-term care facilities, families, staff reporting issues.",
+      "official_url": "https://www.wvombudsman.org",
+      "benefit_value": "Free advocacy/resolution of 1,000s complaints/year; improves facility conditions."
+    },
+    {
+      "name": "Lighthouse Program",
+      "what_it_does": "The Lighthouse Program provides subsidized in-home care to seniors who are not eligible for Medicaid. Services include help with personal care tasks, mobility, meal preparation, errands, and light housekeeping, up to 60 hours per month.[1]",
+      "who_its_for": "Seniors aged 60+ who are ineligible for Medicaid but need assistance to remain at home.[1]",
+      "whats_unique": "State-funded program specifically for non-Medicaid eligible seniors, offering low-cost in-home care not covered by federal programs.[1]",
+      "official_url": "https://assets.ctfassets.net/61iwodu7d9u0/2e2S5gy4vxrHeiYrS6Z8as/3e17f78378a4e0403ed7e78e53771f44/MC-3398203-state-resource-pages--west-virginia.pdf",
+      "benefit_value": "Up to 60 hours of in-home care per month at low cost.[1]"
+    },
+    {
+      "name": "Aging Well, Safe at Home Initiative: WV BoSS Home Modification and Accessibility Program",
+      "what_it_does": "This program funds home modifications and accessibility devices to help seniors live more independently at home. It supports those aged 60+ who demonstrate a need for such improvements.[7]",
+      "who_its_for": "Seniors aged 60+ needing home modifications for independent living.[4][7]",
+      "whats_unique": "State-specific initiative through the Bureau of Senior Services (BoSS) providing targeted funds for home accessibility, beyond standard federal aid.[4][7]",
+      "official_url": "https://www.wvadrc.com/assistance-programs.html",
+      "benefit_value": "Funds for home modifications and accessibility devices (amount based on assessed need).[7]"
+    },
+    {
+      "name": "Take Me Home, West Virginia Program",
+      "what_it_does": "The program assists seniors in transitioning from long-term care facilities back into the community. It provides support to enable safe return and maintenance of home-based living.[4]",
+      "who_its_for": "Seniors in long-term care facilities ready to transition home.[4]",
+      "whats_unique": "West Virginia-specific program focused on community re-entry from institutional care, coordinated by local area agencies on aging.[4]",
+      "official_url": "http://www.metroaaa.com/programs--services.html",
+      "benefit_value": "Assistance for transition services (details vary by individual assessment).[4]"
+    },
+    {
+      "name": "FAIR (Family Alzheimer's In-Home Respite)",
+      "what_it_does": "FAIR provides in-home respite care for families caring for individuals with Alzheimer's. It helps caregivers by offering temporary relief through state-supported services.[6]",
+      "who_its_for": "Families and caregivers of seniors with Alzheimer's disease.[6]",
+      "whats_unique": "State-funded respite program tailored to Alzheimer's care, administered by the Bureau of Senior Services, not a universal federal offering.[6]",
+      "official_url": "https://grants.wv.gov/resources/constituent/Pages/Seniors.aspx",
+      "benefit_value": "In-home respite hours (eligibility and amount determined by program guidelines).[6]"
+    }
+  ]
+}

@@ -1,0 +1,688 @@
+{
+  "state": "SD",
+  "stateName": "South Dakota",
+  "diveAt": "2026-04-09T09:01:00.352Z",
+  "total": 14,
+  "parsed": 12,
+  "programs": [
+    {
+      "name": "Medicaid for the Aged, Blind and Disabled (ABD)",
+      "eligibility": {
+        "age": 65,
+        "income_limits": "Follows SSI methodologies; for Regular Medicaid/ABD: $994/month for an individual. Income cap state for nursing home care (under $2,982/month for single applicant in 2026). Limits increase slightly annually with SSI/FPL adjustments; for couples or larger households, varies (e.g., $1,491/month for some ABD categories). Full table not specified in sources—use SSI standards ($943 federal SSI max in 2024, state supplement applies).[1][3][4]",
+        "asset_limits": "$2,000 for an individual (countable resources). IRAs and retirement plans count as assets (not exempt). Exempt: primary home (up to $752,000 equity limit for LTC), one vehicle, personal belongings, burial plots. 60-month look-back for nursing home/waiver applicants (transfers penalized); does not apply to Regular Medicaid.[3][4]",
+        "other_requirements": [
+          "Aged (65+), blind, or disabled (SSI disability criteria).",
+          "For LTC (nursing home/waivers): Nursing Home Level of Care (NHLOC) or functional need for ADLs required.",
+          "Separate Medicaid application required, even for SSI recipients; state uses SSI income/resource methodologies.[1]",
+          "Medical/functional assessment for long-term services."
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Comprehensive Medicaid health coverage including doctor visits, hospital care, prescription drugs, long-term services (nursing home, home health, waivers for community-based care), help with ADLs. Nursing home: $100/month personal needs allowance. Specific services require NHLOC; no fixed dollar/hour amounts statewide—covers costs per approved plan.[3][4]",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Online: South Dakota ACCESS portal (dss.sd.gov/apply/)",
+          "Phone: 1-855-256-6742",
+          "Mail/In-person: Local Department of Social Services office (find via dss.sd.gov/regionaloffices/)"
+        ],
+        "processing_time": "Not specified in sources; typically 45-90 days for ABD due to disability determination.",
+        "waitlist": "Entitlement program—no waitlist for Regular Medicaid/ABD; all eligible receive services.[3]",
+        "forms": [
+          "Separate Medicaid application (SF-18 or online ACCESS form); no specific ABD form number listed."
+        ],
+        "documents": [
+          "Proof of age/identity (birth certificate, ID).",
+          "Income verification (pay stubs, SSI award letters).",
+          "Asset statements (bank, retirement accounts).",
+          "Disability proof (SSI notice, doctor's records).",
+          "Medical needs assessment for LTC."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None",
+        "regional_variations": "Administered via regional DSS offices; no service/benefit differences noted, possible processing variations.",
+        "offices_or_providers": [
+          "Local DSS offices statewide (e.g., Sioux Falls, Rapid City—locations at dss.sd.gov/regionaloffices/)"
+        ]
+      },
+      "official_source": "https://dss.sd.gov/medicaid/",
+      "gotchas": [
+        "Separate Medicaid app required even if on SSI—state does not auto-enroll via 1634 agreement.[1]",
+        "Income cap for nursing home ($2,982/month single); over-limit can qualify via Miller Trust.[3][4]",
+        "60-month look-back penalizes asset transfers for LTC (not Regular Medicaid).[3]",
+        "IRAs count as assets—no protection.[4]",
+        "Home equity limit $752,000 blocks LTC if exceeded.[4]"
+      ],
+      "data_shape_notes": "Tied to SSI criteria but requires separate state app; entitlement (no waitlist); LTC has NHLOC/ADL tiers and look-back; income cap state with spousal protections (CSRA $32k-$163k).[1][3][4]",
+      "_raw": "{\n  \"name\": \"Medicaid for the Aged, Blind and Disabled (ABD)\",\n  \"eligibility\": {\n    \"age\": 65,\n    \"income_limits\": \"Follows SSI methodologies; for Regular Medicaid/ABD: $994/month for an individual. Income cap state for nursing home care (under $2,982/month for single applicant in 2026). Limits increase slightly annually with SSI/FPL adjustments; for couples or larger households, varies (e.g., $1,491/month for some ABD categories). Full table not specified in sources—use SSI standards ($943 federal SSI max in 2024, state supplement applies).[1][3][4]\",\n    \"asset_limits\": \"$2,000 for an individual (countable resources). IRAs and retirement plans count as assets (not exempt). Exempt: primary home (up to $752,000 equity limit for LTC), one vehicle, personal belongings, burial plots. 60-month look-back for nursing home/waiver applicants (transfers penalized); does not apply to Regular Medicaid.[3][4]\",\n    \"other_requirements\": [\n      \"Aged (65+), blind, or disabled (SSI disability criteria).\",\n      \"For LTC (nursing home/waivers): Nursing Home Level of Care (NHLOC) or functional need for ADLs required.\",\n      \"Separate Medicaid application required, even for SSI recipients; state uses SSI income/resource methodologies.[1]\",\n      \"Medical/functional assessment for long-term services.\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Comprehensive Medicaid health coverage including doctor visits, hospital care, prescription drugs, long-term services (nursing home, home health, waivers for community-based care), help with ADLs. Nursing home: $100/month personal needs allowance. Specific services require NHLOC; no fixed dollar/hour amounts statewide—covers costs per approved plan.[3][4]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: South Dakota ACCESS portal (dss.sd.gov/apply/)\",\n      \"Phone: 1-855-256-6742\",\n      \"Mail/In-person: Local Department of Social Services office (find via dss.sd.gov/regionaloffices/)\"\n    ],\n    \"processing_time\": \"Not specified in sources; typically 45-90 days for ABD due to disability determination.\",\n    \"waitlist\": \"Entitlement program—no waitlist for Regular Medicaid/ABD; all eligible receive services.[3]\",\n    \"forms\": [\"Separate Medicaid application (SF-18 or online ACCESS form); no specific ABD form number listed.\"],\n    \"documents\": [\n      \"Proof of age/identity (birth certificate, ID).\",\n      \"Income verification (pay stubs, SSI award letters).\",\n      \"Asset statements (bank, retirement accounts).\",\n      \"Disability proof (SSI notice, doctor's records).\",\n      \"Medical needs assessment for LTC.\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None\",\n    \"regional_variations\": \"Administered via regional DSS offices; no service/benefit differences noted, possible processing variations.\",\n    \"offices_or_providers\": [\"Local DSS offices statewide (e.g., Sioux Falls, Rapid City—locations at dss.sd.gov/regionaloffices/)\"]\n  },\n  \"official_source\": \"https://dss.sd.gov/medicaid/\",\n  \"gotchas\": [\n    \"Separate Medicaid app required even if on SSI—state does not auto-enroll via 1634 agreement.[1]\",\n    \"Income cap for nursing home ($2,982/month single); over-limit can qualify via Miller Trust.[3][4]\",\n    \"60-month look-back penalizes asset transfers for LTC (not Regular Medicaid).[3]\",\n    \"IRAs count as assets—no protection.[4]\",\n    \"Home equity limit $752,000 blocks LTC if exceeded.[4]\"\n  ],\n  \"data_shape_notes\": \"Tied to SSI criteria but requires separate state app; entitlement (no waitlist); LTC has NHLOC/ADL tiers and look-back; income cap state with spousal protections (CSRA $32k-$163k).[1][3][4]\"\n}"
+    },
+    {
+      "name": "Home and Community-Based Options and Person Centered Excellence (HOPE) Waiver",
+      "eligibility": {
+        "age": "65 or older, or 18-64 with qualifying disability from Social Security Administration; those 18-64 disabled can continue under aged category after 65[1][2][3][4]",
+        "income_limits": "Up to 300% of Federal Benefit Rate (FBR); $2,901/month per applicant in 2025 regardless of marital status (each spouse individually if both applying); spousal income not deemed; Needs Allowance up to $3,160.50/month joint income to spouse. (Note: Earlier 2019 figure was $2,313; adjusts annually January)[1][2]",
+        "asset_limits": "Single/widowed: $2,000 countable assets (cash, checking/savings, accessible resources). Married: Applicant $2,000; non-applicant spouse up to $126,420. Home exempt if applicant lives there/intent to return (2025 equity ≤$730,000), spouse/minor child/disabled child in home[1][2]",
+        "other_requirements": [
+          "South Dakota resident",
+          "Nursing Facility Level of Care (NFLOC) via Home Care Assessment (HCA) tool",
+          "Not resident of hospital, nursing facility, or ICF/MR",
+          "Receive at least one waiver service monthly",
+          "Participate in needs assessment",
+          "Reasonable indication of need for services based on standardized assessment[1][2][3][6]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Home and community-based services including adult day services, in-home respite care, homemaker, nutrition/meals, safety/transportation, caregiver respite, community living home, assisted living; specific hours/dollars not fixed, person-centered based on assessment[4][5][8]",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Phone: Call Dakota at Home (833) 663-9673[5]",
+          "Dakota At Home Referral for HOPE Waiver/State Plan Services (assessment initiation)[3]"
+        ],
+        "processing_time": "Not specified in sources",
+        "waitlist": "Capped at 1,834 concurrent recipients (2019 data; likely ongoing cap implies waitlist)[1]",
+        "forms": [
+          "Dakota At Home Referral for HOPE Waiver/State Plan Services[3]"
+        ],
+        "documents": [
+          "Call for information; prepare financial/income/asset proof, disability verification if applicable, proof of residency, home equity if relevant[2][5]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None specified; statewide for SD residents[2][6]",
+        "regional_variations": "No regional differences detailed; providers must contract with DHS/LTSS, may vary locally but program uniform[3]",
+        "offices_or_providers": [
+          "Dakota at Home (statewide helpline); LTSS Case Management Specialists conduct assessments; example location: Pierre - E. Highway 34[3][5]"
+        ]
+      },
+      "official_source": "https://dss.sd.gov/docs/medicaid/providers/billingmanuals/HCBS/Home_and_Community_Based_Options_and_Person-Centered_Excellence.pdf[3]",
+      "gotchas": [
+        "Strict cap (1,834 slots) creates waitlist; apply early[1]",
+        "Must meet NFLOC via specific HCA tool; needs assessment required[2][3]",
+        "Income/assets calculated individually even if married, but home equity limit $730,000 (2025) if intent to return[2]",
+        "Cannot be in institutional setting; must use ≥1 service monthly[1][3]",
+        "Annual FBR adjustments (e.g., $2,901 in 2025); check current year[2]",
+        "Persons 18-64 disabled transition to aged category at 65[2]"
+      ],
+      "data_shape_notes": "Capped enrollment (1,834); person-centered services vary by assessment/need not fixed amounts; financials individual per applicant with spousal protections; NFLOC via HCA tool; statewide but provider-contracted[1][2][3]",
+      "_raw": "{\n  \"name\": \"Home and Community-Based Options and Person Centered Excellence (HOPE) Waiver\",\n  \"eligibility\": {\n    \"age\": \"65 or older, or 18-64 with qualifying disability from Social Security Administration; those 18-64 disabled can continue under aged category after 65[1][2][3][4]\",\n    \"income_limits\": \"Up to 300% of Federal Benefit Rate (FBR); $2,901/month per applicant in 2025 regardless of marital status (each spouse individually if both applying); spousal income not deemed; Needs Allowance up to $3,160.50/month joint income to spouse. (Note: Earlier 2019 figure was $2,313; adjusts annually January)[1][2]\",\n    \"asset_limits\": \"Single/widowed: $2,000 countable assets (cash, checking/savings, accessible resources). Married: Applicant $2,000; non-applicant spouse up to $126,420. Home exempt if applicant lives there/intent to return (2025 equity ≤$730,000), spouse/minor child/disabled child in home[1][2]\",\n    \"other_requirements\": [\n      \"South Dakota resident\",\n      \"Nursing Facility Level of Care (NFLOC) via Home Care Assessment (HCA) tool\",\n      \"Not resident of hospital, nursing facility, or ICF/MR\",\n      \"Receive at least one waiver service monthly\",\n      \"Participate in needs assessment\",\n      \"Reasonable indication of need for services based on standardized assessment[1][2][3][6]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Home and community-based services including adult day services, in-home respite care, homemaker, nutrition/meals, safety/transportation, caregiver respite, community living home, assisted living; specific hours/dollars not fixed, person-centered based on assessment[4][5][8]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: Call Dakota at Home (833) 663-9673[5]\",\n      \"Dakota At Home Referral for HOPE Waiver/State Plan Services (assessment initiation)[3]\"\n    ],\n    \"processing_time\": \"Not specified in sources\",\n    \"waitlist\": \"Capped at 1,834 concurrent recipients (2019 data; likely ongoing cap implies waitlist)[1]\",\n    \"forms\": [\"Dakota At Home Referral for HOPE Waiver/State Plan Services[3]\"],\n    \"documents\": [\"Call for information; prepare financial/income/asset proof, disability verification if applicable, proof of residency, home equity if relevant[2][5]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None specified; statewide for SD residents[2][6]\",\n    \"regional_variations\": \"No regional differences detailed; providers must contract with DHS/LTSS, may vary locally but program uniform[3]\",\n    \"offices_or_providers\": [\"Dakota at Home (statewide helpline); LTSS Case Management Specialists conduct assessments; example location: Pierre - E. Highway 34[3][5]\"]\n  },\n  \"official_source\": \"https://dss.sd.gov/docs/medicaid/providers/billingmanuals/HCBS/Home_and_Community_Based_Options_and_Person-Centered_Excellence.pdf[3]\",\n  \"gotchas\": [\n    \"Strict cap (1,834 slots) creates waitlist; apply early[1]\",\n    \"Must meet NFLOC via specific HCA tool; needs assessment required[2][3]\",\n    \"Income/assets calculated individually even if married, but home equity limit $730,000 (2025) if intent to return[2]\",\n    \"Cannot be in institutional setting; must use ≥1 service monthly[1][3]\",\n    \"Annual FBR adjustments (e.g., $2,901 in 2025); check current year[2]\",\n    \"Persons 18-64 disabled transition to aged category at 65[2]\"\n  ],\n  \"data_shape_notes\": \"Capped enrollment (1,834); person-centered services vary by assessment/need not fixed amounts; financials individual per applicant with spousal protections; NFLOC via HCA tool; statewide but provider-contracted[1][2][3]\"\n}"
+    },
+    {
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "eligibility": {
+        "age": 55,
+        "income_limits": "No income limits for PACE eligibility itself; however, full coverage without private pay requires Medicaid eligibility, which in South Dakota follows federal guidelines for long-term care (income under 300% of Federal Benefit Rate: $2,901/month for 2025; assets $2,000 or less excluding primary home). Limits do not vary by household size for PACE medical eligibility. Private pay option available if not Medicaid-eligible (average $4,000–$5,000/month).[2][5]",
+        "asset_limits": "No asset limits for PACE eligibility; Medicaid portion limits countable assets to $2,000 (exempt: primary home, one vehicle, personal belongings, burial funds up to certain limits).",
+        "other_requirements": [
+          "Live in the service area of a PACE organization (not yet available statewide in SD).",
+          "Certified by South Dakota as needing nursing home level of care.",
+          "Able to live safely in the community with PACE services.",
+          "Not enrolled in Medicare Advantage, Medicare prepayment plan, Medicare Part D, or hospice."
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "All-inclusive: primary medical care, adult day health center, in-home/outpatient therapy, transportation, meals/nutrition, prescription drugs, hospitalization, nursing home care if needed, personal care, social services; no copays/deductibles once enrolled; covers all Medicare/Medicaid-approved services without limits on scope/duration.",
+        "varies_by": "region"
+      },
+      "application": {
+        "methods": [
+          "No active programs in South Dakota; contact South Dakota Department of Human Services (DHS) for updates (general LTSS line not specified in sources).",
+          "Process (when available): Intake consultation at PACE center/home, in-home assessment, nursing facility LOC determination, Medicaid eligibility check, care plan development."
+        ],
+        "processing_time": "Varies by state/provider; not specified for SD.",
+        "waitlist": "Potential waitlists depending on provider capacity when programs launch.",
+        "forms": [
+          "State-specific Medicaid forms and PACE enrollment agreement (exact names vary; no SD-specific forms active)."
+        ],
+        "documents": [
+          "Proof of age/residency.",
+          "Medical records for nursing home LOC assessment.",
+          "Medicare/Medicaid cards (if applicable).",
+          "Income/asset documentation for Medicaid eligibility.",
+          "ID/proof of citizenship or legal residency."
+        ]
+      },
+      "geography": {
+        "statewide": false,
+        "restrictions": "Limited to service areas of PACE organizations; no operational PACE programs in South Dakota as of latest data (feasibility studies ongoing).[5][6]",
+        "regional_variations": "Not applicable yet; future programs may vary by provider locations and wait times.",
+        "offices_or_providers": [
+          "None operational; feasibility study for statewide implementation in progress via SD DHS."
+        ]
+      },
+      "official_source": "https://dhs.sd.gov (South Dakota Department of Human Services; see LTSS provider portal for PACE feasibility updates)",
+      "gotchas": [
+        "PACE not yet available in South Dakota—no providers operational despite feasibility studies.",
+        "Must live in specific service area (none currently).",
+        "Nursing home LOC certification by state required—not automatic.",
+        "Private pay expensive ($4,000+/month) if not dual-eligible.",
+        "Cannot be in Medicare Advantage or hospice.",
+        "Voluntary; can disenroll anytime, but providers have strict rules for involuntary disenrollment."
+      ],
+      "data_shape_notes": "No operational programs in SD (feasibility stage only); eligibility not financially restricted but tied to non-existent service areas and state LOC certification; benefits comprehensive but provider-limited.",
+      "_raw": "{\n  \"name\": \"Program of All-Inclusive Care for the Elderly (PACE)\",\n  \"eligibility\": {\n    \"age\": 55,\n    \"income_limits\": \"No income limits for PACE eligibility itself; however, full coverage without private pay requires Medicaid eligibility, which in South Dakota follows federal guidelines for long-term care (income under 300% of Federal Benefit Rate: $2,901/month for 2025; assets $2,000 or less excluding primary home). Limits do not vary by household size for PACE medical eligibility. Private pay option available if not Medicaid-eligible (average $4,000–$5,000/month).[2][5]\",\n    \"asset_limits\": \"No asset limits for PACE eligibility; Medicaid portion limits countable assets to $2,000 (exempt: primary home, one vehicle, personal belongings, burial funds up to certain limits).\",\n    \"other_requirements\": [\n      \"Live in the service area of a PACE organization (not yet available statewide in SD).\",\n      \"Certified by South Dakota as needing nursing home level of care.\",\n      \"Able to live safely in the community with PACE services.\",\n      \"Not enrolled in Medicare Advantage, Medicare prepayment plan, Medicare Part D, or hospice.\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"All-inclusive: primary medical care, adult day health center, in-home/outpatient therapy, transportation, meals/nutrition, prescription drugs, hospitalization, nursing home care if needed, personal care, social services; no copays/deductibles once enrolled; covers all Medicare/Medicaid-approved services without limits on scope/duration.\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"No active programs in South Dakota; contact South Dakota Department of Human Services (DHS) for updates (general LTSS line not specified in sources).\",\n      \"Process (when available): Intake consultation at PACE center/home, in-home assessment, nursing facility LOC determination, Medicaid eligibility check, care plan development.\"\n    ],\n    \"processing_time\": \"Varies by state/provider; not specified for SD.\",\n    \"waitlist\": \"Potential waitlists depending on provider capacity when programs launch.\",\n    \"forms\": [\"State-specific Medicaid forms and PACE enrollment agreement (exact names vary; no SD-specific forms active).\"],\n    \"documents\": [\n      \"Proof of age/residency.\",\n      \"Medical records for nursing home LOC assessment.\",\n      \"Medicare/Medicaid cards (if applicable).\",\n      \"Income/asset documentation for Medicaid eligibility.\",\n      \"ID/proof of citizenship or legal residency.\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Limited to service areas of PACE organizations; no operational PACE programs in South Dakota as of latest data (feasibility studies ongoing).[5][6]\",\n    \"regional_variations\": \"Not applicable yet; future programs may vary by provider locations and wait times.\",\n    \"offices_or_providers\": [\"None operational; feasibility study for statewide implementation in progress via SD DHS.\"]\n  },\n  \"official_source\": \"https://dhs.sd.gov (South Dakota Department of Human Services; see LTSS provider portal for PACE feasibility updates)\",\n  \"gotchas\": [\n    \"PACE not yet available in South Dakota—no providers operational despite feasibility studies.\",\n    \"Must live in specific service area (none currently).\",\n    \"Nursing home LOC certification by state required—not automatic.\",\n    \"Private pay expensive ($4,000+/month) if not dual-eligible.\",\n    \"Cannot be in Medicare Advantage or hospice.\",\n    \"Voluntary; can disenroll anytime, but providers have strict rules for involuntary disenrollment.\"\n  ],\n  \"data_shape_notes\": \"No operational programs in SD (feasibility stage only); eligibility not financially restricted but tied to non-existent service areas and state LOC certification; benefits comprehensive but provider-limited.\"\n}"
+    },
+    {
+      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Must be entitled to or receiving Medicare benefits (typically age 65+ or disabled). South Dakota follows federal guidelines with state-specific dollar amounts that vary yearly. For 2025/2026 (most recent cited): QMB - Individual: ≤$1,275-$1,350/mo, Couple: ≤$1,724-$1,824/mo (100% FPL); SLMB - Individual: ≤$1,526/mo (120% FPL), Couple: ≤$2,064/mo; QI - Individual: ≤$1,715-$1,781/mo (135% FPL), Couple: ≤$2,320-$2,400/mo. Limits include $20/mo disregard; exacts from SD DSS. No full household size table beyond individual/couple; contact DSS for >2.[2][1][4][6][3]",
+        "asset_limits": "Individual: $9,430-$9,950 (recent citations); Couple: $14,130-$14,910. Counts: checking/savings, CDs. Exempt: primary home, one car, burial plots, irrevocable burial trusts (up to certain value). Older SD source cites lower $4,000/$6,000—use current federal/SD figures.[1][4][6][3]",
+        "other_requirements": [
+          "Must have Medicare Part A (premium-free or otherwise)",
+          "U.S. citizen or qualified immigrant",
+          "Reside in South Dakota",
+          "For QI: Annual reapplication; first-come first-served with priority to prior recipients"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "QMB: Pays Medicare Part A/B premiums, deductibles, coinsurance, copays. SLMB/QI: Pays Part B premiums only. Auto-qualifies for Extra Help (low/no Part D costs, e.g., ≤$12.65/drug in 2026). No fixed dollar/hour—covers full specified costs.[2][1][4][3]",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Mail/PDF form: https://dss.sd.gov/formsandpubs/docs/MEDELGBLTY/270Medicaresavingsapplication.pdf[2]",
+          "Phone: Toll-free 1-877-999-5612 (TTY/TDD 1-877-486-2048); ask for benefits specialist or local office[6][2]",
+          "Online eligibility info: https://dss.sd.gov/medicaid/Eligibility/default.aspx[2]",
+          "In-person/mail: Local DSS office or SHIINE volunteer assistance (free counseling/application help)[6]",
+          "SHIINE volunteers for application support at senior centers"
+        ],
+        "processing_time": "Not specified in sources; typically 45 days for Medicaid-related (state variation possible)",
+        "waitlist": "QI has first-come, first-served with funding limits and priority for prior year recipients[4]",
+        "forms": [
+          "Application for Medicare Savings Programs (Form 270)[2]"
+        ],
+        "documents": [
+          "Social Security number (or immigrant document)",
+          "Proof of Medicare enrollment",
+          "Income proof (paystubs, benefit statements)",
+          "Asset proof (bank statements)",
+          "ID/residency proof"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "South Dakota residents only",
+        "regional_variations": "Local DSS/SHIINE offices may handle in-person; no major differences noted, but contact local for wait/processing[6]",
+        "offices_or_providers": [
+          "Local Department of Social Services (DSS) offices",
+          "SHIINE volunteers statewide"
+        ]
+      },
+      "official_source": "https://dss.sd.gov/medicaid/Eligibility/default.aspx",
+      "gotchas": [
+        "Income/asset limits change yearly (e.g., 2025: $1,781 indiv; verify current with DSS)[6]",
+        "QI requires annual reapplication and has funding caps/waitlist risk[4]",
+        "Must have Part A/B; QMB/SLMB/QI differ from QDWI (working disabled, Part A only—not covered here)[2][3]",
+        "Exempt assets like burial trusts often missed[6]",
+        "Auto-Extra Help eligibility overlooked[1][4]",
+        "Older sources show conflicting asset limits ($4k vs $9k+); use latest[3]"
+      ],
+      "data_shape_notes": "Tiered by program (QMB full coverage, SLMB/QI Part B only); income scales to ~135% FPL; statewide via DSS with SHIINE helpers; QI capped funding; individual/couple focus, no broad household table",
+      "_raw": "{\n  \"name\": \"Medicare Savings Programs (QMB, SLMB, QI)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Must be entitled to or receiving Medicare benefits (typically age 65+ or disabled). South Dakota follows federal guidelines with state-specific dollar amounts that vary yearly. For 2025/2026 (most recent cited): QMB - Individual: ≤$1,275-$1,350/mo, Couple: ≤$1,724-$1,824/mo (100% FPL); SLMB - Individual: ≤$1,526/mo (120% FPL), Couple: ≤$2,064/mo; QI - Individual: ≤$1,715-$1,781/mo (135% FPL), Couple: ≤$2,320-$2,400/mo. Limits include $20/mo disregard; exacts from SD DSS. No full household size table beyond individual/couple; contact DSS for >2.[2][1][4][6][3]\",\n    \"asset_limits\": \"Individual: $9,430-$9,950 (recent citations); Couple: $14,130-$14,910. Counts: checking/savings, CDs. Exempt: primary home, one car, burial plots, irrevocable burial trusts (up to certain value). Older SD source cites lower $4,000/$6,000—use current federal/SD figures.[1][4][6][3]\",\n    \"other_requirements\": [\n      \"Must have Medicare Part A (premium-free or otherwise)\",\n      \"U.S. citizen or qualified immigrant\",\n      \"Reside in South Dakota\",\n      \"For QI: Annual reapplication; first-come first-served with priority to prior recipients\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"QMB: Pays Medicare Part A/B premiums, deductibles, coinsurance, copays. SLMB/QI: Pays Part B premiums only. Auto-qualifies for Extra Help (low/no Part D costs, e.g., ≤$12.65/drug in 2026). No fixed dollar/hour—covers full specified costs.[2][1][4][3]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Mail/PDF form: https://dss.sd.gov/formsandpubs/docs/MEDELGBLTY/270Medicaresavingsapplication.pdf[2]\",\n      \"Phone: Toll-free 1-877-999-5612 (TTY/TDD 1-877-486-2048); ask for benefits specialist or local office[6][2]\",\n      \"Online eligibility info: https://dss.sd.gov/medicaid/Eligibility/default.aspx[2]\",\n      \"In-person/mail: Local DSS office or SHIINE volunteer assistance (free counseling/application help)[6]\",\n      \"SHIINE volunteers for application support at senior centers\"\n    ],\n    \"processing_time\": \"Not specified in sources; typically 45 days for Medicaid-related (state variation possible)\",\n    \"waitlist\": \"QI has first-come, first-served with funding limits and priority for prior year recipients[4]\",\n    \"forms\": [\"Application for Medicare Savings Programs (Form 270)[2]\"],\n    \"documents\": [\n      \"Social Security number (or immigrant document)\",\n      \"Proof of Medicare enrollment\",\n      \"Income proof (paystubs, benefit statements)\",\n      \"Asset proof (bank statements)\",\n      \"ID/residency proof\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"South Dakota residents only\",\n    \"regional_variations\": \"Local DSS/SHIINE offices may handle in-person; no major differences noted, but contact local for wait/processing[6]\",\n    \"offices_or_providers\": [\"Local Department of Social Services (DSS) offices\", \"SHIINE volunteers statewide\"]\n  },\n  \"official_source\": \"https://dss.sd.gov/medicaid/Eligibility/default.aspx\",\n  \"gotchas\": [\n    \"Income/asset limits change yearly (e.g., 2025: $1,781 indiv; verify current with DSS)[6]\",\n    \"QI requires annual reapplication and has funding caps/waitlist risk[4]\",\n    \"Must have Part A/B; QMB/SLMB/QI differ from QDWI (working disabled, Part A only—not covered here)[2][3]\",\n    \"Exempt assets like burial trusts often missed[6]\",\n    \"Auto-Extra Help eligibility overlooked[1][4]\",\n    \"Older sources show conflicting asset limits ($4k vs $9k+); use latest[3]\"\n  ],\n  \"data_shape_notes\": \"Tiered by program (QMB full coverage, SLMB/QI Part B only); income scales to ~135% FPL; statewide via DSS with SHIINE helpers; QI capped funding; individual/couple focus, no broad household table\"\n}"
+    },
+    {
+      "name": "Supplemental Nutrition Assistance Program (SNAP)",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "For households with at least one member age 60 or older (elderly/disabled households) in South Dakota, there is **no gross income limit**—only the **net income test** applies (100% of federal poverty level). Standard households (no elderly/disabled) must meet both gross (130% FPL) and net (100% FPL) limits. Oct. 1, 2025–Sept. 30, 2026 monthly limits:\n\n|Household Size|Gross Income|Net Income|\n|-|-|-|\n|1|$1,696|$1,305|\n|2|$2,292|$1,763|\n|3|$2,888|$2,221|\n|4|$3,483|$2,680|\n|5|$4,079|$3,138|\n|6|$4,675|$3,596|\n|7|$5,271|$4,055|\n|8|$5,867|$4,513|\n|Each additional|+ $596|+ $459|\n\nNet income = gross income minus deductions (e.g., standard $209, medical >$35 for elderly/disabled, shelter up to $744 cap or higher uncapped for elderly/disabled, utilities). Social Security, pensions, VA/disability count as income.[3][2][1]",
+        "asset_limits": "Countable resources ≤ **$3,000** ($4,500 if household has elderly 60+ or disabled member). Exempt: primary home, one vehicle, most retirement savings. Bank accounts, cash, non-primary property count.[3][7]",
+        "other_requirements": [
+          "South Dakota resident; U.S. citizen or certain legal non-citizens.",
+          "All household members need SSN (or apply for one).",
+          "Household = those who live together and buy/prepare food together (elderly/disabled may count separately if they buy/prepare alone).",
+          "Able-bodied 16-59 must meet work requirements (exemptions for elderly 60+)."
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "Monthly EBT card benefits for food purchases (groceries, no hot foods/alcohol/tobacco). Amount based on household size, net income, deductions (e.g., example: 2-person elderly household with $1,200 gross might get ~$415/month). Max allotments vary by size/location; scales with need.[3][5]",
+        "varies_by": "household_size"
+      },
+      "application": {
+        "methods": [
+          "Online: https://dss.sd.gov/apply/ [implied from official DSS site]",
+          "Phone: Contact local DSS office (statewide helpline not listed; find via dss.sd.gov)",
+          "Mail/In-person: Local Department of Social Services (DSS) offices by county (full list at https://dss.sd.gov/offices/)",
+          "Download form: SNAP application via https://dss.sd.gov/formsandpubs/"
+        ],
+        "processing_time": "Typically 30 days; expedited if very low income (<$150 gross, <$100 cash). No specific SD waitlist noted.[3]",
+        "waitlist": null,
+        "forms": [
+          "SNAP Application (available on dss.sd.gov/formsandpubs)"
+        ],
+        "documents": [
+          "Proof of income (pay stubs, Social Security award letters, pensions).",
+          "ID/SSN for household members.",
+          "Rent/mortgage, utility bills, medical expenses (> $35/month for elderly/disabled).",
+          "Bank statements, asset proofs.",
+          "Proof of residency."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None; available statewide to eligible SD residents.",
+        "regional_variations": "Administered via local DSS county offices (different locations, potential processing variations), but uniform eligibility/benefits rules.[3]",
+        "offices_or_providers": [
+          "Local DSS offices: https://dss.sd.gov/offices/"
+        ]
+      },
+      "official_source": "https://dss.sd.gov/economicassistance/snap.aspx",
+      "gotchas": [
+        "Elderly households skip gross income test but must calculate net income accurately (deductions like uncapped shelter/medical for 60+ are key—many miss high deductions).",
+        "Assets $3,000/$4,500 limit often overlooked (home/1 car exempt, but savings count).",
+        "Household definition: Only those buying/preparing food together; elderly living with family may qualify separately.",
+        "Only ~half of eligible seniors apply; benefits reduce if income rises.",
+        "Work rules exempt 60+, but verify disability status for higher asset limit."
+      ],
+      "data_shape_notes": "Elderly/disabled households exempt from gross income & (in some sources) asset tests with higher limits; net income calculated with enhanced deductions (uncapped shelter/medical for 60+); benefits scale precisely by household size/net income; uniform statewide but local DSS offices handle apps.",
+      "_raw": "{\n  \"name\": \"Supplemental Nutrition Assistance Program (SNAP)\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"For households with at least one member age 60 or older (elderly/disabled households) in South Dakota, there is **no gross income limit**—only the **net income test** applies (100% of federal poverty level). Standard households (no elderly/disabled) must meet both gross (130% FPL) and net (100% FPL) limits. Oct. 1, 2025–Sept. 30, 2026 monthly limits:\\n\\n|Household Size|Gross Income|Net Income|\\n|-|-|-|\\n|1|$1,696|$1,305|\\n|2|$2,292|$1,763|\\n|3|$2,888|$2,221|\\n|4|$3,483|$2,680|\\n|5|$4,079|$3,138|\\n|6|$4,675|$3,596|\\n|7|$5,271|$4,055|\\n|8|$5,867|$4,513|\\n|Each additional|+ $596|+ $459|\\n\\nNet income = gross income minus deductions (e.g., standard $209, medical >$35 for elderly/disabled, shelter up to $744 cap or higher uncapped for elderly/disabled, utilities). Social Security, pensions, VA/disability count as income.[3][2][1]\",\n    \"asset_limits\": \"Countable resources ≤ **$3,000** ($4,500 if household has elderly 60+ or disabled member). Exempt: primary home, one vehicle, most retirement savings. Bank accounts, cash, non-primary property count.[3][7]\",\n    \"other_requirements\": [\n      \"South Dakota resident; U.S. citizen or certain legal non-citizens.\",\n      \"All household members need SSN (or apply for one).\",\n      \"Household = those who live together and buy/prepare food together (elderly/disabled may count separately if they buy/prepare alone).\",\n      \"Able-bodied 16-59 must meet work requirements (exemptions for elderly 60+).\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Monthly EBT card benefits for food purchases (groceries, no hot foods/alcohol/tobacco). Amount based on household size, net income, deductions (e.g., example: 2-person elderly household with $1,200 gross might get ~$415/month). Max allotments vary by size/location; scales with need.[3][5]\",\n    \"varies_by\": \"household_size\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: https://dss.sd.gov/apply/ [implied from official DSS site]\",\n      \"Phone: Contact local DSS office (statewide helpline not listed; find via dss.sd.gov)\",\n      \"Mail/In-person: Local Department of Social Services (DSS) offices by county (full list at https://dss.sd.gov/offices/)\",\n      \"Download form: SNAP application via https://dss.sd.gov/formsandpubs/\"\n    ],\n    \"processing_time\": \"Typically 30 days; expedited if very low income (<$150 gross, <$100 cash). No specific SD waitlist noted.[3]\",\n    \"waitlist\": null,\n    \"forms\": [\"SNAP Application (available on dss.sd.gov/formsandpubs)\"],\n    \"documents\": [\n      \"Proof of income (pay stubs, Social Security award letters, pensions).\",\n      \"ID/SSN for household members.\",\n      \"Rent/mortgage, utility bills, medical expenses (> $35/month for elderly/disabled).\",\n      \"Bank statements, asset proofs.\",\n      \"Proof of residency.\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; available statewide to eligible SD residents.\",\n    \"regional_variations\": \"Administered via local DSS county offices (different locations, potential processing variations), but uniform eligibility/benefits rules.[3]\",\n    \"offices_or_providers\": [\"Local DSS offices: https://dss.sd.gov/offices/\"]\n  },\n  \"official_source\": \"https://dss.sd.gov/economicassistance/snap.aspx\",\n  \"gotchas\": [\n    \"Elderly households skip gross income test but must calculate net income accurately (deductions like uncapped shelter/medical for 60+ are key—many miss high deductions).\",\n    \"Assets $3,000/$4,500 limit often overlooked (home/1 car exempt, but savings count).\",\n    \"Household definition: Only those buying/preparing food together; elderly living with family may qualify separately.\",\n    \"Only ~half of eligible seniors apply; benefits reduce if income rises.\",\n    \"Work rules exempt 60+, but verify disability status for higher asset limit.\"\n  ],\n  \"data_shape_notes\": \"Elderly/disabled households exempt from gross income & (in some sources) asset tests with higher limits; net income calculated with enhanced deductions (uncapped shelter/medical for 60+); benefits scale precisely by household size/net income; uniform statewide but local DSS offices handle apps.\"\n}"
+    },
+    {
+      "name": "Low Income Energy Assistance Program (LIEAP)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Gross household income must be at or below 200% of the federal poverty level, based on the most recent three months of income for all household members. Specific annual limits include: 7 Person: $22,514; 8 Person: $23,014; 9 Person: $23,514; 10 Person: $24,431 (limits scale for smaller and larger households accordingly). Households where all members receive SNAP are automatically categorically income eligible.[1][5]",
+        "asset_limits": "No asset limits mentioned in program guidelines.[1][5]",
+        "other_requirements": [
+          "Proof of household income for the past 3 full months for all household members.",
+          "Must have heating costs paid directly to an energy supplier or as part of rent.",
+          "All household members age 18+ must sign the application.",
+          "Applications where all household members receive SNAP are automatically categorically income eligible."
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "One-time payment made directly to the energy supplier to assist with home heating costs. Exact amount varies based on household size, income, type and cost of heating, and location; no fixed dollar amounts specified beyond related programs (e.g., Cooling Assistance: $1025).[1][2][5]",
+        "varies_by": "household_size|income|heating_type|location"
+      },
+      "application": {
+        "methods": [
+          "Mail: South Dakota Department of Social Services, Office of Energy Assistance, 700 Governors Drive, Pierre, SD 57501",
+          "Email: Scan and send to DSSHeat@state.sd.us",
+          "Phone for help or status: 800-233-8503 (Hearing Impaired TTY: 800-325-0778); check status by pressing option 1",
+          "Online submission mentioned for eligible households, but primary form is downloadable PDF"
+        ],
+        "processing_time": "Up to 60 days for eligibility determination.[3]",
+        "waitlist": null,
+        "forms": [
+          "DSS Low Income Energy Assistance Application (downloadable PDF from dss.sd.gov)"
+        ],
+        "documents": [
+          "One copy of current heating bill and electric statement.",
+          "Proof of past 3 full months of gross income for all household members (e.g., pay stubs, Social Security/VA award letter, self-employment tax return, proof of child support paid).",
+          "Proof of home heating and electric costs (paid to supplier or part of rent)."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None; available to eligible households across South Dakota.",
+        "regional_variations": "Assistance amounts vary by location; weatherization (related program) uses four community action programs serving specific counties, but LIEAP administered centrally.[5]",
+        "offices_or_providers": [
+          "Central office: 700 Governors Drive, Pierre, SD 57501"
+        ]
+      },
+      "official_source": "https://dss.sd.gov/economicassistance/energy_weatherization_assistance.aspx",
+      "gotchas": [
+        "Must provide proof of income for exactly the past 3 full calendar months prior to application month; missing this delays or denies eligibility.[3][5]",
+        "All adults 18+ in household must sign application.[5]",
+        "Payments go directly to energy supplier, not to household; renters with heat included in rent may have additional criteria.[2][5]",
+        "Related crisis assistance (ECIP) requires income eligibility plus crisis like shut-off Oct 1-Mar 31; not automatic.[3]",
+        "SNAP households are categorically eligible, but still need to apply and provide bills.[1]"
+      ],
+      "data_shape_notes": "Income tested at 200% FPL using 3 prior months' gross income; benefits scale by household size, heating type/cost, and location; central administration with direct payments to vendors; ties into categorical eligibility for SNAP and related programs like weatherization/ECIP.",
+      "_raw": "{\n  \"name\": \"Low Income Energy Assistance Program (LIEAP)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Gross household income must be at or below 200% of the federal poverty level, based on the most recent three months of income for all household members. Specific annual limits include: 7 Person: $22,514; 8 Person: $23,014; 9 Person: $23,514; 10 Person: $24,431 (limits scale for smaller and larger households accordingly). Households where all members receive SNAP are automatically categorically income eligible.[1][5]\",\n    \"asset_limits\": \"No asset limits mentioned in program guidelines.[1][5]\",\n    \"other_requirements\": [\n      \"Proof of household income for the past 3 full months for all household members.\",\n      \"Must have heating costs paid directly to an energy supplier or as part of rent.\",\n      \"All household members age 18+ must sign the application.\",\n      \"Applications where all household members receive SNAP are automatically categorically income eligible.\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"One-time payment made directly to the energy supplier to assist with home heating costs. Exact amount varies based on household size, income, type and cost of heating, and location; no fixed dollar amounts specified beyond related programs (e.g., Cooling Assistance: $1025).[1][2][5]\",\n    \"varies_by\": \"household_size|income|heating_type|location\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Mail: South Dakota Department of Social Services, Office of Energy Assistance, 700 Governors Drive, Pierre, SD 57501\",\n      \"Email: Scan and send to DSSHeat@state.sd.us\",\n      \"Phone for help or status: 800-233-8503 (Hearing Impaired TTY: 800-325-0778); check status by pressing option 1\",\n      \"Online submission mentioned for eligible households, but primary form is downloadable PDF\"\n    ],\n    \"processing_time\": \"Up to 60 days for eligibility determination.[3]\",\n    \"waitlist\": null,\n    \"forms\": [\n      \"DSS Low Income Energy Assistance Application (downloadable PDF from dss.sd.gov)\"\n    ],\n    \"documents\": [\n      \"One copy of current heating bill and electric statement.\",\n      \"Proof of past 3 full months of gross income for all household members (e.g., pay stubs, Social Security/VA award letter, self-employment tax return, proof of child support paid).\",\n      \"Proof of home heating and electric costs (paid to supplier or part of rent).\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; available to eligible households across South Dakota.\",\n    \"regional_variations\": \"Assistance amounts vary by location; weatherization (related program) uses four community action programs serving specific counties, but LIEAP administered centrally.[5]\",\n    \"offices_or_providers\": [\n      \"Central office: 700 Governors Drive, Pierre, SD 57501\"\n    ]\n  },\n  \"official_source\": \"https://dss.sd.gov/economicassistance/energy_weatherization_assistance.aspx\",\n  \"gotchas\": [\n    \"Must provide proof of income for exactly the past 3 full calendar months prior to application month; missing this delays or denies eligibility.[3][5]\",\n    \"All adults 18+ in household must sign application.[5]\",\n    \"Payments go directly to energy supplier, not to household; renters with heat included in rent may have additional criteria.[2][5]\",\n    \"Related crisis assistance (ECIP) requires income eligibility plus crisis like shut-off Oct 1-Mar 31; not automatic.[3]\",\n    \"SNAP households are categorically eligible, but still need to apply and provide bills.[1]\"\n  ],\n  \"data_shape_notes\": \"Income tested at 200% FPL using 3 prior months' gross income; benefits scale by household size, heating type/cost, and location; central administration with direct payments to vendors; ties into categorical eligibility for SNAP and related programs like weatherization/ECIP.\"\n}"
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Families with annual household income at or below 200% of the federal poverty level are eligible[2][3]. Priority is given to elderly individuals, individuals with disabilities, and families with children under 19[2][3].",
+        "asset_limits": null,
+        "other_requirements": [
+          "Home must not have received weatherization services in the previous 15 years[4]",
+          "For renters: landlord must provide written permission and contribute 1/3 of project costs[1][4]",
+          "Home must meet Department of Energy (DOE) requirements for feasibility; the community action agency may cancel applications if rehabilitation is not considered feasible[4]"
+        ]
+      },
+      "benefits": {
+        "type": "in_kind",
+        "value": "No cost to homeowner. Average annual savings of $372 or more per household[5]. Services may include weather-stripping doors and windows, caulking and sealing cracks, insulating attics/walls/under floors, repairing/tuning/replacing heating systems, and incidental repairs to protect weatherization materials[2][3]. Specific measures determined by energy audit[3].",
+        "varies_by": "individual_home_needs"
+      },
+      "application": {
+        "methods": [
+          "Phone: 1-800-233-8503 (general energy assistance line)[4]",
+          "Phone: Contact your county's Community Action Agency directly (varies by region)[2]",
+          "Phone: WSDCA (Western South Dakota) - (605) 348-1460[5]",
+          "Mail: South Dakota Department of Social Services (address varies by county provider)[1]",
+          "Email: kpalmer@wsdca.org (WSDCA)[5] or info@growsd.org (GROW South Dakota)[4]",
+          "In-person: Contact Community Action Agency serving your county[2]",
+          "Online: dss.sd.gov/weatherization (printable application)[2]"
+        ],
+        "processing_time": "Not specified in available sources",
+        "waitlist": "Funds are limited; applicants may be placed on a waiting list[1]",
+        "forms": [
+          "South Dakota Weatherization Assistance Application (available at dss.sd.gov/weatherization or from your county's Community Action Agency)[2][4][6]"
+        ],
+        "documents": [
+          "Completed and signed Weatherization Assistance Application (must be signed by all adults age 18+ in household)[1][6]",
+          "Proof of household income for the 3 calendar months prior to month of application[1][6]. Income documentation includes: wage stubs, copies of checks, employer statements for employment income; most recent tax return for self-employment[6]",
+          "Proof of home ownership (for homeowners)[5]",
+          "If already receiving Energy Assistance (LIEAP): only pages 1, 3, and 4 of application required; provide 9-digit Customer Identification Number (CID) if available[6]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Program is administered by four different Community Action Programs serving specific counties throughout the state[1]",
+        "regional_variations": "Different Community Action Agencies serve different regions. Known providers include: GROW South Dakota (Sisseton area)[4], WSDCA (Western South Dakota)[5], Inter-Lakes Community Action Partnership[7]. Contact your county's agency for local specifics.",
+        "offices_or_providers": [
+          "GROW South Dakota: 104 Ash Street East, Sisseton, SD 57262; (605) 698-7654; info@growsd.org[4]",
+          "WSDCA: (605) 348-1460; kpalmer@wsdca.org[5]",
+          "Inter-Lakes Community Action Partnership (serves some counties)[7]",
+          "Contact dss.sd.gov or 1-800-233-8503 to identify your county's provider[1][4]"
+        ]
+      },
+      "official_source": "https://dss.sd.gov/economicassistance/energy_weatherization_assistance.aspx",
+      "gotchas": [
+        "15-year rule: Homes that received weatherization services in the previous 15 years are ineligible[4]",
+        "Renter liability: Renters can apply but landlord must provide written permission AND contribute 1/3 of project costs—this is a significant barrier for many renters[1][4]",
+        "Income threshold differs by program: Weatherization eligibility is 200% of poverty level, but fuel assistance (LIEAP) is only 175%—a household may qualify for weatherization but not heating assistance[7]",
+        "Categorical eligibility: Households already receiving LIEAP (fuel assistance) are automatically income-eligible for weatherization and only need to submit partial application[6]",
+        "Feasibility determination: The community action agency has discretion to deny applications if they determine the home rehabilitation is not feasible[4]",
+        "Waiting list: Due to limited funds, applicants may wait for services[1]",
+        "Application timing: Income documentation required depends on application submission month—verify the correct 3-month window when applying[6]"
+      ],
+      "data_shape_notes": "This program's structure is unique because: (1) benefits are entirely in-kind (no cash payments), determined by individual energy audit rather than fixed amounts; (2) administration is decentralized across four regional Community Action Agencies, creating geographic variation in processing and availability; (3) eligibility is categorical for LIEAP recipients (automatic income qualification); (4) there is a hard 15-year recency restriction preventing repeat participation; (5) renter participation requires landlord cost-sharing, creating a two-party eligibility requirement; (6) priority tiers (elderly, disabled, families with children) affect service sequencing but not eligibility determination.",
+      "_raw": "```json\n{\n  \"name\": \"Weatherization Assistance Program (WAP)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Families with annual household income at or below 200% of the federal poverty level are eligible[2][3]. Priority is given to elderly individuals, individuals with disabilities, and families with children under 19[2][3].\",\n    \"asset_limits\": null,\n    \"other_requirements\": [\n      \"Home must not have received weatherization services in the previous 15 years[4]\",\n      \"For renters: landlord must provide written permission and contribute 1/3 of project costs[1][4]\",\n      \"Home must meet Department of Energy (DOE) requirements for feasibility; the community action agency may cancel applications if rehabilitation is not considered feasible[4]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"in_kind\",\n    \"value\": \"No cost to homeowner. Average annual savings of $372 or more per household[5]. Services may include weather-stripping doors and windows, caulking and sealing cracks, insulating attics/walls/under floors, repairing/tuning/replacing heating systems, and incidental repairs to protect weatherization materials[2][3]. Specific measures determined by energy audit[3].\",\n    \"varies_by\": \"individual_home_needs\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: 1-800-233-8503 (general energy assistance line)[4]\",\n      \"Phone: Contact your county's Community Action Agency directly (varies by region)[2]\",\n      \"Phone: WSDCA (Western South Dakota) - (605) 348-1460[5]\",\n      \"Mail: South Dakota Department of Social Services (address varies by county provider)[1]\",\n      \"Email: kpalmer@wsdca.org (WSDCA)[5] or info@growsd.org (GROW South Dakota)[4]\",\n      \"In-person: Contact Community Action Agency serving your county[2]\",\n      \"Online: dss.sd.gov/weatherization (printable application)[2]\"\n    ],\n    \"processing_time\": \"Not specified in available sources\",\n    \"waitlist\": \"Funds are limited; applicants may be placed on a waiting list[1]\",\n    \"forms\": [\n      \"South Dakota Weatherization Assistance Application (available at dss.sd.gov/weatherization or from your county's Community Action Agency)[2][4][6]\"\n    ],\n    \"documents\": [\n      \"Completed and signed Weatherization Assistance Application (must be signed by all adults age 18+ in household)[1][6]\",\n      \"Proof of household income for the 3 calendar months prior to month of application[1][6]. Income documentation includes: wage stubs, copies of checks, employer statements for employment income; most recent tax return for self-employment[6]\",\n      \"Proof of home ownership (for homeowners)[5]\",\n      \"If already receiving Energy Assistance (LIEAP): only pages 1, 3, and 4 of application required; provide 9-digit Customer Identification Number (CID) if available[6]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Program is administered by four different Community Action Programs serving specific counties throughout the state[1]\",\n    \"regional_variations\": \"Different Community Action Agencies serve different regions. Known providers include: GROW South Dakota (Sisseton area)[4], WSDCA (Western South Dakota)[5], Inter-Lakes Community Action Partnership[7]. Contact your county's agency for local specifics.\",\n    \"offices_or_providers\": [\n      \"GROW South Dakota: 104 Ash Street East, Sisseton, SD 57262; (605) 698-7654; info@growsd.org[4]\",\n      \"WSDCA: (605) 348-1460; kpalmer@wsdca.org[5]\",\n      \"Inter-Lakes Community Action Partnership (serves some counties)[7]\",\n      \"Contact dss.sd.gov or 1-800-233-8503 to identify your county's provider[1][4]\"\n    ]\n  },\n  \"official_source\": \"https://dss.sd.gov/economicassistance/energy_weatherization_assistance.aspx\",\n  \"gotchas\": [\n    \"15-year rule: Homes that received weatherization services in the previous 15 years are ineligible[4]\",\n    \"Renter liability: Renters can apply but landlord must provide written permission AND contribute 1/3 of project costs—this is a significant barrier for many renters[1][4]\",\n    \"Income threshold differs by program: Weatherization eligibility is 200% of poverty level, but fuel assistance (LIEAP) is only 175%—a household may qualify for weatherization but not heating assistance[7]\",\n    \"Categorical eligibility: Households already receiving LIEAP (fuel assistance) are automatically income-eligible for weatherization and only need to submit partial application[6]\",\n    \"Feasibility determination: The community action agency has discretion to deny applications if they determine the home rehabilitation is not feasible[4]\",\n    \"Waiting list: Due to limited funds, applicants may wait for services[1]\",\n    \"Application timing: Income documentation required depends on application submission month—verify the correct 3-month window when applying[6]\"\n  ],\n  \"data_shape_notes\": \"This program's structure is unique because: (1) benefits are entirely in-kind (no cash payments), determined by individual energy audit rather than fixed amounts; (2) administration is decentralized across four regional Community Action Agencies, creating geographic variation in processing and availability; (3) eligibility is categorical for LIEAP recipients (automatic income qualification); (4) there is a hard 15-year recency restriction preventing repeat participation; (5) renter participation requires landlord cost-sharing, creating a two-party eligibility requirement; (6) priority tiers (elderly, disabled, families with children) affect service sequencing but not eligibility determination.\"\n}\n```\n\n**Key Takeaway for Families with Elderly Loved Ones:**\n\nYour elderly relative has **priority status** in this program[2][3], which means their application will be prioritized for services even if funds are limited. However, eligibility still requires household income at or below 200% of the federal poverty level[2][3]. If they own their home, there is no cost to them—the program provides all materials and labor at no charge[1][4]. If they rent, the landlord must agree in writing and pay 1/3 of costs[4].\n\nThe most important step is **identifying which Community Action Agency serves your county**[1], as each region has its own office and application process. Call 1-800-233-8503 to find your local provider[4], or visit dss.sd.gov to locate the correct agency[1]."
+    },
+    {
+      "name": "Senior Health Information and Insurance Education (SHIINE)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "No income limits; open to all Medicare beneficiaries, those approaching Medicare, and their caregivers[2][4]",
+        "asset_limits": "No asset limits or tests apply[2][4]",
+        "other_requirements": [
+          "Must be a Medicare beneficiary in South Dakota, approaching Medicare eligibility, or a caregiver of someone on Medicare[2][4]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Free personalized health insurance counseling and education on Medicare Parts A/B, Part D, Medicare Advantage, Medigap, long-term care insurance, Medicare Savings Programs (QMB/SLMB/QI), prescription assistance, Medicaid, and other programs; application assistance for low-income programs like LIS; fraud prevention via SMP; group education events, one-on-one enrollment help (especially during Part D open enrollment), printed materials, and referrals[1][2][3][5]",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Phone: Toll-free (800) 536-8197[3][6]",
+          "Website: https://www.shiine.net[3]",
+          "Email: caitlin.christensen@state.sd.us or region-specific like western_region@shiine.net[3][4]",
+          "Call to schedule in-person or phone appointment; leave voicemail if needed[4]"
+        ],
+        "processing_time": "No formal processing; services provided via appointment scheduling, typically immediate upon contact[4]",
+        "waitlist": null,
+        "forms": [
+          "No specific forms required; counselors assist with applications for related programs like LIS during sessions[1][4]"
+        ],
+        "documents": [
+          "None required[4]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None; available to all South Dakota Medicare beneficiaries[2][4]",
+        "regional_variations": "Delivered through regional coordinators and volunteers who recruit/train locally, host events per county (minimum 1 Medicare education event per county, weekly Part D events during enrollment, 2 outreach events per Native American reservation per region/year); may have region-specific contacts/providers but uniform services[1][4]",
+        "offices_or_providers": [
+          "Administered by SD Department of Social Services, 700 Governors Drive, Pierre SD 57501-2291; regional coordinators (e.g., Western/Central SD contact: western_region@shiine.net)[1][3][4]"
+        ]
+      },
+      "official_source": "https://dhs.sd.gov/en/ltss/shiine",
+      "gotchas": [
+        "Not a direct financial or healthcare service provider—offers education, counseling, and application help only, not payment for care or medical services; staff/volunteers cannot have active insurance licenses[1][5]",
+        "Requires contacting to schedule; no walk-in specified, voicemail if no answer[4]",
+        "Focuses on Medicare-related issues; for LTSS/Medicaid, provides info/referrals but separate processes apply with income/asset limits[6]"
+      ],
+      "data_shape_notes": "no income/asset test; volunteer-based statewide counseling network with required regional events and outreach; services are educational/advocacy-focused, not benefits-paying",
+      "_raw": "{\n  \"name\": \"Senior Health Information and Insurance Education (SHIINE)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No income limits; open to all Medicare beneficiaries, those approaching Medicare, and their caregivers[2][4]\",\n    \"asset_limits\": \"No asset limits or tests apply[2][4]\",\n    \"other_requirements\": [\"Must be a Medicare beneficiary in South Dakota, approaching Medicare eligibility, or a caregiver of someone on Medicare[2][4]\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free personalized health insurance counseling and education on Medicare Parts A/B, Part D, Medicare Advantage, Medigap, long-term care insurance, Medicare Savings Programs (QMB/SLMB/QI), prescription assistance, Medicaid, and other programs; application assistance for low-income programs like LIS; fraud prevention via SMP; group education events, one-on-one enrollment help (especially during Part D open enrollment), printed materials, and referrals[1][2][3][5]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: Toll-free (800) 536-8197[3][6]\", \"Website: https://www.shiine.net[3]\", \"Email: caitlin.christensen@state.sd.us or region-specific like western_region@shiine.net[3][4]\", \"Call to schedule in-person or phone appointment; leave voicemail if needed[4]\"],\n    \"processing_time\": \"No formal processing; services provided via appointment scheduling, typically immediate upon contact[4]\",\n    \"waitlist\": null,\n    \"forms\": [\"No specific forms required; counselors assist with applications for related programs like LIS during sessions[1][4]\"],\n    \"documents\": [\"None required[4]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; available to all South Dakota Medicare beneficiaries[2][4]\",\n    \"regional_variations\": \"Delivered through regional coordinators and volunteers who recruit/train locally, host events per county (minimum 1 Medicare education event per county, weekly Part D events during enrollment, 2 outreach events per Native American reservation per region/year); may have region-specific contacts/providers but uniform services[1][4]\",\n    \"offices_or_providers\": [\"Administered by SD Department of Social Services, 700 Governors Drive, Pierre SD 57501-2291; regional coordinators (e.g., Western/Central SD contact: western_region@shiine.net)[1][3][4]\"]\n  },\n  \"official_source\": \"https://dhs.sd.gov/en/ltss/shiine\",\n  \"gotchas\": [\"Not a direct financial or healthcare service provider—offers education, counseling, and application help only, not payment for care or medical services; staff/volunteers cannot have active insurance licenses[1][5]\", \"Requires contacting to schedule; no walk-in specified, voicemail if no answer[4]\", \"Focuses on Medicare-related issues; for LTSS/Medicaid, provides info/referrals but separate processes apply with income/asset limits[6]\"],\n  \"data_shape_notes\": \"no income/asset test; volunteer-based statewide counseling network with required regional events and outreach; services are educational/advocacy-focused, not benefits-paying\"\n}"
+    },
+    {
+      "name": "Meals on Wheels",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "No strict income limits specified for the core Meals on Wheels program in South Dakota; eligibility prioritizes need over earnings. Some programs serve low-income seniors first, and Medicaid/SSI recipients may qualify. Federal poverty guidelines may apply in certain cases, but no specific dollar amounts or household size tables provided for this program. Separate programs like South Dakota Medicaid have 2022 limits of $10,092 annual income/$2,000 assets for singles and $15,132/$3,000 for married couples, but these are not directly for Meals on Wheels.",
+        "asset_limits": "No asset limits mentioned for Meals on Wheels; not a primary requirement.",
+        "other_requirements": [
+          "Homebound and unable to cook or shop independently",
+          "Spouse or dependent adult living with eligible senior (60+) may qualify",
+          "Under 60: Contact Dakota at Home for possible eligibility if disabled"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "One hot nutritious home-delivered meal per day, Monday-Friday (5 days/week); congregate dining available at sites. Suggested donation $5.25-$15/meal (no one denied for inability to pay); private pay options $9.49-$15/meal or $300/month.",
+        "varies_by": "region"
+      },
+      "application": {
+        "methods": [
+          "Call local providers (e.g., Active Generations: (605) 333-3305 or 1-833-663-9673 for Dakota at Home)",
+          "Enroll online via Dakota at Home Referral Form or provider sites (e.g., Meals on Wheels Western South Dakota brochure request)",
+          "Phone registration with providers like Meals on Wheels Sioux Falls or Active Generations"
+        ],
+        "processing_time": "Not specified",
+        "waitlist": "Limited meals available; priority for those in greatest need, but no one 60+ denied for inability to contribute[3]",
+        "forms": [
+          "Dakota at Home Referral Form",
+          "Provider-specific application forms (paper or online)"
+        ],
+        "documents": [
+          "Proof of age (e.g., driver's license, birth certificate)",
+          "Doctor’s note or medical records if disabled/under 60",
+          "Proof of income if requested (not always required)",
+          "Call providers for specifics"
+        ]
+      },
+      "geography": {
+        "statewide": false,
+        "restrictions": "Varies by region; not uniform across South Dakota",
+        "regional_variations": "Western South Dakota: Meals on Wheels Western South Dakota serves 64 communities, congregate or home delivery[3]. Sioux Falls: Specific site on W. 46th Street, homebound 60+[2]. Active Generations area: Deliveries Mon-Fri 10:45am-12:30pm, suggested $5.25/meal[7]. Under 60 referrals to Dakota at Home statewide[2][7]. Different providers handle regions.",
+        "offices_or_providers": [
+          "Meals on Wheels Western South Dakota",
+          "Meals on Wheels Sioux Falls (W. 46th Street)",
+          "Active Generations (contact Samantha Locke at slocke@activegen.org or (605) 333-3305)",
+          "Dakota at Home (1-833-663-9673)",
+          "The Center (administers some programs)"
+        ]
+      },
+      "official_source": "No single statewide .gov site; administered locally via Older Americans Act through providers like dakotaathome.sd.gov and regional non-profits.",
+      "gotchas": [
+        "Not statewide—must contact local provider for your area",
+        "Limited meals; priority by need, potential waitlist despite 'no denial for inability to pay'[3]",
+        "Under 60 requires Dakota at Home referral, not direct Meals on Wheels[2][7]",
+        "Suggested donations/contributory basis, private pay for extras",
+        "Homebound status key—not just age",
+        "Varies by provider; some offer congregate dining vs. only delivery"
+      ],
+      "data_shape_notes": "Decentralized by region with local providers; no uniform income test or statewide application; Older Americans Act-funded with priority for homebound 60+; referrals for younger via Dakota at Home",
+      "_raw": "{\n  \"name\": \"Meals on Wheels\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"No strict income limits specified for the core Meals on Wheels program in South Dakota; eligibility prioritizes need over earnings. Some programs serve low-income seniors first, and Medicaid/SSI recipients may qualify. Federal poverty guidelines may apply in certain cases, but no specific dollar amounts or household size tables provided for this program. Separate programs like South Dakota Medicaid have 2022 limits of $10,092 annual income/$2,000 assets for singles and $15,132/$3,000 for married couples, but these are not directly for Meals on Wheels.\",\n    \"asset_limits\": \"No asset limits mentioned for Meals on Wheels; not a primary requirement.\",\n    \"other_requirements\": [\"Homebound and unable to cook or shop independently\", \"Spouse or dependent adult living with eligible senior (60+) may qualify\", \"Under 60: Contact Dakota at Home for possible eligibility if disabled\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"One hot nutritious home-delivered meal per day, Monday-Friday (5 days/week); congregate dining available at sites. Suggested donation $5.25-$15/meal (no one denied for inability to pay); private pay options $9.49-$15/meal or $300/month.\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\"Call local providers (e.g., Active Generations: (605) 333-3305 or 1-833-663-9673 for Dakota at Home)\", \"Enroll online via Dakota at Home Referral Form or provider sites (e.g., Meals on Wheels Western South Dakota brochure request)\", \"Phone registration with providers like Meals on Wheels Sioux Falls or Active Generations\"],\n    \"processing_time\": \"Not specified\",\n    \"waitlist\": \"Limited meals available; priority for those in greatest need, but no one 60+ denied for inability to contribute[3]\",\n    \"forms\": [\"Dakota at Home Referral Form\", \"Provider-specific application forms (paper or online)\"],\n    \"documents\": [\"Proof of age (e.g., driver's license, birth certificate)\", \"Doctor’s note or medical records if disabled/under 60\", \"Proof of income if requested (not always required)\", \"Call providers for specifics\"]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Varies by region; not uniform across South Dakota\",\n    \"regional_variations\": \"Western South Dakota: Meals on Wheels Western South Dakota serves 64 communities, congregate or home delivery[3]. Sioux Falls: Specific site on W. 46th Street, homebound 60+[2]. Active Generations area: Deliveries Mon-Fri 10:45am-12:30pm, suggested $5.25/meal[7]. Under 60 referrals to Dakota at Home statewide[2][7]. Different providers handle regions.\",\n    \"offices_or_providers\": [\"Meals on Wheels Western South Dakota\", \"Meals on Wheels Sioux Falls (W. 46th Street)\", \"Active Generations (contact Samantha Locke at slocke@activegen.org or (605) 333-3305)\", \"Dakota at Home (1-833-663-9673)\", \"The Center (administers some programs)\"]\n  },\n  \"official_source\": \"No single statewide .gov site; administered locally via Older Americans Act through providers like dakotaathome.sd.gov and regional non-profits.\",\n  \"gotchas\": [\"Not statewide—must contact local provider for your area\", \"Limited meals; priority by need, potential waitlist despite 'no denial for inability to pay'[3]\", \"Under 60 requires Dakota at Home referral, not direct Meals on Wheels[2][7]\", \"Suggested donations/contributory basis, private pay for extras\", \"Homebound status key—not just age\", \"Varies by provider; some offer congregate dining vs. only delivery\"],\n  \"data_shape_notes\": \"Decentralized by region with local providers; no uniform income test or statewide application; Older Americans Act-funded with priority for homebound 60+; referrals for younger via Dakota at Home\"\n}"
+    },
+    {
+      "name": "Respite Care",
+      "_parseError": true,
+      "_raw": "I need to be transparent about what the search results can and cannot support for your comprehensive guide.\n\n**Critical limitation:** South Dakota has **multiple respite care programs** with different eligibility rules, and the search results don't clearly distinguish between them or provide complete information for all. The results reference:\n\n- SD Respite Care (Adult Services and Aging program)\n- Respite through HOPE Waiver\n- Respite through Family Support 360 Waiver, CHOICES Waiver, and other HCBS waivers\n- Respite Care Program at Pierre (for families with children/adults with disabilities)\n- State Plan Medicaid Personal Care Services\n\nThese have **different eligibility criteria, income limits, and application processes**. I cannot provide a single JSON response that accurately represents \"respite care in South Dakota\" because the search results don't contain complete, parallel information across all programs.\n\nHere's what I **can** provide from the search results:\n\n## SD Respite Care (Adult Services and Aging)\n\n**Eligibility:**\n- Age: At least 18 years[1]\n- Primary caregiver required[1]\n- Needs assessment by Adult Services and Aging Social Worker indicating respite need[1]\n- Asset limits: $30,000 (single) or $35,000 (married couple)[1]\n- Prioritized by threat of institutionalization and inability to live independently[1]\n\n**Services:**\n- Companionship, activities of daily living involvement, meal preparation, light housekeeping, personal hygiene tasks[1]\n- **NOT covered:** Skilled nursing, medication administration[1]\n- **Hours limit:** Maximum 210 hours per quarter; daily maximum 13 hours[1]\n\n**Application:**\n- Contact: Aging and Disability Resource Center (Dakota at Home) at 1-833-663-9673[2]\n- Online pre-screening available[2]\n- Also contact local Long Term Services and Supports field office[2]\n\n**What's missing from search results:**\n- Specific income limits (only asset limits provided)\n- Processing timeline\n- Specific form names/numbers\n- Regional variations\n- Whether there's a waitlist\n\n## Respite Care Program at Pierre\n\n**Eligibility:**\n- Child or adult living year-round in family home[6]\n- Conditions: Developmental delays (under 3), developmental disabilities, chronic medical conditions (children up to 18), serious emotional disturbance, severe mental illness, traumatic brain injury (before age 21)[6]\n- **No income limit**[9]\n- Post-adoptive and foster families eligible[6]\n\n**Application:**\n- Signed completed application to the division[7]\n- Phone: 605-773-3438[6]\n- Address: 3800 E. Highway 34, Pierre, SD 57501[6]\n- Hours: 8am-5pm CT, Monday-Friday[6]\n\n**What's missing:**\n- Processing time\n- Specific form name/number\n- Whether this is statewide or Pierre-only (coverage area listed as \"South Dakota\" but office is in Pierre)\n\n## Recommendation\n\nTo build your comprehensive guide, you need to:\n\n1. **Contact the Aging and Disability Resource Center** (1-833-663-9673) to clarify which program(s) apply to elderly loved ones and get complete eligibility/income information\n2. **Request specific program documentation** including application forms, processing timelines, and income limit tables\n3. **Ask about regional variations** and whether different offices handle applications differently\n\nThe search results provide a foundation but lack the specificity (income limits for elderly programs, processing times, complete form names) needed for a truly comprehensive guide."
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "eligibility": {
+        "age": 55,
+        "income_limits": "Annual family income no more than 125% of the Federal Poverty Level (FPL). Exact dollar amounts vary annually by household size and are not specified in current sources; families must check current FPL guidelines via HHS or program contacts for precise figures (e.g., for 2026, consult official tables).[1][2][3]",
+        "asset_limits": "No asset limits mentioned in sources.",
+        "other_requirements": [
+          "Resident of South Dakota",
+          "Unemployed",
+          "Eligible to work in the United States"
+        ]
+      },
+      "benefits": {
+        "type": "employment",
+        "value": "Part-time community service work (average 20 hours per week) at non-profit/public organizations (e.g., schools, hospitals, senior centers, day care); paid the highest of federal, state, or local minimum wage; training and counseling to develop skills; free annual physical exams; assistance toward unsubsidized full- or part-time employment; social/physical activities supporting independence.[1][2][3][4]",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Electronic: SCSEP application form (Adobe PDF) via DLR website",
+          "In-person: Any South Dakota Department of Labor and Regulation (DLR) local office",
+          "Phone: Contact DLR workforce experts (specific numbers via coverage map on DLR site)",
+          "Mail: Submit completed form to DLR offices (addresses via site)"
+        ],
+        "processing_time": "Not specified in sources.",
+        "waitlist": "Not mentioned; may vary by region due to limited coverage areas.",
+        "forms": [
+          "SCSEP application form (Adobe PDF)"
+        ],
+        "documents": [
+          "Proof of age, residency, income (to verify ≤125% FPL), unemployment status, work eligibility (e.g., ID, SSN); specifics not detailed—prepare standard verification documents."
+        ]
+      },
+      "geography": {
+        "statewide": false,
+        "restrictions": "Limited to three areas: West River, East River, and Central (see coverage map on DLR site for counties and contacts).",
+        "regional_variations": "Offered only in specified regions with different contact points; potential variations in wait times, host agencies, or availability by area.",
+        "offices_or_providers": [
+          "South Dakota Department of Labor and Regulation (DLR) local offices in West River, East River, Central areas (map with contacts at dlr.sd.gov/workforce_services/individuals/scsep/participants.aspx)"
+        ]
+      },
+      "official_source": "https://dlr.sd.gov/workforce_services/individuals/scsep/participants.aspx",
+      "gotchas": [
+        "Not available statewide—only in West River, East River, Central regions; check map first.",
+        "Priority enrollment for veterans/qualified spouses, then those 65+, disabled, rural residents, homeless/at-risk, low literacy/English proficiency, low employment prospects, or prior American Job Center users.[3]",
+        "Income test strictly at 125% FPL; participants must be unemployed at enrollment.",
+        "Temporary training positions (not permanent jobs); goal is transition to unsubsidized work.",
+        "No specific dollar amounts for wages beyond minimum wage tie; actual pay depends on local minimum."
+      ],
+      "data_shape_notes": "Regionally restricted to 3 areas (not statewide); priority tiers affect access; income at fixed 125% FPL (varies by household size via annual FPL tables); no asset test.",
+      "_raw": "{\n  \"name\": \"Senior Community Service Employment Program (SCSEP)\",\n  \"eligibility\": {\n    \"age\": 55,\n    \"income_limits\": \"Annual family income no more than 125% of the Federal Poverty Level (FPL). Exact dollar amounts vary annually by household size and are not specified in current sources; families must check current FPL guidelines via HHS or program contacts for precise figures (e.g., for 2026, consult official tables).[1][2][3]\",\n    \"asset_limits\": \"No asset limits mentioned in sources.\",\n    \"other_requirements\": [\n      \"Resident of South Dakota\",\n      \"Unemployed\",\n      \"Eligible to work in the United States\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"employment\",\n    \"value\": \"Part-time community service work (average 20 hours per week) at non-profit/public organizations (e.g., schools, hospitals, senior centers, day care); paid the highest of federal, state, or local minimum wage; training and counseling to develop skills; free annual physical exams; assistance toward unsubsidized full- or part-time employment; social/physical activities supporting independence.[1][2][3][4]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Electronic: SCSEP application form (Adobe PDF) via DLR website\",\n      \"In-person: Any South Dakota Department of Labor and Regulation (DLR) local office\",\n      \"Phone: Contact DLR workforce experts (specific numbers via coverage map on DLR site)\",\n      \"Mail: Submit completed form to DLR offices (addresses via site)\"\n    ],\n    \"processing_time\": \"Not specified in sources.\",\n    \"waitlist\": \"Not mentioned; may vary by region due to limited coverage areas.\",\n    \"forms\": [\n      \"SCSEP application form (Adobe PDF)\"\n    ],\n    \"documents\": [\n      \"Proof of age, residency, income (to verify ≤125% FPL), unemployment status, work eligibility (e.g., ID, SSN); specifics not detailed—prepare standard verification documents.\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Limited to three areas: West River, East River, and Central (see coverage map on DLR site for counties and contacts).\",\n    \"regional_variations\": \"Offered only in specified regions with different contact points; potential variations in wait times, host agencies, or availability by area.\",\n    \"offices_or_providers\": [\n      \"South Dakota Department of Labor and Regulation (DLR) local offices in West River, East River, Central areas (map with contacts at dlr.sd.gov/workforce_services/individuals/scsep/participants.aspx)\"\n    ]\n  },\n  \"official_source\": \"https://dlr.sd.gov/workforce_services/individuals/scsep/participants.aspx\",\n  \"gotchas\": [\n    \"Not available statewide—only in West River, East River, Central regions; check map first.\",\n    \"Priority enrollment for veterans/qualified spouses, then those 65+, disabled, rural residents, homeless/at-risk, low literacy/English proficiency, low employment prospects, or prior American Job Center users.[3]\",\n    \"Income test strictly at 125% FPL; participants must be unemployed at enrollment.\",\n    \"Temporary training positions (not permanent jobs); goal is transition to unsubsidized work.\",\n    \"No specific dollar amounts for wages beyond minimum wage tie; actual pay depends on local minimum.\"\n  ],\n  \"data_shape_notes\": \"Regionally restricted to 3 areas (not statewide); priority tiers affect access; income at fixed 125% FPL (varies by household size via annual FPL tables); no asset test.\"\n}"
+    },
+    {
+      "name": "Legal Services for Seniors",
+      "_parseError": true,
+      "_raw": "I need to be direct with you: the search results do not contain a single unified \"Legal Services for Seniors\" program in South Dakota with the comprehensive, standardized details you're requesting. Instead, South Dakota has **multiple overlapping programs** with different eligibility rules, benefits, and application processes. I cannot return the JSON structure you requested because doing so would misrepresent fragmented information as a single coherent program.\n\nHere's what actually exists:\n\n## The Reality: Multiple Programs, Not One\n\n**Program 1: Legal Services Corporation Programs (Income-Based)**[1][2]\n- **Providers:** Dakota Plains Legal Services, East River Legal Services, and a third office in Mission[2]\n- **Age requirement:** None specific, but seniors 60+ are eligible *regardless of income*[1]\n- **Income limits:** Federal poverty guidelines apply to those under 60[1]\n- **What you get:** Three tiers of service: (1) advice only, (2) brief service (investigation/paperwork), or (3) appearance as counsel[1]\n- **Services covered:** Landlord/tenant disputes, public benefits assistance, consumer protection[2]\n- **Application:** Online at https://www.sdlawhelp.org/apply, email, or phone[6]\n\n**Program 2: Access to Justice (A2J) Program**[3]\n- **Age requirement:** None, but elderly qualify at higher income threshold\n- **Income limits:** \n  - General population: 125% of federal poverty guidelines\n  - Elderly (and disabled/veterans): 200% of federal poverty guidelines[3]\n- **What you get:** Free pro bono legal services OR reduced-fee services (max $650 retainer, hourly fees at state court-appointed rates)[3]\n- **Application:** https://www.sdlawhelp.org/apply or 855-287-3510[6]\n\n**Program 3: Legal Services for Vulnerable Older Adults**[5]\n- **Age requirement:** 60 and older\n- **Income limits:** \"Greatest economic and social need\" (no specific dollar amounts provided in search results)\n- **What you get:** \"Limited legal assistance\" (specifics not detailed in search results)\n\n## Critical Gaps in Available Information\n\nThe search results **do not provide**:\n- Specific dollar income limits (only references to \"federal poverty guidelines\" without the actual 2026 amounts)\n- Asset limits or exemptions\n- Processing times or waitlist information\n- Specific forms or form numbers\n- Required documents checklist\n- Regional wait time variations\n- Detailed service hour limits or dollar caps (except A2J's $650 retainer)\n\n## What I Can Confirm\n\n**Application routes:**[6]\n- Online: https://www.sdlawhelp.org/apply\n- Phone: 855-287-3510\n- Email: access.to.justice@sdbar.net\n\n**Geographic coverage:**[2]\n- Three main offices: Sioux Falls, Rapid City, Mission\n- Branch offices: Eagle Butte, Fort Thompson, Pierre, Pine Ridge, Sisseton, Fort Yates (ND)\n- Pennington County has an additional program (Pennington County Legal Assistance Project)[2]\n\n**Key distinction:** Seniors 60+ bypass income tests for Legal Services Corporation programs but must meet income thresholds for A2J unless they're also disabled or veterans[1][3]\n\n## Recommendation\n\nTo build your comprehensive guide, you'll need to:\n1. Contact each provider directly (Dakota Plains Legal Services, East River Legal Services) for current income limits, processing times, and required documents\n2. Request the current federal poverty guidelines for 2026\n3. Ask about the specific eligibility criteria for \"Legal Services for Vulnerable Older Adults\" (Program 3)\n4. Clarify which program is best for different types of legal issues\n\nThe search results show these programs exist but don't contain the operational details families need to make decisions."
+    },
+    {
+      "name": "Long-Term Care Ombudsman",
+      "eligibility": {
+        "age": null,
+        "income_limits": "No income limits; available without regard to income.",
+        "asset_limits": "No asset limits; no financial eligibility requirements.",
+        "other_requirements": [
+          "Resident of a long-term care facility in South Dakota (nursing home, assisted living, or community living home), or family/friend advocating for such a resident or someone attempting to enter.",
+          "Complaint or issue must impact the health, safety, welfare, or rights of a resident."
+        ]
+      },
+      "benefits": {
+        "type": "advocacy",
+        "value": "Advocacy for residents' rights; complaint resolution; information and referral assistance; education on residents' rights; review of medical records; assistance with guardianship, medical/treatment issues, facility problems (e.g., staffing shortages); systemic issue identification and resolution.",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Phone: 605-773-3656 (to discuss or report issue)",
+          "Email: LTCO@state.sd.us (include 'Volunteer' in subject if interested in volunteering, but for services contact for complaints)",
+          "Website: https://dhs.sd.gov/ltss/ombudsman-program (for information)",
+          "In-person: Local ombudsman offices via Division of Adult Services and Aging"
+        ],
+        "processing_time": "Not specified; complaint handling is responsive but no formal timeline given.",
+        "waitlist": null,
+        "forms": [
+          "None required"
+        ],
+        "documents": [
+          "None required"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Limited to residents (or prospective residents) of long-term care facilities statewide.",
+        "regional_variations": "Local Long Term Care Ombudsmen (LLTCos) handle regional areas, with state oversight; extensive travel by ombudsmen indicates coverage across South Dakota but potential differences in local response times or staffing.",
+        "offices_or_providers": [
+          "Administered by South Dakota Department of Human Services, Division of Adult Services and Aging; local ombudsmen in regions; Pierre office at Highway 34"
+        ]
+      },
+      "official_source": "https://dhs.sd.gov/ltss/ombudsman-program",
+      "gotchas": [
+        "Not a Medicaid or financial assistance program—purely advocacy, not direct care (e.g., no helping with walking or wheelchairs); complaints must directly impact long-term care residents (not general issues); does not handle eligibility for placement or public benefits; family/relatives can access on behalf of resident but must focus on resident rights; not for licensing/certification disputes directly."
+      ],
+      "data_shape_notes": "no income test; open to any long-term care resident statewide without financial barriers; advocacy-only, not service provision or funding; complaint-driven access",
+      "_raw": "{\n  \"name\": \"Long-Term Care Ombudsman\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No income limits; available without regard to income.\",\n    \"asset_limits\": \"No asset limits; no financial eligibility requirements.\",\n    \"other_requirements\": [\"Resident of a long-term care facility in South Dakota (nursing home, assisted living, or community living home), or family/friend advocating for such a resident or someone attempting to enter.\", \"Complaint or issue must impact the health, safety, welfare, or rights of a resident.\"]\n  },\n  \"benefits\": {\n    \"type\": \"advocacy\",\n    \"value\": \"Advocacy for residents' rights; complaint resolution; information and referral assistance; education on residents' rights; review of medical records; assistance with guardianship, medical/treatment issues, facility problems (e.g., staffing shortages); systemic issue identification and resolution.\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: 605-773-3656 (to discuss or report issue)\", \"Email: LTCO@state.sd.us (include 'Volunteer' in subject if interested in volunteering, but for services contact for complaints)\", \"Website: https://dhs.sd.gov/ltss/ombudsman-program (for information)\", \"In-person: Local ombudsman offices via Division of Adult Services and Aging\"],\n    \"processing_time\": \"Not specified; complaint handling is responsive but no formal timeline given.\",\n    \"waitlist\": null,\n    \"forms\": [\"None required\"],\n    \"documents\": [\"None required\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Limited to residents (or prospective residents) of long-term care facilities statewide.\",\n    \"regional_variations\": \"Local Long Term Care Ombudsmen (LLTCos) handle regional areas, with state oversight; extensive travel by ombudsmen indicates coverage across South Dakota but potential differences in local response times or staffing.\",\n    \"offices_or_providers\": [\"Administered by South Dakota Department of Human Services, Division of Adult Services and Aging; local ombudsmen in regions; Pierre office at Highway 34\"]\n  },\n  \"official_source\": \"https://dhs.sd.gov/ltss/ombudsman-program\",\n  \"gotchas\": [\"Not a Medicaid or financial assistance program—purely advocacy, not direct care (e.g., no helping with walking or wheelchairs); complaints must directly impact long-term care residents (not general issues); does not handle eligibility for placement or public benefits; family/relatives can access on behalf of resident but must focus on resident rights; not for licensing/certification disputes directly.\"],\n  \"data_shape_notes\": \"no income test; open to any long-term care resident statewide without financial barriers; advocacy-only, not service provision or funding; complaint-driven access\"\n}"
+    },
+    {
+      "name": "Commodity Supplemental Food Program (CSFP) / Senior Box Program",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "Household income at or below 150% of federal poverty guidelines. For reference (2026 guidelines): 1 person: $1,995/month; 2 people: $2,705/month; 3 people: $3,415/month; 4 people: $4,125/month; 5 people: $4,835/month; 6 people: $5,545/month; 7 people: $6,255/month; 8 people: $6,965/month; for each additional household member, add $710/month. Income limits are based on gross monthly income before taxes.[1][3]",
+        "asset_limits": "Not specified in available sources; contact local agency for clarification.",
+        "other_requirements": [
+          "Must be a South Dakota resident[3]",
+          "U.S. citizenship is not required[1]",
+          "Some states may require proof of nutritional risk (determined by physician or local agency staff), though this is uncommon[5]",
+          "Some states may impose local residency requirements based on designated service areas[2]"
+        ]
+      },
+      "benefits": {
+        "type": "in_kind",
+        "value": "Monthly box of non-perishable USDA commodity foods at no cost. Typical contents include: cheese, juice, oats, ready-to-eat cereal, rice, pasta, peanut butter, dry beans, canned meat/poultry/fish, canned fruits and vegetables, and occasionally canned entrees (beef stew, chili).[3]",
+        "varies_by": "fixed"
+      },
+      "application": {
+        "methods": [
+          "Phone: Call Feeding South Dakota at 605-853-3656 to apply[3]",
+          "Phone: Call local distribution center (e.g., Brookings Area United Way for Brookings County)[6]",
+          "In-person: Visit local distribution center during distribution times (call for hours)[3]",
+          "Website: Visit https://www.feedingsouthdakota.org/mobile for more information[3]",
+          "Email: Contact [email protected][3]"
+        ],
+        "processing_time": "Not specified in available sources; contact local agency for timeline.",
+        "waitlist": "Not mentioned in available sources; contact local agency to inquire.",
+        "forms": [
+          "Short application form (specific form name/number not provided in sources)[1]"
+        ],
+        "documents": [
+          "Picture ID[1]",
+          "Recent mailing showing name and current address[1]",
+          "Knowledge of monthly gross household income[1]"
+        ]
+      },
+      "geography": {
+        "statewide": false,
+        "restrictions": "Program operates in limited geographic areas within South Dakota. Not all counties may have active distribution centers.[7]",
+        "regional_variations": "Distribution is handled by local agencies and non-profit partners. Brookings Area United Way serves Brookings County; Feeding South Dakota partners with the South Dakota Department of Education to administer the program statewide.[6] Different regions may have different distribution times and local contact information.",
+        "offices_or_providers": [
+          "Feeding South Dakota (statewide administrator): 605-853-3656, https://www.feedingsouthdakota.org/mobile",
+          "Brookings Area United Way (Brookings County distribution center)",
+          "Other local agencies and non-profit private organizations (contact Feeding South Dakota for your area)"
+        ]
+      },
+      "official_source": "https://doe.sd.gov/cans/csfp.aspx (South Dakota Department of Education); https://www.fns.usda.gov/csfp/commodity-supplemental-food-program (USDA Food and Nutrition Service)",
+      "gotchas": [
+        "Program availability is limited by funding and geography. Even in South Dakota, CSFP is only available in limited geographic areas, not statewide.[7] Verify your county/region is served before applying.",
+        "Income limits vary by state. South Dakota uses 150% of federal poverty guidelines, but other states may use 130%.[2][5] Do not assume limits from other states apply.",
+        "CSFP is exclusively for seniors age 60+. Following a 2014 amendment, the program no longer serves women, infants, and children (except those certified before Feb. 6, 2014).[5]",
+        "No conflict with other programs. You can receive CSFP while also receiving SNAP or other nutrition assistance programs.[5]",
+        "Dual eligibility fast-track. If a senior receives SSI (Supplemental Security Income), they are automatically qualified for CSFP regardless of household income.[1]",
+        "No penalty for checking eligibility. There is no risk or penalty to apply and check if you qualify.[1]",
+        "Processing timeline not publicly stated. Contact your local agency directly for expected wait times, as this information is not standardized.",
+        "Food box contents are pre-packaged and may vary month to month based on USDA commodity availability."
+      ],
+      "data_shape_notes": "This program's data structure is defined by: (1) income limits that scale by household size with a base amount plus per-person increments; (2) geographic fragmentation—available in 49 states plus DC and 2 Indian reservations, but only in limited areas within participating states; (3) fixed monthly benefit (one food box per eligible participant per month) with no variation by tier or priority; (4) dual eligibility provision that bypasses income testing for SSI recipients; (5) state-level administration with local agency implementation, creating regional variation in contact information and distribution logistics but uniform eligibility criteria within South Dakota.",
+      "_raw": "```json\n{\n  \"name\": \"Commodity Supplemental Food Program (CSFP) / Senior Box Program\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"Household income at or below 150% of federal poverty guidelines. For reference (2026 guidelines): 1 person: $1,995/month; 2 people: $2,705/month; 3 people: $3,415/month; 4 people: $4,125/month; 5 people: $4,835/month; 6 people: $5,545/month; 7 people: $6,255/month; 8 people: $6,965/month; for each additional household member, add $710/month. Income limits are based on gross monthly income before taxes.[1][3]\",\n    \"asset_limits\": \"Not specified in available sources; contact local agency for clarification.\",\n    \"other_requirements\": [\n      \"Must be a South Dakota resident[3]\",\n      \"U.S. citizenship is not required[1]\",\n      \"Some states may require proof of nutritional risk (determined by physician or local agency staff), though this is uncommon[5]\",\n      \"Some states may impose local residency requirements based on designated service areas[2]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"in_kind\",\n    \"value\": \"Monthly box of non-perishable USDA commodity foods at no cost. Typical contents include: cheese, juice, oats, ready-to-eat cereal, rice, pasta, peanut butter, dry beans, canned meat/poultry/fish, canned fruits and vegetables, and occasionally canned entrees (beef stew, chili).[3]\",\n    \"varies_by\": \"fixed\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: Call Feeding South Dakota at 605-853-3656 to apply[3]\",\n      \"Phone: Call local distribution center (e.g., Brookings Area United Way for Brookings County)[6]\",\n      \"In-person: Visit local distribution center during distribution times (call for hours)[3]\",\n      \"Website: Visit https://www.feedingsouthdakota.org/mobile for more information[3]\",\n      \"Email: Contact [email protected][3]\"\n    ],\n    \"processing_time\": \"Not specified in available sources; contact local agency for timeline.\",\n    \"waitlist\": \"Not mentioned in available sources; contact local agency to inquire.\",\n    \"forms\": [\n      \"Short application form (specific form name/number not provided in sources)[1]\"\n    ],\n    \"documents\": [\n      \"Picture ID[1]\",\n      \"Recent mailing showing name and current address[1]\",\n      \"Knowledge of monthly gross household income[1]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Program operates in limited geographic areas within South Dakota. Not all counties may have active distribution centers.[7]\",\n    \"regional_variations\": \"Distribution is handled by local agencies and non-profit partners. Brookings Area United Way serves Brookings County; Feeding South Dakota partners with the South Dakota Department of Education to administer the program statewide.[6] Different regions may have different distribution times and local contact information.\",\n    \"offices_or_providers\": [\n      \"Feeding South Dakota (statewide administrator): 605-853-3656, https://www.feedingsouthdakota.org/mobile\",\n      \"Brookings Area United Way (Brookings County distribution center)\",\n      \"Other local agencies and non-profit private organizations (contact Feeding South Dakota for your area)\"\n    ]\n  },\n  \"official_source\": \"https://doe.sd.gov/cans/csfp.aspx (South Dakota Department of Education); https://www.fns.usda.gov/csfp/commodity-supplemental-food-program (USDA Food and Nutrition Service)\",\n  \"gotchas\": [\n    \"Program availability is limited by funding and geography. Even in South Dakota, CSFP is only available in limited geographic areas, not statewide.[7] Verify your county/region is served before applying.\",\n    \"Income limits vary by state. South Dakota uses 150% of federal poverty guidelines, but other states may use 130%.[2][5] Do not assume limits from other states apply.\",\n    \"CSFP is exclusively for seniors age 60+. Following a 2014 amendment, the program no longer serves women, infants, and children (except those certified before Feb. 6, 2014).[5]\",\n    \"No conflict with other programs. You can receive CSFP while also receiving SNAP or other nutrition assistance programs.[5]\",\n    \"Dual eligibility fast-track. If a senior receives SSI (Supplemental Security Income), they are automatically qualified for CSFP regardless of household income.[1]\",\n    \"No penalty for checking eligibility. There is no risk or penalty to apply and check if you qualify.[1]\",\n    \"Processing timeline not publicly stated. Contact your local agency directly for expected wait times, as this information is not standardized.\",\n    \"Food box contents are pre-packaged and may vary month to month based on USDA commodity availability.\"\n  ],\n  \"data_shape_notes\": \"This program's data structure is defined by: (1) income limits that scale by household size with a base amount plus per-person increments; (2) geographic fragmentation—available in 49 states plus DC and 2 Indian reservations, but only in limited areas within participating states; (3) fixed monthly benefit (one food box per eligible participant per month) with no variation by tier or priority; (4) dual eligibility provision that bypasses income testing for SSI recipients; (5) state-level administration with local agency implementation, creating regional variation in contact information and distribution logistics but uniform eligibility criteria within South Dakota.\"\n}\n```\n\n**Key Takeaways for Families:**\n\n**Start here:** Call **605-853-3656** (Feeding South Dakota) or visit **https://www.feedingsouthdakota.org/mobile** to confirm your county is served and get your local distribution center's contact information.\n\n**Income check:** If your household income is at or below 150% of federal poverty guidelines and your loved one is 60+, they likely qualify. The income limits scale with household size—a single senior can earn up to $1,995/month; a couple up to $2,705/month.[1][3]\n\n**Fast-track eligibility:** If your loved one receives SSI (Supplemental Security Income), they automatically qualify regardless of income.[1]\n\n**What to expect:** A monthly box of shelf-stable foods (cheese, canned proteins, grains, canned fruits/vegetables, etc.) delivered at no cost. This supplements their diet but is not a complete meal solution.[3]\n\n**Application is simple:** Call to apply with a picture ID, proof of address, and your household income information. There's no penalty for checking if you qualify.[1]\n\n**Important limitation:** CSFP is only available in limited geographic areas of South Dakota, not statewide. Verify your region is served before investing time in the application.[7]"
+    }
+  ]
+}

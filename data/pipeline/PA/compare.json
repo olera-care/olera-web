@@ -1,0 +1,869 @@
+{
+  "state": "PA",
+  "stateName": "Pennsylvania",
+  "comparedAt": "2026-04-09T08:59:23.240Z",
+  "total": 16,
+  "newPrograms": 5,
+  "withDiffs": 11,
+  "withNovelFields": 11,
+  "benefitTypes": {
+    "service": 7,
+    "financial": 6,
+    "service|advocacy": 1,
+    "in_kind": 1,
+    "employment": 1
+  },
+  "variationPatterns": {
+    "priority_tier": 4,
+    "program_tier (PACE vs PACENET; PACENET has higher copays: Generic $8, Brand $15; monthly premium ~$37.45)[6]": 1,
+    "household_size": 1,
+    "household_size|priority_tier|region": 1,
+    "region": 3,
+    "not_applicable — services are standardized across the program": 1,
+    "provider and funding source": 1,
+    "priority_tier|region": 1,
+    "income_level and geographic_location": 1,
+    "drug_type": 1,
+    "not_applicable": 1
+  },
+  "novelFieldSummary": {
+    "asset_limits": {
+      "count": 10,
+      "programs": [
+        "Community HealthChoices",
+        "PACE (Pharmaceutical Assistance Contract for the Elderly)",
+        "Medicare Savings Programs",
+        "SNAP (Supplemental Nutrition Assistance Program)",
+        "LIHEAP",
+        "Pennsylvania SHIP (State Health Insurance Assistance Program)",
+        "Home-Delivered Meals (Pennsylvania)",
+        "Pennsylvania Caregiver Support Program",
+        "Legal Counsel for the Elderly / Pennsylvania Legal Aid Network",
+        "Property Tax/Rent Rebate Program"
+      ],
+      "note": "Our model has no asset limit fields"
+    },
+    "regional_variations": {
+      "count": 9,
+      "programs": [
+        "Community HealthChoices",
+        "Medicare Savings Programs",
+        "SNAP (Supplemental Nutrition Assistance Program)",
+        "LIHEAP",
+        "Pennsylvania SHIP (State Health Insurance Assistance Program)",
+        "Home-Delivered Meals (Pennsylvania)",
+        "Pennsylvania Caregiver Support Program",
+        "Legal Counsel for the Elderly / Pennsylvania Legal Aid Network",
+        "Property Tax/Rent Rebate Program"
+      ],
+      "note": "Program varies by region — our model doesn't capture this"
+    },
+    "documents_required": {
+      "count": 11,
+      "programs": [
+        "Community HealthChoices",
+        "PACE (Pharmaceutical Assistance Contract for the Elderly)",
+        "Medicare Savings Programs",
+        "SNAP (Supplemental Nutrition Assistance Program)",
+        "LIHEAP",
+        "Pennsylvania SHIP (State Health Insurance Assistance Program)",
+        "Home-Delivered Meals (Pennsylvania)",
+        "Pennsylvania Caregiver Support Program",
+        "Legal Counsel for the Elderly / Pennsylvania Legal Aid Network",
+        "Property Tax/Rent Rebate Program",
+        "PACENET (Pharmaceutical Assistance Contract for the Elderly Needs Enhancement Tier)"
+      ],
+      "note": "Has document checklist — our model doesn't store per-program documents"
+    },
+    "waitlist": {
+      "count": 6,
+      "programs": [
+        "Medicare Savings Programs",
+        "Pennsylvania SHIP (State Health Insurance Assistance Program)",
+        "Home-Delivered Meals (Pennsylvania)",
+        "Pennsylvania Caregiver Support Program",
+        "Legal Counsel for the Elderly / Pennsylvania Legal Aid Network",
+        "Property Tax/Rent Rebate Program"
+      ],
+      "note": "Has waitlist info — our model has no wait time field"
+    },
+    "household_size_table": {
+      "count": 1,
+      "programs": [
+        "SNAP (Supplemental Nutrition Assistance Program)"
+      ],
+      "note": "Benefits/eligibility vary by household size — we store a single number"
+    }
+  },
+  "comparisons": [
+    {
+      "name": "Medical Assistance",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Dual MAGI/Non-MAGI tracks; elderly focus on Non-MAGI with fixed asset caps ($2,000/$3,000), variable income by program (e.g., nursing home $2,982/month single); county-administered with potential waitlists for LTC/HCBS",
+      "gotchas": [
+        "Multiple categories (MAGI vs Non-MAGI); elderly typically Non-MAGI with stricter asset tests—many miss asset planning",
+        "Income includes spouse's if cohabiting, Social Security, pensions (excludes SSI/TANF/SNAP)",
+        "Long-term care requires NFLOC; application lengthy/challenging—consider Medicaid planning if over limits",
+        "Annual renewal required; non-citizens limited to emergencies unless qualified",
+        "No specific household size income table provided—use FPIG calculator or apply to confirm"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.pa.gov/agencies/dhs/resources/medicaid/medicaid-general-eligibility"
+    },
+    {
+      "name": "Community HealthChoices",
+      "isNew": false,
+      "existingId": "community-healthchoices",
+      "existingVerified": null,
+      "diffsFound": 4,
+      "diffs": [
+        {
+          "field": "min_age",
+          "ours": "65",
+          "found": "21",
+          "source": "https://www.pa.gov/agencies/dhs/resources/medicaid/chc[6]"
+        },
+        {
+          "field": "income_limit",
+          "ours": "$988",
+          "found": "$2,901",
+          "source": "https://www.pa.gov/agencies/dhs/resources/medicaid/chc[6]"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$1,000 – $5,000/year",
+          "found": "Up to 32 services including long-term services and supports (LTSS) at nursing facility level of care, such as home-based care, attendant care, pest eradication, educational support; Medicare benefits continue separately via Medicare. Specific hours/dollars not fixed; determined post-needs assessment by Managed Care Organization (MCO).[4]",
+          "source": "https://www.pa.gov/agencies/dhs/resources/medicaid/chc[6]"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.pa.gov/agencies/dhs/resources/medicaid/chc[6]"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Medicaid financial eligibility applies; specific asset limits not detailed in sources but include review of income, resources, bank accounts, property, retirement accounts, and insurance. Home equity limit of $730,000 in 2025 if applicant lives in home or intends to return, or if non-applicant spouse/dependent resides there. Home ownership exemptions apply under these conditions.[2]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered via local Area Agencies on Aging (AAAs) for assessments and County Assistance Offices (CAOs) for financial review; different Managed Care Organizations (MCOs) by region; potential variations in providers and wait times not specified[1][3][4]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Financial details: income, assets, bank accounts, property, retirement accounts, insurance coverage",
+            "Proof for Medicaid enrollment, residency, Medicare status if applicable[2][4][9]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Managed care program via MCOs with NFLOC tiering for LTSS; financial eligibility mirrors Medicaid with individual applicant evaluation regardless of household size; regional AAAs/CAOs handle assessments",
+      "gotchas": [
+        "Mandatory managed care for eligible; automatic enrollment for some prior waiver participants",
+        "Excludes intellectual/developmental disabilities beyond basic supports and state nursing facility residents",
+        "Must choose MCO after approval; Medicare benefits remain separate",
+        "Functional Eligibility Determination (FED) required for NFLOC, not just financial",
+        "55+ may prefer LIFE if available in area, as alternative to CHC",
+        "Income/assets evaluated individually even for couples[1][2][3][5][6]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.pa.gov/agencies/dhs/resources/medicaid/chc[6]"
+    },
+    {
+      "name": "PACE (Pharmaceutical Assistance Contract for the Elderly)",
+      "isNew": false,
+      "existingId": "pharmaceutical-assistance-contract-for-the-elderly-pace",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$3350",
+          "found": "$14,500",
+          "source": "https://www.pa.gov/agencies/aging/aging-programs-and-services/pace-program[8]"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$15,000 – $35,000/year",
+          "found": "Pays for prescription drugs with co-payments: Generic $6 per Rx, Brand-name $9 per Rx. No monthly premium or fee.[6]",
+          "source": "https://www.pa.gov/agencies/aging/aging-programs-and-services/pace-program[8]"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.pa.gov/agencies/aging/aging-programs-and-services/pace-program[8]"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits or test; assets are not counted.[7]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of age, residency (90 days), previous year income verification (e.g., Social Security statements, tax returns, pay stubs).[7]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Two-tier structure (PACE low-income no premium; PACENET higher-income with premium/copays); no assets test; income fixed by household type (single/married couple only, no larger household table); statewide with no regional variations; funded by PA Lottery.",
+      "gotchas": [
+        "Eligibility based strictly on previous calendar year's income (e.g., 2025 income for 2026 applications).[3][4][5]",
+        "Excludes those with any Medicaid prescription coverage, even if partial; Medicare Savings Program (Part B premium help only) may still qualify.[5]",
+        "Income calculation specifics matter: Includes spouse's income if living together, gifts/inheritances over $300, but excludes many rebates/aid payments.[7]",
+        "No automatic annual income limit adjustments; fixed by statute unless legislature acts.[6]",
+        "Not the national PACE (Program of All-Inclusive Care for the Elderly) which is a different service for 55+ needing nursing home level care.[2]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "program_tier (PACE vs PACENET; PACENET has higher copays: Generic $8, Brand $15; monthly premium ~$37.45)[6]",
+      "officialSource": "https://www.pa.gov/agencies/aging/aging-programs-and-services/pace-program[8]"
+    },
+    {
+      "name": "Medicare Savings Programs",
+      "isNew": false,
+      "existingId": "medicare-savings-programs",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$1400",
+          "found": "$1,304",
+          "source": "https://www.pa.gov/agencies/dhs/resources/medicaid/medicaid-general-eligibility"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$2,000 – $8,000/year",
+          "found": "Pays Medicare Part B premium for all categories. QMB also covers Medicare Part A premiums (if applicable), deductibles, coinsurance; may include full Medical Assistance benefits (e.g., transportation). SLMB/QI-1: Part B premium only[5][6][7].",
+          "source": "https://www.pa.gov/agencies/dhs/resources/medicaid/medicaid-general-eligibility"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.pa.gov/agencies/dhs/resources/medicaid/medicaid-general-eligibility"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Resource limits apply: typically $2,000 for single/$3,000 for married couple (higher than many MA programs). Counts wages, Social Security, pensions, interest, spouse's income if living together. Exemptions not fully detailed, but no resource test for some MAGI groups; state may disregard certain amounts. Apply even if over limits[1][5][6][7].",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered via local County Assistance Offices (CAOs); potential variation in processing times or support by county, but uniform eligibility statewide[3][7]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "QI-1 may have federal waitlist/priority (first-come, first-served with funding limits); others generally no waitlist[2]",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of income (wages, Social Security, pensions)",
+            "Proof of resources/assets",
+            "Proof of Medicare enrollment",
+            "Proof of citizenship/immigration status",
+            "Proof of residency",
+            "Medical bills if applicable for spend-down related"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Tiered by income level (QMB <100% FPL, SLMB <120%, QI-1 <135%); benefits scale by tier; asset limits higher than standard Medicaid; statewide but local CAO processing; FPL-based with annual updates and state-specific disregards allowing higher qualification",
+      "gotchas": [
+        "Three tiers (QMB, SLMB, QI-1) with different income limits/benefits; check specific category",
+        "May qualify even if income/resources exceed listed limits due to DHS disregards/deductions[5][6]",
+        "Must have/apply for Medicare Part B; program pays premium but doesn't enroll you",
+        "QI-1 has limited funding and potential waitlist",
+        "Spouse's income counted if living together; spousal impoverishment rules may apply for LTSS-related",
+        "Not all income counted the same (e.g., some VA benefits excluded for MAGI)"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.pa.gov/agencies/dhs/resources/medicaid/medicaid-general-eligibility"
+    },
+    {
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "isNew": false,
+      "existingId": "snap",
+      "existingVerified": null,
+      "diffsFound": 4,
+      "diffs": [
+        {
+          "field": "min_age",
+          "ours": "65",
+          "found": "60",
+          "source": "https://www.pa.gov/agencies/dhs/resources/snap/snap-older-adults"
+        },
+        {
+          "field": "income_limit",
+          "ours": "$1980",
+          "found": "$2608,",
+          "source": "https://www.pa.gov/agencies/dhs/resources/snap/snap-older-adults"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$1,500 – $3,600/year",
+          "found": "Monthly EBT card benefits for food purchases at stores/supermarkets. Average for older adults: $106/month. Exact amount based on net income calculation (e.g., for 2-person elderly/disabled: max allotment $546 minus 30% net income).[3][5]",
+          "source": "https://www.pa.gov/agencies/dhs/resources/snap/snap-older-adults"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.pa.gov/agencies/dhs/resources/snap/snap-older-adults"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limit in Pennsylvania for expanded categorical eligibility households (including those with elderly/disabled ≤200% FPL). Countable resources like bank accounts excluded for primary home, one vehicle, income-producing vehicles; other vehicles count value over $4650. Federal rules for elderly/disabled over gross limit: $4500 asset limit.[1]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "household_size_table",
+          "value": "For households with a member 60+ or disabled (Oct 1, 2025 - Sept 30, 2026): Gross monthly income limit at 200% federal poverty level - 1: $2608, 2: $3526, 3: $4442, 4: $5358, 5: $6276, 6: $7192, 7: $8108, +$916 each additional. Households with elderly/disabled exceeding gross may qualify via net income and asset tests. Pennsylvania expanded categorical eligibility for households ≤200% FPL with no resource limit if including elderly/disabled.[1][2][4]",
+          "note": "Benefits/eligibility vary by household size — we store a single number"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered by local County Assistance Offices (CAOs); potential differences in processing via county offices, but statewide eligibility rules.[2][7]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Dates of birth and Social Security numbers for all household members.",
+            "Household income information.",
+            "Household expense information.",
+            "Housing costs (rent/mortgage).",
+            "Medical expenses (especially for elderly/disabled to maximize benefits)."
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Pennsylvania-expanded SNAP: no asset limit at ≤200% FPL for elderly/disabled households; special net test path if over gross; benefits scale by household size with senior deductions for shelter/medical.",
+      "gotchas": [
+        "Elderly/disabled households over gross income (200% FPL) can still qualify via net income/asset tests, unlike standard rules.[1]",
+        "Pennsylvania has no asset limit for expanded categorical eligibility (≤200% FPL), broader than federal.[1][4]",
+        "Simple SNAP/ESAP for all-elderly/disabled with no work: easier application.[2][6]",
+        "Housing/medical expenses deducted to boost benefits for seniors.[1][3]",
+        "Not just related family: anyone purchasing/preparing food together counts as household.[2]",
+        "Federal changes (One Big Beautiful Bill Act 2025) may affect work/non-citizen rules.[5]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "household_size",
+      "officialSource": "https://www.pa.gov/agencies/dhs/resources/snap/snap-older-adults"
+    },
+    {
+      "name": "LIHEAP",
+      "isNew": false,
+      "existingId": "liheap",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$2500",
+          "found": "$23,940",
+          "source": "https://www.pa.gov/agencies/dhs/resources/liheap"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$500 – $2,000/year",
+          "found": "One-time cash grant of $200-$1,000 paid directly to utility/fuel provider. Varies by household size, income, fuel type, and county (use DHS Benefit Amount Table tool for exacts). Crisis grants for households in immediate danger of no heat.",
+          "source": "https://www.pa.gov/agencies/dhs/resources/liheap"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.pa.gov/agencies/dhs/resources/liheap"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset or resource limits.",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Benefit amounts vary by county and fuel type (use DHS Benefit Amount Table). Administered via local County Assistance Offices with potential differences in processing.",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Names, birthdates, SSNs (or affidavit) for all household members",
+            "Proof of income for all household members",
+            "Most recent utility bill"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Income at fixed 150% FPL table by household size; no assets; benefits scale by household size, income range, county, fuel type via lookup table; seasonal with crisis tier; county-administered",
+      "gotchas": [
+        "Seasonal: Applications Dec 3, 2025-May 8, 2026 only.",
+        "No repayment, but one-time grant per season.",
+        "Income excludes specific items like educational aid—verify exclusions.",
+        "Crisis grants separate for shut-off risk.",
+        "Benefits county/fuel-specific—check table.",
+        "Older data (e.g., 2019-2022 limits) outdated; use current 2026 figures."
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "household_size|priority_tier|region",
+      "officialSource": "https://www.pa.gov/agencies/dhs/resources/liheap"
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "County-administered with local providers and variations in intake/waitlists/services; income at 200% FPL with local tables; priority tiers for vulnerable groups including elderly; renters require landlord approval.",
+      "gotchas": [
+        "Must contact county-specific provider, not apply statewide.",
+        "Renters need landlord permission; multi-unit buildings have unit eligibility rules.",
+        "Active waitlists in some areas like Philadelphia.",
+        "Homes previously weatherized may be ineligible (e.g., every 15 years in Philadelphia).",
+        "Priority for elderly/disabled/families with children, but no strict age requirement.",
+        "Income is gross, includes all household members; SSI auto-qualifies.",
+        "No lien on home, but rent/eviction protections required for renters in some regions."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "region",
+      "officialSource": "https://dced.pa.gov/programs/weatherization-assistance-program-wap/"
+    },
+    {
+      "name": "Pennsylvania SHIP (State Health Insurance Assistance Program)",
+      "isNew": false,
+      "existingId": "pennsylvania-ship",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "min_age",
+          "ours": "65",
+          "found": "65 or older (primary focus); also serves Medicare beneficiaries under 65 with disabilities[4][5]",
+          "source": "shiphelp.org (national resource center); PA MEDI contact: 1-800-783-7067[8]"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "Free counseling service",
+          "found": "Free, personalized one-on-one counseling and education; assistance with Medicare enrollment (Parts A, B, C, D); help applying for Medicaid, Medicare Savings Program, Extra Help/Low Income Subsidy; assistance with prescription drug coverage; fraud detection and reporting support[4][5][6]",
+          "source": "shiphelp.org (national resource center); PA MEDI contact: 1-800-783-7067[8]"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "shiphelp.org (national resource center); PA MEDI contact: 1-800-783-7067[8]"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Not specified in available search results",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Services delivered through state units on aging or state departments of insurance in partnerships with local area agencies on aging and community-based partners, but no specific regional service differences are documented in search results[4][5]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Not mentioned in search results",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": "Not specified in search results",
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "SHIP is a counseling and advocacy service program, not a direct benefits program. It provides free assistance to help Medicare beneficiaries understand and enroll in existing programs (Medicare, Medicaid, prescription drug assistance). The program is delivered through a network of 2,200+ local agencies nationwide, with trained counselors and volunteers. Pennsylvania's SHIP is branded as 'PA MEDI' (Pennsylvania Medicare Education and Decision Insight). Unlike means-tested benefit programs, SHIP's eligibility criteria focus on Medicare status rather than strict income thresholds, though it targets people with 'limited incomes.' No specific dollar amounts, asset limits, or processing timelines are provided in the search results.",
+      "gotchas": [
+        "SHIP is primarily a Medicare counseling and enrollment assistance program, NOT a direct financial assistance or insurance program itself[4][5][6] — it helps people navigate and enroll in Medicare, Medicaid, and related programs",
+        "SHIP serves Medicare beneficiaries and their families, not all elderly Pennsylvanians — eligibility requires Medicare enrollment or eligibility[4][5]",
+        "The search results conflate CHIP (Children's Health Insurance Program) with SHIP (State Health Insurance Assistance Program) — these are completely different programs; CHIP covers children, SHIP covers Medicare beneficiaries[1][2][3]",
+        "No specific income limits are documented in search results, making it unclear whether all 'limited income' seniors qualify or if there are thresholds",
+        "Processing timelines, waitlists, and specific documentation requirements are not detailed in available search results"
+      ],
+      "benefitType": "service|advocacy",
+      "benefitVariesBy": "not_applicable — services are standardized across the program",
+      "officialSource": "shiphelp.org (national resource center); PA MEDI contact: 1-800-783-7067[8]"
+    },
+    {
+      "name": "Home-Delivered Meals (Pennsylvania)",
+      "isNew": false,
+      "existingId": "home-delivered-meals",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "min_age",
+          "ours": "65",
+          "found": "60 years or older (some programs accept 65+)[1][2][6]"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$1,500 – $3,600/year",
+          "found": "Nutritionally balanced meals delivered to home. Each meal provides one-third of daily nutritional requirements as determined by US Department of Health and Human Services[2]. Meals certified by Licensed Dietitian and Pennsylvania Department of Aging[2]"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Not specified in search results",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Eligibility criteria differ by county (e.g., York County requires 'living alone or with someone who also meets criteria'; Montgomery County excludes those with family/informal supports). Providers vary by region (Blair Senior Services, Meals America, Philadelphia Corporation for Aging, etc.). Funding sources vary (Area Agencies on Aging, Medicaid waivers, managed care organizations).[1][2][3][5][7]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Not specified in search results",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": "In-home assessment required by Care Manager[1]. Specific documents to bring not detailed in search results.",
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Pennsylvania's home-delivered meals landscape is fragmented across county-based Area Agencies on Aging, Medicaid waiver programs (CHC, OLTL, ODP), and private providers. There is no unified eligibility standard, application process, or benefit level. Families must identify their county and contact the appropriate local provider. Income limits, asset limits, processing times, and waitlist information are not publicly available in standard formats.",
+      "gotchas": [
+        "No single statewide program: You must contact your specific county or provider. Calling the state Department of Aging is a necessary first step.[6]",
+        "Eligibility is highly individualized: Care managers conduct in-home assessments; meeting age and disability criteria does not guarantee approval.[1][2]",
+        "Family/informal support disqualifies you in some counties: Montgomery County explicitly excludes those with family or other informal supports available[7]",
+        "Multiple funding sources mean different rules: Medicaid waiver programs (Community HealthChoices, Independence, OBRA, Aging Waivers) have different eligibility than Area Agency on Aging programs[4]",
+        "Income limits exist but are not publicly detailed: Search results mention income eligibility for some programs but provide no specific thresholds[6]",
+        "Private pay options exist: If you don't qualify for government assistance, some providers (Mom's Meals, Meals America) offer meals at $9.49 or less per meal[3][5]",
+        "Congregate vs. home-delivered are different: Over 500 Senior Community Centers offer congregate meals (eat on-site); home-delivered is a separate, more limited program[6]",
+        "Processing time and waitlists are not disclosed: Search results do not specify how long approval takes or whether waitlists exist"
+      ],
+      "benefitType": "in_kind",
+      "benefitVariesBy": "provider and funding source",
+      "officialSource": null
+    },
+    {
+      "name": "Pennsylvania Caregiver Support Program",
+      "isNew": false,
+      "existingId": "family-caregiver-support-program",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$2,000 – $8,000/year",
+          "found": "Reimbursement for respite care, supplemental services, consumable supplies, and other care-related expenses. Also includes care management, caregiver education, and training. Exact reimbursement percentage via sliding scale (income/household size up to 380% FPL); caregiver pays upfront and submits for reimbursement. No hiring family members for pay.",
+          "source": "https://www.pa.gov/agencies/aging/aging-programs-and-services/caregiver-support-program"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.pa.gov/agencies/aging/aging-programs-and-services/caregiver-support-program"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits or tests mentioned.",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Services and wait times vary by AAA/county (e.g., specific counties like Fayette/Greene/Washington have tailored eligibility notes; reimbursement determined locally via assessment).",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Possible regional waitlists (varies by area, not detailed statewide).",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Verification of household income.",
+            "Proof of residency.",
+            "Documentation of disability/dementia if applicable (e.g., physician note for non-dementia disability in Category 3).",
+            "Receipts for reimbursements post-service."
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Three distinct caregiver categories with varying age/residency/relation rules; statewide via 52 AAAs with local administration; sliding-scale reimbursement (not fixed amounts) by care receiver household income/FPL up to 380%; no upfront financial eligibility but benefit tiered by income.",
+      "gotchas": [
+        "No direct payment to caregivers; must pay upfront and seek reimbursement with receipts.",
+        "Cannot hire/pay family members for care.",
+        "Above 380% FPL: No financial aid, only non-financial services.",
+        "Must live together for Categories 2/3.",
+        "In-home assessment required for authorization.",
+        "Reimbursement only for approved services/supplies determined during assessment."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.pa.gov/agencies/aging/aging-programs-and-services/caregiver-support-program"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "County-restricted with multiple local providers; income at 125% FPL (contact for table); no asset test; benefits fixed at ~20 hours/week min wage but placements vary by region; priority tiers affect entry.",
+      "gotchas": [
+        "Not statewide—must contact county-specific provider; eligibility often county-restricted (e.g., can't apply in Philly if living elsewhere); income is 125% FPL (stricter than some programs); priority to veterans, over 65, disabled, rural, homeless—at-risk; temporary (max ~6-12 months, not permanent job); no asset limits mentioned but prove all income sources; funding fluctuations may cause waitlists."
+      ],
+      "benefitType": "employment",
+      "benefitVariesBy": "region",
+      "officialSource": "https://www.pa.gov/services/aging/apply-for-the-senior-community-service-employment-program"
+    },
+    {
+      "name": "Legal Counsel for the Elderly / Pennsylvania Legal Aid Network",
+      "isNew": false,
+      "existingId": "pennsylvania-legal-aid-network-senior-legal-services",
+      "existingVerified": null,
+      "diffsFound": 4,
+      "diffs": [
+        {
+          "field": "min_age",
+          "ours": "65",
+          "found": "60",
+          "source": "https://palegalaid.net/ and https://www.pa.gov/services/aging/apply-for-the-older-pennsylvanians-legal-assistance-program"
+        },
+        {
+          "field": "income_limit",
+          "ours": "$2000",
+          "found": "$1,533",
+          "source": "https://palegalaid.net/ and https://www.pa.gov/services/aging/apply-for-the-older-pennsylvanians-legal-assistance-program"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$500 – $3,000/year",
+          "found": "Civil legal assistance including abuse, age discrimination, guardianship defense, healthcare, housing, long-term care, Medicaid, Medicare, nutrition, Social Security/SSI, utilities. Provided by independent regional/specialized programs; no specific dollar amounts or hours stated.[2][7]",
+          "source": "https://palegalaid.net/ and https://www.pa.gov/services/aging/apply-for-the-older-pennsylvanians-legal-assistance-program"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://palegalaid.net/ and https://www.pa.gov/services/aging/apply-for-the-older-pennsylvanians-legal-assistance-program"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Varies by local program; some have asset guidelines (e.g., $5,500-$9,000 for certain benefits programs, but specific to legal aid not detailed). Personal assets may affect qualification.[4][5]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Delivered via 8 regional programs and 6 specialized programs; eligibility/priorities vary by local program[1][6][7]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "High demand; nationally ~50% turned away due to resources, 80% of poor's legal needs unmet[1]",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Not explicitly listed; prepare income proof, household size details, asset info, legal problem description as eligibility screening requires these"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Network of independent regional/specialized programs with varying local guidelines/priorities; income pegged to 125% FPG but exact tables/assets/currents require local contact; elderly prioritized via Older Pennsylvanians Legal Assistance Program integration",
+      "gotchas": [
+        "Income at 125% FPG general but local variations/priorities apply; exceptions possible for seniors/domestic violence but not guaranteed[1][4][5]",
+        "High demand leads to turnaways; not all qualifiers served[1]",
+        "Asset tests may apply beyond income; contact local program essential as no centralized exact limits[4][5]",
+        "Focus on elderly 60+ with greatest needs, not automatic for all seniors[2]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier|region",
+      "officialSource": "https://palegalaid.net/ and https://www.pa.gov/services/aging/apply-for-the-older-pennsylvanians-legal-assistance-program"
+    },
+    {
+      "name": "Property Tax/Rent Rebate Program",
+      "isNew": false,
+      "existingId": "property-tax-rent-rebate-program",
+      "existingVerified": null,
+      "diffsFound": 4,
+      "diffs": [
+        {
+          "field": "min_age",
+          "ours": "65",
+          "found": "65 or older; widows/widowers 50 or older; people with disabilities 18 or older[2]",
+          "source": "https://www.pa.gov/agencies/revenue/ptrr"
+        },
+        {
+          "field": "income_limit",
+          "ours": "$16000",
+          "found": "$48,110",
+          "source": "https://www.pa.gov/agencies/revenue/ptrr"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$500 – $2,500/year",
+          "found": "Standard rebate ranges from $380 to $1,000 depending on income[1]. Supplemental rebates (called 'kickers') of up to $500 available for those with income $31,010 or less who live in Philadelphia, Pittsburgh, or Scranton and pay more than 15% of income in property taxes[1]. Maximum total rebate can reach $1,500 for qualifying households[1]. Specific supplemental amounts: $0–$8,550 income = $500 supplement; $8,551–$16,040 = $385 supplement; $16,041–$19,240 = $230 supplement; $19,241–$32,070 = $190 supplement[2]",
+          "source": "https://www.pa.gov/agencies/revenue/ptrr"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.pa.gov/agencies/revenue/ptrr"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits mentioned in available sources",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Supplemental rebates ('kickers') are available to qualifying low-income seniors who live in Philadelphia, Scranton, Pittsburgh, and other parts of the state with particularly high tax burdens[6]. Specific supplemental rebate amounts vary by income bracket[2]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "No waitlist mentioned in available sources",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of property tax or rent paid in the previous year",
+            "Social Security documentation (to calculate 50% exclusion)",
+            "Proof of residency in Pennsylvania during the claim year",
+            "For renters: verification that landlord paid property taxes or made payments in lieu of property taxes",
+            "For veterans with federal veterans' disability payments or state veterans' payments: documentation to claim 100% exclusion of those payments[6]",
+            "For federal Civil Service Retirement System benefit recipients: documentation to claim 50% exclusion of average annual Social Security benefit amount[6]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Benefits scale strictly by income bracket with no household-size variations mentioned. Supplemental rebates add a geographic layer (high-tax-burden cities) and a tax-burden threshold (>15% of income). The program underwent major expansion in 2023, increasing income caps and maximum rebates; families should verify current year limits. Income calculation includes specific exclusions (50% Social Security, 100% veterans' disability payments for some) that significantly affect eligibility. Application deadline is fixed (June 30 postmark) for prior-year rebates.",
+      "gotchas": [
+        "Social Security income is only 50% counted toward the income limit—many seniors don't realize this can significantly lower their countable income[1][5]",
+        "Supplemental rebates ('kickers') are not automatic for all low-income applicants; they require living in specific high-tax-burden areas (Philadelphia, Pittsburgh, Scranton, or other designated areas) AND paying more than 15% of income in property taxes[1]",
+        "The program expanded significantly in 2023 (Act 7 of 2023/House Bill 1100), increasing income limits and maximum rebates—families who were previously ineligible should reapply[2][3]",
+        "Income limits increase annually with inflation as of the 2023 expansion[4]",
+        "Renters must verify their landlord paid property taxes; not all rental situations qualify[6]",
+        "Applications must be postmarked by June 30 for the prior year's rebate[6]",
+        "The program is supported by Pennsylvania Lottery and gaming funds, not general tax revenue[2]",
+        "Deceased claimants' estates can still file if the person lived at least one day in the claim year[1]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "income_level and geographic_location",
+      "officialSource": "https://www.pa.gov/agencies/revenue/ptrr"
+    },
+    {
+      "name": "PACENET (Pharmaceutical Assistance Contract for the Elderly Needs Enhancement Tier)",
+      "isNew": false,
+      "existingId": "pharmaceutical-assistance-contract-for-the-elderly-pace",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$15,000 – $35,000/year",
+          "found": "Reduced co-payments on prescription medications: $8 per generic prescription, $15 per brand-name prescription. Monthly premium: $37.45 (as of 2021)",
+          "source": "https://www.pa.gov/agencies/aging/aging-programs-and-services/pace-program"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.pa.gov/agencies/aging/aging-programs-and-services/pace-program"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of Pennsylvania residency (90+ days)",
+            "Proof of age (65+)",
+            "Previous year's income documentation (gross income from all sources, including net Social Security income)",
+            "Current prescription drug plan information"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "PACENET is the higher-income tier of a two-tier system (PACE is the lower tier for incomes ≤$14,500 single/$17,700 married). The key distinction is that PACENET serves those with moderate incomes who don't qualify for PACE but still need assistance. Income limits increased significantly in 2022, expanding eligibility by approximately 100,000 seniors. The program functions as a cost-sharing mechanism layered on top of existing prescription drug plans rather than as primary coverage.",
+      "gotchas": [
+        "PACENET is NOT standalone insurance—it only works as a wrap-around with existing prescription drug coverage. Applicants must already have Medicare Part D or another qualifying plan.",
+        "Income eligibility is determined by PREVIOUS calendar year's income. Someone applying in 2026 will be evaluated on 2025 income.",
+        "People who applied in the past and were denied may now qualify under the increased income limits (as of February 2022). The Department of Aging automatically reviews previously denied applications.",
+        "Full Medicaid recipients do NOT qualify, but those receiving only Medicare Part B premium assistance through the Medicare Savings Program CAN qualify.",
+        "There is no automatic annual adjustment to income limits. Increases require legislative action (last increase was Act 94 of 2021).",
+        "Co-payments are still required ($8 generic, $15 brand-name)—this is not free medication.",
+        "The program is funded by the Pennsylvania Lottery."
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "drug_type",
+      "officialSource": "https://www.pa.gov/agencies/aging/aging-programs-and-services/pace-program"
+    },
+    {
+      "name": "Pennsylvania Options Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "County-administered with local residency requirement, sliding-fee co-pays based on finances, no fixed statewide income/asset caps, services capped variably by county (e.g., $765/month in Chester)",
+      "gotchas": [
+        "Not statewide uniform—must confirm with specific county Area Agency on Aging; residency strictly county-based",
+        "No strict financial eligibility but co-pays based on income/assets often required",
+        "Must be referred and assessed; services only if needs match program (not for those eligible for Medicaid waivers without pursuing them in some counties)",
+        "Aimed at delaying institutional care; not full long-term care replacement",
+        "Possible link to Medicaid waiver referrals (e.g., Lancaster requires waiver application or 100% private pay otherwise)"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "region",
+      "officialSource": "https://www.pa.gov/content/dam/copapwp-pagov/en/dhs/documents/pa-community-care/documents/Aging-Options_Final.pdf[6]"
+    },
+    {
+      "name": "APPRISE Insurance Counseling Program (now PA MEDI)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "no income/asset test for counseling; statewide via 52 local Area Agencies on Aging with volunteer support; rebranded to PA MEDI but legacy APPRISE name persists regionally",
+      "gotchas": [
+        "Program rebranded to PA MEDI effective July 1, 2021 – same services, new name; still referred to as APPRISE in some areas[4][6][9]",
+        "Not a direct benefits provider – offers counseling and assistance only, underutilized despite high value (e.g., $494k saved in one county[2])",
+        "Services free/confidential but requires contacting local agency; no online self-scheduling statewide[1]",
+        "Helps with but does not guarantee enrollment in savings programs which have strict income/asset limits (e.g., QMB: $1,325/mo single[5])"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://www.pa.gov/agencies/aging/aging-programs-and-services/pa-medi-medicare-counseling[8]"
+    }
+  ]
+}

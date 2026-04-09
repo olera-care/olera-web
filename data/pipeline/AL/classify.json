@@ -1,0 +1,77 @@
+{
+  "state": "AL",
+  "stateName": "Alabama",
+  "classifiedAt": "2026-04-09T08:46:33.098Z",
+  "total": 2,
+  "typeSummary": {
+    "resource": 1,
+    "benefit": 1
+  },
+  "scopeSummary": {
+    "state": 2
+  },
+  "complexitySummary": {
+    "simple": 1,
+    "medium": 1
+  },
+  "programs": [
+    {
+      "name": "Alabama Cares",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local Area Agencies on Aging (AAAs) and Aging & Disability Resource Centers (ADRCs) statewide.",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Alabama Elderly Simplified Application Project (AESAP)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local county Department of Human Resources (DHR) Food Assistance offices statewide",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "medium",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "documents",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    }
+  ]
+}

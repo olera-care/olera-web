@@ -1,0 +1,727 @@
+{
+  "state": "LA",
+  "stateName": "Louisiana",
+  "draftedAt": "2026-04-09T08:53:46.530Z",
+  "total": 14,
+  "successful": 3,
+  "programs": [
+    {
+      "id": "louisiana-medicaid-hcbs-waivers",
+      "name": "Louisiana Medicaid Home and Community-Based Services (HCBS) Waivers",
+      "shortName": "HCBS Waivers",
+      "tagline": "Get Medicaid to pay for home care, adult day care, and respite services so your parent can avoid nursing home placement.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Office of Aging and Adult Services (CCW): https://ldh.la.gov/office-of-aging-and-adult-services[4]",
+            "type": "service-area"
+          },
+          {
+            "name": "Local Medicaid field offices",
+            "type": "service-area"
+          },
+          {
+            "name": "Licensed HCBS providers statewide[7]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs daily help with bathing, dressing, or managing medications but wants to stay home instead of moving to a nursing home, Louisiana's HCBS waivers can pay for home care services through Medicaid. Because these waivers cover personal care attendants, adult day health care, and respite care under one program, your parent gets coordinated support without you managing multiple providers.\n\nYour parent must be 21+ and meet the same clinical requirements as nursing home admission (called Nursing Facility Level of Care). Income limit: around $943/month for a single person in 2023, with assets limited to $2,000 individual/$3,000 couple. The program has limited slots with priority given to abuse/neglect cases, ALS patients, and current nursing home residents on Medicaid.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 21+",
+          "Income around $943/month",
+          "Assets under $2,000",
+          "Need daily care help",
+          "Louisiana resident"
+        ],
+        "ageRequirement": "21+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 2000,
+          "couple": 3000,
+          "countedAssets": [
+            "Cash",
+            "Bank accounts",
+            "Investments",
+            "Secondary property"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "Household furnishings",
+            "Appliances",
+            "Personal effects",
+            "One vehicle"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "Must meet Nursing Facility Level of Care (clinical assessment showing inability to perform daily activities like bathing or dressing independently, unstable medical conditions, or cognitive impairments like dementia)",
+        "otherRequirements": [
+          "Louisiana resident",
+          "At risk of nursing home placement",
+          "Not receiving PACE or other HCBS waivers"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact the Office of Aging and Adult Services online or call your local Medicaid office, though processing time varies and there's a waitlist.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact the Office of Aging and Adult Services",
+            "description": "Visit https://ldh.la.gov/office-of-aging-and-adult-services/community-choices-waiver-ccw or call your local Medicaid office at 1-855-618-2229"
+          },
+          {
+            "step": 2,
+            "title": "Get medical evaluation",
+            "description": "Your parent's physician completes a medical evaluation report documenting need for nursing home level care"
+          },
+          {
+            "step": 3,
+            "title": "Complete Level II assessment",
+            "description": "A support coordinator completes BHSF Form 142 to assess your parent's specific care needs"
+          },
+          {
+            "step": 4,
+            "title": "Submit financial documents",
+            "description": "Provide bank statements, income proof, and other documents to verify Medicaid Long-Term Care eligibility"
+          }
+        ],
+        "processingTime": "Not specified; depends on medical certification and financial eligibility approval",
+        "waitlist": "Yes, limited slots with priority groups getting first access",
+        "tip": "Priority goes to abuse/neglect referrals and ALS patients - if your parent has ALS, mention this immediately when applying",
+        "urls": [
+          {
+            "label": "Community Choices Waiver Application",
+            "url": "https://ldh.la.gov/office-of-aging-and-adult-services/community-choices-waiver-ccw"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Cash and checking/savings accounts",
+            "Investments and stocks",
+            "Secondary property or rental homes",
+            "Assets transferred below fair value in past 60 months (Look-Back Rule)"
+          ],
+          "excluded": [
+            "Primary home where your parent lives",
+            "Household furnishings and appliances",
+            "Personal effects and clothing",
+            "One vehicle"
+          ]
+        },
+        {
+          "type": "tier-comparison",
+          "heading": "Priority Groups (Get First Access)",
+          "tiers": [
+            {
+              "name": "Priority 1: Emergency Cases",
+              "description": "Abuse/neglect referrals",
+              "incomeLimit": "Same limits apply",
+              "coverage": "Immediate consideration"
+            },
+            {
+              "name": "Priority 2: ALS Patients",
+              "description": "Diagnosed with ALS",
+              "incomeLimit": "Same limits apply",
+              "coverage": "Fast-track approval"
+            },
+            {
+              "name": "Priority 3: Current Residents",
+              "description": "Already in nursing home with Medicaid as sole payer",
+              "incomeLimit": "Same limits apply",
+              "coverage": "Transition support to home"
+            },
+            {
+              "name": "General Waitlist",
+              "description": "All other eligible applicants",
+              "incomeLimit": "Same limits apply",
+              "coverage": "Wait for available slots"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Louisiana ID or driver's license",
+                "Proof of Louisiana residency"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Bank statements for all accounts",
+                "Pay stubs or Social Security statements",
+                "Financial documents for Medicaid LTC eligibility"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Medical records documenting care needs",
+                "Physician's medical evaluation report",
+                "Documentation of Activities of Daily Living limitations"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Limited enrollment means even eligible applicants may wait months or years for services. Priority groups get first access, so non-priority applicants face long waitlists."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "A dementia diagnosis alone won't qualify your parent - they must demonstrate inability to perform daily activities independently through clinical assessment."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house if she qualifies for HCBS waivers?",
+          "answer": "Yes, the primary home is exempt from the $2,000 asset limit as long as your parent lives there. Only secondary properties count toward the limit."
+        },
+        {
+          "question": "What if Dad's income is just over the $943 limit?",
+          "answer": "He may still qualify if medical expenses bring his countable income below the limit through Medicaid spend-down rules. A Medicaid eligibility worker can calculate this."
+        },
+        {
+          "question": "How long is the waitlist for non-priority applicants?",
+          "answer": "Louisiana doesn't publish specific wait times, but limited slots mean it could be months to years. Priority goes to abuse cases, ALS patients, and current nursing home residents first."
+        },
+        {
+          "question": "What happens if we transferred money to family in the past 5 years?",
+          "answer": "The 60-month Look-Back Rule applies - transfers below fair market value create penalty periods where your parent can't receive benefits. The penalty length depends on the transfer amount."
+        },
+        {
+          "question": "Can Dad get HCBS services if he's already getting other help?",
+          "answer": "No, HCBS waivers exclude people already receiving PACE, LT-PCS (Long-Term Personal Care Services), or other HCBS waivers. You can't combine these programs."
+        },
+        {
+          "question": "What specific services will the waiver cover for Mom?",
+          "answer": "Services depend on assessed needs but can include personal care attendants, adult day health care, respite care, and support coordination. Hours and specific services vary based on your parent's Level of Care assessment."
+        }
+      ],
+      "phone": "1-855-618-2229",
+      "sourceUrl": "https://ldh.la.gov/office-of-aging-and-adult-services/community-choices-waiver-ccw",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "louisiana-pace-elderly-care",
+      "name": "Louisiana Program of All-Inclusive Care for the Elderly (PACE)",
+      "shortName": "Louisiana PACE",
+      "tagline": "All medical care and daily support under one team if your parent needs nursing home-level care but wants to stay home.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Baton Rouge, Greater New Orleans, Alexandria, Lafayette",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 55+ and needs significant daily help but wants to avoid a nursing home, PACE could provide everything — doctors, medications, home care, meals, transportation — under one coordinated team at no extra cost. Because PACE covers all medical care through one program, your parent won't juggle multiple providers or insurance claims.\n\nYour parent must qualify for nursing home-level care (needing daily help with bathing, dressing, or medication management) and meet Medicaid income limits: $2,163/month for individuals, $4,326/month for married couples where both receive services. PACE is only available in select areas around New Orleans, Baton Rouge, Lafayette, and Alexandria — not statewide.",
+      "savingsRange": "",
+      "savingsSource": "Free comprehensive care service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Income below $2,163/month (individual)",
+          "Need nursing home-level care",
+          "Live in PACE service area",
+          "Medicaid eligible"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2163
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 4326
+          }
+        ],
+        "assetLimits": {
+          "individual": 2000,
+          "couple": 3000,
+          "countedAssets": [
+            "Bank accounts",
+            "Investments",
+            "Cash",
+            "Additional property"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "One vehicle",
+            "Personal belongings"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "Must qualify for Nursing Facility Level of Care (needing daily help with activities like bathing, dressing, medication management, or mobility)",
+        "otherRequirements": [
+          "Live in PACE service area (Greater New Orleans, Baton Rouge, Lafayette, or Alexandria regions)",
+          "Able to live safely in community with support",
+          "Not enrolled in Medicare Advantage or hospice"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your regional PACE office for initial screening — the process involves multiple assessments to determine care needs.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact regional PACE office",
+            "description": "Call the office serving your parent's zip code for initial screening and information"
+          },
+          {
+            "step": 2,
+            "title": "Complete LOCET screening",
+            "description": "Initial Level of Care Evaluation Tool assessment to determine potential eligibility"
+          },
+          {
+            "step": 3,
+            "title": "Full iHC assessment",
+            "description": "Comprehensive assessment if LOCET indicates nursing facility level of care needed"
+          },
+          {
+            "step": 4,
+            "title": "Medicaid eligibility review",
+            "description": "Financial documentation review for income and asset limits"
+          },
+          {
+            "step": 5,
+            "title": "Plan of care development",
+            "description": "PACE team creates individualized care plan if approved"
+          }
+        ],
+        "processingTime": "Not specified — involves multiple assessment stages",
+        "waitlist": null,
+        "tip": "Gather medical records and financial documents before calling — the assessment process requires detailed health and income information.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and savings",
+            "Investments and stocks",
+            "Cash on hand",
+            "Additional property beyond primary home"
+          ],
+          "excluded": [
+            "Primary residence",
+            "One vehicle",
+            "Personal belongings and household items",
+            "Life insurance policies"
+          ]
+        },
+        {
+          "type": "county-directory",
+          "heading": "Regional PACE Offices",
+          "offices": [
+            {
+              "name": "Baton Rouge PACE",
+              "type": "service-area",
+              "phone": "225-490-0604",
+              "address": "East and West Baton Rouge service area"
+            },
+            {
+              "name": "Greater New Orleans PACE",
+              "type": "service-area",
+              "phone": "504-945-1531",
+              "address": "Select zip codes in Greater New Orleans"
+            },
+            {
+              "name": "Alexandria PACE",
+              "type": "service-area",
+              "phone": "318-206-1020",
+              "address": "Rapides and Avoyelles parishes"
+            },
+            {
+              "name": "Lafayette PACE",
+              "type": "service-area",
+              "phone": "337-470-4500",
+              "address": "Select zip codes in Lafayette area"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residence",
+              "items": [
+                "Birth certificate or ID showing age 55+",
+                "Proof of address in PACE service area"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Social Security award letter",
+                "Bank statements (last 3 months)",
+                "Income documentation (pensions, benefits)",
+                "Asset documentation (investments, property)"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Recent medical records",
+                "Current medication list",
+                "Physician assessments if available"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "PACE is not available statewide. Your parent must live in specific zip codes around New Orleans, Baton Rouge, Lafayette, or Alexandria. Call to confirm your address qualifies before starting the application process."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Your parent can try PACE without losing other benefits. PACE enrollment is voluntary and they can disenroll if the program doesn't meet their needs, though this involves reassessment."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house if she qualifies for PACE?",
+          "answer": "Yes. The primary home doesn't count toward the $2,000 asset limit for individuals. She can live at home and receive PACE services there."
+        },
+        {
+          "question": "What if Dad's income is just over $2,163 per month?",
+          "answer": "He may still qualify through Medicaid spend-down, where excess income goes toward medical expenses. The general long-term care threshold is higher at $2,901/month. Call to discuss specific options."
+        },
+        {
+          "question": "Does PACE replace Medicare and other insurance?",
+          "answer": "PACE becomes the primary provider for all covered services. Your parent keeps Medicare but cannot be enrolled in Medicare Advantage. PACE coordinates all care instead of managing multiple insurance plans."
+        },
+        {
+          "question": "What if my parent needs 24-hour nursing care?",
+          "answer": "PACE is for people who can live safely in the community with support services. If your parent needs round-the-clock skilled nursing, they may not qualify for PACE and might need nursing facility care instead."
+        },
+        {
+          "question": "How quickly can my parent start receiving services?",
+          "answer": "The timeline isn't specified and involves multiple assessments. After the initial LOCET screening, there's a comprehensive iHC assessment, Medicaid eligibility review, and plan development. Call your regional office for current processing times."
+        },
+        {
+          "question": "What happens if we move to a different parish?",
+          "answer": "PACE is only available in select service areas. If you move outside the coverage area, your parent would need to disenroll and find alternative care arrangements. Check coverage areas before relocating."
+        }
+      ],
+      "phone": "225-490-0604",
+      "sourceUrl": "https://ldh.la.gov/assets/docs/OAAS/Manuals/PACE-Manual.pdf",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "louisiana-snap-food-benefits",
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "shortName": "SNAP Food Benefits",
+      "tagline": "Monthly grocery money for parents on fixed incomes — up to $415/month for couples.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Louisiana Department of Children & Family Services (DCFS)",
+            "type": "service-area"
+          },
+          {
+            "name": "Parish Councils on Aging (for application assistance and SFMNP)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and struggling with grocery costs, SNAP provides monthly benefits to help buy food. Louisiana offers more generous income limits than federal rules — your parent may qualify even if they earn more than the standard limits. Because households with elderly members (60+) only need to meet net income requirements, your parent can qualify with higher gross income than younger adults.\n\nFor example, a couple with $1,200 monthly income receives $415/month in SNAP benefits. Your parent can use these benefits at grocery stores, farmers markets, and many online retailers. Louisiana eliminated asset limits for most households, so your parent's savings or home value won't disqualify them.",
+      "savingsRange": "$1,200 – $4,980/year in 2026",
+      "savingsSource": "Based on example benefit amounts for elderly/disabled households",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+ or disabled",
+          "Income below $2,608/month (single)",
+          "Louisiana resident",
+          "U.S. citizen or legal resident"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2608
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 3526
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 4442
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 5358
+          },
+          {
+            "householdSize": 5,
+            "monthlyLimit": 6276
+          },
+          {
+            "householdSize": 6,
+            "monthlyLimit": 7192
+          },
+          {
+            "householdSize": 7,
+            "monthlyLimit": 8108
+          }
+        ],
+        "assetLimits": {
+          "individual": null,
+          "couple": null,
+          "countedAssets": [
+            "Bank account funds"
+          ],
+          "exemptAssets": [
+            "Home",
+            "Vehicles"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must have Social Security number or proof of application",
+          "Must be Louisiana resident"
+        ],
+        "povertyLevelReference": "200% FPL for gross income (elderly/disabled households)"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online through DCFS or get help from your parish Council on Aging.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Gather required documents",
+            "description": "Collect Social Security statements, pension documentation, proof of residence, and medical expense records if applicable."
+          },
+          {
+            "step": 2,
+            "title": "Choose application method",
+            "description": "Apply online through Louisiana DCFS website, or contact your parish Council on Aging for in-person assistance."
+          },
+          {
+            "step": 3,
+            "title": "Complete eligibility interview",
+            "description": "DCFS will schedule a phone or in-person interview to verify information and determine benefit amount."
+          },
+          {
+            "step": 4,
+            "title": "Receive EBT card",
+            "description": "If approved, your parent will receive a Louisiana Purchase EBT card loaded with monthly benefits."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "If your parent is 60+ with no earned income, ask about ESAP (Elderly Simplified Application Project) — it provides 36-month certification instead of annual renewals.",
+        "urls": [
+          {
+            "label": "Louisiana DCFS SNAP Information",
+            "url": "https://dcfs.louisiana.gov/page/524"
+          },
+          {
+            "label": "ESAP Information",
+            "url": "https://ldh.la.gov/page/esap"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits for Elderly/Disabled Households",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 2608
+            },
+            {
+              "householdSize": 2,
+              "monthlyLimit": 3526
+            },
+            {
+              "householdSize": 3,
+              "monthlyLimit": 4442
+            },
+            {
+              "householdSize": 4,
+              "monthlyLimit": 5358
+            },
+            {
+              "householdSize": 5,
+              "monthlyLimit": 6276
+            },
+            {
+              "householdSize": 6,
+              "monthlyLimit": 7192
+            },
+            {
+              "householdSize": 7,
+              "monthlyLimit": 8108
+            }
+          ],
+          "footnote": "2025 Louisiana SNAP income limits for households with members 60+ or disabled"
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Funds in bank accounts (checking, savings)",
+            "Cash on hand"
+          ],
+          "excluded": [
+            "Home and property",
+            "Vehicles",
+            "Personal belongings",
+            "Life insurance policies"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Social Security card or proof of application",
+                "Proof of U.S. citizenship or lawful presence",
+                "Louisiana residency documentation"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Social Security benefit statements",
+                "Pension or retirement income documentation",
+                "Disability payment records",
+                "Bank statements",
+                "Medical expense receipts (for net income calculation)"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Louisiana has no asset limits for most households. Your parent won't lose SNAP benefits because of savings in the bank or home ownership — only monthly income matters for qualification."
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "All income counts toward limits, including Social Security, veterans' benefits, and disability payments — not just wages. However, medical expenses can reduce net income for elderly/disabled households."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if Mom's Social Security puts her just over the income limit?",
+          "answer": "If your mom is 60+ or disabled, medical expenses can reduce her countable income. Deductions for medical costs over $35/month, Medicare premiums, and prescription costs may bring her income below the limit."
+        },
+        {
+          "question": "Can Dad keep his house and still get SNAP benefits?",
+          "answer": "Yes. Louisiana doesn't count homes or vehicles as assets for SNAP eligibility. Your dad's house, car, and personal belongings won't affect his qualification — only his monthly income matters."
+        },
+        {
+          "question": "Does my parent have to reapply every year?",
+          "answer": "It depends. Standard SNAP requires periodic recertification. But if your parent is 60+ with no earned income, they may qualify for ESAP, which provides 36-month certification with no recertification interviews required."
+        },
+        {
+          "question": "What stores accept SNAP benefits?",
+          "answer": "Most grocery stores, many pharmacies, and some online retailers (including Amazon and Walmart) accept SNAP EBT cards. Your parent cannot use SNAP for alcohol, tobacco, hot prepared foods, or non-food items."
+        },
+        {
+          "question": "How much will my parent receive each month?",
+          "answer": "Benefit amounts depend on household size and income. For example, a two-person elderly household with $1,200 monthly income receives $415/month. Higher income means lower benefits, but even small amounts help with grocery costs."
+        },
+        {
+          "question": "What if my parent lives with me — does my income count?",
+          "answer": "Only if you buy and prepare food together. If your parent shops and cooks separately, your income doesn't count toward their SNAP household. But if you share meals and grocery expenses, you'd apply together as one household."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://dcfs.louisiana.gov/page/524",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "name": "LIHEAP (Low-Income Home Energy Assistance Program)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Louisiana Senior Health Insurance Information Program (SHIP)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Meals on Wheels - Louisiana Council on Aging",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Louisiana Respite Care Program",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Louisiana Senior Legal Helpline",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Louisiana Long-Term Care Ombudsman Program",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Community Choices Waiver",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Louisiana Long Term–Personal Care Services (LT-PCS)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "COAHELPS (East Baton Rouge Council on Aging)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Lotus Rides (EBRCOA Transportation)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    }
+  ],
+  "stateOverview": null
+}

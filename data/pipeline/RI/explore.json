@@ -1,0 +1,134 @@
+{
+  "entity": "Rhode Island",
+  "entitySlug": "rhode-island",
+  "state": "RI",
+  "stateName": "Rhode Island",
+  "isRegion": false,
+  "exploredAt": "2026-04-09T08:58:44.948Z",
+  "programCount": 17,
+  "programs": [
+    {
+      "name": "Medicaid",
+      "what_it_does": "Provides healthcare coverage through Rhode Island's publicly-funded state Medicaid program for eligible seniors and individuals with disabilities. Covers medical services, long-term care, and related supports administered by the RI Department of Human Services.[2]",
+      "who_its_for": "Low-income seniors, older adults, and people with disabilities meeting Medicaid eligibility criteria.[2]",
+      "official_url": "https://dhs.ri.gov/programs-and-services",
+      "benefit_value": "Varies by eligibility; covers premiums, deductibles, copays, and long-term services.[2][4]"
+    },
+    {
+      "name": "Long Term Services & Supports (LTSS)",
+      "what_it_does": "Offers customized home and community-based services for older adults and people with disabilities or chronic needs in various settings. Includes waivers and the SSI Enhanced Assisted Living program as part of Rhode Island's administration.[2]",
+      "who_its_for": "Older adults, individuals with disabilities, or those with chronic care needs eligible through DHS.[2]",
+      "official_url": "https://dhs.ri.gov/programs-and-services",
+      "benefit_value": "Custom services tailored to needs; enhances community living options.[2]"
+    },
+    {
+      "name": "PACE (Program of All-Inclusive Care for the Elderly)",
+      "what_it_does": "Delivers comprehensive medical and social services to eligible frail elderly individuals. Administered through partnerships in Rhode Island focusing on long-term care.[4]",
+      "who_its_for": "Frail seniors age 55+ who are nursing facility eligible and live in PACE service areas.[4]",
+      "official_url": "https://oha.ri.gov",
+      "benefit_value": "All-inclusive care including adult day health, transportation, and home care; value up to full nursing home equivalent.[4]"
+    },
+    {
+      "name": "Medicare Savings Programs (MSP): QMB, SLMB, QI",
+      "what_it_does": "Helps pay Medicare Part A/B premiums, deductibles, copayments, and coinsurance for eligible low-income beneficiaries. In RI, includes Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), and Qualifying Individual (QI) programs.[4]",
+      "who_its_for": "Limited income and asset seniors with Medicare; specific limits apply (e.g., income thresholds vary by category).[4]",
+      "official_url": "https://oha.ri.gov/media/1071/download?language=en",
+      "benefit_value": "Full/partial coverage of premiums (e.g., Part B ~$174.70/month in 2024) and cost-sharing.[4]"
+    },
+    {
+      "name": "Supplemental Nutrition Assistance Program (SNAP)",
+      "what_it_does": "Federal food benefit program helping low-income Rhode Islanders, including seniors, purchase healthy groceries monthly. Administered through RI DHS.[5]",
+      "who_its_for": "Low-income older adults and households meeting income eligibility.[5]",
+      "official_url": "https://dhs.ri.gov/programs-and-services/supplemental-nutrition-assistance-program-snap",
+      "benefit_value": "Monthly EBT benefits averaging $200-300/person depending on household size/income (2024 est.).[5]"
+    },
+    {
+      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "what_it_does": "Provides energy assistance grants to help with heating costs during winter. RI administers federally funded grants via DHS.[6]",
+      "who_its_for": "Low-income households including seniors; priority for those 60+ or disabled.[6]",
+      "official_url": "https://dhs.ri.gov/programs-and-services",
+      "benefit_value": "One-time grants $200-$1,000+ based on income, household size, and fuel type.[6]"
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "what_it_does": "Funds home energy efficiency improvements like insulation and sealing to reduce costs. Federally supported and administered through RI agencies.[6]",
+      "who_its_for": "Low-income homeowners/renters including seniors qualifying via income guidelines.[6]",
+      "official_url": "http://www.economicprogressri.org/index.php/guide-to-assistance-5/",
+      "benefit_value": "Free upgrades valued $3,000-$8,000 per home; lifetime energy savings.[6]"
+    },
+    {
+      "name": "State Health Insurance Assistance Program (SHIP)",
+      "what_it_does": "Offers free counseling on Medicare, Medigap, and Part D options. In RI, provided through Office of Healthy Aging and partners.[4]",
+      "who_its_for": "Rhode Island Medicare beneficiaries seeking insurance guidance.[4]",
+      "official_url": "https://oha.ri.gov",
+      "benefit_value": "Free personalized counseling; helps save thousands on premiums/drugs annually.[4]"
+    },
+    {
+      "name": "Meals on Wheels of Rhode Island",
+      "what_it_does": "Delivers nutritious meals to homebound seniors to promote health and independence. Partners with RI Community Food Bank and senior centers.[5]",
+      "who_its_for": "Homebound older adults unable to prepare meals, often low-income.[5]",
+      "official_url": "https://www.rimeals.org",
+      "benefit_value": "5-14 meals/week at ~$7-10/meal subsidized; full value $2,000+/year.[5]"
+    },
+    {
+      "name": "Caregiver Support Programs",
+      "what_it_does": "Provides respite care, training, and support for family caregivers of seniors. Offered through Office of Healthy Aging and community partners.[1][4]",
+      "who_its_for": "Family caregivers of older adults with Alzheimer's, disabilities, or long-term illness.[1]",
+      "official_url": "https://oha.ri.gov",
+      "benefit_value": "Respite grants up to $1,600/year; counseling and training services.[1][4]"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "what_it_does": "Offers part-time paid community service training leading to employment for low-income seniors. Administered through RI partners like RSVP programs.[6]",
+      "who_its_for": "Unemployed low-income individuals age 55+.[6]",
+      "official_url": "https://cranstonseniorcenter.com/rsvp-retired-senior-volunteer-program/",
+      "benefit_value": "Minimum wage work ~20 hrs/week; $6,000-$8,000/year plus training.[6]"
+    },
+    {
+      "name": "Legal Assistance for Seniors",
+      "what_it_does": "Provides free legal aid for issues like housing, benefits, and abuse. Through RI Legal Services and Elder Law programs.[5]",
+      "who_its_for": "Low-income seniors 60+ facing civil legal needs.[5]",
+      "official_url": "https://rielderinfo.com/advocacy-assistance/",
+      "benefit_value": "Pro bono representation; saves $5,000+ in legal fees per case.[5]"
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "what_it_does": "Offers independent advocacy to resolve issues in nursing homes, assisted living, and home care. Focuses on quality improvement and resident rights.[5]",
+      "who_its_for": "Residents of long-term care facilities and their families in RI.[5]",
+      "official_url": "https://rielderinfo.com/advocacy-assistance/",
+      "benefit_value": "Free advocacy resolving 80%+ of complaints; protects rights statewide.[5]"
+    },
+    {
+      "name": "Rhode Island Pharmaceutical Assistance for the Elderly (RIPAE)",
+      "what_it_does": "RIPAE provides financial assistance to eligible seniors for prescription drug costs not covered by Medicare. It helps pay copays and premiums for Medicare Part D plans, reducing out-of-pocket expenses for medications.[5][7]",
+      "who_its_for": "Rhode Island residents aged 65+ with limited income and assets, enrolled in Medicare Part D.",
+      "whats_unique": "State-funded program supplementing federal Medicare Part D specifically for RI seniors, administered through the Office of Healthy Aging.[5][7]",
+      "official_url": "https://oha.ri.gov",
+      "benefit_value": "Varies by income; covers copays up to program limits after Medicare payments."
+    },
+    {
+      "name": "At Home Cost Share Program",
+      "what_it_does": "Provides case management and coordinated care services to help seniors remain safely in their homes. Partners with agencies like Child & Family to connect participants to community resources and long-term supports.[4]",
+      "who_its_for": "Eligible seniors in Newport County and Providence with limited income, through Rhode Island Office of Healthy Aging.",
+      "whats_unique": "RI state-funded program offering cost-shared home-based services beyond federal Medicaid waivers, focused on aging in place.[4]",
+      "official_url": "https://oha.ri.gov",
+      "benefit_value": "Case management and access to services; cost-sharing based on income."
+    },
+    {
+      "name": "Senior Companion Program",
+      "what_it_does": "Trains volunteers to provide companionship and support to isolated older adults in homes, adult day centers, and community sites. Helps reduce isolation and assists with daily activities to promote independence.[3]",
+      "who_its_for": "Isolated seniors and adults with disabilities in Rhode Island, served through Division of Elderly Affairs-funded programs.",
+      "whats_unique": "State-funded volunteer companion service unique to RI's elderly affairs initiatives, emphasizing community-based support.[3]",
+      "official_url": "https://www.dea.ri.gov",
+      "benefit_value": "Free volunteer companionship hours, tailored to individual needs."
+    },
+    {
+      "name": "RIPTA Senior Reduced Fare Bus Pass",
+      "what_it_does": "Offers discounted fares on all Rhode Island Public Transit Authority buses for senior riders. Enables affordable access to errands, medical appointments, and recreation statewide.[2]",
+      "who_its_for": "Rhode Island residents aged 65 and older.",
+      "whats_unique": "State-specific reduced fare program on RI's public transit system, not a standard federal offering.[2]",
+      "official_url": "https://www.ripta.com",
+      "benefit_value": "Reduced fare (exact discount varies; typically 50% off standard adult fare)."
+    }
+  ]
+}

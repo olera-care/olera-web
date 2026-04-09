@@ -1,0 +1,53 @@
+{
+  "entity": "Connecticut",
+  "entitySlug": "connecticut",
+  "state": "CT",
+  "stateName": "Connecticut",
+  "isRegion": false,
+  "exploredAt": "2026-04-09T08:48:20.074Z",
+  "programCount": 6,
+  "programs": [
+    {
+      "name": "CHOICES",
+      "what_it_does": "Connecticut's State Health Insurance Assistance Program (SHIP) that provides free information, counseling, and assistance to seniors about Medicare, Medicaid, Medicare Supplement Insurance (Medigap), and Long Term Care Insurance. Volunteers are available to meet with seniors throughout Connecticut.",
+      "who_its_for": "Medicare-eligible individuals, their families, and caregivers",
+      "official_url": "Contact through Area Agencies on Aging or call 1-800-994-9422",
+      "benefit_value": "Free counseling and assistance"
+    },
+    {
+      "name": "Connecticut Home Care Program for Elders (CHCPE)",
+      "what_it_does": "A cornerstone program offering a wide array of non-medical support services to help seniors 65 and older remain in their own homes. The program extends beyond medical care to include social support and community-based services.",
+      "who_its_for": "Connecticut residents 65 years and older",
+      "official_url": "Information available through Area Agencies on Aging",
+      "benefit_value": "Non-medical in-home support services"
+    },
+    {
+      "name": "Alzheimer's Respite Care Program",
+      "what_it_does": "Offers relief to stressed caregivers by providing information, support, care plan development, and respite services for individuals with Alzheimer's disease or related dementia. Maximum of $3,500 available per year and up to 30 days of out-of-home respite care services annually.[2]",
+      "who_its_for": "Caregivers of individuals with Alzheimer's disease or related dementia",
+      "official_url": "Administered by the Department on Aging",
+      "benefit_value": "Up to $3,500 per year; maximum 30 days respite care annually"
+    },
+    {
+      "name": "Connecticut Supplemental Income Program",
+      "what_it_does": "Provides additional cash assistance beyond the Federal SSI amount to eligible seniors and disabled individuals. The program does not require actual receipt of SSI.[5]",
+      "who_its_for": "Individuals 65 years or older, blind, or disabled who meet income and asset guidelines",
+      "official_url": "Contact local Department of Social Services office",
+      "benefit_value": "State cash supplement to federal SSI"
+    },
+    {
+      "name": "CT Energy Assistance Program (CEAP)",
+      "what_it_does": "Provides utility and housing assistance to eligible low-income households. The program helps with energy costs and related housing needs.[5]",
+      "who_its_for": "Low-income households meeting eligibility requirements",
+      "official_url": "Information available through Area Agencies on Aging",
+      "benefit_value": "Energy and utility assistance"
+    },
+    {
+      "name": "Weatherization Assistance Program",
+      "what_it_does": "Assists eligible homeowners with weatherization improvements to reduce energy costs and improve home efficiency.[5]",
+      "who_its_for": "Low-income homeowners",
+      "official_url": "Information available through Area Agencies on Aging",
+      "benefit_value": "Weatherization improvements"
+    }
+  ]
+}

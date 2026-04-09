@@ -1,0 +1,35 @@
+{
+  "entity": "Kentucky",
+  "entitySlug": "kentucky",
+  "state": "KY",
+  "stateName": "Kentucky",
+  "isRegion": false,
+  "exploredAt": "2026-04-09T08:52:03.366Z",
+  "programCount": 3,
+  "programs": [
+    {
+      "name": "Senior CommUnity Care of Kentucky (PACE)",
+      "what_it_does": "This Program of All-Inclusive Care for the Elderly (PACE) provides comprehensive health care and social services to seniors in Jefferson County, including primary care, medications, home care, therapies, and nursing home care if needed. It coordinates an interdisciplinary team to help frail seniors live safely at home rather than in nursing facilities.[1][3]",
+      "who_its_for": "Seniors aged 55+ in Jefferson County requiring nursing facility level of care but able to live in the community with support.[1][3]",
+      "whats_unique": "State-supported PACE provider specific to Jefferson County, KY, as part of Kentucky's expansion efforts; while PACE exists nationally (over 125 providers), this is a Kentucky-localized implementation not available statewide yet.[1][3][5]",
+      "official_url": "https://www.seniorcommunitycareky.org",
+      "benefit_value": "All-inclusive care covering full spectrum of medical and supportive services, enabling 90%+ of high-need participants to remain in community; no specific dollar value as it's capitated coverage.[1]"
+    },
+    {
+      "name": "Senior CommUnity Care of Northern Kentucky (PACE)",
+      "what_it_does": "This PACE program delivers comprehensive in-home and community-based health care for seniors, including medical care, prescriptions, adult day services, home care, mental health support, and therapies. It supports independent living for those who would otherwise need nursing homes through an interdisciplinary team.[5]",
+      "who_its_for": "Seniors aged 55+ in Boone, Campbell, Kenton, Gallatin, Carroll, Owen, Grant, and Pendleton counties needing nursing-level care but preferring home-based living.[5]",
+      "whats_unique": "Kentucky-specific PACE provider tailored to Northern Kentucky counties, sponsored by local organizations like Volunteers of America and St. Elizabeth Healthcare; part of KY's targeted PACE expansion.[3][5]",
+      "official_url": "https://www.seniorcommunitycarenky.org",
+      "benefit_value": "Comprehensive bundled services with high success in community living (90%+ retention); capitated model, no out-of-pocket for covered services beyond premiums.[5]"
+    },
+    {
+      "name": "Senior Companion Program (Community Action of Southern Kentucky)",
+      "what_it_does": "Trained volunteers aged 55+ visit seniors to assist with daily tasks, provide companionship, and promote independence. It offers socialization, respite for caregivers, and support for those with health issues or loneliness.[2]",
+      "who_its_for": "Older adults in Allen, Barren, Butler, Edmonson, Hart, Logan, Metcalfe, Monroe, Simpson, and Warren counties facing health challenges, loneliness, or daily living difficulties.[2]",
+      "whats_unique": "Regionally operated in Southern Kentucky counties by Community Action Council; provides stipend-supported volunteers (non-taxable), focusing on local rural needs not universally replicated statewide.[2]",
+      "official_url": "https://www.casoky.org/scp",
+      "benefit_value": "Free volunteer visits (15+ hours/week possible), non-taxable stipend for companions (~$3-4/hour typical federally, plus holidays/training); enhances home functioning and reduces isolation.[2]"
+    }
+  ]
+}

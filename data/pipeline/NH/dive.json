@@ -1,0 +1,264 @@
+{
+  "state": "NH",
+  "stateName": "New Hampshire",
+  "diveAt": "2026-04-09T08:56:32.833Z",
+  "total": 6,
+  "parsed": 5,
+  "programs": [
+    {
+      "name": "NH Medication Bridge Program",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Household income generally must be less than 200% of the federal poverty level, though limits vary by pharmaceutical company. No specific dollar amounts or household size table provided in sources; monthly household income guidelines differ per company.[1][3]",
+        "asset_limits": "No asset limits mentioned.",
+        "other_requirements": [
+          "U.S. resident or citizen.[1][2]",
+          "Not eligible for other prescription coverage for the specific medication, including Medicaid, VA, private insurance, HMO, etc.[1][2][3]",
+          "Long-term medications only (not short-term).[1][3]",
+          "Often requires a provider from the participating health center (e.g., Monadnock Community Hospital or White Mountain Community Health Center).[2][4]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Assistance accessing free or reduced-cost prescriptions from pharmaceutical company patient assistance programs. Some implementations charge $6 per 90-day supply upon eligibility approval.[4]",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Phone: (603) 225-0900[1][3]",
+          "Contact financial services at local health centers (e.g., Monadnock Community Hospital, White Mountain Community Health Center).[2][4]",
+          "Mail or in-person: Submit application and proof of income to participating health centers.[4]",
+          "No statewide online application; varies by provider."
+        ],
+        "processing_time": "4-6 weeks for first medication shipment.[4]",
+        "waitlist": null,
+        "forms": [
+          "Medication Bridge Program application (specific forms at health centers like MedBridge Application at White Mountain Community Health Center).[4]",
+          "New Patient Application and Information Release Consent Form (at some centers).[4]"
+        ],
+        "documents": [
+          "Proof of income: most recent tax return (first 2 pages), current paystubs (last 4 weeks), unemployment benefits statement, child support/alimony, Social Security award letter, VA benefit statement, or other as advised.[4]",
+          "Proof required yearly.[4]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "No county restrictions, but access through participating health centers.",
+        "regional_variations": "Implemented by local health centers (e.g., Monadnock Community Hospital, White Mountain Community Health Center); processing and providers differ by location. No longer centrally managed by Foundation for Healthy Communities as of 2021—contact local financial services.[2][4][6]",
+        "offices_or_providers": [
+          "Monadnock Community Hospital Financial Services.[2]",
+          "White Mountain Community Health Center.[4]",
+          "Other local health care systems' financial departments.[6]"
+        ]
+      },
+      "official_source": "No single active .gov URL; program facilitated statewide via health centers. Historical info at https://healthynh.org/initiatives/access-to-care/medication-bridge/ (noted as no longer managed centrally as of 2021).[6]",
+      "gotchas": [
+        "Not a direct state program—it's assistance navigating pharma company programs; eligibility varies per drug/manufacturer.[1][3][6]",
+        "Program no longer centrally managed by Foundation for Healthy Communities since 2021; must contact local health center financial services.[6]",
+        "Excludes those with any other coverage for the specific med, even if low-income.[1][2]",
+        "Only long-term meds; requires participating provider at some centers.[1][2][3]",
+        "Proof of income needed yearly; financial info not shared with medical chart but used only for applications.[4]"
+      ],
+      "data_shape_notes": "Decentralized service via local health centers, not a uniform state program; eligibility and income tied to individual pharma companies; no fixed age/income table, varies by med and provider.",
+      "_raw": "{\n  \"name\": \"NH Medication Bridge Program\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Household income generally must be less than 200% of the federal poverty level, though limits vary by pharmaceutical company. No specific dollar amounts or household size table provided in sources; monthly household income guidelines differ per company.[1][3]\",\n    \"asset_limits\": \"No asset limits mentioned.\",\n    \"other_requirements\": [\n      \"U.S. resident or citizen.[1][2]\",\n      \"Not eligible for other prescription coverage for the specific medication, including Medicaid, VA, private insurance, HMO, etc.[1][2][3]\",\n      \"Long-term medications only (not short-term).[1][3]\",\n      \"Often requires a provider from the participating health center (e.g., Monadnock Community Hospital or White Mountain Community Health Center).[2][4]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Assistance accessing free or reduced-cost prescriptions from pharmaceutical company patient assistance programs. Some implementations charge $6 per 90-day supply upon eligibility approval.[4]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: (603) 225-0900[1][3]\",\n      \"Contact financial services at local health centers (e.g., Monadnock Community Hospital, White Mountain Community Health Center).[2][4]\",\n      \"Mail or in-person: Submit application and proof of income to participating health centers.[4]\",\n      \"No statewide online application; varies by provider.\"\n    ],\n    \"processing_time\": \"4-6 weeks for first medication shipment.[4]\",\n    \"waitlist\": null,\n    \"forms\": [\n      \"Medication Bridge Program application (specific forms at health centers like MedBridge Application at White Mountain Community Health Center).[4]\",\n      \"New Patient Application and Information Release Consent Form (at some centers).[4]\"\n    ],\n    \"documents\": [\n      \"Proof of income: most recent tax return (first 2 pages), current paystubs (last 4 weeks), unemployment benefits statement, child support/alimony, Social Security award letter, VA benefit statement, or other as advised.[4]\",\n      \"Proof required yearly.[4]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"No county restrictions, but access through participating health centers.\",\n    \"regional_variations\": \"Implemented by local health centers (e.g., Monadnock Community Hospital, White Mountain Community Health Center); processing and providers differ by location. No longer centrally managed by Foundation for Healthy Communities as of 2021—contact local financial services.[2][4][6]\",\n    \"offices_or_providers\": [\n      \"Monadnock Community Hospital Financial Services.[2]\",\n      \"White Mountain Community Health Center.[4]\",\n      \"Other local health care systems' financial departments.[6]\"\n    ]\n  },\n  \"official_source\": \"No single active .gov URL; program facilitated statewide via health centers. Historical info at https://healthynh.org/initiatives/access-to-care/medication-bridge/ (noted as no longer managed centrally as of 2021).[6]\",\n  \"gotchas\": [\n    \"Not a direct state program—it's assistance navigating pharma company programs; eligibility varies per drug/manufacturer.[1][3][6]\",\n    \"Program no longer centrally managed by Foundation for Healthy Communities since 2021; must contact local health center financial services.[6]\",\n    \"Excludes those with any other coverage for the specific med, even if low-income.[1][2]\",\n    \"Only long-term meds; requires participating provider at some centers.[1][2][3]\",\n    \"Proof of income needed yearly; financial info not shared with medical chart but used only for applications.[4]\"\n  ],\n  \"data_shape_notes\": \"Decentralized service via local health centers, not a uniform state program; eligibility and income tied to individual pharma companies; no fixed age/income table, varies by med and provider.\"\n}"
+    },
+    {
+      "name": "New Hampshire Partnership for Prescription",
+      "eligibility": {
+        "age": null,
+        "income_limits": "No income limits; open to all New Hampshire residents regardless of income or household size[1][2].",
+        "asset_limits": "No asset limits or tests apply[1][2].",
+        "other_requirements": [
+          "New Hampshire resident only[1][2]",
+          "No enrollment or application required[1][2]",
+          "No pre-existing condition exclusions[2]"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "Discount card providing up to 80% off brand and generic FDA-approved prescription medications at participating pharmacies; savings vary by pharmacy and medication[2].",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "No application needed; obtain free discount card instantly online at https://nhrxcard.com or by phone at (800) 931-5042[1][2]",
+          "Print or download card and present at over 68,000 pharmacies including major chains[2]"
+        ],
+        "processing_time": "Immediate; card is pre-activated with no waiting period[2].",
+        "waitlist": null,
+        "forms": [
+          "No forms required[1][2]"
+        ],
+        "documents": [
+          "No personal information or documents needed; card is confidential[2]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "New Hampshire residents only[1][2]",
+        "regional_variations": null,
+        "offices_or_providers": [
+          "Accepted at pharmacies statewide and nationwide (over 68,000 locations)[2]"
+        ]
+      },
+      "official_source": "https://nhrxcard.com/about",
+      "gotchas": [
+        "Not insurance; use for non-covered prescriptions or when cheaper than copay—check with pharmacist[2]",
+        "Savings vary by pharmacy and medication; not guaranteed 80% off[2]",
+        "Can be used alongside insurance for better savings on specific drugs[2]",
+        "No coverage for over-the-counter drugs[2]"
+      ],
+      "data_shape_notes": "no income test, no age requirement, no application or enrollment, instant access via free discount card, pharmacy-specific pricing",
+      "_raw": "{\n  \"name\": \"New Hampshire Partnership for Prescription\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No income limits; open to all New Hampshire residents regardless of income or household size[1][2].\",\n    \"asset_limits\": \"No asset limits or tests apply[1][2].\",\n    \"other_requirements\": [\"New Hampshire resident only[1][2]\", \"No enrollment or application required[1][2]\", \"No pre-existing condition exclusions[2]\"]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Discount card providing up to 80% off brand and generic FDA-approved prescription medications at participating pharmacies; savings vary by pharmacy and medication[2].\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"No application needed; obtain free discount card instantly online at https://nhrxcard.com or by phone at (800) 931-5042[1][2]\", \"Print or download card and present at over 68,000 pharmacies including major chains[2]\"],\n    \"processing_time\": \"Immediate; card is pre-activated with no waiting period[2].\",\n    \"waitlist\": null,\n    \"forms\": [\"No forms required[1][2]\"],\n    \"documents\": [\"No personal information or documents needed; card is confidential[2]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"New Hampshire residents only[1][2]\",\n    \"regional_variations\": null,\n    \"offices_or_providers\": [\"Accepted at pharmacies statewide and nationwide (over 68,000 locations)[2]\"]\n  },\n  \"official_source\": \"https://nhrxcard.com/about\",\n  \"gotchas\": [\"Not insurance; use for non-covered prescriptions or when cheaper than copay—check with pharmacist[2]\", \"Savings vary by pharmacy and medication; not guaranteed 80% off[2]\", \"Can be used alongside insurance for better savings on specific drugs[2]\", \"No coverage for over-the-counter drugs[2]\"],\n  \"data_shape_notes\": \"no income test, no age requirement, no application or enrollment, instant access via free discount card, pharmacy-specific pricing\"\n}"
+    },
+    {
+      "name": "NH Medicaid Waiver Programs (Multiple Programs)",
+      "eligibility": {
+        "age": "Varies by program: 65+ or 18-64 (CFI); 0-21 (DD, IHS); 0-18 (ABD)",
+        "income_limits": "For nursing home Medicaid applicants: under $2,982/month for single applicants[1]. For Granite Advantage (adult waiver program): adults age 19-64 with incomes at or below 138% of Federal Poverty Level[2]. Income-based eligibility varies by specific waiver program.",
+        "asset_limits": "For nursing home Medicaid: under $2,500 for single applicants[1]. Asset treatment varies by specific waiver program.",
+        "other_requirements": [
+          "Require Nursing Facility Level of Care (NFLOC) for most waivers[1]",
+          "Functional need for long-term care services with Activities of Daily Living (ADLs) support[1]",
+          "For DD and IHS waivers: ICF/IID level of care requirement[5]",
+          "For children's waivers: disability (medical, developmental, intellectual, or psychiatric) that would otherwise require institutional care[6]",
+          "Work/community engagement requirement: 100 hours per month for Granite Advantage enrollees ages 19-64 (with exemptions for illness, disability, hospitalization, caregiving, or participation in drug court)[2]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "CFI Waiver: adult day services, home health aide, homemaker, personal care, respite, supported employment, financial management, adult family care, in-home services, community transition, environmental accessibility, home-delivered meals, non-medical transportation, personal emergency response, skilled nursing, specialized medical equipment, supportive housing[5]. DD Waiver and IHS Waiver: residential habilitation, service coordination, assistive technology, community integration, environmental/vehicle modifications, individual goods/services, non-medical transportation, personal emergency response, respite, wellness coaching[5][6]",
+        "varies_by": "program (four distinct waiver programs with different service arrays)"
+      },
+      "application": {
+        "methods": [
+          "Online: HealthCare.gov[4]",
+          "Phone: 1-800-852-3345, extension 9700[4]",
+          "Paper application: through New Hampshire Department of Health and Human Services[4]",
+          "In-person: through area agencies (regional locations vary)[3]"
+        ],
+        "processing_time": "Not specified in available sources",
+        "waitlist": "Not specified in available sources; note that DD Waiver has 5,303 spots with expiration 8/31/2026[6]",
+        "forms": "Not specified in available sources",
+        "documents": "Not specified in available sources"
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Programs administered by area agencies located in various regions throughout the state[3]",
+        "regional_variations": "Area agencies are region-specific; families must identify their area agency through NH DHHS website[3]",
+        "offices_or_providers": "Four Medicaid waiver programs administered through area agencies; specific locations available at https://www.dhhs.nh.gov/programs-services/disability-care/area-agencies[3]"
+      },
+      "official_source": "https://www.dhhs.nh.gov/programs-services",
+      "gotchas": [
+        "New Hampshire has FOUR separate waiver programs (CFI, DD, ABD, IHS), not one unified program—eligibility and services differ significantly by program[3][5]",
+        "Spousal income treatment: if only one spouse applies, the non-applicant spouse's income is disregarded, but they may receive a Minimum Monthly Maintenance Needs Allowance (MMMNA) of $2,644/month (eff. 7/1/25-6/30/26) if their income falls below this threshold[1]",
+        "Work requirement applies to Granite Advantage enrollees ages 19-64 (100 hours/month community engagement required), with specific exemptions for disability, illness, hospitalization, caregiving, and drug court participation[2]",
+        "Retroactive eligibility waived: unlike traditional Medicaid, New Hampshire's waiver program does not provide three months of retroactive coverage[2]",
+        "Functional/medical need is mandatory—income and assets alone do not qualify applicants[1]",
+        "DD Waiver has limited spots (5,303) and expires 8/31/2026; IHS Waiver expires 12/31/2025—renewal status should be verified[6]"
+      ],
+      "data_shape_notes": "New Hampshire's 'Medicaid Waiver' is not a single program but a portfolio of four distinct 1915(c) waivers (CFI, DD, ABD, IHS) with different age ranges, functional requirements, service arrays, and spot limitations. Eligibility criteria, income limits, and benefits vary significantly by waiver type. The search results do not provide complete information on processing times, specific application forms, required documents, or detailed regional variations in wait times. Families must first determine which waiver program applies to their situation before applying.",
+      "_raw": "```json\n{\n  \"name\": \"NH Medicaid Waiver Programs (Multiple Programs)\",\n  \"eligibility\": {\n    \"age\": \"Varies by program: 65+ or 18-64 (CFI); 0-21 (DD, IHS); 0-18 (ABD)\",\n    \"income_limits\": \"For nursing home Medicaid applicants: under $2,982/month for single applicants[1]. For Granite Advantage (adult waiver program): adults age 19-64 with incomes at or below 138% of Federal Poverty Level[2]. Income-based eligibility varies by specific waiver program.\",\n    \"asset_limits\": \"For nursing home Medicaid: under $2,500 for single applicants[1]. Asset treatment varies by specific waiver program.\",\n    \"other_requirements\": [\n      \"Require Nursing Facility Level of Care (NFLOC) for most waivers[1]\",\n      \"Functional need for long-term care services with Activities of Daily Living (ADLs) support[1]\",\n      \"For DD and IHS waivers: ICF/IID level of care requirement[5]\",\n      \"For children's waivers: disability (medical, developmental, intellectual, or psychiatric) that would otherwise require institutional care[6]\",\n      \"Work/community engagement requirement: 100 hours per month for Granite Advantage enrollees ages 19-64 (with exemptions for illness, disability, hospitalization, caregiving, or participation in drug court)[2]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"CFI Waiver: adult day services, home health aide, homemaker, personal care, respite, supported employment, financial management, adult family care, in-home services, community transition, environmental accessibility, home-delivered meals, non-medical transportation, personal emergency response, skilled nursing, specialized medical equipment, supportive housing[5]. DD Waiver and IHS Waiver: residential habilitation, service coordination, assistive technology, community integration, environmental/vehicle modifications, individual goods/services, non-medical transportation, personal emergency response, respite, wellness coaching[5][6]\",\n    \"varies_by\": \"program (four distinct waiver programs with different service arrays)\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: HealthCare.gov[4]\",\n      \"Phone: 1-800-852-3345, extension 9700[4]\",\n      \"Paper application: through New Hampshire Department of Health and Human Services[4]\",\n      \"In-person: through area agencies (regional locations vary)[3]\"\n    ],\n    \"processing_time\": \"Not specified in available sources\",\n    \"waitlist\": \"Not specified in available sources; note that DD Waiver has 5,303 spots with expiration 8/31/2026[6]\",\n    \"forms\": \"Not specified in available sources\",\n    \"documents\": \"Not specified in available sources\"\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Programs administered by area agencies located in various regions throughout the state[3]\",\n    \"regional_variations\": \"Area agencies are region-specific; families must identify their area agency through NH DHHS website[3]\",\n    \"offices_or_providers\": \"Four Medicaid waiver programs administered through area agencies; specific locations available at https://www.dhhs.nh.gov/programs-services/disability-care/area-agencies[3]\"\n  },\n  \"official_source\": \"https://www.dhhs.nh.gov/programs-services\",\n  \"gotchas\": [\n    \"New Hampshire has FOUR separate waiver programs (CFI, DD, ABD, IHS), not one unified program—eligibility and services differ significantly by program[3][5]\",\n    \"Spousal income treatment: if only one spouse applies, the non-applicant spouse's income is disregarded, but they may receive a Minimum Monthly Maintenance Needs Allowance (MMMNA) of $2,644/month (eff. 7/1/25-6/30/26) if their income falls below this threshold[1]\",\n    \"Work requirement applies to Granite Advantage enrollees ages 19-64 (100 hours/month community engagement required), with specific exemptions for disability, illness, hospitalization, caregiving, and drug court participation[2]\",\n    \"Retroactive eligibility waived: unlike traditional Medicaid, New Hampshire's waiver program does not provide three months of retroactive coverage[2]\",\n    \"Functional/medical need is mandatory—income and assets alone do not qualify applicants[1]\",\n    \"DD Waiver has limited spots (5,303) and expires 8/31/2026; IHS Waiver expires 12/31/2025—renewal status should be verified[6]\"\n  ],\n  \"data_shape_notes\": \"New Hampshire's 'Medicaid Waiver' is not a single program but a portfolio of four distinct 1915(c) waivers (CFI, DD, ABD, IHS) with different age ranges, functional requirements, service arrays, and spot limitations. Eligibility criteria, income limits, and benefits vary significantly by waiver type. The search results do not provide complete information on processing times, specific application forms, required documents, or detailed regional variations in wait times. Families must first determine which waiver program applies to their situation before applying.\"\n}\n```\n\n---\n\n## Critical Gaps in Available Information\n\nThe search results provide foundational eligibility and service information but **lack several details essential for a comprehensive family guide**:\n\n**Missing Data:**\n- **Processing timelines**: No specific information on how long applications take to process[1][2][3][4][5][6]\n- **Waitlist details**: Limited information; only DD Waiver spot count (5,303) is provided[6]\n- **Application forms**: Specific form names/numbers not identified in sources[1][2][3][4][5][6]\n- **Required documents**: No checklist of what families must submit[1][2][3][4][5][6]\n- **Regional wait time variation**: No data on whether processing times differ by area agency[1][2][3][4][5][6]\n- **Spousal asset treatment**: Asset limits for couples not specified[1]\n- **Service dollar caps or hour limits**: No maximum benefit amounts stated for any waiver[5][6]\n\n**Recommendation**: Contact the NH Department of Health and Human Services directly at 1-800-852-3345, extension 9700[4] or visit https://www.dhhs.nh.gov/programs-services to obtain current processing times, waitlist status, required documentation, and area agency contact information for your region[3]."
+    },
+    {
+      "name": "REAP (Respite, Education, and Assistance Program)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "No income limits specified in available sources; eligibility based on business/agricultural operations rather than personal income.",
+        "asset_limits": "No asset limits; applicants must have no outstanding delinquent federal taxes, debt, judgment, or debarment.",
+        "other_requirements": [
+          "Agricultural producers directly engaged in production of agricultural products with at least 50% of gross income from agricultural operations[1][2].",
+          "Small businesses (fewer than 50 employees, less than $1 million annual receipts, meeting SBA size standards per 13 CFR 121) located in eligible rural areas (population under 50,000)[1][2][3].",
+          "For-profit entities only (sole proprietorship, partnership, corporation, cooperative, electric utility serving rural consumers, or Tribal business entities)[2][3].",
+          "Must provide matching funds for grant-only applications[2].",
+          "U.S. citizens or permanent residents for individual borrowers; loan funds must remain in U.S.[2]."
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "Grants up to 50% of project costs (max $1 million) for renewable energy systems (e.g., solar, wind, biomass, geothermal, hydropower) or energy efficiency improvements (e.g., HVAC, insulation, lighting); loan guarantees up to 80%[1][2].",
+        "varies_by": "project_type"
+      },
+      "application": {
+        "methods": [
+          "Online via REAP website (specific URL not listed in results; visit USDA RD site)[1][2]",
+          "Work with local lender for loan guarantees[1]"
+        ],
+        "processing_time": "Not specified in sources",
+        "waitlist": null,
+        "forms": [],
+        "documents": [
+          "Proof of agricultural income (50%+ from ag operations) or small business status[1][2]",
+          "Project details for renewable energy or energy efficiency[1][2]",
+          "Matching funds documentation for grants[2]",
+          "Evidence of no delinquent federal debts[2]"
+        ]
+      },
+      "geography": {
+        "statewide": false,
+        "restrictions": "Eligible rural areas only (population <50,000); available in New Hampshire rural regions[1][2][4]",
+        "regional_variations": "Administered federally with state-specific rural eligibility; no NH regional provider differences noted[4]",
+        "offices_or_providers": []
+      },
+      "official_source": "https://www.rd.usda.gov/programs-services/energy-programs/rural-energy-america-program-renewable-energy-systems-energy-efficiency-improvement-guaranteed-loans",
+      "gotchas": [
+        "Not for nonprofits or standalone EV charging stations (unless part of renewable system for self-use)[3].",
+        "One renewable energy and one energy efficiency application per fiscal year[3].",
+        "Must show energy use reduction for efficiency projects; projects must meet standards for 50% grant (e.g., zero GHG emissions, Energy Community location, Tribal entity)[2][3].",
+        "This is USDA Rural Energy for America Program (REAP), not a respite/elderly care program—query may refer to different 'REAP'[1][2]"
+      ],
+      "data_shape_notes": "Federal program focused on rural ag producers/small businesses for energy projects; rural area restriction, no personal income/age test, grant/loan hybrid with matching funds required",
+      "_raw": "{\n  \"name\": \"REAP (Respite, Education, and Assistance Program)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No income limits specified in available sources; eligibility based on business/agricultural operations rather than personal income.\",\n    \"asset_limits\": \"No asset limits; applicants must have no outstanding delinquent federal taxes, debt, judgment, or debarment.\",\n    \"other_requirements\": [\n      \"Agricultural producers directly engaged in production of agricultural products with at least 50% of gross income from agricultural operations[1][2].\",\n      \"Small businesses (fewer than 50 employees, less than $1 million annual receipts, meeting SBA size standards per 13 CFR 121) located in eligible rural areas (population under 50,000)[1][2][3].\",\n      \"For-profit entities only (sole proprietorship, partnership, corporation, cooperative, electric utility serving rural consumers, or Tribal business entities)[2][3].\",\n      \"Must provide matching funds for grant-only applications[2].\",\n      \"U.S. citizens or permanent residents for individual borrowers; loan funds must remain in U.S.[2].\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Grants up to 50% of project costs (max $1 million) for renewable energy systems (e.g., solar, wind, biomass, geothermal, hydropower) or energy efficiency improvements (e.g., HVAC, insulation, lighting); loan guarantees up to 80%[1][2].\",\n    \"varies_by\": \"project_type\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online via REAP website (specific URL not listed in results; visit USDA RD site)[1][2]\",\n      \"Work with local lender for loan guarantees[1]\"\n    ],\n    \"processing_time\": \"Not specified in sources\",\n    \"waitlist\": null,\n    \"forms\": [],\n    \"documents\": [\n      \"Proof of agricultural income (50%+ from ag operations) or small business status[1][2]\",\n      \"Project details for renewable energy or energy efficiency[1][2]\",\n      \"Matching funds documentation for grants[2]\",\n      \"Evidence of no delinquent federal debts[2]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Eligible rural areas only (population <50,000); available in New Hampshire rural regions[1][2][4]\",\n    \"regional_variations\": \"Administered federally with state-specific rural eligibility; no NH regional provider differences noted[4]\",\n    \"offices_or_providers\": []\n  },\n  \"official_source\": \"https://www.rd.usda.gov/programs-services/energy-programs/rural-energy-america-program-renewable-energy-systems-energy-efficiency-improvement-guaranteed-loans\",\n  \"gotchas\": [\n    \"Not for nonprofits or standalone EV charging stations (unless part of renewable system for self-use)[3].\",\n    \"One renewable energy and one energy efficiency application per fiscal year[3].\",\n    \"Must show energy use reduction for efficiency projects; projects must meet standards for 50% grant (e.g., zero GHG emissions, Energy Community location, Tribal entity)[2][3].\",\n    \"This is USDA Rural Energy for America Program (REAP), not a respite/elderly care program—query may refer to different 'REAP'[1][2]\"\n  ],\n  \"data_shape_notes\": \"Federal program focused on rural ag producers/small businesses for energy projects; rural area restriction, no personal income/age test, grant/loan hybrid with matching funds required\"\n}"
+    },
+    {
+      "name": "Easterseals NH Adult Day Services",
+      "_parseError": true,
+      "_raw": "I cannot provide the comprehensive JSON guide you've requested because the search results contain significant gaps in the specific information you need.\n\nHere's what the search results **do** provide about Easterseals NH Adult Day Services:\n\n**Available Information:**\n\n- **Locations:** Two centers in Manchester and Rochester, NH[1][3]\n- **Hours:** Manchester: 9 AM–3 PM (extended 7:30 AM–5:30 PM available); Rochester: 9 AM–2 PM[1][3]\n- **Attendance flexibility:** 2–5 days per week[1][4]\n- **Activities:** Brain-healthy activities, woodworking, gardening, expressive arts, animal-assisted therapy, intergenerational programs, music and movement[1][3][4]\n- **Transportation:** FREE for Manchester residents; available as needed for Strafford County residents in Rochester[1][3]\n- **Contact:** Manchester: 603.845.9318; Rochester: 603.335.1770[1][3]\n- **Populations served:** Seniors, adults with disabilities, people with Alzheimer's/dementia, diabetes, stroke, and cardiovascular disease[4][5]\n- **Funding:** Medicaid waivers (Home and Community-Based Services) may cover costs for those who qualify; Medicare typically does not cover adult day services except when included in physical therapy under Part B[6]\n\n**Critical Gaps in Search Results:**\n\nThe search results do **not** contain:\n- Specific age requirements or income/asset limits\n- Exact eligibility criteria or application procedures\n- Processing times or waitlist information\n- Required documents for application\n- Detailed regional variations beyond the two locations mentioned\n- Specific cost/pricing information\n- Official state government URLs or forms\n\n**To get the comprehensive guide you need, contact:**\n- **Manchester:** 603.845.9318 (request a free trial day)[1]\n- **Rochester:** 603.335.1770[3]\n- **General senior advisor line:** (800) 755-1458[6]\n\nThese contacts can provide the specific eligibility requirements, application forms, processing timelines, and cost details necessary for your guide."
+    },
+    {
+      "name": "Easterseals NH In-Home Care & Health Services",
+      "eligibility": {
+        "age": null,
+        "income_limits": "No specific income limits stated; accepts Medicaid, long-term care insurance, private pay, and Veterans’ vouchers[4].",
+        "asset_limits": "No asset limits mentioned in available information[4].",
+        "other_requirements": [
+          "Services for older adults or those needing in-home support; subject to staff availability in served areas[4]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Nursing services (medication management, routine health and wellness checks); Homemaker services (light housekeeping, running errands, laundry, preparing meals); Personal care services (assistance with bathing and daily personal routines)[4]. No fixed dollar amounts or hours specified; personalized care plans created[4].",
+        "varies_by": "region"
+      },
+      "application": {
+        "methods": [
+          "Phone: 603-845-9318 for free consultation[4]",
+          "Online inquiry via Easterseals NH website (https://eastersealsnh.org/programs/senior-services/in-home-care-health-services/)[4]"
+        ],
+        "processing_time": "Home visit arranged after contact; personalized care plan developed thereafter. No specific timeline provided[4].",
+        "waitlist": "Services subject to staff availability; no formal waitlist details[4].",
+        "forms": [],
+        "documents": [
+          "No specific documents listed; prepare details on needs for home visit and care plan development[4]"
+        ]
+      },
+      "geography": {
+        "statewide": false,
+        "restrictions": "Serves communities across the Seacoast, Greater Nashua, Greater Manchester, and Greater Rochester (services subject to staff availability)[4].",
+        "regional_variations": "Availability varies by region due to staff constraints[4].",
+        "offices_or_providers": [
+          "Offices in Manchester and Keene for related services, but in-home care focused on specified regions[2][3][4]"
+        ]
+      },
+      "official_source": "No primary .gov URL; program operated by Easterseals NH nonprofit (https://eastersealsnh.org/programs/senior-services/in-home-care-health-services/)[4].",
+      "gotchas": [
+        "Not a free government program with strict eligibility—requires payment via private pay, insurance, Medicaid, or Veterans’ vouchers[4].",
+        "Limited to specific regions with staff availability restrictions, not fully statewide[4].",
+        "Personalized services, so no guaranteed hours or fixed benefits; depends on assessment[4].",
+        "Primarily private/non-medical model, unlike waiver programs with nursing home level eligibility[1][4]."
+      ],
+      "data_shape_notes": "Private pay/insurance-based with regional staff-limited availability; no strict income/age/assets test; personalized plans vary by need and location",
+      "_raw": "{\n  \"name\": \"Easterseals NH In-Home Care & Health Services\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No specific income limits stated; accepts Medicaid, long-term care insurance, private pay, and Veterans’ vouchers[4].\",\n    \"asset_limits\": \"No asset limits mentioned in available information[4].\",\n    \"other_requirements\": [\"Services for older adults or those needing in-home support; subject to staff availability in served areas[4]\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Nursing services (medication management, routine health and wellness checks); Homemaker services (light housekeeping, running errands, laundry, preparing meals); Personal care services (assistance with bathing and daily personal routines)[4]. No fixed dollar amounts or hours specified; personalized care plans created[4].\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: 603-845-9318 for free consultation[4]\", \"Online inquiry via Easterseals NH website (https://eastersealsnh.org/programs/senior-services/in-home-care-health-services/)[4]\"],\n    \"processing_time\": \"Home visit arranged after contact; personalized care plan developed thereafter. No specific timeline provided[4].\",\n    \"waitlist\": \"Services subject to staff availability; no formal waitlist details[4].\",\n    \"forms\": [],\n    \"documents\": [\"No specific documents listed; prepare details on needs for home visit and care plan development[4]\"]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Serves communities across the Seacoast, Greater Nashua, Greater Manchester, and Greater Rochester (services subject to staff availability)[4].\",\n    \"regional_variations\": \"Availability varies by region due to staff constraints[4].\",\n    \"offices_or_providers\": [\"Offices in Manchester and Keene for related services, but in-home care focused on specified regions[2][3][4]\"]\n  },\n  \"official_source\": \"No primary .gov URL; program operated by Easterseals NH nonprofit (https://eastersealsnh.org/programs/senior-services/in-home-care-health-services/)[4].\",\n  \"gotchas\": [\"Not a free government program with strict eligibility—requires payment via private pay, insurance, Medicaid, or Veterans’ vouchers[4].\", \"Limited to specific regions with staff availability restrictions, not fully statewide[4].\", \"Personalized services, so no guaranteed hours or fixed benefits; depends on assessment[4].\", \"Primarily private/non-medical model, unlike waiver programs with nursing home level eligibility[1][4].\"],\n  \"data_shape_notes\": \"Private pay/insurance-based with regional staff-limited availability; no strict income/age/assets test; personalized plans vary by need and location\"\n}"
+    }
+  ]
+}

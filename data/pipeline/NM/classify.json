@@ -1,0 +1,117 @@
+{
+  "state": "NM",
+  "stateName": "New Mexico",
+  "classifiedAt": "2026-04-09T08:57:03.565Z",
+  "total": 3,
+  "typeSummary": {
+    "benefit": 3
+  },
+  "scopeSummary": {
+    "state": 2,
+    "local": 1
+  },
+  "complexitySummary": {
+    "deep": 3
+  },
+  "programs": [
+    {
+      "name": "Community Benefit Program (Centennial Care)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "New Mexico Senior Farmers' Market Nutrition Program (SFMNP)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "State office: 2040 S. Pacheco St., Santa Fe, NM 87505; WIC clinics, senior centers, CSFP locations statewide[3]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "in_kind",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "PNM Good Neighbor Fund",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Rio Grande Food Project (Albuquerque).",
+            "type": "service-area"
+          },
+          {
+            "name": "Goodwill Opportunity Center (Albuquerque).",
+            "type": "service-area"
+          },
+          {
+            "name": "Other community agencies by appointment.[1][2]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": false
+      }
+    }
+  ]
+}

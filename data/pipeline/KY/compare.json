@@ -1,0 +1,58 @@
+{
+  "state": "KY",
+  "stateName": "Kentucky",
+  "comparedAt": "2026-04-09T08:52:12.638Z",
+  "total": 2,
+  "newPrograms": 2,
+  "withDiffs": 0,
+  "withNovelFields": 0,
+  "benefitTypes": {
+    "service": 2
+  },
+  "variationPatterns": {
+    "not_applicable": 2
+  },
+  "novelFieldSummary": {},
+  "comparisons": [
+    {
+      "name": "Senior CommUnity Care of Kentucky (PACE)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "County-restricted to provider service areas (not statewide); no direct income/asset test for enrollment (Medicaid separate); requires state nursing home certification; multiple regional PACE providers in KY with own contacts",
+      "gotchas": [
+        "Must live in specific PACE provider's service area; not statewide—confirm counties with provider[1][2][6]",
+        "Nursing home level of care certification required by KY (not automatic; assessed)[1][3][4]",
+        "Private pay option if no Medicaid (covers Medicaid's premium share; costs vary)[3][6]",
+        "Cannot be in Medicare Advantage, hospice, or certain other programs[5]",
+        "Voluntary; can dis-enroll anytime via social worker[1]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://chfs.ky.gov/agencies/dail/Pages/pace.aspx[4]"
+    },
+    {
+      "name": "Senior CommUnity Care of Northern Kentucky (PACE)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Restricted to Northern Kentucky service area with one main center; no fixed income/asset dollar tables (tied to Medicaid); comprehensive in-kind services via interdisciplinary team, no tiers or hours specified",
+      "gotchas": [
+        "Must follow custom care plan; liable for unauthorized/out-of-program services (except emergencies)[1]",
+        "Enrollment voluntary; can dis-enroll anytime via social worker[1]",
+        "Paid by Medicare/Medicaid or private premium if over Medicaid limits—staff handles claims but confirm personal liability[1][3]",
+        "Service area restricted to Northern Kentucky; not statewide[1][6]",
+        "Requires nursing home level of care certification but ability to live safely in community with services[2][3]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://www.seniorcommunitycarenky.org[1][3]"
+    }
+  ]
+}

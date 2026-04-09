@@ -1,0 +1,561 @@
+{
+  "state": "ND",
+  "stateName": "North Dakota",
+  "comparedAt": "2026-04-09T08:57:46.554Z",
+  "total": 14,
+  "newPrograms": 9,
+  "withDiffs": 5,
+  "withNovelFields": 5,
+  "benefitTypes": {
+    "service": 5,
+    "in_kind": 4,
+    "financial": 2,
+    "financial|service": 1,
+    "employment": 1,
+    "advocacy": 1
+  },
+  "variationPatterns": {
+    "priority_tier": 6,
+    "not_applicable": 2,
+    "household_size": 1,
+    "household_size, fuel_type, income_level": 1,
+    "program_type|medicaid_waiver": 1,
+    "region": 1,
+    "fixed": 1,
+    "functional_assessment_level": 1
+  },
+  "novelFieldSummary": {
+    "asset_limits": {
+      "count": 5,
+      "programs": [
+        "Medicare Savings Programs (MSP)",
+        "SNAP (Supplemental Nutrition Assistance Program)",
+        "LIHEAP (Low Income Home Energy Assistance Program)",
+        "Family Caregiver Support Program / Lifespan Respite Care",
+        "Long-Term Care Ombudsman Services"
+      ],
+      "note": "Our model has no asset limit fields"
+    },
+    "regional_variations": {
+      "count": 5,
+      "programs": [
+        "Medicare Savings Programs (MSP)",
+        "SNAP (Supplemental Nutrition Assistance Program)",
+        "LIHEAP (Low Income Home Energy Assistance Program)",
+        "Family Caregiver Support Program / Lifespan Respite Care",
+        "Long-Term Care Ombudsman Services"
+      ],
+      "note": "Program varies by region — our model doesn't capture this"
+    },
+    "documents_required": {
+      "count": 5,
+      "programs": [
+        "Medicare Savings Programs (MSP)",
+        "SNAP (Supplemental Nutrition Assistance Program)",
+        "LIHEAP (Low Income Home Energy Assistance Program)",
+        "Family Caregiver Support Program / Lifespan Respite Care",
+        "Long-Term Care Ombudsman Services"
+      ],
+      "note": "Has document checklist — our model doesn't store per-program documents"
+    },
+    "household_size_table": {
+      "count": 1,
+      "programs": [
+        "SNAP (Supplemental Nutrition Assistance Program)"
+      ],
+      "note": "Benefits/eligibility vary by household size — we store a single number"
+    },
+    "waitlist": {
+      "count": 3,
+      "programs": [
+        "SNAP (Supplemental Nutrition Assistance Program)",
+        "LIHEAP (Low Income Home Energy Assistance Program)",
+        "Family Caregiver Support Program / Lifespan Respite Care"
+      ],
+      "note": "Has waitlist info — our model has no wait time field"
+    }
+  },
+  "comparisons": [
+    {
+      "name": "North Dakota Home and Community Based Services (HCBS) Waiver",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Services via individualized care plan based on needs; tiered by aged/disabled categories (65+ vs 18-64); statewide but centrally administered; participant caps create waitlists; excludes IDD/mental illness (separate waivers)",
+      "gotchas": [
+        "Excludes mental illness or intellectual disability as primary impairment (use separate DD waiver)",
+        "Must meet nursing facility level of care and direct own care",
+        "Enrollment capped (waitlists likely)",
+        "Effective Jan. 1, 2026 (current version); check for updates",
+        "Family caregivers can be paid, but only if live-in and providing personal care",
+        "Not automatic Medicaid eligibility; must qualify financially first"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.hhs.nd.gov/healthcare/medicaid/medicaid-waivers"
+    },
+    {
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "PACE in North Dakota is geographically restricted to specific service areas (currently Bismarck, Dickinson, Minot, Fargo via Northland PACE). The program has no income or asset limits for enrollment, but most participants rely on Medicaid, which does have financial limits. Benefits are fixed and comprehensive (all-inclusive) rather than tiered. The program is designed for individuals already certified as needing nursing home-level care but able to remain in the community. Processing timelines, waitlist specifics, and application procedures are not detailed in publicly available sources.",
+      "gotchas": [
+        "Geographic availability is the primary barrier — if you don't live in a PACE service area, you cannot enroll, regardless of other qualifications[2]",
+        "You cannot be enrolled in Medicare Advantage (Part C) or Medicare prescription drug plans to join PACE[3] — this may require disenrolling from existing coverage",
+        "If you have Medicare only (not Medicaid) and later need long-term nursing home care, you could face $4,000-$5,000/month premiums to cover Medicaid long-term care benefits[2]",
+        "PACE is voluntary enrollment but intended as a lifetime program — you can disenroll at any time for any reason, but re-enrollment may not be guaranteed[4]",
+        "Average PACE participant is 76 years old with multiple complex medical conditions; approximately 90% are dually eligible for Medicare and Medicaid, and almost half have dementia[2] — this is not a program for mildly frail seniors",
+        "You must receive care from healthcare professionals and caregivers selected by your PACE program — you cannot choose your own providers[2]",
+        "No income test for PACE enrollment itself, but Medicaid eligibility (which covers most participants) has income limits that vary by state and household composition"
+      ],
+      "benefitType": "in_kind",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://www.hhs.nd.gov/healthcare/medicaid/pace"
+    },
+    {
+      "name": "Medicare Savings Programs (MSP)",
+      "isNew": false,
+      "existingId": "medicare-savings-programs",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$1300",
+          "found": "$1,781",
+          "source": "https://www.hhs.nd.gov/medicaid (North Dakota Health & Human Services); https://www.insurance.nd.gov/consumers/medicare/medicare-financial-assistance-programs"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$2,000 – $8,000/year",
+          "found": "Pays Medicare Part B premiums (all tiers); QMB also covers Part A/B deductibles, coinsurance; SLMB/QI1: Part B premium only; may include Part D premium help and automatic Extra Help for drugs (no more than $12.65 per drug in 2026 for SLMB). QMB/SLMB eligible for other Medicaid benefits; QI1 not combinable with full Medicaid.[3][2][5][7]",
+          "source": "https://www.hhs.nd.gov/medicaid (North Dakota Health & Human Services); https://www.insurance.nd.gov/consumers/medicare/medicare-financial-assistance-programs"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.hhs.nd.gov/medicaid (North Dakota Health & Human Services); https://www.insurance.nd.gov/consumers/medicare/medicare-financial-assistance-programs"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Countable assets cannot exceed full low-income subsidy resource levels (e.g., single $9,660, couple $14,470; or single $17,600/$3,000, couple $35,130/$6,000 in varying reports). Assets include savings, checking, stocks, bonds, mutual funds, retirement accounts, real estate (non-primary). Exemptions not detailed in sources, but federal rules often exclude primary home, one car, household goods. Varies by tier and year.[2][1][4][3]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered through county social services offices, which may have varying processing or contact details, but uniform statewide rules.[2]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of income (pay stubs, SSI award letters)",
+            "Proof of assets (bank statements, investment records)",
+            "Medicare card (Parts A/B)",
+            "ID (birth certificate, Social Security card)",
+            "Proof of residency and citizenship/immigration status"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Tiered by income relative to FPL (QMB ≤100%, SLMB 100-120%, QI1 120-135%); asset limits match LIS levels; county-administered statewide with potential local processing variations; benefits scale by tier, not household size beyond couple/single",
+      "gotchas": [
+        "Multiple tiers (QMB, SLMB, QI1) with different income brackets and benefits—state determines which you qualify for upon application",
+        "QI1 cannot combine with full ND Medicaid",
+        "Must have both Medicare Parts A and B; apply even if slightly over federal limits as ND may have higher thresholds",
+        "Assets include retirement accounts and non-primary real estate—often overlooked",
+        "Automatic Extra Help for Part D with most MSPs, but confirm enrollment",
+        "Income/asset limits change yearly; 2026 figures may differ from cited 2023 data",
+        "Apply through county offices, not SSA directly for MSP (SSI/Extra Help separate)"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.hhs.nd.gov/medicaid (North Dakota Health & Human Services); https://www.insurance.nd.gov/consumers/medicare/medicare-financial-assistance-programs"
+    },
+    {
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "isNew": false,
+      "existingId": "snap-supplemental-nutrition-assistance-program",
+      "existingVerified": null,
+      "diffsFound": 4,
+      "diffs": [
+        {
+          "field": "min_age",
+          "ours": "65",
+          "found": "No minimum age requirement for the household, but seniors (60+) receive special eligibility rules",
+          "source": "https://www.hhs.nd.gov/applyforhelp/snap and https://www.fns.usda.gov/snap/eligibility/elderly-disabled-special-rules"
+        },
+        {
+          "field": "income_limit",
+          "ours": "$1984",
+          "found": "$1,575",
+          "source": "https://www.hhs.nd.gov/applyforhelp/snap and https://www.fns.usda.gov/snap/eligibility/elderly-disabled-special-rules"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$1,500 – $3,600/year",
+          "found": "Food assistance provided via EBT card (electronic benefits transfer). Benefit amount varies by household size and income. Example: A 2-person elderly/disabled household with $1,200 gross monthly income ($1,000 Social Security + $200 pension) would receive approximately $415/month in SNAP benefits after deductions.[2]",
+          "source": "https://www.hhs.nd.gov/applyforhelp/snap and https://www.fns.usda.gov/snap/eligibility/elderly-disabled-special-rules"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.hhs.nd.gov/applyforhelp/snap and https://www.fns.usda.gov/snap/eligibility/elderly-disabled-special-rules"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Households with an elderly or disabled member: up to $4,500 in countable assets. Other households: up to $3,000. Assets that do NOT count include: the value of your house if you own it, retirement savings, cash value of life insurance policies, income-producing property, and household goods. Some states like California have no asset test unless income exceeds the federal poverty line.[1][5]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "household_size_table",
+          "value": "For elderly or disabled household members (60+), only the net income limit applies. For Oct. 1, 2025 through Sept. 30, 2026: $1,575/month for 1 person, $2,048/month for 2 people (these are net income limits after deductions). Households without elderly or disabled members must meet both gross income (130% of federal poverty level) and net income tests. Social Security, veterans' benefits, and disability payments all count toward total income.[1][2]",
+          "note": "Benefits/eligibility vary by household size — we store a single number"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Program administered through local Human Service Zones throughout the state[7]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Not specified in available search results",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Verification of all income (Social Security statements, pension documents, etc.)[5]",
+            "Rent or mortgage payment documentation[5]",
+            "Medical expenses documentation (if claiming medical deductions for elderly/disabled households)[5]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "SNAP for elderly/disabled households (60+) operates under fundamentally different rules than standard SNAP: they only need to meet net income limits (not gross income limits), have higher asset limits ($4,500 vs. $3,000), and are exempt from work requirements. This creates a simpler pathway to eligibility for seniors. Benefits scale by household size and are calculated after specific deductions (20% of earned income, standard deduction by household size, medical expenses over $35/month). The program is administered statewide through local Human Service Zones but has significant underutilization among eligible seniors.",
+      "gotchas": [
+        "Only about 30% of eligible elderly people in North Dakota received SNAP in 2018, suggesting significant underutilization—many eligible seniors don't apply[8]",
+        "Seniors (60+) have a major advantage: they only need to meet the net income test, not the gross income test, making qualification easier than for younger households[1][6]",
+        "Household composition matters critically: elderly or disabled people living with you only count as household members if you buy/prepare food together; if they buy/prepare food separately, they're excluded from the calculation[4]",
+        "Starting November 2025, some people's SNAP eligibility will change—families should verify current status on the 'Stay Enrolled' webpage[7]",
+        "The One Big Beautiful Bill Act of 2025 changed certain SNAP eligibility factors including work requirements and non-citizen eligibility—verify current rules[2]",
+        "Medical expenses over $35/month for elderly/disabled households can be deducted, reducing countable income and potentially increasing benefits[5]",
+        "About 4.8 million seniors nationally receive SNAP, but that's only about half of all eligible seniors, indicating widespread underutilization[1]"
+      ],
+      "benefitType": "in_kind",
+      "benefitVariesBy": "household_size",
+      "officialSource": "https://www.hhs.nd.gov/applyforhelp/snap and https://www.fns.usda.gov/snap/eligibility/elderly-disabled-special-rules"
+    },
+    {
+      "name": "LIHEAP (Low Income Home Energy Assistance Program)",
+      "isNew": false,
+      "existingId": "liheap-low-income-home-energy-assistance-program",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$500 – $2,000/year",
+          "found": "LIHEAP covers a portion of heating and cooling costs for natural gas, electricity, propane, fuel oil, coal, wood, or other fuel sources[3]. Also covers: weatherization services (insulation, weather stripping), furnace cleaning/repair/replacement, chimney cleaning/inspection, and emergency assistance[3]. Specific dollar amounts vary by household income, household size, and fuel type used[2]; maximum benefit amounts are calculated individually but exact figures not provided in search results.",
+          "source": "https://www.hhs.nd.gov/applyforhelp/liheap"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.hhs.nd.gov/applyforhelp/liheap"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "There is no asset limit for LIHEAP in North Dakota[2].",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Program administered through local Human Service Zone offices[5]; specific regional wait times or service variations not detailed in search results. Community Options provides in-home application assistance as a partner with North Dakota Department of Health and Human Services[3].",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "No formal waitlist described, but funding is limited and distributed until money runs out; not all eligible households receive assistance, so applying early when application period opens is critical[2]",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Completed LIHEAP application[1]",
+            "Verifications of income received in prior month, current month, and anticipated following month (SSI, SSDI, wages, pension, etc.)[1][3]",
+            "Verifications of expenses paid in last 12 months: medical expenses, childcare expenses, child support/alimony[1]",
+            "Copy of heating bill[1]",
+            "Copy of lease (if renting) or deed (if homeowner)[1][4]",
+            "Photo identification[4]",
+            "Social Security cards for all household members[4]",
+            "For tribal applicants: Copy of TAT (Three Affiliated Tribes) enrollment for all TAT members and other Federal Recognized Tribal family members in household[4]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Benefits scale by household income, household size, and fuel type; no fixed benefit amount. Program operates on fixed annual state funding with first-come, first-served distribution. Eligibility is year-round under new model, but application periods vary by assistance type (heating Oct-May, cooling summer, crisis year-round). Income limits tied to state median income percentage rather than fixed dollar amounts. No asset limit creates broader eligibility than many assistance programs. Tribal and state programs operate in parallel with different eligibility criteria for reservation areas.",
+      "gotchas": [
+        "Funding is limited and distributed until money runs out—not all eligible households receive assistance[2]. Apply as early as possible when application period opens.",
+        "Program moved to year-round eligibility model, meaning if currently approved, you do NOT need to reapply; however, if unsure of status, confirm via Self-Service Portal[1].",
+        "Heating assistance typically available fall/winter (October 1 – May 31); cooling assistance typically summer; crisis assistance available year-round for emergencies[2][5].",
+        "Household definition includes all persons at your address, even roommates not sharing most expenses if covered by same utility bill[2].",
+        "Income limits are based on 60% of North Dakota's median income, which changes annually; families must verify current dollar amounts at hhs.nd.gov/liheap rather than relying on prior-year figures[1][4].",
+        "LIHEAP can be backdated to October (start of heating season) if applying later in season; provide all household income from October onward[3].",
+        "Allowable expense deductions (childcare, child support, medical expenses, 27% earned income deduction) reduce countable income and may affect eligibility[5].",
+        "If no open LIHEAP case exists, must apply and be approved for heating/emergency assistance before contacting local CAPND agency for cooling assistance[1].",
+        "You have right to appeal and request fair hearing if denied or if you don't receive written notice within 45 days[6]."
+      ],
+      "benefitType": "in_kind",
+      "benefitVariesBy": "household_size, fuel_type, income_level",
+      "officialSource": "https://www.hhs.nd.gov/applyforhelp/liheap"
+    },
+    {
+      "name": "Weatherization Assistance Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Administered statewide via 8 regional CAP agencies; automatic eligibility for LIHEAP; 200% FPL income table scales by household size; one-time service rule with 15-year reweatherization exception.",
+      "gotchas": [
+        "Services limited to one-time per household unless >15 years since prior weatherization; no general home repairs, cosmetics, or low-SIR measures.[1]",
+        "Must contact regional CAP after state application; eligibility uses DOE or LIHEAP criteria interchangeably.[1][3]",
+        "Income based on 200% FPL (higher than some programs' 60% state median, e.g., certain rehab).[1][5]",
+        "Priority for LIHEAP clients; funded by DOE/LIHEAP with potential funding limits.[3]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.commerce.nd.gov/community-services/low-income-programs/weatherization-assistance"
+    },
+    {
+      "name": "Older Adult Nutrition Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "No income/asset test; priority-based targeting; locally administered with homebound criteria for delivery; open to spouses/under 60 in limited cases; rural focus[1][3]",
+      "gotchas": [
+        "No income test but priority to highest need, so low-income/rural may get served first[1]",
+        "Under 60 eligibility very limited and secondary to 60+ participants[1][3]",
+        "Home-delivered requires proof of homebound status, not just age[3]",
+        "Voluntary contributions expected but not mandatory[1][3]",
+        "Often confused with SNAP or CSFP which have strict income limits[2][7]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "No single primary .gov URL identified; see https://ndseniorservices.org/Feeding%20Grandma.pdf (ND Senior Service Providers) and local HHS or Aging offices[1]"
+    },
+    {
+      "name": "Family Caregiver Support Program / Lifespan Respite Care",
+      "isNew": false,
+      "existingId": "national-family-caregiver-support-program",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$2,000 – $8,000/year",
+          "found": "Family Paid Caregiver Pilot: Payments to family caregivers for extraordinary care (specific rates not detailed). SPED (related non-Medicaid): Up to $48/day payments + respite up to $1,142/month to enrolled family caregivers living with recipient.[5]",
+          "source": "https://www.hhs.nd.gov/individuals-disabilities/family-paid-caregiver-pilot-program[4]"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.hhs.nd.gov/individuals-disabilities/family-paid-caregiver-pilot-program[4]"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "SPED: Liquid assets < $50,000 (home exempt). No asset limits mentioned for Family Paid Caregiver Pilot.[5]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "No regional variations specified; rural focus noted in state approach but uniform administration.[5]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Processed in order received (implies potential wait based on volume).[4]",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Documentation for eligibility assessment.",
+            "Child Abuse & Neglect Inquiry/background check.[1][4][6]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Tied to specific Medicaid 1915(c) waivers with 'extraordinary care' test; two tracks (Medicaid pilot vs. SPED non-Medicaid); online portal only for pilot; no fixed hours/dollar rates detailed beyond SPED max",
+      "gotchas": [
+        "Must meet strict 'extraordinary care' definition; typical household tasks don't qualify.[1][4]",
+        "Caregiver must be 'legally responsible individual' (e.g., not all relatives).[1][4]",
+        "Requires Medicaid waiver enrollment first (not standalone).[1][4]",
+        "Background check and assessment mandatory post-application.[4][6]",
+        "SPED is separate non-Medicaid program with asset test; don't confuse with Medicaid pilot.[5]"
+      ],
+      "benefitType": "financial|service",
+      "benefitVariesBy": "program_type|medicaid_waiver",
+      "officialSource": "https://www.hhs.nd.gov/individuals-disabilities/family-paid-caregiver-pilot-program[4]"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "County-restricted to 12-14 specific counties; income table scales by household size; priority enrollment tiers; grant-funded with limited slots via state VR provider.",
+      "gotchas": [
+        "Not statewide—only select counties, excluding many rural areas outside listed 12-14; income based on household size at 125% poverty level (use current HHS guidelines as listed figures may update annually); must be unemployed and seeking training bridge to private employment, not full-time jobs directly; priority tiers may create wait times; no asset test but barriers to employment required.[1][2][3]"
+      ],
+      "benefitType": "employment",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.hhs.nd.gov/vr/scsep"
+    },
+    {
+      "name": "Long-Term Care Ombudsman Services",
+      "isNew": false,
+      "existingId": "long-term-care-ombudsman-program",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$10,000 – $30,000/year",
+          "found": "Free and confidential services including: education on resident rights, service options, and regulations; support to resolve complaints on quality of care/services, quality of life, rights violations, access to services, transfer/discharge/eviction; promotion of resident/family/community involvement; identification of systems issues and advocacy for change.",
+          "source": "https://www.hhs.nd.gov/sites/www/files/documents/New%20LTCOP%20Brochure%202023%20v4%20(1).pdf"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.hhs.nd.gov/sites/www/files/documents/New%20LTCOP%20Brochure%202023%20v4%20(1).pdf"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits or tests apply.",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Program operates statewide from central office with ombudsmen conducting visits throughout the state; no specified differences in services, wait times, or providers by region.",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "No documents needed to initiate contact; resident consent may be requested to verify and proceed with complaint resolution"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "no income/asset/age test; open to all residents in specified facility types statewide; advocacy-based rather than financial or direct service provision; consent-driven and resident-directed",
+      "gotchas": [
+        "Services are for current residents of qualifying facilities only—not for admission assistance or non-residents; requires resident consent for active advocacy; not a regulatory or enforcement body but an independent advocate partnering with residents to resolve issues; anyone can refer a concern, but ombudsman verifies it exists before proceeding."
+      ],
+      "benefitType": "advocacy",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://www.hhs.nd.gov/sites/www/files/documents/New%20LTCOP%20Brochure%202023%20v4%20(1).pdf"
+    },
+    {
+      "name": "Service Payments for Elderly and Disabled (SPED)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Two-tier structure: SPED (non-Medicaid) and Expanded SPED (SSI-level income + Medicaid-eligible); sliding scale by income/assets; rural travel enhancements; pool-based prioritization.",
+      "gotchas": [
+        "Not for Medicaid-eligible (they use Medicaid waiver instead).",
+        "Ex-SPED payments subject to estate recovery (e.g., adult day care, respite).",
+        "Case may close if no services used in 30 days.",
+        "Must exclude intellectual disability/mental illness impairments.",
+        "Family caregivers must enroll as providers to receive payments."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.nd.gov/dhs/policymanuals/52505/Content/525_05_25_20.htm"
+    },
+    {
+      "name": "North Dakota Aging in Community (AIC) Project",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Community-based pilot model limited to select rural counties; no income/asset tests or fixed benefits; relies on local volunteers and needs assessment rather than statewide bureaucracy",
+      "gotchas": [
+        "Not a statewide entitlement program; limited to specific rural pilot areas, not available everywhere in ND",
+        "Not a Medicaid or financial payment program (unlike SPED or long-term care Medicaid); focuses on volunteer/community connections rather than paid services or direct aid",
+        "No formal eligibility barriers, but access depends on local implementation and partnerships—may not serve urban areas or all rural spots",
+        "People may confuse with Medicaid HCBS or SPED, which have strict income/asset tests[1][3][6][7][8]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "region",
+      "officialSource": "https://www.ndsu.edu/agriculture/extension/programs/aging-community-program[8]"
+    },
+    {
+      "name": "Senior Safety Program (ND Assistive)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "No income or asset test; fixed in-kind safety devices statewide from single Fargo-based provider; age 60+ with residency and non-nursing facility restriction",
+      "gotchas": [
+        "Must not be living in a nursing facility—common oversight for those in transitional care[3]",
+        "Program prioritizes safety devices only; not general healthcare or financial aid[1][5]",
+        "Free devices but professional setup assistance may have limits not quantified in sources"
+      ],
+      "benefitType": "in_kind",
+      "benefitVariesBy": "fixed",
+      "officialSource": "https://ndassistive.org/our-programs/[1]"
+    },
+    {
+      "name": "Basic Care Assistance Program (BCAP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Restricted to licensed Basic Care Facility residents; uses Medicaid financial framework without published BCAP-specific income/asset tables; county-administered assessments; no standalone dollar caps, ties to room/board costs",
+      "gotchas": [
+        "Only for residents of licensed Basic Care Facilities (not home care or nursing homes)[1][5][6]",
+        "Requires Personal Care Services Assessment; functional need but not full Nursing Facility Level of Care[1]",
+        "Must meet all Medicaid-like financial rules; apply for Medicare if eligible[1][3]",
+        "Date of eligibility is application date, but must provide all info promptly[1]",
+        "Friends/relatives cannot be paid providers like in some other programs (Qualified Service Provider required for related services)[4]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "functional_assessment_level",
+      "officialSource": "https://www.nd.gov/dhs/policymanuals/40029/PDF_of_Manual/ML3906%20SC%20400-29%20BCAP%20FULL.pdf"
+    }
+  ]
+}

@@ -1,0 +1,440 @@
+{
+  "state": "NV",
+  "stateName": "Nevada",
+  "classifiedAt": "2026-04-09T08:55:50.970Z",
+  "total": 12,
+  "typeSummary": {
+    "benefit": 8,
+    "resource": 3,
+    "employment": 1
+  },
+  "scopeSummary": {
+    "federal": 7,
+    "state": 3,
+    "local": 2
+  },
+  "complexitySummary": {
+    "deep": 8,
+    "simple": 3,
+    "medium": 1
+  },
+  "programs": [
+    {
+      "name": "Medicaid Medicare Savings Programs (QMB, SLMB, QI)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "DWSS Welfare District Offices statewide; locator at dss.nv.gov",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Home and Community Based Services Waiver for the Frail Elderly (HCBS FE Waiver)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Aging and Disability Services Division (ADSD), Division of Welfare and Supportive Services (DWSS), Nevada Medicaid[3][5][6]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local Social Services Offices statewide (list at dss.nv.gov)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Catholic Charities of Northern Nevada (mentioned as a Benefits Enrollment Center)[1]",
+            "type": "service-area"
+          },
+          {
+            "name": "Native American Disability Law Center (operates in New Mexico and Arizona; may serve Nevada)[1]",
+            "type": "service-area"
+          },
+          {
+            "name": "Local LIHEAP administration agencies throughout Nevada (specific office locations not provided in sources)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Nevada Housing Division (NHD) - Carson City: 1830 E. College Parkway, Suite 200, Carson City, Nevada 89706[1]",
+            "type": "service-area"
+          },
+          {
+            "name": "HELP of Southern Nevada (Southern Nevada region)[3]",
+            "type": "service-area"
+          },
+          {
+            "name": "CSA Community Services Agency - Washoe County: 1090 E. 8th St., Reno, NV 89512, Phone: (775)786-6023[8]",
+            "type": "service-area"
+          },
+          {
+            "name": "Nevada Rural Housing (Rural areas)[2]",
+            "type": "service-area"
+          },
+          {
+            "name": "Contact NHD for complete list of regional Subgrantees: NHDinfo@housing.nv.gov or (702) 486-4311[1]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "in_kind",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Nevada State Health Insurance Assistance Program (SHIP)",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose"
+      ],
+      "signals": {
+        "benefitType": "service|advocacy",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Home Delivered Meals",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Washoe County Seniors: 1155 E. 9th St., Reno, NV 89512; 775-328-2575[6]",
+            "type": "service-area"
+          },
+          {
+            "name": "Catholic Charities of Southern Nevada (Las Vegas area)[4]",
+            "type": "service-area"
+          },
+          {
+            "name": "Mom's Meals for Medicaid waiver participants[2]",
+            "type": "service-area"
+          },
+          {
+            "name": "Nevada 211 for statewide referrals[9]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "medium",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": false
+      }
+    },
+    {
+      "name": "Respite Care Vouchers / Senior Respite Care",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Seniors in Service Nevada (main office 1380 Greg Street, Reno area)",
+            "type": "service-area"
+          },
+          {
+            "name": "Nevada Care Connection for statewide emergency assistance",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": false,
+        "isStatewide": false
+      }
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "programType": "employment",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "AARP Senior Community Service Employment Program (Reno): 1135 Terminal Way Suite 102, Reno, Nevada 89502, 775-323-2243",
+            "type": "service-area"
+          },
+          {
+            "name": "SCSEP is administered statewide through partnerships with state agencies and 19 national non-profit organizations, but specific Nevada provider locations beyond Reno are not detailed in search results",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "documents"
+      ],
+      "signals": {
+        "benefitType": "employment",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Nevada Advocates for Seniors",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Southern Nevada Senior Law Program (snslp.org)[3]",
+            "type": "service-area"
+          },
+          {
+            "name": "Nevada Legal Services Senior Law Project[8]",
+            "type": "service-area"
+          },
+          {
+            "name": "ADSD (adsd.nv.gov)[5]",
+            "type": "service-area"
+          },
+          {
+            "name": "Legal Aid Center of Southern Nevada (lacsn.org)[7]",
+            "type": "service-area"
+          },
+          {
+            "name": "Clark County Senior Services[9]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "advocacy",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Nevada Long-Term Care Ombudsman Program",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Carson City Administrative Office: 3416 Goni Road, D-132, Carson City, NV 89706.",
+            "type": "service-area"
+          },
+          {
+            "name": "Las Vegas Regional Office (specific address not listed; phone 702-486-3572).",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "advocacy",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Community Options Program for the Elderly (COPE)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    }
+  ]
+}

@@ -1,0 +1,694 @@
+{
+  "state": "RI",
+  "stateName": "Rhode Island",
+  "comparedAt": "2026-04-09T08:59:32.061Z",
+  "total": 14,
+  "newPrograms": 6,
+  "withDiffs": 8,
+  "withNovelFields": 8,
+  "benefitTypes": {
+    "service": 6,
+    "financial": 5,
+    "employment": 1,
+    "advocacy": 1,
+    "in_kind": 1
+  },
+  "variationPatterns": {
+    "priority_tier": 3,
+    "level_of_care_and_setting": 1,
+    "region": 1,
+    "program_tier": 1,
+    "household_size": 1,
+    "household_size|priority_tier": 1,
+    "not_applicable": 3,
+    "fixed (20 hours/week standard; supportive services vary by local provider)": 1,
+    "income_tier": 1,
+    "income_level": 1
+  },
+  "novelFieldSummary": {
+    "asset_limits": {
+      "count": 8,
+      "programs": [
+        "Medicaid",
+        "Long Term Services & Supports (LTSS)",
+        "PACE (Program of All-Inclusive Care for the Elderly)",
+        "Medicare Savings Programs (MSP): QMB, SLMB, QI",
+        "Supplemental Nutrition Assistance Program (SNAP)",
+        "Low-Income Home Energy Assistance Program (LIHEAP)",
+        "State Health Insurance Assistance Program (SHIP)",
+        "Long-Term Care Ombudsman Program"
+      ],
+      "note": "Our model has no asset limit fields"
+    },
+    "regional_variations": {
+      "count": 6,
+      "programs": [
+        "Medicaid",
+        "PACE (Program of All-Inclusive Care for the Elderly)",
+        "Medicare Savings Programs (MSP): QMB, SLMB, QI",
+        "Supplemental Nutrition Assistance Program (SNAP)",
+        "Low-Income Home Energy Assistance Program (LIHEAP)",
+        "State Health Insurance Assistance Program (SHIP)"
+      ],
+      "note": "Program varies by region — our model doesn't capture this"
+    },
+    "waitlist": {
+      "count": 5,
+      "programs": [
+        "Medicaid",
+        "Long Term Services & Supports (LTSS)",
+        "PACE (Program of All-Inclusive Care for the Elderly)",
+        "Medicare Savings Programs (MSP): QMB, SLMB, QI",
+        "Low-Income Home Energy Assistance Program (LIHEAP)"
+      ],
+      "note": "Has waitlist info — our model has no wait time field"
+    },
+    "documents_required": {
+      "count": 8,
+      "programs": [
+        "Medicaid",
+        "Long Term Services & Supports (LTSS)",
+        "PACE (Program of All-Inclusive Care for the Elderly)",
+        "Medicare Savings Programs (MSP): QMB, SLMB, QI",
+        "Supplemental Nutrition Assistance Program (SNAP)",
+        "Low-Income Home Energy Assistance Program (LIHEAP)",
+        "State Health Insurance Assistance Program (SHIP)",
+        "Long-Term Care Ombudsman Program"
+      ],
+      "note": "Has document checklist — our model doesn't store per-program documents"
+    },
+    "household_size_table": {
+      "count": 1,
+      "programs": [
+        "Supplemental Nutrition Assistance Program (SNAP)"
+      ],
+      "note": "Benefits/eligibility vary by household size — we store a single number"
+    }
+  },
+  "comparisons": [
+    {
+      "name": "Medicaid",
+      "isNew": false,
+      "existingId": "medicaid-for-elders-and-adults-with-disabilities-ead",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$1304",
+          "found": "$2,982",
+          "source": "https://staycovered.ri.gov/ or https://eohhs.ri.gov/"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$5,000 – $20,000/year",
+          "found": "Comprehensive health coverage including doctor visits, hospital care, prescriptions. For elderly/LTSS: nursing home care, assisted living, home-based non-medical supports (personal care, homemaker), shared living. Medicare-Medicaid Plan (Neighborhood INTEGRITY) coordinates Medicare + Medicaid + LTSS. PACE for community-based LTSS. Office of Healthy Aging covers limited home services for 65+ or dementia under 65. No fixed dollar/hour amounts; comprehensive coverage with potential co-share for LTSS.[6][2][4]",
+          "source": "https://staycovered.ri.gov/ or https://eohhs.ri.gov/"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://staycovered.ri.gov/ or https://eohhs.ri.gov/"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Applies to long-term care programs for seniors 65+: Specific dollar limits for singles, married couples (both or one applying) per 2026 RI tables (e.g., countable assets under thresholds like $2,000-$3,000 typical for singles in similar programs, but RI-specific chart required). What counts: most savings, investments, second homes. Exempt: primary home (if intent to return and equity under limit), one vehicle, personal belongings, burial funds. Strategies exist to qualify over limits via planning.[2][5]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "No regional differences noted; statewide managed care (e.g., Neighborhood INTEGRITY).[6]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Possible for LTSS due to level of care assessment; not detailed.",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of residency",
+            "Income verification (pay stubs, SSI/SS awards)",
+            "Asset statements (bank, investments)",
+            "Citizenship/immigration status",
+            "Medicare card if applicable",
+            "Medical records for LTSS level of care"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Eligibility splits by standard Medicaid vs. LTSS (higher income/assets allowed with co-share); tiered by aged/disabled pathways; LTSS requires level-of-care test; 2026 income/asset tables specific to marital status and applicant count.",
+      "gotchas": [
+        "Asset limits apply strictly for LTSS/nursing home; home equity may count if over limits",
+        "Higher income OK for LTSS but requires co-share payment",
+        "Must prove nursing level of care for LTSS, separate from financial eligibility",
+        "SSI auto-qualifies; others need full review",
+        "Medicare-Medicaid dual eligible get integrated care via NHPRI, not standard Medicaid",
+        "Planning needed to spend down assets legally"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://staycovered.ri.gov/ or https://eohhs.ri.gov/"
+    },
+    {
+      "name": "Long Term Services & Supports (LTSS)",
+      "isNew": false,
+      "existingId": "long-term-services-and-supports-ltss-waiver",
+      "existingVerified": null,
+      "diffsFound": 4,
+      "diffs": [
+        {
+          "field": "min_age",
+          "ours": "65",
+          "found": "65+ for seniors; 18+ for adults with disabilities",
+          "source": "https://eohhs.ri.gov/consumer/health-care/long-term-services-and-supports and https://dhs.ri.gov/programs-and-services/long-term-services-and-supports"
+        },
+        {
+          "field": "income_limit",
+          "ours": "$2901",
+          "found": "$2,982",
+          "source": "https://eohhs.ri.gov/consumer/health-care/long-term-services-and-supports and https://dhs.ri.gov/programs-and-services/long-term-services-and-supports"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$10,000 – $30,000/year",
+          "found": "Rhode Island Medicaid covers an array of Long-Term Services and Supports (LTSS) for adults eligible for Home and Community Based Services (HCBS)[6]. Services may be provided in a person's home, the community (shared living, assisted living), or institutional settings (intermediate care facilities, hospitals, nursing homes)[7]. The search results do not specify exact dollar amounts, hours per week, or a complete list of covered services.",
+          "source": "https://eohhs.ri.gov/consumer/health-care/long-term-services-and-supports and https://dhs.ri.gov/programs-and-services/long-term-services-and-supports"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://eohhs.ri.gov/consumer/health-care/long-term-services-and-supports and https://dhs.ri.gov/programs-and-services/long-term-services-and-supports"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Single applicant: $4,000 or less in countable assets (2026)[2][3]. The search results do not specify asset limits for married couples or what assets are exempt from the count. Consult a Certified Medicaid Planner or Elder Law Attorney for specifics on asset exemptions[2].",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "waitlist",
+          "value": "Not specified in search results",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": "The search results do not specify what documents must be brought or prepared. However, the state reviews income, assets, and past financial transactions[5]. Consult with the Department of Human Services or a Certified Medicaid Planner for a complete document checklist.",
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "LTSS eligibility is determined by three categories: general eligibility factors (residency, citizenship, age, marital status), financial eligibility factors (income and assets), and clinical/functional eligibility (level of care need)[4]. Benefits vary by the applicant's level of care needs and the setting in which services are provided (home, community, or institutional)[7][8]. The program serves both seniors 65+ and working-age adults 18+ with disabilities, but eligibility criteria are applied uniformly statewide. Income and asset limits are fixed dollar amounts that adjust annually (income limit increased from $2,901/month in 2025 to $2,982/month in 2026)[1][2]. The search results do not provide information on processing times, waitlists, regional office locations, or a complete list of covered services and their specific values.",
+      "gotchas": [
+        "Strict asset limits: $4,000 maximum in countable assets for single applicants[2][3]. Applying when over the income and/or asset limit(s) will result in denial of benefits[1].",
+        "Income counts almost everything: Nearly all income is counted toward the limit, including Social Security, pensions, and investment income[2].",
+        "Patient share requirement: If income exceeds the limit, applicants must contribute a portion of their income toward care costs[3][5].",
+        "Functional assessment is mandatory: Meeting financial criteria alone is insufficient; applicants must also demonstrate need for Nursing Facility Level of Care through a functional assessment[2][3].",
+        "Complex eligibility determination: The state reviews past financial transactions, not just current income and assets[5]. Medicaid planning strategies may be necessary to achieve eligibility.",
+        "No specific processing timeline provided: Families should contact DHS directly to understand expected approval timelines.",
+        "Supplemental forms required: The basic DHS Application for Assistance is not sufficient; supplemental LTSS forms must also be completed[3]."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "level_of_care_and_setting",
+      "officialSource": "https://eohhs.ri.gov/consumer/health-care/long-term-services-and-supports and https://dhs.ri.gov/programs-and-services/long-term-services-and-supports"
+    },
+    {
+      "name": "PACE (Program of All-Inclusive Care for the Elderly)",
+      "isNew": false,
+      "existingId": "program-of-all-inclusive-care-for-the-elderly-pace",
+      "existingVerified": null,
+      "diffsFound": 4,
+      "diffs": [
+        {
+          "field": "min_age",
+          "ours": "65",
+          "found": "55",
+          "source": "https://eohhs.ri.gov/ (Rhode Island Executive Office of Health and Human Services); PACE RI: https://pace-ri.org/"
+        },
+        {
+          "field": "income_limit",
+          "ours": "$2901",
+          "found": "$2,901",
+          "source": "https://eohhs.ri.gov/ (Rhode Island Executive Office of Health and Human Services); PACE RI: https://pace-ri.org/"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$15,000 – $35,000/year",
+          "found": "Comprehensive coordinated care including primary/acute/specialty/behavioral health, long-term services/supports (LTSS), adult day services, transportation to/from centers/appointments/emergencies, social/behavioral supports, home-based LTSS if needed, hospital/nursing home coordination. No copays/deductibles. All Medicare/Medicaid services via interdisciplinary team (social workers, nurses, etc.)[2][4][5].",
+          "source": "https://eohhs.ri.gov/ (Rhode Island Executive Office of Health and Human Services); PACE RI: https://pace-ri.org/"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://eohhs.ri.gov/ (Rhode Island Executive Office of Health and Human Services); PACE RI: https://pace-ri.org/"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "For Medicaid LTSS: assets $2,000 or less (excluding primary home, one vehicle, and certain exempt items like personal belongings). No asset test for initial PACE enrollment if private pay[1].",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Three service centers (Providence, Woonsocket, Westerly) may have different wait times, capacity, or provider networks[2][4]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Not specified; potential regional variations[4]",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Medical details for healthcare needs assessment",
+            "Proof of age, residency, Medicare/Medicaid status (if applicable)",
+            "Financial info for Medicaid/private pay determination (income/assets if applicable)"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Limited to 3 service centers; no upfront financial test for enrollment but Medicaid determines free access; private pay option; regional center-based delivery",
+      "gotchas": [
+        "Must use only PACE network providers (no outside doctors)",
+        "Private pay expensive ($4k–$5k/month) if not Medicaid-eligible",
+        "Cannot have Medicare Advantage, Part D, hospice, or other managed plans",
+        "Limited to 3 centers; not truly statewide (excludes islands, service area restrictions)",
+        "Functional need for nursing home care but must live safely in community—no institutionalization",
+        "Re-enrollment treated as new unless within 2 months of losing Medicaid[5]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "region",
+      "officialSource": "https://eohhs.ri.gov/ (Rhode Island Executive Office of Health and Human Services); PACE RI: https://pace-ri.org/"
+    },
+    {
+      "name": "Medicare Savings Programs (MSP): QMB, SLMB, QI",
+      "isNew": false,
+      "existingId": "rhode-island-medicare-savings-program",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$1304",
+          "found": "$1,683",
+          "source": "https://eohhs.ri.gov/Consumer/ProgramsServices/MedicarePremiumPaymentProgram.aspx"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$2,000 – $8,000/year",
+          "found": "QMB: Pays Medicare Part A premiums (if applicable), Part B premiums, deductibles, coinsurance/copayments for Medicare-covered services; auto-qualifies for Extra Help (Part D low-income subsidy, ≤$12.65/generic drug copay in 2026). SLMB: Part B premiums only (but auto-converted to QMB in RI). QI: Part B premiums only; auto-Extra Help.[4][3][1]",
+          "source": "https://eohhs.ri.gov/Consumer/ProgramsServices/MedicarePremiumPaymentProgram.aspx"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://eohhs.ri.gov/Consumer/ProgramsServices/MedicarePremiumPaymentProgram.aspx"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Federal limits used in RI: $9,950 individual, $14,910 couple for QMB, SLMB, QI. Countable assets include savings/checking, stocks; exempt: home, one car, burial plots, life insurance up to $1,500 face value, personal belongings. If assets ≤$4,000 individual/$6,000 couple, may qualify for full Medicaid instead (more benefits).[2][4][3]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "No regional differences in eligibility/benefits; processing may vary slightly by local DHS office workload.",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "QI only: First-come, first-served with priority to prior-year recipients; funds limited.[4][3]",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of income (SS award letters, paystubs)",
+            "Proof of assets (bank statements)",
+            "Medicare card",
+            "ID (birth certificate, driver's license)",
+            "Proof of residency",
+            "Disability proof if under 65"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "RI expanded QMB to cover former SLMB (Feb 2026); uses federal asset limits but screens for full Medicaid first if assets low; QI waitlist/annual renewal; no household size beyond individual/couple in limits.",
+      "gotchas": [
+        "SLMB auto-converts to QMB in RI (expanded eligibility as of Feb 2026)—don't assume separate SLMB.[4]",
+        "QI requires annual reapplication + waitlist risk.[3]",
+        "Assets over $4k/$6k disqualify from full Medicaid (better coverage) but ok for MSP.[5][2]",
+        "Must apply even if unsure—state assigns best program.[3]",
+        "QMB providers can't bill you for Medicare-covered services (but some miss this).[1]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "program_tier",
+      "officialSource": "https://eohhs.ri.gov/Consumer/ProgramsServices/MedicarePremiumPaymentProgram.aspx"
+    },
+    {
+      "name": "Supplemental Nutrition Assistance Program (SNAP)",
+      "isNew": false,
+      "existingId": "snap-supplemental-nutrition-assistance-program",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$1980",
+          "found": "$2,608",
+          "source": "https://dhs.ri.gov/programs-and-services/supplemental-nutrition-assistance-program-snap"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$1,500 – $3,600/year",
+          "found": "Monthly benefits loaded on EBT card for food purchases at authorized stores. Maximum ~$291 for 1-person household, ~$535 for 2-person (2026 estimates; actual amount based on income, deductions, household size). Seniors get higher medical (> $35/month) and shelter deductions.[1]",
+          "source": "https://dhs.ri.gov/programs-and-services/supplemental-nutrition-assistance-program-snap"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://dhs.ri.gov/programs-and-services/supplemental-nutrition-assistance-program-snap"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limit in Rhode Island for households with a member 60+ or disabled. Federal fallback asset limit of $4,500 may apply if gross income exceeds expanded limits, but RI waives it broadly. Exempt: primary home, retirement savings, most vehicles. Applications may still request asset info.[2][8]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "household_size_table",
+          "value": "Households with a member age 60+ or disabled qualify if gross monthly income is under 200% FPL (e.g., $2,608/month for 1 person; exact amounts scale by household size and annual FPL updates for Oct 1, 2025–Sept 30, 2026). Net income must be at or below 100% FPL. No gross income test if all members are 60+ or disabled. Households without elderly/disabled: under 185% FPL gross.[2][5]",
+          "note": "Benefits/eligibility vary by household size — we store a single number"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Uniform statewide via DHS; local offices handle applications but no benefit/wait differences noted[1][5]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "ID/proof of age",
+            "Proof of income (Social Security, pension, etc.)",
+            "Proof of expenses (rent, utilities, medical costs over $35/month)",
+            "Bank statements (if assets requested)",
+            "Proof of disability (if applicable)[1]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Expanded 200% FPL gross for elderly/disabled (no asset test); ESAP simplifies for all-adult elderly/disabled households with no earned income; benefits/deductions scale by household size and medical/shelter costs",
+      "gotchas": [
+        "Social Security/pensions count as income; many eligible seniors miss out (only ~half participate)[3]",
+        "Higher 200% FPL gross limit for elderly/disabled often overlooked—focus on net income[2][5]",
+        "ESAP auto-converts qualifying households for 36-month certification but requires no earned income[6]",
+        "Medical expenses >$35/month deductible boost benefits significantly for seniors[1][7]",
+        "Own home/savings don't disqualify; program emphasizes current income[3][8]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "household_size",
+      "officialSource": "https://dhs.ri.gov/programs-and-services/supplemental-nutrition-assistance-program-snap"
+    },
+    {
+      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "isNew": false,
+      "existingId": "liheap-low-income-home-energy-assistance-program",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$2800",
+          "found": "$42,252",
+          "source": "https://dhs.ri.gov/programs-and-services/energy-assistance-programs-heating/low-income-home-energy-assistance-program"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$500 – $2,000/year",
+          "found": "One-time grant paid directly to utility or fuel company for heating costs (Regular LIHEAP); crisis grants for emergencies like shutoffs or broken heaters (Crisis LIHEAP). Grant amounts based on income, family size, fuel type, and minimum delivery requirements; specific dollar values not fixed but vary (e.g., primary grants scaled per eligibility chart). No cooling assistance[1][4][6][7].",
+          "source": "https://dhs.ri.gov/programs-and-services/energy-assistance-programs-heating/low-income-home-energy-assistance-program"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://dhs.ri.gov/programs-and-services/energy-assistance-programs-heating/low-income-home-energy-assistance-program"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset or resource limits; resources not counted[1][3].",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered locally by Community Action Program (CAP) agencies with varying offices, phone numbers, and processes (e.g., CAPP, Westbay CAP, EBCAP); program dates similar (Oct-April/Nov-Mar) but apply via your local CAP[2][5][7][8].",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Funding limited; applications may close early if funds exhausted (typically Sept-May/Nov-Mar); priority for shutoff/termination notices[1][2][5][6].",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Social Security Card (primary applicant and household)",
+            "Valid photo ID (gov't issued, non-expired)",
+            "Proof of income (recent pay stubs, benefit letters, etc.)",
+            "Gas/electric bill, oil/propane ticket, or proof of fuel[5][7]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Income tested at 60% SMI with full household size table scaling to 14 members; grants vary by income/size/fuel; administered via multiple regional CAP agencies with local application methods; no assets; crisis priority tier",
+      "gotchas": [
+        "Must apply through local CAP agency, not directly DHS; new applicants should go in-person[2]",
+        "Funding limited—apply early (season starts ~Oct 1); may close before May if funds run out[1][2][5]",
+        "Online requires active email and quick verification; mail/dropbox only for some CAPs, no fax/email[2][5]",
+        "Renewals mailed but update address; priority for crisis/shutoff but all eligible apply ASAP[2][5][7]",
+        "Household includes all sharing utility bill, even roommates[1]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "household_size|priority_tier",
+      "officialSource": "https://dhs.ri.gov/programs-and-services/energy-assistance-programs-heating/low-income-home-energy-assistance-program"
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Eligibility gated through LIHEAP qualification; delivered via regional CAP agencies with varying service towns; prioritizes vulnerable households (elderly, disabled, children); services free but home-condition dependent.",
+      "gotchas": [
+        "Must first qualify for LIHEAP—WAP is not standalone.",
+        "Renters need landlord approval.",
+        "Home may be deferred if recently weatherized, has mold, or other issues beyond scope (e.g., costly wiring repairs).",
+        "No recent weatherization (last 10 years) or energy audit may disqualify.",
+        "Funding limited; prioritizes elderly, disabled, families with children—may affect wait times.",
+        "Not all energy sources covered if receiving other assistance."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://dhs.ri.gov/programs-and-services/energy-assistance-programs-heating/weatherization-assistance-program-wap"
+    },
+    {
+      "name": "State Health Insurance Assistance Program (SHIP)",
+      "isNew": false,
+      "existingId": "south-dakota-senior-health-insurance-assistance-program-ship",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$3,000 – $10,000/year",
+          "found": "Free one-on-one personalized counseling and assistance on Medicare coverage (Parts A, B, C, D, Medigap), applying for low-income programs (Medicaid, Medicare Savings Program, Extra Help/Low Income Subsidy), appeal rights, fraud prevention via Senior Medicare Patrol, outreach presentations, and education at health fairs[1][3][4][5][6]",
+          "source": "https://oha.ri.gov/Medicare[3]"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://oha.ri.gov/Medicare[3]"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits or tests apply[1]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Different regional contact numbers (e.g., Providence via 2-1-1, Northern RI specific line), delivered statewide via Office of Healthy Aging and local partners[2][6]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Medicare card, current insurance details, income info if applying for subsidies (optional for initial counseling)[3]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "no income/asset test, counseling-only service, regional phone access points, statewide via single state agency with local partners",
+      "gotchas": [
+        "Not a financial aid or healthcare provider program—only free counseling, no direct payments or services[1][4]",
+        "Helps apply for other programs like Extra Help but does not guarantee approval[1][3]",
+        "Use regional phone lines for faster local access; statewide toll-free may route broadly[6]",
+        "Open to all Medicare-related questions, not just low-income; people miss that it's free and unbiased[5]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://oha.ri.gov/Medicare[3]"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "SCSEP is a nationally administered program with local variation by provider. The search results provide national program structure but lack Rhode Island-specific details including: exact income thresholds in dollars, specific local office locations and phone numbers, regional wait times, asset limits, and which nonprofits operate SCSEP in Rhode Island. Families must contact their local Rhode Island Department of Labor & Training office or use the AARP Foundation locator to access Rhode Island-specific application details and current availability.",
+      "gotchas": [
+        "Income limits are tied to 125% of federal poverty level, which changes annually—families must verify current thresholds with their local office, as dollar amounts are not provided in search results[2]",
+        "Program is experiencing 'a period of transition due to changes and delays in federal funding,' meaning availability and services may be unstable[3]",
+        "Participants must be unemployed—those with any current employment may not qualify[2]",
+        "Training is part-time (20 hours/week average) and temporary, not full-time permanent employment; the goal is transition to unsubsidized employment outside the program[1]",
+        "Waitlists may exist; enrollment is not guaranteed even if eligible[3]",
+        "Search results do not clarify whether asset limits exist, which could disqualify seniors with savings or property"
+      ],
+      "benefitType": "employment",
+      "benefitVariesBy": "fixed (20 hours/week standard; supportive services vary by local provider)",
+      "officialSource": "U.S. Department of Labor: dol.gov/agencies/eta/seniors[2]; Rhode Island Department of Labor & Training: dlt.ri.gov[8]"
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "isNew": false,
+      "existingId": "rhode-island-long-term-care-ombudsman-program",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$10,000 – $30,000/year",
+          "found": "Advocacy to resolve complaints via mediation, negotiation, and administrative action; investigation of abuse, neglect, mistreatment, financial exploitation; education on residents' rights; support for resident and family councils; facility inspections; representation before agencies; assistance with issues like improper discharge, food quality, medication, and care quality; no financial aid, hours, or dollar amounts provided.",
+          "source": "https://alliancebltc.org/ombudsman-program/overview/"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://alliancebltc.org/ombudsman-program/overview/"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits; no financial tests apply.",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "No documents required; families can contact directly to discuss concerns on behalf of residents."
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "no income test; advocacy-only with no financial benefits or waitlists; restricted to residents of defined long-term care settings statewide; contact-based rather than formal application.",
+      "gotchas": [
+        "Not a direct service provider or financial assistance program—focuses solely on advocacy and complaint resolution; only for those already in long-term care facilities or specific services, not for placement or pre-admission help; anyone (resident, family, staff, agency) can file complaints on behalf of residents; operates independently but funded by federal Older Americans Act, state grants, and donations."
+      ],
+      "benefitType": "advocacy",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://alliancebltc.org/ombudsman-program/overview/"
+    },
+    {
+      "name": "Rhode Island Pharmaceutical Assistance for the Elderly (RIPAE)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Four income-based tiers with copay percentages (15-85%); benefits only during Part D deductible/non-covered drugs; no asset test; separate rules for 55-64 disabled",
+      "gotchas": [
+        "Only covers deductible period or non-covered Part D drugs; must be enrolled in Medicare Part D but ineligible for Extra Help",
+        "Income tiers determine copay percentage and subsidy; check exact current limits as adjusted 1/1/2023",
+        "Ages 55-64 limited to SSDI recipients with separate income cap",
+        "No resource test, but must prove RI residency and Part D status[1][2][3]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://oha.ri.gov/resources/health-insurance-health-care-cost-assistance/drug-cost-assistance"
+    },
+    {
+      "name": "At Home Cost Share Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Income-based sliding scale co-pays with tiers (no asset test); benefits via state subsidy on services, not fixed hours/dollars; FPL-based limits adjust yearly; needs assessment mandatory",
+      "gotchas": [
+        "Not Medicaid (RIte@Home); separate program for non-Medicaid eligible with needs assessment required[1][4][5]",
+        "Income tiers determine co-pay amounts, not full coverage; participants pay share (e.g., $4.50-$15/day)[5]",
+        "Eligibility expanded in recent years to 250% FPL and younger adults with dementia—check current limits as FPL adjusts annually[1][6]",
+        "Distinct from Medicaid programs with asset tests or NFLOC requirements[2]",
+        "Private pay costs much higher, so program subsidizes but does not eliminate participant costs[4][5]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "income_tier",
+      "officialSource": "https://oha.ri.gov/resources/home-care/home-cost-share"
+    },
+    {
+      "name": "Senior Companion Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Volunteer-based AmeriCorps program pairing senior volunteers with frail elders; limited RI-specific details on income/assets; statewide via Office of Healthy Aging[6]",
+      "gotchas": [
+        "Program recruits volunteers (seniors 55+) to serve frail elders, not direct financial aid to recipients; stipend and benefits are for volunteers, not clients; clients receive non-medical companionship/services only; income eligibility applies only for volunteer stipends, not clients[1][6]",
+        "No specific RI income tables or client eligibility details provided; contact program for current AmeriCorps guidelines[1][6]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://oha.ri.gov/get-involved/volunteering/senior-companions[6]"
+    },
+    {
+      "name": "RIPTA Senior Reduced Fare Bus Pass",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "This program has a bifurcated structure: low-income seniors/persons with disabilities receive free all-day travel, while non-low-income seniors/persons with disabilities receive half-fare off-peak travel. Income eligibility is tied to 200% of Federal Poverty Level (not a fixed dollar amount), which varies by household size and year. The program is statewide but administered through a single Photo ID Office with mobile outreach. Processing timelines and waitlist information are not publicly documented.",
+      "gotchas": [
+        "There are TWO separate programs: (1) Free all-day travel for low-income seniors/persons with disabilities, and (2) Half-fare off-peak travel for seniors/persons with disabilities regardless of income[3][4]. Families must determine which applies to their situation.",
+        "Income limit is 200% of Federal Poverty Level, not a fixed dollar amount—this varies annually and by household size[2]. Applicants must verify current thresholds.",
+        "Photo requirements are strict: submitted photos that differ considerably from submitted Proof of Identity will not be accepted, which can delay processing[3]",
+        "RIPTA encourages renewal applications to begin at least one month before expiration[3]",
+        "The Photo ID Office in Kennedy Plaza has limited hours (Monday-Friday, 8am-4pm, closed noon-1pm) and is closed on weekends and holidays[4]",
+        "If applying by mail or online, processing time is not specified—families should plan accordingly",
+        "Medicare Card alone qualifies for off-peak discounts but does not provide free all-day travel; a photo ID card is required for the free program[3][4]"
+      ],
+      "benefitType": "in_kind",
+      "benefitVariesBy": "income_level",
+      "officialSource": "https://www.ripta.com/reducedfare"
+    }
+  ]
+}

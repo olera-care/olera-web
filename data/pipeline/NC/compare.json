@@ -1,0 +1,264 @@
+{
+  "state": "NC",
+  "stateName": "North Carolina",
+  "comparedAt": "2026-04-09T08:57:12.365Z",
+  "total": 6,
+  "newPrograms": 4,
+  "withDiffs": 2,
+  "withNovelFields": 2,
+  "benefitTypes": {
+    "financial": 3,
+    "service": 2,
+    "in_kind": 1
+  },
+  "variationPatterns": {
+    "home_value": 1,
+    "priority_tier": 3,
+    "fixed": 1,
+    "income|dementia_or_alzheimers_diagnosis|priority_tier": 1
+  },
+  "novelFieldSummary": {
+    "regional_variations": {
+      "count": 2,
+      "programs": [
+        "North Carolina Seniors Farmers' Market Nutrition Program",
+        "State-County Special Assistance - In Home"
+      ],
+      "note": "Program varies by region — our model doesn't capture this"
+    },
+    "waitlist": {
+      "count": 2,
+      "programs": [
+        "North Carolina Seniors Farmers' Market Nutrition Program",
+        "State-County Special Assistance - In Home"
+      ],
+      "note": "Has waitlist info — our model has no wait time field"
+    },
+    "documents_required": {
+      "count": 2,
+      "programs": [
+        "North Carolina Seniors Farmers' Market Nutrition Program",
+        "State-County Special Assistance - In Home"
+      ],
+      "note": "Has document checklist — our model doesn't store per-program documents"
+    },
+    "asset_limits": {
+      "count": 1,
+      "programs": [
+        "State-County Special Assistance - In Home"
+      ],
+      "note": "Our model has no asset limit fields"
+    }
+  },
+  "comparisons": [
+    {
+      "name": "North Carolina Homestead Exemption",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "This program has two distinct components: (1) Elderly/Disabled Homestead Exclusion (property tax relief based on income and age/disability status) and (2) Disabled Veteran's Homestead Exclusion (separate program with no income/age limits). Income limits are set statewide but vary annually. Application is county-based. The benefit is a property tax exclusion (not a cash payment), calculated as the greater of a fixed dollar amount or a percentage of home value. Some counties require annual reapplication while others are one-time. Verify with your specific county assessor for exact procedures and deadlines.",
+      "gotchas": [
+        "Income limits are set annually and change year to year—verify current year limit before applying",
+        "This is a property tax exclusion program, NOT the same as the homestead exemption used in bankruptcy proceedings (different dollar amounts and rules)",
+        "One-time application required for elderly/disabled exclusion; however, some counties require annual reapplication for the tax limitation program (verify with your county)",
+        "Cannot receive other property tax relief simultaneously—must choose this program or another relief program",
+        "Temporary absences for health reasons or nursing home/rest home confinement do not disqualify you, but the home must remain unoccupied or occupied by spouse/dependent",
+        "Property must be primary residence only—rental properties and vacation homes do not qualify",
+        "Income includes both applicant and spouse (if married)—joint income must be under the limit",
+        "The exclusion amount is the GREATER of $25,000 or 50% of appraised value—so if your home is worth $40,000, you get 50% ($20,000) excluded; if worth $60,000, you get 50% ($30,000) excluded",
+        "Fraudulent claims (recently moving assets into home to avoid creditors, false statements about assets) can result in disallowance of exemption",
+        "Different program exists for disabled veterans with no age or income requirement—verify if veteran qualifies for that instead"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "home_value",
+      "officialSource": "https://www.gastongov.com/618/Homestead-Exclusions (example county); North Carolina General Statute § 105-277.1"
+    },
+    {
+      "name": "North Carolina Long-Term Care Medicaid",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Income tied to regional nursing home rates (not fixed table); multiple programs/waivers (nursing home vs. HCBS) with tiered NFLOC; county-administered with regional cost variations; no household size income table—marital status key.",
+      "gotchas": [
+        "No single income limit—income < facility cost but most paid as 'patient liability' (missed by many).[5][6][7]",
+        "Home equity cap $730,000; intent to return must be realistic.[2][6]",
+        "HCBS waivers have waitlists/slots; NFLOC required even for home care.[1][3]",
+        "Spousal protections (CSRA $157,920) but community spouse income not counted unless both applying.[4][6]",
+        "SSI auto-qualifies; others need full ABD/NFLOC assessment.[5]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://medicaid.ncdhhs.gov/providers/programs-and-services/long-term-care"
+    },
+    {
+      "name": "Project C.A.R.E.",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Regionally administered by 6 host agencies covering specific counties (100 total); respite funding limited and crisis-prioritized; no fixed income/asset tables published; dementia-specific for caregivers.",
+      "gotchas": [
+        "Funds for respite are limited and subject to availability; not guaranteed.[5]",
+        "CAP/DA Medicaid recipients excluded from additional respite funding.[2]",
+        "Must contact specific regional host agency based on county; not a single statewide application.[1][2][3]",
+        "Targets those just above Medicaid eligibility who can't afford private respite.[4]",
+        "No age limit on care recipient, but dementia diagnosis required.[2]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.ncdhhs.gov/divisions/aging/project-care-caregiver-alternatives-running-empty[7]"
+    },
+    {
+      "name": "North Carolina Seniors Farmers' Market Nutrition Program",
+      "isNew": false,
+      "existingId": "legal-aid-of-north-carolina-senior-legal-services",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$2500",
+          "found": "$2,413",
+          "source": "https://www.ncagr.gov/news/events/seniors-farmers-market-nutrition-program-charlotte-regional-farmers-market-10 and https://www.charlottefoodpolicy.com/seniorvouchers"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$500 – $3,000/year",
+          "found": "$50 in vouchers per eligible senior per season[1][2]",
+          "source": "https://www.ncagr.gov/news/events/seniors-farmers-market-nutrition-program-charlotte-regional-farmers-market-10 and https://www.charlottefoodpolicy.com/seniorvouchers"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.ncagr.gov/news/events/seniors-farmers-market-nutrition-program-charlotte-regional-farmers-market-10 and https://www.charlottefoodpolicy.com/seniorvouchers"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "regional_variations",
+          "value": "Program administration varies by state agency (state Department of Agriculture or Aging)[4]. Mecklenburg County is documented as having expanded participation in 2025 (third season)[2]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "No guaranteed vouchers — even if eligible, funding may not cover all applicants[3]",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": "Not specified in available sources; recommend bringing proof of age and income documentation",
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "This is a fixed-benefit, in-kind program with no variation by household size (all eligible seniors receive $50). It is geographically restricted to counties with participating local agencies and operates only during summer months (July-September). The program is demand-limited with no guaranteed benefits despite meeting eligibility criteria. Enrollment is decentralized through participating farmers markets rather than centralized online or phone application.",
+      "gotchas": [
+        "Vouchers are NOT guaranteed — even if all eligibility requirements are met, insufficient funding may prevent issuance[3]",
+        "This is a summer-only program (July-September); it does not operate year-round[2][3]",
+        "Vouchers can only be used at SFMNP-certified farmers markets, not grocery stores or other retailers[1][2]",
+        "Only North Carolina-grown produce qualifies; items grown elsewhere cannot be purchased[1]",
+        "Program is federally funded through USDA; federal budget cuts could affect availability[3]",
+        "Enrollment appears to occur at specific farmers markets on specific dates in September; missing these dates may require contacting the local agency directly[1]",
+        "Income limits are based on 185% of Federal Poverty Level, which may change annually"
+      ],
+      "benefitType": "in_kind",
+      "benefitVariesBy": "fixed",
+      "officialSource": "https://www.ncagr.gov/news/events/seniors-farmers-market-nutrition-program-charlotte-regional-farmers-market-10 and https://www.charlottefoodpolicy.com/seniorvouchers"
+    },
+    {
+      "name": "NC Lifespan Respite Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Referral-only applications via professionals; priority tiers over strict income/assets; administered regionally by High Country AAA under state/federal grant; flexible voucher for any-age special needs.",
+      "gotchas": [
+        "Applications must come from referring agencies/professionals (caregivers cannot apply directly).",
+        "No ongoing publicly-funded respite or in-home care allowed.",
+        "Funds must be used within 90 days of approval.",
+        "Priority-based, not guaranteed for all eligible.",
+        "Reimbursement-based voucher, not direct payment in all cases."
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "www.highcountryaging.org/services/lifespan-respite-project"
+    },
+    {
+      "name": "State-County Special Assistance - In Home",
+      "isNew": false,
+      "existingId": "special-assistance-state-ssi-supplement",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$800",
+          "found": "$1,117",
+          "source": "https://www.ncdhhs.gov/divisions/social-services/special-assistance/state-and-county-special-assistance-home-residents[7]"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$3,000 – $10,000/year",
+          "found": "Monthly cash supplement for living expenses (food, shelter, clothing, daily necessities); amount determined by income and approved rates (historically up to ~$1,500/month, higher for dementia/Alzheimer's); automatic Medicaid eligibility for medical/personal care services.[4][5][7]",
+          "source": "https://www.ncdhhs.gov/divisions/social-services/special-assistance/state-and-county-special-assistance-home-residents[7]"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.ncdhhs.gov/divisions/social-services/special-assistance/state-and-county-special-assistance-home-residents[7]"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Less than $2,000 for individuals (savings and assets; excludes certain items per standard rules like primary home, one vehicle, household goods; trust funds owned by applicant/spouse count).[2][3]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered by local county DSS offices; contacts/providers vary by county (e.g., Wake-specific phones); potential differences in wait times/case management but no specified limits.[1][5][6]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Eliminated; approved without delay if eligible.[5]",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of income.",
+            "Proof of assets/savings.",
+            "Social Security card or SSN verification.",
+            "Proof of age (birth certificate).",
+            "Proof of residency/citizenship.",
+            "Insurance info.",
+            "Medical info for disability/FL-2.[1][2]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "County-administered statewide with local DSS variation; benefits as cash supplement scaled by income/diagnosis; tied to SSI/FPL with Adult Care Home care level requirement despite in-home setting; no spouse deeming.",
+      "gotchas": [
+        "All Medicaid/community resources must be exhausted first; not a first-line option.[1]",
+        "Must need Adult Care Home level of care but choose to stay home; doctor FL-2 required.[5]",
+        "Automatic Medicaid but facility acceptance varies for related services (check if providers accept rates).[4]",
+        "Case management mandatory: monthly contact, quarterly visits, annual assessment.[1]",
+        "Income/assets case-by-case; SSI tie-in means strict federal poverty alignment.[3]",
+        "Higher benefits for dementia/Alzheimer's often missed.[5]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "income|dementia_or_alzheimers_diagnosis|priority_tier",
+      "officialSource": "https://www.ncdhhs.gov/divisions/social-services/special-assistance/state-and-county-special-assistance-home-residents[7]"
+    }
+  ]
+}

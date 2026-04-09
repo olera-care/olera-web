@@ -1,0 +1,35 @@
+{
+  "entity": "New Mexico",
+  "entitySlug": "new-mexico",
+  "state": "NM",
+  "stateName": "New Mexico",
+  "isRegion": false,
+  "exploredAt": "2026-04-09T08:56:45.226Z",
+  "programCount": 3,
+  "programs": [
+    {
+      "name": "Community Benefit Program",
+      "what_it_does": "This program pays for long-term services and supports to help seniors remain in their homes rather than moving to nursing homes or institutional settings. Covered services include home health and personal care for those needing nursing facility level assistance.[1]",
+      "who_its_for": "New Mexico residents aged 60+ requiring nursing facility level of care (help with at least two activities of daily living) and meeting Medicaid financial eligibility.[1]",
+      "whats_unique": "New Mexico consolidated several previous waiver programs into this single state-specific initiative focused on community-based long-term care as an alternative to institutionalization.[1]",
+      "official_url": "https://assets.ctfassets.net/61iwodu7d9u0/7FW8Xx97i2bt9ViUdhNBjJ/bddf4eac534605352d3940ad6d82316c/MC-3398191-state-resource-pages--new-mexico.pdf",
+      "benefit_value": "Varies; covers long-term services like home health based on assessed needs (call (855) 637-432-2080 for waiting list).[1]"
+    },
+    {
+      "name": "New Mexico Senior Farmers' Market Nutrition Program (SFMNP)",
+      "what_it_does": "Provides low-income seniors with electronic cards or a mobile app to purchase fresh, locally grown fruits, vegetables, herbs, and honey at farmers' markets and roadside stands. It supports senior nutrition while boosting local farmers through direct sales and produce delivery.[3]",
+      "who_its_for": "Income-eligible seniors/elders (typically 60+) participating in or qualifying under USDA and state income guidelines.[3]",
+      "whats_unique": "Combines federal USDA SFMNP with additional state-funded benefits up to $100 per season (upon availability), exceeding standard federal allotments.[3]",
+      "official_url": "https://www.nmwic.org/fmnp/",
+      "benefit_value": "Federal: up to $50; State: up to $100 per farmers market season (upon availability).[3]"
+    },
+    {
+      "name": "PNM Good Neighbor Fund",
+      "what_it_does": "Offers assistance with essential utility bills to help income-qualified households manage energy costs. It targets vulnerable groups including seniors to prevent service disconnections.[9]",
+      "who_its_for": "Income-qualified customers of PNM (Public Service Company of New Mexico), including seniors.[9]",
+      "whats_unique": "State-specific utility fund administered by New Mexico's largest electric provider, providing targeted energy relief beyond federal LIHEAP programs.[9]",
+      "official_url": "https://www.pnm.com/goodneighborfund",
+      "benefit_value": "Varies based on income and bill amount; provides direct utility bill payments.[9]"
+    }
+  ]
+}

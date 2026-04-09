@@ -1,0 +1,410 @@
+{
+  "state": "MT",
+  "stateName": "Montana",
+  "draftedAt": "2026-04-09T09:07:00.257Z",
+  "total": 4,
+  "successful": 3,
+  "programs": [
+    {
+      "id": "montana-big-sky-waiver",
+      "name": "Big Sky Waiver Program",
+      "shortName": "Big Sky Waiver",
+      "tagline": "If your parent needs nursing home level care, this program can pay for services to help them stay home instead.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Mountain Pacific (statewide referral contact)",
+            "type": "service-area"
+          },
+          {
+            "name": "County Office of Public Assistance (OPA) offices (county-level eligibility)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs nursing home level care but wants to stay home, Montana's Big Sky Waiver can pay for comprehensive home care services including personal assistance, homemaker services, case management, and medical equipment. The program covers everything from daily personal care to home modifications like ramps and grab bars. Because this waiver allows your parent to receive intensive care at home, they can avoid nursing facility placement while getting the support they need.\n\nYour parent must qualify for Medicaid and demonstrate they need nursing facility level of care (daily help with bathing, dressing, medication management, or mobility). Income must be $967/month or less, and assets must stay under $2,000 for individuals. The program currently has a waiting list, so qualifying doesn't guarantee immediate enrollment.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Income below $967/month",
+          "Assets under $2,000",
+          "Need nursing facility level care",
+          "Montana resident"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 967
+          }
+        ],
+        "assetLimits": {
+          "individual": 2000,
+          "couple": 2000,
+          "countedAssets": [
+            "Bank accounts",
+            "Investments",
+            "Second vehicles"
+          ],
+          "exemptAssets": [
+            "Primary home (unlimited equity)",
+            "Household furnishings",
+            "One vehicle"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "Must require nursing facility level of care (daily help with bathing, dressing, medication management, or mobility transfers)",
+        "otherRequirements": [
+          "Montana resident",
+          "Must be financially eligible for Medicaid",
+          "Must need at least one waiver service monthly"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call Mountain Pacific at (800) 219-7035 to make a referral, then apply for Medicaid at your county office.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call Mountain Pacific for referral",
+            "description": "Call (800) 219-7035 to request a Big Sky Waiver referral. They will begin the process and coordinate your functional needs assessment."
+          },
+          {
+            "step": 2,
+            "title": "Apply for Medicaid at county office",
+            "description": "Visit your county Office of Public Assistance to apply for Medicaid. You must be Medicaid-eligible to qualify for the waiver."
+          },
+          {
+            "step": 3,
+            "title": "Complete functional assessment",
+            "description": "A specialist will conduct an in-person or phone assessment to determine if your parent needs nursing facility level of care."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": "Currently has a waiting list",
+        "tip": "Start the referral process through Mountain Pacific first — they coordinate everything and can guide you through county Medicaid application requirements.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits (2025)",
+          "rows": [
+            {
+              "householdSize": "Individual",
+              "monthlyLimit": "$967",
+              "yearlyLimit": "$11,604"
+            },
+            {
+              "householdSize": "Married (both applying)",
+              "monthlyLimit": "$967 each",
+              "yearlyLimit": "$11,604 each"
+            },
+            {
+              "householdSize": "Married (one applying)",
+              "monthlyLimit": "$967",
+              "yearlyLimit": "$11,604"
+            }
+          ],
+          "footnote": "2025 Montana Medicaid limits"
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and savings",
+            "Investments and stocks",
+            "Second vehicles",
+            "Property other than primary home"
+          ],
+          "excluded": [
+            "Primary home (unlimited equity)",
+            "Household furnishings and personal belongings",
+            "One vehicle",
+            "Burial funds (up to certain limits)"
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "This program currently has a waiting list. Being eligible doesn't guarantee immediate enrollment — you may wait months or longer for services to begin."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If you're married and only one spouse needs care, both spouses' assets are counted together and must stay under $2,000 total. This is much stricter than regular Medicaid rules for couples."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house if she qualifies?",
+          "answer": "Yes. Your parent's primary home is completely exempt from the $2,000 asset limit, regardless of its value. If she's married and only she applies for the waiver, her spouse can continue living in the home."
+        },
+        {
+          "question": "What if Dad's income is $1,100/month — just over the $967 limit?",
+          "answer": "He won't qualify at that income level. However, if he has high medical expenses, those costs may be deducted from his income for Medicaid purposes. Contact your county Office of Public Assistance to see if a 'spend-down' option applies."
+        },
+        {
+          "question": "How long is the waiting list?",
+          "answer": "Montana doesn't publish specific wait times, and they vary by region. When you call Mountain Pacific at (800) 219-7035, ask for current wait time estimates in your area."
+        },
+        {
+          "question": "What's the difference between this and regular home health care?",
+          "answer": "Big Sky Waiver provides much more comprehensive services — personal care, case management, home modifications, medical equipment, and even residential care if needed. Regular home health is typically just nursing visits or therapy."
+        },
+        {
+          "question": "Can my parent choose their own caregiver?",
+          "answer": "In many cases, yes. The waiver includes 'self-direction' options that let your parent hire family members or choose their own personal care attendants, with program oversight and payment."
+        },
+        {
+          "question": "What happens if Mom's condition gets worse while on the waiver?",
+          "answer": "The program can increase services as her needs change. Because it covers everything from light homemaker services to intensive personal care, the waiver can adapt without her having to reapply or change programs."
+        }
+      ],
+      "phone": "(800) 219-7035",
+      "sourceUrl": "https://dphhs.mt.gov/sltc/csb/BSW/BigSkyWaiverProgram",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "montana-tcare-caregiver-support",
+      "name": "TCARE",
+      "shortName": "TCARE",
+      "tagline": "Free assessment to create a personalized plan that reduces your stress and connects you to resources as a family caregiver.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local Area Agencies on Aging",
+            "type": "service-area"
+          },
+          {
+            "name": "DPHHS SLTC Aging Services bureau",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If you're caring for an aging parent and feeling overwhelmed, TCARE can help reduce your stress and burnout through a personalized assessment and support plan. This program uses specialized software to evaluate your specific caregiving situation, identify sources of stress, and connect you to local resources and programs that address your needs.\n\nTCARE focuses specifically on family caregivers experiencing stress, burnout, or depression while supporting elderly loved ones. Because this is a new program rolling out through local Area Agencies on Aging, availability varies by county — but there are no income or asset requirements to qualify.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Family caregiver for elderly parent",
+          "Experiencing stress or burnout",
+          "Available in select counties",
+          "No income limits"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be caring for an elderly loved one (likely 60+ or 65+)",
+          "Experiencing caregiver stress, burnout, or depression"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Contact your local Area Agency on Aging for a referral — the program is not yet available statewide.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Check availability in your area",
+            "description": "Call Patrick Kelly at (406) 444-0998 to confirm TCARE is available through your local Area Agency on Aging."
+          },
+          {
+            "step": 2,
+            "title": "Get referred through your local AAA",
+            "description": "Contact your Area Agency on Aging for a referral — you cannot enroll directly."
+          },
+          {
+            "step": 3,
+            "title": "Complete the TCARE assessment",
+            "description": "A specialist will use TCARE software to assess your caregiving situation and stress levels."
+          },
+          {
+            "step": 4,
+            "title": "Receive your personalized plan",
+            "description": "Get connected to local resources and programs designed to reduce your specific sources of stress."
+          }
+        ],
+        "processingTime": "Not specified",
+        "waitlist": null,
+        "tip": "Email Patrick.Kelley@mt.gov if you can't reach him by phone — include your county to check availability.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "This program is in soft launch phase and not yet available statewide. Call (406) 444-0998 first to confirm your local Area Agency on Aging participates before trying to enroll."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my county doesn't offer TCARE yet?",
+          "answer": "The program is rolling out gradually through local Area Agencies on Aging. Contact Patrick Kelly at (406) 444-0998 to ask when it might become available in your area, or to learn about other caregiver support programs available now."
+        },
+        {
+          "question": "Does this provide actual help with caregiving tasks or just connect me to resources?",
+          "answer": "TCARE focuses on assessment and resource connection, not direct personal care services for your parent. The program creates a personalized plan to reduce your stress as a caregiver and connects you to existing local programs and resources."
+        },
+        {
+          "question": "Can I apply directly or do I need a referral?",
+          "answer": "You need a referral through your local Area Agency on Aging — there's no direct enrollment. Contact your AAA to request a referral for TCARE assessment."
+        },
+        {
+          "question": "What if I'm not sure if I qualify as experiencing 'stress or burnout'?",
+          "answer": "The TCARE assessment itself will evaluate your stress levels. If you're feeling overwhelmed by caregiving responsibilities, that's exactly what this program is designed to address. Contact your local AAA to discuss whether TCARE might help."
+        },
+        {
+          "question": "How long does the assessment take and what does it involve?",
+          "answer": "The research doesn't specify assessment length, but specialists use TCARE software to evaluate your caregiving situation and stress levels. Contact Patrick Kelly at (406) 444-0998 for details about what to expect."
+        },
+        {
+          "question": "Is there any cost for the assessment or support services?",
+          "answer": "The research indicates this is a caregiver support program with no income requirements, suggesting no cost. Contact your local Area Agency on Aging to confirm there are no fees for TCARE services."
+        }
+      ],
+      "phone": "(406) 444-0998",
+      "sourceUrl": "https://dphhs.mt.gov/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "montana-ship-medicare-counseling",
+      "name": "State Health Insurance Assistance Program (S.H.I.P.)",
+      "shortName": "Montana SHIP",
+      "tagline": "Free Medicare counseling to help your parent navigate coverage, find savings programs, and avoid scams.",
+      "programType": "navigator",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Montana has more than 150 certified SHIP counselors statewide",
+            "type": "service-area"
+          },
+          {
+            "name": "Services delivered through Area Agencies on Aging network",
+            "type": "service-area"
+          },
+          {
+            "name": "Specific county-level contacts available through 1-800-551-3191",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent has Medicare or is turning 65, they need independent help navigating coverage options — and Montana SHIP provides that for free. Because Medicare has dozens of plan choices and changes every year, SHIP counselors help your parent compare Part D prescription plans, understand Medigap insurance, and apply for programs that could save hundreds monthly on premiums and medications.\n\nMontana SHIP serves anyone with Medicare, including people under 65 with disabilities. More than 150 certified counselors statewide provide one-on-one phone and in-person counseling. Because SHIP counselors are not insurance agents, they give objective advice without trying to sell anything. They can also help your parent apply for Medicare Savings Programs, Extra Help with prescription costs, and Montana's Big Sky RX Program.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Has Medicare coverage",
+          "Family caregivers welcome",
+          "All income levels",
+          "Statewide availability"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be a Medicare beneficiary or family member/caregiver of a Medicare beneficiary"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call 1-800-551-3191 for immediate counseling — no application needed.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the Montana SHIP line",
+            "description": "Dial 1-800-551-3191 and explain what Medicare questions you or your parent have."
+          },
+          {
+            "step": 2,
+            "title": "Get connected to your local counselor",
+            "description": "SHIP will connect you to a certified counselor in your county through your local Area Agency on Aging."
+          },
+          {
+            "step": 3,
+            "title": "Schedule counseling session",
+            "description": "Choose phone counseling for immediate help, or schedule in-person meeting. Homebound individuals can request in-home visits."
+          },
+          {
+            "step": 4,
+            "title": "Apply for savings programs",
+            "description": "If eligible, your counselor will help you apply for Medicare Savings Programs at apply.mt.gov or Extra Help at SSA.gov."
+          }
+        ],
+        "processingTime": "Immediate counseling available",
+        "waitlist": null,
+        "tip": "If your parent can't travel, specifically request in-home counseling when you call.",
+        "urls": [
+          {
+            "label": "Montana SHIP official page",
+            "url": "https://dphhs.mt.gov/SLTC/aging/SHIP"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "SHIP counselors cannot sell insurance and are not affiliated with insurance companies. They provide objective advice to help you make your own decisions about Medicare coverage."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can SHIP help if my parent already has Medicare coverage?",
+          "answer": "Yes. SHIP helps with ongoing Medicare questions like comparing Part D plans during Open Enrollment, understanding Medicare Advantage changes, or finding programs to lower prescription costs. They serve current Medicare beneficiaries, not just new enrollees."
+        },
+        {
+          "question": "What if my parent's income is too high for most assistance programs?",
+          "answer": "SHIP still provides free counseling regardless of income. They can help your parent find the best Medicare Part D plan, understand Medigap options, and explain Medicare rules. Montana's Big Sky RX Program has no resource limits, so higher-income seniors may still qualify for prescription savings."
+        },
+        {
+          "question": "Can I call SHIP as the adult child, or does my parent have to call?",
+          "answer": "You can call as the family caregiver. SHIP specifically serves Medicare beneficiaries and their family members or caregivers. The counselor can work with you directly to help navigate your parent's Medicare options."
+        },
+        {
+          "question": "Will SHIP try to sell us insurance during counseling?",
+          "answer": "No. SHIP counselors are not insurance agents and cannot sell insurance products. They're funded by the federal Administration on Community Living to provide independent, objective advice. They empower you to make your own decisions."
+        },
+        {
+          "question": "What's the difference between SHIP and calling Medicare directly?",
+          "answer": "SHIP counselors provide personalized, one-on-one guidance and can help you apply for state-specific programs like Montana's Big Sky RX. They also offer in-person and in-home counseling options that Medicare's 1-800-MEDICARE line doesn't provide."
+        },
+        {
+          "question": "Can SHIP help with Medicare fraud or billing problems?",
+          "answer": "Yes. SHIP provides Medicare Fraud, Waste and Abuse education and can help you understand suspicious Medicare billing. They can guide you on how to report potential fraud and protect your parent from Medicare scams."
+        }
+      ],
+      "phone": "1-800-551-3191",
+      "sourceUrl": "https://dphhs.mt.gov/SLTC/aging/SHIP",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "name": "Commodity Supplemental Food Program (CSFP)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    }
+  ],
+  "stateOverview": null
+}

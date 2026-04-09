@@ -1,0 +1,336 @@
+{
+  "state": "CT",
+  "stateName": "Connecticut",
+  "diveAt": "2026-04-09T08:48:39.028Z",
+  "total": 6,
+  "parsed": 6,
+  "programs": [
+    {
+      "name": "CHOICES",
+      "eligibility": {
+        "age": null,
+        "income_limits": "No income limits; open to all Medicare-eligible individuals, families, and caregivers of all ages and income levels.[2][9]",
+        "asset_limits": "No asset limits or tests apply to CHOICES counseling services.[2][6]",
+        "other_requirements": [
+          "Medicare-eligible: US citizens or permanent residents aged 65+; certain younger people with disabilities approved by Social Security Administration (e.g., collecting SSDI for 24 months or 40 quarters of work).[4][9]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Free, unbiased, one-on-one counseling on Medicare (Parts A, B, C, D), Medicare Supplement, prescription drug coverage; enrollment assistance and plan comparisons; eligibility screening and application help for cost-assistance programs like Medicaid, Medicare Savings Program (MSP), Low-Income Subsidy (Extra Help/LIS); information on rights, fraud detection, and related insurance.[2][5][7][9]",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Phone: 1-800-994-9422 (statewide CHOICES line to speak with a counselor).[5][9]",
+          "Website: https://portal.ct.gov/ADS-CHOICES (official program page).[5][9]",
+          "Local Area Agencies on Aging (AAA): Contact one of 5 AAAs for in-person or phone counseling (e.g., 203-757-5449 for Western CT).[10]",
+          "Benefits Check Up tool: Confidential online screening via local counselors or websites.[3]"
+        ],
+        "processing_time": "Immediate counseling available by phone or appointment; no formal processing for services.[9]",
+        "waitlist": null,
+        "forms": [
+          "No specific forms for CHOICES counseling; forms may be provided for assisted applications to MSP, LIS, or Medicaid.[6]"
+        ],
+        "documents": [
+          "For counseling: None required. For assisted benefit applications: Proof of income, Medicare info, residency (varies by program like MSP or LIS).[6]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None; available statewide via 5 Area Agencies on Aging (AAA).",
+        "regional_variations": "Delivered through 5 regional AAAs with local counselors and offices; services consistent but access points vary by AAA region (e.g., North Central AAA, Western CT AAA).[2][7][10]",
+        "offices_or_providers": [
+          "Administered by Department of Aging and Disability Services (ADS) via 5 AAAs and Center for Medicare Advocacy.[2][5][10]"
+        ]
+      },
+      "official_source": "https://portal.ct.gov/ADS-CHOICES",
+      "gotchas": [
+        "Not a direct benefits program—provides counseling and application assistance only, not financial aid or healthcare itself.[9]",
+        "Counselors are certified volunteers or staff, not insurance agents, and do not sell plans.[1][4]",
+        "For cost-assistance like MSP/LIS, apply through CHOICES but note MSP has higher income limits ($85,000/year possible for full Medicaid) and no asset test in CT—prefer MSP over direct LIS.[6]",
+        "Open enrollment for Medicare plans: Oct 15-Dec 7.[8]"
+      ],
+      "data_shape_notes": "No income/asset tests for core counseling; services uniform statewide but delivered regionally via 5 AAAs; focuses on Medicare navigation and eligibility screening for related aid programs like MSP (no assets, high income threshold).",
+      "_raw": "{\n  \"name\": \"CHOICES\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No income limits; open to all Medicare-eligible individuals, families, and caregivers of all ages and income levels.[2][9]\",\n    \"asset_limits\": \"No asset limits or tests apply to CHOICES counseling services.[2][6]\",\n    \"other_requirements\": [\"Medicare-eligible: US citizens or permanent residents aged 65+; certain younger people with disabilities approved by Social Security Administration (e.g., collecting SSDI for 24 months or 40 quarters of work).[4][9]\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free, unbiased, one-on-one counseling on Medicare (Parts A, B, C, D), Medicare Supplement, prescription drug coverage; enrollment assistance and plan comparisons; eligibility screening and application help for cost-assistance programs like Medicaid, Medicare Savings Program (MSP), Low-Income Subsidy (Extra Help/LIS); information on rights, fraud detection, and related insurance.[2][5][7][9]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: 1-800-994-9422 (statewide CHOICES line to speak with a counselor).[5][9]\", \"Website: https://portal.ct.gov/ADS-CHOICES (official program page).[5][9]\", \"Local Area Agencies on Aging (AAA): Contact one of 5 AAAs for in-person or phone counseling (e.g., 203-757-5449 for Western CT).[10]\", \"Benefits Check Up tool: Confidential online screening via local counselors or websites.[3]\"],\n    \"processing_time\": \"Immediate counseling available by phone or appointment; no formal processing for services.[9]\",\n    \"waitlist\": null,\n    \"forms\": [\"No specific forms for CHOICES counseling; forms may be provided for assisted applications to MSP, LIS, or Medicaid.[6]\"],\n    \"documents\": [\"For counseling: None required. For assisted benefit applications: Proof of income, Medicare info, residency (varies by program like MSP or LIS).[6]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; available statewide via 5 Area Agencies on Aging (AAA).\",\n    \"regional_variations\": \"Delivered through 5 regional AAAs with local counselors and offices; services consistent but access points vary by AAA region (e.g., North Central AAA, Western CT AAA).[2][7][10]\",\n    \"offices_or_providers\": [\"Administered by Department of Aging and Disability Services (ADS) via 5 AAAs and Center for Medicare Advocacy.[2][5][10]\"]\n  },\n  \"official_source\": \"https://portal.ct.gov/ADS-CHOICES\",\n  \"gotchas\": [\"Not a direct benefits program—provides counseling and application assistance only, not financial aid or healthcare itself.[9]\", \"Counselors are certified volunteers or staff, not insurance agents, and do not sell plans.[1][4]\", \"For cost-assistance like MSP/LIS, apply through CHOICES but note MSP has higher income limits ($85,000/year possible for full Medicaid) and no asset test in CT—prefer MSP over direct LIS.[6]\", \"Open enrollment for Medicare plans: Oct 15-Dec 7.[8]\"],\n  \"data_shape_notes\": \"No income/asset tests for core counseling; services uniform statewide but delivered regionally via 5 AAAs; focuses on Medicare navigation and eligibility screening for related aid programs like MSP (no assets, high income threshold).\"\n}"
+    },
+    {
+      "name": "Connecticut Home Care Program for Elders (CHCPE)",
+      "eligibility": {
+        "age": 65,
+        "income_limits": "Varies by funding category. State-funded CHCPE (Category 2): No income limit, but sliding fee scale and possible 3% cost share based on income. Medicaid-funded CHCPE (Category 3): Typically $2,742/month or less (general threshold); for 1915(i) State Plan, 150% FPL ($1,956.25/month in 2025). Spouse's income does not count for applicant. No full table by household size provided; asset-dependent limits apply.[1][3][5][6]",
+        "asset_limits": "Varies by category and region/provider. Examples: Single applicant $35,766; married $47,688 (WCAAA-specific). Exempt: primary residence, essential personal items. Other assets count toward limits, which depend on income level and living situation. Higher assets may still qualify for state-funded with contributions.[1][5][7]",
+        "other_requirements": [
+          "Connecticut resident.",
+          "At risk of nursing home placement or meet Nursing Facility Level of Care (NFLOC): Assistance needed with at least 1 ADL (state-funded minimum; e.g., bathing, dressing, eating, toileting, transferring, medications); 3+ ADLs for higher care.",
+          "Functional assessment required."
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Home and community-based services including personal care, homemaker, adult day care, respite care, medication management. Hours vary: State-funded (Category 2) typically 10-20 hours/week; Medicaid-funded (Category 3) up to 70 hours/week or live-in care. Case management and oversight provided.[2][6]",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Mail or fax application to: Department of Social Services, Community Options, 9th Floor, 55 Farmington Avenue, Hartford, CT 06105; Fax: 860-424-4963.",
+          "Contact local Area Agency on Aging or Connecticut Department of Social Services (DSS).",
+          "Download form from MyPlaceCT.org or DSS site.",
+          "Phone for hearing/visual impairments via DSS (specific numbers not listed; call main DSS line)."
+        ],
+        "processing_time": "Not specified in sources.",
+        "waitlist": "Not mentioned; services may start quickly for state-funded, but Medicaid waiver has potential delays similar to nursing home rules.[6]",
+        "forms": [
+          "CHCPE application form (downloadable from MyPlaceCT.org or DSS portal); specific financial eligibility overview linked on sites.[2][5]"
+        ],
+        "documents": [
+          "Documentation of income (wages, pensions, Social Security, Veterans benefits, SSI).",
+          "Assets proof.",
+          "Functional abilities/medical assessment records."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None; statewide for CT residents age 65+.",
+        "regional_variations": "Administered via local Area Agencies on Aging (e.g., WCAAA has specific asset limits like $35,766 single/$47,688 married); different providers, potential wait time or threshold variations by region/office.[1][5]",
+        "offices_or_providers": [
+          "Local Area Agency on Aging",
+          "Department of Social Services (DSS), 55 Farmington Avenue, Hartford, CT 06105",
+          "Western Connecticut Area Agency on Aging (WCAAA)"
+        ]
+      },
+      "official_source": "https://portal.ct.gov/dss/health-and-home-care/connecticut-home-care-program-for-elders/connecticut-home-care-program-for-elders-chcpe",
+      "gotchas": [
+        "Multiple categories (state-funded vs. Medicaid-funded) with different income/asset rules, hours of care, and processes—must determine which applies.",
+        "No strict income limit but sliding fees/3% cost share for state-funded; assets exempt like home but others count.",
+        "Spouse income excluded, but couples with high savings may need Medicaid waiver (5-year lookback risk).",
+        "Exclusions in some pilots (e.g., mental illness primary, Medicaid-eligible).",
+        "Functional need varies: 1+ ADL minimum, but 3+ for NFLOC/higher care.",
+        "Regional asset examples differ; confirm locally."
+      ],
+      "data_shape_notes": "Tiered by funding source (state vs. Medicaid categories 2/3) with varying care hours, no uniform income limit but asset/income-dependent fees, regional provider variations in thresholds.",
+      "_raw": "{\n  \"name\": \"Connecticut Home Care Program for Elders (CHCPE)\",\n  \"eligibility\": {\n    \"age\": 65,\n    \"income_limits\": \"Varies by funding category. State-funded CHCPE (Category 2): No income limit, but sliding fee scale and possible 3% cost share based on income. Medicaid-funded CHCPE (Category 3): Typically $2,742/month or less (general threshold); for 1915(i) State Plan, 150% FPL ($1,956.25/month in 2025). Spouse's income does not count for applicant. No full table by household size provided; asset-dependent limits apply.[1][3][5][6]\",\n    \"asset_limits\": \"Varies by category and region/provider. Examples: Single applicant $35,766; married $47,688 (WCAAA-specific). Exempt: primary residence, essential personal items. Other assets count toward limits, which depend on income level and living situation. Higher assets may still qualify for state-funded with contributions.[1][5][7]\",\n    \"other_requirements\": [\n      \"Connecticut resident.\",\n      \"At risk of nursing home placement or meet Nursing Facility Level of Care (NFLOC): Assistance needed with at least 1 ADL (state-funded minimum; e.g., bathing, dressing, eating, toileting, transferring, medications); 3+ ADLs for higher care.\",\n      \"Functional assessment required.\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Home and community-based services including personal care, homemaker, adult day care, respite care, medication management. Hours vary: State-funded (Category 2) typically 10-20 hours/week; Medicaid-funded (Category 3) up to 70 hours/week or live-in care. Case management and oversight provided.[2][6]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Mail or fax application to: Department of Social Services, Community Options, 9th Floor, 55 Farmington Avenue, Hartford, CT 06105; Fax: 860-424-4963.\",\n      \"Contact local Area Agency on Aging or Connecticut Department of Social Services (DSS).\",\n      \"Download form from MyPlaceCT.org or DSS site.\",\n      \"Phone for hearing/visual impairments via DSS (specific numbers not listed; call main DSS line).\"\n    ],\n    \"processing_time\": \"Not specified in sources.\",\n    \"waitlist\": \"Not mentioned; services may start quickly for state-funded, but Medicaid waiver has potential delays similar to nursing home rules.[6]\",\n    \"forms\": [\"CHCPE application form (downloadable from MyPlaceCT.org or DSS portal); specific financial eligibility overview linked on sites.[2][5]\"],\n    \"documents\": [\n      \"Documentation of income (wages, pensions, Social Security, Veterans benefits, SSI).\",\n      \"Assets proof.\",\n      \"Functional abilities/medical assessment records.\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; statewide for CT residents age 65+.\",\n    \"regional_variations\": \"Administered via local Area Agencies on Aging (e.g., WCAAA has specific asset limits like $35,766 single/$47,688 married); different providers, potential wait time or threshold variations by region/office.[1][5]\",\n    \"offices_or_providers\": [\"Local Area Agency on Aging\", \"Department of Social Services (DSS), 55 Farmington Avenue, Hartford, CT 06105\", \"Western Connecticut Area Agency on Aging (WCAAA)\"]\n  },\n  \"official_source\": \"https://portal.ct.gov/dss/health-and-home-care/connecticut-home-care-program-for-elders/connecticut-home-care-program-for-elders-chcpe\",\n  \"gotchas\": [\n    \"Multiple categories (state-funded vs. Medicaid-funded) with different income/asset rules, hours of care, and processes—must determine which applies.\",\n    \"No strict income limit but sliding fees/3% cost share for state-funded; assets exempt like home but others count.\",\n    \"Spouse income excluded, but couples with high savings may need Medicaid waiver (5-year lookback risk).\",\n    \"Exclusions in some pilots (e.g., mental illness primary, Medicaid-eligible).\",\n    \"Functional need varies: 1+ ADL minimum, but 3+ for NFLOC/higher care.\",\n    \"Regional asset examples differ; confirm locally.\"\n  ],\n  \"data_shape_notes\": \"Tiered by funding source (state vs. Medicaid categories 2/3) with varying care hours, no uniform income limit but asset/income-dependent fees, regional provider variations in thresholds.\"\n}"
+    },
+    {
+      "name": "Connecticut Statewide Respite Care Program (CSRCP)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Varies by source and date (updated annually); examples: ≤$55,561/year (2023)[1], ≤$57,339/year (recent)[6], ≤$58,772/year (recent)[3]. Income includes Social Security (minus Medicare Part B), SSI, Railroad Retirement, veterans' benefits, and other payments. No household size variation specified; applies to individual with dementia.",
+        "asset_limits": "Liquid assets ≤$147,715 (2023)[1], ≤$152,442 (recent)[6], ≤$156,253 (recent)[3]. Liquid assets typically include cash, bank accounts, stocks; exemptions not detailed but primary residence, one vehicle often exempt in similar programs.",
+        "other_requirements": [
+          "Diagnosis of Alzheimer's or related irreversible/deteriorating dementia (e.g., multi-infarct, Parkinson's, Lewy Body, Huntington's, Normal Pressure Hydrocephalus, Pick's); requires Physician Statement certifying medical exam ruling out reversible causes like depression or drug interactions[2][3][6]",
+          "Not enrolled in Connecticut Homecare Program for Elders[1][3]",
+          "Caregiver stress/need prioritized (e.g., primary caregiver with impairments, combative/non-compliant individual)[2]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Subsidizes respite services up to $7,500/year (contingent on funding and care manager-assessed need)[1][3][8]; specific services: adult day care, home health aide, personal care assistant, homemaker, companion, nursing care, personal emergency response system, short-term nursing home/assisted living (max 30 days out-of-home respite excluding adult day care)[1][3][4]; also care planning, info/support; 20% co-pay required (waivable for hardship)[3][6]",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Contact local Area Agency on Aging (AAA) or sponsor agency serving your town (statewide via 6 AAAs)[1][2][3]",
+          "Phone examples: Senior Resources (Eastern CT) 860-887-3561[3], WCAAA (Western CT) 203-757-5449 or 800-994-9422[6]",
+          "Application submitted to sponsor agency; self-directed option available[3][6]"
+        ],
+        "processing_time": "Sponsor agency performs assessment and makes written eligibility determination (timeline not specified; contact local AAA)[2]",
+        "waitlist": "Funding contingent on availability; potential wait due to limited funds (not explicitly stated)[1][3]",
+        "forms": [
+          "Physician Statement (included in application)[3][6]"
+        ],
+        "documents": [
+          "Proof of income/assets",
+          "Physician Statement for dementia diagnosis",
+          "Authorization docs if conservator/POA[3]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": null,
+        "regional_variations": "Administered by 6 regional Area Agencies on Aging (AAAs) with varying income/asset thresholds reported, providers, and contact offices; wait times/funding may vary by region due to demand[1][3][6]",
+        "offices_or_providers": [
+          "Area Agencies on Aging (e.g., Senior Resources, WCAAA); Alzheimer's Association CT Chapter; partnership with CT Dept of Aging & Disability Services[1][8]"
+        ]
+      },
+      "official_source": "https://portal.ct.gov/ads/knowledge-base/articles/independent-living-services/healthy-living-services/connecticut-statewide-respite-care[8]; Regulations: https://eregulations.ct.gov/eRegsPortal/Browse/getDocument?guid=%7B30A0E155-0200-C294-AF6B-15887B1A99E2%7D[2]",
+      "gotchas": [
+        "Income/asset limits update annually (e.g., 2023: $55,561/$147,715; check current with local AAA)[1][3][6]",
+        "Mandatory 20% co-pay (waivable only for hardship)[3][6]",
+        "Funding limited—not guaranteed; prioritized by need/caregiver stress[1][2]",
+        "Cannot combine with CT Homecare for Elders[1][3]",
+        "Physician must certify irreversible dementia (not generic)[2]",
+        "Providers cannot be spouse/conservator (relatives possible with approval)[4]"
+      ],
+      "data_shape_notes": "Administered regionally via AAAs with annually adjusted income/asset limits (no household size table); funding capped at $7,500/year with priority tiers; self-directed care option; co-pay required",
+      "_raw": "{\n  \"name\": \"Connecticut Statewide Respite Care Program (CSRCP)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Varies by source and date (updated annually); examples: ≤$55,561/year (2023)[1], ≤$57,339/year (recent)[6], ≤$58,772/year (recent)[3]. Income includes Social Security (minus Medicare Part B), SSI, Railroad Retirement, veterans' benefits, and other payments. No household size variation specified; applies to individual with dementia.\",\n    \"asset_limits\": \"Liquid assets ≤$147,715 (2023)[1], ≤$152,442 (recent)[6], ≤$156,253 (recent)[3]. Liquid assets typically include cash, bank accounts, stocks; exemptions not detailed but primary residence, one vehicle often exempt in similar programs.\",\n    \"other_requirements\": [\n      \"Diagnosis of Alzheimer's or related irreversible/deteriorating dementia (e.g., multi-infarct, Parkinson's, Lewy Body, Huntington's, Normal Pressure Hydrocephalus, Pick's); requires Physician Statement certifying medical exam ruling out reversible causes like depression or drug interactions[2][3][6]\",\n      \"Not enrolled in Connecticut Homecare Program for Elders[1][3]\",\n      \"Caregiver stress/need prioritized (e.g., primary caregiver with impairments, combative/non-compliant individual)[2]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Subsidizes respite services up to $7,500/year (contingent on funding and care manager-assessed need)[1][3][8]; specific services: adult day care, home health aide, personal care assistant, homemaker, companion, nursing care, personal emergency response system, short-term nursing home/assisted living (max 30 days out-of-home respite excluding adult day care)[1][3][4]; also care planning, info/support; 20% co-pay required (waivable for hardship)[3][6]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact local Area Agency on Aging (AAA) or sponsor agency serving your town (statewide via 6 AAAs)[1][2][3]\",\n      \"Phone examples: Senior Resources (Eastern CT) 860-887-3561[3], WCAAA (Western CT) 203-757-5449 or 800-994-9422[6]\",\n      \"Application submitted to sponsor agency; self-directed option available[3][6]\"\n    ],\n    \"processing_time\": \"Sponsor agency performs assessment and makes written eligibility determination (timeline not specified; contact local AAA)[2]\",\n    \"waitlist\": \"Funding contingent on availability; potential wait due to limited funds (not explicitly stated)[1][3]\",\n    \"forms\": [\n      \"Physician Statement (included in application)[3][6]\"\n    ],\n    \"documents\": [\n      \"Proof of income/assets\",\n      \"Physician Statement for dementia diagnosis\",\n      \"Authorization docs if conservator/POA[3]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": null,\n    \"regional_variations\": \"Administered by 6 regional Area Agencies on Aging (AAAs) with varying income/asset thresholds reported, providers, and contact offices; wait times/funding may vary by region due to demand[1][3][6]\",\n    \"offices_or_providers\": [\n      \"Area Agencies on Aging (e.g., Senior Resources, WCAAA); Alzheimer's Association CT Chapter; partnership with CT Dept of Aging & Disability Services[1][8]\"\n    ]\n  },\n  \"official_source\": \"https://portal.ct.gov/ads/knowledge-base/articles/independent-living-services/healthy-living-services/connecticut-statewide-respite-care[8]; Regulations: https://eregulations.ct.gov/eRegsPortal/Browse/getDocument?guid=%7B30A0E155-0200-C294-AF6B-15887B1A99E2%7D[2]\",\n  \"gotchas\": [\n    \"Income/asset limits update annually (e.g., 2023: $55,561/$147,715; check current with local AAA)[1][3][6]\",\n    \"Mandatory 20% co-pay (waivable only for hardship)[3][6]\",\n    \"Funding limited—not guaranteed; prioritized by need/caregiver stress[1][2]\",\n    \"Cannot combine with CT Homecare for Elders[1][3]\",\n    \"Physician must certify irreversible dementia (not generic)[2]\",\n    \"Providers cannot be spouse/conservator (relatives possible with approval)[4]\"\n  ],\n  \"data_shape_notes\": \"Administered regionally via AAAs with annually adjusted income/asset limits (no household size table); funding capped at $7,500/year with priority tiers; self-directed care option; co-pay required\"\n}"
+    },
+    {
+      "name": "Connecticut State Supplement for the Aged, Blind, and Disabled (AABD)",
+      "eligibility": {
+        "age": 65,
+        "income_limits": "Gross income must not exceed three times the current maximum SSI amount per eligible person (exact dollar amount varies; compared to monthly needs standard). Net income must be below the state-established standard of living. Must have another source of income (e.g., SSI, SSDI, Social Security, Veterans benefits) that is supplemental—either receiving SSI or income exceeds SSI standard but below state need standard[2][6][7][8].",
+        "asset_limits": "Assets cannot exceed $1,600 for an individual or $2,400 for a couple. Counts liquid assets; if owning a home, a lien is placed on the home. Exemptions not fully detailed in sources[6].",
+        "other_requirements": [
+          "Aged (65+), blind, or disabled (meets SSI functional criteria for age 65+, blindness, or disability)",
+          "Connecticut resident",
+          "Must have another source of income such as Social Security, SSI, or Veterans benefits[2][6][7][8]"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "Cash assistance that supplements other income to meet basic needs. Includes housing allowance (maximum $400 for living alone; $200 for living with others) plus basic needs items, minus countable income. Amount determined by comparing income to monthly needs; higher income limit if living in boarding home or Residential Care Home (RCH)[7][9].",
+        "varies_by": "living_arrangement|income"
+      },
+      "application": {
+        "methods": [
+          "Contact local Department of Social Services (DSS) office (phone numbers vary by region; statewide info at portal.ct.gov/dss)",
+          "Apply through DSS (online via portal.ct.gov/dss, phone, mail, or in-person at local offices)",
+          "No specific form name listed; DSS handles via standard application process[5][7]"
+        ],
+        "processing_time": "Not specified in sources",
+        "waitlist": null,
+        "forms": [
+          "DSS application for cash assistance (specific form name/number not detailed)"
+        ],
+        "documents": [
+          "Proof of income (e.g., SSI award letter, SSDI, Social Security, pay stubs)",
+          "Proof of assets",
+          "Proof of residency",
+          "Proof of age, blindness, or disability (e.g., SSI determination)",
+          "Housing costs if applicable[5][6][7]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": null,
+        "regional_variations": "Administered through local DSS offices, which may have regional processing differences; higher income limits for boarding homes or RCHs regardless of location[6][7]",
+        "offices_or_providers": [
+          "Local Department of Social Services (DSS) offices statewide"
+        ]
+      },
+      "official_source": "https://portal.ct.gov/dss",
+      "gotchas": [
+        "Must have other income to supplement—cannot be primary income source; not for those with no income[2][6]",
+        "Homeowners face a lien on the home[6]",
+        "Income limit is 3x SSI maximum, but benefit only if below state need standard after detailed financial review[7]",
+        "Functional eligibility mirrors SSI (aged, blind, disabled); not automatic for low-income elderly without disability[2]",
+        "Confused with SNAP; this is cash supplement, not food benefits[1][4]"
+      ],
+      "data_shape_notes": "Supplemental cash only for those with existing income sources; varies by living arrangement (e.g., housing allowance, boarding home); asset lien on home; income test tied to SSI multiple with needs assessment",
+      "_raw": "{\n  \"name\": \"Connecticut State Supplement for the Aged, Blind, and Disabled (AABD)\",\n  \"eligibility\": {\n    \"age\": 65,\n    \"income_limits\": \"Gross income must not exceed three times the current maximum SSI amount per eligible person (exact dollar amount varies; compared to monthly needs standard). Net income must be below the state-established standard of living. Must have another source of income (e.g., SSI, SSDI, Social Security, Veterans benefits) that is supplemental—either receiving SSI or income exceeds SSI standard but below state need standard[2][6][7][8].\",\n    \"asset_limits\": \"Assets cannot exceed $1,600 for an individual or $2,400 for a couple. Counts liquid assets; if owning a home, a lien is placed on the home. Exemptions not fully detailed in sources[6].\",\n    \"other_requirements\": [\"Aged (65+), blind, or disabled (meets SSI functional criteria for age 65+, blindness, or disability)\", \"Connecticut resident\", \"Must have another source of income such as Social Security, SSI, or Veterans benefits[2][6][7][8]\"]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Cash assistance that supplements other income to meet basic needs. Includes housing allowance (maximum $400 for living alone; $200 for living with others) plus basic needs items, minus countable income. Amount determined by comparing income to monthly needs; higher income limit if living in boarding home or Residential Care Home (RCH)[7][9].\",\n    \"varies_by\": \"living_arrangement|income\"\n  },\n  \"application\": {\n    \"methods\": [\"Contact local Department of Social Services (DSS) office (phone numbers vary by region; statewide info at portal.ct.gov/dss)\", \"Apply through DSS (online via portal.ct.gov/dss, phone, mail, or in-person at local offices)\", \"No specific form name listed; DSS handles via standard application process[5][7]\"],\n    \"processing_time\": \"Not specified in sources\",\n    \"waitlist\": null,\n    \"forms\": [\"DSS application for cash assistance (specific form name/number not detailed)\"],\n    \"documents\": [\"Proof of income (e.g., SSI award letter, SSDI, Social Security, pay stubs)\", \"Proof of assets\", \"Proof of residency\", \"Proof of age, blindness, or disability (e.g., SSI determination)\", \"Housing costs if applicable[5][6][7]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": null,\n    \"regional_variations\": \"Administered through local DSS offices, which may have regional processing differences; higher income limits for boarding homes or RCHs regardless of location[6][7]\",\n    \"offices_or_providers\": [\"Local Department of Social Services (DSS) offices statewide\"]\n  },\n  \"official_source\": \"https://portal.ct.gov/dss\",\n  \"gotchas\": [\"Must have other income to supplement—cannot be primary income source; not for those with no income[2][6]\", \"Homeowners face a lien on the home[6]\", \"Income limit is 3x SSI maximum, but benefit only if below state need standard after detailed financial review[7]\", \"Functional eligibility mirrors SSI (aged, blind, disabled); not automatic for low-income elderly without disability[2]\", \"Confused with SNAP; this is cash supplement, not food benefits[1][4]\"],\n  \"data_shape_notes\": \"Supplemental cash only for those with existing income sources; varies by living arrangement (e.g., housing allowance, boarding home); asset lien on home; income test tied to SSI multiple with needs assessment\"\n}"
+    },
+    {
+      "name": "CT Energy Assistance Program (CEAP)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Annual gross household income at or below 60% of state median income. Households receiving SNAP, SSI, TANF/TFA, State Supplement, or Refugee Cash Assistance are automatically income-eligible. Table by household size: 1: $47,764; 2: $62,460; 3: $77,157; 4: $91,854; 5: $106,550; 6: $121,247; 7: $124,002; 8: $126,758 (adds ~$2,756 per additional person). Vulnerable households (e.g., elderly, disabled, children under 6) qualify for higher benefits.[1][2][5]",
+        "asset_limits": "No liquid assets test for the 2025-2026 program year.[5]",
+        "other_requirements": [
+          "Connecticut resident.",
+          "Social Security Number required for each household member (exceptions rare).",
+          "US citizens, emancipated minors, or qualified aliens.",
+          "Proof of income if not categorically eligible (e.g., last 30 days/4 weeks pay stubs, Social Security award letter, self-employment IRS 1040).[1][2][3]"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "Basic benefit: $295-$595 (standard), $345-$645 (vulnerable household), paid directly to vendor for primary heat (oil, gas, electric, propane, etc.). Crisis benefit: $425 per occurrence (up to 3x) for deliverable fuel households at risk of running out. Rental assistance (heat in rent): $75-$125. Amounts vary by income and vulnerability.[4][5]",
+        "varies_by": "household_size|priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Online via portal.ct.gov/dss (contactless applications available).",
+          "Phone: Regional providers e.g., New Opportunities: (203) 756-8151 (Waterbury), (203) 235-0278 (Meriden), (860) 496-0622 (Torrington), (860) 738-9138 (Winsted); statewide via 211.",
+          "In-person/mail through local community action agencies or DSS offices (varies by region).",
+          "Application window: Sept 1, 2025 - May 29, 2026 (gas/electric); fuel deliveries from Nov 1.[2][4][5]"
+        ],
+        "processing_time": "Standard processing not specified; prioritized crisis cases (deliverable fuel, imminent shutoff): fuel delivery authorization within 18 hours of eligibility determination.[5]",
+        "waitlist": "Benefits available until annual funds exhausted (no formal waitlist mentioned).[4]",
+        "forms": [
+          "Self-Employment Worksheet (English/Spanish) if applicable.[1]"
+        ],
+        "documents": [
+          "Proof of income (pay stubs, award letters, tax returns).",
+          "Electric bill (all households).",
+          "Heating bill (gas/deliverable fuel).",
+          "Rent receipt/lease (renters, especially if heat included).",
+          "SSN for household members.[1][2][4]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None; available to all CT residents (homeowners/renters).",
+        "regional_variations": "Administered by regional community action agencies/providers (e.g., New Opportunities in specific towns); different phone numbers and offices by area, potential variations in processing.[4]",
+        "offices_or_providers": [
+          "New Opportunities Inc. (Waterbury, Meriden, Torrington, Winsted areas).",
+          "Other local agencies via 211 or portal.ct.gov/dss."
+        ]
+      },
+      "official_source": "https://portal.ct.gov/dss/economic-security/winter-heating-assistance/energy-assistance---winter-heating",
+      "gotchas": [
+        "Must apply during open window (Sept-May); funds run out annually.",
+        "Social Security income requires award letter (DSS can't verify directly).",
+        "Everyone needs electric bill, even non-electric heat.",
+        "Crisis benefit only for deliverable fuels and imminent crisis.",
+        "Vulnerable status (elderly/disabled/child) unlocks higher benefits—don't miss designating.",
+        "Renters with heat included get smaller rental assistance, not full heating benefit."
+      ],
+      "data_shape_notes": "Benefits tiered by income/vulnerability with fixed ranges; no asset test; regional administration with local contacts; categorical eligibility for DSS benefit recipients; prioritized crisis for fuel households.",
+      "_raw": "{\n  \"name\": \"CT Energy Assistance Program (CEAP)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Annual gross household income at or below 60% of state median income. Households receiving SNAP, SSI, TANF/TFA, State Supplement, or Refugee Cash Assistance are automatically income-eligible. Table by household size: 1: $47,764; 2: $62,460; 3: $77,157; 4: $91,854; 5: $106,550; 6: $121,247; 7: $124,002; 8: $126,758 (adds ~$2,756 per additional person). Vulnerable households (e.g., elderly, disabled, children under 6) qualify for higher benefits.[1][2][5]\",\n    \"asset_limits\": \"No liquid assets test for the 2025-2026 program year.[5]\",\n    \"other_requirements\": [\n      \"Connecticut resident.\",\n      \"Social Security Number required for each household member (exceptions rare).\",\n      \"US citizens, emancipated minors, or qualified aliens.\",\n      \"Proof of income if not categorically eligible (e.g., last 30 days/4 weeks pay stubs, Social Security award letter, self-employment IRS 1040).[1][2][3]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Basic benefit: $295-$595 (standard), $345-$645 (vulnerable household), paid directly to vendor for primary heat (oil, gas, electric, propane, etc.). Crisis benefit: $425 per occurrence (up to 3x) for deliverable fuel households at risk of running out. Rental assistance (heat in rent): $75-$125. Amounts vary by income and vulnerability.[4][5]\",\n    \"varies_by\": \"household_size|priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online via portal.ct.gov/dss (contactless applications available).\",\n      \"Phone: Regional providers e.g., New Opportunities: (203) 756-8151 (Waterbury), (203) 235-0278 (Meriden), (860) 496-0622 (Torrington), (860) 738-9138 (Winsted); statewide via 211.\",\n      \"In-person/mail through local community action agencies or DSS offices (varies by region).\",\n      \"Application window: Sept 1, 2025 - May 29, 2026 (gas/electric); fuel deliveries from Nov 1.[2][4][5]\"\n    ],\n    \"processing_time\": \"Standard processing not specified; prioritized crisis cases (deliverable fuel, imminent shutoff): fuel delivery authorization within 18 hours of eligibility determination.[5]\",\n    \"waitlist\": \"Benefits available until annual funds exhausted (no formal waitlist mentioned).[4]\",\n    \"forms\": [\n      \"Self-Employment Worksheet (English/Spanish) if applicable.[1]\"\n    ],\n    \"documents\": [\n      \"Proof of income (pay stubs, award letters, tax returns).\",\n      \"Electric bill (all households).\",\n      \"Heating bill (gas/deliverable fuel).\",\n      \"Rent receipt/lease (renters, especially if heat included).\",\n      \"SSN for household members.[1][2][4]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; available to all CT residents (homeowners/renters).\",\n    \"regional_variations\": \"Administered by regional community action agencies/providers (e.g., New Opportunities in specific towns); different phone numbers and offices by area, potential variations in processing.[4]\",\n    \"offices_or_providers\": [\n      \"New Opportunities Inc. (Waterbury, Meriden, Torrington, Winsted areas).\",\n      \"Other local agencies via 211 or portal.ct.gov/dss.\"\n    ]\n  },\n  \"official_source\": \"https://portal.ct.gov/dss/economic-security/winter-heating-assistance/energy-assistance---winter-heating\",\n  \"gotchas\": [\n    \"Must apply during open window (Sept-May); funds run out annually.\",\n    \"Social Security income requires award letter (DSS can't verify directly).\",\n    \"Everyone needs electric bill, even non-electric heat.\",\n    \"Crisis benefit only for deliverable fuels and imminent crisis.\",\n    \"Vulnerable status (elderly/disabled/child) unlocks higher benefits—don't miss designating.\",\n    \"Renters with heat included get smaller rental assistance, not full heating benefit.\"\n  ],\n  \"data_shape_notes\": \"Benefits tiered by income/vulnerability with fixed ranges; no asset test; regional administration with local contacts; categorical eligibility for DSS benefit recipients; prioritized crisis for fuel households.\"\n}"
+    },
+    {
+      "name": "Weatherization Assistance Program",
+      "eligibility": {
+        "age": null,
+        "income_limits": "60% of State Median Income (SMI). Specific amounts (from related HES-IE program using same threshold): 1: Under $39,027; 2: Under $51,036; 3: Under $63,044; 4: Under $75,052; 5: Under $87,061; 6: Under $99,069; 7: Under $101,320; 8: Under $103,572. Amounts may adjust annually.[1][3]",
+        "asset_limits": "No asset limits mentioned in sources.[1][2]",
+        "other_requirements": [
+          "Priority for elderly (60+), persons with disabilities, families with children, high-energy users, high energy burden (6%+ of income on energy).[1][5]",
+          "Home not weatherized by WAP, LIHEAP, HUD, or USDA in last 15 years.[1]",
+          "Home not for sale/listed for sale within 6 months of work completion, not in foreclosure or loan mediation.[1][5]",
+          "Multi-family: At least 2/3 tenants income-eligible.[1]",
+          "Landlords of rentals may contribute 20% of material costs, up to $500 per unit.[5]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Free energy audit, weatherization measures including air sealing, insulation (attic/sidewall), heating system tune-ups/repairs, blower door guided air-sealing, water-saving measures, health/safety inspections. Single-family max: $10k energy measures, $2.5k health/safety, $2.5k incidental repairs (total $15k without review). Multi-family max: $10k energy, $1.5k health/safety, $2.5k incidental.[1][5][6]",
+        "varies_by": "household_size|priority_tier|single_vs_multi_family"
+      },
+      "application": {
+        "methods": [
+          "Joint with Connecticut Energy Assistance Program (CEAP): Call 2-1-1 for local intake site, request Weatherization Card/Referral Form.[1]",
+          "Direct: Email DEEP.Weatherization@ct.gov.[1][2]",
+          "Through statewide Community Action Agency (CAA) network or local non-profits.[1]"
+        ],
+        "processing_time": "Not specified in sources.",
+        "waitlist": "Possible deferrals leading to other programs like REPS; priority for vulnerable households may affect timing.[1][8]",
+        "forms": [
+          "Weatherization Card or Referral Form (via CEAP intake), no specific form number listed.[1]"
+        ],
+        "documents": [
+          "Income verification (to prove <=60% SMI), proof home not recently weatherized or in sale/foreclosure. May need utility bills for high-energy check.[1][3][5]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Available to all CT residents meeting eligibility; administered locally.[1][4]",
+        "regional_variations": "Administered by local Community Action Agencies (CAAs) and non-profits like Community Renewal Team (CRT); potential differences in providers, wait times not detailed.[1][4]",
+        "offices_or_providers": [
+          "Statewide CAA network, local non-profits (e.g., CRT), DEEP oversight.[1][4]"
+        ]
+      },
+      "official_source": "https://portal.ct.gov/DEEP/Energy/Weatherization/Weatherization-in-Connecticut",
+      "gotchas": [
+        "Joint application via CEAP (call 2-1-1) rather than standalone; many confuse with utility HES-IE (same income but separate, ratepayer-funded).[1][3]",
+        "Home eligibility strict: No recent weatherization (15 years), no sale/foreclosure.[1]",
+        "Priority groups get preference; others may wait or get deferred to HES-IE/REPS.[1][8]",
+        "Landlord contribution for rentals.[5]",
+        "Annual renewal required.[2]"
+      ],
+      "data_shape_notes": "Income at 60% SMI (table available via related programs); priority tiers for elderly/disabled/families; sub-state admin by CAAs with spend caps varying by single/multi-family; links to CEAP intake.",
+      "_raw": "{\n  \"name\": \"Weatherization Assistance Program\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"60% of State Median Income (SMI). Specific amounts (from related HES-IE program using same threshold): 1: Under $39,027; 2: Under $51,036; 3: Under $63,044; 4: Under $75,052; 5: Under $87,061; 6: Under $99,069; 7: Under $101,320; 8: Under $103,572. Amounts may adjust annually.[1][3]\",\n    \"asset_limits\": \"No asset limits mentioned in sources.[1][2]\",\n    \"other_requirements\": [\n      \"Priority for elderly (60+), persons with disabilities, families with children, high-energy users, high energy burden (6%+ of income on energy).[1][5]\",\n      \"Home not weatherized by WAP, LIHEAP, HUD, or USDA in last 15 years.[1]\",\n      \"Home not for sale/listed for sale within 6 months of work completion, not in foreclosure or loan mediation.[1][5]\",\n      \"Multi-family: At least 2/3 tenants income-eligible.[1]\",\n      \"Landlords of rentals may contribute 20% of material costs, up to $500 per unit.[5]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free energy audit, weatherization measures including air sealing, insulation (attic/sidewall), heating system tune-ups/repairs, blower door guided air-sealing, water-saving measures, health/safety inspections. Single-family max: $10k energy measures, $2.5k health/safety, $2.5k incidental repairs (total $15k without review). Multi-family max: $10k energy, $1.5k health/safety, $2.5k incidental.[1][5][6]\",\n    \"varies_by\": \"household_size|priority_tier|single_vs_multi_family\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Joint with Connecticut Energy Assistance Program (CEAP): Call 2-1-1 for local intake site, request Weatherization Card/Referral Form.[1]\",\n      \"Direct: Email DEEP.Weatherization@ct.gov.[1][2]\",\n      \"Through statewide Community Action Agency (CAA) network or local non-profits.[1]\"\n    ],\n    \"processing_time\": \"Not specified in sources.\",\n    \"waitlist\": \"Possible deferrals leading to other programs like REPS; priority for vulnerable households may affect timing.[1][8]\",\n    \"forms\": [\"Weatherization Card or Referral Form (via CEAP intake), no specific form number listed.[1]\"],\n    \"documents\": [\"Income verification (to prove <=60% SMI), proof home not recently weatherized or in sale/foreclosure. May need utility bills for high-energy check.[1][3][5]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Available to all CT residents meeting eligibility; administered locally.[1][4]\",\n    \"regional_variations\": \"Administered by local Community Action Agencies (CAAs) and non-profits like Community Renewal Team (CRT); potential differences in providers, wait times not detailed.[1][4]\",\n    \"offices_or_providers\": [\"Statewide CAA network, local non-profits (e.g., CRT), DEEP oversight.[1][4]\"]\n  },\n  \"official_source\": \"https://portal.ct.gov/DEEP/Energy/Weatherization/Weatherization-in-Connecticut\",\n  \"gotchas\": [\n    \"Joint application via CEAP (call 2-1-1) rather than standalone; many confuse with utility HES-IE (same income but separate, ratepayer-funded).[1][3]\",\n    \"Home eligibility strict: No recent weatherization (15 years), no sale/foreclosure.[1]\",\n    \"Priority groups get preference; others may wait or get deferred to HES-IE/REPS.[1][8]\",\n    \"Landlord contribution for rentals.[5]\",\n    \"Annual renewal required.[2]\"\n  ],\n  \"data_shape_notes\": \"Income at 60% SMI (table available via related programs); priority tiers for elderly/disabled/families; sub-state admin by CAAs with spend caps varying by single/multi-family; links to CEAP intake.\"\n}"
+    }
+  ]
+}

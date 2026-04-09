@@ -1,0 +1,86 @@
+{
+  "state": "NM",
+  "stateName": "New Mexico",
+  "comparedAt": "2026-04-09T08:57:03.562Z",
+  "total": 3,
+  "newPrograms": 3,
+  "withDiffs": 0,
+  "withNovelFields": 0,
+  "benefitTypes": {
+    "service": 1,
+    "in_kind": 1,
+    "financial": 1
+  },
+  "variationPatterns": {
+    "Individual need and allocation; specific service levels not provided in available documentation": 1,
+    "fixed": 1,
+    "priority_tier": 1
+  },
+  "novelFieldSummary": {},
+  "comparisons": [
+    {
+      "name": "Community Benefit Program (Centennial Care)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "This program has a dual-track structure: (1) for those with full-coverage Medicaid through standard income/asset limits, and (2) for those without Medicaid eligibility who enter a waitlist-based allocation system. The functional requirement (NFLOC + 2+ ADL assistance) is consistent across both tracks. Income and asset limits are indexed annually (2025 and 2026 figures provided). Home equity protections create significant exemptions for homeowners. MCO enrollment is a critical but often-missed requirement. Specific service types, hours, and dollar amounts are not detailed in available documentation.",
+      "gotchas": [
+        "MCO enrollment required: If already enrolled in full-coverage Medicaid but NOT with an MCO, must enroll with an MCO to receive Community Benefit services[7]",
+        "Functional assessment is mandatory: Having a qualifying diagnosis (even dementia) does not automatically qualify; a functional assessment determining need for 2+ ADL assistance is required[1]",
+        "Two pathways with different processes: Full-coverage Medicaid applicants follow one path; those without Medicaid eligibility must apply through Central Registry waitlist[7][8]",
+        "Home equity limit is substantial but not unlimited: $730,000 home equity exemption exists, but exceeding this disqualifies applicants[1]",
+        "Intent to Return matters: If applicant is temporarily out of home, 'Intent to Return' must be documented to protect home equity[1]",
+        "120-day minimum in Agency-Based Community Benefit before switching to Self-Directed Community Benefit[6]",
+        "Income limits are monthly, not annual: $967/month for single seniors (2025) is approximately $11,604 annually[1]",
+        "Spouse's income may affect eligibility: Married couples have different limits; verify if both spouses must apply[1]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "Individual need and allocation; specific service levels not provided in available documentation",
+      "officialSource": "https://www.hca.nm.gov/community-benefit-program/"
+    },
+    {
+      "name": "New Mexico Senior Farmers' Market Nutrition Program (SFMNP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "One-time fixed annual benefit; automatic eligibility via other programs like CSFP/SNAP; statewide but first-come-first-served with seasonal issuance (e.g., July); honey exclusive to seniors",
+      "gotchas": [
+        "Must reapply every year even if previously eligible[2]",
+        "First-come, first-served and may run out of funds[5]",
+        "Benefits only at authorized farmers/markets (not wholesalers or distributors); eligible foods strictly fresh, local, unprocessed produce/herbs/honey[3][4]",
+        "Native American age threshold is lower (55+ vs 60+)[1][2][3]",
+        "Income at exactly 185% FPL; check current guidelines as they update annually[3][8]"
+      ],
+      "benefitType": "in_kind",
+      "benefitVariesBy": "fixed",
+      "officialSource": "https://www.nmwic.org/fmnp/[3]"
+    },
+    {
+      "name": "PNM Good Neighbor Fund",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Proof-based via LIHEAP/SNAP (no direct income test); seniors prioritized with auto-max grant; PNM-service-area restricted; varies by admin partner/location.",
+      "gotchas": [
+        "Must be PNM customer; not for other utilities.",
+        "Requires current-year LIHEAP/SNAP proof—no standalone income verification.",
+        "Seniors exempt from past-due notice but still need LIHEAP/SNAP proof.",
+        "Once per calendar year only.",
+        "By appointment only at most locations; bring all docs or cannot apply.[1]",
+        "Grant amounts inconsistent across sources (check current via official site).[1][2][7]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.pnm.com/goodneighborfund"
+    }
+  ]
+}

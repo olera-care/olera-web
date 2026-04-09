@@ -1,0 +1,95 @@
+{
+  "entity": "Colorado",
+  "entitySlug": "colorado",
+  "state": "CO",
+  "stateName": "Colorado",
+  "isRegion": false,
+  "exploredAt": "2026-04-09T08:48:12.596Z",
+  "programCount": 12,
+  "programs": [
+    {
+      "name": "Health First Colorado Buy-In (QMB, SLMB, QI)",
+      "what_it_does": "These Medicare Savings Programs under Health First Colorado pay Medicare premiums, deductibles, and copays for low-income seniors. QMB covers Part A/B premiums fully; SLMB/QI cover Part B premiums.",
+      "who_its_for": "Seniors age 65+ on Medicare with incomes up to 100-135% FPL and limited assets.",
+      "official_url": "https://www.healthfirstcolorado.com/medicare-savings-programs/",
+      "benefit_value": "QMB: Full Part A/B costs; SLMB: Part B premium (~$174.70/month 2024); QI: Partial premium assistance."
+    },
+    {
+      "name": "Home and Community-Based Services (HCBS) Waivers",
+      "what_it_does": "These Medicaid waivers under Health First Colorado fund home- and community-based services to avoid institutional care. They cover in-home care, adult day services, respite, home modifications, and assisted living costs.",
+      "who_its_for": "Seniors age 65+ or disabled with income ≤300% Federal Benefit Rate (~$3,200/month individual), assets ≤$2,000.",
+      "official_url": "https://www.colorado.gov/hcpf/health-first-colorado-waivers",
+      "benefit_value": "Up to $1,500/month (Home Care Allowance); one-time grants up to $1,200/year (Community Access Services) for repairs, utilities, equipment."
+    },
+    {
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "what_it_does": "PACE provides comprehensive medical and social services to frail seniors in community settings, including adult day health, transportation, and home care. It coordinates all Medicare and Medicaid-covered care through interdisciplinary teams.",
+      "who_its_for": "Seniors age 55+ certified nursing home eligible, able to live safely in community, enrolled in Medicare/Medicaid.",
+      "official_url": "https://www.colorado.gov/hcpf/pace",
+      "benefit_value": "Full coverage of approved services at no additional cost beyond Medicare/Medicaid premiums."
+    },
+    {
+      "name": "Supplemental Nutrition Assistance Program (SNAP)",
+      "what_it_does": "SNAP provides monthly benefits via EBT card for purchasing groceries to improve food security. It frees up income for other senior care expenses.",
+      "who_its_for": "Seniors age 60+ with gross income ≤130% FPL (~$1,730/month individual), net income/assets limits ($3,750 non-vehicle).",
+      "official_url": "https://cdhs.colorado.gov/snap",
+      "benefit_value": "Average $200-300/month per eligible senior household (varies by income/size)."
+    },
+    {
+      "name": "Low-Income Energy Assistance Program (LEAP)",
+      "what_it_does": "LEAP provides grants to help pay winter heating bills and year-round energy costs. It assists with past-due utilities and crisis intervention.",
+      "who_its_for": "Households age 60+ with income ≤60% state median (~$3,448/month family of 1), high energy burden.",
+      "official_url": "https://cdhs.colorado.gov/leap",
+      "benefit_value": "Average grant $700-1,000 per winter season."
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "what_it_does": "WAP funds home energy efficiency improvements like insulation, sealing, and furnace repairs to reduce utility costs. It includes health/safety measures for low-income homes.",
+      "who_its_for": "Low-income households age 60+ (priority), income ≤200% FPL.",
+      "official_url": "https://cdhs.colorado.gov/weatherization",
+      "benefit_value": "Free services; average savings $300+/year on energy bills."
+    },
+    {
+      "name": "State Health Insurance Assistance Program (SHIP)",
+      "what_it_does": "Colorado SHIP offers free counseling on Medicare options, supplements, and assistance programs. Counselors help with plan selection, appeals, and fraud prevention.",
+      "who_its_for": "All Medicare beneficiaries age 65+, caregivers, family members.",
+      "official_url": "https://senioranswers.org/programs-services/ship/",
+      "benefit_value": "Free one-on-one counseling statewide."
+    },
+    {
+      "name": "Meals on Wheels Colorado",
+      "what_it_does": "Provides nutritious home-delivered meals to homebound seniors to promote independence. Includes safety check-ins and optional friendly visits.",
+      "who_its_for": "Homebound seniors age 60+ unable to prepare meals, often low-income.",
+      "official_url": "https://www.mealsonwheelscolorado.org/",
+      "benefit_value": "5-14 meals/week; suggested donation $3-6/meal, free/subsidized for low-income."
+    },
+    {
+      "name": "Alzheimer’s Disease and Related D Dementia (ADRD) Respite",
+      "what_it_does": "Offers respite care services to relieve family caregivers of dementia patients. Includes in-home, adult day, or short-term facility care.",
+      "who_its_for": "Unpaid caregivers of seniors with Alzheimer’s/dementia.",
+      "official_url": "https://www.colorado.gov/hcpf/adrd-waiver",
+      "benefit_value": "Up to $1,500/year per caregiver via multipurpose senior services."
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "what_it_does": "Provides part-time paid community service work training leading to unsubsidized employment. Includes job placement support for older workers.",
+      "who_its_for": "Unemployed low-income adults age 55+.",
+      "official_url": "https://www.dol.gov/agencies/eta/seniors",
+      "benefit_value": "Minimum wage work ~20 hours/week; supportive services."
+    },
+    {
+      "name": "Colorado Legal Services (Seniors)",
+      "what_it_does": "Provides free legal aid for income-eligible seniors on issues like housing, benefits, abuse, and consumer problems. Includes advice, representation, and education.",
+      "who_its_for": "Seniors age 60+ with income ≤125-200% FPL.",
+      "official_url": "https://www.coloradolegalservices.org/seniors",
+      "benefit_value": "Free legal services valued at thousands per case."
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "what_it_does": "Advocates for residents in long-term care facilities resolving complaints and protecting rights. Provides education and monitoring for quality care.",
+      "who_its_for": "Residents/patients in nursing homes, assisted living, and similar facilities; families.",
+      "official_url": "https://www.coloradoombudsman.org/",
+      "benefit_value": "Free advocacy services resolving 80%+ of complaints."
+    }
+  ]
+}

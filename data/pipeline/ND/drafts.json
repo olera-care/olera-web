@@ -1,0 +1,607 @@
+{
+  "state": "ND",
+  "stateName": "North Dakota",
+  "draftedAt": "2026-04-09T08:58:21.818Z",
+  "total": 14,
+  "successful": 3,
+  "programs": [
+    {
+      "id": "north-dakota-hcbs-waiver",
+      "name": "North Dakota Home and Community Based Services (HCBS) Waiver",
+      "shortName": "ND HCBS Waiver",
+      "tagline": "Get paid care services at home so your parent can avoid nursing home placement while staying in their own home.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Primary offices in Bismarck: Aging Services (Suite 6) and Developmental Disabilities (Suite 1A), 1237 W. Divide Ave.",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs nursing home-level care but wants to stay in their own home, North Dakota's HCBS Waiver can pay for comprehensive care services including personal care, home modifications, meal delivery, and adult day care. The program covers everything from hiring family members as paid caregivers to installing grab bars and ramps.\n\nYour parent must be 65+ (or 18-64 with a physical disability), qualify for Medicaid, and need nursing facility-level care while still being able to direct their own care decisions. Because this waiver has enrollment caps, there may be a waitlist — but the services can be life-changing for families trying to keep their loved one at home safely.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+ or disabled 18-64",
+          "Medicaid eligible",
+          "Nursing facility level of care",
+          "Living in own home",
+          "Able to direct own care"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 2000,
+          "couple": null,
+          "countedAssets": [
+            "Cash",
+            "Bank accounts",
+            "Investments"
+          ],
+          "exemptAssets": [
+            "Primary residence (if intent to return)",
+            "One vehicle",
+            "Household goods",
+            "Personal belongings",
+            "Burial funds"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "Must meet Nursing Facility Level of Care (a clinical assessment showing your parent needs daily help with bathing, dressing, medication management, or other activities of daily living)",
+        "otherRequirements": [
+          "Must be Medicaid recipient",
+          "Living in own home or apartment",
+          "Physically disabled per Social Security criteria",
+          "Need at least one monthly waiver service",
+          "Functional impairment cannot be primarily from mental illness or intellectual disability"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call the Aging and Disability Resource-LINK at 855-462-5465 to start the application process, which includes Medicaid eligibility and clinical assessment.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the Resource-LINK hotline",
+            "description": "Contact 855-462-5465 to discuss your parent's needs and start the intake process. They'll determine if the HCBS waiver is the right program."
+          },
+          {
+            "step": 2,
+            "title": "Complete Medicaid application",
+            "description": "Your parent must be Medicaid-eligible first. Provide income, asset, and medical documentation."
+          },
+          {
+            "step": 3,
+            "title": "Clinical assessment",
+            "description": "A case manager will assess whether your parent meets nursing facility level of care requirements and can direct their own care."
+          },
+          {
+            "step": 4,
+            "title": "Develop care plan",
+            "description": "If approved, work with case management to create an individualized service plan based on your parent's specific needs."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": "Possible due to enrollment caps",
+        "tip": "Start the Medicaid application process early — your parent must be Medicaid-eligible before waiver services can begin.",
+        "urls": [
+          {
+            "label": "Medicaid Waivers Information",
+            "url": "https://www.hhs.nd.gov/healthcare/medicaid/medicaid-waivers"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Cash and checking/savings accounts",
+            "Investments and stocks",
+            "Second homes or rental properties"
+          ],
+          "excluded": [
+            "Primary residence (if your parent intends to return home)",
+            "One vehicle of any value",
+            "Household goods and personal belongings",
+            "Burial funds up to reasonable amounts"
+          ]
+        },
+        {
+          "type": "tier-comparison",
+          "heading": "Age Categories",
+          "tiers": [
+            {
+              "name": "Aged (65+)",
+              "description": "For parents 65 and older who meet nursing facility level of care",
+              "incomeLimit": "Must qualify for Medicaid (typically around $943/month for individuals)",
+              "coverage": "All waiver services including family personal care, home modifications, adult day care"
+            },
+            {
+              "name": "Disabled (18-64)",
+              "description": "For adults with physical disabilities meeting Social Security disability criteria",
+              "incomeLimit": "Must qualify for Medicaid disability category",
+              "coverage": "All waiver services plus supported employment and transitional living skills training"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Driver's license or state ID",
+                "Proof of North Dakota residency",
+                "Social Security card"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Bank statements (3 months)",
+                "Social Security award letters",
+                "Pension or retirement income statements",
+                "Property deeds or mortgage statements"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Medical records documenting disability or need for nursing care",
+                "Current medication list",
+                "Recent hospital or nursing home discharge summaries",
+                "Physician assessments of functional abilities"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "This waiver has enrollment caps, so there may be a waitlist. Apply as soon as your parent meets the criteria — placement is often first-come, first-served."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Family members can be paid caregivers under this waiver, but only if they live in the same home and provide personal care services. Spouses and adult children are eligible to be hired."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can I get paid to care for my parent through this program?",
+          "answer": "Yes, but only if you live in the same home as your parent and provide personal care services like bathing, dressing, or medication assistance. The program allows spouses and adult children to be hired as paid caregivers through the Family Personal Care service."
+        },
+        {
+          "question": "What if my parent has dementia — do they still qualify?",
+          "answer": "Yes, dementia and brain injuries qualify as physical disabilities under this waiver. However, your parent must still be able to direct their own care decisions, meaning they can communicate their preferences and make choices about their daily care."
+        },
+        {
+          "question": "Can Mom keep her house if she qualifies?",
+          "answer": "Yes, your parent must live in their own home or apartment to qualify for this waiver. The primary residence is exempt from asset limits as long as your parent intends to continue living there."
+        },
+        {
+          "question": "What's the difference between this and regular Medicaid?",
+          "answer": "Regular Medicaid typically only covers nursing home care for this level of need. This waiver allows Medicaid to pay for home and community services instead, so your parent can stay at home while receiving comprehensive care."
+        },
+        {
+          "question": "How long does it take to get approved?",
+          "answer": "Processing time isn't specified, but you'll need to complete Medicaid eligibility first, then undergo a clinical assessment. Because there may be waitlists due to enrollment caps, start the process as soon as your parent meets the basic criteria."
+        },
+        {
+          "question": "What if my parent's income is just over the Medicaid limit?",
+          "answer": "Your parent may still qualify through the 'medically needy' category if their medical expenses bring their available income below the limit. The case worker will calculate this during the application process."
+        }
+      ],
+      "phone": "855-462-5465",
+      "sourceUrl": "https://www.hhs.nd.gov/healthcare/medicaid/medicaid-waivers",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "north-dakota-pace-elderly-care",
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "shortName": "PACE",
+      "tagline": "All medical care, medications, and transportation covered under one program for parents who need nursing home-level care but want to stay home.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Northland PACE (operates since 2008): Bismarck, Dickinson, Minot, Fargo locations",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs extensive daily help with bathing, dressing, eating, or medication management but wants to avoid a nursing home, PACE provides all their medical care under one roof. Because PACE covers everything — doctor visits, medications, physical therapy, transportation, and even nursing home care if needed later — your parent won't juggle multiple providers or face surprise medical bills.\n\nPACE is only available in four North Dakota cities: Bismarck, Dickinson, Minot, and Fargo. Your parent must be 55+ and certified by the state as needing nursing home-level care. Most participants are 76+ with multiple chronic conditions, and nearly half have dementia. The program has no income or asset limits for enrollment, but most participants also qualify for Medicaid to help cover costs.",
+      "savingsRange": "",
+      "savingsSource": "Free comprehensive care with no co-pays or deductibles",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Needs nursing home-level care",
+          "Lives in Bismarck, Dickinson, Minot, or Fargo area",
+          "Can live safely at home with support"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must be certified by North Dakota as needing nursing home-level care (extensive daily assistance with bathing, grooming, toileting, walking, transferring, or eating)",
+        "otherRequirements": [
+          "Must live within PACE service area",
+          "Must be able to live safely in community with PACE support",
+          "Cannot be enrolled in Medicare Advantage or Medicare prescription drug plans",
+          "Must be U.S. citizen or legal resident for 5+ years"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact Northland PACE directly or call Medicare for referral — processing time not specified.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Confirm your parent lives in a PACE service area",
+            "description": "PACE is only available in Bismarck, Dickinson, Minot, and Fargo areas. If your parent lives elsewhere in North Dakota, they cannot enroll."
+          },
+          {
+            "step": 2,
+            "title": "Contact Northland PACE directly",
+            "description": "Call the PACE center nearest your parent to discuss eligibility and schedule an assessment."
+          },
+          {
+            "step": 3,
+            "title": "Complete nursing home level of care assessment",
+            "description": "North Dakota will assess whether your parent needs extensive daily help with activities like bathing, dressing, or medication management."
+          },
+          {
+            "step": 4,
+            "title": "Disenroll from conflicting coverage",
+            "description": "Your parent must leave Medicare Advantage, Medicare prescription drug plans, or hospice services before enrolling in PACE."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": "PACE programs may have waitlists for enrollment",
+        "tip": "If your parent has Medicare Advantage, they'll need to disenroll during open enrollment (October 15 - December 7) unless they qualify for a special enrollment period.",
+        "urls": [
+          {
+            "label": "North Dakota PACE Information",
+            "url": "https://www.hhs.nd.gov/healthcare/medicaid/pace"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "PACE Service Areas",
+          "offices": [
+            {
+              "name": "Northland PACE - Bismarck",
+              "type": "service-area",
+              "phone": null,
+              "address": "Bismarck area"
+            },
+            {
+              "name": "Northland PACE - Dickinson",
+              "type": "service-area",
+              "phone": null,
+              "address": "Dickinson area"
+            },
+            {
+              "name": "Northland PACE - Minot",
+              "type": "service-area",
+              "phone": null,
+              "address": "Minot area"
+            },
+            {
+              "name": "Northland PACE - Fargo",
+              "type": "service-area",
+              "phone": null,
+              "address": "Fargo area"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "PACE programs may have waitlists. If your parent needs immediate care coordination, ask about wait times when you call."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Your parent cannot choose their own doctors with PACE — all care comes from PACE-selected providers. This trade-off gives them comprehensive coordination but less provider choice."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep seeing her current doctors if she joins PACE?",
+          "answer": "No. PACE requires your parent to receive all care from healthcare providers selected by the PACE program. This means leaving current doctors, but gaining a coordinated care team that manages everything together."
+        },
+        {
+          "question": "What if Mom's income is too high for Medicaid but she needs help paying for PACE?",
+          "answer": "PACE has no income limits for enrollment. If your parent has Medicare only and later needs long-term nursing home care through PACE, they may face premiums of $4,000-$5,000/month to cover those services."
+        },
+        {
+          "question": "Can Mom leave PACE if she doesn't like it?",
+          "answer": "Yes, your parent can disenroll from PACE at any time for any reason. However, re-enrollment isn't guaranteed if they want to return later."
+        },
+        {
+          "question": "What if we live in Grand Forks or another North Dakota city?",
+          "answer": "PACE is only available in Bismarck, Dickinson, Minot, and Fargo service areas. If your parent lives elsewhere in North Dakota, they cannot enroll regardless of their care needs."
+        },
+        {
+          "question": "Does PACE cover nursing home care if Mom can no longer live at home?",
+          "answer": "Yes. PACE is designed as a lifetime program that covers nursing home placement when your parent can no longer live safely in the community, even with support."
+        },
+        {
+          "question": "Is PACE only for people with dementia?",
+          "answer": "No, but nearly half of PACE participants do have dementia. The program serves anyone 55+ who needs nursing home-level care due to any condition — chronic illness, physical disabilities, or cognitive decline."
+        }
+      ],
+      "phone": "1-800-633-4227",
+      "sourceUrl": "https://www.hhs.nd.gov/healthcare/medicaid/pace",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "north-dakota-medicare-savings-programs",
+      "name": "Medicare Savings Programs (MSP)",
+      "shortName": "Medicare Savings Programs",
+      "tagline": "Help paying Medicare premiums and costs if your parent's monthly income is under $1,781 (single) or $2,400 (couple).",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "County social services offices across North Dakota",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent struggles to pay Medicare premiums or copays, Medicare Savings Programs can help. These programs pay your parent's Medicare Part B premium ($185/month in 2026) and potentially cover deductibles and coinsurance too. Because North Dakota has four different program tiers, the state will determine which level your parent qualifies for based on their income — from covering just premiums to covering all Medicare out-of-pocket costs.\n\nYour parent must already have Medicare Parts A and B to qualify. Income limits range up to about $1,781/month for a single person or $2,400/month for a couple, though North Dakota may accept slightly higher incomes than federal minimums. Assets must stay under $9,660 (single) or $14,470 (couple), including retirement accounts and any property beyond their primary home.",
+      "savingsRange": "$2,220 – $4,000/year",
+      "savingsSource": "Medicare Part B premium savings plus potential deductible and coinsurance coverage",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Has Medicare Parts A and B",
+          "Monthly income under $1,781 (single) or $2,400 (couple)",
+          "Assets under $9,660 (single) or $14,470 (couple)",
+          "North Dakota resident"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1781
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2400
+          }
+        ],
+        "assetLimits": {
+          "individual": 9660,
+          "couple": 14470,
+          "countedAssets": [
+            "Savings and checking accounts",
+            "Stocks, bonds, mutual funds",
+            "Retirement accounts",
+            "Real estate (not primary home)"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "One car",
+            "Household goods"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must have Medicare Parts A and B",
+          "North Dakota resident",
+          "U.S. citizen or qualified immigrant"
+        ],
+        "povertyLevelReference": "135% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply through your county social services office by phone, online, or in person — no specific processing time provided.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your county office",
+            "description": "Look up your county social services office on the North Dakota Department of Health & Human Services website or call the general line at 1-800-472-2622."
+          },
+          {
+            "step": 2,
+            "title": "Gather documents",
+            "description": "Collect recent bank statements, Social Security award letters, Medicare card, and proof of residency. Include all retirement account statements — these count as assets."
+          },
+          {
+            "step": 3,
+            "title": "Submit application",
+            "description": "Apply online at dhhs.nd.gov/apply, call your county office, or visit in person. The state will determine which of the four program tiers you qualify for."
+          },
+          {
+            "step": 4,
+            "title": "Get automatic Extra Help",
+            "description": "If approved, you'll automatically get Extra Help for Medicare Part D prescription drugs (maximum $12.65 per drug in 2026)."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Apply even if your parent's income seems slightly over the limit — North Dakota may accept higher incomes than federal minimums.",
+        "urls": [
+          {
+            "label": "Apply online",
+            "url": "https://dhhs.nd.gov/apply"
+          },
+          {
+            "label": "Find your county office",
+            "url": "https://www.hhs.nd.gov/medicaid"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "tier-comparison",
+          "heading": "Program Tiers",
+          "tiers": [
+            {
+              "name": "QMB (Qualified Medicare Beneficiary)",
+              "description": "Income at or below 100% of Federal Poverty Level",
+              "incomeLimit": "Lowest income tier",
+              "coverage": "Pays Part B premium, Part A and B deductibles, and all coinsurance. Eligible for other Medicaid benefits."
+            },
+            {
+              "name": "SLMB (Specified Low-Income Medicare Beneficiary)",
+              "description": "Income between 100-120% of Federal Poverty Level",
+              "incomeLimit": "Middle-low income tier",
+              "coverage": "Pays Part B premium only. Automatic Extra Help for Part D drugs. Eligible for other Medicaid benefits."
+            },
+            {
+              "name": "QI1 (Qualifying Individual)",
+              "description": "Income between 120-135% of Federal Poverty Level",
+              "incomeLimit": "Up to about $1,781/month (single) or $2,400/month (couple)",
+              "coverage": "Pays Part B premium only. Cannot combine with full North Dakota Medicaid."
+            }
+          ]
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Savings and checking accounts",
+            "Stocks, bonds, mutual funds",
+            "Retirement accounts (401k, IRA)",
+            "Real estate other than primary home"
+          ],
+          "excluded": [
+            "Primary home",
+            "One car",
+            "Household goods and furniture"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Birth certificate",
+                "Social Security card",
+                "Medicare card (Parts A and B)",
+                "Proof of North Dakota residency"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Recent bank statements",
+                "Social Security or pension award letters",
+                "Pay stubs if still working",
+                "Retirement account statements",
+                "Investment records"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Don't forget retirement accounts count as assets — many families overlook 401k and IRA balances when calculating the $9,660 individual limit."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house if she qualifies?",
+          "answer": "Yes. Your parent's primary home doesn't count toward the asset limit, no matter what it's worth. Only additional real estate counts."
+        },
+        {
+          "question": "What if her income is just over the limit?",
+          "answer": "Apply anyway. North Dakota may accept slightly higher incomes than federal minimums, and income limits change annually."
+        },
+        {
+          "question": "Will this affect her other benefits?",
+          "answer": "No, Medicare Savings Programs won't reduce Social Security or other benefits. If she qualifies for QMB or SLMB, she may actually become eligible for additional Medicaid benefits."
+        },
+        {
+          "question": "Does her 401k count against the asset limit?",
+          "answer": "Yes. Retirement accounts like 401k and IRA balances count toward the $9,660 individual asset limit. This catches many families by surprise."
+        },
+        {
+          "question": "What happens to her Medicare Part D coverage?",
+          "answer": "She'll automatically get Extra Help for prescription drugs, paying no more than $12.65 per medication in 2026. This works with her existing Part D plan."
+        },
+        {
+          "question": "Which program tier will she get?",
+          "answer": "The state determines this based on her income level. Lower income qualifies for more comprehensive coverage — QMB covers the most, while QI1 covers just the Part B premium."
+        }
+      ],
+      "phone": "1-800-472-2622",
+      "sourceUrl": "https://www.hhs.nd.gov/medicaid",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "LIHEAP (Low Income Home Energy Assistance Program)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Weatherization Assistance Program",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Older Adult Nutrition Program",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Family Caregiver Support Program / Lifespan Respite Care",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Long-Term Care Ombudsman Services",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Service Payments for Elderly and Disabled (SPED)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "North Dakota Aging in Community (AIC) Project",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Senior Safety Program (ND Assistive)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Basic Care Assistance Program (BCAP)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    }
+  ],
+  "stateOverview": null
+}

@@ -1,0 +1,598 @@
+{
+  "state": "NY",
+  "stateName": "New York",
+  "comparedAt": "2026-04-09T08:57:30.298Z",
+  "total": 14,
+  "newPrograms": 8,
+  "withDiffs": 6,
+  "withNovelFields": 6,
+  "benefitTypes": {
+    "service": 6,
+    "financial": 7,
+    "employment": 1
+  },
+  "variationPatterns": {
+    "priority_tier": 6,
+    "Individual care plan determined by interdisciplinary team; not fixed by tier or priority level": 1,
+    "household_size and income level (SNAP budget calculated individually for each household)[9]": 1,
+    "household_size|priority_tier|region": 1,
+    "region": 2,
+    "not_applicable": 2,
+    "income": 1
+  },
+  "novelFieldSummary": {
+    "asset_limits": {
+      "count": 6,
+      "programs": [
+        "New York State Home and Community-Based Services (HCBS) Waiver Programs",
+        "Program of All-Inclusive Care for the Elderly (PACE)",
+        "Medicare Savings Program (MSP)",
+        "Supplemental Nutrition Assistance Program (SNAP)",
+        "Home Energy Assistance Program (HEAP)",
+        "Elderly Pharmaceutical Insurance Coverage Program (EPIC)"
+      ],
+      "note": "Our model has no asset limit fields"
+    },
+    "regional_variations": {
+      "count": 5,
+      "programs": [
+        "New York State Home and Community-Based Services (HCBS) Waiver Programs",
+        "Program of All-Inclusive Care for the Elderly (PACE)",
+        "Medicare Savings Program (MSP)",
+        "Supplemental Nutrition Assistance Program (SNAP)",
+        "Home Energy Assistance Program (HEAP)"
+      ],
+      "note": "Program varies by region — our model doesn't capture this"
+    },
+    "waitlist": {
+      "count": 5,
+      "programs": [
+        "New York State Home and Community-Based Services (HCBS) Waiver Programs",
+        "Program of All-Inclusive Care for the Elderly (PACE)",
+        "Medicare Savings Program (MSP)",
+        "Supplemental Nutrition Assistance Program (SNAP)",
+        "Home Energy Assistance Program (HEAP)"
+      ],
+      "note": "Has waitlist info — our model has no wait time field"
+    },
+    "documents_required": {
+      "count": 6,
+      "programs": [
+        "New York State Home and Community-Based Services (HCBS) Waiver Programs",
+        "Program of All-Inclusive Care for the Elderly (PACE)",
+        "Medicare Savings Program (MSP)",
+        "Supplemental Nutrition Assistance Program (SNAP)",
+        "Home Energy Assistance Program (HEAP)",
+        "Elderly Pharmaceutical Insurance Coverage Program (EPIC)"
+      ],
+      "note": "Has document checklist — our model doesn't store per-program documents"
+    }
+  },
+  "comparisons": [
+    {
+      "name": "New York State Home and Community-Based Services (HCBS) Waiver Programs",
+      "isNew": false,
+      "existingId": "home-and-community-based-services-hcbs-waiver",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$10,000 – $30,000/year",
+          "found": "Specific services include: day habilitation, live-in caregiver, prevocational services, residential habilitation, respite, supported employment, fiscal intermediary, support brokerage, assistive technology/adaptive devices, community habilitation, community transition services, environmental modifications (home accessibility), family education/training, individual directed goods/services, intensive behavioral services, pathway to employment, vehicle modifications. Provided to avoid institutionalization; no fixed dollar amounts or hours specified[2][5][6].",
+          "source": "https://www.opwdd.ny.gov (Office for People With Developmental Disabilities); https://www.emedny.org/providermanuals/hcbswaiver/pdfs/hcbs_policy_section.pdf (HCBS Waiver Manual)[2]"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.opwdd.ny.gov (Office for People With Developmental Disabilities); https://www.emedny.org/providermanuals/hcbswaiver/pdfs/hcbs_policy_section.pdf (HCBS Waiver Manual)[2]"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Medicaid asset limits apply (not quantified here); home equity limit of $1,097,000 in 2025 if applicant lives in home or intends to return (exemptions: non-applicant spouse resides there, disabled/blind child of any age, or minor child under 21 lives there). Assets must not be transferred under fair market value (30-month look-back rule implementing ~2025, causing penalty periods)[4].",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered via county-based DDSOs; potential differences in providers, wait times, and access[2][3]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Common for high-demand services (e.g., autism supports, respite); approval may lead to waitlist notification[3]",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Medical records",
+            "Physician evaluations",
+            "Proof of income/assets",
+            "Social Security or disability documentation[3]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Multiple waivers with varying targets (e.g., developmental disabilities all ages, children 0-20, seniors/physical disabilities 18+); county DDSO administration; ICF/nursing level of care; Medicaid financials with some income deeming waivers for kids; slot-limited with waitlists",
+      "gotchas": [
+        "Multiple distinct waivers under HCBS umbrella (e.g., OPWDD for developmental disabilities, NHTD for physical disabilities/seniors, children's waivers); not a single program—match to specific diagnosis/age[1][4][5][6]",
+        "Must choose HCBS over institutional care; nursing/ICF level of care required despite community focus[1][2][3]",
+        "Limited slots; waitlists common[3]",
+        "30-month look-back on asset transfers starting ~2025[4]",
+        "Primarily for developmental disabilities (OPWDD HCBS), not general elderly unless physical disability via NHTD[1][4]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.opwdd.ny.gov (Office for People With Developmental Disabilities); https://www.emedny.org/providermanuals/hcbswaiver/pdfs/hcbs_policy_section.pdf (HCBS Waiver Manual)[2]"
+    },
+    {
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "isNew": false,
+      "existingId": "program-of-all-inclusive-care-for-the-elderly-pace",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$15,000 – $35,000/year",
+          "found": "Comprehensive package including: all Medicare and Medicaid services (including Part D pharmacy, Medicaid community-based long-term services and supports, skilled nursing facility care), social determinants of health services, transportation, adult day care, dentistry, laboratory and x-ray services, meals, physical/occupational/recreational therapy, home health aides, eye care, foot care, hearing aids, wound care, palliative care, nutritional counseling, and any other services determined necessary to help participants live independently in their homes and communities (excluding housing and cosmetic services)[1][3][6]",
+          "source": "https://www.cms.gov/medicare/medicaid-coordination/about/pace and https://www.medicaid.gov/medicaid/long-term-services-supports/program-of-all-inclusive-care-for-elderly"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.cms.gov/medicare/medicaid-coordination/about/pace and https://www.medicaid.gov/medicaid/long-term-services-supports/program-of-all-inclusive-care-for-elderly"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Not specified in available sources. Medicaid asset limits would apply for Medicaid eligibility, but specific thresholds are not provided.",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Search results indicate PACE operates in New York State but do not specify regional variations in services, wait times, or provider differences by region. ArchCare Senior Life PACE operates in NYC and Westchester[5], suggesting regional provider variation exists.",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Not specified in available sources",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": "Not specified in available sources. Likely to include proof of age, Medicare/Medicaid eligibility documentation, and medical certification of nursing home level of care need, but exact requirements not detailed.",
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "PACE eligibility and benefits are highly individualized based on care planning rather than tiered or formulaic. The program's defining feature is capitated financing (fixed monthly payment per member), which allows providers to deliver all necessary services rather than only reimbursable ones. Income and asset limits are not program-specific but follow Medicaid rules. Critical gap: specific New York State income/asset thresholds, processing timelines, application procedures, and complete provider directory are not available in search results and would require direct contact with New York State Medicaid or individual PACE organizations.",
+      "gotchas": [
+        "PACE becomes the sole source of Medicare and Medicaid benefits for participants[4] — you cannot use other Medicare or Medicaid plans simultaneously",
+        "Enrollment is voluntary and monthly, but switching out requires leaving the program entirely[1]",
+        "Participants must be able to live safely in the community; if safety cannot be maintained, nursing home placement may become necessary[4][5]",
+        "Not all areas of New York have PACE providers; service area availability is a hard eligibility requirement[4]",
+        "The program requires frequent interaction through interdisciplinary care planning[1] — this is not a passive benefit",
+        "PACE is often called the 'Gold Standard' for integrated geriatric care[1], but availability is limited by provider presence in your region"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "Individual care plan determined by interdisciplinary team; not fixed by tier or priority level",
+      "officialSource": "https://www.cms.gov/medicare/medicaid-coordination/about/pace and https://www.medicaid.gov/medicaid/long-term-services-supports/program-of-all-inclusive-care-for-elderly"
+    },
+    {
+      "name": "Medicare Savings Program (MSP)",
+      "isNew": false,
+      "existingId": "medicare-savings-program-qmb-slmb-qi",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$1800",
+          "found": "$1,856",
+          "source": "https://www.health.ny.gov/health_care/medicaid/program/longterm/msp.htm"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$2,000 – $8,000/year",
+          "found": "- **QMB**: Pays Medicare Part A/B premiums, deductibles, copayments/coinsurance[1][4].\n- **SLMB**: Pays Part B premiums[1][6].\n- **QI-1**: Pays Part B premiums only; up to 3 months retroactive reimbursement if applied in same year[3][4].\n- **QDWI**: Pays Part A premiums for working disabled[1].\nNo direct services; financial assistance for Medicare cost-sharing.",
+          "source": "https://www.health.ny.gov/health_care/medicaid/program/longterm/msp.htm"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.health.ny.gov/health_care/medicaid/program/longterm/msp.htm"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset or resource limits in New York State[2][5].",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Application processed via local offices (e.g., NYC HRA vs. county social services); potential differences in processing speed or support[2][3].",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "QI is first-come, first-served and limited[1].",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Medicare card[2][3].",
+            "Proof of income (Social Security award letter, pension statements, pay stubs, tax returns)[2][3][4].",
+            "Proof of residency (utility bill, lease, mortgage statement dated within 6 months)[3][4].",
+            "Proof of age/date of birth[2].",
+            "Proof of citizenship/immigration status.",
+            "Other premiums paid (excluding Medicare Part B)[2]."
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Four tiers with tiered income limits and benefits; no asset test; deductions for select premiums; QI first-come first-served; statewide but local admin.",
+      "gotchas": [
+        "Income calculated after specific premium deductions only (not Part B or IRMAA)[4].",
+        "QI-1 is first-come, first-served, annual, and cannot overlap with other Medicaid[1][3].",
+        "No retroactive Part B reimbursement for QMB[4].",
+        "Must have Medicare Part A; program pays premiums/cost-sharing but providers may still bill for services (QMB protections apply)[1].",
+        "Increased applicants may cause delays[2].",
+        "Limits updated annually; 2026 figures apply[4][7]."
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.health.ny.gov/health_care/medicaid/program/longterm/msp.htm"
+    },
+    {
+      "name": "Supplemental Nutrition Assistance Program (SNAP)",
+      "isNew": false,
+      "existingId": "supplemental-nutrition-assistance-program-snap",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "min_age",
+          "ours": "60",
+          "found": "60 or older qualifies for expanded eligibility; no minimum age for other household members[1][5]",
+          "source": "https://otda.ny.gov/programs/snap/ and https://aging.ny.gov/"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$1,500 – $3,600/year",
+          "found": "Monthly food assistance benefit. Average for households with older adult in NYC: $180/month. Minimum historically $16/month but actual benefits typically higher[2]",
+          "source": "https://otda.ny.gov/programs/snap/ and https://aging.ny.gov/"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://otda.ny.gov/programs/snap/ and https://aging.ny.gov/"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": {
+            "standard_limit": "$4,500 for households with member 60+ or disabled[1]",
+            "categorical_exemption": "Households with seniors/disabled under 200% of federal poverty limit are exempt from asset limits[5]",
+            "what_counts": "Search results do not specify which assets count or are exempt"
+          },
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "NYC mentioned separately with average benefit of $180/month for elderly households[2], but no indication this differs from rest of state",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Not mentioned in search results",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": "Search results do not specify required documents. Note: ESAP uses data matching and less demanding verification than standard SNAP[3]",
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "SNAP in New York has a complex, tiered eligibility structure with different rules for seniors/disabled vs. other households. Income limits vary significantly by household size and whether household includes seniors/disabled. New York's expanded categorical eligibility (200% poverty threshold) is more generous than federal baseline. ESAP provides simplified access for qualifying seniors/disabled with no earned income. Benefits are individually calculated per household based on income and deductions, not fixed amounts. The program has multiple application pathways (standard, ESAP, NYSCAP) with different requirements and benefits.",
+      "gotchas": [
+        "Many seniors believe they only qualify for minimum $16/month and don't apply; actual average is $180/month in NYC[2]",
+        "New York has expanded eligibility beyond federal requirements—other websites may show stricter limits than actually apply[1]",
+        "Asset limits do NOT apply to households with seniors/disabled under 200% of poverty, but application may still ask about assets[1]",
+        "ESAP requires NO earned income for ALL adult household members—even one adult with earned income disqualifies the household from ESAP[3][4]",
+        "Seniors can establish separate household status if living with others, but only if housemates' income is under 165% of poverty limit[5]",
+        "Work requirements apply to those under 65 unless disabled or in caregiver role—volunteer hours may count toward requirements[8]",
+        "Only about half of eligible seniors actually receive SNAP benefits[6]",
+        "Certification period under ESAP is 36 months with non-mandatory interim report and no interview at recertification—much longer than standard SNAP[3]",
+        "Households can only be determined eligible for ONE of three programs (ESAP, NYSCAP, or standard SNAP)—not multiple[5]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "household_size and income level (SNAP budget calculated individually for each household)[9]",
+      "officialSource": "https://otda.ny.gov/programs/snap/ and https://aging.ny.gov/"
+    },
+    {
+      "name": "Home Energy Assistance Program (HEAP)",
+      "isNew": false,
+      "existingId": "low-income-home-energy-assistance-program-liheap",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$500 – $2,000/year",
+          "found": "One Regular HEAP benefit per program year (2025-2026 opened Dec 1, 2025) to pay heating costs. Amount based on income, household size, heating source, vulnerable member (under 6, 60+, disabled). Base benefit increased by $61 for Tier 1 income range if paying directly for heat. Emergency HEAP for shutoff notices (Jan 2-Apr 7, 2026). No fixed dollar amounts listed; varies case-by-case.[1][5]",
+          "source": "https://otda.ny.gov/programs/heap/"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://otda.ny.gov/programs/heap/"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits mentioned; program focuses on income and categorical eligibility.[1]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Local DSS/HEAP contacts handle applications; seniors 60+ processed by Office of the Aging in some counties (e.g., Herkimer). Varying offices/providers by county; NYC-specific hotline.[4][7]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Not mentioned; one grant per household per heating season.[4]",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of income (pay stubs last 4 weeks, tax return, etc.; no bank statements).",
+            "Utility/fuel bill.",
+            "Proof of residence (rent receipt, lease, tax bill).",
+            "ID for household members (photo ID, birth cert, SS card, passport).",
+            "SSN.",
+            "Shutoff notice (Emergency HEAP).",
+            "Proof of qualified alien status if non-citizen.[3][4]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Benefits scale by household size, income tier, heating source, vulnerable member presence; county-specific processing (DSS vs. Aging offices); categorical eligibility bypasses income test for SNAP/TA/SSI recipients.",
+      "gotchas": [
+        "One benefit per heating season only.",
+        "Must pay for heat directly or in rent; no aid if heat included in subsidized housing/room/board.",
+        "Seniors 60+ may apply via separate Office of the Aging in some areas, not general DSS.",
+        "Income is gross monthly; automatic eligibility for SNAP/TA/SSI but still need to apply.",
+        "Program year-specific (e.g., 2025-2026); Emergency has shutoff requirement and dates.",
+        "Vulnerable member boosts benefit but all criteria must be met.[1][4]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "household_size|priority_tier|region",
+      "officialSource": "https://otda.ny.gov/programs/heap/"
+    },
+    {
+      "name": "Weatherization Referral and Packaging Program (WRAP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Delivered via local HCR subgrantees with regional providers; priority-tiered access; income at 60% SMI with auto-eligibility via benefits; no age minimum but seniors prioritized; funding/waitlist varies heavily by region.",
+      "gotchas": [
+        "This is the Weatherization Assistance Program (WAP), not a distinct 'WRAP'; no separate WRAP program found in NY sources—likely refers to WAP[1][2].",
+        "Renters need landlord approval; NYC renters may face barriers[3][4].",
+        "Landlords of multi-family pay 25% match (waivers possible)[5].",
+        "Priority-based, not guaranteed service; funding-limited waitlists common[2].",
+        "Income limits tie to current HEAP guidelines—verify annually[2][7].",
+        "Services determined by audit, not chosen by applicant[1][2]."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://hcr.ny.gov/weatherization-applicants"
+    },
+    {
+      "name": "Meals on Wheels (via Expanded In-Home Services for the Elderly - EISEP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "County-administered via local AAAs with varying providers, contacts, and waitlists; no fixed income/asset caps but sliding fees; Meals on Wheels integrated as one service among broader in-home supports; eligibility excludes Medicaid recipients",
+      "gotchas": [
+        "Not for Medicaid-eligible individuals; bridges gap for those ineligible for Medicaid home care[2][7]",
+        "Mandatory sliding-scale cost-share (not free for all; based on income/service cost)[3][2]",
+        "Meals only part of EISEP; requires full assessment for case management and other services[3][6]",
+        "County-specific: Must contact local AAA; no centralized application[2][4]",
+        "Even with homecare/Medicaid, eligible if meals don't meet dietary/religious needs[1]",
+        "Services to delay nursing home entry, not long-term substitute[4][5]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "region",
+      "officialSource": "https://aging.ny.gov/expanded-home-services-elderly-eisep"
+    },
+    {
+      "name": "New York Foundation for Senior Citizens Respite Care Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "NYC-restricted, non-Medicaid focus, caregiver relief via temporary services; no income/asset tables or quantified benefits in sources",
+      "gotchas": [
+        "Limited to NYC residents only—not statewide",
+        "Excludes Medicaid-eligible individuals",
+        "Specific service details (hours, types, costs) sparse; contact provider directly",
+        "Part of broader NY aging network but uniquely non-profit/non-sectarian focused on NYC seniors[6]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://www.nyfsc.org"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Federally authorized (Older Americans Act, DOL) but locally administered by multiple NY grantees with varying contacts/placements; income fixed at 125% FPL (varies by household size annually); priority-based enrollment; 20hr/wk training standard statewide",
+      "gotchas": [
+        "Must be unemployed and have poor employment prospects; not general senior employment[1]",
+        "Income at or below 125% FPL (check current levels as they update yearly)[1][2]",
+        "Priority tiers may cause waitlists in high-demand areas like NYC[1][2]",
+        "Temporary training (not permanent job); bridge to unsubsidized work[1][5]",
+        "Regional providers only; contact local grantee, not centralized application[8]",
+        "Some areas restrict by county/residency (e.g., Brooklyn/Manhattan for CPC)[3]"
+      ],
+      "benefitType": "employment",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://aging.ny.gov/senior-community-service-employment-program-scsep"
+    },
+    {
+      "name": "Elderly Pharmaceutical Insurance Coverage Program (EPIC)",
+      "isNew": false,
+      "existingId": "elderly-pharmaceutical-insurance-coverage-epic",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$1800",
+          "found": "$75,000",
+          "source": "https://epic.ny.gov/ (inferred from context; sources reference NY State Dept of Health EPIC webpage, but exact URL not listed)"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$1,000 – $5,000/year",
+          "found": "Co-payment assistance for Medicare Part D covered prescription drugs after Part D deductible met; covers many Part D-excluded drugs (e.g., prescription vitamins, cough/cold preparations). Fee Plan: Annual fee $8-$300 based on prior year income. Deductible Plan: Sliding scale deductible $530-$2,430/year based on income before EPIC co-pays. Pays Part D premiums up to basic plan cost for incomes below $23,000 single / $29,000 married (higher incomes pay own premiums, but deductible reduced by basic plan cost).[1][3][5]",
+          "source": "https://epic.ny.gov/ (inferred from context; sources reference NY State Dept of Health EPIC webpage, but exact URL not listed)"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://epic.ny.gov/ (inferred from context; sources reference NY State Dept of Health EPIC webpage, but exact URL not listed)"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits or test; assets not counted toward eligibility.[4]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of age, income, residency, Medicare status, and Medicare Part D drug plan (if any). Note: Some sources state no documentation required as EPIC verifies with SSA and NY Tax Dept.[4][5][7]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Two-tier structure (Fee Plan low-income, Deductible Plan higher-income) with sliding deductibles/fees by income; wraps around Medicare Part D; no assets test; statewide with no regional variation.",
+      "gotchas": [
+        "Must enroll in Medicare Part D to receive any EPIC benefits; EPIC is wraparound (Part D pays first).[1][2][3][5]",
+        "Not eligible if on full Medicaid or non-Part D drug coverage.[1][2][4]",
+        "Income based on prior year; notify EPIC of address changes.[2]",
+        "Conflicting income limits across sources (use most recent: $75k/$100k); check official for updates.[1][2][3][4]",
+        "Fee Plan has annual fee; Deductible Plan requires meeting deductible first.[1]",
+        "Seniors income-eligible for Extra Help must complete Request for Additional Information (RFAI).[2]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://epic.ny.gov/ (inferred from context; sources reference NY State Dept of Health EPIC webpage, but exact URL not listed)"
+    },
+    {
+      "name": "Senior Citizen Rent Increase Exemption (SCRIE)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "NYC-focused with income fixed at $50,000 cap (may vary by household); housing-type restricted; landlord tax credit offsets costs; municipal opt-in outside NYC leads to regional income tables and forms.",
+      "gotchas": [
+        "Must apply to receive benefits—rent does not freeze automatically even if eligible.",
+        "Landlord cannot refuse but must be notified post-approval; tenant pays frozen amount.",
+        "Limited to specific housing types (rent-regulated or listed co-ops)—not market-rate or most private rentals.",
+        "Requires recertification/renewal; income must remain under limit.",
+        "Outside NYC, availability and rules vary—check local adoption.",
+        "Succession upon death/move has strict 6-month deadline in some areas."
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://www.nyc.gov/site/finance/property/landlords-scrie.page"
+    },
+    {
+      "name": "Senior Citizen Homeowners' Exemption (SCHE)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "NYC-only fixed sliding scale by income (5-50%); statewide optional/localized with variable caps; renewal every 2 years; no assets test.",
+      "gotchas": [
+        "Must renew every 2 years or lose benefit; notice sent but check mail/online.[2]",
+        "All owners' incomes combined, including non-resident ex-spouse post-divorce excluded.[2][4]",
+        "12-month ownership strict unless prior exemption; residency must be primary.[1][2][4]",
+        "Income from all sources; AGI minus IRA but details matter for prior recipients.[2]",
+        "Not automatic; apply even if close to limits due to sliding scale.[1][3]",
+        "Outside NYC, check local rules—income caps vary widely.[4]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "income",
+      "officialSource": "https://www.nyc.gov/site/finance/property/landlords-sche.page"
+    },
+    {
+      "name": "Enhanced STAR (School Tax Relief for Seniors)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Income limit fixed regardless of household size; automatic eligibility determination by NYS starting 2026 eliminates local assessor applications for upgrades; benefits vary by local tax rates and property value.",
+      "gotchas": [
+        "Must turn 65 by December 31 of the benefit year; apply before March 1 while still 64 to capture full year.",
+        "Income includes only resident owners/spouses; non-resident owner income excluded.[1]",
+        "Automatic upgrade from Basic STAR starts 2026—NYS contacts you, but verify eligibility.",
+        "Existing STAR exemption holders as of 2015-16 may have different upgrade paths in some areas.[2]",
+        "Income limits update annually (e.g., $110,750 for 2026 based on 2024 income); use most recent.[5][8]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "region",
+      "officialSource": "https://www.tax.ny.gov/pit/property/star/eligibility.htm"
+    },
+    {
+      "name": "NYS Supportive Housing Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Eligibility driven by homelessness duration, SMI/disabling conditions, and priority tiers (NY/NY I/II/III, ESSHI); no income/asset tests; NYC-specific detailed criteria/forms; statewide via OMH LGUs/providers with regional referral variations; includes seniors 55+ but not elderly-focused without homelessness/SMI.",
+      "gotchas": [
+        "Primarily targets those with serious mental illness (SMI), substance use, or disabilities who are homeless/at risk; not designed for general elderly without these criteria, even if low-income[1][5].",
+        "No high-level/24-hour care; for independent living with supports only (not like nursing homes)[4].",
+        "Elderly (e.g., 55+ or 60+) may qualify under seniors population but must meet homelessness/disability criteria; NORC programs separate and require current residency in NORC area[4][8].",
+        "Chronic homelessness often required for priority tiers (NY/NY III); not for housed seniors[1][5].",
+        "NYC has more documented processes/forms; statewide relies on local referrals[2][3][7].",
+        "Not income-based like Section 8; disability/homelessness-driven[1]."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://omh.ny.gov/omhweb/adults/supportedhousing/supportedhousingguidelines.html[7]"
+    }
+  ]
+}

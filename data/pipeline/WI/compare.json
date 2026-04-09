@@ -1,0 +1,651 @@
+{
+  "state": "WI",
+  "stateName": "Wisconsin",
+  "comparedAt": "2026-04-09T09:04:51.551Z",
+  "total": 14,
+  "newPrograms": 7,
+  "withDiffs": 7,
+  "withNovelFields": 7,
+  "benefitTypes": {
+    "service": 7,
+    "financial": 4,
+    "employment": 1,
+    "advocacy": 2
+  },
+  "variationPatterns": {
+    "priority_tier": 6,
+    "region": 2,
+    "household_size": 1,
+    "household_size|income|energy_costs|home_size": 1,
+    "not_applicable": 3,
+    "income_level": 1
+  },
+  "novelFieldSummary": {
+    "asset_limits": {
+      "count": 7,
+      "programs": [
+        "Family Caregiver Support Program",
+        "IRIS (Include, Respect, I Self-Direct)",
+        "PACE (Program of All-Inclusive Care for the Elderly)",
+        "FoodShare",
+        "Wisconsin Home Energy Assistance Program (WHEAP)",
+        "Long-Term Care Ombudsman Program",
+        "SeniorCare"
+      ],
+      "note": "Our model has no asset limit fields"
+    },
+    "regional_variations": {
+      "count": 6,
+      "programs": [
+        "Family Caregiver Support Program",
+        "IRIS (Include, Respect, I Self-Direct)",
+        "PACE (Program of All-Inclusive Care for the Elderly)",
+        "FoodShare",
+        "Wisconsin Home Energy Assistance Program (WHEAP)",
+        "Long-Term Care Ombudsman Program"
+      ],
+      "note": "Program varies by region — our model doesn't capture this"
+    },
+    "waitlist": {
+      "count": 3,
+      "programs": [
+        "Family Caregiver Support Program",
+        "IRIS (Include, Respect, I Self-Direct)",
+        "PACE (Program of All-Inclusive Care for the Elderly)"
+      ],
+      "note": "Has waitlist info — our model has no wait time field"
+    },
+    "documents_required": {
+      "count": 7,
+      "programs": [
+        "Family Caregiver Support Program",
+        "IRIS (Include, Respect, I Self-Direct)",
+        "PACE (Program of All-Inclusive Care for the Elderly)",
+        "FoodShare",
+        "Wisconsin Home Energy Assistance Program (WHEAP)",
+        "Long-Term Care Ombudsman Program",
+        "SeniorCare"
+      ],
+      "note": "Has document checklist — our model doesn't store per-program documents"
+    },
+    "household_size_table": {
+      "count": 1,
+      "programs": [
+        "FoodShare"
+      ],
+      "note": "Benefits/eligibility vary by household size — we store a single number"
+    }
+  },
+  "comparisons": [
+    {
+      "name": "Family Caregiver Support Program",
+      "isNew": false,
+      "existingId": "wisconsin-family-caregiver-support-program",
+      "existingVerified": null,
+      "diffsFound": 4,
+      "diffs": [
+        {
+          "field": "min_age",
+          "ours": "65",
+          "found": "60",
+          "source": "https://www.dhs.wisconsin.gov/aging/caregiver.htm"
+        },
+        {
+          "field": "income_limit",
+          "ours": "$3500",
+          "found": "$48,000",
+          "source": "https://www.dhs.wisconsin.gov/aging/caregiver.htm"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$2,000 – $8,000/year",
+          "found": "NFCSP: Information/assistance, training for in-home care, adaptive equipment, minor home modifications, personal protective equipment[5]. AFCSP: Up to $4,000/year for respite care, incontinence supplies, home safety modifications, home-delivered meals, specialized clothing, activities/hobby supplies, legal/guardianship expenses, counseling, education classes, adult day care, emergency response systems, home chores, in-home respite, temporary facility respite[2][3][5][8]. Caregiver support groups and education available[3][5].",
+          "source": "https://www.dhs.wisconsin.gov/aging/caregiver.htm"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.dhs.wisconsin.gov/aging/caregiver.htm"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits mentioned[1][2][3][5].",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered locally by counties/Tribal aging units/ADRCs with potential differences in contacts/providers/wait times; e.g., Fond du Lac has dedicated specialist[1][2].",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Not mentioned; services coordinated based on needs assessment, may supplement AFCSP with NFCSP if AFCSP $4,000 limit exceeded[2].",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Written diagnosis of Alzheimer's/dementia for AFCSP[1][2][3].",
+            "Income documentation for AFCSP (gross annual, with dementia care cost deductions)[1][3]."
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Two tiered programs (NFCSP statewide broad support; AFCSP dementia-focused with $48k income cap and $4k limit); county/Tribal administered with local contacts; prioritizes economic/social needs and institutionalization risk; AFCSP allows deductions and combo with NFCSP.",
+      "gotchas": [
+        "Two distinct programs: NFCSP (broader, no strict income limit) and AFCSP (dementia-specific, $48k income cap, $4k annual limit; can combine if needs exceed)[2][5].",
+        "AFCSP requires home residence and diagnosis; not for facility residents[1][3].",
+        "Prioritizes highest needs/risk of institutionalization; not all eligible get full services[2].",
+        "Income for AFCSP is person with dementia + spouse combined, with deductions[1][3].",
+        "Distinct from Medicaid Family Care program, which is for care recipients directly[4][6]."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.dhs.wisconsin.gov/aging/caregiver.htm"
+    },
+    {
+      "name": "IRIS (Include, Respect, I Self-Direct)",
+      "isNew": false,
+      "existingId": "family-care-iris-and-partnership-waivers",
+      "existingVerified": null,
+      "diffsFound": 4,
+      "diffs": [
+        {
+          "field": "min_age",
+          "ours": "65",
+          "found": "18",
+          "source": "https://www.dhs.wisconsin.gov/iris/index.htm"
+        },
+        {
+          "field": "income_limit",
+          "ours": "$2901",
+          "found": "$3,525",
+          "source": "https://www.dhs.wisconsin.gov/iris/index.htm"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$10,000 – $30,000/year",
+          "found": "Self-directed Medicaid long-term care supports and services within an individualized budget based on assessed needs (via IRIS plan). Covers services like those helping with Activities of Daily Living (ADLs: e.g., bathing, eating, toileting) and Instrumental ADLs (IADLs: e.g., meal prep, money management). Specific list of covered services on DHS website; no fixed dollar amounts or hours stated—budget determined by functional screen and IRIS plan[1][4][6].",
+          "source": "https://www.dhs.wisconsin.gov/iris/index.htm"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.dhs.wisconsin.gov/iris/index.htm"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Must meet Medicaid non-financial eligibility, including asset limits. Exemptions include: primary home if applicant lives there or intends to return (home equity ≤ $750,000 in 2025), home with spouse or minor/disabled child living there. Other standard Medicaid asset rules apply (e.g., countable assets like savings, non-exempt property)[1][2].",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered through local Aging and Disability Resource Centers (ADRCs) or Tribal ADRS; different ICAs, FEAs, providers, and wait times by county/region",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Waitlists exist due to limited enrollment; varies by region and priority; ADRC can provide current status[1]",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of residency, income, assets, citizenship/immigration status",
+            "SSN, medical support/third-party liability info",
+            "Functional screen completed with ADRC"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Self-directed budget model varies by functional need/level of care (via screen); statewide but regionally administered via 50+ ADRCs with varying providers/waitlists; no fixed service hours/dollars—instead individualized IRIS plan; Medicaid rules drive financial eligibility with spousal protections",
+      "gotchas": [
+        "Must live in eligible community setting (e.g., own home/apartment); cannot enroll if in nursing home or certain residential facilities[1][3][7]",
+        "Self-directed model requires participant (or representative) to manage budget, hire/fire providers, follow rules—high responsibility[4]",
+        "Enrollment limited; long waitlists common, priority-based[1]",
+        "Must select ICA and FEA; changes have paperwork and timing rules[4][7]",
+        "Medicaid eligibility required first; if already Medicaid-eligible and meet functional criteria, faster path[4]",
+        "Cost-sharing may apply based on income to maintain Medicaid[4]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.dhs.wisconsin.gov/iris/index.htm"
+    },
+    {
+      "name": "PACE (Program of All-Inclusive Care for the Elderly)",
+      "isNew": false,
+      "existingId": "wisconsin-pace-program",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$2901",
+          "found": "$2,901",
+          "source": "https://www.dhs.wisconsin.gov/familycare/apply.htm"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$15,000 – $35,000/year",
+          "found": "Comprehensive medical care, long-term care services, prescription drugs, primary care physician, social worker, nurse, and interdisciplinary team coordination. All Medicare/Medicaid services through PACE as sole source; covers physical, intellectual/developmental disabilities. No specific dollar amounts or hours stated.",
+          "source": "https://www.dhs.wisconsin.gov/familycare/apply.htm"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.dhs.wisconsin.gov/familycare/apply.htm"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Medicaid-linked: $2,000 or less for applicant (exempt: primary home, one car, personal belongings, burial funds up to limits). PACE allows private pay without asset test.",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Only specific providers like Community Care Inc.; availability by zip code; potential waitlist differences",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Possible regional waitlists (not entitlement program)",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of income/assets for Medicaid",
+            "ID/residency proof",
+            "Medical records for functional screen"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "County-restricted to 4 areas; functional screen required; Medicaid financial eligibility or private pay; no fixed income/asset table beyond Medicaid rules; limited providers",
+      "gotchas": [
+        "Not statewide—only 4 counties, zip-restricted",
+        "Must pass functional screen for nursing home level but live safely at home with PACE",
+        "Private pay option exists but most (90%) are dual Medicare/Medicaid eligible",
+        "Cannot be in Medicare Advantage or hospice",
+        "Medicaid spend-down or planning may be needed if over limits",
+        "PACE becomes sole Medicare/Medicaid service provider"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "region",
+      "officialSource": "https://www.dhs.wisconsin.gov/familycare/apply.htm"
+    },
+    {
+      "name": "Medical Assistance (QMB, SLMB, QI)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Tiered by income brackets (QMB/SLMB/QI); couple limits only (no larger households); asset exemptions WI-specific; QI funding-limited with potential waitlist.",
+      "gotchas": [
+        "QI called 'SLMB Plus' in WI; must not be on other Medicaid[8].",
+        "Income after $20 disregard + standard deductions; over/under ranges disqualify[1][5].",
+        "Assets include spouse's even if not applying[2].",
+        "QMB providers can't bill beneficiary (even for non-Medicare services in some cases—'QMB protection').",
+        "Limits update yearly (April); verify current FPL-based amounts.",
+        "No coverage for long-term care or non-Medicare services.",
+        "QI waitlists if federal funds depleted[9]."
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.dhs.wisconsin.gov/medicaid/qmb.htm (QMB); https://www.dhs.wisconsin.gov/medicaid/slmb.htm (SLMB); https://www.dhs.wisconsin.gov/medicaid/ (general)"
+    },
+    {
+      "name": "FoodShare",
+      "isNew": false,
+      "existingId": "foodshare",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$1,500 – $3,600/year",
+          "found": "Monthly EBT card benefits (QUEST card) for food purchases at retailers. Amount based on household size, income, deductions (e.g., rent, utilities, medical for elderly/disabled). Maximum allotment varies by household size (table not fully provided; e.g., referenced in [5]). Certification: 12 months typical; 36 months for elderly 60+/disabled households with no earned income.[2][4]",
+          "source": "https://www.dhs.wisconsin.gov/foodshare/"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.dhs.wisconsin.gov/foodshare/"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limit if household income ≤200% FPL. For elderly (60+), blind, or disabled households not meeting gross income test, asset limit is $4,500 (countable assets like cash, bank accounts, stocks, bonds, real estate that can be converted to cash). Specific exemptions not detailed.[3][4]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "household_size_table",
+          "value": "Gross monthly income at or below 200% of the federal poverty level (FPL) for most households. Households with an elderly (60+), blind, or disabled member have no gross income limit but must meet net income ≤100% FPL if gross >200% FPL. Exact 200% FPL amounts vary by household size and year; check current FPL table at official source as 2026 figures not in results. Seniors/disabled can deduct monthly medical expenses.[2][3][4][5][8]",
+          "note": "Benefits/eligibility vary by household size — we store a single number"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Processed/managed by 12 county groups; potential differences in offices, interviews, processing by county. No specific wait time or provider variations noted.[2]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Birthdate, address, SSN, citizenship/immigration status, marital status, household members/relations",
+            "Job income details (employer name/address/phone), other income (SS, unemployment)",
+            "Proof of: identity, citizenship, address, gross income, expenses (rent/mortgage, utilities, dependent care, child support, medical for elderly/disabled)[4][7]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Income test at 200% FPL gross (with elderly/disabled net/assets exception); household-based with deductions; county-administered statewide; work rules for ABAWDs 18-64 with exemptions; 36-month certification for elderly/disabled no earned income",
+      "gotchas": [
+        "Elderly households >200% FPL gross income can still qualify via net income/assets test—many miss this exception.[3][4][5]",
+        "Work requirements expanded to 18-64 (2025 update); exemptions broader but ABAWDs must meet 80 hours/month or lose benefits.[1][6]",
+        "Benefits calculated after deductions; seniors/disabled: include medical expenses to lower net income.[2][5]",
+        "No asset test if ≤200% FPL, but applies under elderly exception if gross >200%.[4]",
+        "Retroactive benefits from application date, even if processed later.[2]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "household_size",
+      "officialSource": "https://www.dhs.wisconsin.gov/foodshare/"
+    },
+    {
+      "name": "Wisconsin Home Energy Assistance Program (WHEAP)",
+      "isNew": false,
+      "existingId": "wisconsin-home-energy-assistance-program-wheap",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$2620",
+          "found": "$14,835",
+          "source": "https://energybenefit.wi.gov/"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$500 – $2,000/year",
+          "found": "One-time payment during heating season (October 1 - May 15) covering a portion (not all) of heating costs (wood, propane, natural gas, electricity, fuel oil), non-heating electric costs, or emergency heating system repairs/replacement for furnaces/boilers (homeowners and some renters; 2-4 unit dwellings must be owner-occupied). Amount varies by income, household size, home size, and energy costs. Also connects to free weatherization services if eligible[1][4][5].",
+          "source": "https://energybenefit.wi.gov/"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://energybenefit.wi.gov/"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits mentioned in sources.",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered by local agencies (e.g., UMOS for Kenosha/Marquette/Milwaukee Counties, Partners for Community Development for areas like Two Rivers/Sheboygan). Contact local office for service; some require 12-month energy history from city hall. Processing may vary by agency[3][4][5].",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "SSN and DOB for all household members.",
+            "Proof of citizenship/immigration status.",
+            "Heating/electric bills (account number, 12 months history).",
+            "If renting: Landlord contact or lease.",
+            "Income proof for prior month (pay stubs, award letters, tax docs, etc.)[2]."
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Income eligibility based on 60% state median with table by household size; one-time seasonal payments varying by multiple factors; administered statewide via local agencies with regional contacts.",
+      "gotchas": [
+        "One-time benefit per heating season only (Oct 1-May 15); does not cover full costs.",
+        "Online applications not processed by local agencies—must go through local WHEAP agency[5].",
+        "Emergency furnace assistance requires immediate call to local office; landlord must qualify for renters.",
+        "Crisis assistance available year-round, but regular benefits seasonal.",
+        "Must provide full household income, including gifts/loans[2]."
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "household_size|income|energy_costs|home_size",
+      "officialSource": "https://energybenefit.wi.gov/"
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Requires prior Energy Assistance approval; administered via local sub-agencies with regional providers and county-specific contacts; priority tiers drive service order; income tied to 60% SMI via WHEAP",
+      "gotchas": [
+        "Must be approved for Energy Assistance (WHEAP) FIRST before weatherization eligibility; not direct application[2][3][4][7]",
+        "Rental landlords may pay 15% fee if heat included in rent[2][3]",
+        "Priority-based (elderly, disabled, young children, high energy users); waitlists common due to funding limits[2][4]",
+        "Building must qualify; not all homes eligible (e.g., utility restrictions for some funds)[1][5]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://energyandhousing.wi.gov/Pages/AgencyResources/weatherization.aspx[5]"
+    },
+    {
+      "name": "State Health Insurance Assistance Program (SHIP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "no income/asset test; open to all Medicare beneficiaries; services via statewide network of local sites with volunteer counselors; funded by federal grants",
+      "gotchas": [
+        "Counselors do not sell plans or receive company payments—purely unbiased[1][2]",
+        "Helps with complex issues like appeals and low-income programs, but families must provide their own Medicare details[3]",
+        "Not a healthcare provider; only counseling/enrollment assistance[1]",
+        "Plan options change annually and vary by county[2][5]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://www.dhs.wisconsin.gov/benefit-specialists/medicare-counseling.htm"
+    },
+    {
+      "name": "Elderly Nutrition Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "No income/asset test statewide; voluntary contributions only; locally administered with county/tribal variations in delivery, donations, and prioritization; dual tracks (congregate vs. home-delivered) with distinct criteria",
+      "gotchas": [
+        "No income/asset test, but prioritization may delay access for lower-need individuals",
+        "Home-delivered requires homebound assessment—not just age",
+        "Suggested donations expected but voluntary; some under-60 disabled pay full fee",
+        "Congregate open without residency proof, but home delivery county-bound",
+        "Rare income caps in specific programs—confirm locally",
+        "Meals promote socialization; not full grocery replacement"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "region",
+      "officialSource": "https://www.dhs.wisconsin.gov/aging/nutrition.htm"
+    },
+    {
+      "name": "Wisconsin Senior Employment Program (WSEP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Federally funded under Older Americans Act Title V, state-administered via grantees with local providers; priority-based enrollment; income test at 125% FPL; training hours/wage fixed but host sites vary regionally",
+      "gotchas": [
+        "Also known as WISE, SCSEP, or Title V; not all 'senior employment' programs are this one[2]",
+        "Must be actively unemployed and seeking unsubsidized job after training (not permanent employment)[1][4]",
+        "Priority tiers may delay enrollment for non-priority applicants[3][4]",
+        "Income limit is 125% FPL (stricter than some programs); verify current amounts locally as they adjust yearly",
+        "Limited to community service training roles, not direct job placement"
+      ],
+      "benefitType": "employment",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.dhs.wisconsin.gov/publications/p00409-2024-2027.pdf (Wisconsin SCSEP State Plan 2024-2027)[5]"
+    },
+    {
+      "name": "Elder Law Legal Assistance",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Decentralized network of providers (e.g., Legal Action of WI as primary) rather than unified program; eligibility prioritizes low-income elders 60+ with specific legal needs; heavy tie-in to Medicaid asset planning (no fixed income table, spousal variations); regional offices with some county restrictions like Milwaukee Senior Law",
+      "gotchas": [
+        "Not a single 'program' but network of free/low-cost legal services; often requires low-income qualification (varies by provider, e.g., Modest Means for moderate income). Focuses on planning for Medicaid's strict asset rules—DIY planning risks penalties or higher costs; must identify client clearly amid family involvement to avoid capacity/undue influence issues. Medicaid recovery of benefits post-death if no planning. Age discrimination at work handled separately[1][2][3]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.dhs.wisconsin.gov/aging/legal-assistance.htm"
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "isNew": false,
+      "existingId": "wisconsin-long-term-care-ombudsman-program",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "min_age",
+          "ours": "65",
+          "found": "60",
+          "source": "https://boaltc.wi.gov/Pages/Ombudsman.aspx"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$10,000 – $30,000/year",
+          "found": "Free advocacy services including investigating and resolving complaints, representing interests before agencies, seeking remedies, providing information on long-term care services, facilitating resident/family councils, and referrals; no fixed dollar amounts or hours[2][3][4][5]",
+          "source": "https://boaltc.wi.gov/Pages/Ombudsman.aspx"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://boaltc.wi.gov/Pages/Ombudsman.aspx"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits; no financial tests apply[2][3][5]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Ombudsmen assigned by regions statewide; in Milwaukee County, assigned by zip code[2]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "County and/or name of long-term care community[2]",
+            "Zip code if in Milwaukee County[2]",
+            "Email or phone for return call[2]",
+            "Brief description of concern[2]",
+            "No formal documents required for initial contact; confidentiality assured[2]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "no income test; advocacy only for specific long-term care residents/consumers age 60+ in licensed settings or managed programs; regionally assigned with Milwaukee zip code specificity",
+      "gotchas": [
+        "Not for those under 60 (refer to Disability Rights Wisconsin Family Care/IRIS Ombudsman)[1][3][7]",
+        "Only advocates for long-term care consumers in specific settings/programs; cannot assist with hospitals, acute mental health, or independent living unrelated to managed care[5]",
+        "Anyone can call, but ombudsman represents only the long-term care consumer (age 60+); interactions confidential[2]",
+        "No authority over non-long-term care issues or unlicensed settings[5]"
+      ],
+      "benefitType": "advocacy",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://boaltc.wi.gov/Pages/Ombudsman.aspx"
+    },
+    {
+      "name": "SeniorCare",
+      "isNew": false,
+      "existingId": "wisconsin-seniorcare",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$2825",
+          "found": "$25,536",
+          "source": "https://www.dhs.wisconsin.gov/seniorcare/index.htm"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$1,000 – $5,000/year",
+          "found": "Prescription drug and vaccine coverage. After deductibles/spenddown (if applicable):\n- $5 copay per generic prescription.\n- $15 copay per brand-name prescription.\nProgram coordinates with other insurance including Medicare Part D. Pharmacies bill SeniorCare directly; show SeniorCare card at fill.[2][3][6]",
+          "source": "https://www.dhs.wisconsin.gov/seniorcare/index.htm"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.dhs.wisconsin.gov/seniorcare/index.htm"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits apply.[3]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Social Security number.",
+            "Proof of income (to determine level).",
+            "$30 enrollment fee.",
+            "Proof of residency/citizenship if requested."
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Tiered by income levels with specific FPL-based thresholds, deductibles, and copays; no asset test; spousal income aggregation for couples; annual renewal and fee required.",
+      "gotchas": [
+        "Cannot enroll if on full-benefit Medicaid (check exceptions like QMB/SLMB).",
+        "Married couples: Combined income counts if living together.",
+        "Must renew annually and pay $30 fee each year.",
+        "Coverage starts month AFTER approval, not immediately.",
+        "Income limits determine deductibles/copays; higher income means higher out-of-pocket before benefits kick in.",
+        "Older sources [5][7] show outdated FPL figures (e.g., ~$19k for Level 1 single); always check current at https://www.dhs.wisconsin.gov/seniorcare/fpl.htm[6]."
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "income_level",
+      "officialSource": "https://www.dhs.wisconsin.gov/seniorcare/index.htm"
+    },
+    {
+      "name": "Elder Benefit Specialist (EBS) Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "No financial eligibility test; advisory/advocacy service delivered via local county/tribal offices statewide; not a benefit payer but helper for other programs like Medicare/Medicaid/SSI",
+      "gotchas": [
+        "Not a direct benefits program—provides advice/help applying to other programs, not cash/services itself[1][2]",
+        "Only the individual (or their activated Power of Attorney for Finance) can initiate contact to protect confidentiality/autonomy; family can't apply on their behalf without permission[6]",
+        "Free but donations encouraged; service not refused if no donation[2][5]",
+        "For ages 60+ only (use Disability Benefit Specialist for 18-59)[1][7]",
+        "Tribal programs may have slight age variations (e.g., 55+)[3]"
+      ],
+      "benefitType": "advocacy",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://www.dhs.wisconsin.gov/benefit-specialists/ebs.htm"
+    }
+  ]
+}

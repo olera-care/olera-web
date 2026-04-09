@@ -1,0 +1,300 @@
+{
+  "state": "TN",
+  "stateName": "Tennessee",
+  "comparedAt": "2026-04-09T09:01:21.199Z",
+  "total": 9,
+  "newPrograms": 7,
+  "withDiffs": 2,
+  "withNovelFields": 2,
+  "benefitTypes": {
+    "financial": 1,
+    "service": 6,
+    "employment": 1,
+    "service|advocacy": 1
+  },
+  "variationPatterns": {
+    "program_tier": 1,
+    "priority_tier": 4,
+    "not_applicable": 1,
+    "region": 1,
+    "income (cost share if over FPL); physical need and availability (prioritization on waitlist); region (via local Area Agencies on Aging).[2][4]": 1,
+    "not_applicable — counseling services are standardized; specific assistance depends on individual circumstances": 1
+  },
+  "novelFieldSummary": {
+    "asset_limits": {
+      "count": 2,
+      "programs": [
+        "TennCare Medicare Savings Programs (QMB, SLMB, QI)",
+        "Tennessee State Health Insurance Assistance Program (TN SHIP)"
+      ],
+      "note": "Our model has no asset limit fields"
+    },
+    "waitlist": {
+      "count": 2,
+      "programs": [
+        "TennCare Medicare Savings Programs (QMB, SLMB, QI)",
+        "Tennessee State Health Insurance Assistance Program (TN SHIP)"
+      ],
+      "note": "Has waitlist info — our model has no wait time field"
+    },
+    "documents_required": {
+      "count": 2,
+      "programs": [
+        "TennCare Medicare Savings Programs (QMB, SLMB, QI)",
+        "Tennessee State Health Insurance Assistance Program (TN SHIP)"
+      ],
+      "note": "Has document checklist — our model doesn't store per-program documents"
+    },
+    "regional_variations": {
+      "count": 1,
+      "programs": [
+        "Tennessee State Health Insurance Assistance Program (TN SHIP)"
+      ],
+      "note": "Program varies by region — our model doesn't capture this"
+    }
+  },
+  "comparisons": [
+    {
+      "name": "TennCare Medicare Savings Programs (QMB, SLMB, QI)",
+      "isNew": false,
+      "existingId": "tenncare-medicare-savings-programs",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$1605",
+          "found": "$1,350",
+          "source": "https://www.tn.gov/tenncare/members-applicants/eligibility-reference-guide.html"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$2,000 – $8,000/year",
+          "found": "QMB:[7] Pays for Part A premiums (if you don't have premium-free Part A), Part B premiums, deductibles, coinsurance, and copayments for services and items Medicare covers. Also provides Extra Help for prescription drugs (maximum $12.65 per drug in 2026).[7] SLMB:[7] Pays for Part B premiums only, plus Extra Help for prescription drugs (maximum $12.65 per drug in 2026).[7] QI:[7] Pays for Part B premiums only, plus Extra Help for prescription drugs (maximum $12.65 per drug in 2026).[7] QMB also covers cost sharing for Medicare Advantage and full extra help for Part D plans.[3]",
+          "source": "https://www.tn.gov/tenncare/members-applicants/eligibility-reference-guide.html"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.tn.gov/tenncare/members-applicants/eligibility-reference-guide.html"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Resource limits for 2026:[7] QMB: Individual $9,950, Married couple $14,910. SLMB and QI: Same as QMB. Assets that COUNT include: money in bank accounts, stocks, and bonds.[3] Assets that DO NOT count include: the house you live in, one car, a burial plot, up to $1,500 in burial expenses, furniture, and household and personal items.[3]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "waitlist",
+          "value": "QI program operates on first-come, first-served basis until funds run out; priority given to those who received QI benefits in the previous year.[2][3][7]",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": "Search results do not specify required documentation. Applicants should contact SHIP (1-877-801-0044) or TennCare for a complete list of required documents.",
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "This program consists of three distinct tiers (QMB, SLMB, QI) with progressively higher income thresholds but decreasing benefits. Income and resource limits scale by household size (individual vs. married couple). QI has unique first-come, first-served funding constraints and annual reapplication requirements, making it less stable than QMB/SLMB. All three programs are administered by a single state entity (Bureau of TennCare) with no regional variation in eligibility or benefits. Income limits are tied to Federal Poverty Guidelines and adjust annually.",
+      "gotchas": [
+        "QI program is NOT guaranteed funding — it operates on first-come, first-served basis until state funds run out.[2][3][7] Families should apply early in the year.",
+        "QI requires annual reapplication; benefits are not continuous.[3][7]",
+        "If someone qualifies for Medicaid, they cannot use QI — they must use QMB or SLMB instead.[6]",
+        "QI does not affect Medicare Advantage (Part C) or Medigap plans, but only applies to original Medicare (Parts A and B).[6]",
+        "Income and resource limits change every year (new limits released each January).[6] Families should not rely on prior-year figures.",
+        "CHOICES recipients do not qualify for QI-1.[4]",
+        "Medicare providers cannot bill for covered services under QMB, but small Medicaid copayments may still apply.[7]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "program_tier",
+      "officialSource": "https://www.tn.gov/tenncare/members-applicants/eligibility-reference-guide.html"
+    },
+    {
+      "name": "Tennessee Weatherization Assistance Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Administered statewide via local subgrantees in 95 counties with funding-based availability; priority tiers for vulnerable households; income at 200% FPL with automatic qualifiers like SSI/TANF.",
+      "gotchas": [
+        "Must contact specific local agency for your county, not apply directly to THDA.",
+        "Priority for elderly/disabled/child households, but no automatic elderly-only qualification.",
+        "Income calculated over full 12 prior months; all countable income included.",
+        "Funding-limited; not all eligible homes served immediately.",
+        "Separate multifamily track with property-level eligibility.",
+        "Citizenship verified per Tennessee law for all applicants."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://thda.org/help-for-homeowners/weatherization-assistance-program/"
+    },
+    {
+      "name": "Tennessee SHIP",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "No income/asset/age tests; counseling-only service via regional network; open access for Medicare beneficiaries/families statewide",
+      "gotchas": [
+        "Not a direct financial aid program—provides counseling only, not payments; does not sell/endorses insurance; must disenroll from ACA Marketplace upon Medicare eligibility to avoid penalties; focused on Medicare, not general healthcare[3][5]; regional offices handle local service but statewide consistency[2]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://www.tn.gov/disability-and-aging/disability-aging-programs/tn-ship.html[3]"
+    },
+    {
+      "name": "Tennessee Meals on Wheels",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Decentralized by  local AAAD per county/region with no statewide income/asset test; homebound requirement strictly assessed; over 150 congregate sites but home delivery zone-restricted",
+      "gotchas": [
+        "Not a single centralized program—must contact local AAAD for your county as rules/zones vary; car ownership or ability to leave home easily may disqualify; some programs funded via Title III (no cost, donations suggested) vs. Medicaid CHOICES (separate qualification); congregate vs. home-delivered have different criteria; outside service areas requires alternatives[1][2][5][8]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "region",
+      "officialSource": "https://www.tn.gov/disability-and-aging/disability-aging-programs/aging-nutrition-program.html"
+    },
+    {
+      "name": "Tennessee Caregiver Respite Support",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Decentralized via 10+ AAADs with local variation; voucher-based self-direction; ties to federal OAA/NFCSP and state grants; priority tiers and funding caps limit access",
+      "gotchas": [
+        "Multiple programs (NFCSP, Lifespan Respite Voucher, Emergency Voucher, Medicaid waivers, Family Support) often lumped as 'respite'; check specific fit[1][3][5][6]",
+        "Caregiver is the client; preference to greatest needs; slots limited, eligibility ≠ enrollment[2][6]",
+        "Excludes those on certain Medicaid waivers; not substitute for comprehensive services[1][6]",
+        "Varies by AAAD region; contributions if higher income[2][3]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.tn.gov/disability-and-aging/disability-aging-programs/caregiving.html[3]"
+    },
+    {
+      "name": "Tennessee SCSEP",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Administered statewide via regional sub-grantees with county-specific providers and contacts; income test at 125% FPL by family size (annual HHS table); priority tiers for veterans/65+; temporary paid training slots limited by federal funding and local capacity",
+      "gotchas": [
+        "Must register at nearest TN American Job Center within 90 days of enrollment for dual WIOA eligibility[1]",
+        "Enrollment priority: veterans/qualified spouses first, then over age 65[4]",
+        "Unemployed status required; program is temporary training (avg. 6 months) to bridge to unsubsidized jobs, not permanent income support[2][4]",
+        "Income calculated for family size at 125% FPL using HHS guidelines; verify current levels as they update annually[1][2]",
+        "No health questions during intake; focus on skills, barriers, job interests[1]",
+        "Local waitlists and slots vary; not guaranteed immediate entry[2]"
+      ],
+      "benefitType": "employment",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.tn.gov/content/dam/tn/workforce-services-tn/documents/SCSEP-Procedure-Manual.pdf"
+    },
+    {
+      "name": "Tennessee Legal Aid for Seniors",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Regionally administered via multiple providers (not single statewide program); priority tiers by case type/emergency; some no income test but most Legal Aid have poverty guideline limits; varies heavily by East/Middle/West TN",
+      "gotchas": [
+        "Not all civil cases covered (e.g., no criminal, no fee-generating like car accidents)[1][4]",
+        "May need to pay court costs despite free legal help[4]",
+        "Personal contact required (waivable only in emergencies)[1]",
+        "Limited capacity leads to waitlists/referrals[1]",
+        "Income screening even if not always disqualifying[2][4][8]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.tals.org/page/453/free-senior-legal-helpline (statewide helpline); https://www.ethra.org/programs/21/legal-assistance-for-the-elderly (East TN example)"
+    },
+    {
+      "name": "OPTIONS for Community Living",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "State-funded via Tennessee Commission on Aging and Disability; no strict income/asset caps but cost share applies; regional delivery through Area Agencies with waitlists and prioritization; functional need (3+ ADLs) drives eligibility, not Medicaid linkage.",
+      "gotchas": [
+        "Waiting lists common; eligibility doesn't guarantee immediate services—prioritized by income/need.[2]",
+        "Cost share if income over FPL—often missed.[4]",
+        "Must have at least 3 ADL/IADL deficits; re-screen if previously denied due to health changes.[2][4]",
+        "Separate from TennCare CHOICES (which requires NFLOC and has stricter financial rules)—don't confuse.[1][3]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "income (cost share if over FPL); physical need and availability (prioritization on waitlist); region (via local Area Agencies on Aging).[2][4]",
+      "officialSource": "https://www.ftaaad.org/options-subpage[2]"
+    },
+    {
+      "name": "Tennessee State Health Insurance Assistance Program (TN SHIP)",
+      "isNew": false,
+      "existingId": "tennessee-state-health-insurance-assistance-program-ship",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$3,000 – $10,000/year",
+          "found": "Free, one-on-one counseling and education; assistance with Medicare enrollment, plan comparisons, applications for low-income programs (Medicare Savings Plans, Extra Help), fraud investigation, and billing issue resolution. No direct financial payments to beneficiaries.",
+          "source": "https://www.tn.gov/disability-and-aging/disability-aging-programs/tn-ship.html"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.tn.gov/disability-and-aging/disability-aging-programs/tn-ship.html"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Not specified in available documentation",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Regional offices include: (1) Aging Commission of the Mid-South (serves Shelby, Fayette, Lauderdale, Tipton counties); (2) East Tennessee SHIP (serves Blount, Claiborne, Campbell, Anderson, Knox, Morgan, Cocke, Grainger, Hamblen, Jefferson, Loudon, Monroe, Roane, Scott, Sevier, Union counties). Other regions have separate coordinators but specific coverage areas not detailed in available sources.",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Not mentioned in available documentation",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": "Not specified in available documentation. Recommend contacting SHIP directly to confirm what documentation is needed for specific assistance requests.",
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "TN SHIP is a counseling and advocacy program, not a direct-benefit program. It has no income or asset limits, no formal application process, and no waiting period — beneficiaries simply call to access services. The program's value lies in helping beneficiaries navigate complex Medicare options and apply for OTHER assistance programs. Regional variation is significant: nine separate offices serve different areas with different phone numbers and coverage areas. The program is federally funded but state-administered, creating a hybrid governance structure. Unlike many assistance programs, there is no 'approval' or 'denial' — SHIP provides services to anyone who contacts them and is Medicare-eligible.",
+      "gotchas": [
+        "SHIP does NOT provide direct financial assistance or pay premiums — it provides counseling and helps beneficiaries apply for OTHER programs (Medicare Savings Plans, Extra Help) that may pay premiums or copays. Families expecting direct payment should understand this distinction.",
+        "Medicare enrollment is mandatory once eligible; failure to enroll timely can result in penalties. SHIP can help navigate this transition, especially for those currently on ACA Marketplace plans.",
+        "SHIP is free and unbiased — it does not sell insurance or endorse any company. This is a strength, but means it cannot provide personalized recommendations, only objective information.",
+        "Program created in early 1990s but significantly expanded after Medicare Part D launched in 2006; families should not assume outdated information about program scope.",
+        "Regional variation means wait times, counselor availability, and local outreach may differ significantly by county.",
+        "No eligibility screening mentioned — anyone can call, but actual assistance depends on Medicare eligibility and specific needs."
+      ],
+      "benefitType": "service|advocacy",
+      "benefitVariesBy": "not_applicable — counseling services are standardized; specific assistance depends on individual circumstances",
+      "officialSource": "https://www.tn.gov/disability-and-aging/disability-aging-programs/tn-ship.html"
+    }
+  ]
+}

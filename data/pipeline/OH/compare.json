@@ -1,0 +1,747 @@
+{
+  "state": "OH",
+  "stateName": "Ohio",
+  "comparedAt": "2026-04-09T08:58:12.270Z",
+  "total": 17,
+  "newPrograms": 9,
+  "withDiffs": 8,
+  "withNovelFields": 8,
+  "benefitTypes": {
+    "service": 9,
+    "financial": 4,
+    "advocacy": 2,
+    "employment": 1,
+    "in_kind": 1
+  },
+  "variationPatterns": {
+    "priority_tier": 3,
+    "program_type": 1,
+    "not_applicable — program is all-inclusive; specific service mix determined by individual care plan": 1,
+    "program_tier": 1,
+    "household_size": 1,
+    "household_size|priority_tier|region|fuel_source|PIPP_enrollment": 1,
+    "not_applicable": 3,
+    "region": 3,
+    "fixed": 2,
+    "not_applicable — benefits depend on individual merchant participation, not program tier": 1
+  },
+  "novelFieldSummary": {
+    "asset_limits": {
+      "count": 8,
+      "programs": [
+        "PASSPORT",
+        "Ohio Medicaid",
+        "PACE (Program of All-Inclusive Care for the Elderly)",
+        "Ohio SNAP (Supplemental Nutrition Assistance Program)",
+        "Ohio Senior Health Insurance Information Program (OSHIIP/SHIP)",
+        "Meals on Wheels (Home-Delivered Meals)",
+        "National Family Caregiver Support Program (NFCSP)",
+        "Long-Term Care Ombudsman Program"
+      ],
+      "note": "Our model has no asset limit fields"
+    },
+    "regional_variations": {
+      "count": 8,
+      "programs": [
+        "PASSPORT",
+        "Ohio Medicaid",
+        "PACE (Program of All-Inclusive Care for the Elderly)",
+        "Ohio SNAP (Supplemental Nutrition Assistance Program)",
+        "Ohio Senior Health Insurance Information Program (OSHIIP/SHIP)",
+        "Meals on Wheels (Home-Delivered Meals)",
+        "National Family Caregiver Support Program (NFCSP)",
+        "Long-Term Care Ombudsman Program"
+      ],
+      "note": "Program varies by region — our model doesn't capture this"
+    },
+    "waitlist": {
+      "count": 5,
+      "programs": [
+        "PASSPORT",
+        "Ohio Medicaid",
+        "PACE (Program of All-Inclusive Care for the Elderly)",
+        "Meals on Wheels (Home-Delivered Meals)",
+        "National Family Caregiver Support Program (NFCSP)"
+      ],
+      "note": "Has waitlist info — our model has no wait time field"
+    },
+    "documents_required": {
+      "count": 8,
+      "programs": [
+        "PASSPORT",
+        "Ohio Medicaid",
+        "PACE (Program of All-Inclusive Care for the Elderly)",
+        "Ohio SNAP (Supplemental Nutrition Assistance Program)",
+        "Ohio Senior Health Insurance Information Program (OSHIIP/SHIP)",
+        "Meals on Wheels (Home-Delivered Meals)",
+        "National Family Caregiver Support Program (NFCSP)",
+        "Long-Term Care Ombudsman Program"
+      ],
+      "note": "Has document checklist — our model doesn't store per-program documents"
+    },
+    "household_size_table": {
+      "count": 1,
+      "programs": [
+        "Ohio SNAP (Supplemental Nutrition Assistance Program)"
+      ],
+      "note": "Benefits/eligibility vary by household size — we store a single number"
+    }
+  },
+  "comparisons": [
+    {
+      "name": "PASSPORT",
+      "isNew": false,
+      "existingId": "passport-waiver",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$1491",
+          "found": "$2,901",
+          "source": "https://aging.ohio.gov/passport"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$10,000 – $30,000/year",
+          "found": "In-home long-term services and supports including: personal care assistance, home delivered meals, skilled nursing visits, transportation to medical appointments, homemaking/housework, case management, respite care, emergency response services, adult health center services, structured family caregiving support. Package developed by case manager from local providers; also includes Medicaid card for medications/health care. No fixed dollar amounts or hours specified; tailored to needs.[3][5][7][8]",
+          "source": "https://aging.ohio.gov/passport"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://aging.ohio.gov/passport"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Countable assets: $2,000 for a single individual; up to $32,828 for married couples (2024). Excludes primary home (if applicant lives there or intends to return with home equity ≤$730,000 in 2025; spouse or dependent child lives there), one car, and certain other exempt items. Other countable resources include savings, cash, bank accounts.[2][4][5][6]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered by local AAAs (e.g., Central Ohio AAA, Western Reserve AAA); different providers, case managers, and potential wait time variations by region/county",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Not mentioned; may vary regionally",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Social Security card(s)",
+            "Medicare card",
+            "Proof of income (Social Security/pension statements, other sources)",
+            "Bank/financial statements (past 60 months)",
+            "Property deeds/home ownership records",
+            "Proof of medical need (doctor’s letter)",
+            "Ohio residency proof",
+            "Physician consent/approval"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Administered statewide via local Area Agencies on Aging with regional providers/case managers; eligibility ties to Medicaid institutional care levels (income/assets); benefits are customized service packages based on NFLOC assessment, no fixed dollar/hour caps; annual FBR adjustments affect limits",
+      "gotchas": [
+        "Must be 60+ (some sources note 65+ or 60-64 for disabled, but consensus is 60+); not for under 60",
+        "Income/assets based on Medicaid institutional rules; spousal protections apply but each assessed individually",
+        "Physician approval required for home safety; needs must exceed other community services",
+        "Countable assets strictly $2,000 individual (exemptions narrow)",
+        "Tailored services, not fixed amounts; potential regional provider differences",
+        "Medicaid eligibility mandatory (may need to spend down or use trust)"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://aging.ohio.gov/passport"
+    },
+    {
+      "name": "Ohio Medicaid",
+      "isNew": false,
+      "existingId": "aged-blind-or-disabled-abd-medicaid",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$5,000 – $20,000/year",
+          "found": "Long-term care services including nursing home care, assisted living facility care, home and community-based services (HCBS), and non-medical services in home or adult day care settings. Also covers basic healthcare (physician visits, prescription medication, emergency room visits, short-term hospital stays) for ABD Medicaid recipients[1][3][8]",
+          "source": "medicaid.ohio.gov[6] and aging.ohio.gov/medicaid[9]"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "medicaid.ohio.gov[6] and aging.ohio.gov/medicaid[9]"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": {
+            "single_nursing_home_2026": "$2,000[4]",
+            "description": "Countable assets must fall below specific thresholds. The search results do not provide a comprehensive list of what counts as exempt vs. countable assets, but indicate that certain assets are exempt from the calculation[2].",
+            "note": "Asset limits vary by program type and marital status[3]"
+          },
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Search results indicate that area agencies on aging can help determine eligibility and that local county Job and Family Services offices handle applications, suggesting potential regional variation in processing, but specific regional differences are not detailed[6][9]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Not specified in search results",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": "Search results do not provide a specific list of required documents. Recommendation: Contact local county Job and Family Services office for complete documentation requirements",
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Ohio Medicaid is actually a suite of programs with different eligibility criteria, benefits, and functional requirements. The most common for seniors seeking long-term care is Nursing Home Medicaid, but HCBS Waivers and ABD Medicaid serve different populations. Income and asset limits are updated annually (effective January 1 for most limits)[4][7]. Eligibility varies significantly by marital status and whether spouses are both applying. Functional requirements (Nursing Home Level of Care) are determined through state assessment, not just income/assets. The program is statewide but administered through county-level offices, which may create regional processing variations not detailed in available sources.",
+      "gotchas": [
+        "Ohio Medicaid for nursing homes is an entitlement program, meaning all who meet eligibility requirements receive coverage—but you must actually meet all requirements (financial, functional, and citizenship)[1]",
+        "Married couples have complex rules: if both apply, both must meet income/asset limits; if only one applies, the non-applicant spouse's income doesn't count toward the applicant's limit, but the applicant must give most of their income to the state[3]",
+        "Functional requirements are strict: applicants must demonstrate they need Nursing Home Level of Care through state assessment and healthcare provider reports, not just self-report[3]",
+        "Asset limits are very low ($2,000 for single applicants in 2026)—many seniors may need to spend down assets before qualifying[4]",
+        "Income limits are also low ($2,982/month for single applicants in 2026)—some seniors over these limits may still qualify through alternative pathways, but this requires additional planning[4]",
+        "The search results note that eligibility requirements change annually and vary significantly by program type (Nursing Home Medicaid vs. HCBS Waivers vs. ABD Medicaid), so families must verify which program applies to their situation[3][4]",
+        "Even if unsure about qualification, applicants should apply—the state encourages applications even when eligibility is uncertain[6]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "program_type",
+      "officialSource": "medicaid.ohio.gov[6] and aging.ohio.gov/medicaid[9]"
+    },
+    {
+      "name": "PACE (Program of All-Inclusive Care for the Elderly)",
+      "isNew": false,
+      "existingId": "mycare-ohio-pace",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$2500",
+          "found": "$2,901",
+          "source": "https://aging.ohio.gov/PACE and Ohio Administrative Code Rule 173-50-02"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$15,000 – $35,000/year",
+          "found": "All-inclusive care model covering everything the person needs — specific services not itemized in search results, but described as comprehensive home and community-based care for nursing home-eligible individuals[8]",
+          "source": "https://aging.ohio.gov/PACE and Ohio Administrative Code Rule 173-50-02"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://aging.ohio.gov/PACE and Ohio Administrative Code Rule 173-50-02"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset test for PACE program eligibility itself. If using Medicaid to pay: $2,000 or less in countable assets (primary home is exempt).[3]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "McGregor PACE operates in Cuyahoga, Lorain, and Summit Counties as one example provider.[7] Other PACE organizations serve different regions of Ohio. Wait times and specific services may vary by provider.",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Not specified in search results",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": "Not specified in search results. Recommend contacting local PACE provider for required documentation.",
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "PACE is a geographically restricted program with no income test for eligibility but strict Medicaid financial limits if seeking payment assistance. The program is all-inclusive (not itemized by service type), and enrollment requires disenrollment from competing programs. Availability varies significantly by Ohio region based on PACE organization service areas. The primary barrier to eligibility is geographic availability, not financial or medical criteria.",
+      "gotchas": [
+        "PACE is NOT available everywhere in Ohio — you must live in a PACE organization's service area. This is the most common disqualifier.[2][5]",
+        "You cannot be in ANY other Medicaid managed-care program, Medicaid waiver program, or Medicare Advantage plan while in PACE. If currently enrolled in these, you must disenroll.[1]",
+        "PACE becomes your SOLE source of services for Medicare and Medicaid benefits — you cannot use other providers for covered services.[5]",
+        "No income test exists for PACE eligibility itself, but if you need Medicaid to pay for PACE, you must meet Medicaid's institutional financial eligibility standards, which are strict ($2,000 asset limit).[3][4]",
+        "You must be certified by your state as needing nursing home-level care — this is not self-assessed and requires professional evaluation.[2][6]",
+        "You can pay privately for PACE without Medicaid, but this is uncommon and expensive.[4]",
+        "Enrollment is voluntary and you can leave at any time, but PACE must be your primary care source while enrolled.[5]",
+        "Average PACE participant is 76 years old with multiple complex conditions — the program is designed for high-need elderly, not moderately healthy seniors.[2]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "not_applicable — program is all-inclusive; specific service mix determined by individual care plan",
+      "officialSource": "https://aging.ohio.gov/PACE and Ohio Administrative Code Rule 173-50-02"
+    },
+    {
+      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Tiered by program (QMB/SLMB/QI) with escalating income thresholds; single/couple focus (FPL-scaled for households); statewide uniform but county-administered; QI capped funding/priority re-enrollment; no age min (Medicare-tied, typically 65+).",
+      "gotchas": [
+        "Income disregards often missed (e.g., $20 + $65 + half wages can qualify higher gross income).",
+        "QI funding limited—reapply annually, priority for renewals but possible denial if funds exhausted.",
+        "No retro for QMB (unlike SLMB/QI); apply early.",
+        "Providers can't bill QMB enrollees for Medicare-covered services (but some miss this).",
+        "Asset exemptions key—home/car not counted.",
+        "Ohio-specific: Not subject to estate recovery; check county JFS for exact forms/limits.",
+        "Limits update yearly (April for income); use 2025 figures as proxy for 2026."
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "program_tier",
+      "officialSource": "https://insurance.ohio.gov/consumers/medicare/msp and https://medicaid.ohio.gov (Ohio Dept of Medicaid)"
+    },
+    {
+      "name": "Ohio SNAP (Supplemental Nutrition Assistance Program)",
+      "isNew": false,
+      "existingId": "ohio-snap",
+      "existingVerified": null,
+      "diffsFound": 4,
+      "diffs": [
+        {
+          "field": "min_age",
+          "ours": "65",
+          "found": "60",
+          "source": "https://benefits.ohio.gov/SNAP"
+        },
+        {
+          "field": "income_limit",
+          "ours": "$1984",
+          "found": "$15,060",
+          "source": "https://benefits.ohio.gov/SNAP"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$1,500 – $3,600/year",
+          "found": "Monthly EBT card for groceries (no cash). Minimum $23/month; full benefit calculated as max allotment minus 30% of net income (e.g., 2-person elderly household with $1,200 gross may get ~$415/month after deductions). Max allotments: ~$291 (1-person), $546 (2-person) in contiguous states[1][3][7]. Seniors often qualify for higher due to medical/shelter deductions.",
+          "source": "https://benefits.ohio.gov/SNAP"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://benefits.ohio.gov/SNAP"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Households with elderly (60+) or disabled members have a $3,250 countable asset limit (higher than $2,750 standard). Countable: cash, bank accounts, stocks. Exempt: primary home, one vehicle, household goods, retirement accounts, life insurance, personal property[7][8].",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "household_size_table",
+          "value": "For seniors (60+), only the **net income test** applies. Gross monthly income limits (130% FPL, effective Oct 1, 2025–Sept 30, 2026) are approximately $15,060/year ($1,255/month) for 1 person or $20,440/year ($1,703/month) for 2 people. Net income is calculated by subtracting standard deductions (20% of gross), shelter costs (rent/mortgage/utilities exceeding $712 for elderly/disabled), and excess medical expenses over $35/month for seniors. Full table varies by household size; use Ohio JFS pre-screener for exacts[1][3][6].",
+          "note": "Benefits/eligibility vary by household size — we store a single number"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered uniformly by county JFS offices; processing/wait times may vary by county workload (e.g., urban areas like Cuyahoga faster than rural). No benefit differences[6][8].",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of ID/age (driver's license, birth certificate)",
+            "Income (Social Security award letters, pay stubs, pension statements)",
+            "Expenses (rent/mortgage receipts, utility bills, medical costs >$35/month)",
+            "Assets (bank statements if near limit)",
+            "Household details (names/relations of food-sharing members)"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Seniors 60+ use simplified net income test only (no gross); higher $3,250 asset limit; benefits scale by household size with big deductions for shelter/medical; new 2025 work rules hit 55-64 hard; statewide but county-administered",
+      "gotchas": [
+        "Seniors 60+ skip gross income test—only net counts, but Social Security/pensions fully included[1][6]",
+        "Ages 55-64 face new 2025 work rules (20 hrs/week) unless exempt; 65+ exempt[2][5]",
+        "Low participation: ~50% eligible seniors don't apply[1][4]",
+        "Medical expenses >$35/month (e.g., Medicare premiums, prescriptions) deduct significantly[6][7]",
+        "Own home/car? Still eligible—exempt assets[1][7]",
+        "Household must include food-sharers, even non-relatives[1]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "household_size",
+      "officialSource": "https://benefits.ohio.gov/SNAP"
+    },
+    {
+      "name": "Home Energy Assistance Program (HEAP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Income caps at 175% FPL (household size table required via official tool); benefits highly variable by income, fuel, region, PIPP; local agency delivery statewide; annual re-verification; 30/90/12-month income proof flexibility",
+      "gotchas": [
+        "Must apply for HEAP before other programs like AEP Neighbor to Neighbor[1]",
+        "Income excludes only dependent minors' wages under 18; report all other gross income[2][3]",
+        "Benefits lower post-pandemic (2025); varies significantly by factors like PIPP (75% reduction if enrolled)[3][6]",
+        "90-day processing; ensure complete/signed app with all docs[3]",
+        "Priority for elderly/disabled/young children but not required for eligibility[2]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "household_size|priority_tier|region|fuel_source|PIPP_enrollment",
+      "officialSource": "https://development.ohio.gov/individual/energy-assistance/1-home-energy-assistance-program"
+    },
+    {
+      "name": "Home Weatherization Assistance Program (HWAP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Income at 200% FPG with table scaling by household size and +$11k per extra member; priority tiers drive service order; county-based local providers with unique contacts/forms; automatic eligibility from specific aid programs.",
+      "gotchas": [
+        "Must submit application even if automatically income-eligible via SSI/TANF/HEAP.[2]",
+        "Priority-based service order, not first-come for all.[1][6]",
+        "Renters eligible but require landlord/property manager contact info.[5]",
+        "Services free for single-family homes; multi-family may need additional arrangements.[5]",
+        "Homeowners and renters/mobile homes both eligible, but inspection determines exact services.[1][5]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://development.ohio.gov/individual/energy-assistance/6-home-weatherization-assistance-program[2]"
+    },
+    {
+      "name": "Ohio Senior Health Insurance Information Program (OSHIIP/SHIP)",
+      "isNew": false,
+      "existingId": "ohio-senior-health-insurance-information-program-oshiip",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$1,000 – $5,000/year",
+          "found": "Free, objective, personalized one-on-one health insurance counseling; education on Medicare, Medicare Part D, Medicare Advantage, Medicare supplement insurance, long-term care insurance, and other health insurance matters; enrollment assistance, appeals, complaints, explanation of benefits; hotline support, speaker's bureau, trained volunteers.[1][2][3][4][6]",
+          "source": "https://insurance.ohio.gov/consumers/medicare/01-oshiip"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://insurance.ohio.gov/consumers/medicare/01-oshiip"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits or tests apply.[1][4]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Delivered through statewide hotline and local coordinators/volunteers in various counties (e.g., Erie/Fulton/Henry/Lucas/Ottawa/Paulding/Sandusky/Williams/Wood/Defiance via AOoA; Athens/Hocking/Meigs/Monroe/Morgan/Noble/Perry/Washington via Buckeye Hills); contact local coordinators via hotline for region-specific support[2][3][9]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Medicare card, current insurance details, explanation of benefits (EOB) statements if available, to facilitate personalized counseling; not mandatory for initial contact[4]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "no income/asset test; counseling-based SHIP program with regional volunteer coordinators; open access without application barriers",
+      "gotchas": [
+        "Not a financial assistance or healthcare service program—only provides free counseling and education, no direct payments or medical care[2][4][6]",
+        "People often confuse it with Medicare benefits or payment programs; it's purely informational/advocacy[4]",
+        "Local availability varies; always start with statewide hotline if local contact unavailable[9]",
+        "No enrollment into Medicare itself—assists with understanding/enrollment processes[3][4]"
+      ],
+      "benefitType": "advocacy",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://insurance.ohio.gov/consumers/medicare/01-oshiip"
+    },
+    {
+      "name": "Meals on Wheels (Home-Delivered Meals)",
+      "isNew": false,
+      "existingId": "home-delivered-meals-golden-buckeye-nutrition-program",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$1,500 – $3,600/year",
+          "found": "Nutritious home-delivered meals (typically 1 per day, up to 14 per week for noon/evening in some waiver programs); may include companionship and safety checks. Therapeutic meals (e.g., diabetic) available in select areas with prescription. Self-pay or funder-supported options exist[1][4][6][9].",
+          "source": "https://aging.ohio.gov (Ohio Department of Aging; program follows ODA rules per local providers[1])"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://aging.ohio.gov (Ohio Department of Aging; program follows ODA rules per local providers[1])"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits or exemptions mentioned in any sources.",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered locally: e.g., Fayette County (home assessment by Director)[1]; Central Ohio/LifeCare Alliance (Franklin, Champaign, Logan, Madison, Marion counties; case-managed via PASSPORT waivers or self-pay)[4]; Northeast Ohio/VANTAGE (Stark, Summit, Wayne, Portage, Carroll, Holmes, Tuscarawas; multiple funding sources)[6]; Franklin County (all 60+ residents, sliding fee)[7]. Eligibility/assessment processes differ.",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Not mentioned in sources.",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Dietary restrictions/allergies, emergency contacts, medical issues, prescriptions, adaptive equipment, physician contacts, health insurance, hospitalization history (for some assessments)[2].",
+            "Diet order/prescription for therapeutic meals[6]."
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Decentralized by county/provider with no uniform statewide income/assets test or application; local AAAs handle via ODA guidelines, leading to variations in funding, assessments, and therapeutic options.",
+      "gotchas": [
+        "Not centralized—must contact specific local provider/Area Agency on Aging for your county; eligibility/processes vary widely[1][3][6].",
+        "Often requires in-home assessment, not just phone application[1].",
+        "May involve co-pays, self-pay, or funding checks despite no strict income limits[4][6][7].",
+        "Spouses/under-60 eligibility is narrow (e.g., living with eligible senior or in senior facility)[1].",
+        "Availability tied to local capacity; check service area[2]."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "region",
+      "officialSource": "https://aging.ohio.gov (Ohio Department of Aging; program follows ODA rules per local providers[1])"
+    },
+    {
+      "name": "National Family Caregiver Support Program (NFCSP)",
+      "isNew": false,
+      "existingId": "national-family-caregiver-support-program",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "min_age",
+          "ours": "60",
+          "found": "55",
+          "source": "https://aging.ohio.gov/care-and-living/caregiver-support[8]"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$2,000 – $8,000/year",
+          "found": "Five core services: 1) Information about available services; 2) Assistance gaining access to services; 3) Individual counseling, support groups, caregiver training; 4) Respite care; 5) Supplemental services on limited basis (e.g., short-term services once per calendar year in some areas)[1][2][7]. No fixed dollar amounts or hours specified statewide; short-term respite and services vary locally.",
+          "source": "https://aging.ohio.gov/care-and-living/caregiver-support[8]"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://aging.ohio.gov/care-and-living/caregiver-support[8]"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits specified for NFCSP; contrasts with programs like PASSPORT which has $2,000 resource limit (home and car exempt)[3].",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Services and exact eligibility details (e.g., full-time care requirement, short-term limits) vary by AAA; Franklin County requires county residency and demonstrated in-home need; WRAAA serves specific counties with partner agencies[1][7]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Not mentioned; services described as short-term and accessible once per year in some areas[1]",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of residency in service area",
+            "Details on care recipient (age, disability status if applicable)",
+            "Demonstration of caregiving need; prepare ID and household info[1]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Administered via 12 local AAAs with service area residency required; no statewide income/asset test; benefits are non-financial services varying by local provider capacity and demonstrated need",
+      "gotchas": [
+        "Not a cash payment or paid caregiver program; provides support services only, not compensation[2][6]",
+        "Must contact local AAA, not state directly; no centralized application[8]",
+        "Short-term services limited (e.g., once per calendar year in Franklin County)[1]",
+        "Excludes paid caregivers and spouses/legal guardians in some contexts[6]",
+        "Often confused with Medicaid programs like PASSPORT (which pays family caregivers but has strict income/asset limits)[3][6]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "region",
+      "officialSource": "https://aging.ohio.gov/care-and-living/caregiver-support[8]"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "SCSEP is a statewide program available in all 88 Ohio counties but administered by multiple regional providers, so the application process and local contact information vary by provider and county. Income eligibility is based on a percentage of federal poverty level (125%), which scales by household size but specific dollar amounts are not provided in search results. Benefits are fixed (20 hours/week at minimum wage) rather than tiered. The program emphasizes priority enrollment for specific populations rather than different benefit levels. Federal funding delays noted in 2026 may affect program availability.",
+      "gotchas": [
+        "Income limit is strict: 125% of federal poverty level, which is significantly below median income for most households[3][5]. Families must verify current dollar thresholds with their provider.",
+        "Program requires unemployment status — participants cannot be currently employed[3][5].",
+        "This is a work-based training program, not a direct cash assistance program. Participants earn minimum wage for 20 hours per week, not a lump sum or ongoing stipend.",
+        "The program is experiencing federal funding delays and transitions as of the search results[5], which may affect availability or processing times.",
+        "Training is typically part-time (20 hours/week average), not full-time employment[3][5].",
+        "Placement is to 'unsubsidized' employment, meaning the program helps transition participants to regular jobs, not permanent SCSEP positions[1][3].",
+        "Priority enrollment is given to specific populations (veterans, over 65, minorities, etc.)[3], which may affect wait times for non-priority applicants.",
+        "No specific information provided about asset limits, which may be a factor in eligibility determination."
+      ],
+      "benefitType": "employment",
+      "benefitVariesBy": "fixed",
+      "officialSource": "https://aging.ohio.gov/care-and-living/staying-active/staying-active-catalog/senior-community-services-employment-program and https://www.dol.gov/agencies/eta/seniors"
+    },
+    {
+      "name": "Legal Assistance Developer Program (LADP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "State Legal Assistance Developer (LAD) coordinates statewide OAA Title III-B legal services via AAAs; non-means-tested for 60+ but priority-tiered; regional AAA delivery with no fixed dollar/hour limits",
+      "gotchas": [
+        "Not means-tested but prioritizes greatest economic/social need—low-income/isolation get first access[2]",
+        "Financial questions only for advice/resources, not eligibility screening[1][3]",
+        "Excludes wills, criminal defense, employment, activism[3]",
+        "Must be Ohio-licensed attorney; coordinate with private bar pro bono[1][3]",
+        "Limited OAA funds target specific issues like elder rights, not all legal needs[2][5]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://aging.ohio.gov (ODA); Rule 173-3-06.10 Ohio Admin Code[1][3]"
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "isNew": false,
+      "existingId": "long-term-care-ombudsman-program",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$10,000 – $30,000/year",
+          "found": "Advocacy to resolve complaints about quality of care and life; investigation of issues like abuse, neglect, poor hygiene, food quality, billing, admission/transfer/discharge problems, civil rights violations; assistance with care planning, Medicare/Medicaid questions, linking to services, provider selection resources, and ensuring person-centered care; provided confidentially by trained staff and volunteers.",
+          "source": "https://aging.ohio.gov/ombudsman"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://aging.ohio.gov/ombudsman"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits; no financial tests apply.",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Delivered through 12 regional programs with local offices and certified staff/volunteers; specific counties served by regional providers (e.g., ABLE serves 17 northwest counties including Allen, Auglaize, etc.; Direction Home of Eastern Ohio serves Ashtabula, Columbiana, etc.); contact methods and staff may vary locally but services standardized.",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "No documents needed to initiate contact; for investigations, consent from resident/recipient (written, oral, or implied if unable to consent and no guardian contactable); access to relevant records may be requested with consent."
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "no income/asset/age test—universal access for long-term care recipients; regionally delivered statewide via 12 offices and 250+ staff/volunteers; complaint-driven, not application-based enrollment.",
+      "gotchas": [
+        "Not a financial aid or direct service program—purely advocacy and complaint resolution; requires resident consent for investigations (or specific conditions if incapacitated); anyone can contact on behalf of resident but ombudsman prioritizes resident's wishes; not for emergencies (call 911); often confused with programs like PASSPORT which have eligibility tests."
+      ],
+      "benefitType": "advocacy",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://aging.ohio.gov/ombudsman"
+    },
+    {
+      "name": "Golden Buckeye Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "This program has no income or asset limits, making it universally accessible to eligible age/disability groups. The primary eligibility divide is age-based (60+) versus disability-based (18-59). Application method differs by category: age 60+ can use online form or in-person; disability applicants must apply in-person. Benefits are merchant-dependent rather than program-tiered. Recent policy change (end of automatic enrollment) is critical for families to understand.",
+      "gotchas": [
+        "Automatic enrollment at age 60 has ended: As of the current guidance, cards are no longer automatically mailed to all Ohioans when they turn 60[4]. Residents must now apply in-person or use the online form.",
+        "Disability applicants must apply in-person: Unlike age 60+ applicants who can use an online form, people ages 18-59 with disabilities must apply at a sign-up site[4].",
+        "Strict disability documentation requirements: Only specific documents are accepted (Medicare card, SSI/SSDI paperwork, or official disability certification). Letters from physicians are explicitly not accepted[4].",
+        "Medicare vs. Medicaid distinction: Applicants must provide a Medicare card, not Medicaid[4].",
+        "Card is non-transferrable: Only the person whose name is on the card can use it[7].",
+        "No online or phone application: Despite online form availability for age 60+, in-person verification is required for disability applicants and those without current ID[6].",
+        "This is a discount program, not a service program: Golden Buckeye provides merchant discounts and savings, not direct services like healthcare, transportation, or meal delivery. Families expecting direct services may be disappointed."
+      ],
+      "benefitType": "in_kind",
+      "benefitVariesBy": "not_applicable — benefits depend on individual merchant participation, not program tier",
+      "officialSource": "https://aging.ohio.gov/about-us/learn-about-golden-buckeye/"
+    },
+    {
+      "name": "Healthy Aging Grants",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "County-administered with local variations in providers, application processes, and service focus; no direct state application for individuals; income test at 300% FPL or 65% AMI; funds to counties then sub-granted to providers",
+      "gotchas": [
+        "Not a direct-to-individual grant—families apply through county offices/providers, not state; funds one-time (10/1/2023–9/30/2024), deplete quickly (first-come-first-served); providers must be pre-approved nonprofits; no statewide uniform process/form—check county-specific details; priority to COVID-impacted, not all seniors qualify equally[1][2][3][5]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "region",
+      "officialSource": "https://aging.ohio.gov/care-and-living/healthy-aging"
+    },
+    {
+      "name": "Senior Citizen Tax Credit",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "State income tax credit claimed annually via tax return; strict requirement for qualifying retirement income types; fixed $100,000 income threshold regardless of household size; no asset test.",
+      "gotchas": [
+        "Only applies to retirement income included in Ohio AGI; excludes Social Security, military retirement, or other deductible retirement income.[1]",
+        "Must not have previously claimed the lump sum retirement credit.[1]",
+        "Non-refundable; only offsets tax liability, does not provide cash if no tax owed.",
+        "Requires Box 2b 'Total Distribution' checked on 1099R for lump sum claims.[1][8]",
+        "Frequently confused with Homestead Exemption (property tax reduction, separate income limits around $38,600-$41,000 depending on year).[2][3][4]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "fixed",
+      "officialSource": "https://tax.ohio.gov/individual/file-now/ohio-tax-credits-and-their-required-documentation"
+    },
+    {
+      "name": "Franklin County Senior Services Levy Programs (Senior Options)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "county-restricted to Franklin County OH; no income/asset tests, no poverty spend-down; one-stop shop entry with partner network delivery; levy-funded continuous since 1993",
+      "gotchas": [
+        "Funded solely by Franklin County Senior Services Levy (renewals e.g., 2023-2027); services via large provider network, not direct county provision; single-entry point but assessments often by COAAA; no new levy could shut down programs; targeted at independence maintenance, not all seniors automatically qualify without needs assessment; typical recipient female over 75 living alone"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://www.franklincountyohio.gov/Resident-Services/Seniors/Senior-Options-Programs"
+    }
+  ]
+}

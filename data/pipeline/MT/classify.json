@@ -1,0 +1,174 @@
+{
+  "state": "MT",
+  "stateName": "Montana",
+  "classifiedAt": "2026-04-09T09:06:29.408Z",
+  "total": 4,
+  "typeSummary": {
+    "benefit": 3,
+    "navigator": 1
+  },
+  "scopeSummary": {
+    "state": 3,
+    "local": 1
+  },
+  "complexitySummary": {
+    "deep": 2,
+    "medium": 1,
+    "simple": 1
+  },
+  "programs": [
+    {
+      "name": "Big Sky Waiver Program",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Mountain Pacific (statewide referral contact)",
+            "type": "service-area"
+          },
+          {
+            "name": "County Office of Public Assistance (OPA) offices (county-level eligibility)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "TCARE",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local Area Agencies on Aging",
+            "type": "service-area"
+          },
+          {
+            "name": "DPHHS SLTC Aging Services bureau",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "medium",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": false
+      }
+    },
+    {
+      "name": "State Health Insurance Assistance Program (S.H.I.P.)",
+      "programType": "navigator",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Montana has more than 150 certified SHIP counselors statewide",
+            "type": "service-area"
+          },
+          {
+            "name": "Services delivered through Area Agencies on Aging network",
+            "type": "service-area"
+          },
+          {
+            "name": "Specific county-level contacts available through 1-800-551-3191",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "provider-list"
+      ],
+      "signals": {
+        "benefitType": "advocacy|service|in_kind",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Commodity Supplemental Food Program (CSFP)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Roosevelt County Aging Services, 124 Custer St, Wolf Point, MT 59201, 406-653-6221[6]",
+            "type": "service-area"
+          },
+          {
+            "name": "Powell County Council on Aging, 406-846-9789[7]",
+            "type": "service-area"
+          },
+          {
+            "name": "Richland County Commission on Aging, 2190 W Holly Street, Sidney, MT 59270[2]",
+            "type": "service-area"
+          },
+          {
+            "name": "Missoula Food Bank (ROOTS application)[3]",
+            "type": "service-area"
+          },
+          {
+            "name": "Contact your regional office for local food pantry or agency providing CSFP services in your area[5]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "in_kind",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    }
+  ]
+}

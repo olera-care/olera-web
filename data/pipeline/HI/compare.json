@@ -1,0 +1,380 @@
+{
+  "state": "HI",
+  "stateName": "Hawaii",
+  "comparedAt": "2026-04-09T08:51:01.050Z",
+  "total": 14,
+  "newPrograms": 13,
+  "withDiffs": 1,
+  "withNovelFields": 1,
+  "benefitTypes": {
+    "service": 8,
+    "unknown": 1,
+    "financial": 2,
+    "employment": 1,
+    "advocacy": 1,
+    "in_kind": 1
+  },
+  "variationPatterns": {
+    "priority_tier": 5,
+    "not_applicable — specific service hours, dollar amounts, or tiered benefits are not detailed in available sources": 1,
+    "program_tier": 1,
+    "household_size": 1,
+    "Two credit types available: Energy Credit (EC) or Energy Crisis Intervention (ECI). ECI requires a Notice of Disconnection.[1]": 1,
+    "not_applicable": 2,
+    "provider": 1,
+    "priority_tier and caregiver_employment_status": 1,
+    "fixed": 1
+  },
+  "novelFieldSummary": {
+    "asset_limits": {
+      "count": 1,
+      "programs": [
+        "Med-QUEST Home and Community-Based Services (HCBS) Waivers"
+      ],
+      "note": "Our model has no asset limit fields"
+    },
+    "regional_variations": {
+      "count": 1,
+      "programs": [
+        "Med-QUEST Home and Community-Based Services (HCBS) Waivers"
+      ],
+      "note": "Program varies by region — our model doesn't capture this"
+    },
+    "waitlist": {
+      "count": 1,
+      "programs": [
+        "Med-QUEST Home and Community-Based Services (HCBS) Waivers"
+      ],
+      "note": "Has waitlist info — our model has no wait time field"
+    },
+    "documents_required": {
+      "count": 1,
+      "programs": [
+        "Med-QUEST Home and Community-Based Services (HCBS) Waivers"
+      ],
+      "note": "Has document checklist — our model doesn't store per-program documents"
+    }
+  },
+  "comparisons": [
+    {
+      "name": "Med-QUEST Home and Community-Based Services (HCBS) Waivers",
+      "isNew": false,
+      "existingId": "home-and-community-based-services-hcbs-waiver",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$10,000 – $30,000/year",
+          "found": "Home and community-based services (HCBS) as alternatives to institutional care, including person-centered supports identified via planning process. Specific services via providers or Consumer-Directed (CD) Option; examples not exhaustively listed but cover needs for target groups like I/DD (e.g., case management coordination). No fixed dollar amounts or hours specified; tied to assessed needs[1][2].",
+          "source": "https://health.hawaii.gov/ddd/participants-families/waiver/ and https://medquest.hawaii.gov/[2][7]"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://health.hawaii.gov/ddd/participants-families/waiver/ and https://medquest.hawaii.gov/[2][7]"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "For seniors 65+, blind, or disabled seeking long-term care HCBS, assets under $2,000 for singles (no asset limits for children or adults under 65). Counts typical countable assets; exemptions not detailed but standard Medicaid rules apply (e.g., primary home often exempt up to equity limits)[3][5][6].",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "No regional differences detailed; uniform administration but potential provider variations by island[2].",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Implied by limited slots in 1915(c) waivers, but no specific details[1][2].",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of income, assets, residency, identity.",
+            "Medical/functional assessments for level of care.",
+            "DDD eligibility docs if applicable[2][3][4]."
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Multiple target-group waivers under Med-QUEST (e.g., I/DD via DDD); eligibility layered (Medicaid + division + LOC); no single elderly waiver specified, benefits need-assessed not fixed-dollar; statewide but division-specific.",
+      "gotchas": [
+        "Multiple HCBS waivers exist (e.g., I/DD-specific via DDD); not a single elderly-focused waiver—must identify target group[1][2].",
+        "Requires both Medicaid eligibility AND division-specific eligibility (e.g., DDD) AND level of care[2][4].",
+        "Financial rules vary by marital status, annually update, and have spend-down paths[3].",
+        "Asset limits apply only to certain groups (65+, blind/disabled); NHLOC required for HCBS[3][5].",
+        "Services person-centered but provider/coordinator-dependent; waitlists likely due to waiver caps[1]."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://health.hawaii.gov/ddd/participants-families/waiver/ and https://medquest.hawaii.gov/[2][7]"
+    },
+    {
+      "name": "Hawai'i PACE (Program of All-Inclusive Care for the Elderly)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Hawaii PACE eligibility is defined by state regulation (Haw. Code R. § 17-1746-11) with specific acuity level requirements and QUEST program exclusion. However, critical operational details—provider locations, service areas, contact information, processing timelines, and specific application procedures—are not available in the search results. The program appears to be geographically restricted by provider service areas, but the number and location of providers are not specified. Income and asset limits are not explicitly stated in Hawaii regulations, suggesting they may follow federal Medicaid standards or be individually assessed.",
+      "gotchas": [
+        "Hawaii PACE has specific acuity level requirements (A or C) that differ from general nursing home level of care definitions used in other states[1]",
+        "Applicants cannot be enrolled in Hawaii QUEST program, which is a specific Hawaii Medicaid managed care plan[1]",
+        "PACE becomes the sole source of services for Medicare and Medicaid eligible enrollees — individuals cannot use other providers for covered services[4]",
+        "Individuals can leave the program at any time, but re-enrollment may have different requirements[4]",
+        "Search results do not provide specific contact information, provider locations, or application procedures — families will need to contact Hawaii Department of Human Services directly",
+        "Income and asset limits are not explicitly stated in Hawaii regulations; they may follow federal Medicaid guidelines or be determined on a case-by-case basis"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "not_applicable — specific service hours, dollar amounts, or tiered benefits are not detailed in available sources",
+      "officialSource": "https://www.law.cornell.edu/regulations/hawaii/Haw-Code-R-SS-17-1746-11 (Hawaii Administrative Rules § 17-1746-11)"
+    },
+    {
+      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Hawaii's Medicare Savings Programs are administered as a single Medicaid eligibility group with three tiers (QMB, SLMB, QI) based on income level. The key distinguishing feature is that Hawaii has raised income limits above federal standards for all three programs, making them more accessible than in most other states. QI differs from QMB and SLMB in that it operates on a first-come, first-served basis and requires annual reapplication. Benefits scale by program tier: QMB covers the most (premiums, deductibles, copayments), while SLMB and QI cover Part B premiums only. The search results lack critical operational details (phone numbers, specific office locations, processing times, detailed application procedures) that families would need for actual application.",
+      "gotchas": [
+        "Hawaii's income limits are significantly higher than federal limits — approximately 15% higher for QMB and SLMB[5]. Families should not assume they don't qualify based on federal thresholds.",
+        "QI program is first-come, first-served and requires annual reapplication, unlike SLMB which does not require annual reapplication[1][4][6]",
+        "QI program does not automatically include Extra Help for prescription drugs, while QMB and SLMB do[6]",
+        "You cannot qualify for the QI program if you already qualify for Medicaid[6]",
+        "The $20 monthly income disregard applies to all three programs, which may allow qualification even if income slightly exceeds stated limits[3]",
+        "Working income may be treated differently — if you have earned income, you may qualify even if total income exceeds limits[6]",
+        "Search results do not specify which assets are exempt (e.g., primary residence, vehicles) — families should contact MedQuest directly for clarification",
+        "Specific application procedures, phone numbers, online portals, and processing timelines are not detailed in available search results; families must contact MedQuest directly"
+      ],
+      "benefitType": "unknown",
+      "benefitVariesBy": "program_tier",
+      "officialSource": "https://medquest.hawaii.gov/content/medquest/en/members-applicants/get-started/programs.html[10]"
+    },
+    {
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Benefits scale by household size and net income after elderly-specific deductions (medical/shelter); no asset test under BBCE but federal fallback for high-gross elderly/disabled households; statewide with ESAP option for seniors.",
+      "gotchas": [
+        "Seniors 60+ exempt from work requirements but potential 2025 federal changes (One Big Beautiful Bill Act) may require work proof for 50-65 unless disabled, risking 16,570 elders.[5][7]",
+        "Only ~half of eligible seniors apply; use ESAP for simplified process.[4][5]",
+        "Medical expenses over $35/month deductible for 60+, often missed.[6][7]",
+        "Household includes all who buy/prepare food together.[4][6]",
+        "BBCE expands limits but exceeding 200% gross requires federal net/asset tests.[2]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "household_size",
+      "officialSource": "https://humanservices.hawaii.gov/bessd/snap/"
+    },
+    {
+      "name": "Hawaii Home Energy Assistance Program (H-HEAP, formerly LIHEAP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "This program is geographically fragmented with different application methods and providers by island/county, creating significant regional variation in accessibility. The application window is extremely narrow (30 days annually), making timing critical. Benefits are one-time payments with unspecified dollar amounts. The program serves as a safety valve for utility crises rather than ongoing assistance. Eligibility is income-based with an automatic pathway for households receiving other safety-net benefits, but documentation requirements are extensive. No asset limits are disclosed, suggesting they may not apply or may be determined case-by-case.",
+      "gotchas": [
+        "One payment per program year only (October 1 – September 30).[1] Households cannot receive multiple payments in a single year.",
+        "Application window is narrow: June 1-30 only.[2][4] Missing this window means waiting until the next program year.",
+        "Oahu residents cannot apply by mail or email; in-person application is mandatory.[2] This creates a significant barrier for homebound elderly individuals.",
+        "Must have an active residential service account at the time of application.[1] Households with disconnected service may not qualify for Energy Credit (EC), though Energy Crisis Intervention (ECI) may be available with a Notice of Disconnection.",
+        "The program name changed from LIHEAP to H-HEAP, which may cause confusion when searching for resources or historical information.[2]",
+        "Automatic qualification through TANF, SSI, or SNAP participation bypasses income verification but still requires all other documentation.[4]",
+        "All household members over 1 year old must provide Social Security numbers; this can be a barrier for mixed-status households.[2][4]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "Two credit types available: Energy Credit (EC) or Energy Crisis Intervention (ECI). ECI requires a Notice of Disconnection.[1]",
+      "officialSource": "https://www.hawaiianelectric.com/billing-and-payment/payment-assistance/low-income-programs/h-heap"
+    },
+    {
+      "name": "Sage PLUS (SHIP - State Health Insurance Assistance Program)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "no income or asset test; volunteer counseling service only, not benefits-paying program; statewide uniform access via phone/virtual with no formal application",
+      "gotchas": [
+        "Not a financial aid or healthcare provider program—only free counseling and information assistance, not direct payments or services; people often confuse with Medicaid/Med-Quest which have strict income/asset limits; requires Medicare enrollment for full relevance; volunteer-based so availability depends on counselor schedules"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://www.hawaiiship.org"
+    },
+    {
+      "name": "Home-Delivered Meals (Meals on Wheels)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Multiple independent providers (not centralized state program); Oahu-heavy; no fixed income/asset tests but priority-based; varies by provider on delivery frequency/payment.",
+      "gotchas": [
+        "Must be home to accept delivery and admit volunteers; safe home environment required.",
+        "Space on routes limits immediate start; priority to low-income/minority/isolated.",
+        "Physician verification and assessments mandatory.",
+        "Not all islands equally covered; Oahu dominant.",
+        "Some programs weekly vs. daily; paid options if not free-eligible.",
+        "Not automatic for age 60+; must meet homebound/need criteria.[1][4]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "provider",
+      "officialSource": "No single statewide .gov site; key providers: hmow.org (Hawaii Meals on Wheels), lanakilapacific.org (Lanakila Pacific). State resources via humanservices.hawaii.gov or aging.hawaii.gov (not directly cited).[6]"
+    },
+    {
+      "name": "Executive Office on Aging Family Caregiver Support Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Administered statewide via 4 county AAAs with priority tiers for greatest needs; no fixed income/asset tests but funding-limited; benefits include caregiver-specific respite/counseling plus linkages",
+      "gotchas": [
+        "Funding prioritizes greatest needs (low-income, minorities, limited English, disabled), so higher-income may be deprioritized or wait longer[6]",
+        "Services vary by county AAA and availability; not all services in every location[6]",
+        "Must have unpaid caregiver and specific impairments (2+ ADLs/IADLs); independent seniors without caregiver may not qualify[1]",
+        "Respite and other services depend on eligibility assessment, not guaranteed[7]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://health.hawaii.gov/eoa/"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Income at 125% federal poverty level (family-based, annual update); priority enrollment tiers; statewide with county sub-providers and varying host agencies; no fixed processing times or asset limits specified",
+      "gotchas": [
+        "Not for job-ready individuals; they are referred to WIOA Adult Program",
+        "Training is temporary; participants must seek unsubsidized employment after completion (host agencies may hire but wages unsubsidized)",
+        "Income based on family/household, not individual",
+        "Priority groups get preference; limited slots due to federal funding",
+        "Must be unemployed at enrollment; no asset test but strict poverty threshold",
+        "County-specific residency for some sub-programs (e.g., Maui-only)"
+      ],
+      "benefitType": "employment",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://labor.hawaii.gov/wdd/job-seekers/scsep/"
+    },
+    {
+      "name": "Legal Aid Society of Hawaii Elder Law Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Statewide with island-specific intake lines; no detailed income/asset tables or forms listed; priority-based allocation due to high demand (serves 18,000+ clients yearly across Legal Aid)[5][7]; distinct from UHELP which is Oahu-restricted academic clinic",
+      "gotchas": [
+        "Phone intake limited to specific hours (M-F 9-11:30AM & 1-3:30PM); no walk-in or public office access[4][7]",
+        "Services free but limited to civil matters; priority to neediest may mean not all qualify or face waits[4][7]",
+        "No fees, but does not handle criminal, business, personal injury, or fee-generating cases[4][7]",
+        "Often confused with University of Hawaii Elder Law Program (UHELP), which is Oahu-only, student-supervised clinic with different contact (808-956-6544)[1][3][8]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.legalaidhawaii.org/elder-law-services.html"
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program (LTCOP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "no income test; advocacy-only for LTC facility residents statewide; volunteer-driven with certification requirements; free and open to all qualifying residents without financial barriers",
+      "gotchas": [
+        "Not a direct service provider or financial aid program—offers advocacy and complaint resolution only, not healthcare or payment; requires resident consent for most actions (documented orally or in writing); confusion with volunteer recruitment (separate from receiving services); volunteers must reside locally (e.g., Oahu) with vehicle; not for non-facility residents unless seeking info/referral."
+      ],
+      "benefitType": "advocacy",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://health.hawaii.gov/eoa/home/long-term-care-ombudsman-program/"
+    },
+    {
+      "name": "Kūpuna Aging in Place (KAP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Grant-funded via Hawaiʻi Community Foundation to nonprofits; not a direct government entitlement program; benefits via provider networks with individual care plans and financial intake; age 65+ focus distinguishes from 60+ state programs",
+      "gotchas": [
+        "KAP is a grant program funding nonprofits, not a direct state-run service like Kupuna Care; families must contact providers, not a single agency[1][4][7]",
+        "Age 65+ (vs 60+ for OAA Title III or Kupuna Care); targets low-moderate income with case management required[1][4]",
+        "No direct individual application to funders; relies on provider intake and care plans[4]",
+        "Often confused with state Kupuna Care program, which has stricter non-Medicaid eligibility and cost-sharing[1][3][6]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.hawaiicommunityfoundation.org/strengthening/kupuna-aging-in-place"
+    },
+    {
+      "name": "Kūpuna Care Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "This program has two distinct service delivery models: traditional service delivery OR participant-directed services and support, based on individualized support plans[1]. Benefits scale by priority tier (economic need, social need, institutional placement risk) rather than by household size. No specific income or asset limits are documented in available sources, making this a needs-based rather than means-tested program. The program serves three populations: care recipients (frail older adults), caregivers (family members), and employed caregivers (working individuals providing direct care). Employed caregivers have a separate benefit structure ($70/day maximum) distinct from care recipients. Regional implementation varies through area agencies on aging, but no specific county-level variations are documented.",
+      "gotchas": [
+        "Program explicitly excludes individuals already receiving comparable government or private home- and community-based care services[2] — dual enrollment is not permitted.",
+        "Individuals residing in ANY institutional setting (including skilled nursing facilities, adult residential care, hospitals) are ineligible[2].",
+        "For employed caregivers: must work at least 30 hours per week and provide direct care to qualify for the Kupuna Caregivers Program specifically[4].",
+        "Services are paid directly to contracted service providers, NOT to the caregiver or family member[4] — this is not a cash payment program.",
+        "Program funding is limited and subject to legislative appropriation[4] — availability may vary year to year.",
+        "Eligibility is confirmed through in-home assessment; preliminary determination alone does not guarantee services[1].",
+        "Individual can be deemed ineligible if they leave the state, refuse services, or their whereabouts become unknown[1]."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier and caregiver_employment_status",
+      "officialSource": "Hawaii Revised Statutes § 349-17 (law.justia.com/codes/hawaii/title-20/chapter-349/section-349-17/); Hawaii Department of Human Services Elderly Affairs Division"
+    },
+    {
+      "name": "Senior Food Box Program (CSFP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "This program's data structure is unique in that: (1) Hawaii's income limit (150% FPL) is higher than the national baseline (130% FPL)[3][4], (2) it operates on a caseload assignment system with limited slots (3,226 for FFY 2024)[3], creating a waitlist dynamic, (3) it requires county-level residency verification[3], (4) it is exclusively for seniors 60+ following 2014 legislative changes[4], and (5) recertification frequency may vary (sources cite both 6 months and 12 months—verify current requirement). The program is administered by Hawaii Department of Labor with Hawaii Foodbank as the primary provider for Oahu[1][3].",
+      "gotchas": [
+        "Income limits vary by state: Hawaii uses 150% of Federal Poverty Income Guidelines[3], while the national baseline is 130%[4]. Verify the current year's income limits with Hawaii Department of Labor[3].",
+        "Slots fill quickly with a waitlist[1]. Families should apply early in the fiscal year.",
+        "Recertification required annually[1]. Applicants must reapply every 12 months to maintain eligibility.",
+        "One source mentions recertification every 6 months[5], while another states annually[1]—clarify current requirement with Hawaii Foodbank.",
+        "Valid photo ID required at every monthly pick-up[1], not just at application.",
+        "County residency requirement: Must reside in the specific county where applying[3]. This is not statewide reciprocal.",
+        "Program is exclusively for seniors 60+. Women, infants, and children are no longer eligible unless they were certified before February 6, 2014[4].",
+        "Can be combined with SNAP and other benefits—no prohibition against receiving both[4].",
+        "If waitlisted, attendance at monthly pick-up location may result in receiving a box if extras are available[1]."
+      ],
+      "benefitType": "in_kind",
+      "benefitVariesBy": "fixed",
+      "officialSource": "https://labor.hawaii.gov/ocs/service-programs-index/federal-food-assistance-programs/csfp/"
+    }
+  ]
+}

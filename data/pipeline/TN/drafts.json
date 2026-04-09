@@ -1,0 +1,568 @@
+{
+  "state": "TN",
+  "stateName": "Tennessee",
+  "draftedAt": "2026-04-09T09:02:01.582Z",
+  "total": 9,
+  "successful": 3,
+  "programs": [
+    {
+      "id": "tennessee-medicare-savings-programs",
+      "name": "TennCare Medicare Savings Programs (QMB, SLMB, QI)",
+      "shortName": "Medicare Savings Programs",
+      "tagline": "Your parent could save $1,000-4,000/year on Medicare premiums and out-of-pocket costs",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Bureau of TennCare processes all MSP applications statewide",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is on Medicare and struggling with monthly premiums or high out-of-pocket costs, Tennessee's Medicare Savings Programs could cover these expenses. These three programs (QMB, SLMB, and QI) pay for Medicare Part B premiums ($185/month in 2026), deductibles, and copayments based on your parent's income level.\n\nQMB provides the most comprehensive coverage, paying all Medicare premiums and out-of-pocket costs for individuals earning up to $1,350/month. SLMB and QI cover Part B premiums only but have higher income limits. All three programs also provide Extra Help with prescription drug costs, capping copayments at $12.65 per medication.\n\nBecause these programs coordinate with Medicare, your parent keeps their existing Medicare coverage while getting help paying for it — they won't need to switch doctors or plans.",
+      "savingsRange": "$1,000 – $4,000/year in 2026",
+      "savingsSource": "Medicare Part B premiums ($2,220/year) plus potential deductibles, copayments, and prescription drug savings",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Must have Medicare Part A and B",
+          "Individual income below $1,824/month (varies by program)",
+          "Assets under $9,950 (individual)",
+          "Cannot have other Medicaid coverage (QI only)"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1350,
+            "program": "QMB"
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 1824,
+            "program": "QMB"
+          },
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1620,
+            "program": "SLMB (estimate)"
+          },
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1823,
+            "program": "QI (estimate)"
+          }
+        ],
+        "assetLimits": {
+          "individual": 9950,
+          "couple": 14910,
+          "countedAssets": [
+            "Money in bank accounts",
+            "Stocks and bonds"
+          ],
+          "exemptAssets": [
+            "The house you live in",
+            "One car",
+            "A burial plot",
+            "Up to $1,500 in burial expenses",
+            "Furniture and household items"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be eligible for or enrolled in Medicare Part A and Part B",
+          "Cannot be eligible for another category of Medicaid at the same time (QI program only)"
+        ],
+        "povertyLevelReference": "100-135% FPL depending on program tier"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call SHIP at 1-877-801-0044 for free help applying, or apply online through TennCare's website.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Get free help",
+            "description": "Call SHIP (State Health Insurance Assistance Program) at 1-877-801-0044. They'll help you determine which program your parent qualifies for and assist with the application."
+          },
+          {
+            "step": 2,
+            "title": "Gather documents",
+            "description": "Collect Medicare card, Social Security statements, bank statements, and proof of any other income or assets."
+          },
+          {
+            "step": 3,
+            "title": "Submit application",
+            "description": "Apply online at tn.gov/tenncare, by mail, or in person through the Bureau of TennCare. SHIP can help with any method."
+          },
+          {
+            "step": 4,
+            "title": "Apply early for QI",
+            "description": "If applying for QI program, submit your application in January — funding runs out on a first-come, first-served basis."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": "QI program operates on first-come, first-served basis until funds run out; priority given to those who received QI benefits in the previous year",
+        "tip": "Apply for QI program early in the year — funding is limited and distributed first-come, first-served.",
+        "urls": [
+          {
+            "label": "TennCare Application Portal",
+            "url": "https://www.tn.gov/tenncare"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "tier-comparison",
+          "heading": "Program Tiers",
+          "tiers": [
+            {
+              "name": "QMB (Qualified Medicare Beneficiary)",
+              "description": "Full coverage for Medicare costs",
+              "incomeLimit": "Up to $1,350/month (individual), $1,824/month (couple)",
+              "coverage": "Pays Part A and B premiums, deductibles, coinsurance, and copayments. Prescription drug copays capped at $12.65."
+            },
+            {
+              "name": "SLMB (Specified Low-Income Medicare Beneficiary)",
+              "description": "Part B premium assistance",
+              "incomeLimit": "100-120% of poverty level (approximately $1,350-$1,620/month individual)",
+              "coverage": "Pays Part B premiums only. Prescription drug copays capped at $12.65."
+            },
+            {
+              "name": "QI (Qualifying Individual)",
+              "description": "Part B premium assistance with limited funding",
+              "incomeLimit": "120-135% of poverty level (approximately $1,620-$1,823/month individual)",
+              "coverage": "Pays Part B premiums only. Prescription drug copays capped at $12.65. Must reapply annually."
+            }
+          ]
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Money in bank accounts",
+            "Stocks and bonds"
+          ],
+          "excluded": [
+            "The house you live in",
+            "One car",
+            "A burial plot",
+            "Up to $1,500 in burial expenses",
+            "Furniture and household items"
+          ]
+        },
+        {
+          "type": "county-directory",
+          "heading": "How to Apply",
+          "offices": [
+            {
+              "name": "SHIP (State Health Insurance Assistance Program)",
+              "type": "service-area",
+              "phone": "1-877-801-0044",
+              "address": "Free assistance statewide"
+            },
+            {
+              "name": "Bureau of TennCare",
+              "type": "service-area",
+              "phone": null,
+              "address": "Processes all applications statewide"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "QI program funding runs out each year on a first-come, first-served basis. Apply in January for the best chance of approval. If you received QI benefits last year, you get priority but must still reapply annually."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Income and asset limits change every January. Don't rely on last year's figures — always verify current limits with SHIP (1-877-801-0044) before applying."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent keep their current Medicare plan if they qualify?",
+          "answer": "Yes. Medicare Savings Programs work with your parent's existing Medicare coverage — they don't need to switch doctors or plans. The program simply pays the premiums and out-of-pocket costs."
+        },
+        {
+          "question": "What if my parent's income is just over the limit?",
+          "answer": "Check if they qualify for a higher-income tier. QMB has the lowest income limit but most benefits, while SLMB and QI have higher income limits but cover Part B premiums only. Even small amounts of premium help can save over $2,000/year."
+        },
+        {
+          "question": "Does owning a house disqualify my parent?",
+          "answer": "No. The house your parent lives in doesn't count toward the $9,950 asset limit (individual) or $14,910 (couple). One car, furniture, and burial plots also don't count."
+        },
+        {
+          "question": "How is this different from regular Medicaid?",
+          "answer": "These are specialized Medicaid programs that only help with Medicare costs. Your parent keeps their Medicare and doesn't need to meet the stricter requirements of full Medicaid. However, if they already have full Medicaid, they can't use QI."
+        },
+        {
+          "question": "What happens if QI program funding runs out?",
+          "answer": "If QI runs out of funding, your parent may still qualify for SLMB if their income is low enough. SLMB provides the same Part B premium coverage as QI but has guaranteed funding. Check with SHIP about your options."
+        },
+        {
+          "question": "Will this affect my parent's Medicare Advantage plan?",
+          "answer": "QMB works with Medicare Advantage plans and covers cost-sharing. SLMB and QI only help with Part B premiums, so they provide less benefit if your parent has Medicare Advantage. The prescription drug help (Extra Help) works with all Medicare drug plans."
+        }
+      ],
+      "phone": "1-877-801-0044",
+      "sourceUrl": "https://www.tn.gov/tenncare/members-applicants/eligibility-reference-guide.html",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "tennessee-weatherization-assistance-program",
+      "name": "Tennessee Weatherization Assistance Program",
+      "shortName": "Weatherization Assistance",
+      "tagline": "Free home energy improvements that can cut your parent's heating and cooling bills.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local agencies via THDA Weatherization Agency Locator; examples: South Central Human Resource Agency (SCHRA), Southeast Tennessee Human Resource Agency (SETHRA).",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent's household income is below $25,550/year (for a single person), they may qualify for free home energy improvements through Tennessee's Weatherization Assistance Program. This includes air sealing, insulation, duct sealing, storm windows, and sometimes window or door replacement — all based on a professional energy audit.\n\nPriority goes to households with adults over 60, disabled individuals, or young children. Because the program is federally funded with limited money each year, there may be waiting lists in some counties. Your parent can own or rent their home — both are eligible.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Income at or below 200% federal poverty level",
+          "Tennessee resident",
+          "Own or rent eligible home",
+          "Priority for age 60+"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2129
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2876
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 3623
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 4370
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "U.S. citizen or legal resident",
+          "Age 18+ to apply",
+          "Home must be single-family or eligible multifamily"
+        ],
+        "povertyLevelReference": "200% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact your county's local agency directly — you cannot apply through the state office.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your county's local agency",
+            "description": "Use the THDA Weatherization Agency Locator to find the specific agency serving your parent's county."
+          },
+          {
+            "step": 2,
+            "title": "Contact the local agency",
+            "description": "Call or visit in person to request a Weatherization Assistance Program (WAP) application."
+          },
+          {
+            "step": 3,
+            "title": "Submit application with documents",
+            "description": "Provide proof of identity, residence, and 12 months of income documentation for all household members."
+          },
+          {
+            "step": 4,
+            "title": "Energy assessment",
+            "description": "If eligible, a certified auditor will assess the home to determine which improvements will save the most energy."
+          },
+          {
+            "step": 5,
+            "title": "Weatherization work",
+            "description": "Approved contractors perform the improvements at no cost to your parent."
+          }
+        ],
+        "processingTime": "Not specified; involves energy assessment, scope of work approval, upgrades, and final inspections",
+        "waitlist": "Potential waitlists due to limited federal funding; varies by county",
+        "tip": "If your parent receives SSI or TANF, they automatically qualify income-wise — bring that award letter.",
+        "urls": [
+          {
+            "label": "THDA Weatherization Program",
+            "url": "https://thda.org/help-for-homeowners/weatherization-assistance-program/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits by Household Size (2020 figures)",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 2129,
+              "annualLimit": 25550
+            },
+            {
+              "householdSize": 2,
+              "monthlyLimit": 2876,
+              "annualLimit": 34510
+            },
+            {
+              "householdSize": 3,
+              "monthlyLimit": 3623,
+              "annualLimit": 43470
+            },
+            {
+              "householdSize": 4,
+              "monthlyLimit": 4370,
+              "annualLimit": 52430
+            },
+            {
+              "householdSize": 5,
+              "monthlyLimit": 5117,
+              "annualLimit": 61390
+            }
+          ],
+          "footnote": "Based on 200% Federal Poverty Level. Add $8,960 per additional person. SSI or TANF recipients automatically qualify."
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Citizenship",
+              "items": [
+                "Driver's license, birth certificate, passport, or naturalization certificate",
+                "Proof of Tennessee residence (utility bill, lease agreement)"
+              ]
+            },
+            {
+              "name": "Income (12 months preceding application)",
+              "items": [
+                "Pay stubs for all household members",
+                "Tax returns",
+                "SSI or TANF award letters",
+                "Any other income documentation"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Funding is limited each year. Even if your parent qualifies, they may be placed on a waiting list depending on your county's available funds."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "You must apply through your specific county's local agency, not directly through THDA (the state housing office). Each county has its own processing times and wait lists."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent apply if they rent their home?",
+          "answer": "Yes, renters are eligible. The landlord may need to provide consent for the weatherization work, but tenants can apply directly."
+        },
+        {
+          "question": "What if Mom's income is just over the limit?",
+          "answer": "The income limit is firm at 200% of the federal poverty level. However, if she receives SSI or TANF, she automatically qualifies regardless of other income."
+        },
+        {
+          "question": "How much will this actually save on utility bills?",
+          "answer": "Savings vary by home size and condition. The program prioritizes improvements that will have the biggest impact on your parent's specific home based on a professional energy audit."
+        },
+        {
+          "question": "Does being over 60 guarantee faster service?",
+          "answer": "No, but households with individuals over 60 get priority when applications are reviewed. You'll still need to wait for funding availability in your county."
+        },
+        {
+          "question": "Can my parent get weatherization if they had it done years ago?",
+          "answer": "Generally no — homes can only receive weatherization assistance once. However, there may be exceptions for homes that had minimal work done previously."
+        },
+        {
+          "question": "What happens if Dad's mobile home needs work?",
+          "answer": "Mobile homes may be eligible if they meet safety and structural requirements. The local agency will assess whether the home qualifies during the application process."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://thda.org/help-for-homeowners/weatherization-assistance-program/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "tennessee-ship-medicare-counseling",
+      "name": "Tennessee SHIP",
+      "shortName": "TN SHIP",
+      "tagline": "Free one-on-one help comparing Medicare plans, fixing billing errors, and finding extra benefits your parent qualifies for.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Tennessee Commission on Aging and Disability (state), 502 Deaderick St., Nashville TN 37243; regional examples: Aging Commission of Mid-South, Upper Cumberland SHIP",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent has Medicare or is turning 65 soon, Tennessee SHIP provides free, unbiased counseling to help them navigate their options. Because Medicare decisions can save or cost thousands per year, having an expert review your parent's specific needs — their doctors, medications, and budget — ensures they choose the right plan.\n\nSHIP counselors help compare Medicare Advantage vs. traditional Medicare, find the cheapest prescription drug coverage, apply for programs that reduce Medicare costs, and resolve billing errors. The service is free regardless of income and available to anyone with Medicare questions, including family members helping aging parents.\n\nTennessee SHIP operates through 9 regional offices statewide, so you can get local help whether your parent lives in Memphis, Nashville, or rural Tennessee.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Medicare-eligible or turning 65",
+          "No income limits",
+          "Free for caregivers too"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must have Medicare or Medicare-related questions"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call the statewide number for immediate assistance or schedule an in-person appointment.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the Tennessee SHIP hotline",
+            "description": "Call 1-877-801-0044 to speak with a counselor immediately or schedule an appointment."
+          },
+          {
+            "step": 2,
+            "title": "Gather Medicare information",
+            "description": "Have your parent's Medicare card, current prescription list, and preferred doctors ready for the most accurate plan comparison."
+          },
+          {
+            "step": 3,
+            "title": "Get personalized guidance",
+            "description": "Counselors will compare plans specific to your parent's needs and help with applications for cost-saving programs like Extra Help."
+          }
+        ],
+        "processingTime": "Immediate phone assistance; in-person appointments scheduled upon request",
+        "waitlist": null,
+        "tip": "Call before Medicare Open Enrollment (October 15 - December 7) when counselors are busiest.",
+        "urls": [
+          {
+            "label": "Tennessee SHIP Contact Form",
+            "url": "https://www.tn.gov/disability-and-aging"
+          },
+          {
+            "label": "Medicare Help Worksheets",
+            "url": "https://tnmedicarehelp.com"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "Regional SHIP Offices",
+          "offices": [
+            {
+              "name": "Statewide Hotline",
+              "type": "service-area",
+              "phone": "1-877-801-0044",
+              "address": "Serves all Tennessee counties"
+            },
+            {
+              "name": "Shelby County (Memphis area)",
+              "type": "county",
+              "phone": "901-222-4111",
+              "address": "Aging Commission of Mid-South"
+            },
+            {
+              "name": "State Office",
+              "type": "service-area",
+              "phone": "1-877-801-0044",
+              "address": "502 Deaderick St., Nashville TN 37243"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "SHIP counselors don't sell insurance and aren't paid by insurance companies. Because they're truly unbiased, they can recommend the cheapest plan even if it means less profit for insurers."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can SHIP help even if my parent already has Medicare?",
+          "answer": "Yes. SHIP counselors review existing coverage year-round, not just during enrollment periods. They can identify if your parent is overpaying, missing benefits, or has coverage gaps that need fixing."
+        },
+        {
+          "question": "Will they try to sell my parent insurance?",
+          "answer": "No. SHIP counselors don't sell insurance or get paid by insurance companies. They provide unbiased guidance and will recommend the lowest-cost option for your parent's specific needs."
+        },
+        {
+          "question": "Can I call on behalf of my parent?",
+          "answer": "Yes. Family caregivers can call for general Medicare information and guidance. For specific account details or applications, your parent may need to be present or provide written permission."
+        },
+        {
+          "question": "What if my parent missed Medicare enrollment?",
+          "answer": "SHIP counselors can explain penalty costs and help find the next available enrollment period. They'll also check if your parent qualifies for Special Enrollment Periods that avoid penalties."
+        },
+        {
+          "question": "Do they help with Medicare Advantage vs traditional Medicare decisions?",
+          "answer": "Yes. Counselors compare both options based on your parent's doctors, medications, and budget. They'll show total yearly costs including premiums, deductibles, and out-of-pocket maximums."
+        },
+        {
+          "question": "Can they help apply for programs that reduce Medicare costs?",
+          "answer": "Yes. SHIP counselors help apply for Medicare Savings Programs (which pay Medicare premiums) and Extra Help (which reduces prescription drug costs). These programs can save hundreds per month."
+        }
+      ],
+      "phone": "1-877-801-0044",
+      "sourceUrl": "https://www.tn.gov/disability-and-aging/disability-aging-programs/tn-ship.html",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "name": "Tennessee Meals on Wheels",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Tennessee Caregiver Respite Support",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Tennessee SCSEP",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Tennessee Legal Aid for Seniors",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "OPTIONS for Community Living",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Tennessee State Health Insurance Assistance Program (TN SHIP)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    }
+  ],
+  "stateOverview": null
+}

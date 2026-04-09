@@ -1,0 +1,245 @@
+{
+  "state": "NC",
+  "stateName": "North Carolina",
+  "classifiedAt": "2026-04-09T08:57:12.367Z",
+  "total": 6,
+  "typeSummary": {
+    "benefit": 6
+  },
+  "scopeSummary": {
+    "state": 6
+  },
+  "complexitySummary": {
+    "deep": 5,
+    "medium": 1
+  },
+  "programs": [
+    {
+      "name": "North Carolina Homestead Exemption",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "North Carolina Long-Term Care Medicaid",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "County DSS offices (e.g., Wake: wake.gov, Buncombe: buncombenc.gov).",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Project C.A.R.E.",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Northeastern: Mid-East/Albemarle Commission Area Agency on Aging (29 counties).[2]",
+            "type": "service-area"
+          },
+          {
+            "name": "Southeastern: Cape Fear Council of Governments.[3][5]",
+            "type": "service-area"
+          },
+          {
+            "name": "South Central: Mecklenburg County Department of Social Services.[3][6]",
+            "type": "service-area"
+          },
+          {
+            "name": "Central: Duke Dementia Family Support Program.[3]",
+            "type": "service-area"
+          },
+          {
+            "name": "Foothills: Western Piedmont Council of Government.[3]",
+            "type": "service-area"
+          },
+          {
+            "name": "Western: Land of Sky Regional Council/Area Agency on Aging.[3]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "North Carolina Seniors Farmers' Market Nutrition Program",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Charlotte Regional Farmers Market",
+            "type": "service-area"
+          },
+          {
+            "name": "Davidson Farmers Market",
+            "type": "service-area"
+          },
+          {
+            "name": "Matthews Community Farmers Market",
+            "type": "service-area"
+          },
+          {
+            "name": "North Meck Community Farmers Market",
+            "type": "service-area"
+          },
+          {
+            "name": "Uptown Farmers Market",
+            "type": "service-area"
+          },
+          {
+            "name": "Additional markets in Mecklenburg County (19 total documented)[3]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "medium",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "in_kind",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": false,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "NC Lifespan Respite Program",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "High Country Area Agency on Aging (primary administrator).",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "State-County Special Assistance - In Home",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local Department of Social Services (DSS) in each county.",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    }
+  ]
+}

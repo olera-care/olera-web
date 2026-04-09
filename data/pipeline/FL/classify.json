@@ -1,0 +1,230 @@
+{
+  "state": "FL",
+  "stateName": "Florida",
+  "classifiedAt": "2026-04-09T08:49:14.731Z",
+  "total": 6,
+  "typeSummary": {
+    "benefit": 5,
+    "navigator": 1
+  },
+  "scopeSummary": {
+    "state": 4,
+    "local": 2
+  },
+  "complexitySummary": {
+    "deep": 2,
+    "medium": 3,
+    "simple": 1
+  },
+  "programs": [
+    {
+      "name": "Home Care for the Elderly (HCE) Program",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local AAA, ADRC, or Department of Elder Affairs offices (specific locations via elderaffairs.org)[1]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Community Care for the Elderly (CCE) Program",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local CCE Lead Agencies (contact via Florida Department of Elder Affairs for county-specific providers).",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Respite for Elders Living in Everyday Families (RELIEF) Program",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false
+      },
+      "complexity": "medium",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "tier-comparison"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": false,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": false
+      }
+    },
+    {
+      "name": "Optional State Supplementation (OSS) for SSI Recipients",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local DCF offices statewide; payments to licensed facilities.",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "medium",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Additional Homestead Exemption for Seniors (Florida)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Lee County Property Appraiser[1]",
+            "type": "service-area"
+          },
+          {
+            "name": "Gulf County Property Appraiser[2]",
+            "type": "service-area"
+          },
+          {
+            "name": "Brevard County Property Appraiser[3]",
+            "type": "service-area"
+          },
+          {
+            "name": "Lake County Property Appraiser[4]",
+            "type": "service-area"
+          },
+          {
+            "name": "Hillsborough County Property Appraiser[6]",
+            "type": "service-area"
+          },
+          {
+            "name": "Duval County (Jacksonville) Property Appraiser[7]",
+            "type": "service-area"
+          },
+          {
+            "name": "Nassau County Property Appraiser[8]",
+            "type": "service-area"
+          },
+          {
+            "name": "Contact your local county property appraiser for availability in your specific county[5]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "medium",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "documents",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": false,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": false
+      }
+    },
+    {
+      "name": "SHINE (Serving Health Insurance Needs of Elders)",
+      "programType": "navigator",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Florida Department of Elder Affairs, 4040 Esplanade Way, Suite 280-S, Tallahassee, FL 32399",
+            "type": "service-area"
+          },
+          {
+            "name": "Local Area Agencies on Aging (find via www.floridashine.org)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "provider-list"
+      ],
+      "signals": {
+        "benefitType": "advocacy",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    }
+  ]
+}

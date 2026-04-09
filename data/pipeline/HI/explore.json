@@ -1,0 +1,119 @@
+{
+  "entity": "Hawaii",
+  "entitySlug": "hawaii",
+  "state": "HI",
+  "stateName": "Hawaii",
+  "isRegion": false,
+  "exploredAt": "2026-04-09T08:50:05.660Z",
+  "programCount": 15,
+  "programs": [
+    {
+      "name": "Med-QUEST Home and Community-Based Services (HCBS) Waivers",
+      "what_it_does": "HCBS waivers under Med-QUEST provide community-based alternatives to nursing home care, including personal care, adult day health, and homemaker services. These enable seniors to receive tailored support at home rather than in institutions.",
+      "who_its_for": "Low-income seniors or disabled individuals eligible for nursing facility level care but preferring home-based services, meeting Med-QUEST financial criteria.",
+      "official_url": "https://www.medquest.hawaii.gov",
+      "benefit_value": "Varies by waiver; includes up to 80-120 hours/month personal care, respite, and equipment; prevents institutionalization."
+    },
+    {
+      "name": "Hawai‘i PACE (Program of All-Inclusive Care for the Elderly)",
+      "what_it_does": "Hawai‘i PACE offers comprehensive medical and social services to frail seniors, including primary care, hospitalization, prescription drugs, and adult day health. It coordinates all Medicare and Medicaid-covered care through an interdisciplinary team.",
+      "who_its_for": "Community-dwelling adults 55+ certified as nursing facility eligible, able to live safely in the community with PACE support, dually eligible for Medicare/Medicaid.",
+      "official_url": "https://hawaiipace.org",
+      "benefit_value": "Full capitation coverage of all Medicare/Medicaid services plus extras like transportation, meals, and therapies; one monthly premium for Medicare-only."
+    },
+    {
+      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "what_it_does": "These programs help pay Medicare Part A/B premiums, deductibles, coinsurance, and copays for low-income seniors. QMB covers full Part B costs, SLMB pays Part B premium, and QI offers sliding-scale premiums with extra Part D help.",
+      "who_its_for": "Low-income Medicare beneficiaries aged 65+ (or disabled) meeting Hawaii-specific income/asset limits (e.g., QMB ~$1,255 individual income/month in 2026).",
+      "official_url": "https://www.hawaiiship.org/information/financial-assistance/",
+      "benefit_value": "QMB: Full Part B ($174.70/mo) + deductibles (~$240); SLMB: Part B premium; QI: Part B + Part D Extra Help up to $5,300 annual value."
+    },
+    {
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "what_it_does": "SNAP provides monthly EBT benefits to buy healthy food at approved stores. In Hawaii, it supplements diets for low-income households including seniors.",
+      "who_its_for": "Low-income seniors 60+ or aged/blind/disabled households meeting income limits (e.g., ~$2,000/month for 1-person household), Hawaii residents.",
+      "official_url": "https://humanservices.hawaii.gov/bessd/fnsrandr/",
+      "benefit_value": "Average $200-300/month per person for groceries; max ~$500 for elderly/disabled single person."
+    },
+    {
+      "name": "Low Income Home Energy Assistance Program (LIHEAP)",
+      "what_it_does": "LIHEAP provides one-time grants to pay utility bills and connect/disconnect fees. It helps low-income households, including seniors, manage energy costs.",
+      "who_its_for": "Low-income Hawaii households (seniors prioritized) at or below 60-150% federal poverty level depending on crisis status.",
+      "official_url": "https://www.hawaiiship.org/information/financial-assistance/",
+      "benefit_value": "Grants $200-1,000 per household annually for energy bills; crisis aid up to $400."
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "what_it_does": "WAP funds energy efficiency upgrades like insulation, sealing, and efficient appliances for low-income homes. It reduces energy costs and improves health/safety for seniors.",
+      "who_its_for": "Low-income households (seniors/disabled prioritized) at or below 200% FPL; administered via Honolulu Community Action Program (HCAP).",
+      "official_url": "https://www.hcapweb.org",
+      "benefit_value": "Free home improvements worth $5,000-10,000; average 20-30% utility savings."
+    },
+    {
+      "name": "Sage PLUS (SHIP - State Health Insurance Assistance Program)",
+      "what_it_does": "Sage PLUS offers free, unbiased counseling on Medicare, Medigap, Part D, and low-income aids. Volunteers help seniors select plans and appeal denials.",
+      "who_its_for": "All Hawaii Medicare beneficiaries 65+, disabled, or pre-retirees seeking insurance guidance.",
+      "official_url": "https://hawaiiadrc.org",
+      "benefit_value": "Free one-on-one counseling; saves thousands via optimal plan selection/appeals."
+    },
+    {
+      "name": "Home-Delivered Meals (Meals on Wheels)",
+      "what_it_does": "Provides nutritious meals delivered to homebound seniors' doors, often 5 days/week. Includes safety checks and nutrition counseling.",
+      "who_its_for": "Homebound seniors 60+ unable to shop/prepare meals, low-income prioritized via Area Agencies on Aging.",
+      "official_url": "https://hawaiiadrc.org",
+      "benefit_value": "~250-300 meals/year at $5-10/meal (suggested donation); full federal funding for poorest."
+    },
+    {
+      "name": "Executive Office on Aging Family Caregiver Support Program",
+      "what_it_does": "Offers respite care, counseling, training, and supplies to relieve family caregivers. Helps sustain home care for seniors.",
+      "who_its_for": "Unpaid family caregivers of adults 60+ or grandparents raising children, income-eligible.",
+      "official_url": "https://hawaiiadrc.org",
+      "benefit_value": "Respite grants up to $500/month; training worth $200+; counseling sessions."
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "what_it_does": "Provides part-time paid training jobs in community nonprofits to unemployed low-income seniors. Includes job placement support.",
+      "who_its_for": "Unemployed low-income adults 55+ (income ≤125% FPL), priority to hardest-to-serve.",
+      "official_url": "https://hawaii.gov/dhs",
+      "benefit_value": "20 hrs/week at minimum wage (~$10.10/hr HI); workforce skills training."
+    },
+    {
+      "name": "Legal Aid Society of Hawaii Elder Law Program",
+      "what_it_does": "Provides free legal help for income-eligible seniors on benefits, housing, abuse, and estate planning. Includes representation and advice.",
+      "who_its_for": "Low-income seniors 60+ facing legal issues with benefits, long-term care, or rights.",
+      "official_url": "https://www.legalaidhawaii.org",
+      "benefit_value": "Free attorney services worth $200+/hr; resolves benefit denials/housing disputes."
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program (LTCOP)",
+      "what_it_does": "Advocates for residents in nursing homes/assisted living, resolving complaints on care, rights, and quality. Provides confidential support and education.",
+      "who_its_for": "Residents/families in HI long-term care facilities; open to all seniors.",
+      "official_url": "https://hawaiiadrc.org",
+      "benefit_value": "Free advocacy resolving 80%+ complaints; protects against abuse/neglect."
+    },
+    {
+      "name": "Kūpuna Aging in Place (KAP)",
+      "what_it_does": "The Hawaii Community Foundation provides multi-year grants to nonprofit organizations offering supportive services like community-based support, adult day care, day health, home-delivered meals, transportation, and caregiver support. This enables low- to moderate-income kūpuna (seniors) aged 65+ and their caregivers to age in place within their communities.[1]",
+      "who_its_for": "Low- to moderate-income seniors aged 65 and older and their caregivers.[1]",
+      "whats_unique": "Hawaii-specific grant program from the Hawaii Community Foundation funding local nonprofits for culturally tailored aging-in-place services, including Native Hawaiian-focused support not replicated as a statewide foundation initiative elsewhere.[1]",
+      "official_url": "https://www.hawaiicommunityfoundation.org/strengthening/kupuna-aging-in-place",
+      "benefit_value": "Over $3.7 million awarded in 2023 to 16 nonprofits for 3-year services; current 2026-2029 grants open.[1]"
+    },
+    {
+      "name": "Kūpuna Care Program",
+      "what_it_does": "Provides community-based long-term care services such as adult day care, attendant care, caregiver respite, case management, home-delivered meals, personal care, transportation, and homemaker services. Aims to help older adults with functional impairments remain at home as long as possible.[4]",
+      "who_its_for": "U.S. citizens or qualified aliens aged 60+ with functional impairments, not covered by comparable services and not residing in institutions.[4]",
+      "whats_unique": "County-funded (e.g., Honolulu Elderly Affairs Division) program integrating state and local resources for comprehensive home-based care tailored to Hawaii's aging population and high living costs.[4]",
+      "official_url": "https://elderlyaffairs.com",
+      "benefit_value": "Varied services including meals, transportation, and personal care; funded by federal, state, and county sources with no fixed dollar amount specified.[4]"
+    },
+    {
+      "name": "Senior Food Box Program (CSFP)",
+      "what_it_does": "Delivers monthly boxes of shelf-stable, nutrient-rich groceries to combat food insecurity among kūpuna. Supports health by reducing choices between food and other necessities, available on Oʻahu and Kauaʻi.[6]",
+      "who_its_for": "Seniors aged 60+ with household income at or below 150% of Hawaii Federal Poverty Guidelines.[6]",
+      "whats_unique": "Hawaii implementation of CSFP since 2015 through Hawaiʻi Foodbank, addressing island-specific food insecurity challenges with culturally sensitive distribution.[6]",
+      "official_url": "https://hawaiifoodbank.org/get-help/csfp/",
+      "benefit_value": "Monthly food boxes; value equivalent to essential groceries, no fixed dollar amount listed.[6]"
+    }
+  ]
+}

@@ -1,0 +1,82 @@
+{
+  "state": "KY",
+  "stateName": "Kentucky",
+  "classifiedAt": "2026-04-09T08:52:12.640Z",
+  "total": 2,
+  "typeSummary": {
+    "benefit": 2
+  },
+  "scopeSummary": {
+    "local": 2
+  },
+  "complexitySummary": {
+    "deep": 2
+  },
+  "programs": [
+    {
+      "name": "Senior CommUnity Care of Kentucky (PACE)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Senior CommUnity Care of Kentucky PACE (central KY): seniorcommunitycareky.org, (502) 314-2059[1][6]",
+            "type": "service-area"
+          },
+          {
+            "name": "Senior CommUnity Care of Northern Kentucky: (859) 970-2450[7]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "documents",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": false,
+        "isStatewide": false
+      }
+    },
+    {
+      "name": "Senior CommUnity Care of Northern Kentucky (PACE)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "47 Cavalier Blvd, Ste 140, Florence, KY 41042[8]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": false,
+        "isStatewide": false
+      }
+    }
+  ]
+}

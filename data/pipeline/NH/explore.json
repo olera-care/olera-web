@@ -1,0 +1,59 @@
+{
+  "entity": "New Hampshire",
+  "entitySlug": "new-hampshire",
+  "state": "NH",
+  "stateName": "New Hampshire",
+  "isRegion": false,
+  "exploredAt": "2026-04-09T08:56:15.650Z",
+  "programCount": 6,
+  "programs": [
+    {
+      "name": "NH Medication Bridge Program",
+      "what_it_does": "This state-funded program provides financial support to cover prescription drug costs for eligible seniors. It bridges gaps in medication access beyond federal programs like Medicare Part D.",
+      "who_its_for": "Low-income seniors aged 65+ residing in New Hampshire.",
+      "whats_unique": "Unlike standard federal pharmaceutical assistance, this is a NH-specific initiative using state funds to assist with medication affordability not fully covered elsewhere.[1]",
+      "official_url": "https://assets.ctfassets.net/61iwodu7d9u0/1T2xp0izZ38eIzO6rco2TM/5482fbc36c2fa31d79b46e33f498096e/MC-3398221-state-resource-pages--new-hampshire.pdf",
+      "benefit_value": "Covers all or part of prescription costs; exact value based on individual eligibility and drug needs."
+    },
+    {
+      "name": "New Hampshire Partnership for Prescription",
+      "what_it_does": "This program partners to reduce prescription costs for seniors through state-supported discounts and assistance. It targets affordability for long-term medication needs.",
+      "who_its_for": "Seniors 65+ in NH with financial need for prescriptions.",
+      "whats_unique": "State-specific collaboration beyond federal options, focused on NH residents' pharmaceutical access.[1]",
+      "official_url": "https://assets.ctfassets.net/61iwodu7d9u0/1T2xp0izZ38eIzO6rco2TM/5482fbc36c2fa31d79b46e33f498096e/MC-3398221-state-resource-pages--new-hampshire.pdf",
+      "benefit_value": "Discounts on prescriptions; amount varies by participation and eligibility."
+    },
+    {
+      "name": "Medical Assistance (NH Medicaid Waiver)",
+      "what_it_does": "Provides state and federal funds for long-term care alternatives like personal care, home health aides, respite, and durable medical equipment. Allows seniors to avoid nursing homes by receiving care at home.",
+      "who_its_for": "Seniors 65+ or disabled adults in NH requiring nursing home level of care, with income under $30,276/year and assets under $2,500.",
+      "whats_unique": "NH's waiver program extends beyond standard federal Medicaid by funding specific home-based services unique to state administration.[1]",
+      "official_url": "https://assets.ctfassets.net/61iwodu7d9u0/1T2xp0izZ38eIzO6rco2TM/5482fbc36c2fa31d79b46e33f498096e/MC-3398221-state-resource-pages--new-hampshire.pdf",
+      "benefit_value": "Covers costs of home care services; up to full coverage for eligible needs."
+    },
+    {
+      "name": "REAP (Respite, Education, and Assistance Program)",
+      "what_it_does": "Offers community-based short-term support including respite for caregivers and resources for older adults. Helps reduce caregiver burden and supports family members.",
+      "who_its_for": "Older adults in NH, their caregivers, family members, and professionals working with seniors.",
+      "whats_unique": "NH-specific program providing targeted respite and education not universally available in other states.[7]",
+      "official_url": "https://www.dhhs.nh.gov/programs-services/adult-aging-care/brain-health",
+      "benefit_value": "Short-term support services; value in hours of respite or assistance provided."
+    },
+    {
+      "name": "Easterseals NH Adult Day Services",
+      "what_it_does": "Provides daytime social engagement, physical activity, health services, and memory care in homelike settings. Coordinates transportation and supports aging in place.",
+      "who_its_for": "Seniors averaging age 76 in NH, including those needing memory care, across various abilities.",
+      "whats_unique": "State-operated through Easterseals NH with specialized sites like secure Manchester memory care, beyond generic federal programs.[2]",
+      "official_url": "https://eastersealsnh.org/programs/senior-services/",
+      "benefit_value": "Daily programs; affordable access promoting health and connection."
+    },
+    {
+      "name": "Easterseals NH In-Home Care & Health Services",
+      "what_it_does": "Delivers affordable in-home nursing, personal hygiene, meal prep, and housekeeping as alternative to nursing homes. Can combine with other services for comprehensive support.",
+      "who_its_for": "Older adults and disabled individuals in NH seeking to age at home.",
+      "whats_unique": "NH-focused provider with 30+ years serving thousands, emphasizing person-centered care unique to local needs.[2]",
+      "official_url": "https://eastersealsnh.org/programs/senior-services/",
+      "benefit_value": "Hourly in-home services; cost-effective vs. institutional care."
+    }
+  ]
+}

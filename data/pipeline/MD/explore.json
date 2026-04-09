@@ -1,0 +1,143 @@
+{
+  "entity": "Maryland",
+  "entitySlug": "maryland",
+  "state": "MD",
+  "stateName": "Maryland",
+  "isRegion": false,
+  "exploredAt": "2026-04-09T08:52:32.097Z",
+  "programCount": 18,
+  "programs": [
+    {
+      "name": "Maryland Durable Medical Equipment Reuse Program (DME)",
+      "what_it_does": "Provides free durable medical equipment to those in need by accepting donations, sanitizing, repairing, and redistributing items with high safety standards. Serves Marylanders of all ages but benefits seniors significantly.[1]",
+      "who_its_for": "Maryland residents of all ages and abilities needing durable medical equipment.[1]",
+      "whats_unique": "State-operated reuse program for DME specific to Maryland, offering free access not replicated as a statewide initiative elsewhere.[1]",
+      "official_url": "https://aging.maryland.gov/pages/programsandservices.aspx",
+      "benefit_value": "Free durable medical equipment (e.g., wheelchairs, walkers) after sanitization and repair."
+    },
+    {
+      "name": "Maryland Community First Choice (CFC) and Home and Community-Based Services (HCBS) Waivers",
+      "what_it_does": "Offers coordinated community-based in-home services, equipment, medical supplies, and long-term care supports to help maintain independent living. Includes waivers under Medicaid LTSS for personalized care plans avoiding nursing home placement.",
+      "who_its_for": "Seniors and disabled individuals eligible for Medicaid who need assistance to live independently in the community.",
+      "official_url": "https://aging.maryland.gov/pages/programsandservices.aspx",
+      "benefit_value": "In-home services, equipment, and supplies at lower cost than nursing homes; coordinated care for independence."
+    },
+    {
+      "name": "Maryland Program of All-Inclusive Care for the Elderly (PACE)",
+      "what_it_does": "Delivers comprehensive medical and social services to eligible frail seniors in community settings, including adult day health care and home care to avoid institutionalization. Integrates Medicare and Medicaid benefits for coordinated care.",
+      "who_its_for": "Seniors aged 55+ who are nursing facility eligible, live in a PACE service area, and can safely be managed in the community.",
+      "official_url": "https://aging.maryland.gov/pages/programsandservices.aspx",
+      "benefit_value": "All-inclusive capitated care covering medical, social, and long-term services; prevents nursing home admission."
+    },
+    {
+      "name": "Maryland Medicare Savings Program (MSP) including QMB, SLMB, QI",
+      "what_it_does": "Covers Medicare out-of-pocket expenses and Part B premiums for qualified low-income beneficiaries through Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), and Qualifying Individual (QI) categories. Helps reduce costs for premiums, deductibles, and copayments.",
+      "who_its_for": "Medicare beneficiaries with limited income and resources; specific income thresholds apply to each category.",
+      "official_url": "https://www.maryland.gov/benefits/older-adults",
+      "benefit_value": "Pays Medicare Part B premiums and cost-sharing; QMB covers Parts A/B deductibles/copays up to limits."
+    },
+    {
+      "name": "Supplemental Nutrition Assistance Program (SNAP)",
+      "what_it_does": "Provides monthly benefits via EBT card to low-income households to purchase healthy food at approved retailers. Includes additional subsidies like farmers market money for eligible older adults to buy fresh produce.",
+      "who_its_for": "Low-income households including seniors meeting federal income guidelines.",
+      "official_url": "https://www.maryland.gov/benefits/older-adults",
+      "benefit_value": "Monthly food benefits scaled to household size/income; extra for seniors at farmers markets."
+    },
+    {
+      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "what_it_does": "Offers grants to help eligible households manage heating and cooling costs, including crisis assistance for emergencies. Administered statewide for energy bill support.",
+      "who_its_for": "Low-income households including seniors; priority for those with highest energy burden or vulnerabilities.",
+      "official_url": "https://aging.maryland.gov/pages/programsandservices.aspx",
+      "benefit_value": "One-time grants averaging $200-$1000 for heating/cooling bills based on income and need."
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "what_it_does": "Provides home energy efficiency upgrades like insulation, sealing, and furnace repairs to reduce energy costs and improve safety. Funded federally but implemented through Maryland agencies.",
+      "who_its_for": "Low-income households including seniors and disabled individuals meeting income eligibility.",
+      "official_url": "https://aging.maryland.gov/pages/programsandservices.aspx",
+      "benefit_value": "Free home improvements reducing energy bills by 20-30%; enhances health/safety."
+    },
+    {
+      "name": "State Health Insurance Assistance Program (SHIP)",
+      "what_it_does": "Offers free, unbiased counseling on Medicare options, savings programs, and protection from fraud using trained volunteers. Also known as Senior Medicare Patrol (SMP) for fraud prevention education.",
+      "who_its_for": "Older adults on Medicare seeking help with insurance choices, costs, and fraud awareness.",
+      "official_url": "https://aging.maryland.gov/pages/programsandservices.aspx",
+      "benefit_value": "Free personalized counseling; helps save on out-of-pocket Medicare costs."
+    },
+    {
+      "name": "Meals on Wheels (via Senior Care Services and Area Agencies on Aging)",
+      "what_it_does": "Delivers nutritious meals to homebound seniors to promote health and independence. Provided through Maryland Department of Aging network and community partners.",
+      "who_its_for": "Homebound seniors aged 60+ who are unable to prepare meals due to illness or disability.",
+      "official_url": "https://aging.maryland.gov/pages/programsandservices.aspx",
+      "benefit_value": "Daily/weekly home-delivered meals; often $3 suggested donation for eligible."
+    },
+    {
+      "name": "National Family Caregiver Support Program",
+      "what_it_does": "Provides information, counseling, respite care, and training for caregivers of seniors and grandparents raising grandchildren. Includes supplemental services to reduce caregiver burden.",
+      "who_its_for": "Family caregivers of adults 60+, grandparents/relatives raising children, and older caregivers of disabled individuals.",
+      "official_url": "https://aging.maryland.gov/pages/programsandservices.aspx",
+      "benefit_value": "Respite hours, counseling, and support services; grant-funded flexible assistance."
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "what_it_does": "Offers part-time paid training and employment in community service roles to low-income seniors. Helps build skills for unsubsidized employment.",
+      "who_its_for": "Unemployed low-income individuals aged 55+ seeking work experience.",
+      "official_url": "https://aging.maryland.gov/pages/programsandservices.aspx",
+      "benefit_value": "Minimum wage training positions up to 20 hours/week; leads to permanent jobs."
+    },
+    {
+      "name": "Legal Aid for Seniors (via Maryland Legal Aid and Area Agencies on Aging)",
+      "what_it_does": "Provides free legal services for issues like benefits, housing, and consumer problems affecting seniors. Accessed through Maryland Access Point (MAP) referrals.",
+      "who_its_for": "Low-income seniors facing legal barriers to independence and well-being.",
+      "official_url": "https://aging.maryland.gov/pages/programsandservices.aspx",
+      "benefit_value": "Pro bono representation and advice; resolves key civil legal needs."
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "what_it_does": "Advocates for residents in long-term care facilities, investigating complaints and ensuring quality care. Operated through Area Agencies on Aging.",
+      "who_its_for": "Residents of nursing homes, assisted living, and other long-term care facilities in Maryland.",
+      "official_url": "https://aging.maryland.gov/pages/programsandservices.aspx",
+      "benefit_value": "Free advocacy resolving grievances; protects rights and improves facility conditions."
+    },
+    {
+      "name": "Maryland Senior Call Check Program (SCC)",
+      "what_it_does": "This program provides a daily automated call to verify the well-being of participants at a scheduled time of their convenience. Registration is free for eligible Maryland residents.[1][2]",
+      "who_its_for": "Maryland residents aged 65 and older.[1]",
+      "whats_unique": "A state-specific automated daily wellness check service unique to Maryland, not a standard federal program.[1][2]",
+      "official_url": "https://aging.maryland.gov/pages/programsandservices.aspx",
+      "benefit_value": "Free daily automated well-being verification calls."
+    },
+    {
+      "name": "Senior Assisted Living Subsidy Program (SALS)",
+      "what_it_does": "Provides a monthly subsidy to help cover costs for residents of licensed assisted living facilities. Includes support for meals, personal care, and 24-hour supervision for those who qualify.[1][4][5]",
+      "who_its_for": "Maryland seniors aged 65+ meeting eligibility criteria, such as income and assessment requirements, at risk for nursing home placement.[1][4]",
+      "whats_unique": "State-funded monthly subsidy specifically for assisted living in Maryland, beyond federal Medicaid options and not universally available in other states.[1][5]",
+      "official_url": "https://aging.maryland.gov/pages/programsandservices.aspx",
+      "benefit_value": "Monthly subsidy amount varies by eligibility and location (e.g., available in select counties like Baltimore City and Allegany, with plans to expand).[4]"
+    },
+    {
+      "name": "Senior Care Services Program",
+      "what_it_does": "Coordinates community-based in-home services including personal care, chore services, medical supplies, home-delivered meals, and local transportation. Aims to help seniors maintain independent living and avoid nursing facility placement.[1][4]",
+      "who_its_for": "Maryland residents aged 65+ at risk for nursing home placement, determined via face-to-face assessment.[4]",
+      "whats_unique": "Maryland state-funded program offering comprehensive in-home support package tailored to prevent institutionalization, distinct from federal home care options.[1][4]",
+      "official_url": "https://aging.maryland.gov/pages/programsandservices.aspx",
+      "benefit_value": "Varies by assessed needs; includes personal care, meals, transportation, supplies (no fixed dollar amount specified).[4]"
+    },
+    {
+      "name": "MTA Senior Discount Program (Reduced Fare CharmCard®)",
+      "what_it_does": "Offers a special transit card providing 50% off regular fares on MTA Local Bus, Light Rail, and Metro Subway. The $2 card holds passes and stored value, pre-loaded with $2 transit value.[3]",
+      "who_its_for": "Maryland adults aged 65+ with valid photo ID.[3]",
+      "whats_unique": "State transit authority-specific 50% fare reduction for seniors, customized to Maryland's MTA system beyond federal programs.[3]",
+      "official_url": "https://www.mta.maryland.gov",
+      "benefit_value": "50% discount on MTA bus, rail, and subway fares; card costs $2."
+    },
+    {
+      "name": "Golden Age Pass",
+      "what_it_does": "Grants lifetime free day-use entry to Maryland state parks charging fees for a one-time fee. Allows free entry for all vehicle passengers with the pass holder.[3]",
+      "who_its_for": "Seniors aged 62+ (Maryland residents and non-residents eligible).[3]",
+      "whats_unique": "Maryland-specific lifetime pass for state parks with group entry benefit, not a national standard.[3]",
+      "official_url": "https://dnr.maryland.gov",
+      "benefit_value": "$10 one-time fee for lifetime free state park day-use entry (per vehicle group)."
+    }
+  ]
+}

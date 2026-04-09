@@ -1,0 +1,931 @@
+{
+  "state": "PA",
+  "stateName": "Pennsylvania",
+  "diveAt": "2026-04-09T08:59:23.225Z",
+  "total": 17,
+  "parsed": 16,
+  "programs": [
+    {
+      "name": "Medical Assistance",
+      "eligibility": {
+        "age": 65,
+        "income_limits": "For elderly (65+), categorized as Non-MAGI: Income limits vary by program type. Nursing Home Medicaid (2026): Single applicant under $2,982/month. Adults 18+ with disability: 100% Federal Poverty Limit (FPL). MAGI groups (not primary for elderly): Adults 19-64 up to 133%-138% FPL. Limits adjust annually by household size using Federal Poverty Guidelines (FPIG); no full table in sources, but determined by income/household size comparison.[1][2][3][4][6][7]",
+        "asset_limits": "Non-MAGI (65+, blind/disabled): $2,000 single, $3,000 couple. Countable assets include cash, bank accounts, investments, second vehicles/homes (non-primary). Exempt: primary home (if intent to return/equity under limit), one vehicle, personal belongings, burial plots/funds, life insurance (face value under $1,500), SSI/TANF/SNAP benefits. Spousal protections apply (community spouse resource allowance).[3][4][5]",
+        "other_requirements": [
+          "Pennsylvania residency (no duration minimum, intent to stay)",
+          "U.S. citizenship, refugee, or qualified non-citizen status (documentation required)",
+          "Social Security Number (or application assistance provided)",
+          "Identity verification (e.g., driver's license)",
+          "For long-term care: Nursing Facility Level of Care (NFLOC) or functional need in ADLs",
+          "Blind/disabled status if applicable"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Comprehensive health coverage including doctor visits, hospital care, prescription drugs, lab tests, preventive services. For elderly/long-term care: nursing home, home/community-based services (HCBS), personal care, home modifications. No fixed dollar/hour amounts specified; covers costs meeting medical need.[1][2][3]",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Online: COMPASS.state.pa.us",
+          "Phone: 1-866-550-4355",
+          "In-person or paper: Local County Assistance Office (CAO)",
+          "Mail: to local CAO"
+        ],
+        "processing_time": "Lengthy process; no specific timeline stated, varies by case complexity/documentation",
+        "waitlist": "Possible for long-term care/HCBS due to funding; not detailed",
+        "forms": [
+          "COMPASS online application",
+          "Paper Medical Assistance application via CAO"
+        ],
+        "documents": [
+          "Proof of identity (driver's license/ID)",
+          "Social Security Number",
+          "Proof of citizenship/immigration status",
+          "Income verification (pay stubs, Social Security awards, pensions)",
+          "Asset statements (bank, investments)",
+          "Medical records for disability/NFLOC if applicable",
+          "Residency proof"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Pennsylvania residents only",
+        "regional_variations": "Administered by local County Assistance Offices (CAO); potential differences in processing/wait times by county",
+        "offices_or_providers": [
+          "Local County Assistance Offices (CAO) statewide"
+        ]
+      },
+      "official_source": "https://www.pa.gov/agencies/dhs/resources/medicaid/medicaid-general-eligibility",
+      "gotchas": [
+        "Multiple categories (MAGI vs Non-MAGI); elderly typically Non-MAGI with stricter asset tests—many miss asset planning",
+        "Income includes spouse's if cohabiting, Social Security, pensions (excludes SSI/TANF/SNAP)",
+        "Long-term care requires NFLOC; application lengthy/challenging—consider Medicaid planning if over limits",
+        "Annual renewal required; non-citizens limited to emergencies unless qualified",
+        "No specific household size income table provided—use FPIG calculator or apply to confirm"
+      ],
+      "data_shape_notes": "Dual MAGI/Non-MAGI tracks; elderly focus on Non-MAGI with fixed asset caps ($2,000/$3,000), variable income by program (e.g., nursing home $2,982/month single); county-administered with potential waitlists for LTC/HCBS",
+      "_raw": "{\n  \"name\": \"Medical Assistance\",\n  \"eligibility\": {\n    \"age\": 65,\n    \"income_limits\": \"For elderly (65+), categorized as Non-MAGI: Income limits vary by program type. Nursing Home Medicaid (2026): Single applicant under $2,982/month. Adults 18+ with disability: 100% Federal Poverty Limit (FPL). MAGI groups (not primary for elderly): Adults 19-64 up to 133%-138% FPL. Limits adjust annually by household size using Federal Poverty Guidelines (FPIG); no full table in sources, but determined by income/household size comparison.[1][2][3][4][6][7]\",\n    \"asset_limits\": \"Non-MAGI (65+, blind/disabled): $2,000 single, $3,000 couple. Countable assets include cash, bank accounts, investments, second vehicles/homes (non-primary). Exempt: primary home (if intent to return/equity under limit), one vehicle, personal belongings, burial plots/funds, life insurance (face value under $1,500), SSI/TANF/SNAP benefits. Spousal protections apply (community spouse resource allowance).[3][4][5]\",\n    \"other_requirements\": [\n      \"Pennsylvania residency (no duration minimum, intent to stay)\",\n      \"U.S. citizenship, refugee, or qualified non-citizen status (documentation required)\",\n      \"Social Security Number (or application assistance provided)\",\n      \"Identity verification (e.g., driver's license)\",\n      \"For long-term care: Nursing Facility Level of Care (NFLOC) or functional need in ADLs\",\n      \"Blind/disabled status if applicable\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Comprehensive health coverage including doctor visits, hospital care, prescription drugs, lab tests, preventive services. For elderly/long-term care: nursing home, home/community-based services (HCBS), personal care, home modifications. No fixed dollar/hour amounts specified; covers costs meeting medical need.[1][2][3]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: COMPASS.state.pa.us\",\n      \"Phone: 1-866-550-4355\",\n      \"In-person or paper: Local County Assistance Office (CAO)\",\n      \"Mail: to local CAO\"\n    ],\n    \"processing_time\": \"Lengthy process; no specific timeline stated, varies by case complexity/documentation\",\n    \"waitlist\": \"Possible for long-term care/HCBS due to funding; not detailed\",\n    \"forms\": [\"COMPASS online application\", \"Paper Medical Assistance application via CAO\"],\n    \"documents\": [\n      \"Proof of identity (driver's license/ID)\",\n      \"Social Security Number\",\n      \"Proof of citizenship/immigration status\",\n      \"Income verification (pay stubs, Social Security awards, pensions)\",\n      \"Asset statements (bank, investments)\",\n      \"Medical records for disability/NFLOC if applicable\",\n      \"Residency proof\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Pennsylvania residents only\",\n    \"regional_variations\": \"Administered by local County Assistance Offices (CAO); potential differences in processing/wait times by county\",\n    \"offices_or_providers\": [\"Local County Assistance Offices (CAO) statewide\"]\n  },\n  \"official_source\": \"https://www.pa.gov/agencies/dhs/resources/medicaid/medicaid-general-eligibility\",\n  \"gotchas\": [\n    \"Multiple categories (MAGI vs Non-MAGI); elderly typically Non-MAGI with stricter asset tests—many miss asset planning\",\n    \"Income includes spouse's if cohabiting, Social Security, pensions (excludes SSI/TANF/SNAP)\",\n    \"Long-term care requires NFLOC; application lengthy/challenging—consider Medicaid planning if over limits\",\n    \"Annual renewal required; non-citizens limited to emergencies unless qualified\",\n    \"No specific household size income table provided—use FPIG calculator or apply to confirm\"\n  ],\n  \"data_shape_notes\": \"Dual MAGI/Non-MAGI tracks; elderly focus on Non-MAGI with fixed asset caps ($2,000/$3,000), variable income by program (e.g., nursing home $2,982/month single); county-administered with potential waitlists for LTC/HCBS\"\n}"
+    },
+    {
+      "name": "Community HealthChoices",
+      "eligibility": {
+        "age": 21,
+        "income_limits": "In 2025, monthly income limit is $2,901 per applicant regardless of marital status or household size; each spouse applying is evaluated individually up to this amount. Equivalent to 300% of the Federal Benefit Rate (FBR), which adjusts annually in January.[2]",
+        "asset_limits": "Medicaid financial eligibility applies; specific asset limits not detailed in sources but include review of income, resources, bank accounts, property, retirement accounts, and insurance. Home equity limit of $730,000 in 2025 if applicant lives in home or intends to return, or if non-applicant spouse/dependent resides there. Home ownership exemptions apply under these conditions.[2]",
+        "other_requirements": [
+          "Pennsylvania resident",
+          "Enrolled in Medicaid",
+          "Dual eligible (Medicare and Medicaid) or qualify for Medicaid long-term services and supports (LTSS) due to nursing facility level of care (NFLOC) via Functional Eligibility Determination (FED) assessing Activities of Daily Living (ADLs) like bathing, dressing, eating",
+          "Not ineligible: intellectual/developmental disabilities receiving Office of Developmental Programs services beyond supports coordination; residents of state-operated nursing facilities including veterans' homes; certain OBRA/Act 150 participants not NFLOC or dual eligible",
+          "Option for 55+ to choose LIFE program instead if eligible and in service area[1][2][3][5][6][7]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Up to 32 services including long-term services and supports (LTSS) at nursing facility level of care, such as home-based care, attendant care, pest eradication, educational support; Medicare benefits continue separately via Medicare. Specific hours/dollars not fixed; determined post-needs assessment by Managed Care Organization (MCO).[4]",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Phone: Pennsylvania Independent Enrollment Broker (PA IEB) at 1-877-550-4227[1]",
+          "Online: COMPASS website[1]",
+          "Submit PA-600 form to County Assistance Office (CAO) for financial eligibility[2][4]",
+          "In-person needs assessment by local Area Agency on Aging (AAA)[1][4]"
+        ],
+        "processing_time": "Screening within 90 days for new dual eligibles; comprehensive needs assessment if NFCE, requested, or unmet needs identified[3]",
+        "waitlist": null,
+        "forms": [
+          "PA-600 for financial eligibility[2][4]"
+        ],
+        "documents": [
+          "Financial details: income, assets, bank accounts, property, retirement accounts, insurance coverage",
+          "Proof for Medicaid enrollment, residency, Medicare status if applicable[2][4][9]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Available in CHC service areas; LIFE alternative for 55+ in provider-served areas only[6]",
+        "regional_variations": "Administered via local Area Agencies on Aging (AAAs) for assessments and County Assistance Offices (CAOs) for financial review; different Managed Care Organizations (MCOs) by region; potential variations in providers and wait times not specified[1][3][4]",
+        "offices_or_providers": [
+          "Local Area Agency on Aging (AAA)",
+          "County Assistance Office (CAO)",
+          "Managed Care Organizations (MCOs) selected post-approval[1]"
+        ]
+      },
+      "official_source": "https://www.pa.gov/agencies/dhs/resources/medicaid/chc[6]",
+      "gotchas": [
+        "Mandatory managed care for eligible; automatic enrollment for some prior waiver participants",
+        "Excludes intellectual/developmental disabilities beyond basic supports and state nursing facility residents",
+        "Must choose MCO after approval; Medicare benefits remain separate",
+        "Functional Eligibility Determination (FED) required for NFLOC, not just financial",
+        "55+ may prefer LIFE if available in area, as alternative to CHC",
+        "Income/assets evaluated individually even for couples[1][2][3][5][6]"
+      ],
+      "data_shape_notes": "Managed care program via MCOs with NFLOC tiering for LTSS; financial eligibility mirrors Medicaid with individual applicant evaluation regardless of household size; regional AAAs/CAOs handle assessments",
+      "_raw": "{\n  \"name\": \"Community HealthChoices\",\n  \"eligibility\": {\n    \"age\": 21,\n    \"income_limits\": \"In 2025, monthly income limit is $2,901 per applicant regardless of marital status or household size; each spouse applying is evaluated individually up to this amount. Equivalent to 300% of the Federal Benefit Rate (FBR), which adjusts annually in January.[2]\",\n    \"asset_limits\": \"Medicaid financial eligibility applies; specific asset limits not detailed in sources but include review of income, resources, bank accounts, property, retirement accounts, and insurance. Home equity limit of $730,000 in 2025 if applicant lives in home or intends to return, or if non-applicant spouse/dependent resides there. Home ownership exemptions apply under these conditions.[2]\",\n    \"other_requirements\": [\n      \"Pennsylvania resident\",\n      \"Enrolled in Medicaid\",\n      \"Dual eligible (Medicare and Medicaid) or qualify for Medicaid long-term services and supports (LTSS) due to nursing facility level of care (NFLOC) via Functional Eligibility Determination (FED) assessing Activities of Daily Living (ADLs) like bathing, dressing, eating\",\n      \"Not ineligible: intellectual/developmental disabilities receiving Office of Developmental Programs services beyond supports coordination; residents of state-operated nursing facilities including veterans' homes; certain OBRA/Act 150 participants not NFLOC or dual eligible\",\n      \"Option for 55+ to choose LIFE program instead if eligible and in service area[1][2][3][5][6][7]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Up to 32 services including long-term services and supports (LTSS) at nursing facility level of care, such as home-based care, attendant care, pest eradication, educational support; Medicare benefits continue separately via Medicare. Specific hours/dollars not fixed; determined post-needs assessment by Managed Care Organization (MCO).[4]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: Pennsylvania Independent Enrollment Broker (PA IEB) at 1-877-550-4227[1]\",\n      \"Online: COMPASS website[1]\",\n      \"Submit PA-600 form to County Assistance Office (CAO) for financial eligibility[2][4]\",\n      \"In-person needs assessment by local Area Agency on Aging (AAA)[1][4]\"\n    ],\n    \"processing_time\": \"Screening within 90 days for new dual eligibles; comprehensive needs assessment if NFCE, requested, or unmet needs identified[3]\",\n    \"waitlist\": null,\n    \"forms\": [\"PA-600 for financial eligibility[2][4]\"],\n    \"documents\": [\n      \"Financial details: income, assets, bank accounts, property, retirement accounts, insurance coverage\",\n      \"Proof for Medicaid enrollment, residency, Medicare status if applicable[2][4][9]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Available in CHC service areas; LIFE alternative for 55+ in provider-served areas only[6]\",\n    \"regional_variations\": \"Administered via local Area Agencies on Aging (AAAs) for assessments and County Assistance Offices (CAOs) for financial review; different Managed Care Organizations (MCOs) by region; potential variations in providers and wait times not specified[1][3][4]\",\n    \"offices_or_providers\": [\"Local Area Agency on Aging (AAA)\", \"County Assistance Office (CAO)\", \"Managed Care Organizations (MCOs) selected post-approval[1]\"]\n  },\n  \"official_source\": \"https://www.pa.gov/agencies/dhs/resources/medicaid/chc[6]\",\n  \"gotchas\": [\n    \"Mandatory managed care for eligible; automatic enrollment for some prior waiver participants\",\n    \"Excludes intellectual/developmental disabilities beyond basic supports and state nursing facility residents\",\n    \"Must choose MCO after approval; Medicare benefits remain separate\",\n    \"Functional Eligibility Determination (FED) required for NFLOC, not just financial\",\n    \"55+ may prefer LIFE if available in area, as alternative to CHC\",\n    \"Income/assets evaluated individually even for couples[1][2][3][5][6]\"\n  ],\n  \"data_shape_notes\": \"Managed care program via MCOs with NFLOC tiering for LTSS; financial eligibility mirrors Medicaid with individual applicant evaluation regardless of household size; regional AAAs/CAOs handle assessments\"\n}"
+    },
+    {
+      "name": "PACE (Pharmaceutical Assistance Contract for the Elderly)",
+      "eligibility": {
+        "age": 65,
+        "income_limits": "PACE: Single person ≤ $14,500; Married couple ≤ $17,700 (based on previous calendar year gross income). Note: PACENET (companion program) for higher incomes: Single $14,501–$33,500; Married $17,701–$41,500.[1][3][4][6]",
+        "asset_limits": "No asset limits or test; assets are not counted.[7]",
+        "other_requirements": [
+          "Pennsylvania resident for at least 90 consecutive days prior to application.[1][3][4]",
+          "Not eligible for or enrolled in Medicaid pharmaceutical benefits (Department of Human Services' Medical Assistance prescription benefit).[1][3][4][6]",
+          "Income includes: Gross Social Security/SSI (excluding Medicare premiums), pensions, wages, self-employment, alimony, annuities/IRAs, unemployment, interest/dividends, net rental, etc. Excludes: Medicare Part B premiums, Property Tax/Rent Rebates, VA Aid and Attendance, SNAP, LIHEAP, federal stimulus, etc.[5][7]"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "Pays for prescription drugs with co-payments: Generic $6 per Rx, Brand-name $9 per Rx. No monthly premium or fee.[6]",
+        "varies_by": "program_tier (PACE vs PACENET; PACENET has higher copays: Generic $8, Brand $15; monthly premium ~$37.45)[6]"
+      },
+      "application": {
+        "methods": [
+          "Phone: 1-800-225-7223 (PACE hotline).[5]",
+          "Website: https://pacecares.magellanhealth.com/.[5]",
+          "PA MEDI helpline: 1-800-783-7067 for local assistance and application help.[5]"
+        ],
+        "processing_time": "Not specified in sources.",
+        "waitlist": null,
+        "forms": [
+          "No specific form name/number listed; apply via hotline or website.[5]"
+        ],
+        "documents": [
+          "Proof of age, residency (90 days), previous year income verification (e.g., Social Security statements, tax returns, pay stubs).[7]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None; available statewide to eligible PA residents.[1][4][8]",
+        "regional_variations": null,
+        "offices_or_providers": []
+      },
+      "official_source": "https://www.pa.gov/agencies/aging/aging-programs-and-services/pace-program[8]",
+      "gotchas": [
+        "Eligibility based strictly on previous calendar year's income (e.g., 2025 income for 2026 applications).[3][4][5]",
+        "Excludes those with any Medicaid prescription coverage, even if partial; Medicare Savings Program (Part B premium help only) may still qualify.[5]",
+        "Income calculation specifics matter: Includes spouse's income if living together, gifts/inheritances over $300, but excludes many rebates/aid payments.[7]",
+        "No automatic annual income limit adjustments; fixed by statute unless legislature acts.[6]",
+        "Not the national PACE (Program of All-Inclusive Care for the Elderly) which is a different service for 55+ needing nursing home level care.[2]"
+      ],
+      "data_shape_notes": "Two-tier structure (PACE low-income no premium; PACENET higher-income with premium/copays); no assets test; income fixed by household type (single/married couple only, no larger household table); statewide with no regional variations; funded by PA Lottery.",
+      "_raw": "{\n  \"name\": \"PACE (Pharmaceutical Assistance Contract for the Elderly)\",\n  \"eligibility\": {\n    \"age\": 65,\n    \"income_limits\": \"PACE: Single person ≤ $14,500; Married couple ≤ $17,700 (based on previous calendar year gross income). Note: PACENET (companion program) for higher incomes: Single $14,501–$33,500; Married $17,701–$41,500.[1][3][4][6]\",\n    \"asset_limits\": \"No asset limits or test; assets are not counted.[7]\",\n    \"other_requirements\": [\n      \"Pennsylvania resident for at least 90 consecutive days prior to application.[1][3][4]\",\n      \"Not eligible for or enrolled in Medicaid pharmaceutical benefits (Department of Human Services' Medical Assistance prescription benefit).[1][3][4][6]\",\n      \"Income includes: Gross Social Security/SSI (excluding Medicare premiums), pensions, wages, self-employment, alimony, annuities/IRAs, unemployment, interest/dividends, net rental, etc. Excludes: Medicare Part B premiums, Property Tax/Rent Rebates, VA Aid and Attendance, SNAP, LIHEAP, federal stimulus, etc.[5][7]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Pays for prescription drugs with co-payments: Generic $6 per Rx, Brand-name $9 per Rx. No monthly premium or fee.[6]\",\n    \"varies_by\": \"program_tier (PACE vs PACENET; PACENET has higher copays: Generic $8, Brand $15; monthly premium ~$37.45)[6]\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: 1-800-225-7223 (PACE hotline).[5]\",\n      \"Website: https://pacecares.magellanhealth.com/.[5]\",\n      \"PA MEDI helpline: 1-800-783-7067 for local assistance and application help.[5]\"\n    ],\n    \"processing_time\": \"Not specified in sources.\",\n    \"waitlist\": null,\n    \"forms\": [\"No specific form name/number listed; apply via hotline or website.[5]\"],\n    \"documents\": [\n      \"Proof of age, residency (90 days), previous year income verification (e.g., Social Security statements, tax returns, pay stubs).[7]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; available statewide to eligible PA residents.[1][4][8]\",\n    \"regional_variations\": null,\n    \"offices_or_providers\": []\n  },\n  \"official_source\": \"https://www.pa.gov/agencies/aging/aging-programs-and-services/pace-program[8]\",\n  \"gotchas\": [\n    \"Eligibility based strictly on previous calendar year's income (e.g., 2025 income for 2026 applications).[3][4][5]\",\n    \"Excludes those with any Medicaid prescription coverage, even if partial; Medicare Savings Program (Part B premium help only) may still qualify.[5]\",\n    \"Income calculation specifics matter: Includes spouse's income if living together, gifts/inheritances over $300, but excludes many rebates/aid payments.[7]\",\n    \"No automatic annual income limit adjustments; fixed by statute unless legislature acts.[6]\",\n    \"Not the national PACE (Program of All-Inclusive Care for the Elderly) which is a different service for 55+ needing nursing home level care.[2]\"\n  ],\n  \"data_shape_notes\": \"Two-tier structure (PACE low-income no premium; PACENET higher-income with premium/copays); no assets test; income fixed by household type (single/married couple only, no larger household table); statewide with no regional variations; funded by PA Lottery.\"\n}"
+    },
+    {
+      "name": "Medicare Savings Programs",
+      "eligibility": {
+        "age": 65,
+        "income_limits": "MSPs in Pennsylvania have three categories with 2026 monthly income limits (varies by household size and category; limits based on Federal Poverty Level - FPL):\n- **Qualified Medicare Beneficiary (QMB)**: <100% FPL ($1,304 single; higher for larger households)\n- **Specified Low-Income Medicare Beneficiary (SLMB)**: <120% FPL\n- **Qualifying Individual (QI-1)**: <135% FPL\nExact amounts increase annually; individuals may qualify with higher income/resources due to state disregards. Older data shows examples like $1,016 single/$1,524 couple for some categories, but use 2026 FPL-based limits from official guides[5][6]. Full table by household size available via DHS.",
+        "asset_limits": "Resource limits apply: typically $2,000 for single/$3,000 for married couple (higher than many MA programs). Counts wages, Social Security, pensions, interest, spouse's income if living together. Exemptions not fully detailed, but no resource test for some MAGI groups; state may disregard certain amounts. Apply even if over limits[1][5][6][7].",
+        "other_requirements": [
+          "Must be enrolled (or eligible to enroll) in Medicare Part B",
+          "Pennsylvania resident (no minimum duration specified in MSP rules, though some related programs require 90 days)",
+          "U.S. citizen, refugee, or certain lawfully admitted non-citizen (proof required)",
+          "Age 65+ or disabled/blind"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "Pays Medicare Part B premium for all categories. QMB also covers Medicare Part A premiums (if applicable), deductibles, coinsurance; may include full Medical Assistance benefits (e.g., transportation). SLMB/QI-1: Part B premium only[5][6][7].",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Online: COMPASS website (compass.state.pa.us)",
+          "Phone: COMPASS at 1-800-692-7462 or Customer Service Center at 1-877-395-8930",
+          "Mail/In-person: Local County Assistance Office (CAO)",
+          "Form PA 600 M (Application for Payment of Medicare Premiums)"
+        ],
+        "processing_time": "Not specified in sources; typically standard Medicaid processing (45-90 days, varies)",
+        "waitlist": "QI-1 may have federal waitlist/priority (first-come, first-served with funding limits); others generally no waitlist[2]",
+        "forms": [
+          "PA 600 M"
+        ],
+        "documents": [
+          "Proof of income (wages, Social Security, pensions)",
+          "Proof of resources/assets",
+          "Proof of Medicare enrollment",
+          "Proof of citizenship/immigration status",
+          "Proof of residency",
+          "Medical bills if applicable for spend-down related"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Pennsylvania residents only",
+        "regional_variations": "Administered via local County Assistance Offices (CAOs); potential variation in processing times or support by county, but uniform eligibility statewide[3][7]",
+        "offices_or_providers": [
+          "Local County Assistance Offices (CAOs) - find via 1-800-692-7462"
+        ]
+      },
+      "official_source": "https://www.pa.gov/agencies/dhs/resources/medicaid/medicaid-general-eligibility",
+      "gotchas": [
+        "Three tiers (QMB, SLMB, QI-1) with different income limits/benefits; check specific category",
+        "May qualify even if income/resources exceed listed limits due to DHS disregards/deductions[5][6]",
+        "Must have/apply for Medicare Part B; program pays premium but doesn't enroll you",
+        "QI-1 has limited funding and potential waitlist",
+        "Spouse's income counted if living together; spousal impoverishment rules may apply for LTSS-related",
+        "Not all income counted the same (e.g., some VA benefits excluded for MAGI)"
+      ],
+      "data_shape_notes": "Tiered by income level (QMB <100% FPL, SLMB <120%, QI-1 <135%); benefits scale by tier; asset limits higher than standard Medicaid; statewide but local CAO processing; FPL-based with annual updates and state-specific disregards allowing higher qualification",
+      "_raw": "{\n  \"name\": \"Medicare Savings Programs\",\n  \"eligibility\": {\n    \"age\": 65,\n    \"income_limits\": \"MSPs in Pennsylvania have three categories with 2026 monthly income limits (varies by household size and category; limits based on Federal Poverty Level - FPL):\\n- **Qualified Medicare Beneficiary (QMB)**: <100% FPL ($1,304 single; higher for larger households)\\n- **Specified Low-Income Medicare Beneficiary (SLMB)**: <120% FPL\\n- **Qualifying Individual (QI-1)**: <135% FPL\\nExact amounts increase annually; individuals may qualify with higher income/resources due to state disregards. Older data shows examples like $1,016 single/$1,524 couple for some categories, but use 2026 FPL-based limits from official guides[5][6]. Full table by household size available via DHS.\",\n    \"asset_limits\": \"Resource limits apply: typically $2,000 for single/$3,000 for married couple (higher than many MA programs). Counts wages, Social Security, pensions, interest, spouse's income if living together. Exemptions not fully detailed, but no resource test for some MAGI groups; state may disregard certain amounts. Apply even if over limits[1][5][6][7].\",\n    \"other_requirements\": [\n      \"Must be enrolled (or eligible to enroll) in Medicare Part B\",\n      \"Pennsylvania resident (no minimum duration specified in MSP rules, though some related programs require 90 days)\",\n      \"U.S. citizen, refugee, or certain lawfully admitted non-citizen (proof required)\",\n      \"Age 65+ or disabled/blind\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Pays Medicare Part B premium for all categories. QMB also covers Medicare Part A premiums (if applicable), deductibles, coinsurance; may include full Medical Assistance benefits (e.g., transportation). SLMB/QI-1: Part B premium only[5][6][7].\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: COMPASS website (compass.state.pa.us)\",\n      \"Phone: COMPASS at 1-800-692-7462 or Customer Service Center at 1-877-395-8930\",\n      \"Mail/In-person: Local County Assistance Office (CAO)\",\n      \"Form PA 600 M (Application for Payment of Medicare Premiums)\"\n    ],\n    \"processing_time\": \"Not specified in sources; typically standard Medicaid processing (45-90 days, varies)\",\n    \"waitlist\": \"QI-1 may have federal waitlist/priority (first-come, first-served with funding limits); others generally no waitlist[2]\",\n    \"forms\": [\n      \"PA 600 M\"\n    ],\n    \"documents\": [\n      \"Proof of income (wages, Social Security, pensions)\",\n      \"Proof of resources/assets\",\n      \"Proof of Medicare enrollment\",\n      \"Proof of citizenship/immigration status\",\n      \"Proof of residency\",\n      \"Medical bills if applicable for spend-down related\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Pennsylvania residents only\",\n    \"regional_variations\": \"Administered via local County Assistance Offices (CAOs); potential variation in processing times or support by county, but uniform eligibility statewide[3][7]\",\n    \"offices_or_providers\": [\"Local County Assistance Offices (CAOs) - find via 1-800-692-7462\"]\n  },\n  \"official_source\": \"https://www.pa.gov/agencies/dhs/resources/medicaid/medicaid-general-eligibility\",\n  \"gotchas\": [\n    \"Three tiers (QMB, SLMB, QI-1) with different income limits/benefits; check specific category\",\n    \"May qualify even if income/resources exceed listed limits due to DHS disregards/deductions[5][6]\",\n    \"Must have/apply for Medicare Part B; program pays premium but doesn't enroll you\",\n    \"QI-1 has limited funding and potential waitlist\",\n    \"Spouse's income counted if living together; spousal impoverishment rules may apply for LTSS-related\",\n    \"Not all income counted the same (e.g., some VA benefits excluded for MAGI)\"\n  ],\n  \"data_shape_notes\": \"Tiered by income level (QMB <100% FPL, SLMB <120%, QI-1 <135%); benefits scale by tier; asset limits higher than standard Medicaid; statewide but local CAO processing; FPL-based with annual updates and state-specific disregards allowing higher qualification\"\n}"
+    },
+    {
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "For households with a member 60+ or disabled (Oct 1, 2025 - Sept 30, 2026): Gross monthly income limit at 200% federal poverty level - 1: $2608, 2: $3526, 3: $4442, 4: $5358, 5: $6276, 6: $7192, 7: $8108, +$916 each additional. Households with elderly/disabled exceeding gross may qualify via net income and asset tests. Pennsylvania expanded categorical eligibility for households ≤200% FPL with no resource limit if including elderly/disabled.[1][2][4]",
+        "asset_limits": "No asset limit in Pennsylvania for expanded categorical eligibility households (including those with elderly/disabled ≤200% FPL). Countable resources like bank accounts excluded for primary home, one vehicle, income-producing vehicles; other vehicles count value over $4650. Federal rules for elderly/disabled over gross limit: $4500 asset limit.[1]",
+        "other_requirements": [
+          "U.S. citizen or qualified non-citizen.",
+          "Social Security Number for all household members.",
+          "Resident of Pennsylvania county where applying.",
+          "Household (people who purchase/prepare food together) meets income tests; work reporting for able-bodied adults without dependents.",
+          "For Simple SNAP/ESAP: All members 60+ or disabled/SSI/SSDI, no work earnings, fixed income, reasonable rent/mortgage.[2][6]"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "Monthly EBT card benefits for food purchases at stores/supermarkets. Average for older adults: $106/month. Exact amount based on net income calculation (e.g., for 2-person elderly/disabled: max allotment $546 minus 30% net income).[3][5]",
+        "varies_by": "household_size"
+      },
+      "application": {
+        "methods": [
+          "Online: COMPASS website (pa.gov COMPASS tool).",
+          "Phone: Local County Assistance Office (CAO) or helplines like 1-877-999-5964.",
+          "Mail/In-person: County assistance office; Simple SNAP application for elderly/disabled households.",
+          "Screening: snapscreener.com/guides/pennsylvania or local food bank assistance."
+        ],
+        "processing_time": "Not specified in sources; contact local CAO for details.",
+        "waitlist": null,
+        "forms": [
+          "Simple SNAP Application (English/Spanish) for households all 60+ or disabled, no work earnings.",
+          "Standard SNAP application via COMPASS."
+        ],
+        "documents": [
+          "Dates of birth and Social Security numbers for all household members.",
+          "Household income information.",
+          "Household expense information.",
+          "Housing costs (rent/mortgage).",
+          "Medical expenses (especially for elderly/disabled to maximize benefits)."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Apply in county of residence.",
+        "regional_variations": "Administered by local County Assistance Offices (CAOs); potential differences in processing via county offices, but statewide eligibility rules.[2][7]",
+        "offices_or_providers": [
+          "Local County Assistance Office (CAO)"
+        ]
+      },
+      "official_source": "https://www.pa.gov/agencies/dhs/resources/snap/snap-older-adults",
+      "gotchas": [
+        "Elderly/disabled households over gross income (200% FPL) can still qualify via net income/asset tests, unlike standard rules.[1]",
+        "Pennsylvania has no asset limit for expanded categorical eligibility (≤200% FPL), broader than federal.[1][4]",
+        "Simple SNAP/ESAP for all-elderly/disabled with no work: easier application.[2][6]",
+        "Housing/medical expenses deducted to boost benefits for seniors.[1][3]",
+        "Not just related family: anyone purchasing/preparing food together counts as household.[2]",
+        "Federal changes (One Big Beautiful Bill Act 2025) may affect work/non-citizen rules.[5]"
+      ],
+      "data_shape_notes": "Pennsylvania-expanded SNAP: no asset limit at ≤200% FPL for elderly/disabled households; special net test path if over gross; benefits scale by household size with senior deductions for shelter/medical.",
+      "_raw": "{\n  \"name\": \"SNAP (Supplemental Nutrition Assistance Program)\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"For households with a member 60+ or disabled (Oct 1, 2025 - Sept 30, 2026): Gross monthly income limit at 200% federal poverty level - 1: $2608, 2: $3526, 3: $4442, 4: $5358, 5: $6276, 6: $7192, 7: $8108, +$916 each additional. Households with elderly/disabled exceeding gross may qualify via net income and asset tests. Pennsylvania expanded categorical eligibility for households ≤200% FPL with no resource limit if including elderly/disabled.[1][2][4]\",\n    \"asset_limits\": \"No asset limit in Pennsylvania for expanded categorical eligibility households (including those with elderly/disabled ≤200% FPL). Countable resources like bank accounts excluded for primary home, one vehicle, income-producing vehicles; other vehicles count value over $4650. Federal rules for elderly/disabled over gross limit: $4500 asset limit.[1]\",\n    \"other_requirements\": [\n      \"U.S. citizen or qualified non-citizen.\",\n      \"Social Security Number for all household members.\",\n      \"Resident of Pennsylvania county where applying.\",\n      \"Household (people who purchase/prepare food together) meets income tests; work reporting for able-bodied adults without dependents.\",\n      \"For Simple SNAP/ESAP: All members 60+ or disabled/SSI/SSDI, no work earnings, fixed income, reasonable rent/mortgage.[2][6]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Monthly EBT card benefits for food purchases at stores/supermarkets. Average for older adults: $106/month. Exact amount based on net income calculation (e.g., for 2-person elderly/disabled: max allotment $546 minus 30% net income).[3][5]\",\n    \"varies_by\": \"household_size\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: COMPASS website (pa.gov COMPASS tool).\",\n      \"Phone: Local County Assistance Office (CAO) or helplines like 1-877-999-5964.\",\n      \"Mail/In-person: County assistance office; Simple SNAP application for elderly/disabled households.\",\n      \"Screening: snapscreener.com/guides/pennsylvania or local food bank assistance.\"\n    ],\n    \"processing_time\": \"Not specified in sources; contact local CAO for details.\",\n    \"waitlist\": null,\n    \"forms\": [\n      \"Simple SNAP Application (English/Spanish) for households all 60+ or disabled, no work earnings.\",\n      \"Standard SNAP application via COMPASS.\"\n    ],\n    \"documents\": [\n      \"Dates of birth and Social Security numbers for all household members.\",\n      \"Household income information.\",\n      \"Household expense information.\",\n      \"Housing costs (rent/mortgage).\",\n      \"Medical expenses (especially for elderly/disabled to maximize benefits).\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Apply in county of residence.\",\n    \"regional_variations\": \"Administered by local County Assistance Offices (CAOs); potential differences in processing via county offices, but statewide eligibility rules.[2][7]\",\n    \"offices_or_providers\": [\"Local County Assistance Office (CAO)\"]\n  },\n  \"official_source\": \"https://www.pa.gov/agencies/dhs/resources/snap/snap-older-adults\",\n  \"gotchas\": [\n    \"Elderly/disabled households over gross income (200% FPL) can still qualify via net income/asset tests, unlike standard rules.[1]\",\n    \"Pennsylvania has no asset limit for expanded categorical eligibility (≤200% FPL), broader than federal.[1][4]\",\n    \"Simple SNAP/ESAP for all-elderly/disabled with no work: easier application.[2][6]\",\n    \"Housing/medical expenses deducted to boost benefits for seniors.[1][3]\",\n    \"Not just related family: anyone purchasing/preparing food together counts as household.[2]\",\n    \"Federal changes (One Big Beautiful Bill Act 2025) may affect work/non-citizen rules.[5]\"\n  ],\n  \"data_shape_notes\": \"Pennsylvania-expanded SNAP: no asset limit at ≤200% FPL for elderly/disabled households; special net test path if over gross; benefits scale by household size with senior deductions for shelter/medical.\"\n}"
+    },
+    {
+      "name": "LIHEAP",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Gross annual household income at or below 150% of Federal Poverty Guidelines. For 2026-2027 (effective February 1, 2026): 1: $23,940; 2: $32,460; 3: $40,980; 4: $49,500; 5: $58,020; 6: $66,540; 7: $75,060; 8: $83,580; 9: $92,100; 10: $100,620. Add $8,520 per additional person. Includes all household members' income (related/unrelated roomers sharing expenses). Excludes: educational grants/loans (unless for basic living), home produce for consumption, Senior Citizen Rebate, work/training incentives.",
+        "asset_limits": "No asset or resource limits.",
+        "other_requirements": [
+          "Household includes all living together sharing expenses (children, relatives, unrelated roomers).",
+          "Renters and homeowners eligible.",
+          "No requirement for public assistance, unpaid bills, or SSN (but affidavit needed for household members 1+ without SSN)."
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "One-time cash grant of $200-$1,000 paid directly to utility/fuel provider. Varies by household size, income, fuel type, and county (use DHS Benefit Amount Table tool for exacts). Crisis grants for households in immediate danger of no heat.",
+        "varies_by": "household_size|priority_tier|region"
+      },
+      "application": {
+        "methods": [
+          "Online: COMPASS at https://www.pa.gov/services/dhs/apply-for-the-low-income-home-energy-assistance-program-liheap",
+          "In-person: Local County Assistance Office (locations via county list)",
+          "Phone/mail: Contact local County Assistance Office"
+        ],
+        "processing_time": "Not specified in sources.",
+        "waitlist": null,
+        "forms": [
+          "LIHEAP application (includes Energy Assistance Affidavit for those without SSN)",
+          "Apply via COMPASS online tool"
+        ],
+        "documents": [
+          "Names, birthdates, SSNs (or affidavit) for all household members",
+          "Proof of income for all household members",
+          "Most recent utility bill"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": null,
+        "regional_variations": "Benefit amounts vary by county and fuel type (use DHS Benefit Amount Table). Administered via local County Assistance Offices with potential differences in processing.",
+        "offices_or_providers": [
+          "County Assistance Offices (statewide list available)"
+        ]
+      },
+      "official_source": "https://www.pa.gov/agencies/dhs/resources/liheap",
+      "gotchas": [
+        "Seasonal: Applications Dec 3, 2025-May 8, 2026 only.",
+        "No repayment, but one-time grant per season.",
+        "Income excludes specific items like educational aid—verify exclusions.",
+        "Crisis grants separate for shut-off risk.",
+        "Benefits county/fuel-specific—check table.",
+        "Older data (e.g., 2019-2022 limits) outdated; use current 2026 figures."
+      ],
+      "data_shape_notes": "Income at fixed 150% FPL table by household size; no assets; benefits scale by household size, income range, county, fuel type via lookup table; seasonal with crisis tier; county-administered",
+      "_raw": "{\n  \"name\": \"LIHEAP\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Gross annual household income at or below 150% of Federal Poverty Guidelines. For 2026-2027 (effective February 1, 2026): 1: $23,940; 2: $32,460; 3: $40,980; 4: $49,500; 5: $58,020; 6: $66,540; 7: $75,060; 8: $83,580; 9: $92,100; 10: $100,620. Add $8,520 per additional person. Includes all household members' income (related/unrelated roomers sharing expenses). Excludes: educational grants/loans (unless for basic living), home produce for consumption, Senior Citizen Rebate, work/training incentives.\",\n    \"asset_limits\": \"No asset or resource limits.\",\n    \"other_requirements\": [\"Household includes all living together sharing expenses (children, relatives, unrelated roomers).\", \"Renters and homeowners eligible.\", \"No requirement for public assistance, unpaid bills, or SSN (but affidavit needed for household members 1+ without SSN).\"]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"One-time cash grant of $200-$1,000 paid directly to utility/fuel provider. Varies by household size, income, fuel type, and county (use DHS Benefit Amount Table tool for exacts). Crisis grants for households in immediate danger of no heat.\",\n    \"varies_by\": \"household_size|priority_tier|region\"\n  },\n  \"application\": {\n    \"methods\": [\"Online: COMPASS at https://www.pa.gov/services/dhs/apply-for-the-low-income-home-energy-assistance-program-liheap\", \"In-person: Local County Assistance Office (locations via county list)\", \"Phone/mail: Contact local County Assistance Office\"],\n    \"processing_time\": \"Not specified in sources.\",\n    \"waitlist\": null,\n    \"forms\": [\"LIHEAP application (includes Energy Assistance Affidavit for those without SSN)\", \"Apply via COMPASS online tool\"],\n    \"documents\": [\"Names, birthdates, SSNs (or affidavit) for all household members\", \"Proof of income for all household members\", \"Most recent utility bill\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": null,\n    \"regional_variations\": \"Benefit amounts vary by county and fuel type (use DHS Benefit Amount Table). Administered via local County Assistance Offices with potential differences in processing.\",\n    \"offices_or_providers\": [\"County Assistance Offices (statewide list available)\"]\n  },\n  \"official_source\": \"https://www.pa.gov/agencies/dhs/resources/liheap\",\n  \"gotchas\": [\"Seasonal: Applications Dec 3, 2025-May 8, 2026 only.\", \"No repayment, but one-time grant per season.\", \"Income excludes specific items like educational aid—verify exclusions.\", \"Crisis grants separate for shut-off risk.\", \"Benefits county/fuel-specific—check table.\", \"Older data (e.g., 2019-2022 limits) outdated; use current 2026 figures.\"],\n  \"data_shape_notes\": \"Income at fixed 150% FPL table by household size; no assets; benefits scale by household size, income range, county, fuel type via lookup table; seasonal with crisis tier; county-administered\"\n}"
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Households must have income at or below 200% of the federal poverty level. Effective January 13, 2026: Examples include $31,920 for a single person and $66,000 for a family of four. Erie County provides a table up to 8 persons ($111,440) plus $11,360 per additional person (subject to change); York County lists $30,120 (1 person) to $105,440 (8 persons). Full current table available via local provider or https://dced.pa.gov/housing-and-development/weatherization/income-eligibility/. SSI or cash assistance recipients under Title IV/XVI in prior 12 months may qualify regardless.",
+        "asset_limits": "No asset limits mentioned across sources.",
+        "other_requirements": [
+          "Pennsylvania resident.",
+          "Priority for elderly, disabled, families with children, high energy users.",
+          "Homeowners or renters (renters need landlord permission and rental agreement; for multi-unit buildings, at least 66% units eligible in Erie, no multi-family in Philadelphia).",
+          "Single-family homes, rowhomes, trailers eligible (no multi-family in some regions).",
+          "Home not previously served within 15 years (Philadelphia) or ineligible for re-service."
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Free weatherization services based on energy audit, including: blower door air sealing; attic/wall/basement/crawlspace insulation and ventilation; heating system repair/replacement/modification; hot water pipe/duct wrapping; caulking/weather-stripping windows/doors; minor repairs/health-safety measures; furnace/hot water tank safety checks; refrigerator/heater replacement (Philadelphia); programmable thermostats; dryer duct replacement; CFL bulbs; in-home energy education. No dollar amount or hours specified; services once every 15 years in some areas.",
+        "varies_by": "region"
+      },
+      "application": {
+        "methods": [
+          "Contact local weatherization agency by county via https://dced.pa.gov/programs/weatherization-assistance-program-wap/ (find your county provider).",
+          "Statewide helpline: 1-866-466-3972.",
+          "Philadelphia: Email phdc.intake@phdc.phila.gov or call (215) 448-2160.",
+          "Erie: Erie County Housing Authority (specific contact via their site).",
+          "York: York County Planning Commission.",
+          "In-person/mail via local provider."
+        ],
+        "processing_time": "Not specified statewide; varies by region.",
+        "waitlist": "Active waitlist in Philadelphia; added to inquiry list after contact.",
+        "forms": [
+          "No specific form names/numbers listed; intake via provider."
+        ],
+        "documents": [
+          "Photo ID.",
+          "Deed or lease (renters).",
+          "Current/previous year's income proof for all household members.",
+          "Most recent utility bills (all pages).",
+          "Bank account information (Philadelphia).",
+          "Landlord permission/rental agreement (renters)."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Administered by county-specific providers; must contact agency serving your county.",
+        "regional_variations": "Services/providers differ by county (e.g., PHDC in Philadelphia with waitlist/email intake; Erie County Housing Authority; York County Planning Commission). Wait times vary (waitlist in Philadelphia). Specific services may differ slightly (e.g., no furnace/hot water tank coverage in Erie). Income tables provided locally but align with 200% FPL.",
+        "offices_or_providers": [
+          "County-specific agencies listed at https://dced.pa.gov/programs/weatherization-assistance-program-wap/.",
+          "Philadelphia: PHDC.",
+          "Erie: Erie County Housing Authority.",
+          "York: York County Planning Commission."
+        ]
+      },
+      "official_source": "https://dced.pa.gov/programs/weatherization-assistance-program-wap/",
+      "gotchas": [
+        "Must contact county-specific provider, not apply statewide.",
+        "Renters need landlord permission; multi-unit buildings have unit eligibility rules.",
+        "Active waitlists in some areas like Philadelphia.",
+        "Homes previously weatherized may be ineligible (e.g., every 15 years in Philadelphia).",
+        "Priority for elderly/disabled/families with children, but no strict age requirement.",
+        "Income is gross, includes all household members; SSI auto-qualifies.",
+        "No lien on home, but rent/eviction protections required for renters in some regions."
+      ],
+      "data_shape_notes": "County-administered with local providers and variations in intake/waitlists/services; income at 200% FPL with local tables; priority tiers for vulnerable groups including elderly; renters require landlord approval.",
+      "_raw": "{\n  \"name\": \"Weatherization Assistance Program (WAP)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Households must have income at or below 200% of the federal poverty level. Effective January 13, 2026: Examples include $31,920 for a single person and $66,000 for a family of four. Erie County provides a table up to 8 persons ($111,440) plus $11,360 per additional person (subject to change); York County lists $30,120 (1 person) to $105,440 (8 persons). Full current table available via local provider or https://dced.pa.gov/housing-and-development/weatherization/income-eligibility/. SSI or cash assistance recipients under Title IV/XVI in prior 12 months may qualify regardless.\",\n    \"asset_limits\": \"No asset limits mentioned across sources.\",\n    \"other_requirements\": [\n      \"Pennsylvania resident.\",\n      \"Priority for elderly, disabled, families with children, high energy users.\",\n      \"Homeowners or renters (renters need landlord permission and rental agreement; for multi-unit buildings, at least 66% units eligible in Erie, no multi-family in Philadelphia).\",\n      \"Single-family homes, rowhomes, trailers eligible (no multi-family in some regions).\",\n      \"Home not previously served within 15 years (Philadelphia) or ineligible for re-service.\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free weatherization services based on energy audit, including: blower door air sealing; attic/wall/basement/crawlspace insulation and ventilation; heating system repair/replacement/modification; hot water pipe/duct wrapping; caulking/weather-stripping windows/doors; minor repairs/health-safety measures; furnace/hot water tank safety checks; refrigerator/heater replacement (Philadelphia); programmable thermostats; dryer duct replacement; CFL bulbs; in-home energy education. No dollar amount or hours specified; services once every 15 years in some areas.\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact local weatherization agency by county via https://dced.pa.gov/programs/weatherization-assistance-program-wap/ (find your county provider).\",\n      \"Statewide helpline: 1-866-466-3972.\",\n      \"Philadelphia: Email phdc.intake@phdc.phila.gov or call (215) 448-2160.\",\n      \"Erie: Erie County Housing Authority (specific contact via their site).\",\n      \"York: York County Planning Commission.\",\n      \"In-person/mail via local provider.\"\n    ],\n    \"processing_time\": \"Not specified statewide; varies by region.\",\n    \"waitlist\": \"Active waitlist in Philadelphia; added to inquiry list after contact.\",\n    \"forms\": [\"No specific form names/numbers listed; intake via provider.\"],\n    \"documents\": [\n      \"Photo ID.\",\n      \"Deed or lease (renters).\",\n      \"Current/previous year's income proof for all household members.\",\n      \"Most recent utility bills (all pages).\",\n      \"Bank account information (Philadelphia).\",\n      \"Landlord permission/rental agreement (renters).\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Administered by county-specific providers; must contact agency serving your county.\",\n    \"regional_variations\": \"Services/providers differ by county (e.g., PHDC in Philadelphia with waitlist/email intake; Erie County Housing Authority; York County Planning Commission). Wait times vary (waitlist in Philadelphia). Specific services may differ slightly (e.g., no furnace/hot water tank coverage in Erie). Income tables provided locally but align with 200% FPL.\",\n    \"offices_or_providers\": [\n      \"County-specific agencies listed at https://dced.pa.gov/programs/weatherization-assistance-program-wap/.\",\n      \"Philadelphia: PHDC.\",\n      \"Erie: Erie County Housing Authority.\",\n      \"York: York County Planning Commission.\"\n    ]\n  },\n  \"official_source\": \"https://dced.pa.gov/programs/weatherization-assistance-program-wap/\",\n  \"gotchas\": [\n    \"Must contact county-specific provider, not apply statewide.\",\n    \"Renters need landlord permission; multi-unit buildings have unit eligibility rules.\",\n    \"Active waitlists in some areas like Philadelphia.\",\n    \"Homes previously weatherized may be ineligible (e.g., every 15 years in Philadelphia).\",\n    \"Priority for elderly/disabled/families with children, but no strict age requirement.\",\n    \"Income is gross, includes all household members; SSI auto-qualifies.\",\n    \"No lien on home, but rent/eviction protections required for renters in some regions.\"\n  ],\n  \"data_shape_notes\": \"County-administered with local providers and variations in intake/waitlists/services; income at 200% FPL with local tables; priority tiers for vulnerable groups including elderly; renters require landlord approval.\"\n}"
+    },
+    {
+      "name": "Pennsylvania SHIP (State Health Insurance Assistance Program)",
+      "eligibility": {
+        "age": "65 or older (primary focus); also serves Medicare beneficiaries under 65 with disabilities[4][5]",
+        "income_limits": "No specific income limits stated in search results. SHIP serves 'people with limited incomes' but exact thresholds are not provided[4][5]",
+        "asset_limits": "Not specified in available search results",
+        "other_requirements": [
+          "Must be a Medicare beneficiary or eligible for Medicare[4][5][6]",
+          "U.S. citizen or lawfully present[4]",
+          "Pennsylvania resident[8]"
+        ]
+      },
+      "benefits": {
+        "type": "service|advocacy",
+        "value": "Free, personalized one-on-one counseling and education; assistance with Medicare enrollment (Parts A, B, C, D); help applying for Medicaid, Medicare Savings Program, Extra Help/Low Income Subsidy; assistance with prescription drug coverage; fraud detection and reporting support[4][5][6]",
+        "varies_by": "not_applicable — services are standardized across the program"
+      },
+      "application": {
+        "methods": [
+          "Phone: 1-800-783-7067 (PA MEDI — Pennsylvania Medicare Education and Decision Insight)[8]",
+          "Website: Pennsylvania SHIP website (specific URL not provided in search results, but accessible via shiphelp.org)[8]",
+          "In-person: Through local area agencies on aging and community-based partners (2,200+ local sites nationwide)[4][5]",
+          "National hotline: 877-839-2675[4]"
+        ],
+        "processing_time": "Not specified in search results",
+        "waitlist": "Not mentioned in search results",
+        "forms": "No specific form names or numbers provided in search results",
+        "documents": "Not specified in search results"
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None stated — program operates statewide in Pennsylvania[8]",
+        "regional_variations": "Services delivered through state units on aging or state departments of insurance in partnerships with local area agencies on aging and community-based partners, but no specific regional service differences are documented in search results[4][5]",
+        "offices_or_providers": "Over 2,200 local sponsoring agencies nationwide (including area agencies on aging, social services agencies, senior housing programs, hospitals); specific Pennsylvania locations not listed in search results[5]"
+      },
+      "official_source": "shiphelp.org (national resource center); PA MEDI contact: 1-800-783-7067[8]",
+      "gotchas": [
+        "SHIP is primarily a Medicare counseling and enrollment assistance program, NOT a direct financial assistance or insurance program itself[4][5][6] — it helps people navigate and enroll in Medicare, Medicaid, and related programs",
+        "SHIP serves Medicare beneficiaries and their families, not all elderly Pennsylvanians — eligibility requires Medicare enrollment or eligibility[4][5]",
+        "The search results conflate CHIP (Children's Health Insurance Program) with SHIP (State Health Insurance Assistance Program) — these are completely different programs; CHIP covers children, SHIP covers Medicare beneficiaries[1][2][3]",
+        "No specific income limits are documented in search results, making it unclear whether all 'limited income' seniors qualify or if there are thresholds",
+        "Processing timelines, waitlists, and specific documentation requirements are not detailed in available search results"
+      ],
+      "data_shape_notes": "SHIP is a counseling and advocacy service program, not a direct benefits program. It provides free assistance to help Medicare beneficiaries understand and enroll in existing programs (Medicare, Medicaid, prescription drug assistance). The program is delivered through a network of 2,200+ local agencies nationwide, with trained counselors and volunteers. Pennsylvania's SHIP is branded as 'PA MEDI' (Pennsylvania Medicare Education and Decision Insight). Unlike means-tested benefit programs, SHIP's eligibility criteria focus on Medicare status rather than strict income thresholds, though it targets people with 'limited incomes.' No specific dollar amounts, asset limits, or processing timelines are provided in the search results.",
+      "_raw": "```json\n{\n  \"name\": \"Pennsylvania SHIP (State Health Insurance Assistance Program)\",\n  \"eligibility\": {\n    \"age\": \"65 or older (primary focus); also serves Medicare beneficiaries under 65 with disabilities[4][5]\",\n    \"income_limits\": \"No specific income limits stated in search results. SHIP serves 'people with limited incomes' but exact thresholds are not provided[4][5]\",\n    \"asset_limits\": \"Not specified in available search results\",\n    \"other_requirements\": [\n      \"Must be a Medicare beneficiary or eligible for Medicare[4][5][6]\",\n      \"U.S. citizen or lawfully present[4]\",\n      \"Pennsylvania resident[8]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service|advocacy\",\n    \"value\": \"Free, personalized one-on-one counseling and education; assistance with Medicare enrollment (Parts A, B, C, D); help applying for Medicaid, Medicare Savings Program, Extra Help/Low Income Subsidy; assistance with prescription drug coverage; fraud detection and reporting support[4][5][6]\",\n    \"varies_by\": \"not_applicable — services are standardized across the program\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: 1-800-783-7067 (PA MEDI — Pennsylvania Medicare Education and Decision Insight)[8]\",\n      \"Website: Pennsylvania SHIP website (specific URL not provided in search results, but accessible via shiphelp.org)[8]\",\n      \"In-person: Through local area agencies on aging and community-based partners (2,200+ local sites nationwide)[4][5]\",\n      \"National hotline: 877-839-2675[4]\"\n    ],\n    \"processing_time\": \"Not specified in search results\",\n    \"waitlist\": \"Not mentioned in search results\",\n    \"forms\": \"No specific form names or numbers provided in search results\",\n    \"documents\": \"Not specified in search results\"\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None stated — program operates statewide in Pennsylvania[8]\",\n    \"regional_variations\": \"Services delivered through state units on aging or state departments of insurance in partnerships with local area agencies on aging and community-based partners, but no specific regional service differences are documented in search results[4][5]\",\n    \"offices_or_providers\": \"Over 2,200 local sponsoring agencies nationwide (including area agencies on aging, social services agencies, senior housing programs, hospitals); specific Pennsylvania locations not listed in search results[5]\"\n  },\n  \"official_source\": \"shiphelp.org (national resource center); PA MEDI contact: 1-800-783-7067[8]\",\n  \"gotchas\": [\n    \"SHIP is primarily a Medicare counseling and enrollment assistance program, NOT a direct financial assistance or insurance program itself[4][5][6] — it helps people navigate and enroll in Medicare, Medicaid, and related programs\",\n    \"SHIP serves Medicare beneficiaries and their families, not all elderly Pennsylvanians — eligibility requires Medicare enrollment or eligibility[4][5]\",\n    \"The search results conflate CHIP (Children's Health Insurance Program) with SHIP (State Health Insurance Assistance Program) — these are completely different programs; CHIP covers children, SHIP covers Medicare beneficiaries[1][2][3]\",\n    \"No specific income limits are documented in search results, making it unclear whether all 'limited income' seniors qualify or if there are thresholds\",\n    \"Processing timelines, waitlists, and specific documentation requirements are not detailed in available search results\"\n  ],\n  \"data_shape_notes\": \"SHIP is a counseling and advocacy service program, not a direct benefits program. It provides free assistance to help Medicare beneficiaries understand and enroll in existing programs (Medicare, Medicaid, prescription drug assistance). The program is delivered through a network of 2,200+ local agencies nationwide, with trained counselors and volunteers. Pennsylvania's SHIP is branded as 'PA MEDI' (Pennsylvania Medicare Education and Decision Insight). Unlike means-tested benefit programs, SHIP's eligibility criteria focus on Medicare status rather than strict income thresholds, though it targets people with 'limited incomes.' No specific dollar amounts, asset limits, or processing timelines are provided in the search results.\"\n}\n```\n\n## Critical Limitations\n\nThe search results provided contain **significant gaps** for a comprehensive family guide:\n\n**Missing Information:**\n- Exact income limits or thresholds for SHIP eligibility[4][5][6]\n- Asset limits or exemptions[4][5][6]\n- Specific documentation required to apply[4][5][6]\n- Processing timelines or waitlist information[4][5][6]\n- Specific Pennsylvania office locations or regional variations in service delivery[4][5][6]\n- Specific form names or numbers[4][5][6]\n- Whether online application is available (only phone and in-person methods are confirmed)[8]\n\n**Important Clarification:**\nThe search results conflate two entirely different programs. **CHIP (Children's Health Insurance Program)** covers children and is income-based[1][2][3], while **SHIP (State Health Insurance Assistance Program)** is a counseling service for Medicare beneficiaries[4][5][6][8]. Your query asks about SHIP, but results 1-3 describe CHIP. SHIP is fundamentally a **counseling and navigation service**, not a direct insurance or financial assistance program—it helps seniors understand and enroll in Medicare, Medicaid, and related programs.\n\nTo complete this guide, you would need to contact PA MEDI directly at **1-800-783-7067** or visit the Pennsylvania SHIP website for specific eligibility thresholds, documentation requirements, and regional service details."
+    },
+    {
+      "name": "Home-Delivered Meals (Pennsylvania)",
+      "critical_caveat": "Pennsylvania does not operate a single unified home-delivered meals program. Instead, eligibility and services vary significantly by county, funding source (Medicaid waivers, Area Agencies on Aging, managed care organizations), and provider. The information below reflects multiple distinct programs.",
+      "eligibility": {
+        "age": "60 years or older (some programs accept 65+)[1][2][6]",
+        "income_limits": "Varies by program and funding source. Search results do not provide specific dollar amounts or household tables. Income eligibility is mentioned for some programs but not quantified.[6]",
+        "asset_limits": "Not specified in search results",
+        "other_requirements": [
+          "Must be a resident in a non-institutional setting (home, not nursing facility)[1]",
+          "Must have a physical, mental, or emotional disability that prevents leaving residence regularly and/or preparing nutritious meals[1][2]",
+          "Must be unable to access and/or prepare food for themselves[2]",
+          "Living alone or with someone who also meets eligibility criteria (York County)[1]",
+          "No family or informal supports available to provide meals and grocery shopping (Montgomery County)[7]",
+          "Must be assessed by a Care Manager to determine eligibility[1][2]"
+        ]
+      },
+      "benefits": {
+        "type": "in_kind",
+        "value": "Nutritionally balanced meals delivered to home. Each meal provides one-third of daily nutritional requirements as determined by US Department of Health and Human Services[2]. Meals certified by Licensed Dietitian and Pennsylvania Department of Aging[2]",
+        "varies_by": "provider and funding source",
+        "note": "Search results do not specify frequency of delivery (daily, weekly, etc.) or number of meals per week"
+      },
+      "application": {
+        "methods": [
+          "Phone: York County Area Agency on Aging: 717-771-9610[1]",
+          "Email: aging@yorkcountypa.gov[1]",
+          "Phone: Blair Senior Services Intake Office: 946-1235[2]",
+          "Phone: Meals America: 215-399-5676[5]",
+          "Contact case manager if enrolled in Pennsylvania Community HealthChoices[3]",
+          "Contact local Area Agency on Aging (varies by county)[6]"
+        ],
+        "processing_time": "Not specified in search results",
+        "waitlist": "Not specified in search results",
+        "forms": "Not specified in search results",
+        "documents": "In-home assessment required by Care Manager[1]. Specific documents to bring not detailed in search results."
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Program availability and eligibility vary significantly by county. Multiple county-specific programs identified: York County[1], Blair County[2], Montgomery County[7], Philadelphia[8]",
+        "regional_variations": "Eligibility criteria differ by county (e.g., York County requires 'living alone or with someone who also meets criteria'; Montgomery County excludes those with family/informal supports). Providers vary by region (Blair Senior Services, Meals America, Philadelphia Corporation for Aging, etc.). Funding sources vary (Area Agencies on Aging, Medicaid waivers, managed care organizations).[1][2][3][5][7]",
+        "offices_or_providers": [
+          "York County Area Agency on Aging[1]",
+          "Blair Senior Services[2]",
+          "Montgomery County[7]",
+          "Philadelphia Corporation for Aging[8]",
+          "Mom's Meals (Medicaid/Medicare Advantage)[3]",
+          "Meals America (Montgomery County and all 67 PA counties)[5]",
+          "Over 500 Senior Community Centers throughout Pennsylvania (congregate meals, not home-delivered)[6]"
+        ]
+      },
+      "official_sources": [
+        "Pennsylvania Department of Aging: https://www.pa.gov/agencies/aging/aging-programs-and-services/meals-and-food-assistance[6]",
+        "York County: https://yorkcountypa.gov/198/Home-Delivered-Meals[1]",
+        "Montgomery County: https://www.montgomerycountypa.gov/2836/Home-Delivered-Meals[7]"
+      ],
+      "gotchas": [
+        "No single statewide program: You must contact your specific county or provider. Calling the state Department of Aging is a necessary first step.[6]",
+        "Eligibility is highly individualized: Care managers conduct in-home assessments; meeting age and disability criteria does not guarantee approval.[1][2]",
+        "Family/informal support disqualifies you in some counties: Montgomery County explicitly excludes those with family or other informal supports available[7]",
+        "Multiple funding sources mean different rules: Medicaid waiver programs (Community HealthChoices, Independence, OBRA, Aging Waivers) have different eligibility than Area Agency on Aging programs[4]",
+        "Income limits exist but are not publicly detailed: Search results mention income eligibility for some programs but provide no specific thresholds[6]",
+        "Private pay options exist: If you don't qualify for government assistance, some providers (Mom's Meals, Meals America) offer meals at $9.49 or less per meal[3][5]",
+        "Congregate vs. home-delivered are different: Over 500 Senior Community Centers offer congregate meals (eat on-site); home-delivered is a separate, more limited program[6]",
+        "Processing time and waitlists are not disclosed: Search results do not specify how long approval takes or whether waitlists exist"
+      ],
+      "data_shape_notes": "Pennsylvania's home-delivered meals landscape is fragmented across county-based Area Agencies on Aging, Medicaid waiver programs (CHC, OLTL, ODP), and private providers. There is no unified eligibility standard, application process, or benefit level. Families must identify their county and contact the appropriate local provider. Income limits, asset limits, processing times, and waitlist information are not publicly available in standard formats.",
+      "_raw": "I need to be transparent about what the search results can and cannot support for your comprehensive guide.\n\nThe search results provide **fragmented, program-specific information** rather than a unified statewide program. Pennsylvania's home-delivered meals operate through **multiple distinct programs and providers**, each with different eligibility rules, funding sources, and application processes. Here's what I can definitively tell you:\n\n```json\n{\n  \"name\": \"Home-Delivered Meals (Pennsylvania)\",\n  \"critical_caveat\": \"Pennsylvania does not operate a single unified home-delivered meals program. Instead, eligibility and services vary significantly by county, funding source (Medicaid waivers, Area Agencies on Aging, managed care organizations), and provider. The information below reflects multiple distinct programs.\",\n  \"eligibility\": {\n    \"age\": \"60 years or older (some programs accept 65+)[1][2][6]\",\n    \"income_limits\": \"Varies by program and funding source. Search results do not provide specific dollar amounts or household tables. Income eligibility is mentioned for some programs but not quantified.[6]\",\n    \"asset_limits\": \"Not specified in search results\",\n    \"other_requirements\": [\n      \"Must be a resident in a non-institutional setting (home, not nursing facility)[1]\",\n      \"Must have a physical, mental, or emotional disability that prevents leaving residence regularly and/or preparing nutritious meals[1][2]\",\n      \"Must be unable to access and/or prepare food for themselves[2]\",\n      \"Living alone or with someone who also meets eligibility criteria (York County)[1]\",\n      \"No family or informal supports available to provide meals and grocery shopping (Montgomery County)[7]\",\n      \"Must be assessed by a Care Manager to determine eligibility[1][2]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"in_kind\",\n    \"value\": \"Nutritionally balanced meals delivered to home. Each meal provides one-third of daily nutritional requirements as determined by US Department of Health and Human Services[2]. Meals certified by Licensed Dietitian and Pennsylvania Department of Aging[2]\",\n    \"varies_by\": \"provider and funding source\",\n    \"note\": \"Search results do not specify frequency of delivery (daily, weekly, etc.) or number of meals per week\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: York County Area Agency on Aging: 717-771-9610[1]\",\n      \"Email: aging@yorkcountypa.gov[1]\",\n      \"Phone: Blair Senior Services Intake Office: 946-1235[2]\",\n      \"Phone: Meals America: 215-399-5676[5]\",\n      \"Contact case manager if enrolled in Pennsylvania Community HealthChoices[3]\",\n      \"Contact local Area Agency on Aging (varies by county)[6]\"\n    ],\n    \"processing_time\": \"Not specified in search results\",\n    \"waitlist\": \"Not specified in search results\",\n    \"forms\": \"Not specified in search results\",\n    \"documents\": \"In-home assessment required by Care Manager[1]. Specific documents to bring not detailed in search results.\"\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Program availability and eligibility vary significantly by county. Multiple county-specific programs identified: York County[1], Blair County[2], Montgomery County[7], Philadelphia[8]\",\n    \"regional_variations\": \"Eligibility criteria differ by county (e.g., York County requires 'living alone or with someone who also meets criteria'; Montgomery County excludes those with family/informal supports). Providers vary by region (Blair Senior Services, Meals America, Philadelphia Corporation for Aging, etc.). Funding sources vary (Area Agencies on Aging, Medicaid waivers, managed care organizations).[1][2][3][5][7]\",\n    \"offices_or_providers\": [\n      \"York County Area Agency on Aging[1]\",\n      \"Blair Senior Services[2]\",\n      \"Montgomery County[7]\",\n      \"Philadelphia Corporation for Aging[8]\",\n      \"Mom's Meals (Medicaid/Medicare Advantage)[3]\",\n      \"Meals America (Montgomery County and all 67 PA counties)[5]\",\n      \"Over 500 Senior Community Centers throughout Pennsylvania (congregate meals, not home-delivered)[6]\"\n    ]\n  },\n  \"official_sources\": [\n    \"Pennsylvania Department of Aging: https://www.pa.gov/agencies/aging/aging-programs-and-services/meals-and-food-assistance[6]\",\n    \"York County: https://yorkcountypa.gov/198/Home-Delivered-Meals[1]\",\n    \"Montgomery County: https://www.montgomerycountypa.gov/2836/Home-Delivered-Meals[7]\"\n  ],\n  \"gotchas\": [\n    \"No single statewide program: You must contact your specific county or provider. Calling the state Department of Aging is a necessary first step.[6]\",\n    \"Eligibility is highly individualized: Care managers conduct in-home assessments; meeting age and disability criteria does not guarantee approval.[1][2]\",\n    \"Family/informal support disqualifies you in some counties: Montgomery County explicitly excludes those with family or other informal supports available[7]\",\n    \"Multiple funding sources mean different rules: Medicaid waiver programs (Community HealthChoices, Independence, OBRA, Aging Waivers) have different eligibility than Area Agency on Aging programs[4]\",\n    \"Income limits exist but are not publicly detailed: Search results mention income eligibility for some programs but provide no specific thresholds[6]\",\n    \"Private pay options exist: If you don't qualify for government assistance, some providers (Mom's Meals, Meals America) offer meals at $9.49 or less per meal[3][5]\",\n    \"Congregate vs. home-delivered are different: Over 500 Senior Community Centers offer congregate meals (eat on-site); home-delivered is a separate, more limited program[6]\",\n    \"Processing time and waitlists are not disclosed: Search results do not specify how long approval takes or whether waitlists exist\"\n  ],\n  \"data_shape_notes\": \"Pennsylvania's home-delivered meals landscape is fragmented across county-based Area Agencies on Aging, Medicaid waiver programs (CHC, OLTL, ODP), and private providers. There is no unified eligibility standard, application process, or benefit level. Families must identify their county and contact the appropriate local provider. Income limits, asset limits, processing times, and waitlist information are not publicly available in standard formats.\"\n}\n```\n\n## What You Need to Do Next\n\n**To build an accurate guide, you'll need to:**\n\n1. **Contact the Pennsylvania Department of Aging directly** at the number on their website[6] to ask for statewide eligibility guidelines, income/asset limits, and processing timelines.\n\n2. **Identify the applicant's county** and contact that county's Area Agency on Aging. Each county operates its own program with potentially different rules.\n\n3. **Ask specifically about:**\n   - Income and asset limits (with dollar amounts)\n   - Processing time and waitlist status\n   - Required documents\n   - Whether they use Medicaid waivers or other funding\n   - Frequency and number of meals provided\n\n4. **If the applicant has Medicaid or Medicare Advantage**, ask their case manager about home-delivered meal benefits through their health plan (Community HealthChoices, Mom's Meals, Meals America).\n\nThe search results reveal a **patchwork system** rather than a unified program—which is the most important \"gotcha\" for your guide."
+    },
+    {
+      "name": "Pennsylvania Caregiver Support Program",
+      "eligibility": {
+        "age": null,
+        "income_limits": "No financial eligibility requirement to participate. Reimbursement amount uses a sliding scale based on care receiver's total gross household income and household size, up to 380% of the Federal Poverty Level (FPL). Above 380% FPL, no financial reimbursement but other services available.",
+        "asset_limits": "No asset limits or tests mentioned.",
+        "other_requirements": [
+          "Both caregiver and care receiver must be Pennsylvania residents.",
+          "Caregiver must be an adult primarily responsible for providing regular care.",
+          "Must meet one of three categories:",
+          "Category 1: Caregiver 18+; care receiver 60+ with functional deficits OR any age with Alzheimer's/related disorder; no relation or co-residency required; care receiver needs assistance with at least one ADL.",
+          "Category 2 (Grandparent/Older Relative): Caregiver 55+, not biological parent, related by blood/marriage/adoption, legal guardianship or informal raising; care receiver child under 18; must co-reside.",
+          "Category 3 (Older Relative Adult Disability): Caregiver 55+, related by blood/marriage/adoption (can be biological parent); care receiver 18-59 with disability; must co-reside."
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Reimbursement for respite care, supplemental services, consumable supplies, and other care-related expenses. Also includes care management, caregiver education, and training. Exact reimbursement percentage via sliding scale (income/household size up to 380% FPL); caregiver pays upfront and submits for reimbursement. No hiring family members for pay.",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Contact local Area Agency on Aging (AAA): Find via pa.gov or call 1-866-286-3636.",
+          "Online: https://www.pa.gov/services/aging/apply-for-the-caregiver-support-program",
+          "Phone: Regional AAAs (e.g., Cumberland County 717-240-6110 or 1-888-697-0371 X6110; Philadelphia PCA Cares).",
+          "In-person: Local AAA offices.",
+          "Requires in-home assessment."
+        ],
+        "processing_time": "Not specified; requires in-home assessment post-contact.",
+        "waitlist": "Possible regional waitlists (varies by area, not detailed statewide).",
+        "forms": [
+          "No specific form name/number listed; application via AAA assessment."
+        ],
+        "documents": [
+          "Verification of household income.",
+          "Proof of residency.",
+          "Documentation of disability/dementia if applicable (e.g., physician note for non-dementia disability in Category 3).",
+          "Receipts for reimbursements post-service."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Administered through 52 local Area Agencies on Aging (AAAs); must contact local AAA serving your county.",
+        "regional_variations": "Services and wait times vary by AAA/county (e.g., specific counties like Fayette/Greene/Washington have tailored eligibility notes; reimbursement determined locally via assessment).",
+        "offices_or_providers": [
+          "Local Area Agencies on Aging (AAAs) by county."
+        ]
+      },
+      "official_source": "https://www.pa.gov/agencies/aging/aging-programs-and-services/caregiver-support-program",
+      "gotchas": [
+        "No direct payment to caregivers; must pay upfront and seek reimbursement with receipts.",
+        "Cannot hire/pay family members for care.",
+        "Above 380% FPL: No financial aid, only non-financial services.",
+        "Must live together for Categories 2/3.",
+        "In-home assessment required for authorization.",
+        "Reimbursement only for approved services/supplies determined during assessment."
+      ],
+      "data_shape_notes": "Three distinct caregiver categories with varying age/residency/relation rules; statewide via 52 AAAs with local administration; sliding-scale reimbursement (not fixed amounts) by care receiver household income/FPL up to 380%; no upfront financial eligibility but benefit tiered by income.",
+      "_raw": "{\n  \"name\": \"Pennsylvania Caregiver Support Program\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No financial eligibility requirement to participate. Reimbursement amount uses a sliding scale based on care receiver's total gross household income and household size, up to 380% of the Federal Poverty Level (FPL). Above 380% FPL, no financial reimbursement but other services available.\",\n    \"asset_limits\": \"No asset limits or tests mentioned.\",\n    \"other_requirements\": [\n      \"Both caregiver and care receiver must be Pennsylvania residents.\",\n      \"Caregiver must be an adult primarily responsible for providing regular care.\",\n      \"Must meet one of three categories:\",\n      \"Category 1: Caregiver 18+; care receiver 60+ with functional deficits OR any age with Alzheimer's/related disorder; no relation or co-residency required; care receiver needs assistance with at least one ADL.\",\n      \"Category 2 (Grandparent/Older Relative): Caregiver 55+, not biological parent, related by blood/marriage/adoption, legal guardianship or informal raising; care receiver child under 18; must co-reside.\",\n      \"Category 3 (Older Relative Adult Disability): Caregiver 55+, related by blood/marriage/adoption (can be biological parent); care receiver 18-59 with disability; must co-reside.\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Reimbursement for respite care, supplemental services, consumable supplies, and other care-related expenses. Also includes care management, caregiver education, and training. Exact reimbursement percentage via sliding scale (income/household size up to 380% FPL); caregiver pays upfront and submits for reimbursement. No hiring family members for pay.\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact local Area Agency on Aging (AAA): Find via pa.gov or call 1-866-286-3636.\",\n      \"Online: https://www.pa.gov/services/aging/apply-for-the-caregiver-support-program\",\n      \"Phone: Regional AAAs (e.g., Cumberland County 717-240-6110 or 1-888-697-0371 X6110; Philadelphia PCA Cares).\",\n      \"In-person: Local AAA offices.\",\n      \"Requires in-home assessment.\"\n    ],\n    \"processing_time\": \"Not specified; requires in-home assessment post-contact.\",\n    \"waitlist\": \"Possible regional waitlists (varies by area, not detailed statewide).\",\n    \"forms\": [\"No specific form name/number listed; application via AAA assessment.\"],\n    \"documents\": [\n      \"Verification of household income.\",\n      \"Proof of residency.\",\n      \"Documentation of disability/dementia if applicable (e.g., physician note for non-dementia disability in Category 3).\",\n      \"Receipts for reimbursements post-service.\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Administered through 52 local Area Agencies on Aging (AAAs); must contact local AAA serving your county.\",\n    \"regional_variations\": \"Services and wait times vary by AAA/county (e.g., specific counties like Fayette/Greene/Washington have tailored eligibility notes; reimbursement determined locally via assessment).\",\n    \"offices_or_providers\": [\"Local Area Agencies on Aging (AAAs) by county.\"]\n  },\n  \"official_source\": \"https://www.pa.gov/agencies/aging/aging-programs-and-services/caregiver-support-program\",\n  \"gotchas\": [\n    \"No direct payment to caregivers; must pay upfront and seek reimbursement with receipts.\",\n    \"Cannot hire/pay family members for care.\",\n    \"Above 380% FPL: No financial aid, only non-financial services.\",\n    \"Must live together for Categories 2/3.\",\n    \"In-home assessment required for authorization.\",\n    \"Reimbursement only for approved services/supplies determined during assessment.\"\n  ],\n  \"data_shape_notes\": \"Three distinct caregiver categories with varying age/residency/relation rules; statewide via 52 AAAs with local administration; sliding-scale reimbursement (not fixed amounts) by care receiver household income/FPL up to 380%; no upfront financial eligibility but benefit tiered by income.\"\n}"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "eligibility": {
+        "age": 55,
+        "income_limits": "Household income no more than 125% of the federal poverty level. Exact dollar amounts vary annually by household size and are not specified in sources; contact local provider for current table (e.g., for 2025-2026, check HHS poverty guidelines).",
+        "asset_limits": null,
+        "other_requirements": [
+          "Unemployed",
+          "Live in Pennsylvania (often limited to specific counties served by local providers)",
+          "Authorized to work in the United States"
+        ]
+      },
+      "benefits": {
+        "type": "employment",
+        "value": "On-the-job training at community-based nonprofit and public sites (e.g., senior centers, schools, hospitals, daycare); average 20 hours per week (or 20 hours/week or 40 hours every two weeks); paid stipend at the highest of federal, state, or local minimum wage; serves as bridge to unsubsidized employment; typically lasts about 6 months.",
+        "varies_by": "region"
+      },
+      "application": {
+        "methods": [
+          "Contact local providers (e.g., Philadelphia: (215) 686-8450 or participant interest form at phila.gov/programs/senior-community-service-employment-program-scsep/; Westmoreland: 724-925-4084; statewide info: pa.gov/services/aging/apply-for-the-senior-community-service-employment-program)",
+          "In-person at local offices (e.g., Crispus Attucks in York County)",
+          "Online interest form for some regions (Philadelphia)"
+        ],
+        "processing_time": null,
+        "waitlist": "Possible due to funding limits; varies by region and demand (not specified)",
+        "forms": [
+          "Participant interest form (Philadelphia); general application at local SCSEP offices"
+        ],
+        "documents": [
+          "State or Federal picture ID",
+          "Social Security card",
+          "Proof of all income sources (e.g., Social Security award letter, unemployment determination)",
+          "Proof of residency",
+          "Work authorization if applicable"
+        ]
+      },
+      "geography": {
+        "statewide": false,
+        "restrictions": "Administered by local grantees; serves specific counties (e.g., Philadelphia only in Philly; Westmoreland County; York/Adams Counties; not uniform across all PA counties)",
+        "regional_variations": "Different local providers handle intake, placements, and contacts; e.g., Philadelphia requires living in Philly, Westmoreland serves county residents; hours may be phrased as 20/week or 40/2 weeks; wait times and availability vary by funding and slots.",
+        "offices_or_providers": [
+          "Philadelphia Office: (215) 686-8450",
+          "Westmoreland County: Westmoreland County Community College, 724-925-4084",
+          "York/Adams Counties: Crispus Attucks, York",
+          "Statewide contact via pa.gov/aging"
+        ]
+      },
+      "official_source": "https://www.pa.gov/services/aging/apply-for-the-senior-community-service-employment-program",
+      "gotchas": [
+        "Not statewide—must contact county-specific provider; eligibility often county-restricted (e.g., can't apply in Philly if living elsewhere); income is 125% FPL (stricter than some programs); priority to veterans, over 65, disabled, rural, homeless—at-risk; temporary (max ~6-12 months, not permanent job); no asset limits mentioned but prove all income sources; funding fluctuations may cause waitlists."
+      ],
+      "data_shape_notes": "County-restricted with multiple local providers; income at 125% FPL (contact for table); no asset test; benefits fixed at ~20 hours/week min wage but placements vary by region; priority tiers affect entry.",
+      "_raw": "{\n  \"name\": \"Senior Community Service Employment Program (SCSEP)\",\n  \"eligibility\": {\n    \"age\": 55,\n    \"income_limits\": \"Household income no more than 125% of the federal poverty level. Exact dollar amounts vary annually by household size and are not specified in sources; contact local provider for current table (e.g., for 2025-2026, check HHS poverty guidelines).\",\n    \"asset_limits\": null,\n    \"other_requirements\": [\"Unemployed\", \"Live in Pennsylvania (often limited to specific counties served by local providers)\", \"Authorized to work in the United States\"]\n  },\n  \"benefits\": {\n    \"type\": \"employment\",\n    \"value\": \"On-the-job training at community-based nonprofit and public sites (e.g., senior centers, schools, hospitals, daycare); average 20 hours per week (or 20 hours/week or 40 hours every two weeks); paid stipend at the highest of federal, state, or local minimum wage; serves as bridge to unsubsidized employment; typically lasts about 6 months.\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\"Contact local providers (e.g., Philadelphia: (215) 686-8450 or participant interest form at phila.gov/programs/senior-community-service-employment-program-scsep/; Westmoreland: 724-925-4084; statewide info: pa.gov/services/aging/apply-for-the-senior-community-service-employment-program)\", \"In-person at local offices (e.g., Crispus Attucks in York County)\", \"Online interest form for some regions (Philadelphia)\"],\n    \"processing_time\": null,\n    \"waitlist\": \"Possible due to funding limits; varies by region and demand (not specified)\",\n    \"forms\": [\"Participant interest form (Philadelphia); general application at local SCSEP offices\"],\n    \"documents\": [\"State or Federal picture ID\", \"Social Security card\", \"Proof of all income sources (e.g., Social Security award letter, unemployment determination)\", \"Proof of residency\", \"Work authorization if applicable\"]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Administered by local grantees; serves specific counties (e.g., Philadelphia only in Philly; Westmoreland County; York/Adams Counties; not uniform across all PA counties)\",\n    \"regional_variations\": \"Different local providers handle intake, placements, and contacts; e.g., Philadelphia requires living in Philly, Westmoreland serves county residents; hours may be phrased as 20/week or 40/2 weeks; wait times and availability vary by funding and slots.\",\n    \"offices_or_providers\": [\"Philadelphia Office: (215) 686-8450\", \"Westmoreland County: Westmoreland County Community College, 724-925-4084\", \"York/Adams Counties: Crispus Attucks, York\", \"Statewide contact via pa.gov/aging\"]\n  },\n  \"official_source\": \"https://www.pa.gov/services/aging/apply-for-the-senior-community-service-employment-program\",\n  \"gotchas\": [\"Not statewide—must contact county-specific provider; eligibility often county-restricted (e.g., can't apply in Philly if living elsewhere); income is 125% FPL (stricter than some programs); priority to veterans, over 65, disabled, rural, homeless—at-risk; temporary (max ~6-12 months, not permanent job); no asset limits mentioned but prove all income sources; funding fluctuations may cause waitlists.\"],\n  \"data_shape_notes\": \"County-restricted with multiple local providers; income at 125% FPL (contact for table); no asset test; benefits fixed at ~20 hours/week min wage but placements vary by region; priority tiers affect entry.\"\n}"
+    },
+    {
+      "name": "Legal Counsel for the Elderly / Pennsylvania Legal Aid Network",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "Generally 125% of the Federal Poverty Guidelines (FPG), varying by household size and local program; exact 2026 figures not specified in sources but pegged to governmental guidelines (e.g., examples from related programs: individual ~$1,533-$1,916/month gross). Contact local program for current table as it increases with household size.[1][2][4]",
+        "asset_limits": "Varies by local program; some have asset guidelines (e.g., $5,500-$9,000 for certain benefits programs, but specific to legal aid not detailed). Personal assets may affect qualification.[4][5]",
+        "other_requirements": [
+          "Pennsylvania resident",
+          "Low-income with greatest economic/social needs prioritized",
+          "Based on local program priorities and governmental guidelines"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Civil legal assistance including abuse, age discrimination, guardianship defense, healthcare, housing, long-term care, Medicaid, Medicare, nutrition, Social Security/SSI, utilities. Provided by independent regional/specialized programs; no specific dollar amounts or hours stated.[2][7]",
+        "varies_by": "priority_tier|region"
+      },
+      "application": {
+        "methods": [
+          "Online application at palegalaid.net (processed by county program)",
+          "Phone: 1-800-322-7572 for referrals",
+          "Direct to local program via palegalaid.net/find-legal-help (county filter)",
+          "PALawHELP.org for info and referrals"
+        ],
+        "processing_time": "Not specified",
+        "waitlist": "High demand; nationally ~50% turned away due to resources, 80% of poor's legal needs unmet[1]",
+        "forms": [
+          "Application for Legal Services via palegalaid.net/apply"
+        ],
+        "documents": [
+          "Not explicitly listed; prepare income proof, household size details, asset info, legal problem description as eligibility screening requires these"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Serves every county in Pennsylvania",
+        "regional_variations": "Delivered via 8 regional programs and 6 specialized programs; eligibility/priorities vary by local program[1][6][7]",
+        "offices_or_providers": [
+          "Locate via palegalaid.net providers page with county filter"
+        ]
+      },
+      "official_source": "https://palegalaid.net/ and https://www.pa.gov/services/aging/apply-for-the-older-pennsylvanians-legal-assistance-program",
+      "gotchas": [
+        "Income at 125% FPG general but local variations/priorities apply; exceptions possible for seniors/domestic violence but not guaranteed[1][4][5]",
+        "High demand leads to turnaways; not all qualifiers served[1]",
+        "Asset tests may apply beyond income; contact local program essential as no centralized exact limits[4][5]",
+        "Focus on elderly 60+ with greatest needs, not automatic for all seniors[2]"
+      ],
+      "data_shape_notes": "Network of independent regional/specialized programs with varying local guidelines/priorities; income pegged to 125% FPG but exact tables/assets/currents require local contact; elderly prioritized via Older Pennsylvanians Legal Assistance Program integration",
+      "_raw": "{\n  \"name\": \"Legal Counsel for the Elderly / Pennsylvania Legal Aid Network\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"Generally 125% of the Federal Poverty Guidelines (FPG), varying by household size and local program; exact 2026 figures not specified in sources but pegged to governmental guidelines (e.g., examples from related programs: individual ~$1,533-$1,916/month gross). Contact local program for current table as it increases with household size.[1][2][4]\",\n    \"asset_limits\": \"Varies by local program; some have asset guidelines (e.g., $5,500-$9,000 for certain benefits programs, but specific to legal aid not detailed). Personal assets may affect qualification.[4][5]\",\n    \"other_requirements\": [\"Pennsylvania resident\", \"Low-income with greatest economic/social needs prioritized\", \"Based on local program priorities and governmental guidelines\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Civil legal assistance including abuse, age discrimination, guardianship defense, healthcare, housing, long-term care, Medicaid, Medicare, nutrition, Social Security/SSI, utilities. Provided by independent regional/specialized programs; no specific dollar amounts or hours stated.[2][7]\",\n    \"varies_by\": \"priority_tier|region\"\n  },\n  \"application\": {\n    \"methods\": [\"Online application at palegalaid.net (processed by county program)\", \"Phone: 1-800-322-7572 for referrals\", \"Direct to local program via palegalaid.net/find-legal-help (county filter)\", \"PALawHELP.org for info and referrals\"],\n    \"processing_time\": \"Not specified\",\n    \"waitlist\": \"High demand; nationally ~50% turned away due to resources, 80% of poor's legal needs unmet[1]\",\n    \"forms\": [\"Application for Legal Services via palegalaid.net/apply\"],\n    \"documents\": [\"Not explicitly listed; prepare income proof, household size details, asset info, legal problem description as eligibility screening requires these\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Serves every county in Pennsylvania\",\n    \"regional_variations\": \"Delivered via 8 regional programs and 6 specialized programs; eligibility/priorities vary by local program[1][6][7]\",\n    \"offices_or_providers\": [\"Locate via palegalaid.net providers page with county filter\"]\n  },\n  \"official_source\": \"https://palegalaid.net/ and https://www.pa.gov/services/aging/apply-for-the-older-pennsylvanians-legal-assistance-program\",\n  \"gotchas\": [\"Income at 125% FPG general but local variations/priorities apply; exceptions possible for seniors/domestic violence but not guaranteed[1][4][5]\", \"High demand leads to turnaways; not all qualifiers served[1]\", \"Asset tests may apply beyond income; contact local program essential as no centralized exact limits[4][5]\", \"Focus on elderly 60+ with greatest needs, not automatic for all seniors[2]\"],\n  \"data_shape_notes\": \"Network of independent regional/specialized programs with varying local guidelines/priorities; income pegged to 125% FPG but exact tables/assets/currents require local contact; elderly prioritized via Older Pennsylvanians Legal Assistance Program integration\"\n}"
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "_parseError": true,
+      "_raw": "{\n  \"name\": \"Long-Term Care Ombudsman Program\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No income limits; available to all regardless of financial status.\",\n    \"asset_limits\": \"No asset limits; no financial eligibility requirements.\",\n    \"other_requirements\": [\"Resides (or planning to reside) in a Pennsylvania long-term care facility such as nursing home, assisted living, personal care home, domiciliary care home, or adult day care center; or receives community-based long-term care services. Open to residents, potential residents, families, friends, staff, or community members with concerns about quality of life, care, rights, or facility issues.\"][1][2][3][4][5][7]\n  },\n  \"benefits\": {\n    \"type\": \"advocacy\",\n    \"value\": \"Free, confidential advocacy services including: investigating and resolving complaints (e.g., discharge/eviction, care quality, medications, staffing, finances, property loss, food, environment, rights, policies); routine unannounced facility visits; education on residents' rights and self-advocacy; referrals to long-term care programs; assistance with resident/family councils; mediation; support for those unable to self-advocate (via POA if needed). No financial aid, healthcare services, or fixed hours/dollars provided.\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: Local ombudsman programs (e.g., statewide via PA Department of Aging at (717) 783-8975; Philadelphia CARIE at 215-545-5724 or 610-860-5050; Center in the Park at 215-844-1829); county-specific (e.g., Franklin County, Lancaster, Montgomery); Online: pa.gov/services/aging/request-assistance-from-a-long-term-care-ombudsman; Email: ombudsman@carie.org (Philadelphia); In-person: Local offices or facilities; Mail: PA Department of Aging, Office of the State Long-Term Care Ombudsman, 555 Walnut Street, 5th Floor, Harrisburg, PA 17101.\"],\n    \"processing_time\": \"Immediate response to complaints; no formal processing as it's complaint-driven advocacy, not an enrollment program.\",\n    \"waitlist\": null,\n    \"forms\": [\"No specific forms required; contact directly to request assistance.\"],\n    \"documents\": [\"None required initially; may provide details on complaint, resident consent (if applicable), or POA documentation if resident cannot consent.\"][1][2][3][4][5][6][7][9]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Services tied to long-term care facilities or community services within Pennsylvania; access via local/regional offices.\",\n    \"regional_variations\": \"Administered locally by county Area Agencies on Aging or providers (e.g., Philadelphia: CARIE and Center in the Park; Franklin County; Lancaster County; Montgomery County); different contact points, volunteer involvement, and coverage areas, but standardized state-certified training and services.\",\n    \"offices_or_providers\": [\"PA Department of Aging, 555 Walnut Street, 5th Floor, Harrisburg, PA 17101; county-specific like Franklin County Ombudsman, Lancaster County Office of Aging, PCA Philadelphia, CARIE Philadelphia, Center in the Park (NE/NW Philadelphia).\"][1][2][3][6][8][9][10]\n  },\n  \"official_source\": \"https://www.pa.gov/agencies/aging/aging-programs-and-services/advocacy-education-protection\",\n  \"gotchas\": [\"Not a direct service provider or financial aid program—purely advocacy for complaints and rights; requires resident permission to discuss with staff (confidentiality protected); not for non-long-term care settings; families can contact on behalf of loved ones but ombudsman prioritizes resident's wishes; people mistake it for admission/placement help rather than issue resolution; volunteer/staff availability may vary locally.\"][1][2][3][4][5][6][7],\n  \"data_shape_notes\": \"no income test; complaint-driven advocacy, not enrollment-based; regionally administered statewide with local providers; open to all in long-term care without eligibility barriers\"\n}"
+    },
+    {
+      "name": "Property Tax/Rent Rebate Program",
+      "eligibility": {
+        "age": "65 or older; widows/widowers 50 or older; people with disabilities 18 or older[2]",
+        "income_limits": "Household income must be $48,110 or less annually[2]. When calculating income, exclude 50% of Social Security benefits[1]. Income brackets determine rebate amounts: $0–$8,550 = $1,000 max; $8,551–$16,040 = $770 max; $16,041–$19,240 = $460 max; $19,241–$48,110 = $380 max[2]",
+        "asset_limits": "No asset limits mentioned in available sources",
+        "other_requirements": [
+          "Must have owned and occupied a home or rented and occupied a residence in Pennsylvania during the year for which rebate is claimed[6]",
+          "Homeowners must have paid property taxes prior to applying[6]",
+          "Renters must verify their landlords were required to pay property taxes or made payments in lieu of property taxes on rental properties[6]",
+          "Spouses, personal representatives, or estates may file on behalf of a deceased claimant who lived at least one day in the claim year and met all other eligibility requirements[1]"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "Standard rebate ranges from $380 to $1,000 depending on income[1]. Supplemental rebates (called 'kickers') of up to $500 available for those with income $31,010 or less who live in Philadelphia, Pittsburgh, or Scranton and pay more than 15% of income in property taxes[1]. Maximum total rebate can reach $1,500 for qualifying households[1]. Specific supplemental amounts: $0–$8,550 income = $500 supplement; $8,551–$16,040 = $385 supplement; $16,041–$19,240 = $230 supplement; $19,241–$32,070 = $190 supplement[2]",
+        "varies_by": "income_level and geographic_location"
+      },
+      "application": {
+        "methods": [
+          "Online: pa.gov/ptrr[4]",
+          "Mail: Applications must be postmarked by June 30[6]",
+          "In-person: Contact district offices for assistance (specific office locations vary by representative)[5]"
+        ],
+        "processing_time": "Not specified in available sources. However, the Department of Revenue processed more than 520,000 rebates from prior-year applications[4]",
+        "waitlist": "No waitlist mentioned in available sources",
+        "forms": [
+          "Form PA-1000[1]"
+        ],
+        "documents": [
+          "Proof of property tax or rent paid in the previous year",
+          "Social Security documentation (to calculate 50% exclusion)",
+          "Proof of residency in Pennsylvania during the claim year",
+          "For renters: verification that landlord paid property taxes or made payments in lieu of property taxes",
+          "For veterans with federal veterans' disability payments or state veterans' payments: documentation to claim 100% exclusion of those payments[6]",
+          "For federal Civil Service Retirement System benefit recipients: documentation to claim 50% exclusion of average annual Social Security benefit amount[6]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None stated; program is available to all eligible Pennsylvanians[2]",
+        "regional_variations": "Supplemental rebates ('kickers') are available to qualifying low-income seniors who live in Philadelphia, Scranton, Pittsburgh, and other parts of the state with particularly high tax burdens[6]. Specific supplemental rebate amounts vary by income bracket[2]",
+        "offices_or_providers": "Administered by Pennsylvania Department of Revenue. No specific regional office locations provided in available sources; applicants directed to pa.gov/ptrr or their state representative's district office[4][5]"
+      },
+      "official_source": "https://www.pa.gov/agencies/revenue/ptrr",
+      "gotchas": [
+        "Social Security income is only 50% counted toward the income limit—many seniors don't realize this can significantly lower their countable income[1][5]",
+        "Supplemental rebates ('kickers') are not automatic for all low-income applicants; they require living in specific high-tax-burden areas (Philadelphia, Pittsburgh, Scranton, or other designated areas) AND paying more than 15% of income in property taxes[1]",
+        "The program expanded significantly in 2023 (Act 7 of 2023/House Bill 1100), increasing income limits and maximum rebates—families who were previously ineligible should reapply[2][3]",
+        "Income limits increase annually with inflation as of the 2023 expansion[4]",
+        "Renters must verify their landlord paid property taxes; not all rental situations qualify[6]",
+        "Applications must be postmarked by June 30 for the prior year's rebate[6]",
+        "The program is supported by Pennsylvania Lottery and gaming funds, not general tax revenue[2]",
+        "Deceased claimants' estates can still file if the person lived at least one day in the claim year[1]"
+      ],
+      "data_shape_notes": "Benefits scale strictly by income bracket with no household-size variations mentioned. Supplemental rebates add a geographic layer (high-tax-burden cities) and a tax-burden threshold (>15% of income). The program underwent major expansion in 2023, increasing income caps and maximum rebates; families should verify current year limits. Income calculation includes specific exclusions (50% Social Security, 100% veterans' disability payments for some) that significantly affect eligibility. Application deadline is fixed (June 30 postmark) for prior-year rebates.",
+      "_raw": "```json\n{\n  \"name\": \"Property Tax/Rent Rebate Program\",\n  \"eligibility\": {\n    \"age\": \"65 or older; widows/widowers 50 or older; people with disabilities 18 or older[2]\",\n    \"income_limits\": \"Household income must be $48,110 or less annually[2]. When calculating income, exclude 50% of Social Security benefits[1]. Income brackets determine rebate amounts: $0–$8,550 = $1,000 max; $8,551–$16,040 = $770 max; $16,041–$19,240 = $460 max; $19,241–$48,110 = $380 max[2]\",\n    \"asset_limits\": \"No asset limits mentioned in available sources\",\n    \"other_requirements\": [\n      \"Must have owned and occupied a home or rented and occupied a residence in Pennsylvania during the year for which rebate is claimed[6]\",\n      \"Homeowners must have paid property taxes prior to applying[6]\",\n      \"Renters must verify their landlords were required to pay property taxes or made payments in lieu of property taxes on rental properties[6]\",\n      \"Spouses, personal representatives, or estates may file on behalf of a deceased claimant who lived at least one day in the claim year and met all other eligibility requirements[1]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Standard rebate ranges from $380 to $1,000 depending on income[1]. Supplemental rebates (called 'kickers') of up to $500 available for those with income $31,010 or less who live in Philadelphia, Pittsburgh, or Scranton and pay more than 15% of income in property taxes[1]. Maximum total rebate can reach $1,500 for qualifying households[1]. Specific supplemental amounts: $0–$8,550 income = $500 supplement; $8,551–$16,040 = $385 supplement; $16,041–$19,240 = $230 supplement; $19,241–$32,070 = $190 supplement[2]\",\n    \"varies_by\": \"income_level and geographic_location\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: pa.gov/ptrr[4]\",\n      \"Mail: Applications must be postmarked by June 30[6]\",\n      \"In-person: Contact district offices for assistance (specific office locations vary by representative)[5]\"\n    ],\n    \"processing_time\": \"Not specified in available sources. However, the Department of Revenue processed more than 520,000 rebates from prior-year applications[4]\",\n    \"waitlist\": \"No waitlist mentioned in available sources\",\n    \"forms\": [\n      \"Form PA-1000[1]\"\n    ],\n    \"documents\": [\n      \"Proof of property tax or rent paid in the previous year\",\n      \"Social Security documentation (to calculate 50% exclusion)\",\n      \"Proof of residency in Pennsylvania during the claim year\",\n      \"For renters: verification that landlord paid property taxes or made payments in lieu of property taxes\",\n      \"For veterans with federal veterans' disability payments or state veterans' payments: documentation to claim 100% exclusion of those payments[6]\",\n      \"For federal Civil Service Retirement System benefit recipients: documentation to claim 50% exclusion of average annual Social Security benefit amount[6]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None stated; program is available to all eligible Pennsylvanians[2]\",\n    \"regional_variations\": \"Supplemental rebates ('kickers') are available to qualifying low-income seniors who live in Philadelphia, Scranton, Pittsburgh, and other parts of the state with particularly high tax burdens[6]. Specific supplemental rebate amounts vary by income bracket[2]\",\n    \"offices_or_providers\": \"Administered by Pennsylvania Department of Revenue. No specific regional office locations provided in available sources; applicants directed to pa.gov/ptrr or their state representative's district office[4][5]\"\n  },\n  \"official_source\": \"https://www.pa.gov/agencies/revenue/ptrr\",\n  \"gotchas\": [\n    \"Social Security income is only 50% counted toward the income limit—many seniors don't realize this can significantly lower their countable income[1][5]\",\n    \"Supplemental rebates ('kickers') are not automatic for all low-income applicants; they require living in specific high-tax-burden areas (Philadelphia, Pittsburgh, Scranton, or other designated areas) AND paying more than 15% of income in property taxes[1]\",\n    \"The program expanded significantly in 2023 (Act 7 of 2023/House Bill 1100), increasing income limits and maximum rebates—families who were previously ineligible should reapply[2][3]\",\n    \"Income limits increase annually with inflation as of the 2023 expansion[4]\",\n    \"Renters must verify their landlord paid property taxes; not all rental situations qualify[6]\",\n    \"Applications must be postmarked by June 30 for the prior year's rebate[6]\",\n    \"The program is supported by Pennsylvania Lottery and gaming funds, not general tax revenue[2]\",\n    \"Deceased claimants' estates can still file if the person lived at least one day in the claim year[1]\"\n  ],\n  \"data_shape_notes\": \"Benefits scale strictly by income bracket with no household-size variations mentioned. Supplemental rebates add a geographic layer (high-tax-burden cities) and a tax-burden threshold (>15% of income). The program underwent major expansion in 2023, increasing income caps and maximum rebates; families should verify current year limits. Income calculation includes specific exclusions (50% Social Security, 100% veterans' disability payments for some) that significantly affect eligibility. Application deadline is fixed (June 30 postmark) for prior-year rebates.\"\n}\n```\n\n**Key Context for Families:**\n\nThe Pennsylvania Property Tax/Rent Rebate Program is a **direct financial rebate** (not a service program) that returns money to eligible seniors and people with disabilities based on property taxes or rent paid in the previous year[2]. It's funded by the Pennsylvania Lottery and gaming revenue, not general taxes[2].\n\n**The biggest recent change:** In August 2023, Governor Shapiro signed Act 7 of 2023, which expanded the program significantly—nearly 175,000 additional Pennsylvanians became eligible[2]. If your elderly loved one was told they didn't qualify in prior years, they should reapply now.\n\n**The income calculation trick:** When determining if someone qualifies, **exclude 50% of their Social Security income**[1]. This is the single most important detail families miss. Someone with $50,000 in Social Security might only have $25,000 in countable income, making them eligible when they thought they weren't.\n\n**The supplemental rebate opportunity:** If your loved one lives in Philadelphia, Pittsburgh, or Scranton (or other high-tax-burden areas) and pays more than 15% of their income in property taxes, they may qualify for an additional $190–$500 on top of their base rebate[1][2].\n\n**Application deadline:** June 30 postmark for the prior year's rebate[6]. This is a hard deadline."
+    },
+    {
+      "name": "PACENET (Pharmaceutical Assistance Contract for the Elderly Needs Enhancement Tier)",
+      "eligibility": {
+        "age": 65,
+        "income_limits": {
+          "program": "PACENET is the higher-income tier of Pennsylvania's pharmaceutical assistance programs",
+          "single_person": "$14,501 to $33,500 annual income",
+          "married_couple": "$17,701 to $41,500 combined annual income",
+          "note": "Income limits were increased by $6,000 effective February 21, 2022, under Act 94 of 2021. Income is based on previous calendar year's gross income. Medicare Part B premiums are not counted as income."
+        },
+        "asset_limits": null,
+        "other_requirements": [
+          "Must be a Pennsylvania resident for at least 90 consecutive days prior to application date",
+          "Cannot be enrolled in the Department of Human Services' Medicaid prescription benefit (though those receiving only Medicare Part B premium assistance through the Medicare Savings Program can qualify)",
+          "Must work with existing prescription drug coverage (Medicare Part D, retiree/union coverage, employer plans, Medicare Advantage HMO/PPO, or Veterans' Benefits VA)"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "Reduced co-payments on prescription medications: $8 per generic prescription, $15 per brand-name prescription. Monthly premium: $37.45 (as of 2021)",
+        "varies_by": "drug_type",
+        "note": "PACENET is a wrap-around program that works with existing prescription drug plans to lower out-of-pocket costs. It is not standalone coverage."
+      },
+      "application": {
+        "methods": [
+          "Online or phone through the PACE Application Center (specific URL and phone number not provided in search results, but contact information available at https://www.aging.pa.gov/aging-services/prescriptions/Pages/default.aspx)",
+          "In-person assistance through the PACE Application Center, which completes and submits applications for eligible persons",
+          "Mail (specific address not provided in search results)"
+        ],
+        "processing_time": "Not specified in available sources",
+        "waitlist": null,
+        "forms": [
+          "PACE/PACENET application form (specific form number not provided in search results)"
+        ],
+        "documents": [
+          "Proof of Pennsylvania residency (90+ days)",
+          "Proof of age (65+)",
+          "Previous year's income documentation (gross income from all sources, including net Social Security income)",
+          "Current prescription drug plan information"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": null,
+        "regional_variations": null,
+        "offices_or_providers": [
+          "PACE Application Center (statewide, administered by Pennsylvania Department of Aging)",
+          "Local county aging offices may provide assistance (example: York County has a PACE/PACENET office)"
+        ]
+      },
+      "official_source": "https://www.pa.gov/agencies/aging/aging-programs-and-services/pace-program",
+      "gotchas": [
+        "PACENET is NOT standalone insurance—it only works as a wrap-around with existing prescription drug coverage. Applicants must already have Medicare Part D or another qualifying plan.",
+        "Income eligibility is determined by PREVIOUS calendar year's income. Someone applying in 2026 will be evaluated on 2025 income.",
+        "People who applied in the past and were denied may now qualify under the increased income limits (as of February 2022). The Department of Aging automatically reviews previously denied applications.",
+        "Full Medicaid recipients do NOT qualify, but those receiving only Medicare Part B premium assistance through the Medicare Savings Program CAN qualify.",
+        "There is no automatic annual adjustment to income limits. Increases require legislative action (last increase was Act 94 of 2021).",
+        "Co-payments are still required ($8 generic, $15 brand-name)—this is not free medication.",
+        "The program is funded by the Pennsylvania Lottery."
+      ],
+      "data_shape_notes": "PACENET is the higher-income tier of a two-tier system (PACE is the lower tier for incomes ≤$14,500 single/$17,700 married). The key distinction is that PACENET serves those with moderate incomes who don't qualify for PACE but still need assistance. Income limits increased significantly in 2022, expanding eligibility by approximately 100,000 seniors. The program functions as a cost-sharing mechanism layered on top of existing prescription drug plans rather than as primary coverage.",
+      "_raw": "```json\n{\n  \"name\": \"PACENET (Pharmaceutical Assistance Contract for the Elderly Needs Enhancement Tier)\",\n  \"eligibility\": {\n    \"age\": 65,\n    \"income_limits\": {\n      \"program\": \"PACENET is the higher-income tier of Pennsylvania's pharmaceutical assistance programs\",\n      \"single_person\": \"$14,501 to $33,500 annual income\",\n      \"married_couple\": \"$17,701 to $41,500 combined annual income\",\n      \"note\": \"Income limits were increased by $6,000 effective February 21, 2022, under Act 94 of 2021. Income is based on previous calendar year's gross income. Medicare Part B premiums are not counted as income.\"\n    },\n    \"asset_limits\": null,\n    \"other_requirements\": [\n      \"Must be a Pennsylvania resident for at least 90 consecutive days prior to application date\",\n      \"Cannot be enrolled in the Department of Human Services' Medicaid prescription benefit (though those receiving only Medicare Part B premium assistance through the Medicare Savings Program can qualify)\",\n      \"Must work with existing prescription drug coverage (Medicare Part D, retiree/union coverage, employer plans, Medicare Advantage HMO/PPO, or Veterans' Benefits VA)\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Reduced co-payments on prescription medications: $8 per generic prescription, $15 per brand-name prescription. Monthly premium: $37.45 (as of 2021)\",\n    \"varies_by\": \"drug_type\",\n    \"note\": \"PACENET is a wrap-around program that works with existing prescription drug plans to lower out-of-pocket costs. It is not standalone coverage.\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online or phone through the PACE Application Center (specific URL and phone number not provided in search results, but contact information available at https://www.aging.pa.gov/aging-services/prescriptions/Pages/default.aspx)\",\n      \"In-person assistance through the PACE Application Center, which completes and submits applications for eligible persons\",\n      \"Mail (specific address not provided in search results)\"\n    ],\n    \"processing_time\": \"Not specified in available sources\",\n    \"waitlist\": null,\n    \"forms\": [\n      \"PACE/PACENET application form (specific form number not provided in search results)\"\n    ],\n    \"documents\": [\n      \"Proof of Pennsylvania residency (90+ days)\",\n      \"Proof of age (65+)\",\n      \"Previous year's income documentation (gross income from all sources, including net Social Security income)\",\n      \"Current prescription drug plan information\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": null,\n    \"regional_variations\": null,\n    \"offices_or_providers\": [\n      \"PACE Application Center (statewide, administered by Pennsylvania Department of Aging)\",\n      \"Local county aging offices may provide assistance (example: York County has a PACE/PACENET office)\"\n    ]\n  },\n  \"official_source\": \"https://www.pa.gov/agencies/aging/aging-programs-and-services/pace-program\",\n  \"gotchas\": [\n    \"PACENET is NOT standalone insurance—it only works as a wrap-around with existing prescription drug coverage. Applicants must already have Medicare Part D or another qualifying plan.\",\n    \"Income eligibility is determined by PREVIOUS calendar year's income. Someone applying in 2026 will be evaluated on 2025 income.\",\n    \"People who applied in the past and were denied may now qualify under the increased income limits (as of February 2022). The Department of Aging automatically reviews previously denied applications.\",\n    \"Full Medicaid recipients do NOT qualify, but those receiving only Medicare Part B premium assistance through the Medicare Savings Program CAN qualify.\",\n    \"There is no automatic annual adjustment to income limits. Increases require legislative action (last increase was Act 94 of 2021).\",\n    \"Co-payments are still required ($8 generic, $15 brand-name)—this is not free medication.\",\n    \"The program is funded by the Pennsylvania Lottery.\"\n  ],\n  \"data_shape_notes\": \"PACENET is the higher-income tier of a two-tier system (PACE is the lower tier for incomes ≤$14,500 single/$17,700 married). The key distinction is that PACENET serves those with moderate incomes who don't qualify for PACE but still need assistance. Income limits increased significantly in 2022, expanding eligibility by approximately 100,000 seniors. The program functions as a cost-sharing mechanism layered on top of existing prescription drug plans rather than as primary coverage.\"\n}\n```\n\n## Key Context for Families\n\n**PACENET vs. PACE:** Your loved one may qualify for PACE (the lower-income program with $0 monthly premium and $6/$9 co-pays) or PACENET (moderate-income program with $37.45 monthly premium and $8/$15 co-pays). Check which tier they qualify for based on income.[1][2]\n\n**The 2022 Income Increase Matters:** If your family member was denied in the past, they should reapply. The Department of Aging automatically reviewed previously denied applications when the new limits took effect in February 2022.[4]\n\n**It's Not Standalone:** This program only works if your loved one already has Medicare Part D or another qualifying prescription drug plan. PACENET supplements that coverage—it doesn't replace it.[1][2]\n\n**Contact the PACE Application Center:** The easiest path is to call or visit the PACE Application Center, which will complete the application for you. They also help enroll people in other benefits like SNAP and LIHEAP.[8]"
+    },
+    {
+      "name": "Pennsylvania Options Program",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "No strict income limits or financial eligibility requirement statewide; however, counties require verification of income and assets to determine sliding-fee scale co-pays or cost-sharing[1][4][5][6][7][8]",
+        "asset_limits": "Assets verified for cost-sharing purposes in counties like Chester, Lancaster, Montgomery, and Butler; specific limits or exemptions not detailed in sources[1][4][5][7]",
+        "other_requirements": [
+          "Reside in the specific county (e.g., Montgomery, Chester, Lancaster, Butler)",
+          "U.S. citizen or lawful permanent resident",
+          "Pennsylvania resident",
+          "Significant unmet needs impacting daily functioning or frailty in physical/mental health",
+          "Require assistance with activities of daily living to remain independent at home",
+          "Lack adequate informal support from family or others",
+          "Live in a non-institutional setting"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Home and community-based services including adult day care, care management, home support (light housekeeping, grocery shopping, errands, transportation), Meals on Wheels (if qualify), personal care services, personal emergency response systems; up to $765 per month in Chester County; provided on sliding-fee scale with possible co-pays[4][5][6][7]",
+        "varies_by": "region"
+      },
+      "application": {
+        "methods": [
+          "Phone referral: e.g., Butler County at 724-282-3008 option 3[7]",
+          "Referral to local Area Agency on Aging or county Office of Aging for assessment (in-person home visit)",
+          "No statewide online or mail specified; county-specific processes"
+        ],
+        "processing_time": "Not specified in sources",
+        "waitlist": null,
+        "forms": [],
+        "documents": [
+          "Financial information (income and assets for cost-sharing)",
+          "Proof of residency, citizenship/legal residency",
+          "Medical or needs assessment completed post-referral"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Administered by county Area Agencies on Aging; must reside in participating county",
+        "regional_variations": "County-specific: eligibility residency (e.g., Montgomery, Chester, Lancaster, Butler); service caps (e.g., $765/month in Chester); providers contracted locally; co-pay assessment varies[1][4][5][7]",
+        "offices_or_providers": [
+          "Montgomery County Office of Aging",
+          "Chester County Department",
+          "Lancaster County Office of Aging",
+          "Butler County agency"
+        ]
+      },
+      "official_source": "https://www.pa.gov/content/dam/copapwp-pagov/en/dhs/documents/pa-community-care/documents/Aging-Options_Final.pdf[6]",
+      "gotchas": [
+        "Not statewide uniform—must confirm with specific county Area Agency on Aging; residency strictly county-based",
+        "No strict financial eligibility but co-pays based on income/assets often required",
+        "Must be referred and assessed; services only if needs match program (not for those eligible for Medicaid waivers without pursuing them in some counties)",
+        "Aimed at delaying institutional care; not full long-term care replacement",
+        "Possible link to Medicaid waiver referrals (e.g., Lancaster requires waiver application or 100% private pay otherwise)"
+      ],
+      "data_shape_notes": "County-administered with local residency requirement, sliding-fee co-pays based on finances, no fixed statewide income/asset caps, services capped variably by county (e.g., $765/month in Chester)",
+      "_raw": "{\n  \"name\": \"Pennsylvania Options Program\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"No strict income limits or financial eligibility requirement statewide; however, counties require verification of income and assets to determine sliding-fee scale co-pays or cost-sharing[1][4][5][6][7][8]\",\n    \"asset_limits\": \"Assets verified for cost-sharing purposes in counties like Chester, Lancaster, Montgomery, and Butler; specific limits or exemptions not detailed in sources[1][4][5][7]\",\n    \"other_requirements\": [\n      \"Reside in the specific county (e.g., Montgomery, Chester, Lancaster, Butler)\",\n      \"U.S. citizen or lawful permanent resident\",\n      \"Pennsylvania resident\",\n      \"Significant unmet needs impacting daily functioning or frailty in physical/mental health\",\n      \"Require assistance with activities of daily living to remain independent at home\",\n      \"Lack adequate informal support from family or others\",\n      \"Live in a non-institutional setting\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Home and community-based services including adult day care, care management, home support (light housekeeping, grocery shopping, errands, transportation), Meals on Wheels (if qualify), personal care services, personal emergency response systems; up to $765 per month in Chester County; provided on sliding-fee scale with possible co-pays[4][5][6][7]\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone referral: e.g., Butler County at 724-282-3008 option 3[7]\",\n      \"Referral to local Area Agency on Aging or county Office of Aging for assessment (in-person home visit)\",\n      \"No statewide online or mail specified; county-specific processes\"\n    ],\n    \"processing_time\": \"Not specified in sources\",\n    \"waitlist\": null,\n    \"forms\": [],\n    \"documents\": [\n      \"Financial information (income and assets for cost-sharing)\",\n      \"Proof of residency, citizenship/legal residency\",\n      \"Medical or needs assessment completed post-referral\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Administered by county Area Agencies on Aging; must reside in participating county\",\n    \"regional_variations\": \"County-specific: eligibility residency (e.g., Montgomery, Chester, Lancaster, Butler); service caps (e.g., $765/month in Chester); providers contracted locally; co-pay assessment varies[1][4][5][7]\",\n    \"offices_or_providers\": [\n      \"Montgomery County Office of Aging\",\n      \"Chester County Department\",\n      \"Lancaster County Office of Aging\",\n      \"Butler County agency\"\n    ]\n  },\n  \"official_source\": \"https://www.pa.gov/content/dam/copapwp-pagov/en/dhs/documents/pa-community-care/documents/Aging-Options_Final.pdf[6]\",\n  \"gotchas\": [\n    \"Not statewide uniform—must confirm with specific county Area Agency on Aging; residency strictly county-based\",\n    \"No strict financial eligibility but co-pays based on income/assets often required\",\n    \"Must be referred and assessed; services only if needs match program (not for those eligible for Medicaid waivers without pursuing them in some counties)\",\n    \"Aimed at delaying institutional care; not full long-term care replacement\",\n    \"Possible link to Medicaid waiver referrals (e.g., Lancaster requires waiver application or 100% private pay otherwise)\"\n  ],\n  \"data_shape_notes\": \"County-administered with local residency requirement, sliding-fee co-pays based on finances, no fixed statewide income/asset caps, services capped variably by county (e.g., $765/month in Chester)\"\n}"
+    },
+    {
+      "name": "APPRISE Insurance Counseling Program (now PA MEDI)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "No income or asset limits; open to all Medicare beneficiaries[1][4][6]",
+        "asset_limits": "No asset limits; no financial eligibility requirements[1][4][6]",
+        "other_requirements": [
+          "Must be a Medicare beneficiary (typically age 65+ or under 65 with certain disabilities)[6][7]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Free one-on-one confidential counseling on Medicare Parts A/B/D, Medicare Advantage, Medigap, long-term care insurance, Medicare Savings Programs (QMB/SLMB/QI), prescription assistance (PACE/PACENET), Medicaid, appeals, claims, plan comparisons, referrals, printed materials, group presentations, and eligibility screening for other programs[1][2][3][4][5][6][7][9]",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Phone: Statewide 1-800-783-7067[5]",
+          "Local Area Agency on Aging contacts (e.g., Franklin County: 717-263-2153[2]; Greene/Fayette/Washington: 1-888-300-2704[4]; Wesley Family Services: 412-661-1438[6])",
+          "In-person or phone/email via local providers[6][10]",
+          "Contact Pennsylvania Department of Aging for local office[8]"
+        ],
+        "processing_time": "Appointments available upon contact; no formal processing as it's counseling, not benefits enrollment[1][2]",
+        "waitlist": null,
+        "forms": [
+          "No specific forms required for counseling; counselors assist with applications for related programs like Medicare Savings or Extra Help[4][9]"
+        ],
+        "documents": [
+          "No documents needed for initial counseling; bring Medicare card/ID for detailed assistance or applications[1]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None; available to Medicare beneficiaries residing in Pennsylvania[1][6][8]",
+        "regional_variations": "Delivered locally through 52 Area Agencies on Aging with trained staff/volunteers; contact methods, sites, and coordinators vary by county (e.g., Franklin, Cumberland, Lehigh, Greene/Fayette/Washington)[2][3][4][7][10]",
+        "offices_or_providers": [
+          "Pennsylvania Department of Aging statewide[8]",
+          "Local Area Agencies on Aging (e.g., Franklin County Area Agency on Aging[2], SWPA AAA[4], Wesley Family Services[6], Lehigh County[10])"
+        ]
+      },
+      "official_source": "https://www.pa.gov/agencies/aging/aging-programs-and-services/pa-medi-medicare-counseling[8]",
+      "gotchas": [
+        "Program rebranded to PA MEDI effective July 1, 2021 – same services, new name; still referred to as APPRISE in some areas[4][6][9]",
+        "Not a direct benefits provider – offers counseling and assistance only, underutilized despite high value (e.g., $494k saved in one county[2])",
+        "Services free/confidential but requires contacting local agency; no online self-scheduling statewide[1]",
+        "Helps with but does not guarantee enrollment in savings programs which have strict income/asset limits (e.g., QMB: $1,325/mo single[5])"
+      ],
+      "data_shape_notes": "no income/asset test for counseling; statewide via 52 local Area Agencies on Aging with volunteer support; rebranded to PA MEDI but legacy APPRISE name persists regionally",
+      "_raw": "{\n  \"name\": \"APPRISE Insurance Counseling Program (now PA MEDI)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No income or asset limits; open to all Medicare beneficiaries[1][4][6]\",\n    \"asset_limits\": \"No asset limits; no financial eligibility requirements[1][4][6]\",\n    \"other_requirements\": [\"Must be a Medicare beneficiary (typically age 65+ or under 65 with certain disabilities)[6][7]\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free one-on-one confidential counseling on Medicare Parts A/B/D, Medicare Advantage, Medigap, long-term care insurance, Medicare Savings Programs (QMB/SLMB/QI), prescription assistance (PACE/PACENET), Medicaid, appeals, claims, plan comparisons, referrals, printed materials, group presentations, and eligibility screening for other programs[1][2][3][4][5][6][7][9]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: Statewide 1-800-783-7067[5]\", \"Local Area Agency on Aging contacts (e.g., Franklin County: 717-263-2153[2]; Greene/Fayette/Washington: 1-888-300-2704[4]; Wesley Family Services: 412-661-1438[6])\", \"In-person or phone/email via local providers[6][10]\", \"Contact Pennsylvania Department of Aging for local office[8]\"],\n    \"processing_time\": \"Appointments available upon contact; no formal processing as it's counseling, not benefits enrollment[1][2]\",\n    \"waitlist\": null,\n    \"forms\": [\"No specific forms required for counseling; counselors assist with applications for related programs like Medicare Savings or Extra Help[4][9]\"],\n    \"documents\": [\"No documents needed for initial counseling; bring Medicare card/ID for detailed assistance or applications[1]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; available to Medicare beneficiaries residing in Pennsylvania[1][6][8]\",\n    \"regional_variations\": \"Delivered locally through 52 Area Agencies on Aging with trained staff/volunteers; contact methods, sites, and coordinators vary by county (e.g., Franklin, Cumberland, Lehigh, Greene/Fayette/Washington)[2][3][4][7][10]\",\n    \"offices_or_providers\": [\"Pennsylvania Department of Aging statewide[8]\", \"Local Area Agencies on Aging (e.g., Franklin County Area Agency on Aging[2], SWPA AAA[4], Wesley Family Services[6], Lehigh County[10])\"]\n  },\n  \"official_source\": \"https://www.pa.gov/agencies/aging/aging-programs-and-services/pa-medi-medicare-counseling[8]\",\n  \"gotchas\": [\"Program rebranded to PA MEDI effective July 1, 2021 – same services, new name; still referred to as APPRISE in some areas[4][6][9]\", \"Not a direct benefits provider – offers counseling and assistance only, underutilized despite high value (e.g., $494k saved in one county[2])\", \"Services free/confidential but requires contacting local agency; no online self-scheduling statewide[1]\", \"Helps with but does not guarantee enrollment in savings programs which have strict income/asset limits (e.g., QMB: $1,325/mo single[5])\"],\n  \"data_shape_notes\": \"no income/asset test for counseling; statewide via 52 local Area Agencies on Aging with volunteer support; rebranded to PA MEDI but legacy APPRISE name persists regionally\"\n}"
+    }
+  ]
+}

@@ -1,0 +1,95 @@
+{
+  "entity": "Utah",
+  "entitySlug": "utah",
+  "state": "UT",
+  "stateName": "Utah",
+  "isRegion": false,
+  "exploredAt": "2026-04-09T09:01:16.689Z",
+  "programCount": 12,
+  "programs": [
+    {
+      "name": "Utah Medicaid Aging Waiver",
+      "what_it_does": "Provides home and community-based services as an alternative to nursing home care for eligible seniors. Services include homemaking, personal care, and respite care based on individual care plans.[4]",
+      "who_its_for": "Seniors aged 65 and older who meet income/assets eligibility and professional risk assessment.[4]",
+      "official_url": "https://medicaid.utah.gov/medicaid-long-term-care-and-waiver-programs/",
+      "benefit_value": "Varies by care plan and provider availability; covers long-term care services to delay institutionalization.[4]"
+    },
+    {
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "what_it_does": "Delivers comprehensive medical and social services to frail seniors in community settings. Integrates Medicare and Medicaid benefits for coordinated care.",
+      "who_its_for": "Seniors aged 55+ who are nursing facility eligible and live in a PACE service area (limited availability in Utah).",
+      "official_url": "https://www.medicare.gov/health-drug-plans/health-plans/pace",
+      "benefit_value": "All-inclusive care including adult day health, transportation, and home care at little to no cost for dual eligibles."
+    },
+    {
+      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "what_it_does": "Helps pay Medicare Part A and B premiums, deductibles, coinsurance, and copayments for low-income beneficiaries. Administered through Utah Medicaid as Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), and Qualifying Individual (QI).[5]",
+      "who_its_for": "Low-income Medicare beneficiaries meeting specific income and resource limits.[5]",
+      "official_url": "https://www.medicare.gov/basics/costs/help/medicare-savings-programs",
+      "benefit_value": "Premium and cost-sharing assistance up to program maximums based on income level.[5]"
+    },
+    {
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "what_it_does": "Provides monthly benefits via EBT card to purchase food for low-income households. Helps seniors afford nutritious meals.[5]",
+      "who_its_for": "Low-income seniors and households meeting federal income guidelines.[5]",
+      "official_url": "https://jobs.utah.gov/foodstamps/",
+      "benefit_value": "Varies by household size and income; average monthly benefit around $200-$300 per person for eligible seniors."
+    },
+    {
+      "name": "LIHEAP (Low-Income Home Energy Assistance Program)",
+      "what_it_does": "Offers help with heating and cooling bills, crisis assistance, and weatherization referrals for low-income households. Administered statewide in Utah.[5]",
+      "who_its_for": "Low-income households including seniors meeting income eligibility.[5]",
+      "official_url": "https://www.heatingutah.org/",
+      "benefit_value": "One-time grants typically $200-$1,000 per household depending on fuel type and need."
+    },
+    {
+      "name": "Weatherization Assistance Program",
+      "what_it_does": "Improves energy efficiency in low-income homes through insulation, sealing, and heating system repairs. Reduces energy costs for seniors.",
+      "who_its_for": "Low-income homeowners or renters aged 60+ prioritized in Utah.[1]",
+      "official_url": "https://www.utah.gov/energy/weatherization.html",
+      "benefit_value": "Free home upgrades valued at $5,000-$10,000 per household."
+    },
+    {
+      "name": "Utah State Health Insurance Assistance Program (SHIP)",
+      "what_it_does": "Provides free counseling on Medicare options, appeals, and extra help programs. Helps seniors navigate benefits.[2]",
+      "who_its_for": "All Utah Medicare beneficiaries, especially low-income seniors.[2]",
+      "official_url": "https://insure.utah.gov/seniors/ship.php",
+      "benefit_value": "Free personalized counseling and application assistance."
+    },
+    {
+      "name": "Meals on Wheels (Home-Delivered Meals)",
+      "what_it_does": "Delivers nutritious meals to homebound seniors to promote independence. Often provided through local Area Agencies on Aging.[4]",
+      "who_its_for": "Homebound seniors aged 60+ who are unable to prepare meals.[4]",
+      "official_url": "https://daas.utah.gov/seniors/",
+      "benefit_value": "5-7 meals per week; suggested donation $3-5 per meal, free for very low-income."
+    },
+    {
+      "name": "Utah Caregiver Support Program (UCSP)",
+      "what_it_does": "Offers respite care, counseling, training, and support to family caregivers. Includes temporary relief to delay facility placement.[4]",
+      "who_its_for": "Unpaid family caregivers of adults 60+, those with Alzheimer's, or older relatives 55+ caring for children.[4]",
+      "official_url": "https://daas.utah.gov/seniors/caregiving-services/",
+      "benefit_value": "Varies; respite up to 240 hours/year, no income requirement.[4]"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "what_it_does": "Provides community service work training and employment for low-income older workers. Pays minimum wage for part-time work.[4]",
+      "who_its_for": "Unemployed low-income individuals aged 55+.[4]",
+      "official_url": "https://daas.utah.gov/seniors/scsep/",
+      "benefit_value": "Minimum wage for 20 hours/week training positions leading to employment."
+    },
+    {
+      "name": "Legal Services for Seniors",
+      "what_it_does": "Offers free legal aid for issues like housing, benefits, and abuse for low-income seniors. Provided through Utah Legal Services and Area Agencies on Aging.[6]",
+      "who_its_for": "Low-income seniors aged 60+.[6]",
+      "official_url": "https://www.utahlegalservices.org/seniors",
+      "benefit_value": "Free legal representation and advice for eligible cases."
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "what_it_does": "Advocates for residents in long-term care facilities, investigating complaints and ensuring quality care. Operated through Utah's Aging and Adult Services.[4]",
+      "who_its_for": "Residents of nursing homes, assisted living, and other long-term care facilities.[4]",
+      "official_url": "https://daas.utah.gov/ombudsman/",
+      "benefit_value": "Free advocacy services resolving over 90% of complaints."
+    }
+  ]
+}

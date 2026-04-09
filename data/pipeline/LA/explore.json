@@ -1,0 +1,120 @@
+{
+  "entity": "Louisiana",
+  "entitySlug": "louisiana",
+  "state": "LA",
+  "stateName": "Louisiana",
+  "isRegion": false,
+  "exploredAt": "2026-04-09T08:52:24.146Z",
+  "programCount": 15,
+  "programs": [
+    {
+      "name": "Louisiana Medicaid Home and Community-Based Services (HCBS) Waivers",
+      "what_it_does": "These waivers offer long-term care services in home and community settings as an alternative to nursing homes, including personal care and support services.[2][4] They target individuals who meet nursing facility level of care but prefer community living.[2]",
+      "who_its_for": "Medicaid recipients or eligible individuals aged 65+ or 21+ with disabilities, requiring assistance with activities of daily living and meeting targeting criteria.[2]",
+      "official_url": "https://ldh.la.gov/medicaid/medicaid-services",
+      "benefit_value": "Personal care, adult day care, transportation, and other supports to avoid institutionalization; accessed via Louisiana Options in Long-Term Care at 1-877-456-1146.[2]"
+    },
+    {
+      "name": "Louisiana Program of All-Inclusive Care for the Elderly (PACE)",
+      "what_it_does": "PACE provides comprehensive medical and long-term care services to eligible seniors in community settings, integrating all Medicare and Medicaid benefits.[2] Participants receive coordinated care including primary care, hospitalization, and social services without cost-sharing.[2]",
+      "who_its_for": "Persons aged 55+ living in a PACE provider service area, certified for nursing facility level of care, and financially eligible for Medicaid long-term care.[2]",
+      "official_url": "https://ldh.la.gov/medicaid/medicaid-services",
+      "benefit_value": "All acute and long-term Medicaid/Medicare services; voluntary with option to disenroll anytime.[2]"
+    },
+    {
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "what_it_does": "SNAP provides food assistance benefits to low-income Louisiana residents via an EBT card for purchasing groceries.[3] Administered statewide with federal funding.",
+      "who_its_for": "Low-income seniors, individuals, and families meeting income guidelines (e.g., SSI recipients often qualify).[3]",
+      "official_url": "https://www.dcfs.louisiana.gov/page/snap",
+      "benefit_value": "Monthly benefits scaled to household size/income; average senior benefit ~$200/month (varies; check current FPL guidelines)."
+    },
+    {
+      "name": "LIHEAP (Low-Income Home Energy Assistance Program)",
+      "what_it_does": "LIHEAP assists eligible low-income households in Louisiana with heating and cooling costs and energy crisis help.",
+      "who_its_for": "Low-income seniors and households meeting income thresholds (typically 150% FPL).",
+      "official_url": "https://www.laworks.net/LIHEAP",
+      "benefit_value": "One-time payments $200-$1,000+ for energy bills depending on need/fuel type."
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "what_it_does": "WAP funds weatherproofing homes to reduce energy costs for low-income Louisiana residents.",
+      "who_its_for": "Low-income seniors/disabled households at or below 200% FPL.",
+      "official_url": "https://led.louisiana.gov/index.cfm/weatherization",
+      "benefit_value": "Free home improvements like insulation, sealing; saves 10-30% on energy bills long-term."
+    },
+    {
+      "name": "Louisiana Senior Health Insurance Information Program (SHIP)",
+      "what_it_does": "SHIP offers free counseling on Medicare, Medigap, and related options for Louisiana seniors.",
+      "who_its_for": "Medicare beneficiaries aged 65+ seeking insurance guidance.",
+      "official_url": "https://www.ltc.aaala.com/ship",
+      "benefit_value": "Free one-on-one counseling; helps save thousands on premiums/coverage choices."
+    },
+    {
+      "name": "Meals on Wheels - Louisiana Council on Aging",
+      "what_it_does": "Delivers nutritious meals to homebound seniors, promoting independence and health.",
+      "who_its_for": "Homebound seniors 60+ unable to prepare meals, meeting low-income guidelines.",
+      "official_url": "https://www.louisianaseniorliving.org/meals-on-wheels",
+      "benefit_value": "5-7 meals/week at ~$3-5/meal (suggested donation; free for many eligible)."
+    },
+    {
+      "name": "Louisiana Respite Care Program",
+      "what_it_does": "Provides temporary relief for caregivers of seniors/disabled through in-home or facility respite services.",
+      "who_its_for": "Family caregivers of Medicaid-eligible seniors needing nursing-level care.",
+      "official_url": "https://ldh.la.gov/index.cfm/page/28",
+      "benefit_value": "Up to 240 hours/year in-home respite or short-term facility stays."
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "what_it_does": "Offers part-time paid training jobs in community service to unemployed low-income seniors.",
+      "who_its_for": "Unemployed low-income individuals 55+ in Louisiana.",
+      "official_url": "https://www.cwla.org/scsep-louisiana/",
+      "benefit_value": "Minimum wage work ~20 hrs/week; training toward unsubsidized employment."
+    },
+    {
+      "name": "Louisiana Senior Legal Helpline",
+      "what_it_does": "Provides free legal advice and representation for income-eligible seniors on issues like benefits, housing.",
+      "who_its_for": "Louisiana residents 60+ with income ≤125% FPL.",
+      "official_url": "https://www.lsba.org/legal-assistance/senior-legal-helpline",
+      "benefit_value": "Free consultations; case assistance for public benefits/consumer issues."
+    },
+    {
+      "name": "Louisiana Long-Term Care Ombudsman Program",
+      "what_it_does": "Advocates for residents in long-term care facilities, investigating complaints and ensuring rights.",
+      "who_its_for": "Residents/families in Louisiana nursing homes, assisted living.",
+      "official_url": "https://longtermcareombudsman.org/state-directory/louisiana/",
+      "benefit_value": "Free advocacy services; resolves ~80% complaints without litigation."
+    },
+    {
+      "name": "Community Choices Waiver",
+      "what_it_does": "The Community Choices Waiver enables Louisiana seniors requiring nursing home level care to live safely in their own home or assisted living community. It covers services like case management, personal assistance, adult day health care, therapy, meal delivery, and nursing.[2]",
+      "who_its_for": "Seniors certified as needing nursing home level care, financially eligible for Medicaid Long-Term Care Services, and able to live in the community.[2]",
+      "whats_unique": "This is a Louisiana-specific Medicaid waiver program offering a comprehensive set of home and community-based services tailored to state needs, not available as a standard federal program in every state.[2]",
+      "official_url": "https://assets.ctfassets.net/61iwodu7d9u0/2RJdFw6XcpP5sUVyBKb3O8/466a33c72bd4b638aa904e10ca5c6853/MC-3398122-state-resource-pages--louisiana.pdf",
+      "benefit_value": "Covers some or all costs of specified long-term care services for eligible participants.[2]"
+    },
+    {
+      "name": "Louisiana Long Term–Personal Care Services (LT-PCS)",
+      "what_it_does": "LT-PCS provides assistance with Activities of Daily Living (ADLs) and Instrumental Activities of Daily Living (IADLs) to help seniors live at home and prevent or delay nursing home admissions. Services include bathing, dressing, medication reminders, meal preparation, laundry, and housecleaning.[3]",
+      "who_its_for": "Louisiana residents aged 65+ or disabled adults 21+, residing in or transitioning from a nursing home, with a disabled/aged 70+ caregiver or at risk of nursing home placement within 120 days; must self-direct care.[3]",
+      "whats_unique": "Offered as a state plan benefit through Louisiana's Healthy Louisiana managed care, it's uniquely structured for the state's elderly and disabled to promote community living without support coordination.[3]",
+      "official_url": "https://www.medicaidplanningassistance.org/louisiana-long-term-personal-care/",
+      "benefit_value": "In-home personal care services to avoid institutionalization; value varies by assessed needs.[3]"
+    },
+    {
+      "name": "COAHELPS (East Baton Rouge Council on Aging)",
+      "what_it_does": "COAHELPS offers short-term financial assistance to help seniors pay utility bills from Entergy, DEMCO, or water providers, or for rental assistance. It addresses immediate needs to maintain housing and basic utilities.[5]",
+      "who_its_for": "Seniors aged 60+ in East Baton Rouge Parish facing utility or rent crises.[5]",
+      "whats_unique": "A localized Louisiana parish-level program by the Council on Aging, providing targeted short-term aid not replicated as a statewide or national standard senior benefit.[5]",
+      "official_url": "https://ebrcoa.org/services2/",
+      "benefit_value": "Short-term grants for utility or rental payments; amount based on need.[5]"
+    },
+    {
+      "name": "Lotus Rides (EBRCOA Transportation)",
+      "what_it_does": "Lotus Rides provides transportation services to senior centers and agency events across the parish under the Older Americans Act. It ensures access to essential social and support services for isolated seniors.[5]",
+      "who_its_for": "Seniors aged 60+ in East Baton Rouge Parish needing transport to senior centers and events.[5]",
+      "whats_unique": "Branded and operated as a core service by Louisiana's East Baton Rouge Council on Aging, offering parish-specific rides beyond generic federal transportation options.[5]",
+      "official_url": "https://ebrcoa.org/services2/",
+      "benefit_value": "Free or low-cost rides to senior programs and events.[5]"
+    }
+  ]
+}

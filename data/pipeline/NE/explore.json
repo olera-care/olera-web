@@ -1,0 +1,43 @@
+{
+  "entity": "Nebraska",
+  "entitySlug": "nebraska",
+  "state": "NE",
+  "stateName": "Nebraska",
+  "isRegion": false,
+  "exploredAt": "2026-04-09T08:54:57.866Z",
+  "programCount": 4,
+  "programs": [
+    {
+      "name": "Nebraska Community Aging Services Act",
+      "what_it_does": "This state-funded act provides funding for a range of home and community-based services to support seniors and people with disabilities in staying independent. Services include care management, nutrition like Meals on Wheels, legal assistance, and family caregiver support through local Area Agencies on Aging.[2][1]",
+      "who_its_for": "Nebraskans aged 60+, people with disabilities of all ages, family caregivers, and grandparents raising grandchildren.[1][2]",
+      "whats_unique": "Unlike federal Older Americans Act programs available nationwide, this is a Nebraska-specific state-funded initiative that supplements federal services with targeted state resources for aging services.[2]",
+      "official_url": "https://dhhs.ne.gov/pages/aging.aspx",
+      "benefit_value": "Varies by service; funds comprehensive statewide network via eight Area Agencies on Aging, no fixed dollar amount specified.[1][2]"
+    },
+    {
+      "name": "Aging & Disability Resource Center Act",
+      "what_it_does": "Establishes local ADRCs to offer information, referrals, and assistance for long-term care options and community services. Covers areas like housing, transportation, in-home care, nutrition, medical equipment, and dementia support.[7]",
+      "who_its_for": "Nebraskans 60+, people with disabilities of all ages, family members, caregivers, and advocates.[7]",
+      "whats_unique": "This is a Nebraska state law creating a coordinated resource center network, going beyond standard federal aging programs by integrating state oversight for personalized service access.[2][7]",
+      "official_url": "https://dhhs.ne.gov/Pages/Aging-and-Disability-Resource-Center.aspx",
+      "benefit_value": "Free information and referral services; connects to funded programs like personal care and homemaking with no waitlists for eligible PAS.[7][5]"
+    },
+    {
+      "name": "Assistance to Aged, Blind or Disabled (AABD)",
+      "what_it_does": "Provides financial or service assistance to help aged, blind, or disabled individuals meet basic needs and remain in the community. Complements federal programs with state-specific support for daily living.[8]",
+      "who_its_for": "Nebraska residents who are aged, blind, or disabled.[8]",
+      "whats_unique": "A state-funded program unique to Nebraska's iServe application system, distinct from federal SSI or Medicaid, targeting cash or in-kind aid for seniors beyond standard entitlements.[8]",
+      "official_url": "https://iserve.nebraska.gov/apply/program-select",
+      "benefit_value": "Cash benefits or services scaled to need; exact amounts vary based on income/assets, applied via state portal.[8]"
+    },
+    {
+      "name": "Social Services for the Aged and Disabled (SSAD)",
+      "what_it_does": "Delivers social and supportive services to enable aged and disabled persons to live independently, including potential home care, transportation, or companion services. Integrated into Nebraska's aging services delivery.[8][1]",
+      "who_its_for": "Aged and disabled Nebraska residents.[8]",
+      "whats_unique": "Nebraska-specific state program listed alongside federal options in the unified application, providing targeted social supports not universally replicated in other states' frameworks.[8]",
+      "official_url": "https://iserve.nebraska.gov/apply/program-select",
+      "benefit_value": "Service-based; value depends on assessed needs, e.g., hours of support or chore services.[8][1]"
+    }
+  ]
+}

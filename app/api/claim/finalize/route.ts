@@ -175,13 +175,13 @@ export async function POST(request: Request) {
         );
       }
       // Update existing unclaimed profile
-      // Set verification_state based on pendingClaim flag (email match check)
+      // Everyone who completes email verification gets full access
       const { error: updateErr } = await db
         .from("business_profiles")
         .update({
           account_id: accountId,
           claim_state: claimState,
-          verification_state: pendingClaim ? "unverified" : "verified",
+          verification_state: "verified",
         })
         .eq("id", existingProfile.id);
 
@@ -235,7 +235,7 @@ export async function POST(request: Request) {
           state: provider.state,
           zip: provider.zipcode?.toString() || null,
           claim_state: claimState,
-          verification_state: pendingClaim ? "unverified" : "verified",
+          verification_state: "verified",
           // Real provider claimed from directory - NOT seeded test data
           source: "claimed_from_directory",
           is_active: true,

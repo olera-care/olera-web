@@ -92,6 +92,7 @@ export default function Navbar() {
     pathname.startsWith("/provider/qna") ||
     pathname.startsWith("/provider/account") ||
     pathname.startsWith("/provider/medjobs") ||
+    pathname.startsWith("/provider/caregivers") ||
     // Claim/onboard flow shows provider portal nav
     (pathname.startsWith("/provider/") && pathname.endsWith("/onboard")) ||
     // Unified inbox when active profile is a provider

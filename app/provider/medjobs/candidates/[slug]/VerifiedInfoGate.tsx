@@ -1,27 +1,19 @@
 "use client";
 
-import { useAuth } from "@/components/auth/AuthProvider";
-
 interface VerifiedInfoGateProps {
-  /** Content shown to verified providers */
+  /** Content to show (no longer gated - everyone is verified via email) */
   children: React.ReactNode;
-  /** Optional fallback for unverified providers (defaults to hiding entirely) */
+  /** Deprecated - no longer used since everyone has access */
   fallback?: React.ReactNode;
 }
 
 /**
- * Conditionally renders content based on the provider's verification status.
- * Verified providers see the full content, unverified see the fallback (or nothing).
+ * Previously gated content based on verification status.
+ * Now always renders children since everyone who completes email verification has full access.
+ * Kept for backward compatibility - can be removed in future cleanup.
  */
-export function VerifiedInfoGate({ children, fallback = null }: VerifiedInfoGateProps) {
-  const { activeProfile } = useAuth();
-  const isVerified = activeProfile?.verification_state === "verified";
-
-  if (isVerified) {
-    return <>{children}</>;
-  }
-
-  return <>{fallback}</>;
+export function VerifiedInfoGate({ children }: VerifiedInfoGateProps) {
+  return <>{children}</>;
 }
 
 interface VerifiedNameDisplayProps {
@@ -30,14 +22,10 @@ interface VerifiedNameDisplayProps {
 }
 
 /**
- * Displays the candidate's name - full name for verified providers, first name only for unverified.
+ * Displays the candidate's full name.
+ * Previously showed first name only for unverified providers.
+ * Now always shows full name since everyone has full access.
  */
 export function VerifiedNameDisplay({ fullName, className }: VerifiedNameDisplayProps) {
-  const { activeProfile } = useAuth();
-  const isVerified = activeProfile?.verification_state === "verified";
-
-  const firstName = fullName?.split(" ")[0] || "Candidate";
-  const displayName = isVerified ? fullName : firstName;
-
-  return <span className={className}>{displayName}</span>;
+  return <span className={className}>{fullName}</span>;
 }

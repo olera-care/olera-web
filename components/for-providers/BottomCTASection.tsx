@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { useClickOutside } from "@/hooks/use-click-outside";
-import { useCitySearch } from "@/hooks/use-city-search";
+import OrganizationSearch, { type SelectedOrg } from "@/components/shared/OrganizationSearch";
 
 const PREFILL_KEY = "olera_provider_search_prefill";
 
@@ -12,53 +11,41 @@ export default function BottomCTASection() {
   const { user, profiles } = useAuth();
   const router = useRouter();
   const [searchInput, setSearchInput] = useState("");
-  const [showDropdown, setShowDropdown] = useState(false);
-  // Track if user selected a city from dropdown (vs typing a provider name)
-  const [selectedCity, setSelectedCity] = useState<string | null>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  const { results: cityResults, preload: preloadCities } = useCitySearch(searchInput);
-  const [zipError, setZipError] = useState(false);
-
-  useClickOutside(dropdownRef, () => setShowDropdown(false));
+  const [selectedOrg, setSelectedOrg] = useState<SelectedOrg | null>(null);
 
   // Check if user already has a provider profile
   const hasProviderProfile = (profiles || []).some(
     (p) => p.type === "organization" || p.type === "caregiver"
   );
 
-  const handleSelectCity = (cityFull: string) => {
-    setSearchInput(cityFull);
-    setSelectedCity(cityFull);
-    setShowDropdown(false);
-  };
+  const handleOrgSelect = useCallback((org: SelectedOrg | null) => {
+    setSelectedOrg(org);
+  }, []);
 
   const handleGetStarted = () => {
-    const val = searchInput.trim();
-
-    // Block zip code searches
-    if (/^\d{5}(-\d{4})?$/.test(val)) {
-      setZipError(true);
-      return;
-    }
-    setZipError(false);
-
-    if (val) {
-      // Check if it's a selected city (format: "City, ST")
-      const isCity = selectedCity === val || /^[A-Za-z\s]+,\s*[A-Z]{2}$/.test(val);
-
-      try {
+    // Store search data for onboarding page to read
+    try {
+      if (selectedOrg) {
+        // User selected an existing org from autocomplete
         sessionStorage.setItem(
           PREFILL_KEY,
           JSON.stringify({
-            searchQuery: isCity ? "" : val,
-            locationQuery: isCity ? val : "",
+            selectedOrg: selectedOrg,
+            searchQuery: "",
           }),
         );
-      } catch {
-        /* sessionStorage unavailable */
+      } else if (searchInput.trim()) {
+        // User typed but didn't select - treat as org name search
+        sessionStorage.setItem(
+          PREFILL_KEY,
+          JSON.stringify({
+            searchQuery: searchInput.trim(),
+            selectedOrg: null,
+          }),
+        );
       }
+    } catch {
+      /* sessionStorage unavailable */
     }
 
     // Navigate directly to onboarding (auth moved to end of flow)
@@ -69,8 +56,13 @@ export default function BottomCTASection() {
     router.push(targetUrl);
   };
 
-  // Determine if we should show city suggestions
-  const showCitySuggestions = showDropdown && cityResults.length > 0 && searchInput.trim().length > 0;
+  // Handle Enter key in search input
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !selectedOrg && searchInput.trim()) {
+      e.preventDefault();
+      handleGetStarted();
+    }
+  };
 
   return (
     <section className="py-16 md:py-24 bg-white">
@@ -81,136 +73,44 @@ export default function BottomCTASection() {
           </h2>
 
           {/* Search bar */}
-          <div className="mt-8 flex items-center justify-center gap-3 max-w-lg mx-auto">
-            <div className="relative flex-1" ref={dropdownRef}>
-              <svg
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 z-10"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-              <input
-                ref={inputRef}
-                type="text"
-                placeholder="Business name or city"
+          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 max-w-lg mx-auto">
+            <div className="relative flex-1 w-full" onKeyDown={handleKeyDown}>
+              <OrganizationSearch
                 value={searchInput}
-                onChange={(e) => {
-                  setSearchInput(e.target.value);
-                  setSelectedCity(null); // Clear selection when typing
-                  setShowDropdown(true);
-                  setZipError(false); // Clear error when typing
-                }}
-                onFocus={() => {
-                  setShowDropdown(true);
-                  preloadCities();
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    // If dropdown is open and there are city results, select the first one
-                    if (showCitySuggestions) {
-                      handleSelectCity(cityResults[0].full);
-                    } else {
-                      handleGetStarted();
-                    }
-                  }
-                  if (e.key === "Escape") {
-                    setShowDropdown(false);
+                onChange={(value) => {
+                  setSearchInput(value);
+                  // Clear selected org when user types something different
+                  if (selectedOrg && value !== selectedOrg.name) {
+                    setSelectedOrg(null);
                   }
                 }}
-                className="w-full pl-11 pr-4 py-3 rounded-lg border border-gray-600 bg-gray-800 text-base text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                onSelect={handleOrgSelect}
+                placeholder="Search for your organization"
+                variant="dark"
               />
-
-              {/* City dropdown — opens DOWN, card has overflow-visible */}
-              {showCitySuggestions && (
-                <div className="absolute left-0 top-[calc(100%+4px)] w-full bg-white rounded-lg shadow-lg border border-gray-100 py-1.5 z-50 max-h-[240px] overflow-y-auto">
-                  <div className="px-3 py-1">
-                    <span className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">
-                      Cities matching &quot;{searchInput}&quot;
-                    </span>
-                  </div>
-                  {cityResults.slice(0, 6).map((city, index) => (
-                    <button
-                      key={city.full}
-                      type="button"
-                      onClick={() => handleSelectCity(city.full)}
-                      className={`flex items-center gap-2 w-full px-3 py-2 text-left text-sm transition-colors ${
-                        index === 0
-                          ? "bg-gray-50 text-gray-900"
-                          : "text-gray-700 hover:bg-gray-50"
-                      }`}
-                    >
-                      <svg
-                        className="w-4 h-4 text-gray-400 shrink-0"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={1.5}
-                          d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                        />
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={1.5}
-                          d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
-                      </svg>
-                      <span>{city.full}</span>
-                      {index === 0 && (
-                        <span className="ml-auto text-xs text-gray-400">Enter</span>
-                      )}
-                    </button>
-                  ))}
-                  <div className="mx-3 my-1.5 h-px bg-gray-100" />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowDropdown(false);
-                      handleGetStarted();
-                    }}
-                    className="flex items-center gap-2 w-full px-3 py-2 text-left text-sm text-gray-500 hover:bg-gray-50 transition-colors"
-                  >
-                    <svg
-                      className="w-4 h-4 text-gray-400 shrink-0"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={1.5}
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                      />
-                    </svg>
-                    <span>Search for &quot;{searchInput}&quot; as business name</span>
-                  </button>
-                </div>
-              )}
             </div>
             <button
               type="button"
               onClick={handleGetStarted}
-              className="shrink-0 px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg transition-colors min-h-[44px]"
+              className="shrink-0 w-full sm:w-auto px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg transition-colors min-h-[48px]"
             >
               Get started
             </button>
           </div>
 
-          {/* Zip code error message */}
-          {zipError && (
-            <p className="mt-3 text-sm text-red-300">
-              Please search by business name or city instead.
+          {/* Selected org indicator */}
+          {selectedOrg && (
+            <p className="mt-4 text-sm text-white/80 flex items-center justify-center gap-1.5">
+              <svg className="w-4 h-4 text-primary-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              <span>{selectedOrg.name}</span>
+              {selectedOrg.city && selectedOrg.state && (
+                <span className="text-white/60">• {selectedOrg.city}, {selectedOrg.state}</span>
+              )}
+              {selectedOrg.claimState === "claimed" && (
+                <span className="text-amber-300 text-xs">(Claimed)</span>
+              )}
             </p>
           )}
         </div>

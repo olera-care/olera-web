@@ -101,6 +101,7 @@ export default function HeroSection() {
                   onChange={setSearchInput}
                   onSelect={handleOrgSelect}
                   placeholder="Search for your organization"
+                  variant="dark"
                 />
                 {selectedOrg && (
                   <div className="absolute -bottom-6 left-0 text-sm text-white/80 flex items-center gap-1.5">

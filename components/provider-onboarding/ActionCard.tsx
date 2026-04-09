@@ -42,6 +42,8 @@ export interface NotificationData {
   interview_format?: string;
   proposed_time?: string;
   notes?: string | null;
+  proposed_by?: string;
+  provider_profile_id?: string;
   // Claim/signup-specific
   provider_name?: string;
   provider_city?: string | null;
@@ -714,6 +716,9 @@ export default function ActionCard({
     const proposedTime = notificationData.proposed_time;
     const notes = notificationData.notes;
     const timeAgo = formatTimeAgo(notificationData.created_at);
+    // Determine if the provider (recipient of this notification) initiated the interview
+    const providerInitiated = notificationData.proposed_by && notificationData.provider_profile_id
+      && notificationData.proposed_by === notificationData.provider_profile_id;
 
     const FORMAT_LABELS: Record<string, string> = {
       video: "Video call",
@@ -729,7 +734,9 @@ export default function ActionCard({
           <Image src="/images/olera-chat.png" alt="" width={48} height={48} className="w-12 h-12 shrink-0" />
           <div>
             <h3 className="text-lg font-display font-bold text-gray-900">
-              Someone wants to schedule an interview
+              {providerInitiated
+                ? "You scheduled an interview"
+                : "Someone wants to schedule an interview"}
             </h3>
             <p className="text-sm text-gray-500 mt-0.5">{timeAgo}</p>
           </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useState, useRef, useCallback, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { useClickOutside } from "@/hooks/use-click-outside";
@@ -10,12 +10,13 @@ import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import Button from "@/components/ui/Button";
 import OrganizationSearch, { type SelectedOrg } from "@/components/shared/OrganizationSearch";
 import type { Provider } from "@/lib/types/provider";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 // ============================================================
 // Types
 // ============================================================
 
-type Screen = "search" | "results" | "preview" | "confirm-claim" | "check-email";
+type Screen = "search" | "results" | "preview" | "confirm-claim" | "check-email" | "dispute";
 
 interface FormData {
   orgName: string;
@@ -34,6 +35,17 @@ const CARE_TYPE_OPTIONS = [
   { id: "memory-care", label: "Memory Care" },
   { id: "nursing-homes", label: "Nursing Homes" },
   { id: "independent-living", label: "Independent Living" },
+];
+
+// Role options for dispute form
+const DISPUTE_ROLE_OPTIONS = [
+  { value: "Owner", label: "Owner" },
+  { value: "Administrator", label: "Administrator" },
+  { value: "Executive Director", label: "Executive Director" },
+  { value: "Office Manager", label: "Office Manager" },
+  { value: "Marketing / Communications", label: "Marketing / Communications" },
+  { value: "Staff Member", label: "Staff Member" },
+  { value: "Other", label: "Other" },
 ];
 
 // Search result from olera-providers
@@ -89,6 +101,8 @@ export default function ProviderOnboardingPage() {
 
 function ProviderOnboardingContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const { openAuth } = useAuth();
 
   // Screen state
   const [screen, setScreen] = useState<Screen>("search");
@@ -122,6 +136,17 @@ function ProviderOnboardingContent() {
   const [resendCooldown, setResendCooldown] = useState(0);
   const [resending, setResending] = useState(false);
   const [resendError, setResendError] = useState("");
+
+  // Dispute form state
+  const [disputingResult, setDisputingResult] = useState<SearchResult | null>(null);
+  const [disputeName, setDisputeName] = useState("");
+  const [disputeEmail, setDisputeEmail] = useState("");
+  const [disputePhone, setDisputePhone] = useState("");
+  const [disputeRole, setDisputeRole] = useState("");
+  const [disputeReason, setDisputeReason] = useState("");
+  const [disputeSubmitting, setDisputeSubmitting] = useState(false);
+  const [disputeError, setDisputeError] = useState("");
+  const [disputeSubmitted, setDisputeSubmitted] = useState(false);
 
 
   // Cooldown timer
@@ -182,6 +207,104 @@ function ProviderOnboardingContent() {
       // sessionStorage unavailable or parse error — ignore
     }
   }, []);
+
+  // Pre-fill from URL param ?org={slug} (from provider details page links)
+  useEffect(() => {
+    const orgSlug = searchParams.get("org");
+    if (!orgSlug) return;
+
+    // Don't override if we already have a selected org from sessionStorage
+    if (selectedOrg) return;
+
+    // Fetch provider data by slug
+    const fetchProvider = async () => {
+      if (!isSupabaseConfigured()) return;
+
+      try {
+        const supabase = createClient();
+
+        // Try business_profiles first (may have been claimed/created)
+        const { data: bp } = await supabase
+          .from("business_profiles")
+          .select("id, display_name, slug, city, state, email, image_url, claim_state, account_id")
+          .eq("slug", orgSlug)
+          .in("type", ["organization", "caregiver"])
+          .maybeSingle();
+
+        if (bp) {
+          const isClaimed = bp.claim_state === "claimed" && !!bp.account_id;
+          const org: SelectedOrg = {
+            name: bp.display_name,
+            slug: bp.slug,
+            city: bp.city,
+            state: bp.state,
+            email: bp.email,
+            imageUrl: bp.image_url,
+            claimState: isClaimed ? "claimed" : (bp.claim_state as "unclaimed" | "pending" | null),
+            source: "business_profiles",
+            providerId: bp.id,
+          };
+          setSelectedOrg(org);
+          setFormData(prev => ({
+            ...prev,
+            orgName: org.name,
+            city: org.city || "",
+            state: org.state || "",
+          }));
+          if (org.city && org.state) {
+            setCityQuery(`${org.city}, ${org.state}`);
+          }
+          return;
+        }
+
+        // Try olera-providers
+        const { data: op } = await supabase
+          .from("olera-providers")
+          .select("provider_id, provider_name, slug, city, state, email, provider_images")
+          .eq("slug", orgSlug)
+          .not("deleted", "is", true)
+          .maybeSingle();
+
+        if (op) {
+          // Check if this provider has a claimed business_profile
+          const { data: claimedBp } = await supabase
+            .from("business_profiles")
+            .select("claim_state, account_id")
+            .eq("source_provider_id", op.provider_id)
+            .maybeSingle();
+
+          const isClaimed = claimedBp?.claim_state === "claimed" && !!claimedBp?.account_id;
+          const firstImage = op.provider_images?.split("|")[0]?.trim() || null;
+
+          const org: SelectedOrg = {
+            name: op.provider_name,
+            slug: op.slug || op.provider_id,
+            city: op.city,
+            state: op.state,
+            email: op.email,
+            imageUrl: firstImage,
+            claimState: isClaimed ? "claimed" : "unclaimed",
+            source: "olera-providers",
+            providerId: op.provider_id,
+          };
+          setSelectedOrg(org);
+          setFormData(prev => ({
+            ...prev,
+            orgName: org.name,
+            city: org.city || "",
+            state: org.state || "",
+          }));
+          if (org.city && org.state) {
+            setCityQuery(`${org.city}, ${org.state}`);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch provider by slug:", err);
+      }
+    };
+
+    fetchProvider();
+  }, [searchParams, selectedOrg]);
 
   // ──────────────────────────────────────────────────────────
   // Form Handlers
@@ -707,8 +830,16 @@ function ProviderOnboardingContent() {
       setSelectedResult(result);
       setScreen("confirm-claim");
     } else if (action === "dispute") {
-      // Redirect to dispute flow
-      router.push(`/for-providers/dispute/${slug}`);
+      // Show inline dispute form instead of navigating away
+      setDisputingResult(result);
+      setDisputeName("");
+      setDisputeEmail(formData.email); // Pre-fill with email from search form
+      setDisputePhone("");
+      setDisputeRole("");
+      setDisputeReason("");
+      setDisputeError("");
+      setDisputeSubmitted(false);
+      setScreen("dispute");
     }
   };
 
@@ -868,6 +999,53 @@ function ProviderOnboardingContent() {
         ? prev.careTypes.filter(t => t !== typeId)
         : [...prev.careTypes, typeId],
     }));
+  };
+
+  // Handle dispute form submission
+  const handleDisputeSubmit = async () => {
+    if (!disputingResult) return;
+    if (!disputeName.trim() || !disputeEmail.trim() || !disputeRole || !disputeReason.trim()) {
+      setDisputeError("Please fill in all required fields.");
+      return;
+    }
+
+    const slug = disputingResult._source === "olera-providers"
+      ? (disputingResult.slug || disputingResult.provider_id)
+      : disputingResult.slug;
+    const name = disputingResult._source === "olera-providers"
+      ? disputingResult.provider_name
+      : disputingResult.display_name;
+
+    setDisputeSubmitting(true);
+    setDisputeError("");
+
+    try {
+      const res = await fetch("/api/disputes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: slug,
+          provider_name: name,
+          claimant_name: disputeName.trim(),
+          claimant_email: disputeEmail.trim().toLowerCase(),
+          claimant_phone: disputePhone.trim() || null,
+          claimant_role: disputeRole,
+          reason: disputeReason.trim(),
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setDisputeError(data.error || "Failed to submit dispute.");
+        return;
+      }
+
+      setDisputeSubmitted(true);
+    } catch {
+      setDisputeError("Something went wrong. Please try again.");
+    } finally {
+      setDisputeSubmitting(false);
+    }
   };
 
   // Handle resending verification email (from Screen 3)
@@ -1071,22 +1249,42 @@ function ProviderOnboardingContent() {
                                     {name}
                                   </h3>
                                   <p className="text-xs sm:text-sm text-gray-500 mt-1">
-                                    {result._claimed ? "Sign in to manage." : "Verify to claim."}
+                                    {result._claimed ? "This listing is claimed." : "Verify to claim."}
                                   </p>
                                   <div className="flex-1 min-h-2" />
-                                  <div className="flex justify-end">
-                                    <button
-                                      type="button"
-                                      onClick={() => handleResultAction(result, action)}
-                                      disabled={isLoading}
-                                      className={`px-3 py-1.5 text-sm font-semibold rounded-lg transition-all ${
-                                        variant === "primary"
-                                          ? "text-white bg-primary-600 hover:bg-primary-500"
-                                          : "text-primary-600 ring-1 ring-primary-200 hover:ring-primary-300 hover:bg-primary-50"
-                                      } disabled:opacity-50`}
-                                    >
-                                      {isLoading ? "..." : `${label} →`}
-                                    </button>
+                                  <div className="flex justify-end gap-2">
+                                    {result._claimed ? (
+                                      <>
+                                        <button
+                                          type="button"
+                                          onClick={() => handleResultAction(result, "dispute")}
+                                          disabled={isLoading}
+                                          className="px-3 py-1.5 text-sm font-semibold rounded-lg transition-all text-amber-600 ring-1 ring-amber-200 hover:ring-amber-300 hover:bg-amber-50 disabled:opacity-50"
+                                        >
+                                          Dispute
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => openAuth({ defaultMode: "sign-in" })}
+                                          className="px-3 py-1.5 text-sm font-semibold rounded-lg transition-all text-primary-600 ring-1 ring-primary-200 hover:ring-primary-300 hover:bg-primary-50"
+                                        >
+                                          Sign in
+                                        </button>
+                                      </>
+                                    ) : (
+                                      <button
+                                        type="button"
+                                        onClick={() => handleResultAction(result, action)}
+                                        disabled={isLoading}
+                                        className={`px-3 py-1.5 text-sm font-semibold rounded-lg transition-all ${
+                                          variant === "primary"
+                                            ? "text-white bg-primary-600 hover:bg-primary-500"
+                                            : "text-primary-600 ring-1 ring-primary-200 hover:ring-primary-300 hover:bg-primary-50"
+                                        } disabled:opacity-50`}
+                                      >
+                                        {isLoading ? "..." : `${label} →`}
+                                      </button>
+                                    )}
                                   </div>
                                 </div>
                               </div>
@@ -1154,22 +1352,38 @@ function ProviderOnboardingContent() {
                                     {name}
                                   </h3>
                                   <p className="text-xs sm:text-sm text-gray-500 mt-1">
-                                    {result._claimed ? "Managed by another account." : "Unclaimed page."}
+                                    {result._claimed ? "This listing is claimed." : "Unclaimed page."}
                                   </p>
                                   <div className="flex-1 min-h-2" />
-                                  <div className="flex justify-end">
-                                    <button
-                                      type="button"
-                                      onClick={() => handleResultAction(result, action)}
-                                      disabled={isLoading}
-                                      className={`px-3 py-1.5 text-sm font-semibold rounded-lg transition-all ${
-                                        action === "dispute"
-                                          ? "text-amber-600 ring-1 ring-amber-200 hover:ring-amber-300 hover:bg-amber-50"
-                                          : "text-primary-600 ring-1 ring-primary-200 hover:ring-primary-300 hover:bg-primary-50"
-                                      } disabled:opacity-50`}
-                                    >
-                                      {isLoading ? "..." : `${label} →`}
-                                    </button>
+                                  <div className="flex justify-end gap-2">
+                                    {result._claimed ? (
+                                      <>
+                                        <button
+                                          type="button"
+                                          onClick={() => handleResultAction(result, "dispute")}
+                                          disabled={isLoading}
+                                          className="px-3 py-1.5 text-sm font-semibold rounded-lg transition-all text-amber-600 ring-1 ring-amber-200 hover:ring-amber-300 hover:bg-amber-50 disabled:opacity-50"
+                                        >
+                                          Dispute
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => openAuth({ defaultMode: "sign-in" })}
+                                          className="px-3 py-1.5 text-sm font-semibold rounded-lg transition-all text-primary-600 ring-1 ring-primary-200 hover:ring-primary-300 hover:bg-primary-50"
+                                        >
+                                          Sign in
+                                        </button>
+                                      </>
+                                    ) : (
+                                      <button
+                                        type="button"
+                                        onClick={() => handleResultAction(result, action)}
+                                        disabled={isLoading}
+                                        className="px-3 py-1.5 text-sm font-semibold rounded-lg transition-all text-primary-600 ring-1 ring-primary-200 hover:ring-primary-300 hover:bg-primary-50 disabled:opacity-50"
+                                      >
+                                        {isLoading ? "..." : `${label} →`}
+                                      </button>
+                                    )}
                                   </div>
                                 </div>
                               </div>
@@ -1619,6 +1833,212 @@ function ProviderOnboardingContent() {
               >
                 {selectedResult ? "← Back to results" : "← Back"}
               </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ──────────────────────────────────────────────────────────
+  // Screen: Dispute (inline dispute form with amber styling)
+  // ──────────────────────────────────────────────────────────
+
+  if (screen === "dispute" && disputingResult) {
+    const disputeProviderName = disputingResult._source === "olera-providers"
+      ? disputingResult.provider_name
+      : disputingResult.display_name;
+
+    // Success state after dispute submission
+    if (disputeSubmitted) {
+      return (
+        <div className="min-h-screen flex flex-col bg-[#FAFAF8]">
+          <nav className="sticky top-0 z-20 bg-[#FAFAF8] border-b border-gray-200/60">
+            <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
+              <Link href="/" className="flex items-center gap-2">
+                <Image src="/images/olera-logo.png" alt="Olera" width={28} height={28} />
+                <span className="font-bold text-gray-900">Olera</span>
+              </Link>
+              <button
+                onClick={() => router.push("/")}
+                className="text-sm font-medium text-gray-500 hover:text-gray-700"
+              >
+                Exit
+              </button>
+            </div>
+          </nav>
+
+          <div className="flex-1 flex items-center justify-center px-4 py-12">
+            <div className="max-w-md w-full bg-white rounded-2xl shadow-sm border border-gray-200 p-8 text-center">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center mx-auto mb-4 shadow-sm">
+                <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h2 className="text-xl font-display font-bold text-gray-900 mb-2">Dispute submitted</h2>
+              <p className="text-gray-500 mb-6">
+                We&apos;ll review and respond within 2–3 business days.
+              </p>
+              <button
+                onClick={() => setScreen("results")}
+                className="px-6 py-3 bg-gray-100 text-gray-700 font-semibold rounded-xl hover:bg-gray-200 transition-all"
+              >
+                Back to results
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Dispute form
+    return (
+      <div className="min-h-screen flex flex-col bg-[#FAFAF8]">
+        <nav className="sticky top-0 z-20 bg-[#FAFAF8] border-b border-gray-200/60">
+          <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
+            <Link href="/" className="flex items-center gap-2">
+              <Image src="/images/olera-logo.png" alt="Olera" width={28} height={28} />
+              <span className="font-bold text-gray-900">Olera</span>
+            </Link>
+            <button
+              onClick={() => router.push("/")}
+              className="text-sm font-medium text-gray-500 hover:text-gray-700"
+            >
+              Exit
+            </button>
+          </div>
+        </nav>
+
+        <div className="flex-1 px-4 py-8 md:py-12">
+          <div className="max-w-md mx-auto">
+            {/* Back button */}
+            <button
+              onClick={() => setScreen("results")}
+              className="text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1.5 mb-6 group"
+            >
+              <svg className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Back to results
+            </button>
+
+            {/* Amber dispute card */}
+            <div className="bg-white rounded-2xl shadow-sm border border-amber-200 p-8">
+              {/* Header with amber icon */}
+              <div className="text-center mb-6">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-100 to-amber-50 flex items-center justify-center mx-auto mb-4 shadow-sm border border-amber-200/60">
+                  <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                </div>
+                <h2 className="text-xl font-display font-bold text-gray-900 mb-1">
+                  Dispute this listing
+                </h2>
+                <p className="text-[15px] text-gray-500">
+                  Tell us why you should manage <strong className="text-gray-700">{disputeProviderName}</strong>.
+                </p>
+              </div>
+
+              {/* Form fields */}
+              <div className="space-y-4">
+                {/* Full name */}
+                <div className="space-y-1.5">
+                  <label htmlFor="dispute-name" className="block text-[13px] font-semibold text-gray-700">
+                    Full name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    id="dispute-name"
+                    type="text"
+                    value={disputeName}
+                    onChange={(e) => setDisputeName(e.target.value)}
+                    placeholder="Your full name"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:border-transparent focus:bg-white transition-all min-h-[48px]"
+                  />
+                </div>
+
+                {/* Email */}
+                <div className="space-y-1.5">
+                  <label htmlFor="dispute-email" className="block text-[13px] font-semibold text-gray-700">
+                    Email <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    id="dispute-email"
+                    type="email"
+                    value={disputeEmail}
+                    onChange={(e) => setDisputeEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:border-transparent focus:bg-white transition-all min-h-[48px]"
+                  />
+                </div>
+
+                {/* Phone */}
+                <div className="space-y-1.5">
+                  <label htmlFor="dispute-phone" className="block text-[13px] font-semibold text-gray-700">
+                    Phone <span className="text-gray-400 font-normal">(optional)</span>
+                  </label>
+                  <input
+                    id="dispute-phone"
+                    type="tel"
+                    value={disputePhone}
+                    onChange={(e) => setDisputePhone(e.target.value)}
+                    placeholder="(555) 123-4567"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:border-transparent focus:bg-white transition-all min-h-[48px]"
+                  />
+                </div>
+
+                {/* Role dropdown */}
+                <div className="space-y-1.5">
+                  <label htmlFor="dispute-role" className="block text-[13px] font-semibold text-gray-700">
+                    Your role <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    id="dispute-role"
+                    value={disputeRole}
+                    onChange={(e) => setDisputeRole(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-[15px] focus:outline-none focus:ring-2 focus:ring-amber-300 focus:border-transparent focus:bg-white transition-all min-h-[48px] appearance-none cursor-pointer"
+                    style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.75rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.25em 1.25em', paddingRight: '2.5rem' }}
+                  >
+                    <option value="">Select your role...</option>
+                    {DISPUTE_ROLE_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Reason */}
+                <div className="space-y-1.5">
+                  <label htmlFor="dispute-reason" className="block text-[13px] font-semibold text-gray-700">
+                    Why should you manage this listing? <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    id="dispute-reason"
+                    value={disputeReason}
+                    onChange={(e) => setDisputeReason(e.target.value)}
+                    placeholder="Explain your connection to this organization..."
+                    rows={3}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:border-transparent focus:bg-white transition-all resize-none"
+                  />
+                </div>
+
+                {/* Error */}
+                {disputeError && (
+                  <div className="flex items-center gap-2 px-3 py-2.5 bg-red-50 border border-red-100 rounded-lg">
+                    <svg className="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                    </svg>
+                    <p className="text-sm text-red-700">{disputeError}</p>
+                  </div>
+                )}
+
+                {/* Submit button */}
+                <button
+                  onClick={handleDisputeSubmit}
+                  disabled={!disputeName.trim() || !disputeEmail.trim() || !disputeRole || !disputeReason.trim() || disputeSubmitting}
+                  className="w-full py-3.5 bg-amber-600 text-white text-sm font-semibold rounded-xl hover:bg-amber-700 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed transition-all min-h-[48px]"
+                >
+                  {disputeSubmitting ? "Submitting..." : "Submit dispute"}
+                </button>
+              </div>
             </div>
           </div>
         </div>

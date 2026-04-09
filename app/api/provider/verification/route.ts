@@ -74,17 +74,22 @@ export async function POST(request: NextRequest) {
     };
 
     // Merge with existing metadata
+    // Reset badge flags so resubmissions appear in pending queue
     const updatedMetadata = {
       ...(profile.metadata || {}),
       verification_submission: verificationSubmission,
+      badge_approved: null,
+      badge_approved_at: null,
+      badge_rejected: null,
+      badge_rejected_at: null,
     };
 
-    // Update profile with verification data and set state to pending
+    // Update profile with verification data (badge request)
+    // Note: verification_state stays "verified" - this is just a badge request
     const { error: updateError } = await admin
       .from("business_profiles")
       .update({
         metadata: updatedMetadata,
-        verification_state: "pending",
         updated_at: new Date().toISOString(),
       })
       .eq("id", profileId);

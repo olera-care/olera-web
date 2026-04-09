@@ -2,7 +2,6 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
-import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import ScheduleInterviewModal from "@/components/medjobs/ScheduleInterviewModal";
 
@@ -13,7 +12,6 @@ interface ProviderContactSectionProps {
   studentPhone: string | null;
   studentSlug: string;
   variant?: "sidebar" | "sticky" | "inline";
-  onVerifyClick?: () => void;
   /** Pre-fetched: whether an interview has already been scheduled */
   initialScheduled?: boolean;
 }
@@ -25,13 +23,12 @@ export default function ProviderContactSection({
   studentPhone,
   studentSlug,
   variant = "sidebar",
-  onVerifyClick,
   initialScheduled = false,
 }: ProviderContactSectionProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { activeProfile, user, openAuth } = useAuth();
+  const { user, openAuth } = useAuth();
   const [showModal, setShowModal] = useState(false);
   const [scheduled, setScheduled] = useState(initialScheduled);
 
@@ -61,11 +58,6 @@ export default function ProviderContactSection({
   }, [searchParams, user, pathname, router]);
 
   const requiresAuth = !user;
-
-  // Verification check - only affects contact info visibility, not scheduling
-  const isVerified = activeProfile?.verification_state === "verified";
-  const verificationState = activeProfile?.verification_state;
-  const isPending = verificationState === "pending";
 
   const handleAuthRequired = useCallback(() => {
     openAuth({
@@ -103,8 +95,8 @@ export default function ProviderContactSection({
               <CalendarIcon />
               {scheduled ? "Interview Requested!" : "Schedule Interview"}
             </button>
-            {/* Phone button only for verified providers */}
-            {isVerified && studentPhone && (
+            {/* Phone button */}
+            {studentPhone && (
               <a
                 href={`tel:${studentPhone}`}
                 className="w-12 h-12 flex items-center justify-center bg-primary-50 hover:bg-primary-100 rounded-xl transition-colors"
@@ -156,8 +148,8 @@ export default function ProviderContactSection({
 
   return (
     <div className={wrapperClass}>
-      {/* Contact Info - only for verified providers */}
-      {isVerified && (studentEmail || studentPhone) && (
+      {/* Contact Info */}
+      {(studentEmail || studentPhone) && (
         <div className="space-y-2">
           <h3 className="text-sm font-semibold text-gray-900">Contact Info</h3>
           {studentEmail && (
@@ -198,32 +190,6 @@ export default function ProviderContactSection({
           <CalendarIcon />
           Schedule Interview
         </button>
-      )}
-
-      {/* Verification nudge for unverified providers */}
-      {!isVerified && !scheduled && (
-        <div className="pt-2">
-          {isPending ? (
-            <p className="text-xs text-amber-600 text-center">
-              Verification in progress. Contact info unlocks once approved.
-            </p>
-          ) : onVerifyClick ? (
-            <button
-              type="button"
-              onClick={onVerifyClick}
-              className="w-full text-xs text-gray-500 hover:text-primary-600 text-center transition-colors"
-            >
-              <span className="font-medium text-primary-600">Verify your business</span> to see contact info
-            </button>
-          ) : (
-            <Link
-              href="/provider/verification"
-              className="block text-xs text-gray-500 text-center hover:text-primary-600 transition-colors"
-            >
-              <span className="font-medium text-primary-600">Verify your business</span> to see contact info
-            </Link>
-          )}
-        </div>
       )}
 
       {showModal && (

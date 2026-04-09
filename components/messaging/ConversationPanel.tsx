@@ -344,12 +344,9 @@ export default function ConversationPanel({
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
 
-  // Provider verification check - only applies to organization/caregiver profiles
+  // Provider verification check - no longer gates access (everyone verified via email)
+  // Keeping variables for potential future badge display, but not gating features
   const isProvider = activeProfile?.type === "organization" || activeProfile?.type === "caregiver";
-  const isVerified = activeProfile?.verification_state === "verified";
-  const verificationState = activeProfile?.verification_state;
-  // Unverified providers can't see contact info or send messages
-  const isProviderAndNotVerified = isProvider && !isVerified;
 
   // Auto-dismiss send error after 4 seconds
   useEffect(() => {
@@ -550,7 +547,7 @@ export default function ConversationPanel({
                   otherInitial={otherInitial}
                   imageUrl={imageUrl}
                   autoIntro={autoIntro}
-                  hideContactInfo={isProviderAndNotVerified}
+                  hideContactInfo={false}
                 />
               ) : initialNotes ? (
                 /* Fallback to simple bubble when no structured data */
@@ -790,49 +787,7 @@ export default function ConversationPanel({
       {/* ── Response time hint + Message input ── */}
       {showMessageInput && (
         <div className="shrink-0 border-t border-gray-200 bg-white">
-          {/* Verification prompt for unverified providers */}
-          {isProviderAndNotVerified ? (
-            <div className={`px-4 sm:pl-6 ${detailOpen ? "sm:pr-6" : "sm:pr-[44px]"} py-4`}>
-              <div className={`rounded-xl p-4 ${verificationState === "pending" ? "bg-amber-50 border border-amber-200" : "bg-gray-50 border border-gray-200"}`}>
-                <div className="flex items-start gap-3">
-                  <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${verificationState === "pending" ? "bg-amber-100" : "bg-gray-200"}`}>
-                    {verificationState === "pending" ? (
-                      <svg className="w-4.5 h-4.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    ) : (
-                      <svg className="w-4.5 h-4.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                      </svg>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-900">
-                      {verificationState === "pending" ? "Verification in Progress" : "Verify to Reply"}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      {verificationState === "pending"
-                        ? "We're reviewing your request. You'll be able to reply once approved."
-                        : "Complete verification to unlock messaging and contact info."}
-                    </p>
-                    {verificationState !== "pending" && (
-                      <Link
-                        href="/provider"
-                        className="inline-flex items-center gap-1.5 mt-2 text-sm font-medium text-primary-600 hover:text-primary-700"
-                      >
-                        Complete verification
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </Link>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <>
-              {/* Send error */}
+          {/* Send error */}
               {sendError && (
                 <div className="mx-4 sm:mx-6 mt-3 px-3 py-2 rounded-lg bg-rose-50/80 border border-rose-100/60">
                   <p className="text-[13px] text-rose-600 font-medium text-center">{sendError}</p>
@@ -878,8 +833,6 @@ export default function ConversationPanel({
                   </div>
                 </div>
               </div>
-            </>
-          )}
         </div>
       )}
     </div>

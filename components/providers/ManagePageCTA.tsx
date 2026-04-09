@@ -123,12 +123,11 @@ export default function ManagePageCTA({
     router.push("/provider");
   }, [router]);
 
-  // Claim flow: ALWAYS route to onboard page
-  // This ensures strict account separation is enforced through the auth modal
-  // (one email = one account type: family, provider, caregiver are separate)
+  // Claim flow: Route to unified onboarding page with org pre-selected
+  // User already knows which org they're claiming, so pre-fill it
   const handleClaimClick = useCallback(() => {
     setOpen(false);
-    router.push(`/provider/${providerSlug}/onboard`);
+    router.push(`/provider/onboarding?org=${providerSlug}`);
   }, [router, providerSlug]);
 
   // Dispute flow: go to dispute page

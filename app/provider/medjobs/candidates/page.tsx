@@ -286,7 +286,6 @@ export default function ProviderCandidateBrowsePage() {
                     key={candidate.id}
                     candidate={candidate}
                     basePath="/provider/medjobs/candidates"
-                    isVerified={isVerified}
                     isContacted={contacted.has(candidate.id)}
                   />
                 ))}

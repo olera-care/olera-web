@@ -31,18 +31,19 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 
 ### What's shipped
 - 6-phase pipeline: explore → dive → compare → classify → draft → report
-- Data model: programType, geographicScope, complexity, structuredEligibility, applicationGuide, contentSections, contentStatus
-- Admin dashboard: streamlined for content production (readiness filters, content metrics, lifted API calls, remembered reviewer name, programType badges, review status on rows)
-- State page review workflow: state-level Draft/Current toggle + DraftReviewPanel with `programId: "state-overview"`, dual preview links (v2 vs `?v=1` current), slash command updated
+- **Region-flexible pipeline**: `--region "Miami-Dade County, FL" --parent-state FL` works alongside `--state MI`. Perplexity queries adapt. Output to slug-based directories. All 4 layers built: pipeline, data model, `/benefits/{slug}` route, admin regions section.
+- Data model: programType, geographicScope, complexity, structuredEligibility, applicationGuide, contentSections, contentStatus. Regions add regionName, parentState, slug, isRegion.
+- Admin dashboard: streamlined for content production (readiness filters, content metrics, lifted API calls, remembered reviewer name, programType badges, review status on rows, regions section)
+- State page review workflow: state-level Draft/Current toggle + DraftReviewPanel with `programId: "state-overview"`, dual preview links (v2 vs `/current` sub-route), slash command updated
 - ProgramPageV2: content-forward, prose-width, serif headings, structured eligibility as prose, clean FAQs, no card soup
 - StatePageV2: hand-drawn SVG illustrations, organic blobs, wavy dividers, dark stat band, horizontal start-here cards, need-based groupings with custom SVG icons, grouped program list by type
 - Save program: auth-gated bookmark, Supabase persistence, /saved page
 - Michigan: 16 programs drafted + state overview generated. MI Choice applied as live v2 test.
 
 ### What's next
-1. **Region-flexible pipeline** — evolve from state-only to any geographic entity (county, metro, region, city). Four layers: pipeline `--region` flag, data model regions alongside states, flat URL routing at `/benefits/{slug}`, admin regions section. Decision made, implementation starting.
-2. Apply approved MI drafts to waiver-library.ts (all 16 programs)
-3. Run pipeline on FL or CA (or a region like "Miami-Dade County, FL")
+1. Apply approved MI drafts to waiver-library.ts (all 16 programs)
+2. Run pipeline on a region (e.g., "Miami-Dade County, FL") — prove region system works end-to-end
+3. Run pipeline on FL or CA — second state test
 4. Review draft quality with Chantel
 
 ### Other active work (different branches)
@@ -68,7 +69,7 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 | 2026-04-09 | Region-flexible pipeline: flat slug routing at `/benefits/{slug}` | State-level hierarchy too rigid. PACE operates in service areas, DMV spans 3 states, Miami-Dade has county-specific programs. Pipeline should research any geographic entity. Option A (flat slugs) chosen — "michigan" and "miami-dade-fl" are peers, no nesting. |
 | 2026-04-09 | Admin dashboard: verification → content production | Review workflow is the new quality gate, not verification dots. Killed inferCategory heuristic, replaced with pipeline programType. Filters now readiness-based (Published/Drafted/Explored/Scaffolding). |
 | 2026-04-09 | StatePageV2 "painting outside the lines" design approved | Hand-drawn SVG illustrations, wavy dividers, dark stat band, width variation between sections. Inspired by Wispr Flow (character, bold moments) + Perena (atmospheric warmth). Visual elements are scanning aids, not decoration. |
-| 2026-04-09 | State page version toggle via `?v=1` query param | Admin needs to compare old vs new page. `?v=1` forces legacy rendering. Clean, no new routes. Dual preview links in admin. |
+| 2026-04-09 | State page version toggle via `/current` sub-route, NOT query params | Admin needs to compare old vs new. Initially used `?v=1` but self-review caught that `searchParams` makes pages dynamic (ƒ) instead of static (●) — 50+ pages lost CDN caching. Replaced with `/waiver-library/{state}/current` route (static, noindex). |
 | 2026-04-09 | Reviewer name persisted in localStorage | Chantel shouldn't type her name 16 times. Small friction, big annoyance. |
 |------|----------|-----------|
 | 2026-04-08 | Pipeline evolves from research tool → content production system | Pipeline already "understands" programs after dive phase but throws understanding away by outputting a report. Content generation and research are one skill, not two separate steps. |
@@ -183,9 +184,9 @@ The deep dive. Restrained, lets content breathe. Reads like a well-researched ar
 
 ## Session Log
 
-### 2026-04-09 (Session 71) — State Page Redesign + Dashboard Streamlining + Region Architecture
+### 2026-04-09 (Session 71) — State Page Redesign + Dashboard Streamlining + Region System
 
-**Branch:** `eager-ride` | **Latest: `4f10a0f7`**
+**Branch:** `eager-ride` | **Latest: `ff26b594`**
 
 **StatePageV2 redesign** (`components/waiver-library/StatePageV2.tsx`):
 - Full rewrite with hand-drawn SVG illustrations (organic teal + amber blobs in header, floating circles/dots)
@@ -200,7 +201,7 @@ The deep dive. Restrained, lets content breathe. Reads like a well-researched ar
 - Design inspirations: Wispr Flow (character, illustration as context, one dark moment), Perena (atmospheric warmth)
 
 **State page review workflow:**
-- `?v=1` query param forces old page rendering for comparison
+- `/waiver-library/{state}/current` route renders legacy page (static, noindex) — NOT `?v=1` (that broke SSG)
 - Dual preview links in admin: "Preview v2" + "Preview current"
 - `DraftReviewPanel` on state overview with `programId: "state-overview"`
 - Draft State Overview / Programs Only toggle in admin state detail
@@ -217,13 +218,25 @@ The deep dive. Restrained, lets content breathe. Reads like a well-researched ar
 - Reviewer name persisted in `localStorage` — type once, auto-populated everywhere
 - Review API fetch lifted to `StateDetail` level — one call per state, passed down to all DraftReviewPanels
 - `DraftReviewPanel` now accepts `allReviews` + `onReviewAdded` props for lifted fetch pattern
+- Regions section below state grid (visible when regions exist)
 
-**Region architecture decision:**
-- Current state-only hierarchy too rigid for real-world benefits geography
-- Decided on 4-layer evolution: (1) pipeline `--region` flag, (2) data model regions, (3) flat URL routing `/benefits/{slug}`, (4) admin regions section
-- Implementation starting next session
+**Region-flexible pipeline** (all 4 layers built):
+- Layer 1 (`scripts/benefits-pipeline.js`): `--region` + `--parent-state` flags. `resolveEntity()` normalizes both into unified entity. Explore queries adapt (federal+state-unique for states, general+local for regions). All 6 phases accept entity object. Tested: `--state MI` and `--region "Miami-Dade County, FL" --parent-state FL` both work.
+- Layer 2 (`data/pipeline-drafts.ts`): `PipelineStateDrafts` gains regionName, parentState, slug, isRegion. `generatePipelineDrafts()` scans all dirs (not just `[A-Z]{2}`). States keyed by code, regions by slug.
+- Layer 3 (`app/benefits/[slug]/page.tsx`): Flat route — "michigan" and "miami-dade-county-fl" are peers. Resolves slug → state or region. Regions build synthetic state object from draft data for StatePageV2.
+- Layer 4 (`app/admin/benefits/page.tsx`): Regions grid below states. Click into region → overview preview + review panel + program list.
 
-**Commits:** `86530f8e` (state page redesign) → `643d70bb` (state toggle in admin) → `4f10a0f7` (dashboard streamlining + review workflow)
+**Bugs caught in self-review (4 fixed):**
+1. `phaseReport` wrote to parent state dir instead of region dir (stateCode → dirName)
+2. Report template referenced undefined `stateCode` variable (would crash on region runs)
+3. Admin: clicking state didn't clear selectedRegion (both selected simultaneously)
+4. **`searchParams` made ALL state pages dynamic** — reading `?v=1` turned 50+ pages from SSG (●) to dynamic (ƒ). Replaced with `/current` sub-route. Pages back to static.
+
+**Known limitations:**
+- Region program links in StatePageV2 will 404 (no individual program pages for regions yet)
+- Region programs in admin are display-only (no expandable ProgramRow)
+
+**Commits:** `86530f8e` → `643d70bb` → `4f10a0f7` → `f1cfed6b` → `33b767fa` → `2c690789` → `ff26b594`
 
 ---
 

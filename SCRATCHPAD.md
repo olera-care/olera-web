@@ -7,7 +7,10 @@
 
 ## Current Focus
 
-- **Admin Panel 2.0 QA Fixes** (branch: `noble-yalow`) — DONE (PRs #504-509 merged)
+- **City Expansion Batch (Apr 9)** — COMPLETE
+  - 154 cities, 2,639 providers added to Supabase
+  - Cost: $260 (7,880 Google + 1,569 Perplexity calls), 4h4m runtime
+  - Data operation only — no code changes
 
 - **City Expansion Batch — Apr 8** (branch: `wise-shaw`) — DONE
   - 141 cities, 2,658 new providers uploaded to Supabase
@@ -15,9 +18,11 @@
   - Processing: clean → load → enrich → finalize (3h31m, $246)
   - Fixed `parseBatchMd` bug: plain CSV fallback when no code block or "Machine-Readable" header
 
-- **Senior Benefits Pipeline** (branch: `noble-pare`) — MERGED (PR #502)
+- **Admin Panel 2.0 QA Fixes** (branch: `noble-yalow`) — DONE (PRs #504-509 merged)
+  - **Manual (non-code)**:
+    - [ ] Purchase Perplexity AI premium subscription for ops team
 
-- **Aging in America** — SHIPPED (PRs #493-498 merged)
+- **Senior Benefits Pipeline** (branch: `noble-pare`) — MERGED (PR #502)
 
 - **Homepage De-Jank + Mega Menu + Search Bar Polish** (branch: `gifted-rosalind`) — READY FOR QA
 
@@ -44,12 +49,12 @@
 ## Next Up
 
 1. Run benefits pipeline on FL + CA → compare patterns across 3 states
-3. Seed TX: `/api/admin/seed-sbf-programs?state=TX&confirm=true`
-4. Rob Arnold YouTube ID (due Apr 7)
-5. MedJobs candidates detail page taste pass
-6. SEO city-specific content sections
-7. Merge PR #463 (user account separation)
-8. Continue staging → main promotion
+2. Seed TX: `/api/admin/seed-sbf-programs?state=TX&confirm=true`
+3. MedJobs candidates detail page taste pass
+4. SEO city-specific content sections
+5. Merge PR #463 (user account separation)
+6. Continue staging → main promotion
+7. Purchase Perplexity AI premium subscription for ops team
 
 ---
 
@@ -84,6 +89,29 @@
 ---
 
 ## Session Log
+
+### 2026-04-09 (Session 71) — City Expansion Batch (154 Cities)
+
+**Branch:** `fast-heisenberg` | **Data operation — no code changes**
+
+**Batch:** 154 cities from map.olera.care, all with 0 providers (pop ~18K each)
+
+**Discovery:**
+- `discovery-batch.py` in quick mode — 141 cities discovered, 13 skipped (existing CSVs)
+- 26,458 raw providers discovered across all cities
+- 5 transient API errors (503/500) — all retried successfully
+- Runtime: ~77 minutes
+
+**Processing (`pipeline-batch.js --phase all --resume`):**
+- Clean: keyword filter → AI classification → dedup against 72K existing providers
+- Load: uploaded to Supabase + geocoded (corrected bad coordinates, removed out-of-area)
+- Enrich: descriptions (4,220), reviews hydration (3,306), trust signals (2,885 non-CMS), images via Places API
+- Finalize: all cities marked Complete in Notion
+
+**Results:**
+- 2,639 providers added across 148 cities (7 cities had 0 after dedup)
+- Cost: $260 (7,880 Google + 1,569 Perplexity calls)
+- Runtime: 4h4m total
 
 ### 2026-04-08 (Session 70) — City Expansion Batch (141 Cities)
 

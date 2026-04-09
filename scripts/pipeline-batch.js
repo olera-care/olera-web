@@ -468,7 +468,8 @@ function readyCityList(expansionDir) {
 function parseBatchMd(mdPath) {
   const content = fs.readFileSync(mdPath, 'utf-8');
   const match = content.match(/```(?:batch-cities)?\s*\n([\s\S]*?)```/);
-  const block = match ? match[1] : content.slice(content.indexOf('Machine-Readable'));
+  const mrIdx = content.indexOf('Machine-Readable');
+  const block = match ? match[1] : mrIdx >= 0 ? content.slice(mrIdx) : content;
   return block.trim().split('\n')
     .filter(l => l.trim() && !l.startsWith('City') && !l.startsWith('#') && !l.startsWith('|'))
     .map(l => {

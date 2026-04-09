@@ -150,6 +150,11 @@ function ProviderOnboardingContent() {
   const [disputeError, setDisputeError] = useState("");
   const [disputeSubmitted, setDisputeSubmitted] = useState(false);
 
+  // Claim sign-in state (for when user signs in on a claimed listing)
+  const [claimSignInMismatch, setClaimSignInMismatch] = useState<{
+    userEmail: string;
+    listingName: string;
+  } | null>(null);
 
   // Cooldown timer
   useEffect(() => {
@@ -158,6 +163,68 @@ function ProviderOnboardingContent() {
       return () => clearTimeout(timer);
     }
   }, [resendCooldown]);
+
+  // Handle "Sign in" click on a claimed listing
+  // Store listing context and open auth with return URL
+  const handleClaimSignIn = useCallback((result: SearchResult) => {
+    const name = result._source === "olera-providers" ? result.provider_name : result.display_name;
+    const listingEmail = result.email?.toLowerCase() || null;
+
+    try {
+      sessionStorage.setItem("olera_claim_signin_pending", JSON.stringify({
+        listingEmail,
+        listingName: name,
+      }));
+    } catch {
+      // sessionStorage unavailable
+    }
+
+    // Open auth modal - after sign-in, user returns to this page
+    openAuth({
+      defaultMode: "sign-in",
+      deferred: {
+        returnUrl: "/provider/onboarding",
+      },
+    });
+  }, [openAuth]);
+
+  // Validate claim sign-in after user signs in
+  // Check if the signed-in user's email matches the claimed listing's email
+  useEffect(() => {
+    if (!user) return;
+
+    try {
+      const pending = sessionStorage.getItem("olera_claim_signin_pending");
+      if (!pending) return;
+
+      const { listingEmail, listingName } = JSON.parse(pending) as {
+        listingEmail: string | null;
+        listingName: string;
+      };
+
+      // Clear the pending state
+      sessionStorage.removeItem("olera_claim_signin_pending");
+
+      // If listing has no email on file, we can't validate - let them proceed
+      if (!listingEmail) return;
+
+      // Check if emails match (case-insensitive)
+      const userEmail = user.email?.toLowerCase();
+      if (userEmail !== listingEmail) {
+        // Mismatch - show error
+        setClaimSignInMismatch({
+          userEmail: user.email || "",
+          listingName,
+        });
+        setScreen("results"); // Ensure we're on the results screen to show the error
+      } else {
+        // Match - redirect to portal
+        router.push("/portal/inbox");
+      }
+    } catch {
+      // Parse error or sessionStorage unavailable
+    }
+  }, [user, router]);
 
   // Pre-fill form from marketing page (sessionStorage)
   useEffect(() => {
@@ -1206,6 +1273,60 @@ function ProviderOnboardingContent() {
               </div>
             )}
 
+            {/* Claim sign-in email mismatch error */}
+            {claimSignInMismatch && (
+              <div className="mb-4 px-4 py-4 bg-amber-50 border border-amber-200 rounded-xl">
+                <div className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-amber-800">
+                      Wrong account
+                    </p>
+                    <p className="text-sm text-amber-700 mt-1">
+                      You&apos;re signed in as <span className="font-medium">{claimSignInMismatch.userEmail}</span>, but &quot;{claimSignInMismatch.listingName}&quot; was claimed with a different email.
+                    </p>
+                    <p className="text-sm text-amber-700 mt-2">
+                      {(() => {
+                        const claimedResult = searchResults.find(r => r._claimed);
+                        if (claimedResult) {
+                          return (
+                            <>
+                              Please sign in with the email you used to claim this listing, or{" "}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setClaimSignInMismatch(null);
+                                  handleResultAction(claimedResult, "dispute");
+                                }}
+                                className="font-medium underline hover:no-underline"
+                              >
+                                file a dispute
+                              </button>{" "}
+                              if you believe you should have access.
+                            </>
+                          );
+                        }
+                        // No search results available (page was refreshed) - give generic guidance
+                        return "Please sign in with the email you used to claim this listing, or search for it again and click \"Dispute\" if you believe you should have access.";
+                      })()}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setClaimSignInMismatch(null)}
+                    className="shrink-0 p-1 text-amber-600 hover:text-amber-800 rounded transition-colors"
+                    aria-label="Dismiss"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Results List */}
             <div className="space-y-4">
               {searchResults.length === 0 ? (
@@ -1309,7 +1430,7 @@ function ProviderOnboardingContent() {
                                         </button>
                                         <button
                                           type="button"
-                                          onClick={() => openAuth({ defaultMode: "sign-in" })}
+                                          onClick={() => handleClaimSignIn(result)}
                                           className="px-3 py-1.5 text-sm font-semibold rounded-lg transition-all text-primary-600 ring-1 ring-primary-200 hover:ring-primary-300 hover:bg-primary-50"
                                         >
                                           Sign in
@@ -1412,7 +1533,7 @@ function ProviderOnboardingContent() {
                                         </button>
                                         <button
                                           type="button"
-                                          onClick={() => openAuth({ defaultMode: "sign-in" })}
+                                          onClick={() => handleClaimSignIn(result)}
                                           className="px-3 py-1.5 text-sm font-semibold rounded-lg transition-all text-primary-600 ring-1 ring-primary-200 hover:ring-primary-300 hover:bg-primary-50"
                                         >
                                           Sign in

@@ -1713,7 +1713,7 @@ function generatePipelineSummary() {
         diffs: (c.diffs || []).map((d) => ({
           field: d.field,
           ours: d.ours,
-          found: typeof d.found === "string" && d.found.length > 100 ? d.found.slice(0, 100) + "..." : d.found,
+          found: typeof d.found === "string" ? (d.found.length > 100 ? d.found.slice(0, 100) + "..." : d.found) : JSON.stringify(d.found).slice(0, 100),
           source: d.source || undefined,
         })),
         novelFields: (c.novelFields || []).map((nf) => ({

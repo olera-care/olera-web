@@ -13,7 +13,7 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 
 **Where we're headed:**
 - Every state gets pipeline-generated content: a state overview page and individual program pages, each tailored to the program's type and complexity
-- The admin dashboard is the operational command center: review drafts, leave comments, track status, preview pages, approve for publishing
+- The admin dashboard pivots from a verification viewer to the **operational command center** for the entire benefits content operation: review drafts, leave comments, track status, preview both old and new pages, approve for publishing. The dashboard is where content quality is governed — not Slack, not Notion, not JSON files.
 - The team runs `/benefits-pipeline` to process states. Approved drafts flow into the codebase automatically. Pages go live on deploy.
 - Geographic entities are flexible — a program's natural scope (state, county, service area, region, city) is discovered by the pipeline, not forced into a URL hierarchy. "PACE in Harris County" and "SNAP in Texas" and "PACE in the DMV" all work.
 

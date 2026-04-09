@@ -1048,6 +1048,23 @@ export default function AdminBenefitsPage() {
   const [search, setSearch] = useState("");
   const [readinessFilter, setReadinessFilter] = useState<ReadinessFilter>("all");
 
+  // Browser back button support: push history when selecting, pop clears selection
+  const selectState = useCallback((abbr: string | null) => {
+    if (abbr) window.history.pushState({ view: "state", abbr }, "");
+    setSelectedState(abbr);
+    setSelectedRegion(null);
+  }, []);
+  const selectRegion = useCallback((key: string | null) => {
+    if (key) window.history.pushState({ view: "region", key }, "");
+    setSelectedRegion(key);
+    setSelectedState(null);
+  }, []);
+  useEffect(() => {
+    const onPop = () => { setSelectedState(null); setSelectedRegion(null); };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+
   const globalStats = useMemo(() => {
     const allPrograms = allStates.flatMap((s) => s.programs);
     const totalPrograms = allPrograms.length;
@@ -1174,12 +1191,12 @@ export default function AdminBenefitsPage() {
       {stateData ? (
         <StateDetail
           state={stateData}
-          onBack={() => setSelectedState(null)}
+          onBack={() => window.history.back()}
         />
       ) : selectedRegion && regionData ? (
         <div>
           <button
-            onClick={() => setSelectedRegion(null)}
+            onClick={() => window.history.back()}
             className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors mb-4"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1270,7 +1287,7 @@ export default function AdminBenefitsPage() {
                   <StateCard
                     key={state.abbreviation}
                     state={state}
-                    onClick={() => { setSelectedState(state.abbreviation); setSelectedRegion(null); }}
+                    onClick={() => selectState(state.abbreviation)}
                   />
                 ))}
               </div>
@@ -1287,7 +1304,7 @@ export default function AdminBenefitsPage() {
                 {regions.map((region) => (
                   <button
                     key={region.key}
-                    onClick={() => { setSelectedRegion(region.key); setSelectedState(null); }}
+                    onClick={() => selectRegion(region.key)}
                     className="text-left p-4 rounded-xl border border-blue-200 hover:border-blue-300 bg-white hover:shadow-sm transition-all duration-150 group"
                   >
                     <div className="flex items-center gap-2 mb-1">
@@ -1313,7 +1330,7 @@ export default function AdminBenefitsPage() {
                 {backlogStates.map((state) => (
                   <button
                     key={state.abbreviation}
-                    onClick={() => { setSelectedState(state.abbreviation); setSelectedRegion(null); }}
+                    onClick={() => selectState(state.abbreviation)}
                     className="text-left px-3 py-2 rounded-lg border border-gray-100 bg-white hover:border-gray-200 hover:bg-gray-50 transition-colors"
                   >
                     <span className="text-xs font-semibold text-gray-500">{state.abbreviation}</span>

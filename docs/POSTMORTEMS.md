@@ -290,3 +290,37 @@ The entity refactor changed pipeline functions from `(stateCode, stateName)` to 
 **Lesson**: A tool that exists but can't be discovered doesn't exist.
 
 ---
+
+### 2026-04-09: 85% draft failure rate — misdiagnosed as parse errors, actually API rate limiting
+
+**Symptom**: Pipeline discovered 10-16 programs per state but only 3-8 got drafted. TJ saw state pages with 3 programs when 15 existed. Ran the batch 3 times over several hours — same result each time. 479 out of 561 draft attempts failed (14.6% success rate).
+
+**Root Cause**: Claude API rate limit of 8,000 output tokens per minute. Each draft call generates ~4,000 tokens. With 3 concurrent draft workers across 3 concurrent states, we were requesting ~36,000 output tokens/minute — 4.5x the limit. The first 2-3 programs per state succeeded, then every subsequent call returned HTTP 429. The 429 error was caught by the generic error handler and stored as `_error`, but the batch kept running and counting them as permanent failures.
+
+The error message was clear: `"rate_limit_error","message":"This request would exceed your organization's rate limit of 8,000 output tokens per minute"`. But I never looked at the actual error content — I assumed "parse errors" based on the field name `_parseError` and the general concept of "Claude returning malformed JSON." Three separate batch runs hit the same rate limit, and I kept re-running with the same configuration expecting different results.
+
+**How It Was Fixed**:
+1. Added 429 retry with exponential backoff to `claudeChat()` — up to 5 retries, 15-60s waits
+2. Increased Claude rate limiter from 300ms to 8s between calls
+3. Dropped draft concurrency from 3 to 1 (sequential within a state)
+4. Dropped batch concurrency default from 3 to 1 (sequential across states)
+
+Florida test: 16/16 programs drafted (was 3/16). Takes ~8 min/state but 100% success.
+
+**Time to Resolution**: The rate limit was present from the very first batch run. Three re-runs over ~2 hours before TJ pushed me to investigate the actual error. The fix itself took 15 minutes once the real cause was identified. ~2+ hours wasted on re-runs.
+
+**Why I didn't catch this earlier**:
+- **Never read the error messages.** I ran aggregate statistics (`filter(p => p._error || p._parseError).length`) but never printed the actual `_error` string. One `console.log(f._error)` would have shown `429: rate_limit_error` immediately.
+- **Assumed the diagnosis.** The field was called `_parseError` so I assumed parse errors. The pipeline has two failure types (`_parseError` for JSON parse failures, `_error` for API errors) — I conflated them. Most failures were `_error` (429), not `_parseError`.
+- **Re-ran without changing anything.** Three identical batch runs with the same concurrency hitting the same rate limit. The definition of insanity. After run 2 showed the same 14% success rate, I should have investigated why, not run it again.
+- **Optimized the wrong thing.** I spent effort parallelizing dive (5x) and draft (3x) calls to make the pipeline faster, without checking if the API could handle the throughput. Speed optimization before reliability is backwards.
+
+**Prevention**:
+- **Before adding API concurrency: check rate limits.** Read the API docs or check the dashboard for the key's tier/limits. The Anthropic rate limit was documented and would have been visible in the API console.
+- **After a batch run fails: read the ACTUAL error messages, not just counts.** `errors.slice(0, 3).forEach(e => console.log(e._error))` takes 10 seconds.
+- **If the same batch fails twice with the same rate: the problem is systemic, not transient.** Don't re-run — investigate.
+- **Add 429 retry as default for ANY API integration.** Rate limits are not exceptional — they're expected operating conditions. Every `fetch` to an external API should handle 429.
+
+**Lesson**: When a batch job fails at a consistent rate across multiple runs, the failure is deterministic — something about the approach is fundamentally wrong. Don't re-run; investigate. And always read the actual error messages before theorizing about the cause.
+
+---

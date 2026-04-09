@@ -1,33 +1,32 @@
 {
   "state": "AZ",
   "stateName": "Arizona",
-  "classifiedAt": "2026-04-09T09:26:38.676Z",
-  "total": 15,
+  "classifiedAt": "2026-04-09T11:45:09.450Z",
+  "total": 10,
   "typeSummary": {
-    "benefit": 10,
-    "resource": 4,
-    "employment": 1
+    "benefit": 8,
+    "resource": 2
   },
   "scopeSummary": {
-    "state": 6,
-    "local": 2,
-    "federal": 7
+    "state": 3,
+    "local": 1,
+    "federal": 6
   },
   "complexitySummary": {
-    "deep": 9,
-    "simple": 4,
-    "medium": 2
+    "deep": 7,
+    "medium": 1,
+    "simple": 2
   },
   "programs": [
     {
-      "name": "AHCCCS for Elders",
+      "name": "AHCCCS (Arizona Long Term Care System - ALTCS)",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Local DES/Family Assistance Administration offices statewide",
+            "name": "ALTCS Map available via official site[6]",
             "type": "service-area"
           }
         ]
@@ -35,16 +34,14 @@
       "complexity": "deep",
       "recommendedSections": [
         "prose",
-        "income-table",
         "what-counts",
         "tier-comparison",
         "documents",
-        "county-directory",
-        "callout"
+        "county-directory"
       ],
       "signals": {
         "benefitType": "service",
-        "hasIncomeTiers": true,
+        "hasIncomeTiers": false,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": true,
@@ -53,11 +50,49 @@
       }
     },
     {
-      "name": "Arizona Long Term Care System (ALTCS)",
+      "name": "ALTCS Home and Community-Based Services (HCBS) Waiver",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
-        "stateVariation": false
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Approved plan providers (e.g., via altcs.org list; contact AHCCCS for local)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Arizona PACE (Program of All-Inclusive Care for the Elderly)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Specific AZ PACE centers not listed; e.g., InnovAge operates in some states but AZ sites unclear. Use local finder.",
+            "type": "service-area"
+          }
+        ]
       },
       "complexity": "deep",
       "recommendedSections": [
@@ -71,41 +106,6 @@
       "signals": {
         "benefitType": "service",
         "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": true,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Arizona PACE Programs",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "local",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "InnovAge operates PACE/LIFE centers in Arizona (among other states: California, Colorado, Florida, New Mexico, Pennsylvania, Virginia)[9]",
-            "type": "service-area"
-          },
-          {
-            "name": "Specific PACE organizations and their service areas not detailed in search results",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "what-counts",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": false,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": true,
@@ -121,7 +121,11 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Local DES/Family Assistance Administration offices statewide",
+            "name": "AHCCCS central: 701 E. Jefferson St, Phoenix, AZ",
+            "type": "service-area"
+          },
+          {
+            "name": "Local DES/AHCCCS offices statewide",
             "type": "service-area"
           }
         ]
@@ -147,31 +151,26 @@
       }
     },
     {
-      "name": "Nutrition Assistance (SNAP)",
+      "name": "Nutrition Assistance (NA) / SNAP in Arizona",
       "programType": "benefit",
       "geographicScope": {
         "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "Local Family Assistance Administration (FAA) offices via 1-855-777-8590",
-            "type": "service-area"
-          }
-        ]
+        "stateVariation": true
       },
-      "complexity": "deep",
+      "complexity": "medium",
       "recommendedSections": [
         "prose",
         "income-table",
         "what-counts",
         "documents",
-        "county-directory"
+        "county-directory",
+        "callout"
       ],
       "signals": {
-        "benefitType": "financial",
+        "benefitType": "in_kind",
         "hasIncomeTiers": true,
         "hasAssetLimits": true,
-        "hasRegionalVariation": true,
+        "hasRegionalVariation": false,
         "hasFunctionalReq": false,
         "hasMultipleTiers": false,
         "isStatewide": true
@@ -185,7 +184,7 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Local Community Action Programs; contact via (866) 494-1981.",
+            "name": "Local Community Action Programs; statewide via ADES.[1][4]",
             "type": "service-area"
           }
         ]
@@ -193,7 +192,6 @@
       "complexity": "deep",
       "recommendedSections": [
         "prose",
-        "income-table",
         "what-counts",
         "tier-comparison",
         "documents",
@@ -202,7 +200,7 @@
       ],
       "signals": {
         "benefitType": "financial",
-        "hasIncomeTiers": true,
+        "hasIncomeTiers": false,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
@@ -211,62 +209,38 @@
       }
     },
     {
-      "name": "Arizona State Health Insurance Assistance Program (SHIP)",
-      "programType": "resource",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "Arizona Department of Economic Security (state office, Phoenix)[1]",
-            "type": "service-area"
-          },
-          {
-            "name": "azship.org network[6]",
-            "type": "service-area"
-          },
-          {
-            "name": "SEAGO (Bisbee, 4-county region)[7]",
-            "type": "service-area"
-          },
-          {
-            "name": "PCOA (Tucson)[8]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "simple",
-      "recommendedSections": [
-        "prose",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Home Delivered Meals (Meals on Wheels)",
+      "name": "Arizona Weatherization Assistance Program (WAP)",
       "programType": "benefit",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "YWCA Metropolitan Phoenix (Glendale location: 8561 N 61st Ave)[6]",
+            "name": "All Thrive 365 (Tucson and South Tucson)[1]",
             "type": "service-area"
           },
           {
-            "name": "St. Mary's Food Bank (statewide home delivery)[2]",
+            "name": "Pima County Community and Workforce Development (outside Tucson, Sahuarita, Oro Valley, Marana)[1]",
             "type": "service-area"
           },
           {
-            "name": "Mom's Meals (available through Medicaid/Medicare Advantage plans)[3][5]",
+            "name": "Western Arizona Council of Governments (WACOG)[2]",
+            "type": "service-area"
+          },
+          {
+            "name": "Northern Arizona Council of Governments (NACOG)[2]",
+            "type": "service-area"
+          },
+          {
+            "name": "Southeastern Arizona Community Action Program (SEACAP)[2]",
+            "type": "service-area"
+          },
+          {
+            "name": "Community Action Association (SRP service area)[4]",
+            "type": "service-area"
+          },
+          {
+            "name": "City of Phoenix[5]",
             "type": "service-area"
           }
         ]
@@ -291,79 +265,14 @@
       }
     },
     {
-      "name": "Arizona Caregiver Respite Program",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Arizona Caregiver Coalition (statewide)",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "what-counts",
-        "tier-comparison",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "financial",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": true,
-        "hasMultipleTiers": true,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Senior Community Service Employment Program (SCSEP)",
-      "programType": "employment",
+      "name": "Arizona State Health Insurance Assistance Program (SHIP)",
+      "programType": "resource",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "AARP Foundation SCSEP: 4520 North Central Ave., Suite 575, Phoenix, AZ 85012[5]",
-            "type": "service-area"
-          },
-          {
-            "name": "NICOA SCSEP: Serves American Indian and Alaska Native elders in Arizona and six other states[4]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "documents"
-      ],
-      "signals": {
-        "benefitType": "employment",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Arizona Senior Legal Helpline",
-      "programType": "resource",
-      "geographicScope": {
-        "type": "local",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "2720 East Thomas Road, Phoenix, AZ 85016[2][4]",
+            "name": "Statewide helpline and azship.org; local examples: PCOA Tucson (520-790-7262), SEAGO Bisbee; full network via 1-800-432-4040[1][5][6][7][8]",
             "type": "service-area"
           }
         ]
@@ -379,8 +288,48 @@
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
-        "isStatewide": false
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Congregate and Home-Delivered Meals",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Area Agency on Aging (statewide helpline)",
+            "type": "service-area"
+          },
+          {
+            "name": "YWCA Metropolitan Phoenix (Glendale)",
+            "type": "service-area"
+          },
+          {
+            "name": "Fountain Hills Community Center",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
       }
     },
     {
@@ -391,15 +340,23 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "State office: Phoenix[3][5]",
+            "name": "Maricopa County Area Agency on Aging[4]",
             "type": "service-area"
           },
           {
-            "name": "Regional examples: Area Agency on Aging Region One (Southern AZ counties), Inter Tribal Council of Arizona (21 Tribal Nations), Navajo Nation Division[5]",
+            "name": "Pima Council on Aging[4]",
             "type": "service-area"
           },
           {
-            "name": "Oversight: DES Division of Aging and Adult Services[5][6]",
+            "name": "NACOG (serving Apache, Coconino, Navajo, and Yavapai counties)[4]",
+            "type": "service-area"
+          },
+          {
+            "name": "Navajo Nation Area Agency on Aging[5]",
+            "type": "service-area"
+          },
+          {
+            "name": "Inter Tribal Council of Arizona[5]",
             "type": "service-area"
           }
         ]
@@ -411,105 +368,9 @@
       ],
       "signals": {
         "benefitType": "advocacy",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Senior Citizen Property Tax Refund Credit",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false
-      },
-      "complexity": "medium",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "documents",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "financial",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": false,
-        "hasRegionalVariation": false,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Senior Property Valuation Protection Program (Senior Freeze)",
-      "programType": "resource",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Cochise County Assessor",
-            "type": "service-area"
-          },
-          {
-            "name": "Maricopa County Assessor",
-            "type": "service-area"
-          },
-          {
-            "name": "Mohave County Assessor",
-            "type": "service-area"
-          },
-          {
-            "name": "Pinal County Assessor",
-            "type": "service-area"
-          },
-          {
-            "name": "Yavapai County Assessor",
-            "type": "service-area"
-          },
-          {
-            "name": "All other Arizona county assessor offices",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "simple",
-      "recommendedSections": [
-        "prose",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "financial",
-        "hasIncomeTiers": true,
+        "hasIncomeTiers": null,
         "hasAssetLimits": false,
         "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Arizona Pension Income Deduction",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false
-      },
-      "complexity": "medium",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "documents"
-      ],
-      "signals": {
-        "benefitType": "financial",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": false,
         "hasFunctionalReq": false,
         "hasMultipleTiers": false,
         "isStatewide": true

@@ -1,7 +1,7 @@
 # Alabama Benefits Exploration Report
 
 > Generated 2026-04-09 by benefits-pipeline.js
-> Cost: $0.000 (0 calls, 0s)
+> Cost: $0.090 (18 calls, 8.9m)
 
 ---
 
@@ -9,11 +9,11 @@
 
 | Metric | Value |
 |--------|-------|
-| Programs discovered | 14 |
-| Programs deep-dived | 14 |
-| New (not in our data) | 13 |
-| Data discrepancies | 1 |
-| Fields our model can't capture | 1 |
+| Programs discovered | 16 |
+| Programs deep-dived | 16 |
+| New (not in our data) | 14 |
+| Data discrepancies | 2 |
+| Fields our model can't capture | 2 |
 
 ## Data Model Gaps
 
@@ -21,16 +21,16 @@ These data fields appeared across programs but don't exist in our current model:
 
 | Field | Programs | Note |
 |-------|----------|------|
-| `asset_limits` | 1 | Our model has no asset limit fields |
-| `regional_variations` | 1 | Program varies by region — our model doesn't capture this |
-| `waitlist` | 1 | Has waitlist info — our model has no wait time field |
-| `documents_required` | 1 | Has document checklist — our model doesn't store per-program documents |
+| `asset_limits` | 2 | Our model has no asset limit fields |
+| `regional_variations` | 2 | Program varies by region — our model doesn't capture this |
+| `waitlist` | 2 | Has waitlist info — our model has no wait time field |
+| `documents_required` | 2 | Has document checklist — our model doesn't store per-program documents |
 
 ## Program Types
 
 - **service**: 7 programs
-- **financial**: 3 programs
-- **financial reimbursement**: 1 programs
+- **financial**: 4 programs
+- **service|advocacy**: 2 programs
 - **employment**: 1 programs
 - **advocacy**: 1 programs
 - **in_kind**: 1 programs
@@ -42,37 +42,45 @@ Our data differs from what official sources say:
 ### Alabama Medicaid Elderly and Disabled Waiver
 
 - **income_limit**: Ours says `$2901` → Source says `$2,829` ([source](https://medicaid.alabama.gov/content/6.0_LTC_waivers/6.1_HCBS_waivers.aspx))
-- **benefit_value**: Ours says `$10,000 – $30,000/year` → Source says `Person-centered services based on individual plan of care, including personal care, homemaker services, respite care, adult day health, companion services, home-delivered frozen meals, and case management. No fixed dollar amounts or hours specified; varies by assessed needs to prevent institutionalization.` ([source](https://medicaid.alabama.gov/content/6.0_LTC_waivers/6.1_HCBS_waivers.aspx))
+- **benefit_value**: Ours says `$10,000 – $30,000/year` → Source says `Person-centered services based on assessed needs: personal care, homemaker, respite care, adult day health, companion services, home-delivered frozen meals, case management. No fixed dollar amounts or hours; varies by individual plan of care developed by case manager[1][2][5][6].` ([source](https://medicaid.alabama.gov/content/6.0_LTC_waivers/6.1_HCBS_waivers.aspx))
 - **source_url**: Ours says `MISSING` → Source says `https://medicaid.alabama.gov/content/6.0_LTC_waivers/6.1_HCBS_waivers.aspx`
+
+### Elderly and Disabled (E&D) Medicaid Waiver
+
+- **income_limit**: Ours says `$2901` → Source says `$2,829` ([source](https://medicaid.alabama.gov/content/6.0_LTC_waivers/6.1_HCBS_Waivers/6.1.2_Elderly_Disabled_Waiver.aspx))
+- **benefit_value**: Ours says `$10,000 – $30,000/year` → Source says `Person-centered plan of care may include: personal care, homemaker services, companion services, respite care, adult day health, nutrition/frozen meals. No yearly cost cap or limit on services. Case management develops plan based on needs.[2][3][4]` ([source](https://medicaid.alabama.gov/content/6.0_LTC_waivers/6.1_HCBS_Waivers/6.1.2_Elderly_Disabled_Waiver.aspx))
+- **source_url**: Ours says `MISSING` → Source says `https://medicaid.alabama.gov/content/6.0_LTC_waivers/6.1_HCBS_Waivers/6.1.2_Elderly_Disabled_Waiver.aspx`
 
 ## New Programs (Not in Our Data)
 
-- **Alabama PACE (Program of All-Inclusive Care for the Elderly)** — service ([source](https://medicaid.alabama.gov/content/5.0_Managed_Care/5.2_Other_MC_Programs/5.2.3_PACE.aspx))
-  - Shape notes: County-restricted (Mobile/Baldwin); provider-specific (Mercy LIFE); no strict income/asset test for enrollment but for Medicaid coverage; capped enrollment
-- **Alabama Medicare Savings Programs (QMB, SLMB, QI)** — financial ([source](https://medicaid.alabama.gov/content/3.0_Apply/3.2_Qualifying/3.2.6_Help_Paying_Medicare.aspx))
-  - Shape notes: Tiered by income (QMB lowest, then SLMB, QI highest); QI capped funding/annual reapply; uniform statewide but district processing; scales by household size via FPL; auto-LIS linkage.
-- **Alabama Elderly Simplified Application Project (AESAP)** — financial ([source](https://dhr.alabama.gov/food-assistance/alabama-elderly-simplified-application-project-aesap/[9]))
-  - Shape notes: Streamlined SNAP process only—no unique benefits or limits; 3-year certification differentiates it; income/resources match standard SNAP elderly rules; county-administered statewide
-- **Alabama LIHEAP (Low-Income Home Energy Assistance Program)** — financial ([source](https://adeca.alabama.gov/liheap/))
-  - Shape notes: Benefits scale by household size and vary by season (heating vs. cooling) and crisis status. Income limits scale by household size with a formula for households beyond 15 members. Application processes and opening dates vary significantly by county-level CAA, making this a decentralized program with no single statewide application portal. Priority tiers (seniors, disabled, medical vulnerabilities, energy crisis) receive earlier access to limited funds. Program operates on a fiscal year basis (October 1–September 30) with seasonal components (heating Oct–Apr, cooling May–Sep).
+- **Alabama PACE (Program of All-Inclusive Care for the Elderly)** — service ([source](medicaid.alabama.gov/content/5.0_Managed_Care/5.2_Other_MC_Programs/5.2.3_PACE.aspx))
+  - Shape notes: Alabama PACE is severely geographically restricted (only 2 counties), has a fixed enrollment cap per program, requires state certification of nursing home-level care need, and has no income/asset limits for program enrollment (though Medicaid coverage has separate financial requirements). The program is not statewide and availability is the primary limiting factor for most Alabama families. Medicaid eligibility is separate from PACE eligibility but determines coverage type and cost structure.
+- **Alabama Medicaid Medicare Savings Programs (QMB, SLMB, QI)** — financial ([source](https://medicaid.alabama.gov/content/3.0_Apply/3.2_Qualifying/3.2.6_Help_Paying_Medicare.aspx))
+  - Shape notes: Tiered by QMB (full cost-sharing), SLMB (Part B only, higher income), QI-1 (Part B only, highest income, limited funds); income as %FPL with couple ranges; statewide but QI waitlist risk; no household >2 tables
+- **Alabama Elderly Simplified Application Project (AESAP)** — financial ([source](https://dhr.alabama.gov/food-assistance/alabama-elderly-simplified-application-project-aesap/))
+  - Shape notes: Streamlined SNAP demo for elderly-only households: 2-page app, 36-month certification, no interview (unless requested), self-declare most info, same income/asset tests as regular SNAP.
+- **Alabama LIHEAP (Low-Income Home Energy Assistance Program)** — financial ([source](https://adeca.alabama.gov/liheap/[7]))
+  - Shape notes: Administered via ~20 local CAAs with agency-specific income tables, opening dates, methods; income at 150% FPL but figures drift by fiscal year; priority tiers heavily influence access; funding exhausts quickly by region
 - **Alabama Weatherization Assistance Program** — service ([source](https://adeca.alabama.gov/weatherization/))
-  - Shape notes: Delivered via 10+ regional community action agencies with county-specific contacts and processes; priority-tiered waitlist; no central application portal; income at 200% FPL with auto-eligibility for SSI/AFDC.
-- **Alabama SHIP (State Health Insurance Assistance Program)** — service ([source](alabamaageline.gov/ship/[6] and Alabama Department of Senior Services (AL Department of Senior Services, ADDS 201 Monroe Street, RSA Tower, Suite 350 Montgomery AL 36130-1851)[5]))
-  - Shape notes: SHIP is a counseling and assistance program, not a direct-benefit program. It helps Medicare beneficiaries navigate existing programs (Medicare, Medicaid, Medicare Savings Programs, Extra Help, Medigap, etc.) rather than providing its own financial or healthcare benefits. Eligibility criteria beyond 'Medicare beneficiary or family member' are not publicly specified in available sources. The program is administered regionally through Area Agencies on Aging, which may explain why specific income/asset limits are not centralized in state-level documentation. Income limits likely vary by the specific assistance programs SHIP helps people access (e.g., Medicare Savings Programs have federal income thresholds), not by SHIP itself.
-- **Alabama Meals on Wheels (Elderly Nutrition Program)** — service ([source](https://alabamaageline.gov/elderly-nutrition-program/))
-  - Shape notes: Decentralized by county via local AAAs; no statewide income test; home delivery not universal; congregate meals more widely available than delivery
-- **Alabama Lifespan Respite Program** — financial reimbursement ([source](https://alabamarespite.org/apply-for-respite/2025-2026-respite-application-packet/))
-  - Shape notes: This program is a reimbursement-based respite voucher program, not a direct service provider. The caregiver has full control over selecting and hiring respite providers and determining compensation rates (within program guidelines). No specific income or asset limits are disclosed, making it potentially more accessible than means-tested programs. The primary eligibility barrier is the mutual exclusivity requirement — applicants cannot receive respite from any other program. Funding is limited and not guaranteed even for eligible applicants. The program is statewide but administered through UCP Huntsville. Specific dollar amounts for reimbursement are not publicly available in the documentation reviewed.
-- **Alabama Senior Community Service Employment Program (SCSEP)** — employment ([source](https://alabamaageline.gov/scsep/))
-  - Shape notes: Administered by multiple regional providers with county-specific service areas; no asset limits or fixed dollar benefits—income eligibility scales by household size via annual federal poverty guidelines; lifetime enrollment cap of 48 months
-- **Alabama Legal Services Corporation (Legal Aid for Seniors)** — service ([source](https://legalservicesalabama.org/elder-law/))
-  - Shape notes: Elder grants waive income test (unique non-income-based access for 60+); statewide but with county-specific volunteer programs and referrals; priority for seniors among low-income
+  - Shape notes: Delivered via 10+ regional community action agencies with county-specific contacts, quotas, and waitlists; priority tiers heavily influence access; no central application portal.
+- **Alabama SHIP (State Health Insurance Assistance Program)** — service|advocacy ([source](alabamaageline.gov/ship/[5]))
+  - Shape notes: SHIP is a counseling and advocacy service rather than a direct financial assistance program. No income limits, asset limits, or specific eligibility criteria are publicly documented in available sources — eligibility appears to be based on Medicare beneficiary status. Benefits are uniform statewide (free counseling) but delivered through local regional providers (AAAs and ADRCs). The program helps beneficiaries identify and access other assistance programs (Medicare Savings Programs, prescription drug assistance, Medicaid) but does not directly provide financial aid itself. Critical distinction: This is different from the Small Rural Hospital Improvement Grant Program (also called SHIP) administered by Alabama Department of Public Health[1], which is a separate program for hospitals, not individuals.
+- **Elderly Nutrition Program (Meals on Wheels)** — service ([source](https://alabamaageline.gov/elderly-nutrition-program/))
+  - Shape notes: No income/asset test; eligibility focused on age/homebound status and local delivery zones; decentralized via county AAAs with statewide oversight; congregate vs. home-delivered tiers; volunteer-dependent with regional provider variations.
+- **Alabama Lifespan Respite Program** — financial ([source](https://alabamarespite.org/apply-for-respite/2025-2026-respite-application-packet/))
+  - Shape notes: This program's eligibility is notably broad—it serves care recipients 'of any age' with 'any' chronic illness or disability, not restricted to specific diagnoses. However, a separate Department of Mental Health respite reimbursement program exists specifically for care recipients with intellectual disabilities (IQ below 70) requiring 80 hours of care per week[1]. The Alabama Lifespan Respite program appears to be the broader, federally-funded option. Funding is explicitly limited and not guaranteed, making this a competitive program rather than an entitlement. No income or asset limits are specified in available documentation, which is unusual for a needs-based program and suggests either universal eligibility or discretionary allocation.
+- **Senior Community Service Employment Program (SCSEP)** — employment ([source](https://alabamaageline.gov/scsep/))
+  - Shape notes: County-restricted by 8+ regional providers across all 67 counties; wages/hours vary slightly by provider; no asset test; must confirm current 125% FPL table separately as not listed
+- **Alabama Legal Services for Seniors** — service|advocacy ([source](https://alabamaageline.gov/legal-assistance/ and https://legalservicesalabama.org/elder-law/))
+  - Shape notes: This program's structure is complex because it combines statewide Legal Services Alabama with regional Area Agencies on Aging that contract with LSA. Eligibility is income-based with a federal poverty guideline threshold (125% FPG) but also includes special non-income-based grants for seniors 60+. The program does not publish specific dollar amounts for income or asset limits, requiring families to contact directly. Benefits are service-based rather than financial, varying by legal issue type. Geographic coverage is statewide across 67 counties with 8 regional offices, but application and contact methods vary by region (some route through AAA/ADRC, others directly to LSA). Processing timelines and waitlist status are not publicly disclosed.
 - **Alabama Long-Term Care Ombudsman Program** — advocacy ([source](https://alabamaageline.gov/ombudsman/))
-  - Shape notes: no income/asset/age test; advocacy-only (no direct services or reimbursement); operates via statewide office + regional Area Agencies on Aging; complaint-driven rather than application for benefits
-- **Alabama Cares** — service ([source](https://alabamaageline.gov/alabama-cares/))
-  - Shape notes: No income/asset tests but priority-based on need; caregiver-focused (not direct to elderly); administered regionally via local AAAs with statewide guidelines; limited funds create de facto waitlist/prioritization.
-- **Alabama Senior Farmers Market Nutrition Program (SFMNP)** — in_kind ([source](https://agi.alabama.gov/farmersmarket/))
-  - Shape notes: Benefits are fixed at $50 per senior (do not vary by household size or priority tier). Income limits scale by household size. Program is statewide but administered through regional AAAs with varying local details. Critical timing factor: applications open January annually and close when funds exhaust. No asset limits documented in available sources.
+  - Shape notes: no income/asset/age test; advocacy-only for long-term care facility residents statewide via ADSS and 13 area agencies on aging; open to anyone filing on behalf of resident
+- **Alabama Cares Program** — service ([source](https://alabamaageline.gov/alabama-cares/[5]))
+  - Shape notes: Caregiver-focused with priority tiers emphasizing economic/social need, rural areas, and specific vulnerabilities; administered regionally by Area Agencies on Aging with no fixed income/asset tests
+- **Senior Aides Program** — service ([source](https://medicaid.alabama.gov (for E&D/Personal Choices); https://alabamaageline.gov (CARES)))
+  - Shape notes: No direct match; data fragmented across Medicaid E&D Waivers (financial/medical tests), CARES (caregiver support, no income test), Personal Choices (self-direction add-on). Regional AAA delivery; waitlists common for waivers.
+- **SenioRx Prescription Drug Assistance Program** — in_kind ([source](https://alabamaageline.gov/seniorx/[3]))
+  - Shape notes: County-administered via 10+ Area Agencies on Aging; eligibility tiers (55+/chronic OR disabled any age OR Medicare gap); benefits dictated by pharma programs (3-month supplies); no fixed dollar cap, varies by drug/company
 
 ## Program Details
 
@@ -80,34 +88,35 @@ Our data differs from what official sources say:
 
 
 **Eligibility:**
-- Income: Income cannot exceed 300% of the SSI Federal Benefit Rate (FBR). As of available data, this is approximately $2,829 per month for an individual (exact amount varies annually with SSI FBR; for 2026, confirm current 300% SSI limit). No variation specified by household size in waiver-specific rules, but must qualify for full Medicaid. SSI recipients automatically qualify financially.
-- Assets: Resources cannot exceed $2,000 for an individual. Exempt assets include primary home (if applicant lives there, intends to return, or certain family members reside there; home equity limit of $1,130,000 in 2026), one vehicle, household furnishings, personal effects, and appliances. Look-Back Rule applies: assets transferred for less than fair market value within 60 months result in penalty period.
+- Income: Income cannot exceed 300% of the SSI Federal Benefit Rate (FBR), which is $2,829 per month for an individual in 2026 (exact amount may adjust annually with SSI FBR; applies regardless of household size as it's SSI-related). Must also qualify financially for full Medicaid[3][5].
+- Assets: Resources cannot exceed $2,000 for an individual. Countable assets include most savings, investments, and secondary properties. Exempt: primary home (if applicant lives there, intends to return, or certain family live there; home equity limit $1,130,000 in 2026), one vehicle, household furnishings, personal effects, appliances. 60-month look-back rule applies; transfers below fair market value trigger penalty period[2][5].
 - Alabama resident
 - At risk of nursing facility placement (must meet nursing facility level of care, determined by physician)
 - Financially eligible for Medicaid
-- Disabled (as defined by Medicaid/SSI criteria) or elderly
+- Willing to receive services in home/community
 
-**Benefits:** Person-centered services based on individual plan of care, including personal care, homemaker services, respite care, adult day health, companion services, home-delivered frozen meals, and case management. No fixed dollar amounts or hours specified; varies by assessed needs to prevent institutionalization.
+**Benefits:** Person-centered services based on assessed needs: personal care, homemaker, respite care, adult day health, companion services, home-delivered frozen meals, case management. No fixed dollar amounts or hours; varies by individual plan of care developed by case manager[1][2][5][6].
 - Varies by: priority_tier
 
 **How to apply:**
-- Contact local Area Agency on Aging (AAA) or Aging and Disability Resource Center (ADRC); statewide via Alabama Department of Senior Services (ADSS)
-- Phone: Varies by region (e.g., contact ADSS at regional AAAs; no single statewide number in results)
-- Website: https://medicaid.alabama.gov (for E&D program info and links)
-- In-person/mail: Local AAA offices (e.g., Area Agency on Aging of East Alabama, Regional Planning Commission of Greater Birmingham)
+- Contact local Area Agency on Aging (AAA) or Aging and Disability Resource Center (ADRC); e.g., East Alabama Aging (regional example)
+- Alabama Medicaid Agency website: https://medicaid.alabama.gov/
+- Alabama Department of Senior Services: https://alabamaageline.gov/medicaid-waiver-programs/
+- Phone: Varies by region; contact local AAA/ADRC or Medicaid at 1-800-362-1504 (general Medicaid line; confirm for E&D)
+- In-person/mail via regional providers like Regional Planning Commission of Greater Birmingham or AAAs
 
-**Timeline:** Not specified; case manager develops plan post-eligibility
-**Waitlist:** Enrollment capped at 15,000 beneficiaries annually; waitlist likely if slots full
+**Timeline:** Not specified; enrollment limited with potential waiting period[7].
+**Waitlist:** Yes, program capped at 15,000 slots annually; waitlist common when full[2][7].
 
 **Watch out for:**
-- Must already qualify for Medicaid or meet financial criteria; waiver does not provide Medicaid coverage itself
-- Strict $2,000 asset limit with 60-month Look-Back Rule—gifting assets triggers penalties
-- Nursing facility level of care required (not just 'disabled')
-- Annual enrollment cap of 15,000 leads to waitlists
-- Home subject to Estate Recovery post-death
-- No age minimum, but targeted at elderly/disabled at institutional risk
+- Must already qualify for full Medicaid financially; waiver does not waive Medicaid income/asset rules[3][5].
+- 60-month look-back on asset transfers leads to penalty periods[2].
+- No age minimum, but targeted at elderly/disabled at nursing home risk—often confused with age 65+ programs[5].
+- Enrollment capped at 15,000; long waitlists common[2].
+- Home subject to estate recovery despite asset exemption[2].
+- Services not guaranteed hours/dollars; fully needs-based with no fixed entitlements[1].
 
-**Data shape:** Administered regionally via AAAs with statewide cap; benefits person-centered by assessed needs, not fixed amounts; tied to Medicaid eligibility and NFLOC
+**Data shape:** Administered regionally via AAAs with statewide cap; SSI-related income test (300% FBR); no age minimum; benefits person-centered without fixed units; persistent waitlists due to slot limits.
 
 **Our model can't capture:**
 - `asset_limits`: Our model has no asset limit fields
@@ -125,69 +134,75 @@ Our data differs from what official sources say:
 
 **Eligibility:**
 - Age: 55+
-- Income: No strict income limits for enrollment; Medicaid eligibility (for Medicaid-funded coverage) follows Alabama Medicaid long-term care rules: income under 300% of Federal Benefit Rate ($2,901/month in 2025). Private pay available for non-Medicaid eligible via monthly premium. Varies by Medicaid household rules, but no PACE-specific table provided.
-- Assets: No strict asset limits for PACE enrollment; for Medicaid coverage, assets $2,000 or less (excluding primary home). Medicaid planning available to qualify.
-- Nursing facility level of care (certified by Alabama Medicaid Agency per Rule 560-X-10-.10)
-- Reside in PACE provider service area (e.g., Mobile and Baldwin counties for current program)
-- Able to live safely in community with PACE services
-- Meet any program-specific conditions in PACE agreement
+- Income: No statewide income limits for PACE enrollment itself[4]. However, Medicaid eligibility (which covers most participants) typically requires income under 300% of the Federal Benefit Rate (~$2,901/month for 2025), though Medicaid offers multiple pathways to eligibility and planning can help[2]. Non-Medicaid participants pay a flat monthly premium[5].
+- Assets: No asset limits specified for PACE enrollment. Medicaid eligibility (if pursuing Medicaid coverage) typically requires assets of $2,000 or less, excluding the primary home[2].
+- Must be certified by the state as needing nursing home-level care (requiring extensive assistance with Activities of Daily Living: bathing, grooming, toileting, walking, transferring, eating)[1][2]
+- Must reside in the PACE organization's service area[1][3]
+- Must be able to live safely in the community at time of enrollment with PACE support[1][4]
+- Must meet any additional program-specific eligibility conditions in the respective PACE program agreement[1]
+- U.S. citizenship or legal residency requirement applies only if enrolling through Medicare[2]
 
-**Benefits:** Comprehensive, all-inclusive community-based services including primary care, hospital/inpatient, nursing home if needed, medications, therapies, social services, transportation, personal care, adult day health care, home care, respite; covers all Medicare/Medicaid reimbursable plus additional based on need; no deductibles/copays for enrollees.
-- Varies by: region
+**Benefits:** Comprehensive community-based care and services including medically necessary services[8]. PACE coordinates healthcare and long-term care coverage for individuals who would otherwise need nursing home care[4]. Once enrolled, participants never pay deductibles or co-pays for any care, medication, or service provided by the PACE interdisciplinary team[4].
+- Varies by: Medicaid vs. non-Medicaid status (Medicaid participants receive fully covered services; non-Medicaid participants pay a flat monthly premium)[5]
 
 **How to apply:**
-- Contact Mercy LIFE of Alabama (primary provider): phone 251-287-8427
-- Alabama Medicaid Agency PACE page: https://medicaid.alabama.gov/content/5.0_Managed_Care/5.2_Other_MC_Programs/5.2.3_PACE.aspx
-- In-person at PACE centers (e.g., Mobile/Baldwin counties)
-- Medicaid eligibility assessment required
+- Contact Mercy LIFE of Alabama directly (specific phone number not provided in search results; website: trinityhealthpace.org/alabama/mercy-life-of-alabama)[5]
+- Alabama Medicaid Agency (medicaid.alabama.gov)[8]
+- In-person at PACE organization service locations
 
-**Timeline:** Not specified in sources
-**Waitlist:** Enrollment capped at up to 185 per program; potential waitlist due to capacity
+**Timeline:** Not specified in available sources
+**Waitlist:** Program enrollment is capped at up to 185 enrollees per program[3], but specific waitlist information not provided
 
 **Watch out for:**
-- Not statewide—only available in specific counties (e.g., Mobile/Baldwin); check service area zip codes
-- Medicaid not required for enrollment but needed for free coverage; private pay monthly fee otherwise
-- Enrollment capped (up to 185 per program)—waitlists possible
-- Must be able to live safely in community with PACE support; not for those already unsafe without it
-- Annual recertification required
+- Geographic limitation is critical: PACE is only available in Mobile and Baldwin counties in Alabama[3]. Families outside these areas cannot access this program regardless of eligibility[6].
+- Enrollment cap: Each PACE program serves up to 185 enrollees maximum[3], which may create waitlists or limit availability.
+- Nursing home level of care certification is required and determined by the state, not self-assessed[1][2]. Families must go through state assessment process.
+- Medicaid is not required but covers most participants[4]. Non-Medicaid participants must pay a flat monthly premium, making costs variable[5].
+- Participants can leave the program at any time[3], but re-enrollment may be subject to availability.
+- Annual recertification is required to maintain eligibility[1].
+- The program is community-based; participants must be able to live safely in the community with support—those requiring 24-hour institutional care may not qualify[1][4].
 
-**Data shape:** County-restricted (Mobile/Baldwin); provider-specific (Mercy LIFE); no strict income/asset test for enrollment but for Medicaid coverage; capped enrollment
+**Data shape:** Alabama PACE is severely geographically restricted (only 2 counties), has a fixed enrollment cap per program, requires state certification of nursing home-level care need, and has no income/asset limits for program enrollment (though Medicaid coverage has separate financial requirements). The program is not statewide and availability is the primary limiting factor for most Alabama families. Medicaid eligibility is separate from PACE eligibility but determines coverage type and cost structure.
 
-**Source:** https://medicaid.alabama.gov/content/5.0_Managed_Care/5.2_Other_MC_Programs/5.2.3_PACE.aspx
+**Source:** medicaid.alabama.gov/content/5.0_Managed_Care/5.2_Other_MC_Programs/5.2.3_PACE.aspx
 
 ---
 
-### Alabama Medicare Savings Programs (QMB, SLMB, QI)
+### Alabama Medicaid Medicare Savings Programs (QMB, SLMB, QI)
 
 > **NEW** — not currently in our data
 
 **Eligibility:**
 - Age: 65+
-- Income: 2026 federal limits apply statewide (Alabama follows federal MSP standards): QMB: Individual $1,350/month, Couple $1,824/month (100% FPL); SLMB: Individual up to approx. $1,620/month (120% FPL), Couple up to approx. $2,189/month; QI: Individual up to approx. $1,850/month (135% FPL), Couple up to approx. $2,500/month. Exact limits increase annually; check current via SSA or Medicaid. Varies by household size per federal poverty guidelines (e.g., adds ~$500/person beyond couple).[5][2]
-- Assets: 2026: Individual $9,950; Couple $14,910 (exempt: home/land, 1 car, burial plots/funds up to $1,500/person, life insurance up to $1,500 face value, household goods; countable: bank accounts, stocks, bonds, second vehicles/properties).[5][3]
-- Must be enrolled in Medicare Parts A and B (or eligible for Part A)
-- U.S. citizen or qualified immigrant
+- Income: Alabama follows federal Medicare Savings Program guidelines with income limits at approximately 100% FPL for QMB ($1,275 single/$1,724 couple monthly), 120% FPL for SLMB ($1,506 single/$2,044 couple), and 135% FPL for QI-1 ($1,695 single/$2,300 couple), including a $20 general income disregard; exact limits adjust annually and couples have ranges like $1,824.01–$2,184 for certain tiers per state docs[1][2][5]. No full household size table beyond single/couple in sources; must have Medicare Part A (free for most age 65+).
+- Assets: Resources limited to $9,430 individual/$14,130 couple (2024 figures; adjusts yearly); countable assets include bank accounts, stocks; exempt: home, one car, burial plots, life insurance up to $1,500 face value, personal belongings[4][7].
+- Must be enrolled in Medicare (typically age 65+ or disabled)
+- U.S. citizen or satisfactory immigration status
 - Alabama resident
-- Not eligible for full Medicaid (QI cannot overlap with other Medicaid)
-- QI requires prior-year recipients get priority; first-come, first-served with limited funding
+- Not eligible for QI if receiving other Medicaid
 
-**Benefits:** QMB: Pays Medicare Part A premium (if applicable), Part B premium (~$185/month in 2026), deductibles, coinsurance/copayments (providers cannot bill beneficiary for Medicare-covered services); auto-qualifies for Extra Help (Part D low-income subsidy, caps drug copays at $12.65/drug). SLMB: Pays Part B premium only. QI: Pays Part B premium only (no Medicaid card).[1][5][6]
+**Benefits:** **QMB:** Pays Medicare Part B premium ($206.50/month in recent doc), hospital deductible ($1,716), medical deductible ($288), 20% coinsurance; Part A premium if applicable. **SLMB/QI-1:** Part B premium only ($206.50/month). QMB provides Medicaid card; SLMB/QI do not. QMB auto-qualifies for Extra Help[1][2][8].
 - Varies by: priority_tier
 
 **How to apply:**
-- Online: medicaid.alabama.gov (MEDICAID application portal)
-- Phone: 1-800-362-1504 (Alabama Medicaid)
-- Mail/In-person: Local Medicaid District Offices (find via medicaid.alabama.gov/content/2.0_Contact/2.1_District_Offices.aspx)
-- Download Form: Medicaid Application (Form MG-14-MA or online equivalent)
+- Online: https://medicaid.alabama.gov/content/3.0_Apply/3.2_Qualifying/3.2.6_Help_Paying_Medicare.aspx
+- Phone: Local Medicaid district offices (find via medicaid.alabama.gov contact page) or 1-800-362-1504
+- Mail/In-person: Local Medicaid area offices; Form 210 'Medicare Savings Program Application'
+- Download form: https://medicaid.alabama.gov/documents/3.0_Apply/3.2_Qualifying_Medicaid/3.2.6_Help_Paying_Medicare_Premiums/3.2.6_Form_210_Medicare_Savings_Program_3-23-26.pdf[2]
 
-**Timeline:** QMB: Active month after approval; SLMB/QI: Active month of application, retroactive up to 3 months prior if eligible.[1][6]
-**Waitlist:** QI only: Limited funding; first-come, first-served, priority to prior recipients; may close when funds exhausted.[6]
+**Timeline:** QMB: Month after approval; SLMB/QI-1: Up to 3 months retroactive to application month if eligible[1][3][8].
+**Waitlist:** QI-1 has limited funds; applications denied when exhausted[1][8].
 
 **Watch out for:**
-- QI funding limited—apply early in year; no Medicaid card for SLMB/QI (QMB gets one); providers must accept Medicaid assignment for QMB (cannot bill you); auto-Extra Help but must confirm enrollment; income/asset limits exclude some deductions (e.g., $20 disregard); cannot overlap QI with other Medicaid; retroactive coverage for SLMB/QI but not QMB; limits update yearly—use 2026 figures above but verify.[1][5][6]
-- QMB protections: Report bills for Medicare services (illegal to charge).
+- QI-1 funding limited—first-come, first-served; denied if funds exhausted
+- No Medicaid card for SLMB/QI-1; providers not barred from balance billing (though rare)
+- Must use Medicaid-accepting providers for QMB protections
+- Income/resources counted strictly; couples have higher but ranged limits
+- Retroactive coverage for SLMB/QI only if requirements met in prior months
+- Automatically get Extra Help with QMB but not always others
+- Limits change yearly; verify current via official site (e.g., Part B premium updated to $206.50)[1][2][8]
 
-**Data shape:** Tiered by income (QMB lowest, then SLMB, QI highest); QI capped funding/annual reapply; uniform statewide but district processing; scales by household size via FPL; auto-LIS linkage.
+**Data shape:** Tiered by QMB (full cost-sharing), SLMB (Part B only, higher income), QI-1 (Part B only, highest income, limited funds); income as %FPL with couple ranges; statewide but QI waitlist risk; no household >2 tables
 
 **Source:** https://medicaid.alabama.gov/content/3.0_Apply/3.2_Qualifying/3.2.6_Help_Paying_Medicare.aspx
 
@@ -199,35 +214,35 @@ Our data differs from what official sources say:
 
 **Eligibility:**
 - Age: 60+
-- Income: Same as standard Alabama Food Assistance (SNAP) program. Gross monthly income limits (effective Oct 1, 2022 - Sep 30, 2023): 1 person: $1,396/$1,073; 2: $1,888/$1,452; 3: $2,379/$1,831; 4: $2,871/$2,210; 5: $3,518/$2,706; 6: $4,029/$3,100; 7: $4,541/$3,493; 8: $5,052/$3,886; each additional: $512/$394. Limits updated annually; check current via DHR[1][6].
-- Assets: Same resource limits as standard Food Assistance (SNAP) program; specific amounts not detailed in sources but follow federal SNAP elderly/disabled rules (e.g., $4,250 countable resources for households with elderly member as of recent years; verify current). Countable: cash, bank accounts. Exempt: home, one vehicle, household goods, life insurance, retirement accounts[1][2][4].
-- All household members age 60+ on application date
-- No earned income (wages, self-employment) in month of application
-- U.S. citizen or qualified non-citizen (verification required if questionable)
-- Meets standard Food Assistance residency, cooperation rules
+- Income: Same as standard Alabama Food Assistance Program (SNAP). Gross monthly income limits (effective Oct 1, 2022 - Sep 30, 2023): 1 person: $1,580/$1,215; 2: $2,137/$1,644; 3: $2,694/$2,072; 4: $3,250/$2,500; 5: $3,807/$2,928; 6: $4,363/$3,355; 7: $4,920/$3,783; 8: $5,476/$4,210. Each additional person: $557/$428. Net income limits follow similar scaling. Updated limits apply annually; check current via DHR.[6][1]
+- Assets: Same as standard Food Assistance Program (SNAP) resource limits apply. Specific countable resources and exemptions (e.g., home, one vehicle, retirement accounts) follow federal SNAP rules; no unique AESAP exemptions listed.[1][2]
+- All household members age 60+ on application date.
+- No earned income (wages, self-employment) in month of application.
+- U.S. citizen or qualified non-citizen (verification required if questionable).
+- Meets standard SNAP residency, cooperation, and work requirements (waived for elderly).
 
-**Benefits:** SNAP/Food Assistance benefits via EBT debit card for groceries; amount calculated same as standard program based on income, deductions (e.g., medical expenses); no fixed dollar amount or hours—varies by household circumstances[1][2][3][4].
+**Benefits:** Monthly Food Assistance (SNAP) benefits via EBT debit card, calculated same as standard program (max allotment varies by household size/income, e.g., up to ~$291 single/$535 couple base, adjusted for deductions like medical expenses). No fixed dollar amount; benefits added to regular allotment.[1][5]
 - Varies by: household_size
 
 **How to apply:**
-- Online: https://dhr.alabama.gov/food-assistance/alabama-elderly-simplified-application-project-aesap/[9]
-- Phone: AESAP Hotline 1-833-822-2202 (automated), 334-242-1700 ext 3, Customer Service 1-800-438-2958, EBT 1-800-997-8888[2][6]
-- Mail/Fax/Email: Use AESAP application form; send to local DHR county office[5][7]
-- In-person: Local DHR county Food Assistance office (no face-to-face interview required unless requested)[1][4]
+- Online: https://dhr.alabama.gov/food-assistance/alabama-elderly-simplified-application-project-aesap/ or standard Food Assistance portal
+- Phone: 1-800-438-2958 (customer service), 1-833-822-2202 (automated hotline), 334-242-1700 ext 3 (AESAP hotline)
+- Mail/Fax/Email: Use AESAP form, send to local county DHR Food Assistance office
+- In-person: Local county DHR offices (no required face-to-face interview)
 
-**Timeline:** Up to 30 days from application date[6]
+**Timeline:** Up to 30 days from application date.[6]
 
 **Watch out for:**
-- Age discrepancy in sources (some say 65, official is 60); use 60+[1][2][8]
-- No earned income means zero wages/self-employment in application month—unearned (SSI, pension) allowed[1][2]
-- 3-year certification with annual interim form required; must report changes[1][4]
-- Benefits calculated as standard SNAP—not higher despite simplification[1][3]
-- Fraud penalties severe: fines, imprisonment[6]
-- Not for households with children or under-60 members[3][8]
+- Age discrepancy in sources (some say 65, official is 60); use 60+.[1][2][8]
+- No earned income means zero wages/self-employment; unearned (SSI, pensions) allowed.
+- Benefits calculated as standard SNAP, so income/assets must still qualify—simplified process doesn't waive means test.
+- 3-year certification requires annual Interim Contact Form submission.
+- Fraud penalties severe (fines, imprisonment); self-declaration trusted unless questionable.
+- Household must all be 60+ (or purchase/prepare separately); no children allowed.
 
-**Data shape:** Streamlined SNAP process only—no unique benefits or limits; 3-year certification differentiates it; income/resources match standard SNAP elderly rules; county-administered statewide
+**Data shape:** Streamlined SNAP demo for elderly-only households: 2-page app, 36-month certification, no interview (unless requested), self-declare most info, same income/asset tests as regular SNAP.
 
-**Source:** https://dhr.alabama.gov/food-assistance/alabama-elderly-simplified-application-project-aesap/[9]
+**Source:** https://dhr.alabama.gov/food-assistance/alabama-elderly-simplified-application-project-aesap/
 
 ---
 
@@ -236,41 +251,33 @@ Our data differs from what official sources say:
 > **NEW** — not currently in our data
 
 **Eligibility:**
-- Income: Household gross monthly income must not exceed 150% of the federally established poverty level[7]. As of October 1, 2025, the maximum monthly gross income limits are: 1 person $2,347, 2 people $3,176, 3 people $4,006, 4 people $4,835, 5 people $5,665, 6 people $6,494, 7 people $7,324, 8 people $8,153, 9 people $8,983, 10 people $9,812, 11 people $10,641, 12 people $11,471, 13 people $12,300, 14 people $13,130, 15 people $13,959. Add $829 for each additional household member beyond 15[6].
-- Assets: Not specified in available documentation
-- Reside in Alabama and be a U.S. citizen or qualified non-resident (check with local agency for non-resident eligibility)[6]
-- Provide proof of gross income for all current household members for the month prior to application[6]
-- Furnish Social Security cards for all household members and photo ID for the person applying[3]
-- Provide utility bill in the applicant's name[4]
-- If living in government housing, provide a lease[4]
-- Applicant must be the head of household, spouse of the head of household, or a second-party applicant with a signed statement from the head of household or spouse[2]
+- Income: Gross monthly household income must not exceed 150% of the federal poverty level. FY2026 limits (effective October 1, 2025) from ADECA: 1 person $4,019; 2 $5,429 (inferred +$1,410); 3 $6,838 (+$1,409); 4 $4,019 listed but likely $8,248 (+$1,410); 5 $4,706; 9 $7,456; 10 $8,144; 13 $10,206; 14 $10,894; 15 $11,581. Add ~$567-$1,410 per additional member. Regional examples: Northeast AL (1: $1,883; 2: $2,555; 3: $3,228; 4: $3,900; 5: $4,573; 6: $5,245; 7: $5,918; 8: $6,590); older FY2022 (1: $1,610; 2: $2,178; 3: $2,745; 4: $3,313; 5: $3,880; 6: $4,448; 7: $5,015; 8: $5,583; +$567 each). Proof required for prior month; zero income needs declaration form[1][3][4][6].
+- Assets: No asset limits mentioned in sources[1][3][6][7].
+- Reside in Alabama and be U.S. citizen or qualified non-resident (check local agency for non-qualified)[3][6][7].
+- Provide proof of income for all household members (prior month); SSNs and photo ID for applicant[1][3][4].
+- Priority for seniors (60+), disabled, children under 6/17, high energy burden, crises (disconnection/out-of-fuel), medical vulnerabilities[1][2][7].
 
-**Benefits:** Heating assistance: $280–$580 maximum benefit. Cooling assistance: $320–$520 maximum benefit. Winter crisis assistance: up to $1,100 maximum benefit. Summer crisis assistance: up to $990 maximum benefit[5]. Benefits are calculated based on household income, household size, and type of fuel used for heating or cooling[5].
-- Varies by: household_size|priority_tier|fuel_type|season
+**Benefits:** Direct payments to utility vendors for heating/cooling costs. Max: Heating $580, Cooling $520, Winter Crisis $1,100, Summer Crisis $990. Min: Heating $280, Cooling $320. Varies by income, size, fuel type; one regular heating + one cooling per year; crisis for emergencies. Applicant pays remaining balance[5][6].
+- Varies by: household_size|priority_tier|region
 
 **How to apply:**
-- In-person appointments at local Community Action Agency (CAA) offices[1]
-- Phone scheduling through local CAA[1]
-- Online portals (varies by agency)[1]
-- Online document submission portal: https://littliteal.azurewebsites.net (for Community Service Programs of West Alabama)[2]
+- Phone scheduling, online portals (e.g., https://littliteal.azurewebsites.net for docs in West AL), or in-person appointments via local Community Action Agency (CAA)[1][2].
+- Locate local CAA by county; no central state application[1][3][7][8].
 
-**Timeline:** Not explicitly specified in available documentation. Appointments are scheduled on a first-come, first-served basis[2][4].
-**Waitlist:** Funds are limited and typically distributed on a first-come, first-served basis[1]. Some agencies may stop accepting applications earlier if funds run out[5].
+**Timeline:** Award made at appointment if eligible; first-come, first-served[1][2][4].
+**Waitlist:** No waitlist mentioned; funds limited, high winter demand, may close early[1][5].
 
 **Watch out for:**
-- Priority households (seniors, individuals with medical vulnerabilities, households in immediate energy crisis) may receive assistance before the general public[1]
-- No household may be assisted more than once for regular heating and once for cooling assistance with LIHEAP funds in a program year[2]
-- Crisis assistance is only available to households meeting income guidelines AND meeting the definition of an energy-related crisis (e.g., broken furnace, utility shutoff notice)[2][5]
-- Heating assistance is only available October 1–April 30; cooling assistance is only available May 1–September 30[5]
-- Crisis assistance is available year-round but only for emergencies[5]
-- Applicants are responsible for paying any remaining balance on their energy bill not covered by program funds[6]
-- Roommates covered by the same utility bill are counted as part of the same LIHEAP household, even if they don't share most expenses[5]
-- Funds are limited and distributed first-come, first-served; some agencies may stop accepting applications before the official program end date if funding runs out[1][5]
-- Income limits are based on 150% of federal poverty level, which is lower than some other assistance programs (e.g., some LIHEAP programs serve households up to 60% of state median income, but Alabama uses federal poverty)[1][7]
+- Must apply through local CAA, not state office; no central application[1][3][7].
+- Funds limited, first-come first-served; apply early (winter high demand, opens agency-by-agency)[1][5].
+- Income based on prior month proof; varies slightly by agency/year[1][3][4][6].
+- One heating + one cooling per year; only covers part of bill[2][6].
+- Priority groups served first; elderly qualify for priority but no strict age cutoff[1][2].
+- Crisis aid requires emergency verification (e.g., shutoff)[2][5].
 
-**Data shape:** Benefits scale by household size and vary by season (heating vs. cooling) and crisis status. Income limits scale by household size with a formula for households beyond 15 members. Application processes and opening dates vary significantly by county-level CAA, making this a decentralized program with no single statewide application portal. Priority tiers (seniors, disabled, medical vulnerabilities, energy crisis) receive earlier access to limited funds. Program operates on a fiscal year basis (October 1–September 30) with seasonal components (heating Oct–Apr, cooling May–Sep).
+**Data shape:** Administered via ~20 local CAAs with agency-specific income tables, opening dates, methods; income at 150% FPL but figures drift by fiscal year; priority tiers heavily influence access; funding exhausts quickly by region
 
-**Source:** https://adeca.alabama.gov/liheap/
+**Source:** https://adeca.alabama.gov/liheap/[7]
 
 ---
 
@@ -279,31 +286,36 @@ Our data differs from what official sources say:
 > **NEW** — not currently in our data
 
 **Eligibility:**
-- Income: Household income at or below 200% of the federal poverty guidelines. Exact amounts vary by household size and are updated annually by HHS; for example, one source notes adding $11,000 per additional person beyond base (specific base not listed, consult current HHS Poverty Guidelines). Households receiving Supplemental Security Income (SSI) or Aid to Families with Dependent Children (AFDC) are eligible regardless.
-- Assets: No asset limits mentioned in available sources.
-- Must own or rent the home (renters need landlord acknowledgment).
-- Priority given to elderly, households with disabled members, families with children (under 18), and high-energy users.
+- Income: Annual household income at or below 200% of the federal poverty level. Exact dollar amounts vary by household size and are based on current HHS Poverty Income Guidelines (not specified in sources for 2026; check HHS.gov for latest table). Households automatically qualify if receiving Supplemental Security Income (SSI) or Aid to Families with Dependent Children (AFDC). Priority given to elderly, disabled, families with children, or high-energy users.
+- Assets: No asset limits mentioned.
+- Alabama resident.
+- Single family site-built homes or mobile homes eligible.
+- Renters eligible if landlord participates and agrees to pay a portion of costs and not raise rent for 1 year.
+- Proof of ownership or rental agreement required.
 
-**Benefits:** Home energy efficiency improvements including air sealing/infiltration reduction, attic insulation, dense-pack sidewall insulation, duct insulation, floor insulation, general energy saving measures, heater repairs or replacement, health and safety measures, and energy audits. No specific dollar amounts or hours; services are free to eligible participants and based on professional assessment.
+**Benefits:** Free weatherization services including air sealing/infiltration reduction, attic insulation, dense-pack sidewall insulation, duct insulation, floor insulation, general energy saving measures (e.g., lightbulb replacement), heater repairs or replacement, HVAC repairs, health and safety checks. No specific dollar amounts or hours; services based on professional energy audit to reduce energy costs and improve efficiency.
 - Varies by: priority_tier
 
 **How to apply:**
-- Contact local agency serving your county by phone or in-person appointment (ADECA does not process applications).
-- Mail completed application and documents to specific regional offices (e.g., CARPDC Weatherization Program, 430 South Court St., Montgomery, AL 36104).
-- Request application packet by providing mailing address and contact numbers to local agency.
+- Contact local agency by county/region (see ADECA site for list; e.g., Central AL: call 1-866-780-4945 or (334)-262-4300, visit 430 South Court St., Montgomery, or download Application and Cover Letter from carpdc.com).
+- Northeast AL (e.g., Blount, Jefferson counties): call (256) 999-1166 to schedule appointment.
+- Northwest AL: call (256) 383-3832.
+- Huntsville area: call (256) 851-9800.
+- Mail completed application with documents to local agency.
+- In-person at local community action agency or regional planning office.
 
 **Timeline:** Not specified; applications placed on waiting list and ranked by priority points.
-**Waitlist:** Yes, applications sorted and ranked on waiting list based on priority points required by grantor; number of homes weatherized per county determined by ADECA/DOE grants.
+**Waitlist:** Yes, statewide waiting lists; ranked by priority (elderly, disabled, children, high energy use). Varies by funding and county quotas set by DOE/ADECA.
 
 **Watch out for:**
-- Must contact specific county-serving agency (ADECA does not accept applications).
-- Priority ranking on waitlist means not all eligible applicants receive services immediately; limited by county grants.
-- All household members' documents required; incomplete apps rejected.
-- Renters need landlord approval; program alters homes.
-- No statewide application—regional providers have unique processes/forms.
-- Verify current 200% poverty guidelines as they change yearly.
+- ADECA does not process applications; must contact specific county agency.
+- Renters need landlord approval and contribution.
+- Original Social Security cards required (no copies in some areas).
+- Priority ranking determines order on waitlist; not first-come.
+- Funding limited (e.g., $47M BIL funds through 2027, divided in rounds); quotas per county.
+- Home must pass energy audit; not all measures guaranteed.
 
-**Data shape:** Delivered via 10+ regional community action agencies with county-specific contacts and processes; priority-tiered waitlist; no central application portal; income at 200% FPL with auto-eligibility for SSI/AFDC.
+**Data shape:** Delivered via 10+ regional community action agencies with county-specific contacts, quotas, and waitlists; priority tiers heavily influence access; no central application portal.
 
 **Source:** https://adeca.alabama.gov/weatherization/
 
@@ -314,70 +326,70 @@ Our data differs from what official sources say:
 > **NEW** — not currently in our data
 
 **Eligibility:**
-- Income: Not specified in available sources. Search results indicate SHIP assists 'beneficiaries with limited income' but do not provide specific dollar thresholds or household-size-based tables.
+- Income: Not specified in available sources. Search results do not provide specific income thresholds or household-based income tables.
 - Assets: Not specified in available sources.
-- Must be a Medicare beneficiary, their family member, or caregiver[2][6]
-- Program is specifically designed for seniors and people with disabilities eligible for Medicare[4]
+- Must be a Medicare beneficiary or their family member[3][5][7]
+- Program serves seniors and their families, but exact age requirement not stated in sources
 
-**Benefits:** Free, personalized, one-on-one health insurance counseling and assistance. Specific services include: understanding Medicare benefits (Parts A, B, D); comparing and selecting Medicare Prescription Drug Plans; answering questions about Medigap and long-term care insurance; assistance with Medicare claims and appeals; guidance on programs to help pay Medicare costs; referrals to other helpful programs; information about Medicaid, Medicare Savings Programs (QMB, SLMB, QI), Extra Help/Low Income Subsidy, and prescription drug assistance programs[2][3][6][8]
+**Benefits:** Free, personalized, one-on-one counseling and information services. No dollar limits or hour restrictions mentioned.
 
 **How to apply:**
-- Phone: 1-800-AGE-LINE (1-800-243-5463)[4][6][8]
-- Phone: 1-800-MEDICARE (1-800-633-4227)[2]
-- Phone: 1-800-838-5845 (alternative SHIP contact)[2]
-- In-person: Contact your local Area Agency on Aging (AAA) and Aging & Disability Resource Center (ADRC) to complete an assessment[8]
-- Website: alabamaageline.gov/ship/[6]
+- Phone: 1-800-AGE-LINE (1-800-243-5463)[2][5][7]
+- Contact local Area Agency on Aging (AAA) and Aging & Disability Resource Center (ADRC)[5][7]
+- In-person: Visit local ADRC and complete an assessment, which will be referred to SHIP Coordinator[7]
+- Website: alabamaageline.gov/ship/[5]
 
-**Timeline:** Not specified in available sources.
-**Waitlist:** Not mentioned in available sources.
+**Timeline:** Not specified in available sources
+**Waitlist:** Not mentioned in available sources
 
 **Watch out for:**
-- SHIP provides counseling and assistance, not direct financial benefits or insurance enrollment. It helps people understand options and apply for programs, but does not pay premiums or provide healthcare directly[6][8]
-- Counselors are not affiliated with insurance companies and will not sell insurance[2][4][6]
-- Best time to contact is during Annual Enrollment Period (October 15 – December 7 each year), though you should also contact when first becoming eligible for Medicare[8]
-- You do not 'enroll' in SHIP itself; you contact your local ADRC and complete an assessment[8]
-- All counseling records are strictly confidential[4][6]
-- Income limits for qualifying for assistance programs (like Medicare Savings Programs or Extra Help) exist but are not detailed in the SHIP program description itself[2][3]
+- No cost for services — SHIP does not sell insurance and provides completely unbiased counseling[7]
+- Counselors are not affiliated with any insurance companies[5]
+- Best time to contact is during Medicare Open Enrollment (October 15 - December 7 annually)[7]
+- Also contact SHIP when first becoming eligible for Medicare for detailed explanation of Part A, B, and D benefits[7]
+- All counseling records are strictly confidential[5]
+- You do not 'enroll' in SHIP — you contact your local ADRC and complete an assessment[7]
+- This is a counseling and information service, NOT a financial assistance program for paying premiums directly (though counselors can help identify programs that do provide financial help)[5][7]
 
-**Data shape:** SHIP is a counseling and assistance program, not a direct-benefit program. It helps Medicare beneficiaries navigate existing programs (Medicare, Medicaid, Medicare Savings Programs, Extra Help, Medigap, etc.) rather than providing its own financial or healthcare benefits. Eligibility criteria beyond 'Medicare beneficiary or family member' are not publicly specified in available sources. The program is administered regionally through Area Agencies on Aging, which may explain why specific income/asset limits are not centralized in state-level documentation. Income limits likely vary by the specific assistance programs SHIP helps people access (e.g., Medicare Savings Programs have federal income thresholds), not by SHIP itself.
+**Data shape:** SHIP is a counseling and advocacy service rather than a direct financial assistance program. No income limits, asset limits, or specific eligibility criteria are publicly documented in available sources — eligibility appears to be based on Medicare beneficiary status. Benefits are uniform statewide (free counseling) but delivered through local regional providers (AAAs and ADRCs). The program helps beneficiaries identify and access other assistance programs (Medicare Savings Programs, prescription drug assistance, Medicaid) but does not directly provide financial aid itself. Critical distinction: This is different from the Small Rural Hospital Improvement Grant Program (also called SHIP) administered by Alabama Department of Public Health[1], which is a separate program for hospitals, not individuals.
 
-**Source:** alabamaageline.gov/ship/[6] and Alabama Department of Senior Services (AL Department of Senior Services, ADDS 201 Monroe Street, RSA Tower, Suite 350 Montgomery AL 36130-1851)[5]
+**Source:** alabamaageline.gov/ship/[5]
 
 ---
 
-### Alabama Meals on Wheels (Elderly Nutrition Program)
+### Elderly Nutrition Program (Meals on Wheels)
 
 > **NEW** — not currently in our data
 
 **Eligibility:**
 - Age: 60+
-- Income: No income limits or restrictions[2][6]
-- Assets: No asset limits mentioned; not applicable[2][6]
-- Homebound or unable to shop/prepare meals without assistance (for delivery)[1][2][6][8]
-- Live in service area/county[1][2][6]
-- Spouse of eligible participant (any age)[5][6][8]
-- Person with disability residing with eligible participant[5][6][8]
-- Person with disability under 60 in housing where ENP is provided[5][6]
+- Income: No income limits or requirements. Voluntary contributions accepted but not mandatory.[3][4]
+- Assets: No asset limits or tests.
+- Spouses of participants, regardless of age.
+- Persons with a disability residing with an eligible participant.
+- Persons with a disability under the age of 60 residing in a living community where the ENP is provided.
+- For home-delivered meals (Meals on Wheels): Must be homebound and unable to cook or shop due to physical/medical limitations; must live within delivery area/zone of local provider.[1][3][5][6]
 
-**Benefits:** Nutritious hot or frozen meals providing at least 1/3 of daily dietary reference intakes per meal; delivered to homebound seniors or served at senior centers; no charge for meals, voluntary contributions accepted[6]
+**Benefits:** Nutritious hot meals (minimum 1/3 of daily dietary reference intakes per meal, compliant with U.S. dietary guidelines) served at local senior centers (congregate setting with social activities) or home-delivered (including frozen meals or weekly boxes for homebound seniors). Meals include entrée, vegetable, fruit, bread, milk. No charge for meals; relies on donations/volunteers. In FY2023: 4,888,512 meals served statewide (1.6M congregate, 3.3M home-delivered/curbside).[3][4][5]
 - Varies by: region
 
 **How to apply:**
-- Contact local Area Agency on Aging (AAA) by phone or visit senior center[1][6][8]
-- Jefferson County example: Contact Meals on Wheels Jefferson County or United Way Area Agency on Aging[2][8]
-- No statewide phone or online form specified; use Alabama Age Line for referrals (implied via alabamaageline.gov)[6]
+- Contact local Area Agency on Aging (AAA) for your county/region by phone or in-person; staff conducts assessment on age, health, mobility, meal prep ability, dietary needs.
+- Alabama Aging Line: 1-800-AGE-LINE (1-800-243-5463) for referral to local AAA.
+- Find local provider: https://alabamaageline.gov/elderly-nutrition-program/ or local senior centers (335 statewide, one per county).[3]
+- Examples: SARCOA (Southern AL): www.sarcoa.org, Mon-Fri 8AM-4:30PM[6]; East AL Aging: 1-800-239-6741[7]; Huntsville/Madison Co.: Check coverage via senior center[5]. No specific online form or mail application detailed; initial contact leads to assessment.
 
-**Timeline:** Not specified; simple enrollment form at senior center on initial visit[8]
-**Waitlist:** Not mentioned; may vary by local provider[1]
+**Timeline:** Not specified; involves initial assessment after contact, but varies by local provider.
+**Waitlist:** Not mentioned; potential regional delivery limitations due to zones/volunteers.
 
 **Watch out for:**
-- Not all areas offer home delivery; must confirm with local AAA[6]
-- Eligibility varies slightly by provider (e.g., Jefferson County specifies homebound in county)[2]
-- Voluntary contributions expected but not required[6]
-- Separate from food assistance programs like SNAP which have income/work rules[3]
-- Spouses/disabled under 60 only if living with eligible senior[6]
+- Not all 60+ qualify for home delivery—must be homebound/unable to cook/shop and in delivery zone; mobile seniors use congregate centers.[1][3][6]
+- No automatic 'Meals on Wheels'—it's the home-delivery arm of ENP; confirm local provider coverage.[2][5]
+- Voluntary donations suggested (income-based in some areas, tax-deductible for non-family); program relies on community support/volunteers, may affect availability.[3][5][7]
+- Spouses/disabled under 60 only if living with eligible 60+ or in ENP community.[3][4]
+- Car ownership or caregiver availability may disqualify home delivery in some assessments.[1]
 
-**Data shape:** Decentralized by county via local AAAs; no statewide income test; home delivery not universal; congregate meals more widely available than delivery
+**Data shape:** No income/asset test; eligibility focused on age/homebound status and local delivery zones; decentralized via county AAAs with statewide oversight; congregate vs. home-delivered tiers; volunteer-dependent with regional provider variations.
 
 **Source:** https://alabamaageline.gov/elderly-nutrition-program/
 
@@ -388,120 +400,119 @@ Our data differs from what official sources say:
 > **NEW** — not currently in our data
 
 **Eligibility:**
-- Income: Not specified in available documentation. Program does not appear to have explicit income thresholds.
-- Assets: Not specified in available documentation.
-- Must be a full-time, unpaid family caregiver[4]
-- Care recipient must have a chronic illness or disability requiring around-the-clock care[4]
-- Care recipient must be any age[4]
-- Both caregiver and care recipient must be Alabama residents[1][3]
-- Cannot currently be receiving respite services through any other program[1][3]
-- Only one caregiver per household is eligible to apply[1]
-- Only one care recipient per household may be listed[1]
-- Must submit proof of diagnosis for care recipient (required to process application)[1][3]
-- Caregiver must select and train a respite provider who is at least 18 years old and does not live in the care recipient's home[1][3]
+- Income: Not specified in available documentation
+- Assets: Not specified in available documentation
+- Care recipient must have a chronic illness or disability requiring around-the-clock care[5]
+- Caregiver must be a full-time, unpaid family member[5]
+- Both caregiver and care recipient must be Alabama residents[4][5]
+- Caregiver cannot currently be receiving respite services through any other program[2][4]
+- Only one caregiver per household is eligible to apply[2]
+- Only one care recipient per household may be listed[2]
+- Proof of diagnosis required (letter from doctor, social worker, case manager, IEP, or other credible documentation)[1][4]
 
-**Benefits:** Specific dollar amounts per hour or maximum annual benefit not disclosed in available documentation. Program provides reimbursement for respite care services selected and arranged by the caregiver.
-- Varies by: Not specified — appears to be fixed reimbursement structure, but exact amounts not publicly detailed
+**Benefits:** Reimbursement to caregiver for respite care services provided by caregiver-selected provider; specific dollar amounts not disclosed in available documentation[1][4]
 
 **How to apply:**
-- Online application through 2025-2026 Respite Application Packet[3][4]
-- Email: al.respite@ucphuntsville.org[3]
-- Phone: 256-859-8300[1][3]
-- Phone: 256-859-4900 (Tracy Cieniewicz)[7]
+- Email: al.respite@ucphuntsville.org[4]
+- Phone: 256-859-8300[1][4]
+- Online application available (specific URL not provided in search results)[5][6]
+- Mail: Application packet available for download[4]
 
-**Timeline:** Not explicitly stated for initial applications. Reimbursement is issued within 30 days of timesheet submission and verification[4]. Note: Completion of application does not guarantee financial assistance; awards are based on available resources[4].
-**Waitlist:** Not mentioned in documentation. However, program explicitly states 'while Alabama Lifespan Respite wishes we could help all qualified individuals who seek assistance, regrettably we only have limited funds to meet the needs of qualified caregivers'[4]
+**Timeline:** Quick approval process determined by Alabama Respite staff[1]; reimbursement issued within 30 days of receiving completed/signed timesheet[5]
+**Waitlist:** Program has limited funds; not all qualified applicants can be assisted based on available resources[5]
 
 **Watch out for:**
-- Cannot receive respite services from any other program simultaneously — this is an absolute disqualifier[1][3]
-- Only one caregiver per household and one care recipient per household — multi-generational or complex family situations may not qualify[1]
-- Caregiver is responsible for selecting, hiring, and training the respite provider — the program does not provide or vet providers[1][3]
-- Respite provider must live outside the care recipient's home — cannot be a household member[1][3]
-- Proof of diagnosis is mandatory and must be submitted with application — missing this will delay or prevent processing[1][3]
-- Limited funding means not all qualified applicants receive assistance; awards are made based on available resources[4]
-- If you applied and received reimbursement after July 1, 2025, you do not need to reapply — re-enrollment information is sent automatically[4]
-- Completion of application does not guarantee funding[4]
-- Respite provider training is available free but limited to 25 individuals per month and is for new applicants only[5]
+- Program explicitly states: 'The completion of this application does not guarantee the awarding of financial assistance from Alabama Lifespan Respite' due to limited funding[5]
+- Caregiver cannot be receiving respite services through ANY other program simultaneously[2][4]
+- Respite provider must be at least 18 years old and cannot live in the same home as the care recipient[4][5]
+- Caregiver is responsible for selecting, hiring, and training the respite provider—the program does not provide or vet providers[4][5]
+- If applicant received respite reimbursement after July 1, 2025, they do not need to reapply; re-enrollment information is sent annually[5]
+- No specific income or asset limits are disclosed, suggesting the program may be needs-based or discretionary in funding decisions
+- Search results do not clarify whether there are different eligibility criteria for different care recipient diagnoses (e.g., intellectual disability vs. chronic illness)
 
-**Data shape:** This program is a reimbursement-based respite voucher program, not a direct service provider. The caregiver has full control over selecting and hiring respite providers and determining compensation rates (within program guidelines). No specific income or asset limits are disclosed, making it potentially more accessible than means-tested programs. The primary eligibility barrier is the mutual exclusivity requirement — applicants cannot receive respite from any other program. Funding is limited and not guaranteed even for eligible applicants. The program is statewide but administered through UCP Huntsville. Specific dollar amounts for reimbursement are not publicly available in the documentation reviewed.
+**Data shape:** This program's eligibility is notably broad—it serves care recipients 'of any age' with 'any' chronic illness or disability, not restricted to specific diagnoses. However, a separate Department of Mental Health respite reimbursement program exists specifically for care recipients with intellectual disabilities (IQ below 70) requiring 80 hours of care per week[1]. The Alabama Lifespan Respite program appears to be the broader, federally-funded option. Funding is explicitly limited and not guaranteed, making this a competitive program rather than an entitlement. No income or asset limits are specified in available documentation, which is unusual for a needs-based program and suggests either universal eligibility or discretionary allocation.
 
 **Source:** https://alabamarespite.org/apply-for-respite/2025-2026-respite-application-packet/
 
 ---
 
-### Alabama Senior Community Service Employment Program (SCSEP)
+### Senior Community Service Employment Program (SCSEP)
 
 > **NEW** — not currently in our data
 
 **Eligibility:**
 - Age: 55+
-- Income: Annual household income must be equal to or less than 125% of the federal poverty level (FPL), as determined annually by the U.S. Department of Health and Human Services. Exact dollar amounts vary yearly and by household size; families must check current HHS Poverty Guidelines (no specific table provided in sources, but published by U.S. Department of Labor for SCSEP). Examples for context (not current): for 2023, 125% FPL was approximately $18,825 for 1 person, $25,425 for 2, $32,025 for 3, etc., scaling by household size.
-- Assets: No resource/asset limit is required.
-- Alabama resident
-- Unemployed at time of application and enrollment
-- Resident of counties served by the specific SCSEP provider (varies by region)
-- Not previously enrolled in SCSEP for a cumulative total of 4 years/48 months (includes time with any provider)
-- U.S. citizen or authorized to work (verified by I-9 form)
-- Priority given to veterans, qualified spouses of veterans, and individuals over age 65
+- Income: Income must be less than 125% of the federal poverty level. Exact dollar amounts vary annually by household size and are set by federal guidelines (not specified in sources; check current HHS poverty guidelines). No resource/asset limit required[1][3][6].
+- Assets: No asset or resource limits apply[1].
+- Alabama resident[1][3]
+- Unemployed[1][2][3][5][6]
+- Reside in counties served by specific regional providers (see geography)[2][6][9]
 
-**Benefits:** Part-time community service work-based training averaging 20 hours per week, paid the highest of federal, state, or local minimum wage. Provides work experience in community settings (e.g., schools, hospitals, daycare, healthcare support, meals for elderly, childcare aides, data entry, grounds maintenance). Serves as bridge to unsubsidized employment; includes job readiness skills and employment assistance via American Job Centers.
-- Varies by: priority_tier
+**Benefits:** Paid part-time community service work training (average 20 hours/week or 19.75 hours/week) at the highest of federal, state, or local minimum wage (examples: $7.25/hour or $7.34/hour). Assignments at non-profits/government agencies like schools, libraries, senior centers. Goal: bridge to unsubsidized jobs[1][2][3][6][7].
+- Varies by: region
 
 **How to apply:**
-- Phone: Contact local Area Agency on Aging (AAA) or Aging & Disability Resource Center (ADRC) at 1-800-AGE-LINE (1-800-243-5463)
-- In-person: Local SCSEP providers (e.g., West Alabama Regional Commission for Bibb, Fayette, Greene, Hale, Lamar, Pickens, Tuscaloosa Counties; TARCOG for DeKalb, Jackson, Limestone, Madison, Marshall Counties; Easter Seals Central Alabama; SEARP&DC for their counties)
-- Online: Start at https://alabamaageline.gov/scsep/ or provider sites like https://tarcog.us/serving-people/other-services/senior-employment-program/
+- Call Alabama AGE-LINE at 1-800-243-5463[2]
+- Contact regional providers by phone/email (see geography.offices_or_providers)[9]
+- Visit https://alabamaageline.gov/scsep/[1]
 
-**Timeline:** Not specified in sources
-**Waitlist:** Not specified; may vary by region and provider due to limited slots
+**Timeline:** Not specified
+**Waitlist:** Not specified; may vary by region due to limited slots
 
 **Watch out for:**
-- Not statewide uniform—must confirm county is served by a specific provider; living outside service area disqualifies
-- Cumulative 48-month lifetime limit across all SCSEP providers nationwide
-- Must remain unemployed and actively seek unsubsidized work; no unemployment insurance benefits upon exit
-- Annual income recertification required by June 30
-- Priority tiers (veterans first) may create waitlists for others
-- No asset test, but income is strictly household-based at 125% FPL—excludes most other benefits from counting against eligibility
+- Must reside in specific counties served by each regional provider; not direct statewide application[2][9]
+- Program is temporary training, not permanent job; requires active job search while enrolled[6]
+- Unemployed status required at enrollment; income <125% FPL strictly enforced[1][3]
+- Wage/hour details may vary by region/provider; confirm locally[6][7]
+- No asset test, but proof of low income needed[1]
 
-**Data shape:** Administered by multiple regional providers with county-specific service areas; no asset limits or fixed dollar benefits—income eligibility scales by household size via annual federal poverty guidelines; lifetime enrollment cap of 48 months
+**Data shape:** County-restricted by 8+ regional providers across all 67 counties; wages/hours vary slightly by provider; no asset test; must confirm current 125% FPL table separately as not listed
 
 **Source:** https://alabamaageline.gov/scsep/
 
 ---
 
-### Alabama Legal Services Corporation (Legal Aid for Seniors)
+### Alabama Legal Services for Seniors
 
 > **NEW** — not currently in our data
 
 **Eligibility:**
 - Age: 60+
-- Income: Elder grants are not income-based; general LSA services require household income at or below 125% of the 2024 Federal Poverty Guidelines (exact dollar amounts vary annually by household size and are set by U.S. Dept. of Health & Human Services; no specific table provided in sources—call for current figures)
-- Assets: Personal assets may affect eligibility for some services, but no specific limits or exemptions detailed for elder program
-- Low-income priority for general services (elder grants waive this)
-- Civil legal issues only
-- Alabama resident
+- Income: 125% of 2024 Federal Poverty Guidelines[10]. Specific dollar amounts not provided in search results, but Legal Services Alabama notes that income-based screening is required[1]. Special grants exist that are not income-based[1].
+- Assets: Strict asset limits apply[4], but specific dollar amounts and exemptions are not detailed in available search results.
+- Must be a qualifying Alabama resident[2]
+- Individual who needs legal assistance must submit their own application[2]
+- Submitting an application does not establish an attorney-client relationship[2]
+- Not everyone who applies will receive assistance due to program limitations[2]
 
-**Benefits:** Free legal advice, counseling, representation, document preparation, negotiation, research, education, and outreach on issues including elder abuse, guardianship, housing, Medicaid/Medicare, powers of attorney, wills, Social Security, debt collection, consumer issues, income maintenance, advanced directives, health/long-term care access; non-fee-generating; no specific dollar amounts or hours stated
-- Varies by: priority_tier
+**Benefits:** Free legal, educational, and outreach services including: advice and counseling, legal representation, legal research, preparation of legal documents, negotiation, and community outreach[3]. Specific service areas include: accessing health and long-term care, advanced directives, consumer issues, debt collection, elder abuse/exploitation/fraud, guardianship issues, housing, income maintenance, Medicaid & Medicare, powers of attorney, Social Security, and wills[3].
+- Varies by: legal_issue_type
 
 **How to apply:**
-- Phone: 1-866-456-3959 (Elder Helpline, Mon-Fri 8:30am-4:30pm); 1-866-785-1798 (Español)
-- Online: https://legalservicesalabama.org/apply-for-services/
-- Local Area Agency on Aging (AAA)/ADRC: 1-800-AGE-LINE (1-800-243-5463)
+- Phone: 1-800-AGE-LINE (1-800-243-5463)[2][3]
+- Phone: 1-866-456-3959 (LSA Elder Helpline)[9]
+- Phone: 1-866-785-1798 (Spanish language)[6]
+- Email: info@EastAlabamaAging.org[2]
+- Online: Apply through Legal Services Alabama website[1]
+- In-person: Eight LSA offices located in Anniston, Birmingham, Dothan, Huntsville, Mobile, Montgomery, Selma, and Tuscaloosa[8]
 
-**Timeline:** Not specified
-**Waitlist:** Limited staff resources may result in case rejection or referral; no formal waitlist details
+**Timeline:** Not specified in search results
+**Waitlist:** Not specified in search results
 
 **Watch out for:**
-- Elder grants are not income-based but still subject to limited resources—cases may be rejected or referred
-- Not all civil cases accepted due to staff limits
-- General LSA services have 125% FPG income cap (elder grants waive)
-- Must specify elder legal issue during intake
-- No criminal cases; focus on civil matters
+- Income limits exist but specific dollar amounts vary by household size — families must call to determine eligibility rather than self-screening[1][10]
+- Asset limits are strict but specific thresholds are not publicly detailed in standard materials[4]
+- Special income-exempt grants exist for seniors 60+ but are not widely advertised[1]
+- Application does not guarantee service — program has limitations and cannot assist everyone who applies[2]
+- No attorney-client relationship is established by submitting an application[2]
+- Processing time and waitlist status are not publicly specified, creating uncertainty for families planning care
+- Multiple phone numbers exist (1-800-AGE-LINE, 1-866-456-3959, 1-866-785-1798) which may cause confusion about which to call
+- Spanish-language services available but only through specific phone line[6]
+- Program is civil legal aid only — does not handle criminal matters[8]
 
-**Data shape:** Elder grants waive income test (unique non-income-based access for 60+); statewide but with county-specific volunteer programs and referrals; priority for seniors among low-income
+**Data shape:** This program's structure is complex because it combines statewide Legal Services Alabama with regional Area Agencies on Aging that contract with LSA. Eligibility is income-based with a federal poverty guideline threshold (125% FPG) but also includes special non-income-based grants for seniors 60+. The program does not publish specific dollar amounts for income or asset limits, requiring families to contact directly. Benefits are service-based rather than financial, varying by legal issue type. Geographic coverage is statewide across 67 counties with 8 regional offices, but application and contact methods vary by region (some route through AAA/ADRC, others directly to LSA). Processing timelines and waitlist status are not publicly disclosed.
 
-**Source:** https://legalservicesalabama.org/elder-law/
+**Source:** https://alabamaageline.gov/legal-assistance/ and https://legalservicesalabama.org/elder-law/
 
 ---
 
@@ -514,96 +525,162 @@ Our data differs from what official sources say:
 - Assets: None
 - Must be a resident of a long-term care facility such as nursing home, assisted living facility, specialty care facility, or boarding home (personal care home). Services also available to family, friends, or facility employees on behalf of residents.
 
-**Benefits:** Investigate and resolve complaints about poor patient care, quality of care, facility issues; provide direct client advocacy; conduct routine/quarterly visitations to facilities; mediate between residents/families and staff; protect residents' rights (e.g., dignity, freedom from restraints, grievance voicing, privacy); educate on rights, facility selection, eligibility criteria; identify additional resources; advocate for systemic changes.
+**Benefits:** Investigate and resolve complaints about poor patient care, quality of care, facility structure issues; provide direct client advocacy; conduct quarterly/routine visitations to facilities to monitor conditions and talk to residents; mediate between residents, families, and staff; educate on residents' rights, facility selection, eligibility criteria, and other elderly services; protect rights to dignity, freedom from restraints, voice grievances, private communication, confidential records, fair treatment, advance notice of transfer/discharge; advocate for systemic changes at local/state/national levels.
 
 **How to apply:**
-- Phone: 334-242-5753
-- In-person: Alabama Office of the State Long-Term Care Ombudsman Program
-- Written: Mail complaints to the office
-- Statewide helpline: 1-800-AGE-LINE (1-800-243-5463) for regional Area Agency on Aging support
+- Phone: 334-242-5753 or 1-800-AGE-LINE (1-800-243-5463)
+- In writing
+- In person
+- Email: info@EastAlabamaAging.org (for East Alabama region inquiries)
 
 **Timeline:** Not specified
 
 **Watch out for:**
-- Not a service providing direct care, financial aid, or placement—purely advocacy and complaint resolution; no financial eligibility barriers but limited to long-term care facility residents (not home-based care); confidential but may require facility access for investigation; volunteers essential but must be trained/certified; people miss that anyone (not just residents) can file complaints on behalf of others.
+- Not a direct service provider (e.g., no healthcare, financial aid, or personal care services)—purely advocacy and complaint resolution; no financial eligibility barriers, but must involve a long-term care facility resident; confidential but can be filed anonymously; ombudsmen are trained/certified advocates without facility conflicts; volunteers support but report to certified community ombudsmen
 
-**Data shape:** no income/asset/age test; advocacy-only (no direct services or reimbursement); operates via statewide office + regional Area Agencies on Aging; complaint-driven rather than application for benefits
+**Data shape:** no income/asset/age test; advocacy-only for long-term care facility residents statewide via ADSS and 13 area agencies on aging; open to anyone filing on behalf of resident
 
 **Source:** https://alabamaageline.gov/ombudsman/
 
 ---
 
-### Alabama Cares
+### Alabama Cares Program
 
 > **NEW** — not currently in our data
 
 **Eligibility:**
-- Income: No strict income limits; services are not denied based on income. Priority given to those with greatest social and economic needs, particularly low-income and minority individuals.[1][2][5]
-- Assets: No asset limits mentioned in program guidelines.[1][2][5]
-- Primary unpaid family caregivers of frail older adults age 60+ who need help with at least 3 activities of daily living (e.g., bathing, dressing, walking, toileting, medications, cooking, chores), or any age with Alzheimer's/dementia.[1][2][3][5]
-- Grandparents/relative caregivers age 55+ (not parents) caring for children 18 and under, or any age with severe disability; must live with child, have legal relationship/custody, and provide 20+ hours/week care.[1][2][3][5]
-- Older relative caregivers/parents age 55+ caring for adults 19-59 with disabilities.[2][5]
-- Priority: older caregivers (60+), rural areas, critical health needs, Alzheimer's, multiple care recipients, greatest social/economic need.[1][2][3][5]
+- Income: No specific income limits or dollar amounts stated; priority given to caregivers in greatest social and/or economic need, particularly low-income individuals[1][3][5]
+- Assets: No asset limits mentioned; no details on what counts or exemptions[1][3][5]
+- Primary caregivers of frail older adults age 60+ or of any age with Alzheimer's/other dementia[1][3][5]
+- Grandparents/relative caregivers age 55+ caring for children 18 and under, or any age with severe disability (must provide 20+ hours/week care; relative must have custody and child must live with them)[1][3][5]
+- Older relative caregivers (not parents), including grandparents age 55+, caring for children 18 and under with/without disabilities[5]
+- Older relative caregivers/parents, including grandparents age 55+, caring for adults 19-59 with disabilities[5]
+- Caregiver must provide 20+ hours/week to care recipient[3]
 
-**Benefits:** Support services including training, information/advice, personal care, adult day care, limited homemaker services; enhances family caregiving but does not replace it or provide direct payment to caregivers.[4][5]
+**Benefits:** Information, assistance, counseling, respite care, supplemental services (e.g., personal care, adult day care, limited homemaker services), training, support groups, caregiver colleges, e-newsletters[4][7]
 - Varies by: priority_tier
 
 **How to apply:**
-- Phone: Contact local Area Agency on Aging (AAA) and Aging & Disability Resource Center (ADRC) at 1-800-AGE-LINE (1-800-243-5463).[3][5]
-- Website: alabamaageline.gov/alabama-cares or local AAA sites (e.g., www.nacolg.org/alabama-cares, uwaaa.org/services/alabamacares).[1][2][5]
-- In-person: Local AAA/ADRC offices.[5]
+- Phone: 1-800-AGE-LINE or 1-800-243-5463[3]
+- Contact local Area Agency on Aging (e.g., Northwest Alabama Council of Local Governments, East Alabama Aging, Aging South Alabama)[1][3][7]
+- Websites: Regional AAAs like www.nacolg.org/alabama-cares, www.EastAlabamaAging.org, agingsouthalabama.org/caregiver-programs/[1][3][7]
 
-**Timeline:** Not specified in sources.
-**Waitlist:** Limited funds available, implying potential waitlists or prioritization without guaranteed service.[2]
+**Timeline:** Not specified in sources
 
 **Watch out for:**
-- Not a paid caregiver program; provides support services only, no direct financial payment to caregivers.[4][5]
-- Must be unpaid primary caregiver; services prioritize greatest need, so higher-income may be deprioritized.[2][5]
-- For relative caregivers: requires legal custody/relationship, co-residency, 20+ hours/week care, limited funds.[2][3]
-- Frail elderly must need 3+ ADLs; dementia qualifies regardless of age.[2]
-- Does not replace family role; limited funds may mean not all eligible get services.[5]
+- Focuses on caregivers (not direct care recipients); services aim to prevent burnout via respite/support, not ongoing paid care[7]
+- Must provide 20+ hours/week care for some categories; relative caregivers need custody[3]
+- Priority tiers (e.g., low-income, rural, Alzheimer's, older caregivers) affect access, not guaranteed services[1][3]
+- Not a Medicaid waiver or paid caregiver program; distinct from Elderly & Disabled Waiver or Personal Choices[2][4][8]
 
-**Data shape:** No income/asset tests but priority-based on need; caregiver-focused (not direct to elderly); administered regionally via local AAAs with statewide guidelines; limited funds create de facto waitlist/prioritization.
+**Data shape:** Caregiver-focused with priority tiers emphasizing economic/social need, rural areas, and specific vulnerabilities; administered regionally by Area Agencies on Aging with no fixed income/asset tests
 
-**Source:** https://alabamaageline.gov/alabama-cares/
+**Source:** https://alabamaageline.gov/alabama-cares/[5]
 
 ---
 
-### Alabama Senior Farmers Market Nutrition Program (SFMNP)
+### Elderly and Disabled (E&D) Medicaid Waiver
+
+
+**Eligibility:**
+- Income: Must be financially eligible for Medicaid, typically income not exceeding 300% of the SSI Federal Benefit Rate (FBR), approximately $2,829 per month for an individual as of recent data. SSI recipients or SSI-related protected groups are automatically eligible. Limits apply to the applicant (not parents for children); exact amounts vary annually with FBR and living arrangements—no full household size table specified, but standard Medicaid rules apply for couples or households.[1][3]
+- Assets: Countable resources not to exceed $2,000 for an individual. Exempt assets include primary home (if applicant lives there or intends to return, with 2026 home equity limit of $1,130,000; also exempt if non-applicant spouse, blind/disabled child of any age, or child under 21 lives there), one vehicle, household furnishings, appliances, and personal effects. 60-month Look-Back Rule applies—transferring assets below fair market value triggers penalty period.[1][3]
+- Alabama resident.
+- Require Nursing Facility Level of Care (NFLOC), determined by HCBS-1 assessment form—must meet at least 2 of 11 criteria (e.g., need assistance with ADLs putting at risk of nursing home placement).
+- At risk of nursing home placement.
+- Financially eligible for Medicaid (or meet waiver financial criteria).
+
+**Benefits:** Person-centered plan of care may include: personal care, homemaker services, companion services, respite care, adult day health, nutrition/frozen meals. No yearly cost cap or limit on services. Case management develops plan based on needs.[2][3][4]
+- Varies by: priority_tier
+
+**How to apply:**
+- Contact Alabama Department of Senior Services (ADSS) via local Area Agency on Aging (AAA)—face-to-face Independent Functional Assessment follows initial contact.
+- Administered statewide by ADSS; specific phone/website via ADSS or Medicaid sites.
+- Must have or apply for Medicaid first.
+
+**Timeline:** Not specified; involves assessment and plan development after eligibility.
+**Waitlist:** Yes, waiting list exists, especially for those not financially pre-qualified via Medicaid/SSI. Waiver enrollment limited.[3][7]
+
+**Watch out for:**
+- No age minimum—open to disabled under 65, including children (child's income/assets only, not parents').
+- Must meet NFLOC via specific HCBS-1 (2/11 criteria); doctor input needed but formal assessment required.
+- 60-month Look-Back Rule penalties for asset transfers.
+- Waiting list if not Medicaid-eligible upfront.
+- Respond promptly to annual Medicaid/AAA letters or lose eligibility.
+- Services require person-centered plan; not automatic.
+
+**Data shape:** No age requirement; NFLOC via unique HCBS-1 checklist (meet 2/11 criteria); no service cost cap; waitlist for non-Medicaid eligible; statewide but via regional AAAs.
+
+**Our model can't capture:**
+- `asset_limits`: Our model has no asset limit fields
+- `regional_variations`: Program varies by region — our model doesn't capture this
+- `waitlist`: Has waitlist info — our model has no wait time field
+- `documents_required`: Has document checklist — our model doesn't store per-program documents
+
+**Source:** https://medicaid.alabama.gov/content/6.0_LTC_waivers/6.1_HCBS_Waivers/6.1.2_Elderly_Disabled_Waiver.aspx
+
+---
+
+### Senior Aides Program
 
 > **NEW** — not currently in our data
 
 **Eligibility:**
-- Age: 60 years or older at the time of application[5]+
-- Income: Household income must be 185% or lower of the Federal Poverty Guidelines[5]. For 2025-2026: Single household: $2,414/month; Two-person household: $3,262/month; Three-person household: $4,109/month; Four-person household: $5,805/month[5]. Full income tables available on FMA website[5].
-- Assets: Not specified in available program documentation
-- Must be a resident of Alabama[1]
-- Must apply online (phone and mail applications not accepted)[1][4]
+- Income: No specific 'Senior Aides Program' found in Alabama search results. Closest matches are Elderly & Disabled (E&D) Waiver (income up to $2,982/month per applicant in 2026, regardless of marital status) or Alabama CARES (income not a barrier, prioritizes greatest needs).[1][3]
+- Assets: For E&D Waiver: Standard Medicaid asset limits apply (exact $ amount not specified); exempt: primary home, household furnishings, appliances, personal effects, one vehicle. 60-month look-back rule for transfers.[1]
+- No exact match for 'Senior Aides Program'. Possible confusion with E&D Waiver (age 65+ or disabled, nursing facility level of care via HCBS-1 assessment, meet 2/11 criteria like ADL needs), Personal Choices (self-direction under HCBS waivers), or Alabama CARES (caregivers of 60+, dementia patients, or relative caregivers 55+ for children/disabled adults).[1][3][7]
 
-**Benefits:** $50 benefit card per eligible senior[1][4]
-- Varies by: fixed
+**Benefits:** No specific details for 'Senior Aides Program'. E&D Waiver: Home/community-based services to avoid nursing home. Personal Choices: Self-direct personal care, respite, etc. Alabama CARES: Information, support, training, personal care, adult day care, homemaker services (no fixed $ or hours specified).[1][3][5][7]
+- Varies by: priority_tier
 
 **How to apply:**
-- Online only at https://agi.alabama.gov/farmersmarket/[1][4]
-- Phone assistance available through Area Agency on Aging of West Alabama: 1-800-AGELINE[1]
-- General program information: 1-877-774-9519[4]
+- For E&D/Personal Choices: Local Area Agency on Aging at 1-877-425-2243; Alabama CARES: 1-800-AGE-LINE (1-800-243-5463) or local AAA/ADRC; Medicaid general: medicaid.alabama.gov applications/forms.[3][4][7]
 
-**Timeline:** Not specified in available documentation; benefit cards are mailed to address provided on application for new recipients[1]
-**Waitlist:** Program operates on first-come, first-served basis until available funds are committed[1][4]. Applications open in January each year and close when funds run out[5]
+**Timeline:** Not specified in results
+**Waitlist:** Not specified; waivers often have waitlists (inferred, not direct)
 
 **Watch out for:**
-- Online application only — phone and mail applications are NOT accepted[1][4]
-- Must reapply every year; benefits do not automatically renew[1][4]
-- Keep the benefit card from previous years — new benefits are loaded onto the same card each year after application is received[1]
-- Program has limited funding and operates on first-come, first-served basis; seniors should apply as soon as applications open in January[1][4][5]
-- Benefits can only be used at certified farmers markets and farm stands, NOT at grocery stores[1][4]
-- Redemption period is limited: May 1 through November 27 (not year-round)[4]
-- Benefit card is scanned like a debit/credit card at point of purchase[4]
-- Alabama's program ranks fourth nationally[2], indicating high demand and potential for quick fund depletion
+- No program named 'Senior Aides Program' identified—may be misnomer for E&D Waiver aides, Personal Choices family payment, or state aides via AAAs. Dementia diagnosis alone insufficient for E&D. 60-month look-back penalties. Must meet NFLOC. Programs prioritize highest need.[1][3][7]
 
-**Data shape:** Benefits are fixed at $50 per senior (do not vary by household size or priority tier). Income limits scale by household size. Program is statewide but administered through regional AAAs with varying local details. Critical timing factor: applications open January annually and close when funds exhaust. No asset limits documented in available sources.
+**Data shape:** No direct match; data fragmented across Medicaid E&D Waivers (financial/medical tests), CARES (caregiver support, no income test), Personal Choices (self-direction add-on). Regional AAA delivery; waitlists common for waivers.
 
-**Source:** https://agi.alabama.gov/farmersmarket/
+**Source:** https://medicaid.alabama.gov (for E&D/Personal Choices); https://alabamaageline.gov (CARES)
+
+---
+
+### SenioRx Prescription Drug Assistance Program
+
+> **NEW** — not currently in our data
+
+**Eligibility:**
+- Age: 55+
+- Income: Household income at or below 200% of the federal poverty level (exact dollar amounts vary annually by household size; some pharmaceutical companies allow higher incomes). Applies to those 55+ with chronic conditions and no/inadequate coverage. No specific table provided in sources, but call local office for current FPL chart.[1][2][4][8]
+- Assets: No asset limits mentioned.[1][2][3]
+- Legal resident of Alabama and apply in county of residence
+- At least one chronic medical condition requiring daily prescription medication (not short-term like antibiotics)
+- No prescription drug coverage or inadequate coverage (includes Medicare Part D gap/donut hole, high co-pays, or formulary issues)
+- OR any age with disability: Social Security deemed disabled, applied for SSDI and awaiting decision, doctor's declaration of disability, or in 24-month Medicare waiting period
+
+**Benefits:** Free or low-cost brand-name prescription medications (typically 3-month supply with refills if eligible) from pharmaceutical company patient assistance programs; links to low-cost generic mail-order options.
+- Varies by: medication_and_pharmaceutical_company_guidelines
+
+**How to apply:**
+- In-person: Make appointment at local county SenioRx office via your Area Agency on Aging (varies by region)
+- Phone: Call local Area Agency on Aging office (examples: 1-800-838-5845 for NW Alabama[8]; varies by region)
+- No statewide online or mail application specified; must apply in legal county of residence
+
+**Timeline:** Not specified in sources.
+
+**Watch out for:**
+- Final eligibility determined by each pharmaceutical company's guidelines, not just SenioRx screening[8]
+- Only for chronic conditions/daily meds; no short-term antibiotics or acute treatments[6]
+- Must apply in your specific county of residence; no statewide central application[4]
+- Income at 200% FPL is SenioRx guideline, but pharma programs may allow higher—still worth applying[4][8]
+- Funded 100% by Alabama Legislature, not federal Older Americans Act[4]
+
+**Data shape:** County-administered via 10+ Area Agencies on Aging; eligibility tiers (55+/chronic OR disabled any age OR Medicare gap); benefits dictated by pharma programs (3-month supplies); no fixed dollar cap, varies by drug/company
+
+**Source:** https://alabamaageline.gov/seniorx/[3]
 
 ---
 
@@ -612,31 +689,46 @@ Our data differs from what official sources say:
 | Program | Type | Scope | Complexity |
 |---------|------|-------|------------|
 | Alabama Medicaid Elderly and Disabled Wa | benefit | state | deep |
-| Alabama PACE (Program of All-Inclusive C | benefit | local | deep |
-| Alabama Medicare Savings Programs (QMB,  | benefit | federal | deep |
+| Alabama PACE (Program of All-Inclusive C | benefit | local | medium |
+| Alabama Medicaid Medicare Savings Progra | benefit | federal | deep |
 | Alabama Elderly Simplified Application P | benefit | state | medium |
 | Alabama LIHEAP (Low-Income Home Energy A | benefit | federal | deep |
 | Alabama Weatherization Assistance Progra | benefit | federal | deep |
 | Alabama SHIP (State Health Insurance Ass | navigator | federal | simple |
-| Alabama Meals on Wheels (Elderly Nutriti | benefit | federal | medium |
+| Elderly Nutrition Program (Meals on Whee | benefit | federal | medium |
 | Alabama Lifespan Respite Program | benefit | state | medium |
-| Alabama Senior Community Service Employm | employment | federal | deep |
-| Alabama Legal Services Corporation (Lega | resource | state | simple |
+| Senior Community Service Employment Prog | employment | federal | deep |
+| Alabama Legal Services for Seniors | resource | state | simple |
 | Alabama Long-Term Care Ombudsman Program | resource | federal | simple |
-| Alabama Cares | benefit | state | deep |
-| Alabama Senior Farmers Market Nutrition  | benefit | state | deep |
+| Alabama Cares Program | benefit | state | deep |
+| Elderly and Disabled (E&D) Medicaid Waiv | benefit | state | deep |
+| Senior Aides Program | benefit | state | deep |
+| SenioRx Prescription Drug Assistance Pro | resource | state | simple |
 
-**Types:** {"benefit":10,"navigator":1,"employment":1,"resource":2}
-**Scopes:** {"state":6,"local":1,"federal":7}
-**Complexity:** {"deep":8,"medium":3,"simple":3}
+**Types:** {"benefit":11,"navigator":1,"employment":1,"resource":3}
+**Scopes:** {"state":8,"local":1,"federal":7}
+**Complexity:** {"deep":8,"medium":4,"simple":4}
 
 ## Content Drafts
 
-Generated 3 page drafts. Review in admin dashboard or `data/pipeline/AL/drafts.json`.
+Generated 16 page drafts. Review in admin dashboard or `data/pipeline/AL/drafts.json`.
 
-- **Alabama Medicaid Elderly and Disabled Waiver** (benefit) — 4 content sections, 6 FAQs
-- **Alabama PACE (Program of All-Inclusive Care for the Elderly)** (benefit) — 6 content sections, 6 FAQs
-- **Alabama Medicare Savings Programs (QMB, SLMB, QI)** (benefit) — 6 content sections, 6 FAQs
+- **Alabama Medicaid Elderly and Disabled Waiver** (benefit) — 5 content sections, 6 FAQs
+- **Alabama PACE (Program of All-Inclusive Care for the Elderly)** (benefit) — 2 content sections, 6 FAQs
+- **Alabama Medicaid Medicare Savings Programs (QMB, SLMB, QI)** (benefit) — 5 content sections, 6 FAQs
+- **Alabama Elderly Simplified Application Project (AESAP)** (benefit) — 2 content sections, 6 FAQs
+- **Alabama LIHEAP (Low-Income Home Energy Assistance Program)** (benefit) — 4 content sections, 6 FAQs
+- **Alabama Weatherization Assistance Program** (benefit) — 4 content sections, 6 FAQs
+- **Alabama SHIP (State Health Insurance Assistance Program)** (navigator) — 2 content sections, 6 FAQs
+- **Elderly Nutrition Program (Meals on Wheels)** (benefit) — 3 content sections, 6 FAQs
+- **Alabama Lifespan Respite Program** (benefit) — 3 content sections, 6 FAQs
+- **Senior Community Service Employment Program (SCSEP)** (employment) — 3 content sections, 6 FAQs
+- **Alabama Legal Services for Seniors** (resource) — 3 content sections, 6 FAQs
+- **Alabama Long-Term Care Ombudsman Program** (resource) — 2 content sections, 6 FAQs
+- **Alabama Cares Program** (benefit) — 1 content sections, 6 FAQs
+- **Elderly and Disabled (E&D) Medicaid Waiver** (benefit) — 4 content sections, 6 FAQs
+- **Senior Aides Program** (benefit) — 5 content sections, 6 FAQs
+- **SenioRx Prescription Drug Assistance Program** (resource) — 1 content sections, 6 FAQs
 
 ## What We Learned
 
@@ -644,31 +736,34 @@ Generated 3 page drafts. Review in admin dashboard or `data/pipeline/AL/drafts.j
 
 How benefits vary across these programs:
 - **priority_tier**: 6 programs
-- **region**: 2 programs
+- **Medicaid vs. non-Medicaid status (Medicaid participants receive fully covered services; non-Medicaid participants pay a flat monthly premium)[5]**: 1 programs
 - **household_size**: 1 programs
-- **household_size|priority_tier|fuel_type|season**: 1 programs
-- **not_applicable**: 2 programs
-- **Not specified — appears to be fixed reimbursement structure, but exact amounts not publicly detailed**: 1 programs
-- **fixed**: 1 programs
+- **household_size|priority_tier|region**: 1 programs
+- **not_applicable**: 3 programs
+- **region**: 2 programs
+- **legal_issue_type**: 1 programs
+- **medication_and_pharmaceutical_company_guidelines**: 1 programs
 
 ### Data Shape Notes
 
 Unique structural observations from each program:
 
-- **Alabama Medicaid Elderly and Disabled Waiver**: Administered regionally via AAAs with statewide cap; benefits person-centered by assessed needs, not fixed amounts; tied to Medicaid eligibility and NFLOC
-- **Alabama PACE (Program of All-Inclusive Care for the Elderly)**: County-restricted (Mobile/Baldwin); provider-specific (Mercy LIFE); no strict income/asset test for enrollment but for Medicaid coverage; capped enrollment
-- **Alabama Medicare Savings Programs (QMB, SLMB, QI)**: Tiered by income (QMB lowest, then SLMB, QI highest); QI capped funding/annual reapply; uniform statewide but district processing; scales by household size via FPL; auto-LIS linkage.
-- **Alabama Elderly Simplified Application Project (AESAP)**: Streamlined SNAP process only—no unique benefits or limits; 3-year certification differentiates it; income/resources match standard SNAP elderly rules; county-administered statewide
-- **Alabama LIHEAP (Low-Income Home Energy Assistance Program)**: Benefits scale by household size and vary by season (heating vs. cooling) and crisis status. Income limits scale by household size with a formula for households beyond 15 members. Application processes and opening dates vary significantly by county-level CAA, making this a decentralized program with no single statewide application portal. Priority tiers (seniors, disabled, medical vulnerabilities, energy crisis) receive earlier access to limited funds. Program operates on a fiscal year basis (October 1–September 30) with seasonal components (heating Oct–Apr, cooling May–Sep).
-- **Alabama Weatherization Assistance Program**: Delivered via 10+ regional community action agencies with county-specific contacts and processes; priority-tiered waitlist; no central application portal; income at 200% FPL with auto-eligibility for SSI/AFDC.
-- **Alabama SHIP (State Health Insurance Assistance Program)**: SHIP is a counseling and assistance program, not a direct-benefit program. It helps Medicare beneficiaries navigate existing programs (Medicare, Medicaid, Medicare Savings Programs, Extra Help, Medigap, etc.) rather than providing its own financial or healthcare benefits. Eligibility criteria beyond 'Medicare beneficiary or family member' are not publicly specified in available sources. The program is administered regionally through Area Agencies on Aging, which may explain why specific income/asset limits are not centralized in state-level documentation. Income limits likely vary by the specific assistance programs SHIP helps people access (e.g., Medicare Savings Programs have federal income thresholds), not by SHIP itself.
-- **Alabama Meals on Wheels (Elderly Nutrition Program)**: Decentralized by county via local AAAs; no statewide income test; home delivery not universal; congregate meals more widely available than delivery
-- **Alabama Lifespan Respite Program**: This program is a reimbursement-based respite voucher program, not a direct service provider. The caregiver has full control over selecting and hiring respite providers and determining compensation rates (within program guidelines). No specific income or asset limits are disclosed, making it potentially more accessible than means-tested programs. The primary eligibility barrier is the mutual exclusivity requirement — applicants cannot receive respite from any other program. Funding is limited and not guaranteed even for eligible applicants. The program is statewide but administered through UCP Huntsville. Specific dollar amounts for reimbursement are not publicly available in the documentation reviewed.
-- **Alabama Senior Community Service Employment Program (SCSEP)**: Administered by multiple regional providers with county-specific service areas; no asset limits or fixed dollar benefits—income eligibility scales by household size via annual federal poverty guidelines; lifetime enrollment cap of 48 months
-- **Alabama Legal Services Corporation (Legal Aid for Seniors)**: Elder grants waive income test (unique non-income-based access for 60+); statewide but with county-specific volunteer programs and referrals; priority for seniors among low-income
-- **Alabama Long-Term Care Ombudsman Program**: no income/asset/age test; advocacy-only (no direct services or reimbursement); operates via statewide office + regional Area Agencies on Aging; complaint-driven rather than application for benefits
-- **Alabama Cares**: No income/asset tests but priority-based on need; caregiver-focused (not direct to elderly); administered regionally via local AAAs with statewide guidelines; limited funds create de facto waitlist/prioritization.
-- **Alabama Senior Farmers Market Nutrition Program (SFMNP)**: Benefits are fixed at $50 per senior (do not vary by household size or priority tier). Income limits scale by household size. Program is statewide but administered through regional AAAs with varying local details. Critical timing factor: applications open January annually and close when funds exhaust. No asset limits documented in available sources.
+- **Alabama Medicaid Elderly and Disabled Waiver**: Administered regionally via AAAs with statewide cap; SSI-related income test (300% FBR); no age minimum; benefits person-centered without fixed units; persistent waitlists due to slot limits.
+- **Alabama PACE (Program of All-Inclusive Care for the Elderly)**: Alabama PACE is severely geographically restricted (only 2 counties), has a fixed enrollment cap per program, requires state certification of nursing home-level care need, and has no income/asset limits for program enrollment (though Medicaid coverage has separate financial requirements). The program is not statewide and availability is the primary limiting factor for most Alabama families. Medicaid eligibility is separate from PACE eligibility but determines coverage type and cost structure.
+- **Alabama Medicaid Medicare Savings Programs (QMB, SLMB, QI)**: Tiered by QMB (full cost-sharing), SLMB (Part B only, higher income), QI-1 (Part B only, highest income, limited funds); income as %FPL with couple ranges; statewide but QI waitlist risk; no household >2 tables
+- **Alabama Elderly Simplified Application Project (AESAP)**: Streamlined SNAP demo for elderly-only households: 2-page app, 36-month certification, no interview (unless requested), self-declare most info, same income/asset tests as regular SNAP.
+- **Alabama LIHEAP (Low-Income Home Energy Assistance Program)**: Administered via ~20 local CAAs with agency-specific income tables, opening dates, methods; income at 150% FPL but figures drift by fiscal year; priority tiers heavily influence access; funding exhausts quickly by region
+- **Alabama Weatherization Assistance Program**: Delivered via 10+ regional community action agencies with county-specific contacts, quotas, and waitlists; priority tiers heavily influence access; no central application portal.
+- **Alabama SHIP (State Health Insurance Assistance Program)**: SHIP is a counseling and advocacy service rather than a direct financial assistance program. No income limits, asset limits, or specific eligibility criteria are publicly documented in available sources — eligibility appears to be based on Medicare beneficiary status. Benefits are uniform statewide (free counseling) but delivered through local regional providers (AAAs and ADRCs). The program helps beneficiaries identify and access other assistance programs (Medicare Savings Programs, prescription drug assistance, Medicaid) but does not directly provide financial aid itself. Critical distinction: This is different from the Small Rural Hospital Improvement Grant Program (also called SHIP) administered by Alabama Department of Public Health[1], which is a separate program for hospitals, not individuals.
+- **Elderly Nutrition Program (Meals on Wheels)**: No income/asset test; eligibility focused on age/homebound status and local delivery zones; decentralized via county AAAs with statewide oversight; congregate vs. home-delivered tiers; volunteer-dependent with regional provider variations.
+- **Alabama Lifespan Respite Program**: This program's eligibility is notably broad—it serves care recipients 'of any age' with 'any' chronic illness or disability, not restricted to specific diagnoses. However, a separate Department of Mental Health respite reimbursement program exists specifically for care recipients with intellectual disabilities (IQ below 70) requiring 80 hours of care per week[1]. The Alabama Lifespan Respite program appears to be the broader, federally-funded option. Funding is explicitly limited and not guaranteed, making this a competitive program rather than an entitlement. No income or asset limits are specified in available documentation, which is unusual for a needs-based program and suggests either universal eligibility or discretionary allocation.
+- **Senior Community Service Employment Program (SCSEP)**: County-restricted by 8+ regional providers across all 67 counties; wages/hours vary slightly by provider; no asset test; must confirm current 125% FPL table separately as not listed
+- **Alabama Legal Services for Seniors**: This program's structure is complex because it combines statewide Legal Services Alabama with regional Area Agencies on Aging that contract with LSA. Eligibility is income-based with a federal poverty guideline threshold (125% FPG) but also includes special non-income-based grants for seniors 60+. The program does not publish specific dollar amounts for income or asset limits, requiring families to contact directly. Benefits are service-based rather than financial, varying by legal issue type. Geographic coverage is statewide across 67 counties with 8 regional offices, but application and contact methods vary by region (some route through AAA/ADRC, others directly to LSA). Processing timelines and waitlist status are not publicly disclosed.
+- **Alabama Long-Term Care Ombudsman Program**: no income/asset/age test; advocacy-only for long-term care facility residents statewide via ADSS and 13 area agencies on aging; open to anyone filing on behalf of resident
+- **Alabama Cares Program**: Caregiver-focused with priority tiers emphasizing economic/social need, rural areas, and specific vulnerabilities; administered regionally by Area Agencies on Aging with no fixed income/asset tests
+- **Elderly and Disabled (E&D) Medicaid Waiver**: No age requirement; NFLOC via unique HCBS-1 checklist (meet 2/11 criteria); no service cost cap; waitlist for non-Medicaid eligible; statewide but via regional AAAs.
+- **Senior Aides Program**: No direct match; data fragmented across Medicaid E&D Waivers (financial/medical tests), CARES (caregiver support, no income test), Personal Choices (self-direction add-on). Regional AAA delivery; waitlists common for waivers.
+- **SenioRx Prescription Drug Assistance Program**: County-administered via 10+ Area Agencies on Aging; eligibility tiers (55+/chronic OR disabled any age OR Medicare gap); benefits dictated by pharma programs (3-month supplies); no fixed dollar cap, varies by drug/company
 
 ### Questions for Chantel's Review
 

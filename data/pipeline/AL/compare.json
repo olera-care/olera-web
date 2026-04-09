@@ -1,54 +1,59 @@
 {
   "state": "AL",
   "stateName": "Alabama",
-  "comparedAt": "2026-04-09T09:27:30.117Z",
-  "total": 14,
-  "newPrograms": 13,
-  "withDiffs": 1,
-  "withNovelFields": 1,
+  "comparedAt": "2026-04-09T11:28:21.650Z",
+  "total": 16,
+  "newPrograms": 14,
+  "withDiffs": 2,
+  "withNovelFields": 2,
   "benefitTypes": {
     "service": 7,
-    "financial": 3,
-    "financial reimbursement": 1,
+    "financial": 4,
+    "service|advocacy": 2,
     "employment": 1,
     "advocacy": 1,
     "in_kind": 1
   },
   "variationPatterns": {
     "priority_tier": 6,
-    "region": 2,
+    "Medicaid vs. non-Medicaid status (Medicaid participants receive fully covered services; non-Medicaid participants pay a flat monthly premium)[5]": 1,
     "household_size": 1,
-    "household_size|priority_tier|fuel_type|season": 1,
-    "not_applicable": 2,
-    "Not specified — appears to be fixed reimbursement structure, but exact amounts not publicly detailed": 1,
-    "fixed": 1
+    "household_size|priority_tier|region": 1,
+    "not_applicable": 3,
+    "region": 2,
+    "legal_issue_type": 1,
+    "medication_and_pharmaceutical_company_guidelines": 1
   },
   "novelFieldSummary": {
     "asset_limits": {
-      "count": 1,
+      "count": 2,
       "programs": [
-        "Alabama Medicaid Elderly and Disabled Waiver"
+        "Alabama Medicaid Elderly and Disabled Waiver",
+        "Elderly and Disabled (E&D) Medicaid Waiver"
       ],
       "note": "Our model has no asset limit fields"
     },
     "regional_variations": {
-      "count": 1,
+      "count": 2,
       "programs": [
-        "Alabama Medicaid Elderly and Disabled Waiver"
+        "Alabama Medicaid Elderly and Disabled Waiver",
+        "Elderly and Disabled (E&D) Medicaid Waiver"
       ],
       "note": "Program varies by region — our model doesn't capture this"
     },
     "waitlist": {
-      "count": 1,
+      "count": 2,
       "programs": [
-        "Alabama Medicaid Elderly and Disabled Waiver"
+        "Alabama Medicaid Elderly and Disabled Waiver",
+        "Elderly and Disabled (E&D) Medicaid Waiver"
       ],
       "note": "Has waitlist info — our model has no wait time field"
     },
     "documents_required": {
-      "count": 1,
+      "count": 2,
       "programs": [
-        "Alabama Medicaid Elderly and Disabled Waiver"
+        "Alabama Medicaid Elderly and Disabled Waiver",
+        "Elderly and Disabled (E&D) Medicaid Waiver"
       ],
       "note": "Has document checklist — our model doesn't store per-program documents"
     }
@@ -70,7 +75,7 @@
         {
           "field": "benefit_value",
           "ours": "$10,000 – $30,000/year",
-          "found": "Person-centered services based on individual plan of care, including personal care, homemaker services, respite care, adult day health, companion services, home-delivered frozen meals, and case management. No fixed dollar amounts or hours specified; varies by assessed needs to prevent institutionalization.",
+          "found": "Person-centered services based on assessed needs: personal care, homemaker, respite care, adult day health, companion services, home-delivered frozen meals, case management. No fixed dollar amounts or hours; varies by individual plan of care developed by case manager[1][2][5][6].",
           "source": "https://medicaid.alabama.gov/content/6.0_LTC_waivers/6.1_HCBS_waivers.aspx"
         },
         {
@@ -82,39 +87,39 @@
       "novelFields": [
         {
           "field": "asset_limits",
-          "value": "Resources cannot exceed $2,000 for an individual. Exempt assets include primary home (if applicant lives there, intends to return, or certain family members reside there; home equity limit of $1,130,000 in 2026), one vehicle, household furnishings, personal effects, and appliances. Look-Back Rule applies: assets transferred for less than fair market value within 60 months result in penalty period.",
+          "value": "Resources cannot exceed $2,000 for an individual. Countable assets include most savings, investments, and secondary properties. Exempt: primary home (if applicant lives there, intends to return, or certain family live there; home equity limit $1,130,000 in 2026), one vehicle, household furnishings, personal effects, appliances. 60-month look-back rule applies; transfers below fair market value trigger penalty period[2][5].",
           "note": "Our model has no asset limit fields"
         },
         {
           "field": "regional_variations",
-          "value": "Administered by regional Area Agencies on Aging (AAAs) with local providers and offices; wait times and specific providers may vary by region",
+          "value": "Administered by regional Area Agencies on Aging (AAAs) and providers (e.g., Regional Planning Commission of Greater Birmingham, Area Agency on Aging of East Alabama, Aging South Alabama); services/case management via local AAAs, potential differences in wait times/providers[1][3][5][6].",
           "note": "Program varies by region — our model doesn't capture this"
         },
         {
           "field": "waitlist",
-          "value": "Enrollment capped at 15,000 beneficiaries annually; waitlist likely if slots full",
+          "value": "Yes, program capped at 15,000 slots annually; waitlist common when full[2][7].",
           "note": "Has waitlist info — our model has no wait time field"
         },
         {
           "field": "documents_required",
           "value": [
-            "Proof of income (e.g., SSI award letters, pay stubs)",
-            "Proof of assets/resources",
-            "Medical documentation/physician statement for nursing facility level of care",
-            "Proof of residency",
-            "Medicaid ID if applicable"
+            "Proof of income (SSI award letters, pay stubs)",
+            "Proof of assets/resources (bank statements, property deeds)",
+            "Physician statement confirming nursing facility level of care",
+            "Medicaid eligibility verification",
+            "ID/proof of residency"
           ],
           "note": "Has document checklist — our model doesn't store per-program documents"
         }
       ],
-      "dataShapeNotes": "Administered regionally via AAAs with statewide cap; benefits person-centered by assessed needs, not fixed amounts; tied to Medicaid eligibility and NFLOC",
+      "dataShapeNotes": "Administered regionally via AAAs with statewide cap; SSI-related income test (300% FBR); no age minimum; benefits person-centered without fixed units; persistent waitlists due to slot limits.",
       "gotchas": [
-        "Must already qualify for Medicaid or meet financial criteria; waiver does not provide Medicaid coverage itself",
-        "Strict $2,000 asset limit with 60-month Look-Back Rule—gifting assets triggers penalties",
-        "Nursing facility level of care required (not just 'disabled')",
-        "Annual enrollment cap of 15,000 leads to waitlists",
-        "Home subject to Estate Recovery post-death",
-        "No age minimum, but targeted at elderly/disabled at institutional risk"
+        "Must already qualify for full Medicaid financially; waiver does not waive Medicaid income/asset rules[3][5].",
+        "60-month look-back on asset transfers leads to penalty periods[2].",
+        "No age minimum, but targeted at elderly/disabled at nursing home risk—often confused with age 65+ programs[5].",
+        "Enrollment capped at 15,000; long waitlists common[2].",
+        "Home subject to estate recovery despite asset exemption[2].",
+        "Services not guaranteed hours/dollars; fully needs-based with no fixed entitlements[1]."
       ],
       "benefitType": "service",
       "benefitVariesBy": "priority_tier",
@@ -128,30 +133,37 @@
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "County-restricted (Mobile/Baldwin); provider-specific (Mercy LIFE); no strict income/asset test for enrollment but for Medicaid coverage; capped enrollment",
+      "dataShapeNotes": "Alabama PACE is severely geographically restricted (only 2 counties), has a fixed enrollment cap per program, requires state certification of nursing home-level care need, and has no income/asset limits for program enrollment (though Medicaid coverage has separate financial requirements). The program is not statewide and availability is the primary limiting factor for most Alabama families. Medicaid eligibility is separate from PACE eligibility but determines coverage type and cost structure.",
       "gotchas": [
-        "Not statewide—only available in specific counties (e.g., Mobile/Baldwin); check service area zip codes",
-        "Medicaid not required for enrollment but needed for free coverage; private pay monthly fee otherwise",
-        "Enrollment capped (up to 185 per program)—waitlists possible",
-        "Must be able to live safely in community with PACE support; not for those already unsafe without it",
-        "Annual recertification required"
+        "Geographic limitation is critical: PACE is only available in Mobile and Baldwin counties in Alabama[3]. Families outside these areas cannot access this program regardless of eligibility[6].",
+        "Enrollment cap: Each PACE program serves up to 185 enrollees maximum[3], which may create waitlists or limit availability.",
+        "Nursing home level of care certification is required and determined by the state, not self-assessed[1][2]. Families must go through state assessment process.",
+        "Medicaid is not required but covers most participants[4]. Non-Medicaid participants must pay a flat monthly premium, making costs variable[5].",
+        "Participants can leave the program at any time[3], but re-enrollment may be subject to availability.",
+        "Annual recertification is required to maintain eligibility[1].",
+        "The program is community-based; participants must be able to live safely in the community with support—those requiring 24-hour institutional care may not qualify[1][4]."
       ],
       "benefitType": "service",
-      "benefitVariesBy": "region",
-      "officialSource": "https://medicaid.alabama.gov/content/5.0_Managed_Care/5.2_Other_MC_Programs/5.2.3_PACE.aspx"
+      "benefitVariesBy": "Medicaid vs. non-Medicaid status (Medicaid participants receive fully covered services; non-Medicaid participants pay a flat monthly premium)[5]",
+      "officialSource": "medicaid.alabama.gov/content/5.0_Managed_Care/5.2_Other_MC_Programs/5.2.3_PACE.aspx"
     },
     {
-      "name": "Alabama Medicare Savings Programs (QMB, SLMB, QI)",
+      "name": "Alabama Medicaid Medicare Savings Programs (QMB, SLMB, QI)",
       "isNew": true,
       "existingId": null,
       "existingVerified": null,
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "Tiered by income (QMB lowest, then SLMB, QI highest); QI capped funding/annual reapply; uniform statewide but district processing; scales by household size via FPL; auto-LIS linkage.",
+      "dataShapeNotes": "Tiered by QMB (full cost-sharing), SLMB (Part B only, higher income), QI-1 (Part B only, highest income, limited funds); income as %FPL with couple ranges; statewide but QI waitlist risk; no household >2 tables",
       "gotchas": [
-        "QI funding limited—apply early in year; no Medicaid card for SLMB/QI (QMB gets one); providers must accept Medicaid assignment for QMB (cannot bill you); auto-Extra Help but must confirm enrollment; income/asset limits exclude some deductions (e.g., $20 disregard); cannot overlap QI with other Medicaid; retroactive coverage for SLMB/QI but not QMB; limits update yearly—use 2026 figures above but verify.[1][5][6]",
-        "QMB protections: Report bills for Medicare services (illegal to charge)."
+        "QI-1 funding limited—first-come, first-served; denied if funds exhausted",
+        "No Medicaid card for SLMB/QI-1; providers not barred from balance billing (though rare)",
+        "Must use Medicaid-accepting providers for QMB protections",
+        "Income/resources counted strictly; couples have higher but ranged limits",
+        "Retroactive coverage for SLMB/QI only if requirements met in prior months",
+        "Automatically get Extra Help with QMB but not always others",
+        "Limits change yearly; verify current via official site (e.g., Part B premium updated to $206.50)[1][2][8]"
       ],
       "benefitType": "financial",
       "benefitVariesBy": "priority_tier",
@@ -165,18 +177,18 @@
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "Streamlined SNAP process only—no unique benefits or limits; 3-year certification differentiates it; income/resources match standard SNAP elderly rules; county-administered statewide",
+      "dataShapeNotes": "Streamlined SNAP demo for elderly-only households: 2-page app, 36-month certification, no interview (unless requested), self-declare most info, same income/asset tests as regular SNAP.",
       "gotchas": [
-        "Age discrepancy in sources (some say 65, official is 60); use 60+[1][2][8]",
-        "No earned income means zero wages/self-employment in application month—unearned (SSI, pension) allowed[1][2]",
-        "3-year certification with annual interim form required; must report changes[1][4]",
-        "Benefits calculated as standard SNAP—not higher despite simplification[1][3]",
-        "Fraud penalties severe: fines, imprisonment[6]",
-        "Not for households with children or under-60 members[3][8]"
+        "Age discrepancy in sources (some say 65, official is 60); use 60+.[1][2][8]",
+        "No earned income means zero wages/self-employment; unearned (SSI, pensions) allowed.",
+        "Benefits calculated as standard SNAP, so income/assets must still qualify—simplified process doesn't waive means test.",
+        "3-year certification requires annual Interim Contact Form submission.",
+        "Fraud penalties severe (fines, imprisonment); self-declaration trusted unless questionable.",
+        "Household must all be 60+ (or purchase/prepare separately); no children allowed."
       ],
       "benefitType": "financial",
       "benefitVariesBy": "household_size",
-      "officialSource": "https://dhr.alabama.gov/food-assistance/alabama-elderly-simplified-application-project-aesap/[9]"
+      "officialSource": "https://dhr.alabama.gov/food-assistance/alabama-elderly-simplified-application-project-aesap/"
     },
     {
       "name": "Alabama LIHEAP (Low-Income Home Energy Assistance Program)",
@@ -186,21 +198,18 @@
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "Benefits scale by household size and vary by season (heating vs. cooling) and crisis status. Income limits scale by household size with a formula for households beyond 15 members. Application processes and opening dates vary significantly by county-level CAA, making this a decentralized program with no single statewide application portal. Priority tiers (seniors, disabled, medical vulnerabilities, energy crisis) receive earlier access to limited funds. Program operates on a fiscal year basis (October 1–September 30) with seasonal components (heating Oct–Apr, cooling May–Sep).",
+      "dataShapeNotes": "Administered via ~20 local CAAs with agency-specific income tables, opening dates, methods; income at 150% FPL but figures drift by fiscal year; priority tiers heavily influence access; funding exhausts quickly by region",
       "gotchas": [
-        "Priority households (seniors, individuals with medical vulnerabilities, households in immediate energy crisis) may receive assistance before the general public[1]",
-        "No household may be assisted more than once for regular heating and once for cooling assistance with LIHEAP funds in a program year[2]",
-        "Crisis assistance is only available to households meeting income guidelines AND meeting the definition of an energy-related crisis (e.g., broken furnace, utility shutoff notice)[2][5]",
-        "Heating assistance is only available October 1–April 30; cooling assistance is only available May 1–September 30[5]",
-        "Crisis assistance is available year-round but only for emergencies[5]",
-        "Applicants are responsible for paying any remaining balance on their energy bill not covered by program funds[6]",
-        "Roommates covered by the same utility bill are counted as part of the same LIHEAP household, even if they don't share most expenses[5]",
-        "Funds are limited and distributed first-come, first-served; some agencies may stop accepting applications before the official program end date if funding runs out[1][5]",
-        "Income limits are based on 150% of federal poverty level, which is lower than some other assistance programs (e.g., some LIHEAP programs serve households up to 60% of state median income, but Alabama uses federal poverty)[1][7]"
+        "Must apply through local CAA, not state office; no central application[1][3][7].",
+        "Funds limited, first-come first-served; apply early (winter high demand, opens agency-by-agency)[1][5].",
+        "Income based on prior month proof; varies slightly by agency/year[1][3][4][6].",
+        "One heating + one cooling per year; only covers part of bill[2][6].",
+        "Priority groups served first; elderly qualify for priority but no strict age cutoff[1][2].",
+        "Crisis aid requires emergency verification (e.g., shutoff)[2][5]."
       ],
       "benefitType": "financial",
-      "benefitVariesBy": "household_size|priority_tier|fuel_type|season",
-      "officialSource": "https://adeca.alabama.gov/liheap/"
+      "benefitVariesBy": "household_size|priority_tier|region",
+      "officialSource": "https://adeca.alabama.gov/liheap/[7]"
     },
     {
       "name": "Alabama Weatherization Assistance Program",
@@ -210,14 +219,14 @@
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "Delivered via 10+ regional community action agencies with county-specific contacts and processes; priority-tiered waitlist; no central application portal; income at 200% FPL with auto-eligibility for SSI/AFDC.",
+      "dataShapeNotes": "Delivered via 10+ regional community action agencies with county-specific contacts, quotas, and waitlists; priority tiers heavily influence access; no central application portal.",
       "gotchas": [
-        "Must contact specific county-serving agency (ADECA does not accept applications).",
-        "Priority ranking on waitlist means not all eligible applicants receive services immediately; limited by county grants.",
-        "All household members' documents required; incomplete apps rejected.",
-        "Renters need landlord approval; program alters homes.",
-        "No statewide application—regional providers have unique processes/forms.",
-        "Verify current 200% poverty guidelines as they change yearly."
+        "ADECA does not process applications; must contact specific county agency.",
+        "Renters need landlord approval and contribution.",
+        "Original Social Security cards required (no copies in some areas).",
+        "Priority ranking determines order on waitlist; not first-come.",
+        "Funding limited (e.g., $47M BIL funds through 2027, divided in rounds); quotas per county.",
+        "Home must pass energy audit; not all measures guaranteed."
       ],
       "benefitType": "service",
       "benefitVariesBy": "priority_tier",
@@ -231,34 +240,35 @@
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "SHIP is a counseling and assistance program, not a direct-benefit program. It helps Medicare beneficiaries navigate existing programs (Medicare, Medicaid, Medicare Savings Programs, Extra Help, Medigap, etc.) rather than providing its own financial or healthcare benefits. Eligibility criteria beyond 'Medicare beneficiary or family member' are not publicly specified in available sources. The program is administered regionally through Area Agencies on Aging, which may explain why specific income/asset limits are not centralized in state-level documentation. Income limits likely vary by the specific assistance programs SHIP helps people access (e.g., Medicare Savings Programs have federal income thresholds), not by SHIP itself.",
+      "dataShapeNotes": "SHIP is a counseling and advocacy service rather than a direct financial assistance program. No income limits, asset limits, or specific eligibility criteria are publicly documented in available sources — eligibility appears to be based on Medicare beneficiary status. Benefits are uniform statewide (free counseling) but delivered through local regional providers (AAAs and ADRCs). The program helps beneficiaries identify and access other assistance programs (Medicare Savings Programs, prescription drug assistance, Medicaid) but does not directly provide financial aid itself. Critical distinction: This is different from the Small Rural Hospital Improvement Grant Program (also called SHIP) administered by Alabama Department of Public Health[1], which is a separate program for hospitals, not individuals.",
       "gotchas": [
-        "SHIP provides counseling and assistance, not direct financial benefits or insurance enrollment. It helps people understand options and apply for programs, but does not pay premiums or provide healthcare directly[6][8]",
-        "Counselors are not affiliated with insurance companies and will not sell insurance[2][4][6]",
-        "Best time to contact is during Annual Enrollment Period (October 15 – December 7 each year), though you should also contact when first becoming eligible for Medicare[8]",
-        "You do not 'enroll' in SHIP itself; you contact your local ADRC and complete an assessment[8]",
-        "All counseling records are strictly confidential[4][6]",
-        "Income limits for qualifying for assistance programs (like Medicare Savings Programs or Extra Help) exist but are not detailed in the SHIP program description itself[2][3]"
+        "No cost for services — SHIP does not sell insurance and provides completely unbiased counseling[7]",
+        "Counselors are not affiliated with any insurance companies[5]",
+        "Best time to contact is during Medicare Open Enrollment (October 15 - December 7 annually)[7]",
+        "Also contact SHIP when first becoming eligible for Medicare for detailed explanation of Part A, B, and D benefits[7]",
+        "All counseling records are strictly confidential[5]",
+        "You do not 'enroll' in SHIP — you contact your local ADRC and complete an assessment[7]",
+        "This is a counseling and information service, NOT a financial assistance program for paying premiums directly (though counselors can help identify programs that do provide financial help)[5][7]"
       ],
-      "benefitType": "service",
+      "benefitType": "service|advocacy",
       "benefitVariesBy": "not_applicable",
-      "officialSource": "alabamaageline.gov/ship/[6] and Alabama Department of Senior Services (AL Department of Senior Services, ADDS 201 Monroe Street, RSA Tower, Suite 350 Montgomery AL 36130-1851)[5]"
+      "officialSource": "alabamaageline.gov/ship/[5]"
     },
     {
-      "name": "Alabama Meals on Wheels (Elderly Nutrition Program)",
+      "name": "Elderly Nutrition Program (Meals on Wheels)",
       "isNew": true,
       "existingId": null,
       "existingVerified": null,
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "Decentralized by county via local AAAs; no statewide income test; home delivery not universal; congregate meals more widely available than delivery",
+      "dataShapeNotes": "No income/asset test; eligibility focused on age/homebound status and local delivery zones; decentralized via county AAAs with statewide oversight; congregate vs. home-delivered tiers; volunteer-dependent with regional provider variations.",
       "gotchas": [
-        "Not all areas offer home delivery; must confirm with local AAA[6]",
-        "Eligibility varies slightly by provider (e.g., Jefferson County specifies homebound in county)[2]",
-        "Voluntary contributions expected but not required[6]",
-        "Separate from food assistance programs like SNAP which have income/work rules[3]",
-        "Spouses/disabled under 60 only if living with eligible senior[6]"
+        "Not all 60+ qualify for home delivery—must be homebound/unable to cook/shop and in delivery zone; mobile seniors use congregate centers.[1][3][6]",
+        "No automatic 'Meals on Wheels'—it's the home-delivery arm of ENP; confirm local provider coverage.[2][5]",
+        "Voluntary donations suggested (income-based in some areas, tax-deductible for non-family); program relies on community support/volunteers, may affect availability.[3][5][7]",
+        "Spouses/disabled under 60 only if living with eligible 60+ or in ENP community.[3][4]",
+        "Car ownership or caregiver availability may disqualify home delivery in some assessments.[1]"
       ],
       "benefitType": "service",
       "benefitVariesBy": "region",
@@ -272,62 +282,63 @@
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "This program is a reimbursement-based respite voucher program, not a direct service provider. The caregiver has full control over selecting and hiring respite providers and determining compensation rates (within program guidelines). No specific income or asset limits are disclosed, making it potentially more accessible than means-tested programs. The primary eligibility barrier is the mutual exclusivity requirement — applicants cannot receive respite from any other program. Funding is limited and not guaranteed even for eligible applicants. The program is statewide but administered through UCP Huntsville. Specific dollar amounts for reimbursement are not publicly available in the documentation reviewed.",
+      "dataShapeNotes": "This program's eligibility is notably broad—it serves care recipients 'of any age' with 'any' chronic illness or disability, not restricted to specific diagnoses. However, a separate Department of Mental Health respite reimbursement program exists specifically for care recipients with intellectual disabilities (IQ below 70) requiring 80 hours of care per week[1]. The Alabama Lifespan Respite program appears to be the broader, federally-funded option. Funding is explicitly limited and not guaranteed, making this a competitive program rather than an entitlement. No income or asset limits are specified in available documentation, which is unusual for a needs-based program and suggests either universal eligibility or discretionary allocation.",
       "gotchas": [
-        "Cannot receive respite services from any other program simultaneously — this is an absolute disqualifier[1][3]",
-        "Only one caregiver per household and one care recipient per household — multi-generational or complex family situations may not qualify[1]",
-        "Caregiver is responsible for selecting, hiring, and training the respite provider — the program does not provide or vet providers[1][3]",
-        "Respite provider must live outside the care recipient's home — cannot be a household member[1][3]",
-        "Proof of diagnosis is mandatory and must be submitted with application — missing this will delay or prevent processing[1][3]",
-        "Limited funding means not all qualified applicants receive assistance; awards are made based on available resources[4]",
-        "If you applied and received reimbursement after July 1, 2025, you do not need to reapply — re-enrollment information is sent automatically[4]",
-        "Completion of application does not guarantee funding[4]",
-        "Respite provider training is available free but limited to 25 individuals per month and is for new applicants only[5]"
+        "Program explicitly states: 'The completion of this application does not guarantee the awarding of financial assistance from Alabama Lifespan Respite' due to limited funding[5]",
+        "Caregiver cannot be receiving respite services through ANY other program simultaneously[2][4]",
+        "Respite provider must be at least 18 years old and cannot live in the same home as the care recipient[4][5]",
+        "Caregiver is responsible for selecting, hiring, and training the respite provider—the program does not provide or vet providers[4][5]",
+        "If applicant received respite reimbursement after July 1, 2025, they do not need to reapply; re-enrollment information is sent annually[5]",
+        "No specific income or asset limits are disclosed, suggesting the program may be needs-based or discretionary in funding decisions",
+        "Search results do not clarify whether there are different eligibility criteria for different care recipient diagnoses (e.g., intellectual disability vs. chronic illness)"
       ],
-      "benefitType": "financial reimbursement",
-      "benefitVariesBy": "Not specified — appears to be fixed reimbursement structure, but exact amounts not publicly detailed",
+      "benefitType": "financial",
+      "benefitVariesBy": "not_applicable",
       "officialSource": "https://alabamarespite.org/apply-for-respite/2025-2026-respite-application-packet/"
     },
     {
-      "name": "Alabama Senior Community Service Employment Program (SCSEP)",
+      "name": "Senior Community Service Employment Program (SCSEP)",
       "isNew": true,
       "existingId": null,
       "existingVerified": null,
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "Administered by multiple regional providers with county-specific service areas; no asset limits or fixed dollar benefits—income eligibility scales by household size via annual federal poverty guidelines; lifetime enrollment cap of 48 months",
+      "dataShapeNotes": "County-restricted by 8+ regional providers across all 67 counties; wages/hours vary slightly by provider; no asset test; must confirm current 125% FPL table separately as not listed",
       "gotchas": [
-        "Not statewide uniform—must confirm county is served by a specific provider; living outside service area disqualifies",
-        "Cumulative 48-month lifetime limit across all SCSEP providers nationwide",
-        "Must remain unemployed and actively seek unsubsidized work; no unemployment insurance benefits upon exit",
-        "Annual income recertification required by June 30",
-        "Priority tiers (veterans first) may create waitlists for others",
-        "No asset test, but income is strictly household-based at 125% FPL—excludes most other benefits from counting against eligibility"
+        "Must reside in specific counties served by each regional provider; not direct statewide application[2][9]",
+        "Program is temporary training, not permanent job; requires active job search while enrolled[6]",
+        "Unemployed status required at enrollment; income <125% FPL strictly enforced[1][3]",
+        "Wage/hour details may vary by region/provider; confirm locally[6][7]",
+        "No asset test, but proof of low income needed[1]"
       ],
       "benefitType": "employment",
-      "benefitVariesBy": "priority_tier",
+      "benefitVariesBy": "region",
       "officialSource": "https://alabamaageline.gov/scsep/"
     },
     {
-      "name": "Alabama Legal Services Corporation (Legal Aid for Seniors)",
+      "name": "Alabama Legal Services for Seniors",
       "isNew": true,
       "existingId": null,
       "existingVerified": null,
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "Elder grants waive income test (unique non-income-based access for 60+); statewide but with county-specific volunteer programs and referrals; priority for seniors among low-income",
+      "dataShapeNotes": "This program's structure is complex because it combines statewide Legal Services Alabama with regional Area Agencies on Aging that contract with LSA. Eligibility is income-based with a federal poverty guideline threshold (125% FPG) but also includes special non-income-based grants for seniors 60+. The program does not publish specific dollar amounts for income or asset limits, requiring families to contact directly. Benefits are service-based rather than financial, varying by legal issue type. Geographic coverage is statewide across 67 counties with 8 regional offices, but application and contact methods vary by region (some route through AAA/ADRC, others directly to LSA). Processing timelines and waitlist status are not publicly disclosed.",
       "gotchas": [
-        "Elder grants are not income-based but still subject to limited resources—cases may be rejected or referred",
-        "Not all civil cases accepted due to staff limits",
-        "General LSA services have 125% FPG income cap (elder grants waive)",
-        "Must specify elder legal issue during intake",
-        "No criminal cases; focus on civil matters"
+        "Income limits exist but specific dollar amounts vary by household size — families must call to determine eligibility rather than self-screening[1][10]",
+        "Asset limits are strict but specific thresholds are not publicly detailed in standard materials[4]",
+        "Special income-exempt grants exist for seniors 60+ but are not widely advertised[1]",
+        "Application does not guarantee service — program has limitations and cannot assist everyone who applies[2]",
+        "No attorney-client relationship is established by submitting an application[2]",
+        "Processing time and waitlist status are not publicly specified, creating uncertainty for families planning care",
+        "Multiple phone numbers exist (1-800-AGE-LINE, 1-866-456-3959, 1-866-785-1798) which may cause confusion about which to call",
+        "Spanish-language services available but only through specific phone line[6]",
+        "Program is civil legal aid only — does not handle criminal matters[8]"
       ],
-      "benefitType": "service",
-      "benefitVariesBy": "priority_tier",
-      "officialSource": "https://legalservicesalabama.org/elder-law/"
+      "benefitType": "service|advocacy",
+      "benefitVariesBy": "legal_issue_type",
+      "officialSource": "https://alabamaageline.gov/legal-assistance/ and https://legalservicesalabama.org/elder-law/"
     },
     {
       "name": "Alabama Long-Term Care Ombudsman Program",
@@ -337,56 +348,134 @@
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "no income/asset/age test; advocacy-only (no direct services or reimbursement); operates via statewide office + regional Area Agencies on Aging; complaint-driven rather than application for benefits",
+      "dataShapeNotes": "no income/asset/age test; advocacy-only for long-term care facility residents statewide via ADSS and 13 area agencies on aging; open to anyone filing on behalf of resident",
       "gotchas": [
-        "Not a service providing direct care, financial aid, or placement—purely advocacy and complaint resolution; no financial eligibility barriers but limited to long-term care facility residents (not home-based care); confidential but may require facility access for investigation; volunteers essential but must be trained/certified; people miss that anyone (not just residents) can file complaints on behalf of others."
+        "Not a direct service provider (e.g., no healthcare, financial aid, or personal care services)—purely advocacy and complaint resolution; no financial eligibility barriers, but must involve a long-term care facility resident; confidential but can be filed anonymously; ombudsmen are trained/certified advocates without facility conflicts; volunteers support but report to certified community ombudsmen"
       ],
       "benefitType": "advocacy",
       "benefitVariesBy": "not_applicable",
       "officialSource": "https://alabamaageline.gov/ombudsman/"
     },
     {
-      "name": "Alabama Cares",
+      "name": "Alabama Cares Program",
       "isNew": true,
       "existingId": null,
       "existingVerified": null,
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "No income/asset tests but priority-based on need; caregiver-focused (not direct to elderly); administered regionally via local AAAs with statewide guidelines; limited funds create de facto waitlist/prioritization.",
+      "dataShapeNotes": "Caregiver-focused with priority tiers emphasizing economic/social need, rural areas, and specific vulnerabilities; administered regionally by Area Agencies on Aging with no fixed income/asset tests",
       "gotchas": [
-        "Not a paid caregiver program; provides support services only, no direct financial payment to caregivers.[4][5]",
-        "Must be unpaid primary caregiver; services prioritize greatest need, so higher-income may be deprioritized.[2][5]",
-        "For relative caregivers: requires legal custody/relationship, co-residency, 20+ hours/week care, limited funds.[2][3]",
-        "Frail elderly must need 3+ ADLs; dementia qualifies regardless of age.[2]",
-        "Does not replace family role; limited funds may mean not all eligible get services.[5]"
+        "Focuses on caregivers (not direct care recipients); services aim to prevent burnout via respite/support, not ongoing paid care[7]",
+        "Must provide 20+ hours/week care for some categories; relative caregivers need custody[3]",
+        "Priority tiers (e.g., low-income, rural, Alzheimer's, older caregivers) affect access, not guaranteed services[1][3]",
+        "Not a Medicaid waiver or paid caregiver program; distinct from Elderly & Disabled Waiver or Personal Choices[2][4][8]"
       ],
       "benefitType": "service",
       "benefitVariesBy": "priority_tier",
-      "officialSource": "https://alabamaageline.gov/alabama-cares/"
+      "officialSource": "https://alabamaageline.gov/alabama-cares/[5]"
     },
     {
-      "name": "Alabama Senior Farmers Market Nutrition Program (SFMNP)",
+      "name": "Elderly and Disabled (E&D) Medicaid Waiver",
+      "isNew": false,
+      "existingId": "elderly-and-disabled-e-d-medicaid-waiver",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$2901",
+          "found": "$2,829",
+          "source": "https://medicaid.alabama.gov/content/6.0_LTC_waivers/6.1_HCBS_Waivers/6.1.2_Elderly_Disabled_Waiver.aspx"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$10,000 – $30,000/year",
+          "found": "Person-centered plan of care may include: personal care, homemaker services, companion services, respite care, adult day health, nutrition/frozen meals. No yearly cost cap or limit on services. Case management develops plan based on needs.[2][3][4]",
+          "source": "https://medicaid.alabama.gov/content/6.0_LTC_waivers/6.1_HCBS_Waivers/6.1.2_Elderly_Disabled_Waiver.aspx"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://medicaid.alabama.gov/content/6.0_LTC_waivers/6.1_HCBS_Waivers/6.1.2_Elderly_Disabled_Waiver.aspx"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Countable resources not to exceed $2,000 for an individual. Exempt assets include primary home (if applicant lives there or intends to return, with 2026 home equity limit of $1,130,000; also exempt if non-applicant spouse, blind/disabled child of any age, or child under 21 lives there), one vehicle, household furnishings, appliances, and personal effects. 60-month Look-Back Rule applies—transferring assets below fair market value triggers penalty period.[1][3]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered by ADSS through local Area Agencies on Aging (AAAs); potential differences in providers, wait times, or case managers by region, but core program uniform statewide.[4][5]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Yes, waiting list exists, especially for those not financially pre-qualified via Medicaid/SSI. Waiver enrollment limited.[3][7]",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of Medicaid or financial eligibility (income/resources documentation).",
+            "Medical records/physician statement confirming NFLOC/nursing home level disability.",
+            "Identity/residency proof.",
+            "Asset statements (avoid transfers in 60 months).",
+            "Annual eligibility renewal documents."
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "No age requirement; NFLOC via unique HCBS-1 checklist (meet 2/11 criteria); no service cost cap; waitlist for non-Medicaid eligible; statewide but via regional AAAs.",
+      "gotchas": [
+        "No age minimum—open to disabled under 65, including children (child's income/assets only, not parents').",
+        "Must meet NFLOC via specific HCBS-1 (2/11 criteria); doctor input needed but formal assessment required.",
+        "60-month Look-Back Rule penalties for asset transfers.",
+        "Waiting list if not Medicaid-eligible upfront.",
+        "Respond promptly to annual Medicaid/AAA letters or lose eligibility.",
+        "Services require person-centered plan; not automatic."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://medicaid.alabama.gov/content/6.0_LTC_waivers/6.1_HCBS_Waivers/6.1.2_Elderly_Disabled_Waiver.aspx"
+    },
+    {
+      "name": "Senior Aides Program",
       "isNew": true,
       "existingId": null,
       "existingVerified": null,
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "Benefits are fixed at $50 per senior (do not vary by household size or priority tier). Income limits scale by household size. Program is statewide but administered through regional AAAs with varying local details. Critical timing factor: applications open January annually and close when funds exhaust. No asset limits documented in available sources.",
+      "dataShapeNotes": "No direct match; data fragmented across Medicaid E&D Waivers (financial/medical tests), CARES (caregiver support, no income test), Personal Choices (self-direction add-on). Regional AAA delivery; waitlists common for waivers.",
       "gotchas": [
-        "Online application only — phone and mail applications are NOT accepted[1][4]",
-        "Must reapply every year; benefits do not automatically renew[1][4]",
-        "Keep the benefit card from previous years — new benefits are loaded onto the same card each year after application is received[1]",
-        "Program has limited funding and operates on first-come, first-served basis; seniors should apply as soon as applications open in January[1][4][5]",
-        "Benefits can only be used at certified farmers markets and farm stands, NOT at grocery stores[1][4]",
-        "Redemption period is limited: May 1 through November 27 (not year-round)[4]",
-        "Benefit card is scanned like a debit/credit card at point of purchase[4]",
-        "Alabama's program ranks fourth nationally[2], indicating high demand and potential for quick fund depletion"
+        "No program named 'Senior Aides Program' identified—may be misnomer for E&D Waiver aides, Personal Choices family payment, or state aides via AAAs. Dementia diagnosis alone insufficient for E&D. 60-month look-back penalties. Must meet NFLOC. Programs prioritize highest need.[1][3][7]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://medicaid.alabama.gov (for E&D/Personal Choices); https://alabamaageline.gov (CARES)"
+    },
+    {
+      "name": "SenioRx Prescription Drug Assistance Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "County-administered via 10+ Area Agencies on Aging; eligibility tiers (55+/chronic OR disabled any age OR Medicare gap); benefits dictated by pharma programs (3-month supplies); no fixed dollar cap, varies by drug/company",
+      "gotchas": [
+        "Final eligibility determined by each pharmaceutical company's guidelines, not just SenioRx screening[8]",
+        "Only for chronic conditions/daily meds; no short-term antibiotics or acute treatments[6]",
+        "Must apply in your specific county of residence; no statewide central application[4]",
+        "Income at 200% FPL is SenioRx guideline, but pharma programs may allow higher—still worth applying[4][8]",
+        "Funded 100% by Alabama Legislature, not federal Older Americans Act[4]"
       ],
       "benefitType": "in_kind",
-      "benefitVariesBy": "fixed",
-      "officialSource": "https://agi.alabama.gov/farmersmarket/"
+      "benefitVariesBy": "medication_and_pharmaceutical_company_guidelines",
+      "officialSource": "https://alabamaageline.gov/seniorx/[3]"
     }
   ]
 }

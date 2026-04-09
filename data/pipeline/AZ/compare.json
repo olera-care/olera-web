@@ -1,217 +1,168 @@
 {
   "state": "AZ",
   "stateName": "Arizona",
-  "comparedAt": "2026-04-09T09:26:38.669Z",
-  "total": 15,
-  "newPrograms": 7,
-  "withDiffs": 8,
-  "withNovelFields": 8,
+  "comparedAt": "2026-04-09T11:45:09.447Z",
+  "total": 10,
+  "newPrograms": 3,
+  "withDiffs": 7,
+  "withNovelFields": 7,
   "benefitTypes": {
     "service": 5,
-    "financial": 7,
-    "in_kind": 1,
-    "employment": 1,
+    "financial": 2,
+    "in_kind": 2,
     "advocacy": 1
   },
   "variationPatterns": {
-    "priority_tier": 5,
-    "Individual medical need and care plan; not a fixed dollar amount but rather coverage of necessary services": 1,
-    "funding_source (Medicaid vs. private pay)": 1,
-    "household_size": 1,
-    "not_applicable": 2,
-    "provider and program type": 1,
-    "fixed": 2,
-    "income_and_rent_or_property_taxes_paid": 1,
-    "filing_status": 1
+    "priority_tier": 4,
+    "region": 2,
+    "household_size and net_income": 1,
+    "household_size and utility provider": 1,
+    "not_applicable": 2
   },
   "novelFieldSummary": {
     "asset_limits": {
-      "count": 7,
+      "count": 6,
       "programs": [
-        "Arizona Long Term Care System (ALTCS)",
+        "AHCCCS (Arizona Long Term Care System - ALTCS)",
         "Arizona Medicare Savings Programs (QMB, SLMB, QI)",
-        "Nutrition Assistance (SNAP)",
+        "Nutrition Assistance (NA) / SNAP in Arizona",
         "Low Income Home Energy Assistance Program (LIHEAP)",
         "Arizona State Health Insurance Assistance Program (SHIP)",
-        "Arizona Senior Legal Helpline",
-        "Arizona Long Term Care Ombudsman Program"
+        "Congregate and Home-Delivered Meals"
       ],
       "note": "Our model has no asset limit fields"
     },
     "regional_variations": {
-      "count": 8,
+      "count": 6,
       "programs": [
-        "Arizona Long Term Care System (ALTCS)",
+        "AHCCCS (Arizona Long Term Care System - ALTCS)",
         "Arizona Medicare Savings Programs (QMB, SLMB, QI)",
-        "Nutrition Assistance (SNAP)",
         "Low Income Home Energy Assistance Program (LIHEAP)",
         "Arizona State Health Insurance Assistance Program (SHIP)",
-        "Arizona Senior Legal Helpline",
-        "Arizona Long Term Care Ombudsman Program",
-        "Senior Property Valuation Protection Program (Senior Freeze)"
+        "Congregate and Home-Delivered Meals",
+        "Arizona Long Term Care Ombudsman Program"
       ],
       "note": "Program varies by region — our model doesn't capture this"
     },
-    "waitlist": {
-      "count": 3,
-      "programs": [
-        "Arizona Long Term Care System (ALTCS)",
-        "Arizona Medicare Savings Programs (QMB, SLMB, QI)",
-        "Low Income Home Energy Assistance Program (LIHEAP)"
-      ],
-      "note": "Has waitlist info — our model has no wait time field"
-    },
     "documents_required": {
-      "count": 8,
+      "count": 7,
       "programs": [
-        "Arizona Long Term Care System (ALTCS)",
+        "AHCCCS (Arizona Long Term Care System - ALTCS)",
         "Arizona Medicare Savings Programs (QMB, SLMB, QI)",
-        "Nutrition Assistance (SNAP)",
+        "Nutrition Assistance (NA) / SNAP in Arizona",
         "Low Income Home Energy Assistance Program (LIHEAP)",
         "Arizona State Health Insurance Assistance Program (SHIP)",
-        "Arizona Senior Legal Helpline",
-        "Arizona Long Term Care Ombudsman Program",
-        "Senior Property Valuation Protection Program (Senior Freeze)"
+        "Congregate and Home-Delivered Meals",
+        "Arizona Long Term Care Ombudsman Program"
       ],
       "note": "Has document checklist — our model doesn't store per-program documents"
     },
-    "household_size_table": {
-      "count": 1,
+    "waitlist": {
+      "count": 5,
       "programs": [
-        "Nutrition Assistance (SNAP)"
+        "Arizona Medicare Savings Programs (QMB, SLMB, QI)",
+        "Nutrition Assistance (NA) / SNAP in Arizona",
+        "Low Income Home Energy Assistance Program (LIHEAP)",
+        "Congregate and Home-Delivered Meals",
+        "Arizona Long Term Care Ombudsman Program"
       ],
-      "note": "Benefits/eligibility vary by household size — we store a single number"
+      "note": "Has waitlist info — our model has no wait time field"
     }
   },
   "comparisons": [
     {
-      "name": "AHCCCS for Elders",
-      "isNew": true,
-      "existingId": null,
+      "name": "AHCCCS (Arizona Long Term Care System - ALTCS)",
+      "isNew": false,
+      "existingId": "arizona-long-term-care-system-altcs",
       "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "Requires nursing home level of care assessment beyond income/assets; benefits via regional contractors with waitlists for HCBS; estate recovery and share of cost create unique financial cliffs; dual-eligible with Medicare for many elders.",
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$1,000 – $5,000/year",
+          "found": "Long-term care services including home care, assisted living, memory care, skilled nursing; in-home services to avoid nursing home; allows payment to family as caregiver via Medicaid. Provided in institution, home, or community-based settings.[1][2][3][6]",
+          "source": "https://www.azahcccs.gov/Members/GetCovered/Categories/nursinghome.html"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.azahcccs.gov/Members/GetCovered/Categories/nursinghome.html"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Single applicant: $2,000. Married couples (both applying): $4,000. For married with one applicant, both spouses' assets combined and limited; Community Spouse Resource Allowance: Minimum $32,532, Maximum $162,660 (case-by-case). Exempt assets: Primary home (equity ≤ $752,000 if intent to return or certain family live there), 1 vehicle, household goods, personal property, certain burial accounts/plans/plots, Medicaid-compliant annuities, Special Needs Trusts (under 65). Countable: Additional homes, savings, bonds.[1][2][4]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Private pay transfer penalty rates vary: $8,666.72 (Maricopa, Pima, Pinal Counties), $8,132.22 (other AZ counties) for 10/01/2025-09/30/2026.[2]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of financial eligibility (income/assets), non-financial eligibility (citizenship, residency, SSN), medical need for NFLOC"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Asset limits low ($2,000 single) with spousal protections; NFLOC via PAS mandatory; Difficulty of Care income exclusion unique for family caregivers; regional penalty rate variations; trust/annuity options for income/assets",
       "gotchas": [
-        "Must prove nursing home level of care (NHLOC), not just age or low income—requires assessment.",
-        "Share of cost (like a deductible) may apply based on excess income.",
-        "Estate recovery for costs after age 55.",
-        "Difficulty of Care income exclusion only if providing care to ALTCS member in your home.",
-        "Assets must be countable under $2,000; spousal impoverishment rules complex for couples.",
-        "Not automatic for 65+; Medicare dual-eligibility separate.",
-        "Income limits change yearly with FPL; confirm current figures."
+        "Both spouses' assets counted even if only one applies; community spouse allowance case-by-case",
+        "Home equity limit $752,000 applies specifically",
+        "Medical NFLOC required beyond age/disability; PAS assessment key",
+        "Income Only Trust or Difficulty of Care exclusion needed if over income limits",
+        "Transfer penalties based on regional private pay rates",
+        "Medicaid-compliant annuities have strict rules—do not purchase without counsel",
+        "Eligibility cannot start before AZ residency or post-incarceration release"
       ],
       "benefitType": "service",
       "benefitVariesBy": "priority_tier",
       "officialSource": "https://www.azahcccs.gov/Members/GetCovered/Categories/nursinghome.html"
     },
     {
-      "name": "Arizona Long Term Care System (ALTCS)",
-      "isNew": false,
-      "existingId": "arizona-long-term-care-system-altcs",
-      "existingVerified": null,
-      "diffsFound": 3,
-      "diffs": [
-        {
-          "field": "min_age",
-          "ours": "65",
-          "found": "65 or older, OR blind, OR disabled (as defined by Social Security Administration)[1][2][3]",
-          "source": "https://www.azahcccs.gov/Members/GetCovered/Categories/nursinghome.html[7]"
-        },
-        {
-          "field": "benefit_value",
-          "ours": "$1,000 – $5,000/year",
-          "found": "Long-term care services including home care, assisted living, memory care, and skilled nursing facility care[4]",
-          "source": "https://www.azahcccs.gov/Members/GetCovered/Categories/nursinghome.html[7]"
-        },
-        {
-          "field": "source_url",
-          "ours": "MISSING",
-          "found": "https://www.azahcccs.gov/Members/GetCovered/Categories/nursinghome.html[7]"
-        }
-      ],
-      "novelFields": [
-        {
-          "field": "asset_limits",
-          "value": {
-            "countable_resources_single": "$2,000[2][3]",
-            "countable_resources_married": "$4,000[3]",
-            "maximum_resource_standard_2026": "$162,660.00[4]",
-            "countable_assets": "Cash in bank accounts, retirement funds, multiple properties, stocks/bonds/money markets, some life insurance policies[2]",
-            "exempt_assets": [
-              "Primary residence in Arizona (home equity limit: $752,000 in 2026)[1][4]",
-              "One vehicle[2][3]",
-              "Household furnishings, appliances, and personal effects[1]",
-              "Up to $2,000 in cash[2]",
-              "$1,500 designated for burial expenses[2]",
-              "Medicaid compliant annuity[4]",
-              "Special Needs Trusts for disabled persons under age 65[4]"
-            ],
-            "look_back_rule": "Assets cannot be given away or sold for under fair market value within 60 months of application; violation results in penalty period of Medicaid ineligibility[1]"
-          },
-          "note": "Our model has no asset limit fields"
-        },
-        {
-          "field": "regional_variations",
-          "value": "Not specified in search results",
-          "note": "Program varies by region — our model doesn't capture this"
-        },
-        {
-          "field": "waitlist",
-          "value": "Not specified in search results",
-          "note": "Has waitlist info — our model has no wait time field"
-        },
-        {
-          "field": "documents_required",
-          "value": [
-            "Proof of income[6]",
-            "Proof of assets[6]",
-            "Proof of residency[6]",
-            "Physician's certification of need for long-term care[6]",
-            "Documentation of activities of daily living limitations[6]",
-            "Proof of citizenship or immigration status[5]"
-          ],
-          "note": "Has document checklist — our model doesn't store per-program documents"
-        }
-      ],
-      "dataShapeNotes": "ALTCS is a Medicaid program with strict dual eligibility requirements (medical AND financial). Benefits are service-based rather than cash-based, with coverage determined by individual medical need. Income and asset limits are updated annually. The program includes a 60-month look-back period for asset transfers. Home equity is treated specially with a specific dollar limit rather than being fully exempt. Married couples have different asset limits ($4,000 vs. $2,000 for singles) and community spouse protections.",
-      "gotchas": [
-        "Application must be completed with no mistakes or applicant will be denied[2]",
-        "60-month look-back rule: assets given away or sold below fair market value within 60 months trigger penalty period of ineligibility[1]",
-        "Dementia or Alzheimer's diagnosis alone does NOT guarantee eligibility; functional need must be demonstrated[1]",
-        "Home equity limit is $752,000 (2026); homes exceeding this value may disqualify applicant[1][4]",
-        "Income limits are strict and updated annually in January[4]",
-        "Processing takes 60-90 days and must be completed accurately[2]",
-        "ALTCS is state and federally funded and prioritizes those with greatest financial need[2]",
-        "Applicant does not need to already reside in nursing facility to qualify[6]",
-        "For married couples, community spouse resource limits are determined case-by-case[4]"
-      ],
-      "benefitType": "service",
-      "benefitVariesBy": "Individual medical need and care plan; not a fixed dollar amount but rather coverage of necessary services",
-      "officialSource": "https://www.azahcccs.gov/Members/GetCovered/Categories/nursinghome.html[7]"
-    },
-    {
-      "name": "Arizona PACE Programs",
+      "name": "ALTCS Home and Community-Based Services (HCBS) Waiver",
       "isNew": true,
       "existingId": null,
       "existingVerified": null,
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "Arizona PACE is a state-option program under Medicaid (not universally available). Eligibility has two layers: (1) PACE-specific requirements (age 55+, nursing home level of care certification, service area residency, community safety); (2) Medicaid requirements if seeking Medicaid funding (income/asset limits). The program is fully covered for Medicaid beneficiaries but requires private monthly premiums for non-Medicaid participants. Availability is geographically restricted to PACE organization service areas. No income or asset limits exist for PACE itself, but Medicaid-funded enrollment has strict financial thresholds. Processing timelines and specific PACE provider locations are not documented in available sources.",
+      "dataShapeNotes": "Income limit fixed per individual ($2,982/month as of 2026) regardless of household size; assets $2,000 strict with key exemptions (home equity cap); benefits tiered by NFLOC/priority with managed care providers; statewide but provider-managed regionally.",
       "gotchas": [
-        "PACE is NOT available statewide — you must verify a PACE organization operates in your service area before applying[1][4]",
-        "Despite being designed to prevent nursing home placement, PACE requires applicants to be certified as needing nursing home level of care — this is a paradox families should understand[3]",
-        "No financial criteria are considered for PACE eligibility itself, but if funding through Medicaid, strict income ($2,982/month) and asset ($2,000) limits apply[1][5]",
-        "Participants cannot be in Medicare Advantage plans — this is a common enrollment conflict[1]",
-        "Average PACE participant is 76 years old with multiple complex medical conditions; the program is designed for frail elderly with significant health and long-term care needs[1]",
-        "PACE is voluntary enrollment, but once enrolled, participants must receive covered services through the PACE organization[2]",
-        "The program cannot discriminate based on health status during enrollment, but staff must assess appropriateness for community-based care[2]"
+        "Must meet both financial (income + assets) AND medical (NFLOC via PAS) criteria; failing one disqualifies.",
+        "Assets combined for married couples; strict $2,000 limit with no accumulation allowed monthly.",
+        "60-month Look-Back penalizes improper transfers.",
+        "Family caregivers must be hired by approved provider, not directly.",
+        "Income limits per individual even if married; Difficulty of Care exclusion only for specific caregiver income.",
+        "Dementia diagnosis alone insufficient; must prove NFLOC via ADLs/cognition.",
+        "Must live in approved setting; not all residences qualify."
       ],
       "benefitType": "service",
-      "benefitVariesBy": "funding_source (Medicaid vs. private pay)",
-      "officialSource": "azahcccs.gov/Members/GetCovered/ and National PACE Association npaonline.org"
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.azahcccs.gov/Members/GetCovered/Categories/nursinghome.html"
+    },
+    {
+      "name": "Arizona PACE (Program of All-Inclusive Care for the Elderly)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Limited to specific PACE center service areas (not statewide); tied to AHCCCS/ALTCS for certification and full coverage; no financial test for enrollment but ALTCS needed for free access; regional providers only.",
+      "gotchas": [
+        "Not statewide—must live in a PACE service area; limited locations in AZ.",
+        "Requires AHCCCS nursing home level certification even if not Medicaid-eligible (private pay possible but expensive).",
+        "Cannot be in Medicare Advantage, hospice, etc.—must disenroll first.",
+        "90%+ participants dually eligible; non-duals pay privately (~$7k+/mo).",
+        "Voluntary but must agree to all services through PACE only."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "region",
+      "officialSource": "https://www.azahcccs.gov (AHCCCS/ALTCS administers; no direct PACE page in results)"
     },
     {
       "name": "Arizona Medicare Savings Programs (QMB, SLMB, QI)",
@@ -223,13 +174,13 @@
         {
           "field": "income_limit",
           "ours": "$1600",
-          "found": "$20",
+          "found": "$1,330",
           "source": "https://www.azahcccs.gov/PlansProviders/FeeForServiceHealthPlans/MedicareSavingsPrograms/"
         },
         {
           "field": "benefit_value",
           "ours": "$2,000 – $8,000/year",
-          "found": "**QMB:** Pays Medicare Part A premium (if applicable, e.g., $278/month in 2024), Part B premium (~$174.70/month in 2025), deductibles, coinsurance, copays (Medicare pays first, then MSP covers remainder). Automatic Extra Help for Part D (caps drug copays at $12.65/genus in 2026)[5][7]. **SLMB:** Pays Part B premium only; Extra Help for Part D[4]. **QI:** Pays Part B premium only; Extra Help for Part D. Providers cannot bill QMB enrollees for covered Medicare services[7].",
+          "found": "**QMB:** Pays Medicare Part A premium (if applicable), Part B premium (~$185/month in 2026), deductibles, coinsurance, copays for Medicare-covered services. Automatic Extra Help for Part D (caps drug costs at $12.65/generic in 2026). Providers cannot bill beneficiary for covered services.[5][7]\n**SLMB:** Pays Part B premium only. Automatic Extra Help for Part D.[4][6]\n**QI (QI-1):** Pays Part B premium only. Automatic Extra Help for Part D. Annual reapplication required; first-come-first-served with renewal priority.[4][6][7]",
           "source": "https://www.azahcccs.gov/PlansProviders/FeeForServiceHealthPlans/MedicareSavingsPrograms/"
         },
         {
@@ -241,118 +192,109 @@
       "novelFields": [
         {
           "field": "asset_limits",
-          "value": "Arizona has **no asset limits** for QMB, SLMB, or QI (confirmed for QMB; applies statewide)[1]. Some general sources mention federal limits like $9,430 single/$14,130 couple, but not enforced in AZ[3]. Exempt: primary home, one car, personal belongings, burial plots. Countable: bank accounts, stocks (if limits applied).",
+          "value": "Arizona does not impose asset limits for these programs (no resource test since 2010s alignment with SSI expansions). Exemptions not applicable due to no test.[1][4]",
           "note": "Our model has no asset limit fields"
         },
         {
           "field": "regional_variations",
-          "value": "Administered uniformly by AHCCCS/DES, but apply via local DES offices which may have slight processing differences. No provider or wait time variations noted[4][5].",
+          "value": "Uniform administration by AHCCCS central office; local Area Agencies on Aging assist but no benefit/provider differences. Processing may vary slightly by local office volume.",
           "note": "Program varies by region — our model doesn't capture this"
         },
         {
           "field": "waitlist",
-          "value": "QI has first-come, first-served with annual funding limits and priority for prior recipients; possible waitlist if funds exhausted[7]. QMB/SLMB entitlement (no waitlist).",
+          "value": "QI has first-come-first-served with priority for prior recipients; potential waitlist if funds exhausted (federal cap).[7]",
           "note": "Has waitlist info — our model has no wait time field"
         },
         {
           "field": "documents_required",
           "value": [
             "Proof of income (SSI award, pay stubs, pension statements)",
-            "Proof of resources (bank statements, if applicable)",
-            "Medicare card",
-            "ID (birth certificate, Social Security card)",
+            "Proof of Medicare enrollment (card)",
+            "ID (birth certificate, driver's license)",
             "Proof of residency (utility bill)",
-            "Proof of citizenship/immigration status"
+            "Bank statements (if resources were tested historically)",
+            "Proof of other benefits applied for"
           ],
           "note": "Has document checklist — our model doesn't store per-program documents"
         }
       ],
-      "dataShapeNotes": "Tiered by income brackets (QMB/SLMB/QI) tied to FPG percentages; no asset test in Arizona; QI is capped/entitlement-priority; benefits focus on premiums/cost-sharing with auto Extra Help; statewide via AHCCCS/DES.",
+      "dataShapeNotes": "Tiered by income brackets (QMB/SLMB/QI); no asset test in AZ; benefits fixed by federal MSP categories with state AHCCCS payment; QI first-come-first-served federally capped",
       "gotchas": [
-        "Arizona has **no asset test** unlike many states—big differentiator people miss[1].",
-        "Must have Part A to qualify; QI requires annual reapplication and may run out of funds[7].",
-        "QMB protects from provider billing for Medicare-covered services, but small Medicaid copays may apply[7].",
-        "Income calculated with $20 disregard; 'countable income' excludes certain deductions.",
-        "Automatic Extra Help for Part D, but must coordinate with Medicare Advantage if enrolled[4].",
-        "Outdated income figures in sources; always verify current FPG-based limits with AHCCCS.",
-        "Not full Medicaid—only Medicare cost-sharing help."
+        "Arizona has no asset limit, but must apply for other benefits (e.g., SSI) first",
+        "QMB provides full cost-sharing protection—providers can't bill you, but confirm with 'QMB' status",
+        "QI requires annual renewal and has funding caps—apply early in year",
+        "Automatic Extra Help with Part D, but must coordinate with plan",
+        "Income calculated after $20 disregard; household size includes spouse",
+        "Not full Medicaid—only Medicare cost-sharing help",
+        "Outdated web limits (e.g., [2]) don't reflect current FPL"
       ],
       "benefitType": "financial",
       "benefitVariesBy": "priority_tier",
       "officialSource": "https://www.azahcccs.gov/PlansProviders/FeeForServiceHealthPlans/MedicareSavingsPrograms/"
     },
     {
-      "name": "Nutrition Assistance (SNAP)",
+      "name": "Nutrition Assistance (NA) / SNAP in Arizona",
       "isNew": false,
       "existingId": "nutrition-assistance-program",
       "existingVerified": null,
-      "diffsFound": 4,
+      "diffsFound": 2,
       "diffs": [
-        {
-          "field": "min_age",
-          "ours": "65",
-          "found": "60",
-          "source": "https://des.az.gov/services/basic-needs/food/nutrition-assistance (inferred from context; use Arizona Self-Help at www.arizonaselfhelp.org for screening)"
-        },
-        {
-          "field": "income_limit",
-          "ours": "$2070",
-          "found": "$2,412",
-          "source": "https://des.az.gov/services/basic-needs/food/nutrition-assistance (inferred from context; use Arizona Self-Help at www.arizonaselfhelp.org for screening)"
-        },
         {
           "field": "benefit_value",
           "ours": "$1,500 – $3,600/year",
-          "found": "Monthly EBT card for groceries (including online at Amazon, Walmart, Aldi/Instacart). Up to $234/month for one-person household (2022 data); calculated as max allotment minus 30% of net income (e.g., $546 max for 2-person elderly household minus 30% net = $415 example). Exact amount varies by net income, deductions (medical, shelter)[1][4][5].",
-          "source": "https://des.az.gov/services/basic-needs/food/nutrition-assistance (inferred from context; use Arizona Self-Help at www.arizonaselfhelp.org for screening)"
+          "found": "Monthly food assistance benefit amount varies by household net income and size. Minimum benefit is $24/month for households of 1-2 people (with exceptions in application month: $10-$24 range is paid; under $10 is not paid).[2]",
+          "source": "Arizona Department of Economic Security (DES) — specific URL not provided in search results; arizonaselfhelp.org is the primary application/screening tool"
         },
         {
           "field": "source_url",
           "ours": "MISSING",
-          "found": "https://des.az.gov/services/basic-needs/food/nutrition-assistance (inferred from context; use Arizona Self-Help at www.arizonaselfhelp.org for screening)"
+          "found": "Arizona Department of Economic Security (DES) — specific URL not provided in search results; arizonaselfhelp.org is the primary application/screening tool"
         }
       ],
       "novelFields": [
         {
           "field": "asset_limits",
-          "value": "No asset limit for most Arizona households. For elderly/disabled households failing Gross Income test, federal rules apply: $4,500 limit on countable resources (e.g., bank accounts). Exempt: home, vehicles, retirement savings, household goods, life insurance cash value (varies)[1][2][3][6].",
+          "value": {
+            "general_households": "No specific asset limit mentioned in standard rules[1]",
+            "households_with_disability": "$4,500 resource limit. However, some people with disabilities have categorical eligibility and resources are not counted.[2]",
+            "migrant_seasonal_workers": "Cash and bank accounts must be $100 or less[1]",
+            "what_counts": "Resources include car, home, money in bank[2]"
+          },
           "note": "Our model has no asset limit fields"
         },
         {
-          "field": "household_size_table",
-          "value": "For households with a member 60+ or disabled (Oct 1, 2025 - Sept 30, 2026): Gross income limit at 185% FPL - 1 person: $2,412/month; 2: $3,261; 3: $4,108; 4: $4,956; 5: $5,805; 6: $6,652; 7: $7,499; +$847 each additional. If over gross limit, qualify via Net Income test (must be below 100% FPL after deductions, e.g., ~$1,305/month individual, $1,763 couple per older data) and Asset test. Annual equivalents like $19,584 for one-person noted in legislative context[1][3][6].",
-          "note": "Benefits/eligibility vary by household size — we store a single number"
-        },
-        {
-          "field": "regional_variations",
-          "value": "Administered uniformly statewide by AZ DES/FAA, but local offices may have varying wait times or processing; no specific differences noted[1][4][6].",
-          "note": "Program varies by region — our model doesn't capture this"
+          "field": "waitlist",
+          "value": "Not mentioned in search results",
+          "note": "Has waitlist info — our model has no wait time field"
         },
         {
           "field": "documents_required",
           "value": [
-            "Proof of income (Social Security awards, pay stubs, pensions)",
-            "ID",
-            "Proof of expenses (medical bills over $35/month, rent/utility bills)",
-            "Proof of disability if claimed",
-            "Household composition details"
+            "Household income from jobs, child support, and other income sources[1]",
+            "Social Security numbers and birth dates of all household members[1]",
+            "Housing costs (rent/mortgage) and utility costs (phone, electric, gas, water)[1]",
+            "Child care or dependent care costs[1]",
+            "Proof of Arizona residency[1]",
+            "Proof of citizenship or lawful presence[1]",
+            "Social Security number or proof of application[1]"
           ],
           "note": "Has document checklist — our model doesn't store per-program documents"
         }
       ],
-      "dataShapeNotes": "Elderly/disabled have special path: gross income optional (185% FPL table by household size), fallback to net income + $4,500 assets; benefits scale by household size and net income deductions; statewide with DES central admin",
+      "dataShapeNotes": "This program's eligibility structure is bifurcated: elderly/disabled households follow different rules than general households, with significantly more favorable income thresholds. Benefits scale by household size and net income. Arizona has expanded beyond federal minimums. The work requirement has numerous categorical exemptions. Processing timelines and specific form numbers are not publicly detailed in available sources.",
       "gotchas": [
-        "Elderly/disabled over gross income (185% FPL) must pass stricter Net + Asset tests ($4,500 limit)",
-        "Medical expenses >$35/month and shelter costs deductible to lower net income",
-        "Entire household (food buyers/preparers) included even if not all elderly",
-        "No impact on other benefits except FDPIR",
-        "Vehicles/home exempt from assets",
-        "Broadened AZ rules looser than federal—check current via screener",
-        "2025 federal changes (e.g., work rules) may apply per One Big Beautiful Bill Act[1][2][3][4][5]"
+        "Elderly and disabled households have a MAJOR advantage: they can bypass the Gross Income test entirely and qualify using only Net Income and Asset tests. This means an elderly person earning $3,000/month could still qualify if their net income (after deductions) is under $1,304.[4]",
+        "The work requirement is strict (80 hours/month) but has many exceptions — families should check if their elderly loved one qualifies for an exemption before assuming they don't qualify.[3]",
+        "Arizona has EXPANDED eligibility beyond federal SNAP requirements, so income limits are higher than in many other states.[4]",
+        "Deductions matter significantly: shelter costs, medical expenses, and income tax are deducted from gross income to calculate net income. An elderly person with high medical expenses could qualify even with higher gross income.[2]",
+        "Minimum benefit is $24/month for most households, but in the application month, benefits under $10 are not paid at all.[2]",
+        "Non-citizens must have 'qualified alien' status — not all non-citizens qualify, but the program is broader than just citizens.[5]",
+        "If someone is unemployed, they may still qualify, but they may be required to participate in employment/training programs (with exceptions).[5]",
+        "Intentionally reducing work hours or leaving a job to qualify will disqualify the applicant.[5]"
       ],
-      "benefitType": "financial",
-      "benefitVariesBy": "household_size",
-      "officialSource": "https://des.az.gov/services/basic-needs/food/nutrition-assistance (inferred from context; use Arizona Self-Help at www.arizonaselfhelp.org for screening)"
+      "benefitType": "in_kind",
+      "benefitVariesBy": "household_size and net_income",
+      "officialSource": "Arizona Department of Economic Security (DES) — specific URL not provided in search results; arizonaselfhelp.org is the primary application/screening tool"
     },
     {
       "name": "Low Income Home Energy Assistance Program (LIHEAP)",
@@ -370,7 +312,7 @@
         {
           "field": "benefit_value",
           "ours": "$500 – $2,000/year",
-          "found": "Standard benefit up to $640/year for heating or cooling; crisis benefit up to $500 for energy emergencies. Minimum $160 for heating/cooling.[1][2]",
+          "found": "Standard benefit up to $640 per year for heating or cooling (minimum $160). Crisis benefit up to $500 for energy emergencies.[1][2]",
           "source": "https://des.az.gov/liheap"
         },
         {
@@ -382,44 +324,67 @@
       "novelFields": [
         {
           "field": "asset_limits",
-          "value": "No asset limit.[2]",
+          "value": "No asset limit applies.[2]",
           "note": "Our model has no asset limit fields"
         },
         {
           "field": "regional_variations",
-          "value": "Administered via local Community Action Programs; program dates vary slightly by county (e.g., cooling end Oct 31 vs Nov 30).[2]",
+          "value": "Administered by local Community Action Programs; seasonal dates differ slightly by county group; contact local provider for specifics.[2]",
           "note": "Program varies by region — our model doesn't capture this"
         },
         {
           "field": "waitlist",
-          "value": "Funding may run out, some agencies stop accepting applications early.[2]",
+          "value": "Funding limited; agencies may stop accepting applications if funds run out.[2]",
           "note": "Has waitlist info — our model has no wait time field"
         },
         {
           "field": "documents_required",
           "value": [
-            "State Driver’s License or ID.",
-            "Proof of citizenship/immigration status.",
-            "Proof of residence (lease, deed, tax bill).",
-            "SSN/birth certificates/school records for all household members.",
-            "Income verification (paystubs, SS awards, etc.) for last 30 days for adults 18+.",
-            "Current utility bills.",
-            "Termination/delinquent notice if applicable."
+            "State Driver’s License or ID.[1]",
+            "Proof of citizenship/immigration status.[1]",
+            "Proof of residence (lease, deed, property tax bill).[1]",
+            "SSN, birth certificates, or school records for all household members.[1]",
+            "Income verification for adults 18+ last 30 days (paystubs, SS awards, etc.).[1]",
+            "Current utility bills.[1]",
+            "Utility termination/delinquent notice if applicable.[1]"
           ],
           "note": "Has document checklist — our model doesn't store per-program documents"
         }
       ],
-      "dataShapeNotes": "Priority tiers for vulnerable households; no asset test; benefits fixed max/min with crisis add-on; county-specific seasonal dates; local providers handle intake.",
+      "dataShapeNotes": "Priority tiers for vulnerable households (elderly/disabled/children); seasonal heating/cooling windows vary by county groups; no asset test; fixed max benefits with crisis add-on.",
       "gotchas": [
-        "Priority for vulnerable members (elderly 60+, disabled, young children, veterans); not first-come.",
-        "No benefit if utility credit >=$500.",
-        "Funding limited; apply early as agencies may close applications.",
-        "Household includes all at address sharing utility bill.",
-        "Must verify income for last 30 days only."
+        "Priority-based on vulnerable members (elderly 60+, disabled, young children, veterans); not first-come.[3]",
+        "No benefit if $500+ utility credit exists.[3]",
+        "Funding exhausts quickly; apply early, especially in season starts.[2]",
+        "Roommates sharing utility bill count as one household.[2]",
+        "Tribal LIHEAP denial required if previously applied there.[4]"
       ],
       "benefitType": "financial",
       "benefitVariesBy": "priority_tier",
       "officialSource": "https://des.az.gov/liheap"
+    },
+    {
+      "name": "Arizona Weatherization Assistance Program (WAP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "This program's structure is highly fragmented: it operates through different regional agencies (utility-specific and county-specific), uses slightly different income thresholds by provider, and lacks a centralized application portal. Families must first identify their utility provider, then contact the appropriate regional administrator. Income limits scale by household size with a base threshold plus per-person additions. Benefits are in-kind (free retrofits) rather than cash assistance, with the scope of work determined by home assessment. Processing timelines and current waitlist status are not publicly documented in available sources.",
+      "gotchas": [
+        "Income limits are 200% of federal poverty guidelines, not 100%—this is more generous than many assume but still quite restrictive[1][2][3]",
+        "Program is administered through multiple different agencies depending on your utility provider and location—there is no single statewide application process[1][2][4][5]",
+        "Funding is limited, and the search results do not specify current wait times or whether there is an active waitlist[1]",
+        "Income thresholds vary slightly by utility provider (SRP vs. TEP/UniSource use different per-person add-ons), so a family at the borderline may qualify with one provider but not another[1][2][4]",
+        "The program is complementary to federal WAP and LIHEAP programs—families may need to apply separately for different components[1][5]",
+        "Priority is given to elderly, disabled, and families with children, but this does not guarantee approval for other households[3]",
+        "Home must be assessed and inspected before improvements are approved; not all homes may qualify for all services[5]",
+        "Program participants are surveyed about comfort and bill savings, but actual energy bill reductions are not guaranteed[1]"
+      ],
+      "benefitType": "in_kind",
+      "benefitVariesBy": "household_size and utility provider",
+      "officialSource": "Arizona Department of Housing; individual utility providers (SRP, TEP, UniSource); City of Phoenix"
     },
     {
       "name": "Arizona State Health Insurance Assistance Program (SHIP)",
@@ -431,7 +396,7 @@
         {
           "field": "benefit_value",
           "ours": "$3,000 – $10,000/year",
-          "found": "Free one-on-one personalized health insurance counseling and assistance on Medicare benefits, coverage decisions, Medicare Advantage, Medigap, Part D, appeals, long-term care insurance, Medicaid eligibility, Medicare Savings Programs (MSP), Extra Help/Low Income Subsidy, fraud prevention via Senior Medicare Patrol (SMP), outreach presentations, and enrollment events; no fixed dollar amounts or hours, services provided via phone, in-person, or virtually as needed[1][2][3][4][5][6][7][8]",
+          "found": "Free one-on-one personalized health insurance counseling and assistance on Medicare benefits, coverage decisions, Medicare Advantage, Part D prescription drugs, Medigap, Medicare Savings Programs (MSP), Medicaid, low-income subsidies (Extra Help), long-term care insurance, appeals, fraud prevention via Senior Medicare Patrol (SMP), outreach presentations, and enrollment events; no fixed dollar amounts or hours, services provided via phone, in-person, or virtually as needed[1][2][3][4][5][6][7]",
           "source": "https://azship.org"
         },
         {
@@ -443,144 +408,91 @@
       "novelFields": [
         {
           "field": "asset_limits",
-          "value": "No asset limits or tests apply[6]",
+          "value": "No asset limits or tests apply[2][6]",
           "note": "Our model has no asset limit fields"
         },
         {
           "field": "regional_variations",
-          "value": "Delivered through a network of local providers and Area Agencies on Aging (e.g., SEAGO for southeast counties, PCOA in Pima/Tucson area), with locally focused counseling on regional Medicare options, but core services consistent[4][6][7][8]",
+          "value": "Delivered through a statewide network with local providers and Area Agencies on Aging (e.g., SEAGO for southeast counties, PCOA in Pima/Tucson); services are consistent but access points and counselors are regionally based for local Medicare options[4][7][8]",
           "note": "Program varies by region — our model doesn't capture this"
         },
         {
           "field": "documents_required",
           "value": [
-            "No specific documents required for initial counseling; may need Medicare card, income details, or insurance documents for assistance with applications like MSP or Extra Help[2][4][6]"
+            "No specific documents required for initial counseling; may need Medicare card, income details, or plan documents for assistance with applications like MSP or Extra Help[2][4][6]"
           ],
           "note": "Has document checklist — our model doesn't store per-program documents"
         }
       ],
-      "dataShapeNotes": "no income/asset test; counseling-only service via statewide local network; prioritizes low-income/disabled/dual-eligible but open to all Medicare beneficiaries; integrates SMP for fraud prevention[2][3][6]",
+      "dataShapeNotes": "no income/asset test; counseling service via statewide network of local providers; prioritizes low-income/disabled but open to all Medicare-related needs; integrates SMP for fraud prevention",
       "gotchas": [
-        "Not a direct financial aid or healthcare provider program—offers counseling only, not payment for services; people may miss that it helps apply for other programs like MSP (up to $8,400/year savings for individuals) or Extra Help; services rely on local availability of counselors/volunteers, so response times may vary; assumes Medicare enrollment[2][3][4][6]",
-        "Even if income is near limits for related programs, SHIP assists with applications worth pursuing[6]"
+        "Not a direct financial aid or healthcare provider—offers counseling only, not payment for services; people may miss that it helps apply for other programs like MSP (up to $8,400/year savings) or Extra Help; assumes Medicare enrollment—helps check eligibility; regional providers handle local plans, so contact statewide line first[2][4][6]",
+        "Services are free but rely on volunteers/staff availability, potentially leading to call-back delays[2][7]"
       ],
       "benefitType": "service",
       "benefitVariesBy": "not_applicable",
       "officialSource": "https://azship.org"
     },
     {
-      "name": "Home Delivered Meals (Meals on Wheels)",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "Arizona's home-delivered meals system is fragmented across multiple providers (St. Mary's Food Bank, YWCA, Mom's Meals) and funding sources (Medicaid, Medicare Advantage, Area Agency on Aging). Eligibility and benefits vary significantly by provider and referral source. The Area Agency on Aging (602-264-4357) serves as the primary intake point for most programs. Income limits are the primary eligibility gate (185% FPL for food bank program), but disability/confinement status is also required. No asset limits specified in available documentation.",
-      "gotchas": [
-        "Eligibility is determined by Area Agency on Aging, not directly by the meal provider — families must contact AAA first[6]",
-        "Income limits vary significantly: St. Mary's Food Bank uses 185% FPL[2], while Medicaid programs may have different thresholds[3]",
-        "Must be physically present to receive delivery; meals cannot be left on doorsteps or porches[2][4]",
-        "One meal per week is standard for St. Mary's Food Bank[2], but YWCA provides up to seven meals weekly[6] — availability depends on provider and referral source",
-        "Medicaid/Medicare Advantage recipients should contact their health plan first, as benefits may be covered at no cost through their plan[3][5]",
-        "SNAP recipients get automatic TEFAP eligibility with St. Mary's, but this is a separate benefit from regular home delivery[2]",
-        "Program guidelines subject to change; current delivery frequency may differ from stated one-per-week standard[2]"
-      ],
-      "benefitType": "in_kind",
-      "benefitVariesBy": "provider and program type",
-      "officialSource": "Area Agency on Aging (602-264-4357); AHCCCS Medical Policy Manual Chapter 1200, Policy 1240-F for Medicaid-funded programs[4]"
-    },
-    {
-      "name": "Arizona Caregiver Respite Program",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "Voucher-based financial aid for kinship caregivers 55+; priority by assessment tool; excludes public program recipients; quarterly reapplication required.",
-      "gotchas": [
-        "Not case-managed; streamlined for short breaks only.",
-        "Must reapply each quarter.",
-        "Reimbursement capped; over $12/hour not covered.",
-        "Excludes those already in publicly funded respite programs.",
-        "Hired worker restrictions (no household members, no legal/fiscal roles).",
-        "Primarily for kinship/grandparents raising grandchildren 55+."
-      ],
-      "benefitType": "financial",
-      "benefitVariesBy": "priority_tier",
-      "officialSource": "https://azcaregiver.org/services/respite"
-    },
-    {
-      "name": "Senior Community Service Employment Program (SCSEP)",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "SCSEP in Arizona is administered by multiple providers (AARP Foundation and NICOA), each serving different geographic areas and populations. Income eligibility is pegged to federal poverty guidelines updated annually, requiring verification at time of application. The program has a fixed 48-month lifetime limit and provides fixed part-time hours (average 20/week) at minimum wage. Benefits do not vary by household size or priority tier — all participants receive the same training structure, though enrollment priority differs. Geographic service areas are restricted by county and provider.",
-      "gotchas": [
-        "Income limits are tied to federal poverty guidelines, which are updated annually (most recently January 15, 2025)[2]. Families must verify current thresholds with the program, as dollar amounts are not fixed.",
-        "Maximum lifetime participation is 48 months total[1] — this is a hard cap, not renewable.",
-        "Enrollment priority is given to veterans and qualified spouses first, then to individuals over 65, with disabilities, with low literacy or limited English proficiency, in rural areas, homeless or at risk of homelessness, with low employment prospects, or who have failed to find employment through American Job Centers[2]. Eligibility does not guarantee immediate placement.",
-        "The program is designed as a bridge to unsubsidized employment[2], not permanent subsidized work. The goal is transition to regular employment.",
-        "Participants work an average of 20 hours per week[2] — this is part-time, not full-time employment.",
-        "Service areas vary by provider. Not all Arizona counties may be served by all providers; families should verify their county is covered before applying.",
-        "Job-ready applicants may be referred to ARIZONA@WORK for additional employment services rather than SCSEP[1]."
-      ],
-      "benefitType": "employment",
-      "benefitVariesBy": "fixed",
-      "officialSource": "https://www.dol.gov/agencies/eta/seniors (U.S. Department of Labor); https://www.pinal.gov/DocumentCenter/View/13857 (Arizona Department of Economic Security SCSEP Policy Manual)"
-    },
-    {
-      "name": "Arizona Senior Legal Helpline",
+      "name": "Congregate and Home-Delivered Meals",
       "isNew": false,
-      "existingId": "arizona-senior-legal-helpline",
+      "existingId": "home-delivered-meals",
       "existingVerified": null,
-      "diffsFound": 2,
+      "diffsFound": 3,
       "diffs": [
         {
+          "field": "min_age",
+          "ours": "65",
+          "found": "60",
+          "source": "https://aging.az.gov/ (implied via Area Agency on Aging; specific provider sites like aaaa.org not directly listed)"
+        },
+        {
           "field": "benefit_value",
-          "ours": "$500 – $3,000/year",
-          "found": "Free legal services for civil issues including wills/estate planning, powers of attorney/living wills, probate, bankruptcy, collection/consumer finances, Social Security/SSI benefits, veteran benefits. Referrals for cases outside expertise or not meeting low-income criteria[2][4].",
-          "source": "https://asclp.org"
+          "ours": "$1,500 – $3,600/year",
+          "found": "Nutritious meals: Home-delivered (e.g., hot entrée in 3-compartment container + cold sack with salad/fruit/dessert; up to 7 meals/week; special diets for medical needs; wellness check on delivery). Congregate: Hot weekday lunches at senior centers for nutrition/socialization. 1 meal = 1 unit service/day max.",
+          "source": "https://aging.az.gov/ (implied via Area Agency on Aging; specific provider sites like aaaa.org not directly listed)"
         },
         {
           "field": "source_url",
           "ours": "MISSING",
-          "found": "https://asclp.org"
+          "found": "https://aging.az.gov/ (implied via Area Agency on Aging; specific provider sites like aaaa.org not directly listed)"
         }
       ],
       "novelFields": [
         {
           "field": "asset_limits",
-          "value": "No asset limits mentioned.",
+          "value": "No asset limits or exemptions specified.",
           "note": "Our model has no asset limit fields"
         },
         {
           "field": "regional_variations",
-          "value": "Limited to Maricopa County; other regions have separate legal aid like AZ Law Help (Apache, Gila, Navajo Counties: 1-866-637-5341), Volunteer Lawyer Program (Pima, Pinal, etc.: 1-800-640-9465), Elder Law Hotline (Maricopa: 1-800-231-5441)[3][5][6]",
+          "value": "Providers differ: YWCA (Glendale home-delivered/congregate), Fountain Hills Community Center (local delivery), Mom's Meals (Medicaid/Medicare). Delivery days/meals vary; e.g., weekdays hot + weekend frozen in some Phoenix areas.",
           "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Scheduling varies by provider; not explicitly stated but implied for popular programs",
+          "note": "Has waitlist info — our model has no wait time field"
         },
         {
           "field": "documents_required",
           "value": [
-            "Not specified; intake determines eligibility based on age, location, and need."
+            "Not specified; prepare proof of age, disability, homebound status, or referral if applicable"
           ],
           "note": "Has document checklist — our model doesn't store per-program documents"
         }
       ],
-      "dataShapeNotes": "County-restricted to Maricopa; no income/asset test but priority-based; phone intake only Thursdays; separate from statewide legal aid networks.",
+      "dataShapeNotes": "Administered regionally via Area Agencies on Aging with local providers; no uniform income table—priority-based; referrals often required; ties to Medicaid/ALTCS for covered members",
       "gotchas": [
-        "Restricted to Maricopa County residents only—families outside this area need alternative programs[2][4]",
-        "No income guidelines but priority for greatest need; may not serve all applicants[2]",
-        "Excludes housing matters; referrals for non-qualifying cases[4]",
-        "Intake limited to specific phone hours[2]"
+        "Separate eligibility for financial assistance vs. self-pay (e.g., Fountain Hills self-pay: physical condition, post-hospital, caregiver, or 80+)",
+        "Must contact AAA helpline first for screening—not direct provider apply",
+        "Medicaid/ALTCS separate via health plan/case manager",
+        "No same-day congregate + home meals; max 1/day",
+        "Private pay option ~$9.49/meal if ineligible"
       ],
       "benefitType": "service",
-      "benefitVariesBy": "priority_tier",
-      "officialSource": "https://asclp.org"
+      "benefitVariesBy": "region",
+      "officialSource": "https://aging.az.gov/ (implied via Area Agency on Aging; specific provider sites like aaaa.org not directly listed)"
     },
     {
       "name": "Arizona Long Term Care Ombudsman Program",
@@ -592,7 +504,7 @@
         {
           "field": "benefit_value",
           "ours": "$1,000 – $5,000/year",
-          "found": "Free and confidential advocacy services including: investigation of complaints (abuse, neglect, exploitation, inappropriate eviction, food quality, medication issues); provision of information on resident rights, provider options, public resources, and regulations; mediation between residents/families and facility staff; regular visits by trained volunteers; education on residents' rights; information and referral services; attendance at resident council meetings[3][4][5]",
+          "found": "Free and confidential advocacy services including: investigation of complaints (abuse, neglect, inappropriate eviction, quality/choice of food, poor medication distribution)[2]; information about resident rights, provider options, public resources, and facility regulations[2]; mediation between facility staff and patients[2]; liaison services for grievances[2]",
           "source": "https://des.az.gov/LTCOP"
         },
         {
@@ -603,129 +515,33 @@
       ],
       "novelFields": [
         {
-          "field": "asset_limits",
-          "value": "No asset limits or tests apply[3][5]",
-          "note": "Our model has no asset limit fields"
-        },
-        {
           "field": "regional_variations",
-          "value": "Administered regionally through 12 Area Agencies on Aging with local ombudsman offices and volunteers; different contact numbers and providers by region/county/tribal area, but core services consistent statewide[4][5][6]",
+          "value": "Program is administered through regional offices:[4] Region I (Maricopa County): (602)264-4357 or (888)783-7500; Region II (Pima County): (520)790-7262; Region III-A (Apache, Coconino, Navajo): (928) 213-5215 or 1-877-521-3500; Region III (Yavapai): (928) 649-3763. Tribal programs also available through Navajo Nation Area Agency on Aging and Inter Tribal Council of Arizona[4][5]",
           "note": "Program varies by region — our model doesn't capture this"
         },
         {
+          "field": "waitlist",
+          "value": "Not mentioned in available sources",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
           "field": "documents_required",
-          "value": [
-            "Resident consent required for investigation or action; no financial or other documents needed as there are no eligibility tests[3][5]"
-          ],
+          "value": "No specific documentation requirements listed; ombudsmen must obtain resident consent before investigating complaints[3]",
           "note": "Has document checklist — our model doesn't store per-program documents"
         }
       ],
-      "dataShapeNotes": "no income test; advocacy-only for long-term care facility residents; regionally administered via Area Agencies on Aging with volunteer advocates; consent-driven; often confused with ALTCS long-term care benefits program",
+      "dataShapeNotes": "This is a universal advocacy program with no income, asset, or age eligibility requirements — any resident of a covered long-term care facility can access services. The program is structured regionally through Area Agencies on Aging, so contact methods and response times may vary by county. Unlike benefit programs, there is no application process with forms or documentation; families contact their regional office directly. The key limitation is that ombudsmen investigate and advocate on behalf of residents but do not provide direct services or financial assistance.",
       "gotchas": [
-        "Not a financial or direct care program like ALTCS (which has strict income/asset limits and provides long-term care services); this is purely advocacy for resolving facility issues[1][2][3]",
-        "Requires resident consent before acting on complaints; ombudsman prioritizes resident's direction[3][5]",
-        "For abuse/neglect/exploitation, may refer to Adult Protective Services (877-767-2385) in addition to or instead of handling directly[4][6]",
-        "Contact local Area Agency on Aging first for fastest regional response, not just state office[6]",
-        "Free and confidential, but does not provide medical care, housing, or financial aid[3][5]"
+        "This is an advocacy and complaint resolution service, NOT a direct care or financial assistance program — families cannot apply for the ombudsman to provide medical care or financial benefits[2]",
+        "Ombudsmen must have resident consent before investigating complaints or referring cases to other agencies[3] — the resident (not just family) must authorize action",
+        "Facilities are required to post ombudsman contact information, but many residents and families may not know to look for it[5]",
+        "If dissatisfied with a regional ombudsman's response, escalate to the DES oversight office at (602) 542-6446, not the state program number[4]",
+        "For abuse or neglect of vulnerable adults, you may also need to report separately to Adult Protective Services at (877) 767-2385[4]",
+        "The program serves multiple facility types (nursing homes, assisted living, hospice, adult day care, adult foster care) but specific facility eligibility should be confirmed with your regional office[2]"
       ],
       "benefitType": "advocacy",
       "benefitVariesBy": "not_applicable",
       "officialSource": "https://des.az.gov/LTCOP"
-    },
-    {
-      "name": "Senior Citizen Property Tax Refund Credit",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "This program is income-based with strict thresholds and is claimed through the standard state income tax filing process. It is NOT a separate application process — it is integrated into Form 140/140A filing. The credit amount varies based on both income level and actual rent/property taxes paid, making it a sliding-scale benefit. Unlike the Senior Property Valuation Protection (Senior Freeze), this is a tax credit, not a property valuation freeze. Eligibility is statewide with no county variations.",
-      "gotchas": [
-        "You CANNOT use Form 140EZ — must file Form 140 or 140A to claim this credit[1]",
-        "Social Security benefits are excluded from income calculation, but ALL other income (wages, disability, pensions, etc.) counts[1][7]",
-        "Both property taxes AND rent can qualify, but you must have paid for the entire year[1]",
-        "The property must be your primary residence — vacation homes or investment properties do not qualify[1]",
-        "Maximum credit is only $502 — this is a modest benefit, not a major tax break[1]",
-        "If you're under 65, you must be receiving SSI specifically (not regular Social Security or other disability)[1]",
-        "Income limits are strict: $3,751 for single, $5,501 for households with others — exceeding by even $1 disqualifies you[1]",
-        "This is a refundable credit, meaning you can receive it even if you owe no income tax[1]"
-      ],
-      "benefitType": "financial",
-      "benefitVariesBy": "income_and_rent_or_property_taxes_paid",
-      "officialSource": "https://azdor.gov (Arizona Department of Revenue)"
-    },
-    {
-      "name": "Senior Property Valuation Protection Program (Senior Freeze)",
-      "isNew": false,
-      "existingId": "senior-property-valuation-protection-option",
-      "existingVerified": null,
-      "diffsFound": 2,
-      "diffs": [
-        {
-          "field": "benefit_value",
-          "ours": "$1,000 – $5,000/year",
-          "found": "Freezes the Limited Property Value (LPV) — the taxable portion of your home's value used to calculate property taxes — for 3 years. Does NOT freeze the actual property tax bill, but protects against increases in property valuation that would increase tax liability. Applies to home, mobile home, and up to 10 acres of land.",
-          "source": "https://azdor.gov/forms/property-tax-forms/senior-property-valuation-protection-option"
-        },
-        {
-          "field": "source_url",
-          "ours": "MISSING",
-          "found": "https://azdor.gov/forms/property-tax-forms/senior-property-valuation-protection-option"
-        }
-      ],
-      "novelFields": [
-        {
-          "field": "regional_variations",
-          "value": "Each county assessor's office administers the program independently. Application deadlines and processing procedures are consistent statewide (September 1st deadline, December 1st notification), but specific office locations, contact information, and submission procedures vary by county.",
-          "note": "Program varies by region — our model doesn't capture this"
-        },
-        {
-          "field": "documents_required",
-          "value": [
-            "Proof of age: birth certificate, driver's license, or passport",
-            "Proof of residency for 2+ years: Arizona driver's license, state-issued ID card, voter registration card, tax returns, or other documentation showing physical address",
-            "Proof of income for all owners for previous 3 years: IRS tax returns, Social Security benefit statements, W-2s, 1099s, and documentation of ALL OTHER SOURCES OF INCOME (nothing is excluded)"
-          ],
-          "note": "Has document checklist — our model doesn't store per-program documents"
-        }
-      ],
-      "dataShapeNotes": "This is a county-administered statewide program with uniform eligibility criteria and benefits but decentralized application processing. Income limits are the primary gating factor and are fixed (not tiered). The 3-year freeze cycle with mandatory renewal is critical — this is not a one-time application. The distinction between 'property valuation' (frozen) and 'property tax bill' (not frozen) is the most commonly misunderstood aspect. Regional variation is minimal in program structure but significant in administrative details (office locations, contact info, specific submission procedures).",
-      "gotchas": [
-        "The freeze is NOT automatic — you must apply every 3 years to renew. The assessor will send a renewal notice 6 months before expiration, but it is your responsibility to reapply.",
-        "Mail applications are NOT accepted in any county — you must submit in person to the assessor's office.",
-        "Income limits are strict and include ALL income sources (Social Security, pensions, disability, rental income, etc.). Nothing is excluded.",
-        "The freeze applies to Limited Property Value (LPV), not the actual property tax bill. Tax rates and levies can still increase.",
-        "Loss of eligibility triggers recalculation of LPV under Rule B (Arizona Revised Statutes § 42-13302), which may result in a significant increase in your taxable value. This occurs if: ownership changes, the home is no longer your primary residence, you request certain property changes, the property is split/merged, property value changes by more than 15% (construction/destruction), or you don't renew.",
-        "As of September 26, 2025 (Senate Bill SB1224), if you lose eligibility, your LPV is recalculated to a level similar to comparable non-protected properties — potentially a substantial jump.",
-        "The program freezes valuation 'regardless if future property values increase or decrease' — you cannot benefit if values drop.",
-        "Applications must be submitted in person; no exceptions for mail or online submission."
-      ],
-      "benefitType": "financial",
-      "benefitVariesBy": "fixed",
-      "officialSource": "https://azdor.gov/forms/property-tax-forms/senior-property-valuation-protection-option"
-    },
-    {
-      "name": "Arizona Pension Income Deduction",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "Tax subtraction claimed annually on state income tax return; no separate program application, no age/income/asset tests, caps per person with post-2025 increases; distinguishes government pensions from private retirement income.",
-      "gotchas": [
-        "Limited to $2,500 per person (lesser of amount received or cap); excess pension income remains taxable at Arizona's 2.5% flat rate.",
-        "Only specific government pensions qualify—not private pensions, IRAs, or 401(k)s.",
-        "Must itemize or claim correctly on AZ tax forms; no separate application.",
-        "Uniformed services have unlimited subtraction, often missed.",
-        "If filing separately, subtraction can be split but total capped.",
-        "Non-residents may still owe on AZ-source pensions; consult AZ DOR.",
-        "Changes post-2025: doubles to $5k/$10k."
-      ],
-      "benefitType": "financial",
-      "benefitVariesBy": "filing_status",
-      "officialSource": "https://azdor.gov/forms/individual-income-tax-forms (Form 140 instructions); https://www.azleg.gov/ars/43/01022.htm"
     }
   ]
 }

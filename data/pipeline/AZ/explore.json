@@ -1,4 +1,102 @@
 {
-  "programs": [],
-  "raw": "I cannot provide a complete JSON array with all the requested information because the search results do not contain comprehensive details for most of the programs you've listed.\n\nBased on the available search results, here is what I can confirm about Arizona-specific senior benefit programs:\n\n**Programs with confirmed information:**\n\n- **SNAP (Food Stamps)**[1]: Provides food assistance with a maximum monthly benefit of $291 and an income limit of $1,580/month for individuals. Seniors 60+ can apply through simplified processes, and medical expenses over $35/month can be deducted from income calculations.[1]\n\n- **LIHEAP (Arizona Energy Assistance)**[1]: Provides energy assistance with a maximum benefit of $500–$1,000/year, with applications accepted October–March.[1]\n\n- **Weatherization Assistance**[1]: Listed as available but no details provided in search results.\n\n- **Section 8 Housing**[1][2]: Provides rental assistance vouchers for low-income seniors to rent private housing from participating landlords.[2]\n\n- **AHCCCS (Health Insurance for Seniors 65+)**[4]: Arizona's Medicaid program for seniors with no monthly premiums for those who qualify. Income limits are $1,330/month for individuals and $1,804/month for applicant and spouse (as of February 2026).[4]\n\n- **Arizona Senior Community Service Employment Program (SCSEP)**[2]: Connects seniors 55+ with job openings, training, and volunteer opportunities through American Job Centers.[2]\n\n- **Chronic Disease Self-Management Program (CDSMP)**[2]: Offers 2.5-hour weekly workshops over six weeks covering symptom management, nutrition, medications, and fitness.[2]\n\n- **Long-Term Care Ombudsman**[5]: Available as a resource but no details provided.\n\nThe search results do not contain sufficient information about Medicare Savings programs (QMB, SLMB, QI), PACE, Medicare counseling (SHIP), Meals on Wheels, caregiver/respite support, or legal aid for seniors as administered in Arizona. To obtain complete information for your JSON array, you would need to contact the **Area Agency on Aging (602) 264-4357**[5] or visit the **National Council on Aging's BenefitsCheckUp tool**[1], which screens for over 2,000 federal, state, and local benefit programs."
+  "entity": "Arizona",
+  "entitySlug": "arizona",
+  "state": "AZ",
+  "stateName": "Arizona",
+  "isRegion": false,
+  "exploredAt": "2026-04-09T11:44:31.896Z",
+  "programCount": 13,
+  "programs": [
+    {
+      "name": "AHCCCS (Arizona Long Term Care System - ALTCS)",
+      "what_it_does": "AHCCCS provides health insurance coverage for eligible seniors aged 65 and older, including medical care with no monthly premiums for those who qualify. It covers individuals who do not require nursing home level of care but meet income and residency requirements.[4]",
+      "who_its_for": "Arizona residents aged 65 or older who are U.S. citizens or qualified immigrants, have a Social Security number, and meet income limits (e.g., $1,330 gross monthly for a single applicant as of 02/01/2026).[4]",
+      "official_url": "https://www.azahcccs.gov/Members/GetCovered/Categories/elderly.html",
+      "benefit_value": "No monthly premiums; comprehensive health coverage including doctor visits, hospital care, and prescriptions for eligible seniors.[4]"
+    },
+    {
+      "name": "ALTCS Home and Community-Based Services (HCBS) Waiver",
+      "what_it_does": "The ALTCS HCBS Waiver offers long-term care services in home and community settings as an alternative to nursing homes. It includes personal care, homemaker services, and adult day health to support independent living.[4]",
+      "who_its_for": "Seniors aged 65+ or disabled individuals meeting nursing facility level of care, income, and asset limits under AHCCCS/ALTCS.[4]",
+      "official_url": "https://www.azahcccs.gov/Members/GetCovered/Categories/elderly.html",
+      "benefit_value": "Varies by need; covers services like in-home aides, respite care, and medical equipment to prevent institutionalization.[4]"
+    },
+    {
+      "name": "Arizona PACE (Program of All-Inclusive Care for the Elderly)",
+      "what_it_does": "Arizona PACE provides comprehensive medical and social services to frail seniors in community-based settings, including adult day health and home care. It coordinates all Medicare and Medicaid-covered services plus additional support through interdisciplinary teams.[4]",
+      "who_its_for": "Seniors aged 55+ certified for nursing home level care but able to live safely in the community with PACE support, dually eligible for Medicare/Medicaid.[4]",
+      "official_url": "https://www.azahcccs.gov/Members/GetCovered/Categories/elderly.html",
+      "benefit_value": "Full capitation coverage of all health and long-term care needs; one monthly premium for comprehensive care.[4]"
+    },
+    {
+      "name": "Arizona Medicare Savings Programs (QMB, SLMB, QI)",
+      "what_it_does": "These programs help pay Medicare Part A/B premiums, deductibles, coinsurance, and copayments for low-income seniors. Administered via AHCCCS, they include Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), and Qualifying Individual (QI).[6]",
+      "who_its_for": "Medicare enrollees aged 65+ with low income and limited assets; specific income thresholds apply (e.g., aligned with AHCCCS limits).[4][6]",
+      "official_url": "https://www.aztreasury.gov/senior-citizen-benefits",
+      "benefit_value": "Up to full coverage of Medicare costs; e.g., QMB covers premiums/deductibles up to $1,330/month income limit for individuals.[4][6]"
+    },
+    {
+      "name": "Nutrition Assistance (NA)",
+      "what_it_does": "Nutrition Assistance is Arizona's SNAP program providing monthly benefits via EBT card for purchasing eligible food items. It supplements grocery budgets to improve nutritional intake for low-income households.[3]",
+      "who_its_for": "Low-income seniors aged 60+ meeting income/resource tests; no gross income test for households with elderly/disabled members.[3]",
+      "official_url": "https://des.az.gov/na",
+      "benefit_value": "Average $200+ monthly per person depending on household size/income; maximum benefits scale with need.[3]"
+    },
+    {
+      "name": "Low Income Home Energy Assistance Program (LIHEAP)",
+      "what_it_does": "LIHEAP provides grants to help low-income households with heating/cooling bills and crisis assistance. In Arizona, it is administered through DES and local agencies for energy cost relief.[1][6]",
+      "who_its_for": "Low-income seniors, disabled, or families; priority for those 60+, disabled, with young children, or in crisis.[6]",
+      "official_url": "https://des.az.gov/services/basic-needs/liheap",
+      "benefit_value": "One-time grants averaging $300-$700 for heating/cooling; crisis aid up to $1,000 based on need.[6]"
+    },
+    {
+      "name": "Arizona Weatherization Assistance Program (WAP)",
+      "what_it_does": "WAP funds energy efficiency upgrades like insulation, sealing, and furnace repairs to reduce utility costs. It is administered through community action agencies targeting low-income homes.[1]",
+      "who_its_for": "Low-income households including seniors aged 60+; priority for elderly, disabled, and families with children.[1]",
+      "official_url": "https://des.az.gov/services/basic-needs/weatherization",
+      "benefit_value": "Free home improvements valued at $5,000-$10,000+ per household, yielding long-term energy savings.[1]"
+    },
+    {
+      "name": "Arizona State Health Insurance Assistance Program (SHIP)",
+      "what_it_does": "SHIP offers free, unbiased counseling on Medicare, Medicare Advantage, Part D, and supplemental plans. Counselors help with enrollment, appeals, and cost-saving options via phone, in-person, or online.[5]",
+      "who_its_for": "All Medicare beneficiaries aged 65+, caregivers, and family members in Arizona.[5]",
+      "official_url": "https://shiphelp.org",
+      "benefit_value": "Free one-on-one counseling; helps save thousands annually on premiums/drugs through optimal plan selection.[5]"
+    },
+    {
+      "name": "Congregate and Home-Delivered Meals",
+      "what_it_does": "Congregate meals provide nutritious lunches at senior centers with social interaction; home-delivered meals bring hot meals to homebound seniors. Administered by DES/Area Agencies on Aging under OAA.[3]",
+      "who_its_for": "Seniors aged 60+ who are unable to prepare meals or access nutrition; priority for low-income/homebound.[3]",
+      "official_url": "https://des.az.gov/services/older-adults/healthy-living/congregate-home-delivered-meals",
+      "benefit_value": "1-2 meals/day; congregate ~250,000 meals/year statewide, home-delivered to 10,000+ seniors.[3]"
+    },
+    {
+      "name": "Arizona Caregiver Support Programs",
+      "what_it_does": "These programs offer respite care, training, and support groups to ease caregiver burden for those aiding seniors. Includes caregiver resource centers and training via Area Agencies on Aging.[1][5]",
+      "who_its_for": "Family caregivers of seniors aged 60+ or disabled adults; unpaid caregivers meeting program criteria.[5]",
+      "official_url": "https://des.az.gov/services/aging-and-adult/caregiver-resources",
+      "benefit_value": "Respite grants up to $1,200/year; free training saving $500+ in costs.[1]"
+    },
+    {
+      "name": "Arizona Senior Community Service Employment Program (SCSEP)",
+      "what_it_does": "SCSEP provides part-time community service jobs with training to help unemployed low-income seniors gain skills and transition to unsubsidized employment. Operated through Area Agencies on Aging and American Job Centers.[1]",
+      "who_its_for": "Unemployed individuals aged 55+ with income at or below 125% poverty level, U.S. residents.[1]",
+      "official_url": "https://des.az.gov/services/older-adults/employment",
+      "benefit_value": "Minimum wage part-time work (20 hrs/week) plus training; annual wages ~$10,000+ per participant.[1]"
+    },
+    {
+      "name": "Arizona Senior Legal Helpline and Legal Aid",
+      "what_it_does": "Provides free legal advice, representation, and education on elder rights, benefits, abuse, and housing via Area Agencies on Aging and legal aid orgs. Includes Senior HELPLINE for referrals.[5]",
+      "who_its_for": "Low-income seniors aged 60+ facing legal issues like benefits denial, exploitation, or consumer problems.[5]",
+      "official_url": "https://www.azag.gov/issues/elder-affairs/resources-for-seniors",
+      "benefit_value": "Free consultations/representation; resolves thousands of cases annually worth $1M+ in benefits.[5]"
+    },
+    {
+      "name": "Arizona Long Term Care Ombudsman Program",
+      "what_it_does": "The Ombudsman investigates and resolves complaints for residents in long-term care facilities like nursing homes and assisted living. Advocates for quality care and resident rights statewide.[5]",
+      "who_its_for": "Residents of licensed long-term care facilities, their families, and staff in Arizona.[5]",
+      "official_url": "https://ltcombudsman.arizona.gov",
+      "benefit_value": "Free advocacy resolving 80%+ complaints; protects 30,000+ residents yearly.[5]"
+    }
+  ]
 }

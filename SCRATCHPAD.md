@@ -97,41 +97,45 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 
 ## Design Language (v2 Benefits Pages)
 
-The v2 design was approved Apr 8-9. Reuse and extend this language for all new benefits content.
+The v2 design was approved Apr 8-9. Two complementary treatments that share core principles but differ in visual expression.
 
-**Core principles:**
-- Content-forward: the page reads like a guide, not a dashboard of cards
-- Typography creates hierarchy: serif headings, quiet uppercase section labels, prose-width body
-- Decoration is rare and meaningful — when it exists, it adds warmth, not noise
+### Shared Principles
+- Content-forward: pages read like guides, not dashboards
+- Typography creates hierarchy: serif headings, quiet uppercase section labels, prose-width body (max-w-2xl)
+- Light backgrounds (vanilla-100), no dark hero banners
+- Decoration is rare and meaningful
+- No bottom CTA banners — pages end when content ends
 
-**Visual elements (StatePageV2 — approved direction):**
-- Hand-drawn SVG illustrations: organic teal blobs (#96c8c8), warm accent blobs (#e9bd91), floating circles
-- Wavy divider SVG between sections (not hard lines)
-- Hand-drawn underline on key heading words
-- Need category icons: custom SVG vignettes (home, medical, food, advice, money, work) with teal strokes + warm accents
-- "Where to start" cards: numbered picks, white bg, subtle border, hover shadow
-- "Browse by need" groups: icons + linked program pills in primary-50
-- Program list: clean rows with type badges, not card grid
+### State Page — "Painting Outside the Lines"
+The discovery layer. More personality, more visual warmth. Invites exploration.
 
-**Program page (ProgramPageV2):**
-- Light header with serif title, no dark hero banner
-- Single column at max-w-2xl (readable), wider for maps/tables
-- Eligibility as prose: "Assets must be under $9,950 — but not everything counts. Your parent can keep their primary residence..."
-- Application steps as numbered flowing content, not equal-sized cards
-- Callouts merged into "Things to know" prose (not stacked colored boxes)
-- Clean FAQ as details/summary with chevron
-- No bottom CTA banner — page ends when content ends
-- Auth-gated bookmark icon next to title
+- **Hand-drawn SVG illustrations**: organic teal blobs (#96c8c8), warm accent blobs (#e9bd91), floating circles/dots — positioned absolutely, low opacity, decorative
+- **Wavy divider** SVG between sections (organic stroke, not hard lines)
+- **Hand-drawn underline** on key heading words (teal, organic path)
+- **Need category icons**: custom SVG vignettes per need (home, medical, food, advice, money, work) — teal strokes (#417272) with warm accent dots (#e9bd91)
+- **"Where to start"** numbered cards: white bg, subtle border, hover shadow — guides the caregiver
+- **"Browse by what you need"** groups with icons + linked program pills
+- **Quick facts** as bulleted prose
+- **Program list** as clean rows (not card grid) — type badge, savings inline, chevron
+- Headline: "13 programs to help your family" (not "Saving families up to $35,000")
 
-**State page (StatePageV2):**
-- Organic blob illustrations in header
-- "13 programs to help your family" (not "Saving families up to $35,000")
-- State-specific intro with real numbers
-- "Where to start" with top 3 ranked programs
-- "Good to know" quick facts
-- "Browse by what you need" with custom SVG icons per category
-- Resources vs benefits explanation
-- All programs as clean list rows
+### Program Page — "The Editorial"
+The deep dive. Restrained, lets content breathe. Reads like a well-researched article.
+
+- **No illustrations** — the content IS the page
+- **Serif title** (text-3xl/4xl) with type + scope badges and bookmark icon
+- **Savings as quiet text** (not a big green badge): "Estimated savings: $10,000–$30,000/year"
+- **Eligibility as natural language prose**: "Assets must be under $9,950 — but not everything counts. Your parent can keep their primary residence, one vehicle, and personal belongings."
+- **Application steps** as numbered flowing content — each step gets the space it needs
+- **"Things to know"** section: merged callouts as prose paragraphs, not stacked colored boxes
+- **FAQ** as clean details/summary with chevron — no teal-tinted cards
+- **Source + contact** as quiet links at the end
+- **Wider containers** (max-w-5xl) only for maps and service area grids
+
+### Extending the Language
+- The state page style ("painting outside the lines") should evolve to program pages where appropriate — e.g., a "benefit" program could get a subtle illustration element, while a "resource" page stays purely editorial
+- County, region, and city pages (when built) should inherit the state page's warmth since they're also discovery/orientation pages
+- The admin dashboard stays functional — no illustrations there, just clean data
 
 ---
 

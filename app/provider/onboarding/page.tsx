@@ -9,6 +9,7 @@ import { useCitySearch } from "@/hooks/use-city-search";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import Button from "@/components/ui/Button";
 import OrganizationSearch, { type SelectedOrg } from "@/components/shared/OrganizationSearch";
+import OnboardingBottomNav from "@/components/provider/OnboardingBottomNav";
 import type { Provider } from "@/lib/types/provider";
 import { useAuth } from "@/components/auth/AuthProvider";
 
@@ -124,6 +125,7 @@ function ProviderOnboardingContent() {
   const [showCityDropdown, setShowCityDropdown] = useState(false);
   const cityDropdownRef = useRef<HTMLDivElement>(null);
   const cityInputRef = useRef<HTMLInputElement>(null);
+  const searchFormRef = useRef<HTMLFormElement>(null);
   const [cityQuery, setCityQuery] = useState("");
   const { results: cityResults, preload: preloadCities } = useCitySearch(cityQuery);
 
@@ -415,7 +417,15 @@ function ProviderOnboardingContent() {
           } as BusinessProfileMatch;
 
       setSearchResults([result]);
-      setScreen("results");
+
+      // For unclaimed pre-selected orgs, skip results and go directly to confirm-claim
+      if (!isClaimed) {
+        setSelectedResult(result);
+        setScreen("confirm-claim");
+      } else {
+        // Claimed orgs still go to results (for dispute/sign-in options)
+        setScreen("results");
+      }
       return;
     }
 
@@ -627,20 +637,24 @@ function ProviderOnboardingContent() {
           </div>
         </nav>
 
-        <div className="flex-1 flex items-center justify-center px-4 py-12 md:py-16">
+        <div className="flex-1 flex items-center justify-center px-4 pt-12 md:pt-16 pb-24">
           <div className="w-full max-w-xl animate-fade-in">
-            {/* Header */}
+            {/* Header - changes based on whether org is pre-selected */}
             <div className="text-center mb-8 lg:mb-12">
               <h1 className="text-2xl lg:text-4xl font-display font-bold text-gray-900 tracking-tight">
-                Find your organization
+                {selectedOrg && selectedOrg.claimState !== "claimed"
+                  ? "Confirm your organization"
+                  : "Find your organization"}
               </h1>
               <p className="text-gray-500 mt-4 lg:mt-6 text-base lg:text-lg leading-relaxed max-w-md mx-auto">
-                Search our directory of 50,000+ providers. Claim your listing or create a new one.
+                {selectedOrg && selectedOrg.claimState !== "claimed"
+                  ? "Enter your email to continue."
+                  : "Search our directory of 50,000+ providers. Claim your listing or create a new one."}
               </p>
             </div>
 
             {/* Search Form Card */}
-            <form onSubmit={handleSearch} className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-lg ring-1 ring-gray-200/80 p-6 md:p-8 space-y-5">
+            <form ref={searchFormRef} onSubmit={handleSearch} className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-lg ring-1 ring-gray-200/80 p-6 md:p-8 space-y-5">
               {/* Organization Name - Autocomplete */}
               <div className="space-y-2">
                 <label className="block text-base font-semibold text-gray-900">
@@ -657,16 +671,14 @@ function ProviderOnboardingContent() {
                   }}
                   onSelect={handleOrgSelect}
                   placeholder="e.g., Sunrise Senior Living"
+                  selected={!!selectedOrg && selectedOrg.claimState !== "claimed"}
                 />
-                {selectedOrg && (
-                  <p className="text-sm text-primary-600 flex items-center gap-1.5">
+                {selectedOrg?.claimState === "claimed" && (
+                  <p className="text-sm text-amber-600 font-medium flex items-center gap-1.5">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
-                    Selected: {selectedOrg.name}
-                    {selectedOrg.claimState === "claimed" && (
-                      <span className="text-amber-600 font-medium">(Claimed)</span>
-                    )}
+                    This listing has already been claimed
                   </p>
                 )}
               </div>
@@ -676,11 +688,19 @@ function ProviderOnboardingContent() {
                 <label htmlFor="city" className="block text-base font-semibold text-gray-900">
                   City, State
                 </label>
+                {/* Track if city is "completed" (pre-filled from selectedOrg) */}
+                {(() => {
+                  const cityCompleted = !!(formData.city && formData.state);
+                  return (
                 <div className="relative" ref={cityDropdownRef}>
-                  <div className={`flex items-center px-4 py-3 bg-gray-50 rounded-xl border transition-colors ${
-                    showCityDropdown ? "border-primary-400 ring-2 ring-primary-100" : "border-gray-200 hover:border-gray-300"
+                  <div className={`flex items-center px-4 py-3 rounded-xl border transition-colors ${
+                    cityCompleted
+                      ? "border-2 border-primary-500 bg-primary-50/50"
+                      : showCityDropdown
+                        ? "border-primary-400 ring-2 ring-primary-100 bg-gray-50"
+                        : "border-gray-200 hover:border-gray-300 bg-gray-50"
                   }`}>
-                    <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className={`w-5 h-5 shrink-0 ${cityCompleted ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
@@ -706,6 +726,12 @@ function ProviderOnboardingContent() {
                       className="w-full ml-3 bg-transparent border-none text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 text-base"
                       required
                     />
+                    {/* Checkmark for completed state */}
+                    {cityCompleted && (
+                      <svg className="w-5 h-5 text-primary-600 shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
                   </div>
 
                   {/* City Dropdown */}
@@ -736,6 +762,8 @@ function ProviderOnboardingContent() {
                     </div>
                   )}
                 </div>
+                  );
+                })()}
               </div>
 
               {/* Email */}
@@ -770,15 +798,20 @@ function ProviderOnboardingContent() {
                   <p className="text-sm text-red-700">{searchError}</p>
                 </div>
               )}
-
-              {/* Submit */}
-              <Button type="submit" size="lg" fullWidth loading={searching}>
-                Find Your Organization
-              </Button>
             </form>
 
           </div>
         </div>
+
+        {/* Bottom Nav */}
+        <OnboardingBottomNav
+          primary={{
+            label: selectedOrg && selectedOrg.claimState !== "claimed" ? "Continue" : "Find Your Organization",
+            onClick: () => searchFormRef.current?.requestSubmit(),
+            loading: searching,
+            disabled: !formData.email.trim() || !formData.email.includes("@"),
+          }}
+        />
       </div>
     );
   }
@@ -1128,19 +1161,10 @@ function ProviderOnboardingContent() {
           </div>
         </nav>
 
-        <div className="flex-1 px-4 py-8 md:py-12">
+        <div className="flex-1 px-4 py-8 md:py-12 pb-24">
           <div className="max-w-2xl mx-auto animate-fade-in">
-            {/* Back button + Header */}
+            {/* Header */}
             <div className="mb-8">
-              <button
-                onClick={() => setScreen("search")}
-                className="text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1.5 mb-4 group"
-              >
-                <svg className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-                Back to search
-              </button>
               <h1 className="text-2xl md:text-3xl font-display font-bold text-gray-900 mb-2">
                 {searchResults.length === 0 ? "No results found" : "Select your organization"}
               </h1>
@@ -1418,6 +1442,17 @@ function ProviderOnboardingContent() {
             </div>
           </div>
         </div>
+
+        {/* Bottom Nav */}
+        <OnboardingBottomNav
+          back={{
+            label: "Back",
+            onClick: () => {
+              setActionError("");
+              setScreen("search");
+            },
+          }}
+        />
       </div>
     );
   }
@@ -1445,19 +1480,10 @@ function ProviderOnboardingContent() {
           </div>
         </nav>
 
-        <div className="flex-1 px-4 py-8 md:py-12">
+        <div className="flex-1 px-4 py-8 md:py-12 pb-24">
           <div className="max-w-xl mx-auto animate-fade-in">
-            {/* Back button + Header */}
+            {/* Header */}
             <div className="mb-8">
-              <button
-                onClick={() => setScreen("results")}
-                className="text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1.5 mb-4 group"
-              >
-                <svg className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-                Back to results
-              </button>
               <h1 className="text-2xl md:text-3xl font-display font-bold text-gray-900 mb-2">
                 Complete your profile
               </h1>
@@ -1467,7 +1493,7 @@ function ProviderOnboardingContent() {
             </div>
 
             {/* Preview Form */}
-            <form onSubmit={handlePreviewSubmit} className="bg-white rounded-2xl shadow-lg ring-1 ring-gray-200/80 p-6 md:p-8 space-y-6">
+            <form id="preview-form" onSubmit={handlePreviewSubmit} className="bg-white rounded-2xl shadow-lg ring-1 ring-gray-200/80 p-6 md:p-8 space-y-6">
               {/* Organization Name */}
               <div className="space-y-2">
                 <label htmlFor="previewOrgName" className="block text-base font-semibold text-gray-900">
@@ -1580,16 +1606,6 @@ function ProviderOnboardingContent() {
                 </div>
               )}
 
-              {/* Submit */}
-              <Button
-                type="submit"
-                size="lg"
-                fullWidth
-                loading={actionLoading === "preview-submit"}
-              >
-                Create My Listing
-              </Button>
-
               <p className="text-center text-sm text-gray-500">
                 By creating a listing, you agree to our{" "}
                 <Link href="/terms" className="text-primary-600 hover:text-primary-700 underline">
@@ -1599,6 +1615,22 @@ function ProviderOnboardingContent() {
             </form>
           </div>
         </div>
+
+        {/* Bottom Nav */}
+        <OnboardingBottomNav
+          back={{
+            label: "Back",
+            onClick: () => {
+              setActionError("");
+              setScreen("results");
+            },
+          }}
+          primary={{
+            label: "Create My Listing",
+            onClick: () => (document.getElementById("preview-form") as HTMLFormElement)?.requestSubmit(),
+            loading: actionLoading === "preview-submit",
+          }}
+        />
       </div>
     );
   }
@@ -1637,22 +1669,8 @@ function ProviderOnboardingContent() {
           </div>
         </nav>
 
-        <div className="flex-1 px-4 py-8 md:py-12">
+        <div className="flex-1 px-4 py-8 md:py-12 pb-24">
           <div className="max-w-lg mx-auto animate-fade-in">
-            {/* Back button */}
-            <button
-              onClick={() => {
-                setActionError("");
-                setScreen("results");
-              }}
-              className="text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1.5 mb-6 group"
-            >
-              <svg className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-              Back to results
-            </button>
-
             {/* Provider Card Preview */}
             <div className="bg-white rounded-2xl shadow-lg ring-1 ring-gray-200/80 overflow-hidden">
               {/* Provider header */}
@@ -1688,10 +1706,10 @@ function ProviderOnboardingContent() {
 
               {/* Claim confirmation */}
               <div className="p-5 space-y-5">
-                <div>
+                <div className="text-center">
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">Claim this listing</h3>
                   <p className="text-gray-600">
-                    We&apos;ll send a verification link to confirm you manage this organization.
+                    We&apos;ll email you a link to access your dashboard.
                   </p>
                 </div>
 
@@ -1712,20 +1730,27 @@ function ProviderOnboardingContent() {
                     <p className="text-sm text-red-700">{actionError}</p>
                   </div>
                 )}
-
-                {/* Submit button */}
-                <Button
-                  size="lg"
-                  fullWidth
-                  onClick={handleSendClaimEmail}
-                  loading={actionLoading === "confirm-claim"}
-                >
-                  Send Verification Email
-                </Button>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Bottom Nav */}
+        <OnboardingBottomNav
+          back={{
+            label: "Back",
+            onClick: () => {
+              setActionError("");
+              // For pre-selected unclaimed orgs, go back to search (they skipped results)
+              setScreen(selectedOrg && selectedOrg.claimState !== "claimed" ? "search" : "results");
+            },
+          }}
+          primary={{
+            label: "Send Verification Email",
+            onClick: handleSendClaimEmail,
+            loading: actionLoading === "confirm-claim",
+          }}
+        />
       </div>
     );
   }
@@ -1788,7 +1813,7 @@ function ProviderOnboardingContent() {
             {providerName && (
               <p className="text-gray-500 mb-6">
                 {isClaim
-                  ? <>Click the link to verify you manage <strong className="text-gray-700">{providerName}</strong>.</>
+                  ? <>Click the link to start managing <strong className="text-gray-700">{providerName}</strong>.</>
                   : <>Click the link to finish setting up <strong className="text-gray-700">{providerName}</strong>.</>
                 }
               </p>
@@ -1824,18 +1849,24 @@ function ProviderOnboardingContent() {
                   : "Resend email"
               }
             </Button>
-
-            {/* Back link - context-aware based on flow */}
-            <div className="mt-6">
-              <button
-                onClick={() => setScreen(selectedResult ? "results" : "preview")}
-                className="text-primary-600 hover:text-primary-700 font-medium text-base"
-              >
-                {selectedResult ? "← Back to results" : "← Back"}
-              </button>
-            </div>
           </div>
         </div>
+
+        {/* Bottom Nav */}
+        <OnboardingBottomNav
+          back={{
+            label: "Back",
+            onClick: () => {
+              setResendError("");
+              // For pre-selected unclaimed orgs claiming, go back to confirm-claim (they skipped results)
+              if (selectedOrg && selectedOrg.claimState !== "claimed" && selectedResult) {
+                setScreen("confirm-claim");
+              } else {
+                setScreen(selectedResult ? "results" : "preview");
+              }
+            },
+          }}
+        />
       </div>
     );
   }
@@ -1876,17 +1907,19 @@ function ProviderOnboardingContent() {
                 </svg>
               </div>
               <h2 className="text-xl font-display font-bold text-gray-900 mb-2">Dispute submitted</h2>
-              <p className="text-gray-500 mb-6">
+              <p className="text-gray-500">
                 We&apos;ll review and respond within 2–3 business days.
               </p>
-              <button
-                onClick={() => setScreen("results")}
-                className="px-6 py-3 bg-gray-100 text-gray-700 font-semibold rounded-xl hover:bg-gray-200 transition-all"
-              >
-                Back to results
-              </button>
             </div>
           </div>
+
+          {/* Bottom Nav */}
+          <OnboardingBottomNav
+            back={{
+              label: "Back to results",
+              onClick: () => setScreen("results"),
+            }}
+          />
         </div>
       );
     }
@@ -1909,19 +1942,8 @@ function ProviderOnboardingContent() {
           </div>
         </nav>
 
-        <div className="flex-1 px-4 py-8 md:py-12">
+        <div className="flex-1 px-4 py-8 md:py-12 pb-24">
           <div className="max-w-md mx-auto">
-            {/* Back button */}
-            <button
-              onClick={() => setScreen("results")}
-              className="text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1.5 mb-6 group"
-            >
-              <svg className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-              Back to results
-            </button>
-
             {/* Amber dispute card */}
             <div className="bg-white rounded-2xl shadow-sm border border-amber-200 p-8">
               {/* Header with amber icon */}
@@ -2029,19 +2051,28 @@ function ProviderOnboardingContent() {
                     <p className="text-sm text-red-700">{disputeError}</p>
                   </div>
                 )}
-
-                {/* Submit button */}
-                <button
-                  onClick={handleDisputeSubmit}
-                  disabled={!disputeName.trim() || !disputeEmail.trim() || !disputeRole || !disputeReason.trim() || disputeSubmitting}
-                  className="w-full py-3.5 bg-amber-600 text-white text-sm font-semibold rounded-xl hover:bg-amber-700 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed transition-all min-h-[48px]"
-                >
-                  {disputeSubmitting ? "Submitting..." : "Submit dispute"}
-                </button>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Bottom Nav */}
+        <OnboardingBottomNav
+          back={{
+            label: "Back",
+            onClick: () => {
+              setDisputeError("");
+              setScreen("results");
+            },
+          }}
+          primary={{
+            label: "Submit Dispute",
+            onClick: handleDisputeSubmit,
+            loading: disputeSubmitting,
+            disabled: !disputeName.trim() || !disputeEmail.trim() || !disputeRole || !disputeReason.trim(),
+            variant: "amber",
+          }}
+        />
       </div>
     );
   }

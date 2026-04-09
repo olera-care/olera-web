@@ -170,10 +170,29 @@ function ProviderOnboardingContent() {
     const name = result._source === "olera-providers" ? result.provider_name : result.display_name;
     const listingEmail = result.email?.toLowerCase() || null;
 
+    // If user is already signed in, validate immediately instead of opening auth
+    if (user) {
+      const userEmail = user.email?.toLowerCase();
+      if (listingEmail && userEmail !== listingEmail) {
+        // Already signed in with wrong email
+        setClaimSignInMismatch({
+          userEmail: user.email || "",
+          listingName: name,
+        });
+        return; // Don't open auth modal
+      } else if (!listingEmail || userEmail === listingEmail) {
+        // Already signed in with correct email (or no email to validate)
+        router.push("/portal/inbox");
+        return;
+      }
+    }
+
+    // Not signed in - store context for validation after auth completes
     try {
       sessionStorage.setItem("olera_claim_signin_pending", JSON.stringify({
         listingEmail,
         listingName: name,
+        createdAt: Date.now(), // TTL tracking
       }));
     } catch {
       // sessionStorage unavailable
@@ -186,7 +205,7 @@ function ProviderOnboardingContent() {
         returnUrl: "/provider/onboarding",
       },
     });
-  }, [openAuth]);
+  }, [openAuth, user, router]);
 
   // Validate claim sign-in after user signs in
   // Check if the signed-in user's email matches the claimed listing's email
@@ -197,26 +216,37 @@ function ProviderOnboardingContent() {
       const pending = sessionStorage.getItem("olera_claim_signin_pending");
       if (!pending) return;
 
-      const { listingEmail, listingName } = JSON.parse(pending) as {
+      const parsed = JSON.parse(pending) as {
         listingEmail: string | null;
         listingName: string;
+        createdAt?: number;
       };
 
-      // Clear the pending state
+      // Clear the pending state immediately
       sessionStorage.removeItem("olera_claim_signin_pending");
 
-      // If listing has no email on file, we can't validate - let them proceed
-      if (!listingEmail) return;
+      // Check TTL - ignore if older than 5 minutes (stale from abandoned flow)
+      const MAX_PENDING_AGE_MS = 5 * 60 * 1000;
+      if (parsed.createdAt && Date.now() - parsed.createdAt > MAX_PENDING_AGE_MS) {
+        return; // Stale, ignore
+      }
+
+      const { listingEmail, listingName } = parsed;
+
+      // If listing has no email on file, we can't validate - redirect to portal
+      if (!listingEmail) {
+        router.push("/portal/inbox");
+        return;
+      }
 
       // Check if emails match (case-insensitive)
       const userEmail = user.email?.toLowerCase();
       if (userEmail !== listingEmail) {
-        // Mismatch - show error
+        // Mismatch - show error (don't force screen change, show on current screen)
         setClaimSignInMismatch({
           userEmail: user.email || "",
           listingName,
         });
-        setScreen("results"); // Ensure we're on the results screen to show the error
       } else {
         // Match - redirect to portal
         router.push("/portal/inbox");
@@ -877,6 +907,33 @@ function ProviderOnboardingContent() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
                   </svg>
                   <p className="text-sm text-red-700">{searchError}</p>
+                </div>
+              )}
+
+              {/* Claim sign-in mismatch error (can appear on search screen if user navigated here) */}
+              {claimSignInMismatch && (
+                <div className="px-4 py-4 bg-amber-50 border border-amber-200 rounded-xl">
+                  <div className="flex items-start gap-3">
+                    <svg className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-amber-800">Wrong account</p>
+                      <p className="text-sm text-amber-700 mt-1">
+                        You&apos;re signed in as <span className="font-medium">{claimSignInMismatch.userEmail}</span>, but &quot;{claimSignInMismatch.listingName}&quot; was claimed with a different email. Please sign in with the correct email or search for the listing and click &quot;Dispute&quot;.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setClaimSignInMismatch(null)}
+                      className="shrink-0 p-1 text-amber-600 hover:text-amber-800 rounded transition-colors"
+                      aria-label="Dismiss"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
               )}
             </form>

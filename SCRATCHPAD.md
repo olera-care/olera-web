@@ -27,8 +27,14 @@
     - [x] MI Choice Waiver applied as first v2 test program with full draft content
     - [x] V2 page live: content-forward layout, prose-width, no dark hero, no card soup
     - [x] Taste refinements: asset limits as prose, callouts merged, pre-footer hidden
-    - [ ] Save program to profile (auth-gated bookmark on v2 pages) — IN PROGRESS
+    - [x] Save program to profile (auth-gated bookmark, /saved page, Supabase table)
+    - [x] Draft review workflow (status, comments, history in admin dashboard)
+    - [x] Preview button in admin dashboard draft view
+    - [x] Slash command auto-detects approved drafts
+    - [x] State-level content generation (pipeline + StatePageV2 component)
+    - [x] State page preview link in admin dashboard
     - [ ] Run pipeline on FL or CA
+    - [ ] Apply approved MI drafts to waiver-library.ts (batch via slash command)
     - [ ] Review draft quality with Chantel
 
 - **Admin Panel 2.0 QA Fixes** (branch: `noble-yalow`) — MERGED (PR #509)
@@ -62,7 +68,7 @@
 
 ## Next Up
 
-1. **Save program to profile** — auth-gated bookmark icon on v2 pages (current)
+1. Apply approved MI drafts to waiver-library.ts (run `/benefits-pipeline`)
 2. Run pipeline on FL or CA
 3. Review draft quality with Chantel
 4. Seed TX: `/api/admin/seed-sbf-programs?state=TX&confirm=true`
@@ -86,6 +92,10 @@
 | 2026-04-08 | Anthropic API key set up for pipeline draft phase | Key `olera-benefits-pipeline` in Olera org, Default workspace. $15 credits added. Key in `~/Desktop/olera-web/.env.local`. |
 | 2026-04-08 | V2 page is content-forward, not card-based | Design thesis: reads like a guide from someone who cares, not a dashboard of equally-weighted cards. Typography creates hierarchy, decoration is rare and meaningful. |
 | 2026-04-08 | Save program feature is auth-gated | No localStorage fallback. If user has no account, prompt sign-in. Follows existing saved providers pattern but requires auth. |
+| 2026-04-08 | Review workflow lives in admin dashboard, not Slack/Notion | Status + comments on each draft keeps review context co-located with the content being reviewed. |
+| 2026-04-08 | Slash command auto-detects approved drafts | Instead of per-state apply commands, Step 0 checks all states for approved drafts and offers batch apply. |
+| 2026-04-08 | Pipeline generates state-level overview content | State page was a bare index with no editorial content. Pipeline now generates intro, start-here picks, need-based groupings, quick facts. |
+| 2026-04-08 | State page v2 matches program page v2 design language | Same content-forward, prose-width, quiet labels. Consistent feel across the benefits experience. |
 |------|----------|-----------|
 | 2026-04-06 | Exploration before taxonomy | 5-shape taxonomy derived from 12 TX programs was too small a sample. Pipeline observes what data exists, taxonomy emerges from patterns across states. |
 | 2026-04-06 | Pipeline auto-generates dashboard data | `pipeline-summary.ts` is auto-written after each run. No manual step between pipeline and dashboard. |
@@ -137,76 +147,32 @@
 - Processing/waitlist metadata → flowing paragraph after steps
 - Pre-footer hidden on all waiver-library pages
 
-**Commits:** `3f6ca8a6` (v2 page + test program) → `34fa0e10` (asset limits prose) → `09177d30` (callouts + pre-footer)
+**Save program feature:**
+- `hooks/use-saved-programs.tsx` — auth-gated context provider, Supabase persistence, optimistic UI
+- Bookmark icon in ProgramPageV2 header — muted outline → filled teal on save
+- If not logged in, opens auth modal (no localStorage fallback)
+- `/saved` page updated: programs section above providers with state/type/savings
+- Migration 035: `saved_programs` table with RLS
 
-**Next:** Save program to profile feature (auth-gated, Airbnb bookmark pattern)
+**Draft review workflow:**
+- `DraftReviewPanel` component in admin dashboard draft view
+- Statuses: Draft → Reviewed → Needs Changes → Approved → Published
+- Comment thread with reviewer name, timestamp, history (latest 5)
+- API: `/api/admin/draft-reviews` (GET/POST, auth-gated)
+- Migration 036: `draft_reviews` table
+- Self-review caught: API had no auth check — fixed
 
----
+**Preview button** on each program's draft view — opens rendered page in new tab
 
-### 2026-04-08 (Session 70) — Benefits Pipeline v2: Content Production System Design
+**Slash command updated:** Step 0 now auto-detects approved drafts across all states. Presents "N programs approved — apply all?" before doing anything else.
 
-**Branch:** `eager-ride` | **Committed `bcb1d116`, pushed to origin**
+**State-level content generation:**
+- Pipeline draft phase now generates state overview: intro, "where to start" picks, "browse by need" groups, quick facts, resources vs benefits explanation
+- `StatePageV2` component: content-forward state page matching program v2 design
+- Michigan regenerated with state overview (3 start-here, 5 need groups)
+- State page auto-switches to v2 when pipeline stateOverview exists
+- Preview link added to admin dashboard state detail header
 
-**Deep review completed:**
-- Pipeline script (`scripts/benefits-pipeline.js`, 1145 lines) — all 4 phases
-- Slash command (`.claude/commands/benefits-pipeline.md`, 253 lines)
-- Admin dashboard (`app/admin/benefits/page.tsx`, 553 lines)
-- Data model (`WaiverProgram` type + `waiver-library.ts`, 11,740 lines)
-- Michigan pipeline output (explore.json, dive.json, compare.json, exploration_report.md)
-- Chantel's TX audit CSV (12 programs) + Benefits Hub Accuracy Analysis docx
-- April 7 meeting notes (Chantel + Logan): "Benefits Hub Next Steps & Olera Growth Plan"
-- TJ-hq writing style docs (Renora, Oculo, investment thesis, tj-voice.md)
+**Commits:** `3f6ca8a6` → `34fa0e10` → `09177d30` → `e728d7c4` → `ddfe6514` → `2c9a5988` → `f2c211e0` → `d15bfd78` → `4e658f3c` → `a3b08ba0` → `32be6219`
 
-**Key findings:**
-- 1,145 programs across 50 states (more than expected)
-- Only 15 (1.3%) have real content (intros, FAQs, verification) — all Texas
-- 1,131 programs are template scaffolding with generic application steps
-- Pipeline discovers rich data (income tables, asset limits, county offices, wait times) but outputs a report, not page content
-
-**Built and committed:**
-- Data model: `WaiverProgram` extended with 13 new optional types (programType, geographicScope, complexity, applicationGuide, structuredEligibility, contentSections, contentStatus, etc.)
-- Classify phase: local processing, tested on MI — 9 benefit, 4 resource, 2 navigator, 1 employment
-- Draft phase: Claude API content generation with TJ voice principles as hard constraints
-- Admin dashboard: summary bar (4 metric cards), state cards with readiness color-coding + content depth
-- Slash command: full 6-phase lifecycle documentation
-- Pipeline summary: auto-generates classify + draft metadata for dashboard
-- TypeScript compiles clean. Pre-existing Next.js prerender errors (InvariantError) unrelated.
-
-**Files modified:** `data/waiver-library.ts`, `scripts/benefits-pipeline.js` (+524 lines), `app/admin/benefits/page.tsx`, `data/pipeline-summary.ts`, `.claude/commands/benefits-pipeline.md`, `SCRATCHPAD.md`
-**Files created:** `data/pipeline/MI/classify.json`
-
-**Notion doc created:** "Benefits Pipeline v2 — Content Production System" for team visibility
-**Memory saved:** `project_benefits_pipeline_v2.md`
-
-**Testing & debugging (continued same session):**
-- Set up Anthropic API: created key `olera-benefits-pipeline` in Olera org, $15 credits
-- Ran draft phase on MI: 16/16 programs drafted, 0 errors, ~9 min runtime
-- Self-review caught 4 bugs before TJ tested: Weatherization misclassified, prompt bloat from `_raw`, token limit too low, JSON template issues
-- Build error: LLM added `"program"` field to income table rows — fixed by stripping extra fields in generator
-- Built DraftPreview component for admin dashboard: renders full draft content (intro, structured eligibility with income tables + asset limits, application guide, content sections, FAQs)
-- Draft/Current toggle on each program row
-- Auto-generated `pipeline-drafts.ts` (like pipeline-summary.ts) for dashboard import
-
-**Commits:** `bcb1d116` → `c197fb54` → `27da06e0` → `e6308ece` → `d8baefec` (5 commits)
-**Files created:** `data/pipeline-drafts.ts`, `data/pipeline/MI/drafts.json`, `data/pipeline/MI/classify.json`
-**Files modified:** `data/waiver-library.ts`, `scripts/benefits-pipeline.js`, `app/admin/benefits/page.tsx`, `data/pipeline-summary.ts`, `.claude/commands/benefits-pipeline.md`, `SCRATCHPAD.md`
-
-### 2026-04-07 (Session 69) — Admin Panel 2.0 QA Fixes
-
-**Branch:** `noble-yalow` | **From Apr 7 meeting with Graize & Cecille**
-
-**Bug Fixes:**
-- Fixed "Needs Email" counter: added `status=pending` filter to exclude non-actionable leads
-- Restored delete-reason modal: required free-text reason, logged in audit trail
-
-**Claims Page Enhancements:**
-- CSV export via `/api/admin/providers/export` + Export CSV button
-- Multi-select with checkboxes + bulk approve/reject/delete bar
-- Bulk API endpoints: PATCH + DELETE on `/api/admin/providers`
-
-**Provider Portal UX:**
-- Fixed auto-sign-in: deferred lead emails now use `generateNotificationUrl` with `otk` token
-- Added `contact_revealed` event tracking on email/phone copy buttons
-- Built unsubscribe flow: `/unsubscribe/[slug]` page + API + email link + send gating
-
-*Sessions 67-68 archived to `archive/SCRATCHPAD-2026-04.md`*
+*Sessions 67-70 archived to `archive/SCRATCHPAD-2026-04.md`*

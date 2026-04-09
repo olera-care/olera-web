@@ -633,7 +633,7 @@ Return as JSON:
   console.log(`  Errors: ${results.filter((r) => r._error).length}`);
 
   return {
-    state: stateCode,
+    state: entity.stateCode,
     stateName,
     diveAt: new Date().toISOString(),
     total: results.length,

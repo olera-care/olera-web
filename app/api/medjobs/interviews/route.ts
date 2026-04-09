@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { sendEmail } from "@/lib/email";
 import { generateICS } from "@/lib/ics-generator";
+import { generateMedJobsNotificationUrl } from "@/lib/claim-tokens";
 import type { InterviewStatus } from "@/lib/types";
 
 function getAdminClient() {
@@ -96,7 +97,7 @@ export async function POST(request: NextRequest) {
     let resolvedProviderId: string;
     let resolvedStudentId: string;
     let proposedById: string;
-    let providerProfile: { id: string; display_name: string; email: string };
+    let providerProfile: { id: string; display_name: string; email: string; slug?: string };
     let studentProfile: { id: string; display_name: string; email: string; slug?: string };
 
     if (studentProfileId) {
@@ -124,7 +125,7 @@ export async function POST(request: NextRequest) {
 
       const { data: target } = await admin
         .from("business_profiles")
-        .select("id, display_name, email")
+        .select("id, display_name, email, slug")
         .eq("id", providerProfileId)
         .in("type", ["organization", "caregiver"])
         .single();
@@ -170,9 +171,20 @@ export async function POST(request: NextRequest) {
       // Email goes to whoever did NOT propose
       const recipientEmail = proposedById === providerProfile.id ? studentProfile.email : providerProfile.email;
       const proposerName = proposedById === providerProfile.id ? providerProfile.display_name : studentProfile.display_name;
-      const viewUrl = proposedById === providerProfile.id
-        ? `${process.env.NEXT_PUBLIC_SITE_URL}/portal/medjobs/interviews`
-        : `${process.env.NEXT_PUBLIC_SITE_URL}/provider/caregivers`;
+
+      // When sending to provider (Student → Provider flow), use magic link with otk token
+      // When sending to student (Provider → Student flow), use direct portal link
+      const isProviderRecipient = proposedById !== providerProfile.id;
+      let viewUrl: string;
+      if (isProviderRecipient) {
+        // Provider receives - use magic link if slug available, otherwise original fallback
+        viewUrl = providerProfile.slug && providerProfile.email
+          ? generateMedJobsNotificationUrl(providerProfile.slug, providerProfile.email, "interview", interview.id)
+          : `${process.env.NEXT_PUBLIC_SITE_URL}/provider/caregivers`;
+      } else {
+        // Student receives - use portal link (unchanged from original)
+        viewUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/portal/medjobs/interviews`;
+      }
 
       await sendEmail({
         to: recipientEmail!,

@@ -31,7 +31,9 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 
 ### What's shipped
 - 6-phase pipeline: explore → dive → compare → classify → draft → report
-- **Region-flexible pipeline**: `--region "Miami-Dade County, FL" --parent-state FL` works alongside `--state MI`. Perplexity queries adapt. Output to slug-based directories. All 4 layers built: pipeline, data model, `/benefits/{slug}` route, admin regions section.
+- **Concurrent pipeline**: explore queries parallel, dive 5x concurrent, draft 3x concurrent. Per-state ~1.5min (was ~4min).
+- **Batch runner** (`scripts/benefits-batch.js`): runs all 50 states with 3 concurrent processes. Auto-skips states with existing drafts. Resumable.
+- **Region-flexible pipeline**: `--region "Miami-Dade County, FL" --parent-state FL` works alongside `--state MI`. All 4 layers: pipeline, data model, `/benefits/{slug}` route, admin regions section.
 - Data model: programType, geographicScope, complexity, structuredEligibility, applicationGuide, contentSections, contentStatus. Regions add regionName, parentState, slug, isRegion.
 - Admin dashboard: streamlined for content production (readiness filters, content metrics, lifted API calls, remembered reviewer name, programType badges, review status on rows, regions section)
 - State page review workflow: state-level Draft/Current toggle + DraftReviewPanel with `programId: "state-overview"`, dual preview links (v2 vs `/current` sub-route), slash command updated
@@ -39,12 +41,14 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 - StatePageV2: hand-drawn SVG illustrations, organic blobs, wavy dividers, dark stat band, horizontal start-here cards, need-based groupings with custom SVG icons, grouped program list by type
 - Save program: auth-gated bookmark, Supabase persistence, /saved page
 - Michigan: 16 programs drafted + state overview generated. MI Choice applied as live v2 test.
+- **50-state batch run**: in progress (second run after phaseDive bug fix). Explore data exists for all 50 states. Re-running from dive phase forward.
 
 ### What's next
-1. Apply approved MI drafts to waiver-library.ts (all 16 programs)
-2. Run pipeline on a region (e.g., "Miami-Dade County, FL") — prove region system works end-to-end
-3. Run pipeline on FL or CA — second state test
-4. Review draft quality with Chantel
+1. **Wait for batch run to complete** — all 50 states processing
+2. Admin dashboard taste pass (critique done, ready to build: active/backlog split, compressed scaffolding, status line)
+3. Apply approved MI drafts to waiver-library.ts
+4. Run pipeline on a region — prove region system end-to-end
+5. Review draft quality with Chantel
 
 ### Other active work (different branches)
 - Homepage de-jank + mega menu (`gifted-rosalind`) — ready for QA
@@ -71,6 +75,9 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 | 2026-04-09 | StatePageV2 "painting outside the lines" design approved | Hand-drawn SVG illustrations, wavy dividers, dark stat band, width variation between sections. Inspired by Wispr Flow (character, bold moments) + Perena (atmospheric warmth). Visual elements are scanning aids, not decoration. |
 | 2026-04-09 | State page version toggle via `/current` sub-route, NOT query params | Admin needs to compare old vs new. Initially used `?v=1` but self-review caught that `searchParams` makes pages dynamic (ƒ) instead of static (●) — 50+ pages lost CDN caching. Replaced with `/waiver-library/{state}/current` route (static, noindex). |
 | 2026-04-09 | Reviewer name persisted in localStorage | Chantel shouldn't type her name 16 times. Small friction, big annoyance. |
+| 2026-04-09 | Ship breadth first, iterate depth | Don't perfect one state before touching the next. Run pipeline on all 50 states with v1 drafts, then iteratively improve. Review workflow supports this — nothing goes live without approval. A decent draft across 50 > a perfect draft for 1. |
+| 2026-04-09 | Parallelize pipeline: 5x dive, 3x draft, parallel explore | Per-state drops from ~4min to ~1.5min. Separate rate limiters per API. 50 states × 3 concurrent ≈ 25min total. |
+| 2026-04-09 | Admin dashboard needs active/backlog split | UI critique: 48 identical gray "Template only" cards drown the 2 states with real data. Promote active states, compress scaffolding. Single status line beats 3 metric boxes. |
 |------|----------|-----------|
 | 2026-04-08 | Pipeline evolves from research tool → content production system | Pipeline already "understands" programs after dive phase but throws understanding away by outputting a report. Content generation and research are one skill, not two separate steps. |
 | 2026-04-08 | Four program types: benefit, resource, navigator, employment | Derived from 28 real programs across TX (Chantel audit) and MI (pipeline). Chantel flagged resource vs benefit distinction explicitly. Navigator is meta-programs like MiCAFE. |
@@ -236,7 +243,32 @@ The deep dive. Restrained, lets content breathe. Reads like a well-researched ar
 - Region program links in StatePageV2 will 404 (no individual program pages for regions yet)
 - Region programs in admin are display-only (no expandable ProgramRow)
 
-**Commits:** `86530f8e` → `643d70bb` → `4f10a0f7` → `f1cfed6b` → `33b767fa` → `2c690789` → `ff26b594`
+**Pipeline concurrency + batch runner:**
+- `runConcurrent()` utility: batched async executor with concurrency limit
+- Explore: 2 Perplexity queries run via `Promise.all` (was sequential)
+- Dive: 5 concurrent workers via `runConcurrent` (was 1-at-a-time for loop)
+- Draft: 3 concurrent workers (lower than dive — Claude rate limits are tighter)
+- Separate `perplexityLimiter` (200ms) and `claudeLimiter` (300ms) instead of shared
+- Batch runner (`scripts/benefits-batch.js`): spawns child processes, 3 concurrent states, auto-skips existing drafts, shows live progress, gives retry command for failures
+
+**50-state batch run:**
+- First run: 49/50 failed — `stateCode is not defined` in phaseDive return value (missed during entity refactor). Explore phase succeeded for all states.
+- Fixed: `state: stateCode` → `state: entity.stateCode` in dive return object
+- Second run: in progress, resuming from dive phase (explore data cached)
+
+**Admin dashboard UI critique** (analysis done, build next):
+- Top 5 template smells: equal-weight card grid, 0% progress bars, "Template only" ×48, disconnected metric boxes, no visual hierarchy
+- Design thesis: command center not warehouse — promote active, compress backlog
+- 8 surgical edits: active/backlog split, single status line, kill scaffolding progress bars, richer active cards, denser scaffolding grid, serif title, better readiness bar
+
+**Bugs caught:** 5 total this session
+1. phaseReport wrote to wrong dir for regions (stateCode → dirName)
+2. Report template referenced undefined stateCode (ReferenceError)
+3. Admin state/region selection collision
+4. searchParams made state pages dynamic (SSG regression) — replaced with /current route
+5. phaseDive return referenced undefined stateCode (crashed all 49 batch states)
+
+**Commits:** `86530f8e` → `643d70bb` → `4f10a0f7` → `f1cfed6b` → `33b767fa` → `2c690789` → `ff26b594` → `c852b379` → `2e11a804`
 
 ---
 

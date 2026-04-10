@@ -27,9 +27,20 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 
 ## Current Focus
 
-**Benefits Pipeline v3** (branch: `eager-ride`) — tabbed program pages + Chantel-depth content + layout intent.
+**Benefits Pipeline v3** (branch: `eager-ride`) — discovery platform state pages + tabbed program pages + Chantel-depth content.
 
 ### What's shipped (v3 — Session 72, Apr 10)
+- **StatePageV3** (`components/waiver-library/StatePageV3.tsx`): Full redesign from editorial article to discovery platform
+  - **Archetype entry** ("What's your situation?"): 4 always-visible situation cards (home care, paying for care, where to start, caregiver support). Clicking filters entire page — matching programs highlighted, non-matching dimmed to 35% opacity. Need groups dim. Counter shows "Showing X programs related to [situation]". Toggle on/off.
+  - **Quick orientation strip**: key stats (savings, program count, "Free to apply", resources) as quiet serif numbers
+  - **Save buttons** on "Where to start" cards + every program in directory (bookmark icons, auth-gated via SavedProgramsProvider)
+  - **Benefits finder CTA**: "Not sure which programs apply?" warm vanilla card linking to /benefits/finder
+  - **Provider bridge**: 4 care category cards (Home Care, Home Health, Assisted Living, Nursing Homes) linking to browse page with correct ?type=&location= params
+  - **Share with family**: Web Share API with clipboard fallback
+  - **Explore other states** link
+  - Intro shortens to 1 paragraph when archetype active. Quick facts hidden when archetype active. Width variation preserved from v2.
+- **URL migration**: `/waiver-library/*` → `/senior-benefits/*` (31 files, 177 replacements, 301 redirects)
+- **Texas v3 pipeline**: 12/12 programs + state overview drafted
 - **ProgramPageV3** (`components/waiver-library/ProgramPageV3.tsx`): 4-tab structure (About / Eligibility / How to Apply / Resources) with "painting outside the lines" design language
 - **Tab availability adapts to program type**: deep benefits get 4 tabs, resources/navigators get a one-pager, simple benefits get 3 tabs
 - **Tabs use CSS hidden/shown** (not conditional render) so interactive state (document checklist) survives tab switches
@@ -73,11 +84,13 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 - All 50 states + DC explored and researched
 
 ### What's next
-1. **State page v3 redesign** — evolve from editorial article to discovery platform. Archetype-based entry ("What brought you here?"), interactive tools (benefits finder mini-intake, spend-down calculator links), provider cross-link section (3-4 featured), social proof (real questions from families), save buttons on cards. Inspired by TripAdvisor/GetYourGuide discovery pages but with Olera's editorial warmth — not a visual travel page, not a 2015 content wall. Something in between that transcends both.
-2. **Program page v3 iteration** — after state page is nailed, evolve program pages. Component vocabulary exists (tabs, checklist, step journey). Needs: deeper interactive elements (calculators, maps), Chantel-depth content via v3 pipeline.
-3. **Re-run v3 pipeline on all states** — SD + TX validated. Full batch for v3-quality content with new fields.
-4. Apply approved MI drafts
-5. Review draft quality with Chantel
+1. **TJ reviewing StatePageV3 on Vercel** — archetype entry, provider bridge, save buttons, benefits CTA all live. Check /senior-benefits/michigan.
+2. **"Families are asking" social proof section** — needs Supabase query for state-filtered answered questions from provider_questions table. Follow-up after TJ reviews base V3.
+3. **Inline mini benefits check** — could evolve CTA into embedded 3-field form (age, ZIP, Medicaid) with live result. Needs server-side eligibility logic integration.
+4. **Program page v3 iteration** — component vocabulary built. Needs: deeper interactive elements (calculators, maps), Chantel-depth content. After state page approved.
+5. **Re-run v3 pipeline on all states** — SD + TX validated. Full batch for v3-quality content.
+6. Apply approved MI drafts
+7. Review draft quality with Chantel
 
 ### Other active work (different branches)
 - Homepage de-jank + mega menu (`gifted-rosalind`) — ready for QA
@@ -294,7 +307,11 @@ The deep dive. Restrained, lets content breathe. Reads like a well-researched ar
 
 **Build:** Clean (tsc --noEmit passes). Pushed to Vercel.
 
-**Commits:** `3a3bd30c` → ... → `61c11d5f` → `d21b5a94` → `0fb5f0ac`
+**Commits:** `3a3bd30c` → ... → `0fb5f0ac` → `ae6b89c0` → `a4d1a251` → `e485b3f5`
+
+**Self-review bugs caught (session total: 9):**
+- 6 in ProgramPageV3 (crash on null phone, duplicate FAQs, duplicate savings, checklist state loss, empty stateId, stale SEO metadata)
+- 3 in StatePageV3 (wrong browse query params, unused imports, nonexistent Tailwind class)
 
 ---
 

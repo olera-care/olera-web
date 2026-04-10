@@ -55,6 +55,14 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 5. MISSING DATA: ServiceAreasMap got `stateId=""` instead of `state.id`
 6. SEO: `generateMetadata` used scaffold data instead of enriched pipeline data
 
+### What's shipped (continued, later in session 72)
+- **Texas v3 pipeline run**: 12/12 programs drafted with v3 quality + state overview. STAR+PLUS: 14 documents, 8 FAQs, 4 app notes, 2 contacts, layoutIntent=waitlist.
+- **Program `/current` route**: `/waiver-library/{state}/{benefit}/current` renders legacy page with amber "Legacy view" banner. Noindex. Admin links fixed: "Preview current" → `/current`, "Preview v2" → main URL.
+- **Related Articles section** in ProgramPageV3: optional prop, renders article cards with cover images. Texas articles will show automatically.
+- **Admin dashboard taste pass**: state overview collapsed by default, header condensed to single line, pipeline summary box killed, progress bar killed, binary toggle → disclosure.
+- **contacts.phone made optional** across all interfaces — pipeline returns null for online-only contacts (e.g., Meals on Wheels finder).
+- **Generator script interface synced** — v3 fields in the pipeline's interface template so regeneration doesn't revert schema changes.
+
 ### What's shipped (v2 — from previous sessions)
 - 6-phase pipeline: explore → dive → compare → classify → draft → report
 - Concurrent pipeline, batch runner, region-flexible pipeline
@@ -65,11 +73,11 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 - All 50 states + DC explored and researched
 
 ### What's next
-1. **Re-run v3 pipeline on all states** — SD validated (1/16 succeeded, 15 hit 529 overload). Retry: `node scripts/benefits-pipeline.js --state SD --phase draft --run`. Then full batch for v3-quality content.
-2. **Review program pages on Vercel** — V3 is live for all pipeline-enriched programs. TJ is actively testing.
-3. **Design iteration on program page components** based on real content rendering — calculators, maps, interactive elements that Chantel does well
-4. **Program `/current` route** — add `/waiver-library/{state}/{benefit}/current` for side-by-side comparison in admin (like state pages have)
-5. Apply approved MI drafts to waiver-library.ts
+1. **URL migration: `/waiver-library/*` → `/senior-benefits/*`** — SEO-driven rename. "Waiver library" is internal jargon. "/senior-benefits/texas" matches search intent ("senior benefits in Texas"). Includes route dirs, internal links, canonicals, redirects from old URLs, sitemap, admin refs, pipeline refs.
+2. **Re-run v3 pipeline on all states** — SD validated (1/16 succeeded, 15 hit 529 overload). Retry: `node scripts/benefits-pipeline.js --state SD --phase draft --run`. Then full batch for v3-quality content.
+3. **Review program pages on Vercel** — V3 is live for all pipeline-enriched programs. TJ is actively testing.
+4. **Design iteration on program page components** based on real content rendering — calculators, maps, interactive elements
+5. Apply approved MI drafts
 6. Review draft quality with Chantel
 
 ### Other active work (different branches)
@@ -92,6 +100,7 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 ## Decisions Made
 
 | Date | Decision | Rationale |
+| 2026-04-10 | URL migration: `/waiver-library/*` → `/senior-benefits/*` | "Waiver library" is internal jargon no caregiver searches for. "/senior-benefits/texas" matches high-volume queries ("senior benefits in Texas"), signals topic to Google, differentiates from generic "/benefits" (employee, VA). Breadcrumbs render as `olera.care > senior-benefits > texas > program`. 301 redirects from old URLs preserve existing rankings. |
 | 2026-04-10 | Program pages get "painting outside the lines" design — not just editorial | TJ: program pages should have the same design energy as state pages. Current ProgramPageV2 was editorially solid but visually flat. V3 adds HeaderAccent SVGs, WavyDividers, StatCallout dark band, width variation within tabs. |
 | 2026-04-10 | Design first, pipeline second | Design the component vocabulary using STAR+PLUS as reference specimen, then upgrade pipeline prompt to produce content that fills those shapes. Avoids guessing what the design needs. |
 | 2026-04-10 | Take Chantel's content patterns, not her UI patterns | Chantel's 4-tab structure, document checklists, decision-grade FAQs, contacts = keep. Her container-soup card-based design = don't keep. Our design language renders her content depth. |
@@ -262,7 +271,7 @@ The deep dive. Restrained, lets content breathe. Reads like a well-researched ar
 
 **Build:** Clean (tsc --noEmit passes). Pushed to Vercel.
 
-**Commits:** `3a3bd30c` → `500fe622` → `4b35ff8e` → `dccad6e7` → `139034b0` → `03a0bb46` → `75d87693` → `e838b9a6` → `8d68ec02`
+**Commits:** `3a3bd30c` → `500fe622` → `4b35ff8e` → `dccad6e7` → `139034b0` → `03a0bb46` → `75d87693` → `e838b9a6` → `8d68ec02` → `7ebfce57` → `a4366fb2` → `61c11d5f`
 
 ---
 

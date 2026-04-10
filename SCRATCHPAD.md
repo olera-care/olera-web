@@ -27,34 +27,38 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 
 ## Current Focus
 
-**Benefits Pipeline v2** (branch: `eager-ride`) — the system is built, now proving it works.
+**Benefits Pipeline v3** (branch: `eager-ride`) — tabbed program pages + Chantel-depth content + layout intent.
 
-### What's shipped
+### What's shipped (v3 — Session 72, Apr 10)
+- **ProgramPageV3**: 4-tab structure (About / Eligibility / How to Apply / Resources) with "painting outside the lines" design language
+- **Tab availability adapts to program type**: deep benefits get 4 tabs, resources/navigators get a one-pager, simple benefits get 3 tabs
+- **Reusable component vocabulary**: IncomeTable (with row highlighting), AssetLimitsDisplay, DocumentChecklist (interactive with progress bar), StepJourney (visual with connecting line), ContactCards, StatCallout (dark band), ApplicationNotes (amber callouts), FaqSection
+- **Width variation within tabs**: prose at max-w-2xl, tools (income table, checklist) at max-w-3xl, maps at max-w-5xl — same principle as state pages
+- **Organic SVG elements on program pages**: HeaderAccent (softer than state page blobs), WavyDividers between sections
+- **Resource one-pager**: prominent phone CTA, no tabs, warm design
+- **Program data merge layer** (`lib/program-data.ts`): combines waiver-library base data with pipeline draft content. Hand-curated always wins. Pipeline programs now render through V3 automatically.
+- **5 new schema fields**: `documentsNeeded`, `contacts`, `applicationNotes`, `relatedPrograms`, `regionalApplications`
+- **Layout intent**: pipeline decides which visual components best serve each program (`layoutIntent.aboutHighlight`, `eligibilityDisplay`, `applyDisplay`, `hasDocumentChecklist`, `hasLocationFinder`, `visualTone`)
+- **Pipeline v3 prompt**: few-shot exemplars from Chantel's Texas content, "never cite Olera" constraint, component menu for Claude to select from, higher token limits, FAQ minimums by complexity
+- **48-state batch** committed (225K lines). 44/46 batch succeeded, KY+SD pending retry.
+
+### What's shipped (v2 — from previous sessions)
 - 6-phase pipeline: explore → dive → compare → classify → draft → report
-- **Concurrent pipeline**: explore queries parallel, dive 5x concurrent, draft sequential (rate-limited). Per-state ~8min with 100% success.
-- **Batch runner** (`scripts/benefits-batch.js`): runs all states sequentially (Claude API rate limit is shared). Auto-skips states with existing drafts. Resumable. 429 retry with exponential backoff.
-- **Region-flexible pipeline**: `--region "Miami-Dade County, FL" --parent-state FL` works alongside `--state MI`. All 4 layers: pipeline, data model, `/benefits/{slug}` route, admin regions section.
-- Data model: programType, geographicScope, complexity, structuredEligibility, applicationGuide, contentSections, contentStatus. Regions add regionName, parentState, slug, isRegion.
-- Admin dashboard: streamlined for content production (readiness filters, content metrics, lifted API calls, remembered reviewer name, programType badges, review status on rows, regions section)
-- State page review workflow: state-level Draft/Current toggle + DraftReviewPanel with `programId: "state-overview"`, dual preview links (v2 vs `/current` sub-route), slash command updated
-- ProgramPageV2: content-forward, prose-width, serif headings, structured eligibility as prose, clean FAQs, no card soup
-- StatePageV2: hand-drawn SVG illustrations, organic blobs, wavy dividers, dark stat band, horizontal start-here cards, need-based groupings with custom SVG icons, grouped program list by type
-- Save program: auth-gated bookmark, Supabase persistence, /saved page
-- Michigan: 16 programs drafted + state overview generated. MI Choice applied as live v2 test.
-- **All 50 states + DC explored and researched**. Raw pipeline data committed for all states.
-- **5 states at 100% draft rate**: AL(16), AK(13), AZ(13), AR(13), FL(16) — every program drafted successfully after rate limit fix
-- **46 states re-running** in background via `nohup` (PID 59012, log: `data/pipeline/batch-run.log`). ~8 min/state sequential, ~6 hours total. All programs should draft at 100% with retry logic.
-- **Admin dashboard taste pass**: active/backlog split, compressed scaffolding grid (8-col), single status line replaces 3 metric boxes, clean StateCards (3 fields instead of 7), serif title
-- **Browser back button** fixed in admin: `history.pushState` on state/region selection
-- **Post-mortems**: (1) entity refactor variable rename, (2) 85% draft failure from API rate limiting — both documented in `docs/POSTMORTEMS.md` + memories saved
+- Concurrent pipeline, batch runner, region-flexible pipeline
+- Admin dashboard: content production command center
+- StatePageV2: hand-drawn SVGs, organic blobs, wavy dividers, dark stat band
+- Save program, state page review workflow
+- Michigan: 16 programs drafted + state overview. MI Choice as live test.
+- All 50 states + DC explored and researched
 
 ### What's next
-1. **Wait for 46-state batch to finish** (~6 hours, running in background). Check: `tail -5 data/pipeline/batch-run.log`
-2. Commit the results, rebuild, push — all 50 states with all programs
-3. Review v2 state pages across a few states — spot-check content quality
-4. Apply approved MI drafts to waiver-library.ts (batch via `/benefits-pipeline`)
-5. Run pipeline on a region (e.g., "Miami-Dade County, FL") — prove region system end-to-end
-6. Review draft quality with Chantel
+1. **Run v3 pipeline on a test state** (SD or KY) — Claude API was overloaded (529). Retry: `node scripts/benefits-pipeline.js --state SD --phase draft --run`
+2. **Compare v3 output quality** against Chantel's Texas content bar — documents, FAQs, contacts, layout intent
+3. **Re-run all 50 states with v3 prompt** — will produce richer drafts with the new fields
+4. Review program pages on Vercel — V3 is live for all pipeline programs
+5. Design iteration on program page components based on real content
+6. Apply approved MI drafts to waiver-library.ts
+7. Review draft quality with Chantel
 
 ### Other active work (different branches)
 - Homepage de-jank + mega menu (`gifted-rosalind`) — ready for QA

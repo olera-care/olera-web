@@ -88,7 +88,7 @@ export function getEnrichedProgram(
       shortName: draft.shortName,
       tagline: draft.tagline,
       savingsRange: draft.savingsRange,
-      description: draft.tagline,
+      description: draft.intro || draft.tagline,
       eligibilityHighlights: draft.structuredEligibility?.summary || [],
       applicationSteps: draft.applicationGuide?.steps || [],
       forms: [],

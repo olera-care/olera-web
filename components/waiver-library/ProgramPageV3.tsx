@@ -722,10 +722,10 @@ function EligibilityTab({ program }: { program: WaiverProgram }) {
       </section>
 
       {/* Income table — wider, it's the bold moment of this tab */}
-      {elig.incomeTable && elig.incomeTable.filter((r) => typeof r.monthlyLimit === "number").length > 0 && (
+      {elig.incomeTable && elig.incomeTable.filter((r) => typeof r.monthlyLimit === "number" && typeof r.householdSize === "number").length > 0 && (
         <section className="max-w-3xl mx-auto px-6 lg:px-8 mt-10">
           <IncomeTable
-            rows={elig.incomeTable.filter((r) => typeof r.monthlyLimit === "number")}
+            rows={elig.incomeTable.filter((r) => typeof r.monthlyLimit === "number" && typeof r.householdSize === "number")}
             heading="Income limits by household size"
             footnote={elig.povertyLevelReference || undefined}
           />

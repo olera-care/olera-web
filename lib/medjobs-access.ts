@@ -96,10 +96,7 @@ export function canSeeResume(access: AccessInfo): boolean {
  */
 export function formatCandidateName(fullName: string, access: AccessInfo): string {
   if (access.tier === "paid") return fullName;
-  if (access.tier === "anonymous") {
-    return fullName.split(" ")[0];
-  }
-  // Free (active or exhausted): First + last initial
+  // All non-paid tiers (anonymous, free_active, free_exhausted): First + last initial
   const parts = fullName.trim().split(/\s+/);
   if (parts.length <= 1) return parts[0];
   return `${parts[0]} ${parts[parts.length - 1].charAt(0)}.`;

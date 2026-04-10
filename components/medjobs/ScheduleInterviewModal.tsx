@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import Modal from "@/components/ui/Modal";
 
 export interface ScheduleFormData {
@@ -29,58 +30,40 @@ interface ScheduleInterviewModalProps {
   initialValues?: ScheduleFormData;
 }
 
-const INTERVIEW_TYPES = [
-  {
-    value: "video" as const,
-    label: "Video",
-    icon: (
-      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
-      </svg>
-    ),
-  },
-  {
-    value: "phone" as const,
-    label: "Phone",
-    icon: (
-      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
-      </svg>
-    ),
-  },
-  {
-    value: "in_person" as const,
-    label: "In person",
-    icon: (
-      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
-      </svg>
-    ),
-  },
+const FORMAT_OPTIONS: { value: "video" | "phone" | "in_person"; label: string }[] = [
+  { value: "video", label: "Video" },
+  { value: "phone", label: "Phone" },
+  { value: "in_person", label: "In person" },
 ];
 
-// Generate next 14 days for the day picker
-function getNextDays(count: number): { date: Date; dateStr: string; dayName: string; dayNum: number; monthStr: string; isWeekend: boolean; isToday: boolean }[] {
-  const days = [];
+// Generate date options for next 30 days (dropdown format)
+function getDateOptions(): { value: string; label: string }[] {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
+  const options: { value: string; label: string }[] = [];
 
-  for (let i = 0; i < count; i++) {
+  for (let i = 0; i < 30; i++) {
     const d = new Date(today);
-    d.setDate(today.getDate() + i);
-    const dayOfWeek = d.getDay();
-    days.push({
-      date: d,
-      dateStr: d.toISOString().split("T")[0],
-      dayName: i === 0 ? "Today" : i === 1 ? "Tomorrow" : d.toLocaleDateString("en-US", { weekday: "short" }),
-      dayNum: d.getDate(),
-      monthStr: d.toLocaleDateString("en-US", { month: "short" }),
-      isWeekend: dayOfWeek === 0 || dayOfWeek === 6,
-      isToday: i === 0,
-    });
+    d.setDate(d.getDate() + i);
+    const dateStr = d.toISOString().split("T")[0];
+
+    let label: string;
+    if (i === 0) {
+      label = "Today";
+    } else if (i === 1) {
+      label = "Tomorrow";
+    } else {
+      label = d.toLocaleDateString("en-US", {
+        weekday: "short",
+        month: "short",
+        day: "numeric"
+      });
+    }
+
+    options.push({ value: dateStr, label });
   }
-  return days;
+
+  return options;
 }
 
 // Time slots from 8 AM to 6 PM in 30-min increments
@@ -93,9 +76,133 @@ const TIME_SLOTS = [
 
 function formatTimeSlot(time24: string): string {
   const [hours, minutes] = time24.split(":").map(Number);
-  const period = hours >= 12 ? "pm" : "am";
+  const period = hours >= 12 ? "PM" : "AM";
   const hour12 = hours % 12 || 12;
-  return minutes === 0 ? `${hour12}${period}` : `${hour12}:${minutes.toString().padStart(2, "0")}${period}`;
+  return minutes === 0 ? `${hour12}:00 ${period}` : `${hour12}:${minutes.toString().padStart(2, "0")} ${period}`;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Custom Dropdown Component (matching QuickScheduleModal style)
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface DropdownOption {
+  value: string;
+  label: string;
+}
+
+function StyledDropdown({
+  options,
+  value,
+  onChange,
+  placeholder,
+  label,
+}: {
+  options: DropdownOption[];
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+  label: string;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [position, setPosition] = useState({ top: 0, left: 0, width: 0 });
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Update position when opening
+  useEffect(() => {
+    if (isOpen && triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      setPosition({
+        top: rect.bottom + 8,
+        left: rect.left,
+        width: rect.width,
+      });
+    }
+  }, [isOpen]);
+
+  // Close on click outside
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleClick = (e: MouseEvent) => {
+      if (
+        triggerRef.current?.contains(e.target as Node) ||
+        dropdownRef.current?.contains(e.target as Node)
+      ) return;
+      setIsOpen(false);
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [isOpen]);
+
+  const selectedOption = options.find(opt => opt.value === value);
+
+  return (
+    <div className="relative">
+      <button
+        ref={triggerRef}
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        aria-label={label}
+        className={`
+          w-full flex items-center justify-between gap-2
+          bg-white border border-gray-200 rounded-xl px-4 py-3
+          text-left text-sm transition-all min-h-[48px]
+          hover:border-gray-300
+          focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500
+          ${selectedOption ? "text-gray-900" : "text-gray-500"}
+        `}
+      >
+        <span className="truncate">{selectedOption?.label || placeholder}</span>
+        <svg
+          className={`w-5 h-5 text-gray-400 shrink-0 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {isOpen && createPortal(
+        <div
+          ref={dropdownRef}
+          role="listbox"
+          style={{
+            position: "fixed",
+            top: position.top,
+            left: position.left,
+            width: position.width,
+          }}
+          className="bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-[100] max-h-[280px] overflow-y-auto overscroll-contain"
+        >
+          {options.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              role="option"
+              aria-selected={opt.value === value}
+              onClick={() => {
+                onChange(opt.value);
+                setIsOpen(false);
+              }}
+              className={`
+                w-full px-4 py-3 text-left text-sm transition-colors min-h-[44px]
+                ${opt.value === value
+                  ? "bg-primary-50 text-primary-700 font-medium"
+                  : "text-gray-700 hover:bg-gray-50"
+                }
+              `}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>,
+        document.body
+      )}
+    </div>
+  );
 }
 
 export default function ScheduleInterviewModal({
@@ -121,21 +228,9 @@ export default function ScheduleInterviewModal({
   const isStudentInitiated = !!providerProfileId;
   const firstName = otherName.split(" ")[0];
 
-  // Generate days for picker
-  const days = useMemo(() => getNextDays(14), []);
-
-  // Day picker scroll ref
-  const dayScrollRef = useRef<HTMLDivElement>(null);
-
-  // Scroll selected day into view on mount if there's an initial date
-  useEffect(() => {
-    if (initialValues?.date && dayScrollRef.current) {
-      const selectedEl = dayScrollRef.current.querySelector(`[data-date="${initialValues.date}"]`);
-      if (selectedEl) {
-        selectedEl.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
-      }
-    }
-  }, [initialValues?.date]);
+  // Date and time options for dropdowns
+  const dateOptions = useMemo(() => getDateOptions(), []);
+  const timeOptions = useMemo(() => TIME_SLOTS.map(slot => ({ value: slot, label: formatTimeSlot(slot) })), []);
 
   const handleSubmit = async () => {
     if (!date || !time) { setError("Please select a date and time."); return; }
@@ -189,18 +284,6 @@ export default function ScheduleInterviewModal({
       onClose={onClose}
       title={isStudentInitiated ? "Request an interview" : "Schedule an interview"}
       size="lg"
-      footer={
-        <div className="pt-2">
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={!canSubmit}
-            className="w-full py-3.5 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-200 disabled:text-gray-400 rounded-xl text-base font-semibold text-white transition-colors"
-          >
-            {submitting ? "Sending..." : isStudentInitiated ? `Request interview with ${firstName}` : `Invite ${firstName}`}
-          </button>
-        </div>
-      }
     >
       <div className="py-4 space-y-6">
         {/* Subtitle */}
@@ -211,105 +294,59 @@ export default function ScheduleInterviewModal({
         </p>
 
         {error && (
-          <div className="p-3 bg-red-50 border border-red-100 rounded-xl text-sm text-red-700">
+          <div className="p-3 bg-error-50 border border-error-100 rounded-xl text-sm text-error-700">
             {error}
           </div>
         )}
 
-        {/* Interview type - horizontal cards */}
+        {/* Format - pill style buttons */}
         <div>
-          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
-            Interview type
+          <label className="block text-sm font-medium text-gray-700 mb-3">
+            Format
           </label>
-          <div className="grid grid-cols-3 gap-3">
-            {INTERVIEW_TYPES.map((opt) => (
+          <div className="flex flex-wrap gap-2">
+            {FORMAT_OPTIONS.map((opt) => (
               <button
                 key={opt.value}
                 type="button"
                 onClick={() => setType(opt.value)}
-                className={`flex flex-col items-center gap-2.5 p-4 rounded-2xl border-2 transition-all duration-200 ${
+                className={`px-4 py-2.5 rounded-full text-sm font-medium transition-all min-h-[44px] ${
                   type === opt.value
-                    ? "border-gray-900 bg-gray-900 text-white shadow-sm"
-                    : "border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50"
-                }`}
-              >
-                <div className={type === opt.value ? "text-white" : "text-gray-400"}>
-                  {opt.icon}
-                </div>
-                <span className={`text-sm font-medium ${
-                  type === opt.value ? "text-white" : "text-gray-700"
-                }`}>
-                  {opt.label}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Day Picker */}
-        <div>
-          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
-            Pick a day
-          </label>
-          <div
-            ref={dayScrollRef}
-            className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide"
-            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-          >
-            {days.map((day) => (
-              <button
-                key={day.dateStr}
-                type="button"
-                data-date={day.dateStr}
-                onClick={() => setDate(day.dateStr)}
-                className={`flex-shrink-0 flex flex-col items-center w-[72px] py-3 rounded-xl border-2 transition-all duration-200 ${
-                  date === day.dateStr
-                    ? "border-gray-900 bg-gray-900 text-white shadow-sm"
-                    : day.isWeekend
-                      ? "border-gray-100 bg-gray-50 text-gray-400 hover:border-gray-200"
-                      : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50"
-                }`}
-              >
-                <span className={`text-xs font-medium ${
-                  date === day.dateStr ? "text-gray-300" : day.isWeekend ? "text-gray-400" : "text-gray-500"
-                }`}>
-                  {day.dayName}
-                </span>
-                <span className={`text-lg font-semibold mt-0.5 ${
-                  date === day.dateStr ? "text-white" : day.isWeekend ? "text-gray-400" : "text-gray-900"
-                }`}>
-                  {day.dayNum}
-                </span>
-                <span className={`text-xs ${
-                  date === day.dateStr ? "text-gray-300" : "text-gray-400"
-                }`}>
-                  {day.monthStr}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Time Picker */}
-        <div>
-          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
-            Pick a time
-          </label>
-          <div className="grid grid-cols-4 sm:grid-cols-7 gap-2">
-            {TIME_SLOTS.map((slot) => (
-              <button
-                key={slot}
-                type="button"
-                onClick={() => setTime(slot)}
-                className={`py-2.5 px-2 rounded-xl text-sm font-medium transition-all duration-200 ${
-                  time === slot
                     ? "bg-gray-900 text-white shadow-sm"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    : "bg-white text-gray-700 border border-gray-200 hover:border-gray-300 hover:bg-gray-50"
                 }`}
               >
-                {formatTimeSlot(slot)}
+                {opt.label}
               </button>
             ))}
+          </div>
+        </div>
+
+        {/* Date & Time - side by side dropdowns */}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              Date
+            </label>
+            <StyledDropdown
+              options={dateOptions}
+              value={date}
+              onChange={setDate}
+              placeholder="Select date"
+              label="Select date"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              Time
+            </label>
+            <StyledDropdown
+              options={timeOptions}
+              value={time}
+              onChange={setTime}
+              placeholder="Select time"
+              label="Select time"
+            />
           </div>
         </div>
 
@@ -326,9 +363,9 @@ export default function ScheduleInterviewModal({
             Offer another time
           </button>
         ) : (
-          <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+          <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
             <div className="flex items-center justify-between mb-3">
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+              <label className="text-sm font-medium text-gray-700">
                 Alternative time
               </label>
               <button
@@ -339,61 +376,29 @@ export default function ScheduleInterviewModal({
                 Remove
               </button>
             </div>
-            {/* Alt Day Picker */}
-            <div
-              className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 mb-3 scrollbar-hide"
-              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-            >
-              {days.map((day) => (
-                <button
-                  key={`alt-${day.dateStr}`}
-                  type="button"
-                  onClick={() => setAltDate(day.dateStr)}
-                  className={`flex-shrink-0 flex flex-col items-center w-[64px] py-2 rounded-lg border transition-all duration-200 ${
-                    altDate === day.dateStr
-                      ? "border-gray-900 bg-gray-900 text-white"
-                      : day.isWeekend
-                        ? "border-gray-100 bg-white text-gray-400 hover:border-gray-200"
-                        : "border-gray-200 bg-white text-gray-700 hover:border-gray-300"
-                  }`}
-                >
-                  <span className={`text-xs ${
-                    altDate === day.dateStr ? "text-gray-300" : "text-gray-500"
-                  }`}>
-                    {day.dayName}
-                  </span>
-                  <span className={`text-base font-semibold ${
-                    altDate === day.dateStr ? "text-white" : day.isWeekend ? "text-gray-400" : "text-gray-900"
-                  }`}>
-                    {day.dayNum}
-                  </span>
-                </button>
-              ))}
-            </div>
-            {/* Alt Time Picker */}
-            <div className="grid grid-cols-4 sm:grid-cols-7 gap-1.5">
-              {TIME_SLOTS.map((slot) => (
-                <button
-                  key={`alt-${slot}`}
-                  type="button"
-                  onClick={() => setAltTime(slot)}
-                  className={`py-2 px-1 rounded-lg text-xs font-medium transition-all duration-200 ${
-                    altTime === slot
-                      ? "bg-gray-900 text-white"
-                      : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-200"
-                  }`}
-                >
-                  {formatTimeSlot(slot)}
-                </button>
-              ))}
+            <div className="grid grid-cols-2 gap-3">
+              <StyledDropdown
+                options={dateOptions}
+                value={altDate}
+                onChange={setAltDate}
+                placeholder="Select date"
+                label="Select alternative date"
+              />
+              <StyledDropdown
+                options={timeOptions}
+                value={altTime}
+                onChange={setAltTime}
+                placeholder="Select time"
+                label="Select alternative time"
+              />
             </div>
           </div>
         )}
 
         {/* Notes */}
         <div>
-          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-            Add a note <span className="font-normal normal-case text-gray-400">(optional)</span>
+          <label className="block text-sm font-medium text-gray-700 mb-3">
+            Notes <span className="font-normal text-gray-400">(optional)</span>
           </label>
           <textarea
             value={notes}
@@ -401,9 +406,21 @@ export default function ScheduleInterviewModal({
             placeholder={isStudentInitiated
               ? "Introduce yourself briefly or mention what interests you about this role..."
               : "Share any details about the position or what you'd like to discuss..."}
-            rows={3}
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-900 focus:ring-0 outline-none resize-none transition-colors bg-gray-50 focus:bg-white"
+            rows={2}
+            className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none transition-colors"
           />
+        </div>
+
+        {/* Submit button */}
+        <div className="pt-2">
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={!canSubmit}
+            className="w-full py-3.5 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-100 disabled:text-gray-400 rounded-xl text-sm font-semibold text-white transition-colors min-h-[48px]"
+          >
+            {submitting ? "Sending..." : isStudentInitiated ? `Request interview with ${firstName}` : `Invite ${firstName}`}
+          </button>
         </div>
       </div>
     </Modal>

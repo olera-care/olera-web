@@ -169,7 +169,12 @@ export default function Select({
     if (!isOpen) return;
 
     const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      // Check if click is outside BOTH the container AND the dropdown list
+      // The dropdown is rendered via portal, so it's not inside containerRef
+      const clickedInsideContainer = containerRef.current?.contains(e.target as Node);
+      const clickedInsideDropdown = listRef.current?.contains(e.target as Node);
+
+      if (!clickedInsideContainer && !clickedInsideDropdown) {
         setIsOpen(false);
         setFocusedIndex(-1);
       }

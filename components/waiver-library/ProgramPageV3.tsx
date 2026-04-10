@@ -590,15 +590,33 @@ function TabNavigation({
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function AboutTab({ program, state }: { program: WaiverProgram; state: StateData }) {
-  // Build stats for the bold moment
+  const intent = program.layoutIntent;
+
+  // Build stats for the bold moment — layoutIntent guides what to feature
   const stats: { value: string; label: string }[] = [];
-  if (program.savingsRange) {
+  const highlight = intent?.aboutHighlight;
+
+  if (highlight === "waitlist" && program.applicationGuide?.waitlist) {
+    // Waitlist is the defining feature — lead with it
+    const wlMatch = program.applicationGuide.waitlist.match(/\d+/);
+    if (wlMatch) stats.push({ value: wlMatch[0] + "+", label: "month typical wait" });
+  }
+  if (program.savingsRange && highlight !== "waitlist") {
     const match = program.savingsRange.match(/\$[\d,]+/);
     if (match) stats.push({ value: match[0] + "+", label: "potential savings" });
   }
-  // Pull service area count if available
   if (program.serviceAreas && program.serviceAreas.length > 0) {
     stats.push({ value: String(program.serviceAreas.length), label: "service areas" });
+  }
+  // Coverage highlight: count what's included
+  if (highlight === "coverage" && program.contentSections) {
+    const coverageSection = program.contentSections.find(
+      (s) => s.type === "tier-comparison" || (s.type === "prose" && s.heading?.toString().toLowerCase().includes("cover"))
+    );
+    if (coverageSection && "tiers" in coverageSection) {
+      const tiers = coverageSection.tiers as unknown[];
+      stats.push({ value: String(tiers.length), label: "coverage tiers" });
+    }
   }
 
   // Collect callouts from content sections

@@ -31,7 +31,7 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { state: stateId, benefit: benefitId } = await params;
   const state = getStateById(stateId);
-  const program = getProgramById(stateId, benefitId);
+  const program = getEnrichedProgram(stateId, benefitId);
   if (!state || !program) return {};
   const title = `${program.name} | ${state.name} | Benefits Hub | Olera`;
   const description = `${program.tagline} Learn about eligibility, home care benefits, and how to apply for ${program.shortName} in ${state.name}.`;

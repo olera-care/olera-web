@@ -376,15 +376,17 @@ function ContactCards({ contacts }: { contacts: { label: string; description?: s
           {c.description && (
             <p className="text-xs text-gray-500 leading-relaxed">{c.description}</p>
           )}
-          <a
-            href={`tel:${c.phone.replace(/[^\d+]/g, "")}`}
-            className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-500 transition-colors"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-            </svg>
-            {c.phone}
-          </a>
+          {c.phone && (
+            <a
+              href={`tel:${c.phone.replace(/[^\d+]/g, "")}`}
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-500 transition-colors"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+              </svg>
+              {c.phone}
+            </a>
+          )}
           {c.hours && (
             <p className="text-xs text-gray-400">{c.hours}</p>
           )}
@@ -640,11 +642,15 @@ function AboutTab({ program, state }: { program: WaiverProgram; state: StateData
       {stats.length > 0 && (
         <section className="max-w-3xl mx-auto px-6 lg:px-8 mt-10">
           <StatCallout stats={stats} />
+          {/* Savings source attribution — quiet, below the dark band */}
+          {program.savingsRange && program.savingsSource && program.savingsSource !== "Free service" && (
+            <p className="text-xs text-gray-400 mt-2">Source: {program.savingsSource}</p>
+          )}
         </section>
       )}
 
-      {/* Savings detail — quiet, below the stat callout */}
-      {program.savingsRange && (
+      {/* Savings as text only when there's no stat callout to show it */}
+      {stats.length === 0 && program.savingsRange && (
         <section className="max-w-2xl mx-auto px-6 lg:px-8 mt-6">
           <p className="text-sm text-gray-500">
             Estimated savings: <span className="font-medium text-gray-700">{program.savingsRange}</span>
@@ -759,19 +765,11 @@ function EligibilityTab({ program }: { program: WaiverProgram }) {
         </section>
       )}
 
-      <WavyDivider className="my-10 max-w-3xl mx-auto px-6" />
-
-      {/* Eligibility FAQs */}
-      {program.faqs && program.faqs.length > 0 && (
-        <section className="max-w-2xl mx-auto px-6 lg:px-8">
-          <FaqSection faqs={program.faqs} label="Eligibility questions" />
-        </section>
-      )}
     </>
   );
 }
 
-function HowToApplyTab({ program }: { program: WaiverProgram }) {
+function HowToApplyTab({ program, state }: { program: WaiverProgram; state: StateData }) {
   const guide = program.applicationGuide;
 
   // Use pipeline documentsNeeded if available, else try contentSections for documents type
@@ -878,7 +876,7 @@ function HowToApplyTab({ program }: { program: WaiverProgram }) {
               </div>
               <div className="border-t lg:border-t-0 lg:border-l border-gray-200 bg-gray-50">
                 <ServiceAreasMap
-                  stateId=""
+                  stateId={state.id}
                   areas={program.serviceAreas}
                   mapPins={program.mapPins}
                   programName={program.name}
@@ -890,12 +888,6 @@ function HowToApplyTab({ program }: { program: WaiverProgram }) {
         </section>
       )}
 
-      {/* FAQs */}
-      {program.faqs && program.faqs.length > 0 && (
-        <section className="max-w-2xl mx-auto px-6 lg:px-8 mt-12">
-          <FaqSection faqs={program.faqs} label="Application questions" />
-        </section>
-      )}
     </>
   );
 }
@@ -994,12 +986,6 @@ function ResourcesTab({ program }: { program: WaiverProgram }) {
         </section>
       )}
 
-      {/* FAQs */}
-      {program.faqs && program.faqs.length > 0 && (
-        <section className="max-w-2xl mx-auto px-6 lg:px-8 mt-10">
-          <FaqSection faqs={program.faqs} label="More questions" />
-        </section>
-      )}
     </>
   );
 }
@@ -1215,10 +1201,17 @@ export function ProgramPageV3({ program, state }: ProgramPageV3Props) {
           <ResourceOnePager program={program} state={state} />
         ) : (
           <>
-            {activeTab === "about" && <AboutTab program={program} state={state} />}
-            {activeTab === "eligibility" && <EligibilityTab program={program} />}
-            {activeTab === "apply" && <HowToApplyTab program={program} />}
-            {activeTab === "resources" && <ResourcesTab program={program} />}
+            {/* Render all tabs, hide inactive with CSS to preserve state (document checklist etc.) */}
+            <div className={activeTab === "about" ? "" : "hidden"}><AboutTab program={program} state={state} /></div>
+            {tabs.some((t) => t.id === "eligibility") && (
+              <div className={activeTab === "eligibility" ? "" : "hidden"}><EligibilityTab program={program} /></div>
+            )}
+            {tabs.some((t) => t.id === "apply") && (
+              <div className={activeTab === "apply" ? "" : "hidden"}><HowToApplyTab program={program} state={state} /></div>
+            )}
+            {tabs.some((t) => t.id === "resources") && (
+              <div className={activeTab === "resources" ? "" : "hidden"}><ResourcesTab program={program} /></div>
+            )}
           </>
         )}
       </main>

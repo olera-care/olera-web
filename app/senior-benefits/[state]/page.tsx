@@ -61,11 +61,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description: state.description,
-    alternates: { canonical: `/waiver-library/${stateId}` },
+    alternates: { canonical: `/senior-benefits/${stateId}` },
     openGraph: {
       title,
       description: state.description,
-      url: `/waiver-library/${stateId}`,
+      url: `/senior-benefits/${stateId}`,
       siteName: "Olera",
       type: "website",
     },

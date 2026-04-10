@@ -169,7 +169,7 @@ function ProgramCard({ program, stateId }: { program: WaiverProgram; stateId: st
 
   return (
     <Link
-      href={`/waiver-library/${stateId}/${program.id}`}
+      href={`/senior-benefits/${stateId}/${program.id}`}
       className="group block py-5 border-b border-gray-100 last:border-0 transition-colors hover:bg-vanilla-50/50 -mx-3 px-3 rounded-lg"
     >
       <div className="flex items-start justify-between gap-4">
@@ -240,7 +240,7 @@ export function StatePageV2({ state, overview }: StatePageV2Props) {
         <HeaderBlobs />
         <div className="relative max-w-3xl mx-auto px-6 lg:px-8">
           <nav className="flex items-center gap-1.5 text-xs text-gray-400 mb-8">
-            <Link href="/waiver-library" className="hover:text-gray-600 transition-colors">Benefits Hub</Link>
+            <Link href="/senior-benefits" className="hover:text-gray-600 transition-colors">Benefits Hub</Link>
             <span>&#8250;</span>
             <span className="text-gray-600">{state.name}</span>
           </nav>
@@ -285,8 +285,8 @@ export function StatePageV2({ state, overview }: StatePageV2Props) {
                   pick.name.toLowerCase().includes(p.name.toLowerCase().slice(0, 20))
                 );
                 const href = program
-                  ? `/waiver-library/${state.id}/${program.id}`
-                  : `/waiver-library/${state.id}`;
+                  ? `/senior-benefits/${state.id}/${program.id}`
+                  : `/senior-benefits/${state.id}`;
 
                 return (
                   <Link
@@ -405,7 +405,7 @@ export function StatePageV2({ state, overview }: StatePageV2Props) {
                           return program ? (
                             <Link
                               key={j}
-                              href={`/waiver-library/${state.id}/${program.id}`}
+                              href={`/senior-benefits/${state.id}/${program.id}`}
                               className="text-xs font-medium text-primary-700 hover:text-primary-500 bg-primary-50 hover:bg-primary-100 px-3 py-1.5 rounded-full transition-colors"
                             >
                               {program.shortName || program.name}

@@ -22,11 +22,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description,
-    alternates: { canonical: `/waiver-library/forms/${stateId}` },
+    alternates: { canonical: `/senior-benefits/forms/${stateId}` },
     openGraph: {
       title,
       description,
-      url: `/waiver-library/forms/${stateId}`,
+      url: `/senior-benefits/forms/${stateId}`,
       siteName: "Olera",
       type: "website",
     },
@@ -49,8 +49,8 @@ export default async function StateFormsPage({ params }: Props) {
           <Breadcrumb
             variant="dark"
             items={[
-              { label: "Benefits Hub", href: "/waiver-library" },
-              { label: state.name, href: `/waiver-library/${state.id}` },
+              { label: "Benefits Hub", href: "/senior-benefits" },
+              { label: state.name, href: `/senior-benefits/${state.id}` },
               { label: "Forms & Documents" },
             ]}
           />

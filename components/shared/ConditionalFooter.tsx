@@ -36,8 +36,8 @@ export default function ConditionalFooter() {
     return <SimpleFooter />;
   }
 
-  // MedJobs and waiver-library pages — skip the senior care discovery zone pre-footer
-  const hidePrefooter = pathname.startsWith("/medjobs") || pathname.startsWith("/waiver-library");
+  // MedJobs and senior-benefits pages — skip the senior care discovery zone pre-footer
+  const hidePrefooter = pathname.startsWith("/medjobs") || pathname.startsWith("/senior-benefits");
 
   return <Footer hideDiscoveryZone={hidePrefooter} />;
 }

@@ -1168,9 +1168,9 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
         <div className="relative max-w-2xl mx-auto px-6 lg:px-8">
           {/* Breadcrumb */}
           <nav className="flex items-center gap-1.5 text-xs text-gray-400 mb-6">
-            <Link href="/waiver-library" className="hover:text-gray-600 transition-colors">Benefits Hub</Link>
+            <Link href="/senior-benefits" className="hover:text-gray-600 transition-colors">Benefits Hub</Link>
             <span>&#8250;</span>
-            <Link href={`/waiver-library/${state.id}`} className="hover:text-gray-600 transition-colors">{state.name}</Link>
+            <Link href={`/senior-benefits/${state.id}`} className="hover:text-gray-600 transition-colors">{state.name}</Link>
             <span>&#8250;</span>
             <span className="text-gray-600">{program.shortName}</span>
           </nav>

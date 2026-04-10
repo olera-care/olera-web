@@ -95,8 +95,8 @@ export default async function sitemap({
         { path: "/team", priority: 0.7, changeFrequency: "monthly" as const },
         { path: "/privacy", priority: 0.3, changeFrequency: "yearly" as const },
         { path: "/terms", priority: 0.3, changeFrequency: "yearly" as const },
-        { path: "/waiver-library", priority: 0.6, changeFrequency: "monthly" as const },
-        { path: "/waiver-library/forms", priority: 0.5, changeFrequency: "monthly" as const },
+        { path: "/senior-benefits", priority: 0.6, changeFrequency: "monthly" as const },
+        { path: "/senior-benefits/forms", priority: 0.5, changeFrequency: "monthly" as const },
       ];
 
       for (const page of staticPages) {
@@ -120,7 +120,7 @@ export default async function sitemap({
           });
           if (state.id !== "texas") {
             entries.push({
-              url: `${SITE_URL}/waiver-library/forms/${state.id}`,
+              url: `${SITE_URL}/senior-benefits/forms/${state.id}`,
               lastModified: new Date(),
               changeFrequency: "monthly",
               priority: 0.4,

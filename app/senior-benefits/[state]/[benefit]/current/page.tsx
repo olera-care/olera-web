@@ -57,7 +57,7 @@ export default async function LegacyBenefitPage({ params }: Props) {
       {/* Banner: this is the old version */}
       <div className="bg-amber-50 border-b border-amber-200 px-4 py-2 text-center">
         <p className="text-xs text-amber-700">
-          Legacy view — <Link href={`/waiver-library/${stateId}/${benefitId}`} className="underline font-medium">see v2 page</Link>
+          Legacy view — <Link href={`/senior-benefits/${stateId}/${benefitId}`} className="underline font-medium">see v2 page</Link>
         </p>
       </div>
 
@@ -66,7 +66,7 @@ export default async function LegacyBenefitPage({ params }: Props) {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-5">
           <div className="flex items-center gap-3 mb-1">
             <Link
-              href={`/waiver-library/${state.id}?tab=${getCategory(program)}`}
+              href={`/senior-benefits/${state.id}?tab=${getCategory(program)}`}
               className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
               aria-label={`Back to ${state.name}`}
             >
@@ -77,8 +77,8 @@ export default async function LegacyBenefitPage({ params }: Props) {
             <Breadcrumb
               variant="dark"
               items={[
-                { label: "Benefits Hub", href: "/waiver-library" },
-                { label: state.name, href: `/waiver-library/${state.id}` },
+                { label: "Benefits Hub", href: "/senior-benefits" },
+                { label: state.name, href: `/senior-benefits/${state.id}` },
                 { label: program.shortName, current: true },
               ]}
             />

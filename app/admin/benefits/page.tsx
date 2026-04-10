@@ -552,7 +552,7 @@ function ProgramPreview({ program, stateId, pipelineComparison, draft, allReview
             </button>
           </div>
           <a
-            href={`/waiver-library/${stateId}/${program.id}`}
+            href={`/senior-benefits/${stateId}/${program.id}`}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
@@ -622,7 +622,7 @@ function ProgramPreview({ program, stateId, pipelineComparison, draft, allReview
           {/* Links & verification metadata */}
           <div className="flex flex-wrap gap-x-6 gap-y-2 pt-2 border-t border-gray-50">
             <a
-              href={`/waiver-library/${stateId}/${program.id}`}
+              href={`/senior-benefits/${stateId}/${program.id}`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-xs font-medium text-gray-900 hover:text-primary-700 underline underline-offset-2 decoration-gray-300"
@@ -738,7 +738,7 @@ function ProgramRow({ program, stateId, pipelineComparison, draft, reviewStatus,
           {hasV2 ? (
             <>
               <a
-                href={`/waiver-library/${stateId}/${program.id}/current`}
+                href={`/senior-benefits/${stateId}/${program.id}/current`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-[11px] font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 px-2 py-1 rounded transition-colors"
@@ -746,7 +746,7 @@ function ProgramRow({ program, stateId, pipelineComparison, draft, reviewStatus,
                 Preview current
               </a>
               <a
-                href={`/waiver-library/${stateId}/${program.id}`}
+                href={`/senior-benefits/${stateId}/${program.id}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1 text-[11px] font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-2 py-1 rounded transition-colors"
@@ -761,7 +761,7 @@ function ProgramRow({ program, stateId, pipelineComparison, draft, reviewStatus,
           ) : (
             <>
               <a
-                href={`/waiver-library/${stateId}/${program.id}`}
+                href={`/senior-benefits/${stateId}/${program.id}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-[11px] font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 px-2 py-1 rounded transition-colors"
@@ -981,7 +981,7 @@ function StateDetail({
         <div className="flex items-center gap-1.5 shrink-0">
           {stateOverview && (
             <a
-              href={`/waiver-library/${state.id}/current`}
+              href={`/senior-benefits/${state.id}/current`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-[11px] font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 px-2.5 py-1.5 rounded-lg transition-colors"
@@ -990,7 +990,7 @@ function StateDetail({
             </a>
           )}
           <a
-            href={`/waiver-library/${state.id}`}
+            href={`/senior-benefits/${state.id}`}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1 text-[11px] font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-2.5 py-1.5 rounded-lg transition-colors"

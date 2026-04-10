@@ -18,5 +18,5 @@ export function buildWaiverLibraryUrl(
 ): string | null {
   const slug = stateCodeToSlug(stateCode);
   if (!slug) return null;
-  return `/waiver-library/${slug}/${programId}`;
+  return `/senior-benefits/${slug}/${programId}`;
 }

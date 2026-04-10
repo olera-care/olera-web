@@ -39,11 +39,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description,
-    alternates: { canonical: `/waiver-library/${stateId}/${benefitId}` },
+    alternates: { canonical: `/senior-benefits/${stateId}/${benefitId}` },
     openGraph: {
       title,
       description,
-      url: `/waiver-library/${stateId}/${benefitId}`,
+      url: `/senior-benefits/${stateId}/${benefitId}`,
       siteName: "Olera",
       type: "website",
     },
@@ -112,7 +112,7 @@ export default async function BenefitPage({ params }: Props) {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-5">
           <div className="flex items-center gap-3 mb-1">
             <Link
-              href={`/waiver-library/${state.id}?tab=${getCategory(program)}`}
+              href={`/senior-benefits/${state.id}?tab=${getCategory(program)}`}
               className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
               aria-label={`Back to ${state.name}`}
             >
@@ -123,11 +123,11 @@ export default async function BenefitPage({ params }: Props) {
             <Breadcrumb
               variant="dark"
               items={[
-                { label: "Benefits Hub", href: "/waiver-library" },
-                { label: state.name, href: `/waiver-library/${state.id}` },
+                { label: "Benefits Hub", href: "/senior-benefits" },
+                { label: state.name, href: `/senior-benefits/${state.id}` },
                 { label: program.shortName, current: true },
-                { label: "Document Checklist", href: `/waiver-library/${state.id}/${program.id}/checklist` },
-                { label: "Application Forms", href: `/waiver-library/${state.id}/${program.id}/forms` },
+                { label: "Document Checklist", href: `/senior-benefits/${state.id}/${program.id}/checklist` },
+                { label: "Application Forms", href: `/senior-benefits/${state.id}/${program.id}/forms` },
               ]}
             />
           </div>
@@ -274,7 +274,7 @@ export default async function BenefitPage({ params }: Props) {
             </div>
             <div className="mt-4">
               <Link
-                href={`/waiver-library/${state.id}/${program.id}/checklist`}
+                href={`/senior-benefits/${state.id}/${program.id}/checklist`}
                 className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-primary-700 text-sm font-semibold rounded-xl border border-primary-200 hover:bg-primary-50 transition-colors"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -336,7 +336,7 @@ export default async function BenefitPage({ params }: Props) {
                 </div>
                 <div className="mt-auto pt-3">
                   <Link
-                    href={`/waiver-library/${state.id}/${program.id}/checklist`}
+                    href={`/senior-benefits/${state.id}/${program.id}/checklist`}
                     className="inline-flex items-center gap-1.5 px-3 py-2 bg-primary-50 text-primary-700 text-xs font-semibold rounded-lg border border-primary-200 shadow-md shadow-primary-200/50 hover:bg-primary-100 hover:shadow-lg hover:shadow-primary-200/60 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
                   >
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -361,7 +361,7 @@ export default async function BenefitPage({ params }: Props) {
                   </div>
                   <div className="mt-auto pt-3">
                     <Link
-                      href={`/waiver-library/${state.id}/${program.id}/forms`}
+                      href={`/senior-benefits/${state.id}/${program.id}/forms`}
                       className="inline-flex items-center gap-1.5 px-3 py-2 bg-primary-50 text-primary-700 text-xs font-semibold rounded-lg border border-primary-200 shadow-md shadow-primary-200/50 hover:bg-primary-100 hover:shadow-lg hover:shadow-primary-200/60 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
                     >
                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

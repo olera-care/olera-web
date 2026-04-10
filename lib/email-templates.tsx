@@ -578,7 +578,7 @@ export function checklistEmail(opts: {
         <strong>Next step:</strong> Once you've gathered all documents, visit the ${opts.programShortName} page on Olera to start your application.
       </p>
     </div>
-    <div>${button("View program details", `${BASE_URL}/waiver-library`)}</div>
+    <div>${button("View program details", `${BASE_URL}/senior-benefits`)}</div>
   `);
 }
 

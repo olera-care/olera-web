@@ -35,7 +35,7 @@ export default async function LegacyStatePage({ params }: Props) {
       {/* Banner: this is the old version */}
       <div className="bg-amber-50 border-b border-amber-200 px-4 py-2 text-center">
         <p className="text-xs text-amber-700">
-          Legacy view — <Link href={`/waiver-library/${stateId}`} className="underline font-medium">see v2 page</Link>
+          Legacy view — <Link href={`/senior-benefits/${stateId}`} className="underline font-medium">see v2 page</Link>
         </p>
       </div>
 

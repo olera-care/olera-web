@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description,
-    alternates: { canonical: `/waiver-library/${stateId}/${benefitId}/checklist` },
+    alternates: { canonical: `/senior-benefits/${stateId}/${benefitId}/checklist` },
     openGraph: { title, description, siteName: "Olera", type: "website" },
   };
 }
@@ -53,11 +53,11 @@ export default async function ChecklistPage({ params }: Props) {
           <Breadcrumb
             variant="dark"
             items={[
-              { label: "Benefits Hub", href: "/waiver-library" },
-              { label: state.name, href: `/waiver-library/${state.id}` },
-              { label: program.shortName, href: `/waiver-library/${state.id}/${program.id}` },
+              { label: "Benefits Hub", href: "/senior-benefits" },
+              { label: state.name, href: `/senior-benefits/${state.id}` },
+              { label: program.shortName, href: `/senior-benefits/${state.id}/${program.id}` },
               { label: "Document Checklist", current: true },
-              { label: "Application Forms", href: `/waiver-library/${state.id}/${program.id}/forms` },
+              { label: "Application Forms", href: `/senior-benefits/${state.id}/${program.id}/forms` },
             ]}
           />
           <h1 className="mt-2 text-2xl md:text-3xl font-bold text-white">

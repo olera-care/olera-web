@@ -31,11 +31,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description,
-    alternates: { canonical: `/waiver-library/${stateId}/${benefitId}/forms` },
+    alternates: { canonical: `/senior-benefits/${stateId}/${benefitId}/forms` },
     openGraph: {
       title,
       description,
-      url: `/waiver-library/${stateId}/${benefitId}/forms`,
+      url: `/senior-benefits/${stateId}/${benefitId}/forms`,
       siteName: "Olera",
       type: "website",
     },
@@ -59,10 +59,10 @@ export default async function FormsPage({ params }: Props) {
           <Breadcrumb
             variant="dark"
             items={[
-              { label: "Benefits Hub", href: "/waiver-library" },
-              { label: state.name, href: `/waiver-library/${state.id}` },
-              { label: program.shortName, href: `/waiver-library/${state.id}/${program.id}` },
-              { label: "Document Checklist", href: `/waiver-library/${state.id}/${program.id}/checklist` },
+              { label: "Benefits Hub", href: "/senior-benefits" },
+              { label: state.name, href: `/senior-benefits/${state.id}` },
+              { label: program.shortName, href: `/senior-benefits/${state.id}/${program.id}` },
+              { label: "Document Checklist", href: `/senior-benefits/${state.id}/${program.id}/checklist` },
               { label: "Application Forms", current: true },
             ]}
           />
@@ -84,7 +84,7 @@ export default async function FormsPage({ params }: Props) {
             <div className="flex items-start justify-between gap-4 mb-2">
               <h2 className="text-lg font-bold text-gray-900">{program.name}</h2>
               <Link
-                href={`/waiver-library/${state.id}/${program.id}`}
+                href={`/senior-benefits/${state.id}/${program.id}`}
                 className="text-sm font-medium text-primary-600 hover:text-primary-500 transition-colors shrink-0"
               >
                 View program details
@@ -139,7 +139,7 @@ export default async function FormsPage({ params }: Props) {
               <div className="bg-gray-50 rounded-xl p-4">
                 <ol className="list-decimal list-inside space-y-2 text-sm text-gray-600">
                   <li>Download and complete each form above, making sure to fill in all required fields and sign where indicated.</li>
-                  <li>Attach supporting documents from your <Link href={`/waiver-library/${state.id}/${program.id}/checklist`} className="text-primary-600 hover:text-primary-500 font-medium">document checklist</Link> — including proof of identity, income, and {state.name} residency.</li>
+                  <li>Attach supporting documents from your <Link href={`/senior-benefits/${state.id}/${program.id}/checklist`} className="text-primary-600 hover:text-primary-500 font-medium">document checklist</Link> — including proof of identity, income, and {state.name} residency.</li>
                   <li>Submit your completed forms online at YourTexasBenefits.com, by mail to your local HHS office, or in person — processing typically takes 30 to 90 days.</li>
                 </ol>
               </div>

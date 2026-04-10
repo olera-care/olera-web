@@ -52,7 +52,7 @@ cat data/pipeline-summary.ts | head -50
 
 If approved drafts exist, offer to apply them first before doing any new exploration. Applying means: read the draft from `data/pipeline/{STATE}/drafts.json`, write the v2 fields into the matching program in `data/waiver-library.ts`, commit, and push.
 
-If an approved state overview exists, the state page is already rendering from `pipeline-drafts.ts` — no separate apply step needed. Just confirm the v2 state page looks good at `/waiver-library/{state-id}` (compare with old page at `/current`).
+If an approved state overview exists, the state page is already rendering from `pipeline-drafts.ts` — no separate apply step needed. Just confirm the v2 state page looks good at `/senior-benefits/{state-id}` (compare with old page at `/current`).
 
 ## Pipeline Script Reference
 
@@ -82,7 +82,7 @@ node scripts/benefits-pipeline.js --region "DMV" --run
 
 **Resumable:** If a phase was already run, its output file exists and later phases can read it.
 
-**Pages:** States render at `/waiver-library/{state-id}` (existing). All entities also render at `/benefits/{slug}` (flat routing — "michigan" and "miami-dade-county-fl" are peers).
+**Pages:** States render at `/senior-benefits/{state-id}` (existing). All entities also render at `/benefits/{slug}` (flat routing — "michigan" and "miami-dade-county-fl" are peers).
 
 ## Step 1: Explore a State
 
@@ -157,9 +157,9 @@ curl "https://staging-olera2-web.vercel.app/api/admin/seed-sbf-programs?state=XX
 
 1. Run `./node_modules/.bin/next build` to verify no errors
 2. Check the admin dashboard: does the state show updated readiness?
-3. Check the v2 state page: `/waiver-library/{state-id}` — verify overview, start-here picks, need groups render correctly
-4. Compare with old page: `/waiver-library/{state-id}/current` — the `/current` route always renders the legacy page
-5. Check a sample program page: `/waiver-library/{state-id}/{program-id}`
+3. Check the v2 state page: `/senior-benefits/{state-id}` — verify overview, start-here picks, need groups render correctly
+4. Compare with old page: `/senior-benefits/{state-id}/current` — the `/current` route always renders the legacy page
+5. Check a sample program page: `/senior-benefits/{state-id}/{program-id}`
 
 ## Step 4: Commit and PR
 

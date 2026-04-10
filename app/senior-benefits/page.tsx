@@ -10,12 +10,12 @@ export const metadata: Metadata = {
   title: "Benefits Hub | Olera",
   description:
     "Find HCBS and long-term care Medicaid waivers by state. Explore programs, eligibility requirements, and application steps for seniors and adults with disabilities.",
-  alternates: { canonical: "/waiver-library" },
+  alternates: { canonical: "/senior-benefits" },
   openGraph: {
     title: "Benefits Hub | Olera",
     description:
       "Find HCBS and long-term care Medicaid waivers by state. Explore programs, eligibility, and application steps.",
-    url: "/waiver-library",
+    url: "/senior-benefits",
     siteName: "Olera",
     type: "website",
   },

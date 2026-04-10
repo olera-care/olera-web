@@ -234,7 +234,7 @@ export default function SavedProvidersPage() {
               {savedPrograms.map((entry) => (
                 <Link
                   key={entry.programId}
-                  href={`/waiver-library/${entry.stateId}/${entry.programId}`}
+                  href={`/senior-benefits/${entry.stateId}/${entry.programId}`}
                   className="flex items-center justify-between gap-4 p-4 bg-white rounded-xl border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all group"
                 >
                   <div className="min-w-0">

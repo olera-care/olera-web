@@ -99,7 +99,7 @@ export default async function BenefitsSlugPage({ params }: Props) {
   if (!resolved) notFound();
 
   if (resolved.type === "state-redirect") {
-    redirect(`/waiver-library/${resolved.stateId}`);
+    redirect(`/senior-benefits/${resolved.stateId}`);
   }
 
   if (resolved.type === "state") {

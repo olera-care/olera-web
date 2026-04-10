@@ -132,7 +132,7 @@ export interface WaiverProgram {
 
   // Pipeline v3: Chantel-depth content fields
   documentsNeeded?: string[] | null; // 6-15 program-specific items ("Social Security card", not "proof of identity")
-  contacts?: { label: string; description?: string; phone: string; hours?: string }[] | null;
+  contacts?: { label: string; description?: string; phone?: string | null; hours?: string }[] | null;
   applicationNotes?: string[] | null; // Conditional guidance ("Crisis cases may get expedited processing")
   relatedPrograms?: string[] | null; // Sibling programs by name
   regionalApplications?: { region: string; counties?: string[]; url: string; isPdf?: boolean }[] | null;

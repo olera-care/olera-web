@@ -1953,8 +1953,8 @@ export interface PipelineDraft {
     assetLimits?: {
       individual?: number | null;
       couple?: number | null;
-      countedAssets?: string[];
-      exemptAssets?: string[];
+      countedAssets?: string[] | null;
+      exemptAssets?: string[] | null;
       homeEquityCap?: number | null;
     } | null;
     functionalRequirement?: string | null;
@@ -1974,6 +1974,20 @@ export interface PipelineDraft {
   faqs?: { question: string; answer: string }[];
   phone?: string | null;
   sourceUrl?: string | null;
+  // v3 fields
+  documentsNeeded?: string[] | null;
+  contacts?: { label: string; description?: string; phone?: string | null; hours?: string }[] | null;
+  applicationNotes?: string[] | null;
+  relatedPrograms?: string[] | null;
+  regionalApplications?: { region: string; counties?: string[]; url: string; isPdf?: boolean }[] | null;
+  layoutIntent?: {
+    aboutHighlight?: string | null;
+    eligibilityDisplay?: string | null;
+    applyDisplay?: string | null;
+    hasLocationFinder?: boolean;
+    hasDocumentChecklist?: boolean;
+    visualTone?: string | null;
+  } | null;
   contentStatus: string;
   draftedAt: string;
   geographicScope?: { type: string; stateVariation?: boolean; localEntities?: { name: string; type: string; phone?: string; address?: string; url?: string }[] };

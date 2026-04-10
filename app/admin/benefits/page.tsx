@@ -738,6 +738,14 @@ function ProgramRow({ program, stateId, pipelineComparison, draft, reviewStatus,
           {hasV2 ? (
             <>
               <a
+                href={`/waiver-library/${stateId}/${program.id}/current`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[11px] font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 px-2 py-1 rounded transition-colors"
+              >
+                Preview current
+              </a>
+              <a
                 href={`/waiver-library/${stateId}/${program.id}`}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -756,7 +764,7 @@ function ProgramRow({ program, stateId, pipelineComparison, draft, reviewStatus,
                 href={`/waiver-library/${stateId}/${program.id}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-[11px] font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 px-2 py-1 rounded transition-colors"
+                className="text-[11px] font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 px-2 py-1 rounded transition-colors"
               >
                 Preview current
               </a>

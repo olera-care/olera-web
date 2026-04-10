@@ -10,6 +10,7 @@ import { FaqAccordion } from "@/components/waiver-library/FaqAccordion";
 import { CityBadge } from "@/components/waiver-library/CityBadge";
 import { getCategory } from "@/lib/waiver-category";
 import { ProgramPageV3 } from "@/components/waiver-library/ProgramPageV3";
+import { getRelatedArticles } from "@/lib/content";
 
 interface Props {
   params: Promise<{ state: string; benefit: string }>;
@@ -60,7 +61,19 @@ export default async function BenefitPage({ params }: Props) {
 
   // Pipeline v2+ programs get the new content-forward layout
   if (program.programType) {
-    return <ProgramPageV3 program={program} state={state} />;
+    // Fetch related articles for the state (non-blocking — empty array if none)
+    const careTypes = ["senior-care", "home-care", "medicaid"];
+    const articles = await getRelatedArticles("", careTypes, 2, stateId === "texas" ? "texas" : undefined)
+      .then((a) => a.map((art) => ({
+        slug: art.slug,
+        title: art.title,
+        cover_image_url: art.cover_image_url,
+        reading_time_minutes: art.reading_time ? parseInt(art.reading_time) || null : null,
+        section: art.section,
+      })))
+      .catch(() => []);
+
+    return <ProgramPageV3 program={program} state={state} relatedArticles={articles} />;
   }
 
   const FEDERAL_KEYWORDS = [

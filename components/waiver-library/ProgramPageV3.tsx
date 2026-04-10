@@ -367,7 +367,7 @@ function StepJourney({ steps }: { steps: { step: number; title: string; descript
 
 // --- Contact Cards ---
 
-function ContactCards({ contacts }: { contacts: { label: string; description?: string; phone: string; hours?: string }[] }) {
+function ContactCards({ contacts }: { contacts: { label: string; description?: string; phone?: string | null; hours?: string }[] }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
       {contacts.map((c, i) => (
@@ -1018,12 +1018,14 @@ function ResourceOnePager({ program, state }: { program: WaiverProgram; state: S
                 {contacts.map((c, i) => (
                   <div key={i}>
                     <p className="text-sm font-medium text-gray-900">{c.label}</p>
-                    <a
-                      href={`tel:${c.phone.replace(/[^\d+]/g, "")}`}
-                      className="text-2xl font-bold text-primary-700 hover:text-primary-600 font-serif transition-colors"
-                    >
-                      {c.phone}
-                    </a>
+                    {c.phone && (
+                      <a
+                        href={`tel:${c.phone.replace(/[^\d+]/g, "")}`}
+                        className="text-2xl font-bold text-primary-700 hover:text-primary-600 font-serif transition-colors"
+                      >
+                        {c.phone}
+                      </a>
+                    )}
                     {c.hours && <p className="text-xs text-gray-500 mt-0.5">{c.hours}</p>}
                     {c.description && <p className="text-sm text-gray-600 mt-1">{c.description}</p>}
                   </div>
@@ -1079,9 +1081,18 @@ function ResourceOnePager({ program, state }: { program: WaiverProgram; state: S
 // Main component — the orchestrator
 // ═══════════════════════════════════════════════════════════════════════════════
 
+interface RelatedArticle {
+  slug: string;
+  title: string;
+  cover_image_url?: string | null;
+  reading_time_minutes?: number | null;
+  section?: string | null;
+}
+
 interface ProgramPageV3Props {
   program: WaiverProgram;
   state: StateData;
+  relatedArticles?: RelatedArticle[];
 }
 
 function BookmarkButton({ program, state }: { program: WaiverProgram; state: StateData }) {
@@ -1123,7 +1134,7 @@ function BookmarkButton({ program, state }: { program: WaiverProgram; state: Sta
   );
 }
 
-export function ProgramPageV3({ program, state }: ProgramPageV3Props) {
+export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3Props) {
   const programType = program.programType || "benefit";
   const isFederal = program.geographicScope?.type === "federal";
   const isResource = programType === "resource" || programType === "navigator";
@@ -1213,6 +1224,44 @@ export function ProgramPageV3({ program, state }: ProgramPageV3Props) {
               <div className={activeTab === "resources" ? "" : "hidden"}><ResourcesTab program={program} /></div>
             )}
           </>
+        )}
+        {/* Related Articles — shows when articles are available for this state/topic */}
+        {relatedArticles && relatedArticles.length > 0 && (
+          <section className="max-w-3xl mx-auto px-6 lg:px-8 mt-16 pt-10 border-t border-gray-200">
+            <SectionLabel>Related articles</SectionLabel>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              {relatedArticles.map((article) => {
+                const href = article.section
+                  ? `/${article.section}/${article.slug}`
+                  : `/research-and-press/${article.slug}`;
+                return (
+                  <Link
+                    key={article.slug}
+                    href={href}
+                    className="group block"
+                  >
+                    {article.cover_image_url && (
+                      <div className="rounded-xl overflow-hidden mb-3">
+                        <img
+                          src={article.cover_image_url}
+                          alt={article.title}
+                          className="w-full aspect-[3/2] object-cover group-hover:opacity-90 transition-opacity"
+                        />
+                      </div>
+                    )}
+                    <h3 className="text-sm font-semibold text-gray-900 group-hover:text-primary-600 transition-colors leading-snug">
+                      {article.title}
+                    </h3>
+                    {article.reading_time_minutes && (
+                      <p className="text-xs text-gray-400 mt-1">
+                        {article.reading_time_minutes} min read
+                      </p>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
         )}
       </main>
     </div>

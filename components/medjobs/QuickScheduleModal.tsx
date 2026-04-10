@@ -345,6 +345,10 @@ export default function QuickScheduleModal({
 
       const data = await res.json();
 
+      if (res.status === 402 || data.error === "upgrade_required") {
+        setError("You\u2019ve used your free interview requests. Upgrade to schedule more.");
+        return;
+      }
       if (!res.ok) {
         setError(data.error || "Failed to send request. Please try again.");
         return;
@@ -662,56 +666,51 @@ export default function QuickScheduleModal({
 
   const renderConfirmation = () => (
     <div className="py-8 text-center">
-      {/* Success icon */}
-      <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-success-100 flex items-center justify-center">
-        <svg className="w-8 h-8 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+      {/* Email icon */}
+      <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-primary-100 flex items-center justify-center">
+        <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
         </svg>
       </div>
 
       {/* Title */}
       <h2 className="text-xl font-semibold text-gray-900">
-        Request sent!
+        Check your email
       </h2>
-      <p className="mt-2 text-sm text-gray-500 max-w-[280px] mx-auto">
-        {candidateFirstName} will review and confirm within 24 hours.
+      <p className="mt-2 text-sm text-gray-500 max-w-[300px] mx-auto">
+        We sent a verification link to{" "}
+        <span className="font-semibold text-gray-900">{email}</span>.
+        Click it to access your account and manage your interviews.
       </p>
 
-      {/* Summary */}
-      <div className="mt-8 bg-gray-50 rounded-xl p-5 text-left">
-        <div className="space-y-3">
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-500">With</span>
-            <span className="font-medium text-gray-900">{candidate.displayName}</span>
+      {/* Interview summary card */}
+      <div className="mt-6 bg-emerald-50 border border-emerald-100 rounded-xl p-4 text-left">
+        <div className="flex items-center gap-2 mb-3">
+          <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+          <span className="text-sm font-semibold text-emerald-800">Request sent to {candidateFirstName}</span>
+        </div>
+        <div className="space-y-1.5 text-sm text-emerald-700">
+          <div className="flex justify-between">
+            <span>When</span>
+            <span className="font-medium">{formatDateDisplay(selectedDate)}, {formatTimeSlot(selectedTime)}</span>
           </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-500">When</span>
-            <span className="font-medium text-gray-900">
-              {formatDateDisplay(selectedDate)}, {formatTimeSlot(selectedTime)}
-            </span>
-          </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-500">Format</span>
-            <span className="font-medium text-gray-900 capitalize">
-              {format === "in_person" ? "In person" : format}
-            </span>
+          <div className="flex justify-between">
+            <span>Format</span>
+            <span className="font-medium capitalize">{format === "in_person" ? "In person" : format}</span>
           </div>
         </div>
       </div>
-
-      {/* Email note */}
-      <p className="mt-5 text-xs text-gray-400">
-        Confirmation sent to {email}
-      </p>
 
       {/* Close button */}
       <div className="mt-8">
         <button
           type="button"
           onClick={handleClose}
-          className="w-full py-3.5 bg-gray-100 hover:bg-gray-200 rounded-xl text-sm font-semibold text-gray-900 transition-colors min-h-[48px]"
+          className="w-full py-3.5 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-semibold text-white transition-colors min-h-[48px]"
         >
-          Done
+          Got it
         </button>
       </div>
     </div>

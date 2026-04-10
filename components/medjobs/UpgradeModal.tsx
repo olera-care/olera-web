@@ -37,11 +37,13 @@ export default function UpgradeModal({ interviewsUsed, onClose }: UpgradeModalPr
 
         <h2 className="text-lg font-semibold text-gray-900 mb-2">Unlock unlimited interviews</h2>
         <p className="text-sm text-gray-500 mb-4">
-          You&apos;ve scheduled {interviewsUsed} interview{interviewsUsed !== 1 ? "s" : ""} and experienced MedJobs firsthand. Keep hiring the best student caregivers.
+          {interviewsUsed > 0
+            ? "You\u2019ve used your free interview and experienced MedJobs firsthand. Keep hiring the best student caregivers."
+            : "Upgrade to schedule interviews with top student caregivers."}
         </p>
 
         <div className="bg-gray-50 rounded-xl p-4 mb-5">
-          <p className="text-2xl font-bold text-gray-900">$50<span className="text-sm font-normal text-gray-500">/month</span></p>
+          <p className="text-2xl font-bold text-gray-900">$49<span className="text-sm font-normal text-gray-500">/month</span></p>
           <p className="text-xs text-gray-400 mt-1">Cancel anytime</p>
         </div>
 
@@ -82,6 +84,14 @@ export default function UpgradeModal({ interviewsUsed, onClose }: UpgradeModalPr
           className="w-full px-4 py-2 text-sm text-gray-400 hover:text-gray-600 transition-colors">
           Not now
         </button>
+
+        <p className="mt-4 text-xs text-gray-400">
+          Had a bad experience with your free interview?{" "}
+          <a href="mailto:support@olera.care" className="underline hover:text-gray-600">
+            Contact support
+          </a>{" "}
+          for another free credit.
+        </p>
       </div>
     </div>
   );

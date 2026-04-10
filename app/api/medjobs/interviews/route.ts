@@ -4,6 +4,7 @@ import { createClient as createServerClient } from "@/lib/supabase/server";
 import { sendEmail } from "@/lib/email";
 import { generateICS } from "@/lib/ics-generator";
 import { generateMedJobsNotificationUrl } from "@/lib/claim-tokens";
+import { getAccessTier, canScheduleInterview } from "@/lib/medjobs-access";
 import type { InterviewStatus } from "@/lib/types";
 
 function getAdminClient() {
@@ -105,6 +106,18 @@ export async function POST(request: NextRequest) {
       const callerProvider = callerProfiles.find((p) => p.type === "organization" || p.type === "caregiver");
       if (!callerProvider) return NextResponse.json({ error: "Provider profile required" }, { status: 403 });
 
+      // Paywall gate: check provider's access tier before allowing outbound request
+      const { data: providerFull } = await admin
+        .from("business_profiles")
+        .select("metadata")
+        .eq("id", callerProvider.id)
+        .single();
+      const providerMeta = (providerFull?.metadata ?? {}) as Record<string, unknown>;
+      const access = getAccessTier(true, providerMeta);
+      if (!canScheduleInterview(access)) {
+        return NextResponse.json({ error: "upgrade_required", tier: access.tier }, { status: 402 });
+      }
+
       const { data: target } = await admin
         .from("business_profiles")
         .select("id, display_name, email, slug")
@@ -158,6 +171,25 @@ export async function POST(request: NextRequest) {
     if (insertError) {
       console.error("[medjobs/interviews] insert error:", insertError);
       return NextResponse.json({ error: "Failed to create interview" }, { status: 500 });
+    }
+
+    // Increment outbound request count for the provider (only for provider-initiated requests)
+    if (studentProfileId) {
+      try {
+        const { data: provRow } = await admin
+          .from("business_profiles")
+          .select("metadata")
+          .eq("id", resolvedProviderId)
+          .single();
+        const meta = ((provRow?.metadata as Record<string, unknown>) ?? {});
+        const currentRequests = (meta.medjobs_request_count as number) || 0;
+        await admin
+          .from("business_profiles")
+          .update({ metadata: { ...meta, medjobs_request_count: currentRequests + 1 } })
+          .eq("id", resolvedProviderId);
+      } catch (err) {
+        console.error("[medjobs/interviews] request count increment error:", err);
+      }
     }
 
     // Send notification email to the other party
@@ -249,10 +281,31 @@ export async function PATCH(request: NextRequest) {
     const { data: account } = await admin.from("accounts").select("id").eq("user_id", user.id).single();
     if (!account) return NextResponse.json({ error: "No account" }, { status: 403 });
 
-    const { data: userProfiles } = await admin.from("business_profiles").select("id").eq("account_id", account.id);
-    const userProfileIds = (userProfiles || []).map((p) => p.id);
+    const { data: userProfiles } = await admin.from("business_profiles").select("id, type, metadata").eq("account_id", account.id);
+    const userProfileIds = (userProfiles || []).map((p: { id: string }) => p.id);
     const isParticipant = userProfileIds.includes(interview.provider_profile_id) || userProfileIds.includes(interview.student_profile_id);
     if (!isParticipant) return NextResponse.json({ error: "Not authorized" }, { status: 403 });
+
+    // Paywall gate: if a provider is confirming an inbound interview, check their tier
+    if (status === "confirmed") {
+      const isProviderConfirming =
+        userProfileIds.includes(interview.provider_profile_id) &&
+        interview.proposed_by !== interview.provider_profile_id;
+
+      if (isProviderConfirming) {
+        const providerProfile2 = (userProfiles || []).find(
+          (p: { id: string; type: string }) =>
+            p.id === interview.provider_profile_id && (p.type === "organization" || p.type === "caregiver")
+        );
+        if (providerProfile2) {
+          const providerMeta = ((providerProfile2 as { metadata?: unknown }).metadata ?? {}) as Record<string, unknown>;
+          const access = getAccessTier(true, providerMeta);
+          if (!canScheduleInterview(access)) {
+            return NextResponse.json({ error: "upgrade_required", tier: access.tier }, { status: 402 });
+          }
+        }
+      }
+    }
 
     // Build update
     const update: Record<string, unknown> = { status };
@@ -265,6 +318,25 @@ export async function PATCH(request: NextRequest) {
     }
 
     await admin.from("interviews").update(update).eq("id", interviewId);
+
+    // Increment the provider's confirmed interview count after successful confirmation
+    if (status === "confirmed") {
+      try {
+        const { data: providerRow } = await admin
+          .from("business_profiles")
+          .select("metadata")
+          .eq("id", interview.provider_profile_id)
+          .single();
+        const meta = ((providerRow?.metadata as Record<string, unknown>) ?? {});
+        const currentCount = (meta.medjobs_interview_count as number) || 0;
+        await admin
+          .from("business_profiles")
+          .update({ metadata: { ...meta, medjobs_interview_count: currentCount + 1 } })
+          .eq("id", interview.provider_profile_id);
+      } catch (err) {
+        console.error("[medjobs/interviews] count increment error:", err);
+      }
+    }
 
     // Send emails based on status change
     const provider = interview.provider as { display_name: string; email: string };

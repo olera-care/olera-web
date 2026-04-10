@@ -4,6 +4,8 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import ScheduleInterviewModal from "@/components/medjobs/ScheduleInterviewModal";
+import UpgradeModal from "@/components/medjobs/UpgradeModal";
+import type { AccessTier } from "@/lib/medjobs-access";
 
 interface ProviderContactSectionProps {
   studentId: string;
@@ -14,6 +16,8 @@ interface ProviderContactSectionProps {
   variant?: "sidebar" | "sticky" | "inline";
   /** Pre-fetched: whether an interview has already been scheduled */
   initialScheduled?: boolean;
+  /** Provider's access tier for paywall gating */
+  accessTier?: AccessTier;
 }
 
 export default function ProviderContactSection({
@@ -24,13 +28,17 @@ export default function ProviderContactSection({
   studentSlug,
   variant = "sidebar",
   initialScheduled = false,
+  accessTier,
 }: ProviderContactSectionProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
   const { user, openAuth } = useAuth();
   const [showModal, setShowModal] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [scheduled, setScheduled] = useState(initialScheduled);
+
+  const isFreeExhausted = accessTier === "free_exhausted";
 
   // If initial state changes (e.g., parent fetched interviews), update
   useEffect(() => {
@@ -76,8 +84,12 @@ export default function ProviderContactSection({
       handleAuthRequired();
       return;
     }
+    if (isFreeExhausted) {
+      setShowUpgradeModal(true);
+      return;
+    }
     setShowModal(true);
-  }, [requiresAuth, handleAuthRequired]);
+  }, [requiresAuth, handleAuthRequired, isFreeExhausted]);
 
   const firstName = studentName.split(" ")[0];
 
@@ -115,6 +127,9 @@ export default function ProviderContactSection({
             onClose={() => setShowModal(false)}
             onScheduled={() => { setShowModal(false); setScheduled(true); }}
           />
+        )}
+        {showUpgradeModal && (
+          <UpgradeModal interviewsUsed={1} onClose={() => setShowUpgradeModal(false)} />
         )}
       </>
     );
@@ -177,14 +192,14 @@ export default function ProviderContactSection({
         </div>
       )}
 
-      {/* Primary CTA - Schedule Interview (available to all authenticated providers) */}
+      {/* Primary CTA - Schedule Interview */}
       {scheduled ? (
         <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-700 font-medium text-center">
           Interview request sent to {firstName}!
         </div>
       ) : (
         <button
-          onClick={() => setShowModal(true)}
+          onClick={handleScheduleClick}
           className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-semibold text-white transition-colors"
         >
           <CalendarIcon />
@@ -199,6 +214,9 @@ export default function ProviderContactSection({
           onClose={() => setShowModal(false)}
           onScheduled={() => { setShowModal(false); setScheduled(true); }}
         />
+      )}
+      {showUpgradeModal && (
+        <UpgradeModal interviewsUsed={1} onClose={() => setShowUpgradeModal(false)} />
       )}
     </div>
   );

@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { createClient as createServerClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -14,8 +15,8 @@ import {
   getYouTubeId,
   INTENDED_SCHOOL_LABELS,
 } from "@/lib/medjobs-helpers";
+import { getAccessTier, filterCandidateForTier, type AccessTier, type AccessInfo } from "@/lib/medjobs-access";
 import CandidateDetailClientWrapper from "./CandidateDetailClientWrapper";
-import { VerifiedInfoGate, VerifiedNameDisplay } from "./VerifiedInfoGate";
 
 function getSupabase() {
   return createClient(
@@ -88,17 +89,54 @@ export default async function ProviderStudentProfilePage({ params }: PageProps) 
   const durationLabel = formatDuration(meta);
   const videoAvailable = hasVideo(meta);
   const youtubeId = videoAvailable ? getYouTubeId(meta.video_intro_url!) : null;
-  const firstName = profile.display_name?.split(" ")[0] || "This candidate";
   const lastUpdated = profile.updated_at ? formatLastUpdated(profile.updated_at) : null;
 
-  // Generate signed URLs for private documents
+  // Determine the viewing provider's access tier for paywall gating
   const adminSb = getAdminSupabase();
+  let accessTier: AccessTier = "anonymous";
+  let accessInfo: AccessInfo = { tier: "anonymous", interviewsUsed: 0, requestsSent: 0, isPaid: false };
+  try {
+    const serverSb = await createServerClient();
+    const { data: { user } } = await serverSb.auth.getUser();
+    if (user) {
+      const { data: account } = await adminSb.from("accounts").select("id").eq("user_id", user.id).single();
+      if (account) {
+        const { data: providerProfile } = await adminSb
+          .from("business_profiles")
+          .select("metadata")
+          .eq("account_id", account.id)
+          .in("type", ["organization", "caregiver"])
+          .limit(1)
+          .single();
+        if (providerProfile) {
+          const providerMeta = (providerProfile.metadata ?? {}) as Record<string, unknown>;
+          accessInfo = getAccessTier(true, providerMeta);
+          accessTier = accessInfo.tier;
+        }
+      }
+    }
+  } catch {
+    // If auth check fails, default to anonymous (most restrictive)
+  }
+  const filtered = filterCandidateForTier(
+    {
+      displayName: profile.display_name || "",
+      email: profile.email,
+      phone: profile.phone,
+      linkedinUrl: meta.linkedin_url,
+      resumeUrl: meta.resume_url,
+    },
+    accessInfo
+  );
+  const firstName = (profile.display_name?.split(" ")[0]) || "This candidate";
+
+  // Generate signed URLs for private documents (only if paid)
   async function getSignedUrl(path: string | undefined): Promise<string | null> {
     if (!path || path.startsWith("http")) return path || null;
     const { data } = await adminSb.storage.from("student-documents").createSignedUrl(path, 3600);
     return data?.signedUrl || null;
   }
-  const resumeUrl = await getSignedUrl(meta.resume_url);
+  const resumeUrl = accessInfo.isPaid ? await getSignedUrl(meta.resume_url) : null;
 
   // Verification status
   const isVerified = !!(meta.drivers_license_url && meta.car_insurance_url);
@@ -169,7 +207,7 @@ export default async function ProviderStudentProfilePage({ params }: PageProps) 
                   {/* Name + Status */}
                   <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 flex-wrap justify-center sm:justify-start">
                     <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900">
-                      <VerifiedNameDisplay fullName={profile.display_name || ""} />
+                      {filtered.displayName}
                     </h1>
                     {meta.seeking_status === "actively_looking" && (
                       <span className="inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 w-fit mx-auto sm:mx-0">
@@ -181,11 +219,9 @@ export default async function ProviderStudentProfilePage({ params }: PageProps) 
 
                   {/* University + Track + Location */}
                   <div className="mt-2 space-y-0.5">
-                    <VerifiedInfoGate fallback={<p className="text-base text-gray-400 font-medium">University hidden</p>}>
                       {meta.university && (
                         <p className="text-base text-gray-700 font-medium">{meta.university}</p>
                       )}
-                    </VerifiedInfoGate>
                     <p className="text-sm text-gray-500">
                       {[trackLabel, profile.city && profile.state ? `${profile.city}, ${profile.state}` : null]
                         .filter(Boolean)
@@ -230,28 +266,27 @@ export default async function ProviderStudentProfilePage({ params }: PageProps) 
                     </div>
                   )}
 
-                  {/* Quick Links - only visible to verified providers */}
-                  <VerifiedInfoGate>
-                    {(resumeUrl || meta.linkedin_url) && (
-                      <div className="mt-4 flex flex-wrap gap-3 justify-center sm:justify-start">
-                        {resumeUrl && (
-                          <a
-                            href={resumeUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="group inline-flex items-center gap-2 px-4 py-2 bg-gray-50 hover:bg-white border border-gray-200 hover:border-gray-300 hover:shadow-sm rounded-lg text-sm font-medium text-gray-700 transition-all duration-200"
-                          >
-                            <svg className="w-4 h-4 text-gray-500 group-hover:text-gray-700 transition-colors" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-                            </svg>
-                            Resume
-                          </a>
-                        )}
-                        {meta.linkedin_url && (
-                          <a
-                            href={meta.linkedin_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                  {/* Quick Links - only visible to paid providers */}
+                  {accessInfo.isPaid && (resumeUrl || filtered.linkedinUrl) && (
+                    <div className="mt-4 flex flex-wrap gap-3 justify-center sm:justify-start">
+                      {resumeUrl && (
+                        <a
+                          href={resumeUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="group inline-flex items-center gap-2 px-4 py-2 bg-gray-50 hover:bg-white border border-gray-200 hover:border-gray-300 hover:shadow-sm rounded-lg text-sm font-medium text-gray-700 transition-all duration-200"
+                        >
+                          <svg className="w-4 h-4 text-gray-500 group-hover:text-gray-700 transition-colors" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                          </svg>
+                          Resume
+                        </a>
+                      )}
+                      {filtered.linkedinUrl && (
+                        <a
+                          href={filtered.linkedinUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
                             className="group inline-flex items-center gap-2 px-4 py-2 bg-gray-50 hover:bg-white border border-gray-200 hover:border-[#0A66C2]/30 hover:shadow-sm rounded-lg text-sm font-medium text-gray-700 transition-all duration-200"
                           >
                             <svg className="w-4 h-4 text-[#0A66C2]" fill="currentColor" viewBox="0 0 24 24">
@@ -261,8 +296,7 @@ export default async function ProviderStudentProfilePage({ params }: PageProps) 
                           </a>
                         )}
                       </div>
-                    )}
-                  </VerifiedInfoGate>
+                  )}
                 </div>
               </div>
             </div>
@@ -406,14 +440,6 @@ export default async function ProviderStudentProfilePage({ params }: PageProps) 
 
                 {/* Education & Experience Grid */}
                 <div className="grid sm:grid-cols-2 gap-6">
-                  <VerifiedInfoGate fallback={
-                    meta.university ? (
-                      <div>
-                        <dt className="text-sm font-medium text-gray-500 mb-1">University</dt>
-                        <dd className="text-base text-gray-400">Verify to view</dd>
-                      </div>
-                    ) : null
-                  }>
                     {meta.university && (
                       <div>
                         <dt className="text-sm font-medium text-gray-500 mb-1">University</dt>
@@ -421,7 +447,6 @@ export default async function ProviderStudentProfilePage({ params }: PageProps) 
                         {meta.major && <dd className="text-sm text-gray-600 mt-0.5">{meta.major}</dd>}
                       </div>
                     )}
-                  </VerifiedInfoGate>
                   <div>
                     <dt className="text-sm font-medium text-gray-500 mb-1">Caregiving Experience</dt>
                     <dd className="text-base font-semibold text-gray-900">
@@ -642,11 +667,12 @@ export default async function ProviderStudentProfilePage({ params }: PageProps) 
               <div className="bg-white rounded-2xl border border-gray-200 shadow-lg p-6">
                 <CandidateDetailClientWrapper
                   studentId={profile.id}
-                  studentName={profile.display_name}
-                  studentEmail={profile.email}
-                  studentPhone={profile.phone}
+                  studentName={filtered.displayName}
+                  studentEmail={filtered.email}
+                  studentPhone={filtered.phone}
                   studentSlug={profile.slug}
                   variant="inline"
+                  accessTier={accessTier}
                 />
               </div>
             </div>
@@ -660,11 +686,12 @@ export default async function ProviderStudentProfilePage({ params }: PageProps) 
       <div className="lg:hidden">
         <CandidateDetailClientWrapper
           studentId={profile.id}
-          studentName={profile.display_name}
-          studentEmail={profile.email}
-          studentPhone={profile.phone}
+          studentName={filtered.displayName}
+          studentEmail={filtered.email}
+          studentPhone={filtered.phone}
           studentSlug={profile.slug}
           variant="sticky"
+          accessTier={accessTier}
         />
       </div>
     </main>

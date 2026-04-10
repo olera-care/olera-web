@@ -267,6 +267,10 @@ export default function ScheduleInterviewModal({
         }),
       });
       const data = await res.json();
+      if (res.status === 402 || data.error === "upgrade_required") {
+        setError("You\u2019ve used your free interview. Upgrade to schedule more.");
+        return;
+      }
       if (!res.ok) { setError(data.error || "Failed to schedule."); return; }
       onScheduled();
     } catch {

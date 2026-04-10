@@ -433,7 +433,7 @@ function MedJobsOnboardContent() {
               </span>
             </div>
 
-            {/* Full page navigation (not router.push) to ensure auth cookies are sent */}
+            {/* Full page navigation (not router.push) ensures auth cookies are sent */}
             <button
               onClick={() => { window.location.href = interviewsUrl; }}
               disabled={!isSignedIn}

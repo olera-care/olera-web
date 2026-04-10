@@ -73,12 +73,11 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 - All 50 states + DC explored and researched
 
 ### What's next
-1. **URL migration: `/waiver-library/*` → `/senior-benefits/*`** — SEO-driven rename. "Waiver library" is internal jargon. "/senior-benefits/texas" matches search intent ("senior benefits in Texas"). Includes route dirs, internal links, canonicals, redirects from old URLs, sitemap, admin refs, pipeline refs.
-2. **Re-run v3 pipeline on all states** — SD validated (1/16 succeeded, 15 hit 529 overload). Retry: `node scripts/benefits-pipeline.js --state SD --phase draft --run`. Then full batch for v3-quality content.
-3. **Review program pages on Vercel** — V3 is live for all pipeline-enriched programs. TJ is actively testing.
-4. **Design iteration on program page components** based on real content rendering — calculators, maps, interactive elements
-5. Apply approved MI drafts
-6. Review draft quality with Chantel
+1. **State page v3 redesign** — evolve from editorial article to discovery platform. Archetype-based entry ("What brought you here?"), interactive tools (benefits finder mini-intake, spend-down calculator links), provider cross-link section (3-4 featured), social proof (real questions from families), save buttons on cards. Inspired by TripAdvisor/GetYourGuide discovery pages but with Olera's editorial warmth — not a visual travel page, not a 2015 content wall. Something in between that transcends both.
+2. **Program page v3 iteration** — after state page is nailed, evolve program pages. Component vocabulary exists (tabs, checklist, step journey). Needs: deeper interactive elements (calculators, maps), Chantel-depth content via v3 pipeline.
+3. **Re-run v3 pipeline on all states** — SD + TX validated. Full batch for v3-quality content with new fields.
+4. Apply approved MI drafts
+5. Review draft quality with Chantel
 
 ### Other active work (different branches)
 - Homepage de-jank + mega menu (`gifted-rosalind`) — ready for QA
@@ -100,6 +99,11 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 ## Decisions Made
 
 | Date | Decision | Rationale |
+| 2026-04-10 | State page evolves from article to discovery platform | Current page is a well-designed article but fundamentally passive. The TripAdvisor/GetYourGuide model (category entry, visual cards, curated picks, interactive tools, social proof) applied to senior benefits — but NOT visual-heavy like travel. Olera's version: editorial warmth meets interactive purpose. "Something in between that transcends both." |
+| 2026-04-10 | Archetype-based entry is always visible | 3-4 situation cards ("My parent needs help at home", "We're going broke on facility costs", etc.) that filter/reorder the page. Not a quiz or flow — a gentle "What brought you here?" Like Airbnb's category bar. Always present, not a one-time orientation. |
+| 2026-04-10 | State pages first, then program pages | State page is the entry point — the discovery layer. Once that's nailed, program page improvements follow naturally. The program page component vocabulary is already built. |
+| 2026-04-10 | Cross-link providers after programs, not inline | Dedicated section with 3-4 featured provider cards after the program list + contextual mentions. "MI Choice pays for home care. [Browse providers who accept Medicaid →]" Not forced, answers a question the person already has. |
+| 2026-04-10 | Bad examples: Caring.com, PayingForSeniorCare, SGMays | Content walls, H2 after H2, no interactivity, no visual variety, government pamphlet feel. Good examples: TripAdvisor, GetYourGuide, Expedia — discovery platforms with category entry, visual cards, curated picks, social proof, interactive tools. |
 | 2026-04-10 | URL migration: `/waiver-library/*` → `/senior-benefits/*` | "Waiver library" is internal jargon no caregiver searches for. "/senior-benefits/texas" matches high-volume queries ("senior benefits in Texas"), signals topic to Google, differentiates from generic "/benefits" (employee, VA). Breadcrumbs render as `olera.care > senior-benefits > texas > program`. 301 redirects from old URLs preserve existing rankings. |
 | 2026-04-10 | Program pages get "painting outside the lines" design — not just editorial | TJ: program pages should have the same design energy as state pages. Current ProgramPageV2 was editorially solid but visually flat. V3 adds HeaderAccent SVGs, WavyDividers, StatCallout dark band, width variation within tabs. |
 | 2026-04-10 | Design first, pipeline second | Design the component vocabulary using STAR+PLUS as reference specimen, then upgrade pipeline prompt to produce content that fills those shapes. Avoids guessing what the design needs. |
@@ -269,9 +273,28 @@ The deep dive. Restrained, lets content breathe. Reads like a well-researched ar
 5. MISSING DATA: ServiceAreasMap got empty stateId
 6. SEO: generateMetadata used scaffold data
 
+**URL migration** (`/waiver-library/*` → `/senior-benefits/*`):
+- Route dir: `app/waiver-library` → `app/senior-benefits`
+- 177 URL string replacements across 37 files, import paths preserved
+- 301 redirects in next.config.ts for all old URL patterns
+- Slash command docs updated
+- 31 files changed total
+
+**Texas v3 pipeline**: 12/12 programs drafted + state overview. STAR+PLUS: 14 docs, 8 FAQs, 4 app notes, layoutIntent=waitlist.
+
+**Program `/current` route**: `app/senior-benefits/[state]/[benefit]/current/page.tsx` — legacy page with amber banner.
+
+**Admin fixes**: Preview current → `/current` URL, Preview v2 → main URL. State detail taste pass (overview collapsed, compact header).
+
+**State page v3 design direction** (discussion, not code):
+- Deep repo exploration: 39K providers (state-filterable), benefits finder (ZIP+age+income intake), spend-down calculator, saved programs, Q&A system (76 questions/day), articles, care seeker profiles
+- Design references studied: Good = TripAdvisor/GetYourGuide/Expedia (discovery platforms). Bad = Caring.com/PayingForSeniorCare/SGMays (content walls).
+- Key insight: state page should be a discovery platform, not an article. Archetype-based entry, interactive tools, provider cross-links, social proof, save buttons. But not visual-heavy like travel — editorial warmth meets interactive purpose.
+- TJ: "transcend what I've said, think outside the box"
+
 **Build:** Clean (tsc --noEmit passes). Pushed to Vercel.
 
-**Commits:** `3a3bd30c` → `500fe622` → `4b35ff8e` → `dccad6e7` → `139034b0` → `03a0bb46` → `75d87693` → `e838b9a6` → `8d68ec02` → `7ebfce57` → `a4366fb2` → `61c11d5f`
+**Commits:** `3a3bd30c` → ... → `61c11d5f` → `d21b5a94` → `0fb5f0ac`
 
 ---
 

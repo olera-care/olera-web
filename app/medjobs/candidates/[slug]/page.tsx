@@ -15,6 +15,7 @@ import {
   getYouTubeId,
   INTENDED_SCHOOL_LABELS,
 } from "@/lib/medjobs-helpers";
+import { getAccessTier, filterCandidateForTier, type AccessInfo } from "@/lib/medjobs-access";
 import ContactSection from "./ContactSection";
 import BackLink from "./BackLink";
 
@@ -32,27 +33,60 @@ function getAdminSupabase() {
   );
 }
 
-/** Check if current user is a verified provider */
-async function checkVerifiedProvider(): Promise<boolean> {
+/**
+ * Get the viewing user's access tier and pre-fetch whether they've already
+ * scheduled an interview with this candidate. Returns anonymous defaults if
+ * the viewer is not a signed-in provider.
+ */
+async function getViewerContext(candidateProfileId: string): Promise<{
+  accessInfo: AccessInfo;
+  initialScheduled: boolean;
+}> {
+  const defaults = {
+    accessInfo: { tier: "anonymous" as const, creditsUsed: 0, creditsRemaining: 0, isPaid: false },
+    initialScheduled: false,
+  };
   try {
     const supabase = await createServerClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return false;
+    if (!user) return defaults;
 
-    // Check if user has a verified organization profile
-    const { data: profile } = await supabase
+    const admin = getAdminSupabase();
+    const { data: account } = await admin
+      .from("accounts")
+      .select("id")
+      .eq("user_id", user.id)
+      .single();
+    if (!account) return defaults;
+
+    const { data: providerProfile } = await admin
       .from("business_profiles")
-      .select("id, verification_state")
-      .eq("account_id", user.id)
-      .eq("type", "organization")
-      .eq("is_active", true)
-      .eq("verification_state", "verified")
+      .select("id, metadata")
+      .eq("account_id", account.id)
+      .in("type", ["organization", "caregiver"])
+      .limit(1)
+      .maybeSingle();
+    if (!providerProfile) return defaults;
+
+    const providerMeta = (providerProfile.metadata ?? {}) as Record<string, unknown>;
+    const accessInfo = getAccessTier(true, providerMeta);
+
+    // Check if this provider has an active interview with this candidate.
+    // Exclude cancelled/no_show so provider can re-schedule.
+    const activeStatuses = ["proposed", "confirmed", "rescheduled", "completed"];
+    const { data: interview } = await admin
+      .from("interviews")
+      .select("id")
+      .eq("provider_profile_id", providerProfile.id)
+      .eq("student_profile_id", candidateProfileId)
+      .eq("proposed_by", providerProfile.id)
+      .in("status", activeStatuses)
       .limit(1)
       .maybeSingle();
 
-    return !!profile;
+    return { accessInfo, initialScheduled: !!interview };
   } catch {
-    return false;
+    return defaults;
   }
 }
 
@@ -101,9 +135,6 @@ function formatLastUpdated(dateStr: string): string {
 export default async function StudentProfilePage({ params }: PageProps) {
   const { slug } = await params;
 
-  // Check if current user is a verified provider
-  const isVerifiedProvider = await checkVerifiedProvider();
-
   const supabase = getSupabase();
   const { data: profile } = await supabase
     .from("business_profiles")
@@ -121,18 +152,35 @@ export default async function StudentProfilePage({ params }: PageProps) {
   const durationLabel = formatDuration(meta);
   const videoAvailable = hasVideo(meta);
   const youtubeId = videoAvailable ? getYouTubeId(meta.video_intro_url!) : null;
-  const firstName = profile.display_name?.split(" ")[0] || "This candidate";
   const lastUpdated = profile.updated_at ? formatLastUpdated(profile.updated_at) : null;
 
-  // Generate signed URLs for private documents - only for verified providers
+  // Resolve viewer access tier and existing interview status in one pass
+  const { accessInfo, initialScheduled } = await getViewerContext(profile.id);
+
+  // Filter candidate data based on access tier (paywall source of truth).
+  // Paid providers see full name, contact info, resume, LinkedIn.
+  // Everyone else sees "First L." format with contact/resume/linkedin nulled.
+  const filtered = filterCandidateForTier(
+    {
+      displayName: profile.display_name || "",
+      email: profile.email,
+      phone: profile.phone,
+      linkedinUrl: meta.linkedin_url,
+      resumeUrl: meta.resume_url,
+    },
+    accessInfo
+  );
+  const firstName = filtered.displayName.split(" ")[0] || "This candidate";
+
+  // Generate signed URL for resume — paid providers only.
   const adminSb = getAdminSupabase();
-  async function getSignedUrl(path: string | undefined): Promise<string | null> {
-    if (!isVerifiedProvider) return null; // Don't expose documents to non-verified users
+  async function getSignedUrl(path: string | null | undefined): Promise<string | null> {
+    if (!accessInfo.isPaid) return null; // Paywall: resume is paid-only
     if (!path || path.startsWith("http")) return path || null;
     const { data } = await adminSb.storage.from("student-documents").createSignedUrl(path, 3600);
     return data?.signedUrl || null;
   }
-  const resumeUrl = await getSignedUrl(meta.resume_url);
+  const resumeUrl = await getSignedUrl(filtered.resumeUrl);
 
   // Candidate's verification status (driver's license + insurance on file)
   const candidateIsVerified = !!(meta.drivers_license_url && meta.car_insurance_url);
@@ -176,7 +224,7 @@ export default async function StudentProfilePage({ params }: PageProps) {
                   {profile.image_url ? (
                     <Image
                       src={profile.image_url}
-                      alt={profile.display_name}
+                      alt={filtered.displayName}
                       width={120}
                       height={120}
                       className="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover shadow-md ring-4 ring-white"
@@ -184,7 +232,7 @@ export default async function StudentProfilePage({ params }: PageProps) {
                   ) : (
                     <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center shadow-md ring-4 ring-white">
                       <span className="text-3xl sm:text-4xl font-bold text-primary-600">
-                        {profile.display_name?.charAt(0)?.toUpperCase() || "?"}
+                        {filtered.displayName.charAt(0).toUpperCase() || "?"}
                       </span>
                     </div>
                   )}
@@ -195,7 +243,7 @@ export default async function StudentProfilePage({ params }: PageProps) {
                   {/* Name + Status */}
                   <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 flex-wrap justify-center sm:justify-start">
                     <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900">
-                      {firstName}
+                      {filtered.displayName}
                     </h1>
                     {meta.seeking_status === "actively_looking" && (
                       <span className="inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 w-fit mx-auto sm:mx-0">
@@ -205,10 +253,10 @@ export default async function StudentProfilePage({ params }: PageProps) {
                     )}
                   </div>
 
-                  {/* University (hidden) + Track + Location - show track and location */}
+                  {/* University + Track + Location */}
                   <div className="mt-2 space-y-0.5">
                     {meta.university && (
-                      <p className="text-base text-gray-400 font-medium">University hidden</p>
+                      <p className="text-base text-gray-700 font-medium">{meta.university}</p>
                     )}
                     <p className="text-sm text-gray-500">
                       {[trackLabel, profile.city && profile.state ? `${profile.city}, ${profile.state}` : null]
@@ -251,6 +299,38 @@ export default async function StudentProfilePage({ params }: PageProps) {
                           {fact}
                         </span>
                       ))}
+                    </div>
+                  )}
+
+                  {/* Quick Links - only visible to paid providers */}
+                  {accessInfo.isPaid && (resumeUrl || filtered.linkedinUrl) && (
+                    <div className="mt-4 flex flex-wrap gap-3 justify-center sm:justify-start">
+                      {resumeUrl && (
+                        <a
+                          href={resumeUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="group inline-flex items-center gap-2 px-4 py-2 bg-gray-50 hover:bg-white border border-gray-200 hover:border-gray-300 hover:shadow-sm rounded-lg text-sm font-medium text-gray-700 transition-all duration-200"
+                        >
+                          <svg className="w-4 h-4 text-gray-500 group-hover:text-gray-700 transition-colors" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                          </svg>
+                          Resume
+                        </a>
+                      )}
+                      {filtered.linkedinUrl && (
+                        <a
+                          href={filtered.linkedinUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="group inline-flex items-center gap-2 px-4 py-2 bg-gray-50 hover:bg-white border border-gray-200 hover:border-[#0A66C2]/30 hover:shadow-sm rounded-lg text-sm font-medium text-gray-700 transition-all duration-200"
+                        >
+                          <svg className="w-4 h-4 text-[#0A66C2]" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+                          </svg>
+                          LinkedIn
+                        </a>
+                      )}
                     </div>
                   )}
                 </div>
@@ -400,7 +480,8 @@ export default async function StudentProfilePage({ params }: PageProps) {
                   {meta.university && (
                     <div>
                       <dt className="text-sm font-medium text-gray-500 mb-1">University</dt>
-                      <dd className="text-base text-gray-400">Hidden</dd>
+                      <dd className="text-base font-semibold text-gray-900">{meta.university}</dd>
+                      {meta.major && <dd className="text-sm text-gray-600 mt-0.5">{meta.major}</dd>}
                     </div>
                   )}
                   <div>
@@ -626,15 +707,16 @@ export default async function StudentProfilePage({ params }: PageProps) {
                   candidate={{
                     id: profile.id,
                     slug: profile.slug,
-                    displayName: profile.display_name,
-                    email: profile.email,
-                    phone: profile.phone,
+                    displayName: filtered.displayName,
+                    email: filtered.email,
+                    phone: filtered.phone,
                     imageUrl: profile.image_url,
                     city: profile.city,
                     state: profile.state,
                     metadata: meta,
                   }}
                   variant="inline"
+                  initialScheduled={initialScheduled}
                 />
               </div>
             </div>
@@ -650,15 +732,16 @@ export default async function StudentProfilePage({ params }: PageProps) {
           candidate={{
             id: profile.id,
             slug: profile.slug,
-            displayName: profile.display_name,
-            email: profile.email,
-            phone: profile.phone,
+            displayName: filtered.displayName,
+            email: filtered.email,
+            phone: filtered.phone,
             imageUrl: profile.image_url,
             city: profile.city,
             state: profile.state,
             metadata: meta,
           }}
           variant="sticky"
+          initialScheduled={initialScheduled}
         />
       </div>
     </main>

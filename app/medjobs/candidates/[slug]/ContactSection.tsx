@@ -28,9 +28,16 @@ interface CandidateData {
 export default function ContactSection({
   candidate,
   variant = "sidebar",
+  initialScheduled,
 }: {
   candidate: CandidateData;
   variant?: "sidebar" | "sticky" | "inline";
+  /**
+   * Server-fetched "already scheduled" state. When provided, overrides
+   * the localStorage fallback — this is the source of truth for
+   * authenticated providers, while anonymous users fall back to localStorage.
+   */
+  initialScheduled?: boolean;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -40,11 +47,23 @@ export default function ContactSection({
   const [showModal, setShowModal] = useState(false);
   const [showQuickScheduleModal, setShowQuickScheduleModal] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  const [scheduled, setScheduled] = useState(false);
+  const [scheduled, setScheduled] = useState(initialScheduled ?? false);
   const [savedFormData, setSavedFormData] = useState<ScheduleFormData | undefined>();
 
-  // Load scheduled state from localStorage on mount
+  // If the parent passes an updated initialScheduled value, adopt it
+  // (e.g., when server re-renders after an interview is created).
   useEffect(() => {
+    if (initialScheduled !== undefined) {
+      setScheduled(initialScheduled);
+    }
+  }, [initialScheduled]);
+
+  // Load scheduled state from localStorage on mount — ONLY when the parent
+  // did not pass initialScheduled (i.e., anonymous users without a server
+  // source of truth). Authenticated providers get initialScheduled from the
+  // server via the detail page, so we skip localStorage to avoid races.
+  useEffect(() => {
+    if (initialScheduled !== undefined) return;
     try {
       const stored = localStorage.getItem(SCHEDULED_CANDIDATES_KEY);
       if (stored) {
@@ -56,7 +75,7 @@ export default function ContactSection({
     } catch {
       // Ignore parse errors
     }
-  }, [candidate.id]);
+  }, [candidate.id, initialScheduled]);
 
   // Only organization profiles are providers (caregivers are job-seekers)
   const hasProviderProfile = profiles.some((p) => p.type === "organization");

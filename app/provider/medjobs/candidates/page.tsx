@@ -6,25 +6,23 @@ import CandidateCard from "@/components/medjobs/CandidateCard";
 import type { CandidateData } from "@/components/medjobs/CandidateRow";
 import CandidateFilters from "@/components/medjobs/CandidateFilters";
 import type { CandidateFilterValues } from "@/components/medjobs/CandidateFilters";
-import Pagination from "@/components/ui/Pagination";
 import VerificationFormModal from "@/components/provider/VerificationFormModal";
 import type { VerificationSubmission } from "@/components/provider/VerificationFormModal";
 
-const PAGE_SIZE = 12;
+const PAGE_SIZE = 20;
 
 type FilterTab = "all" | "contacted";
 
 export default function ProviderCandidateBrowsePage() {
   const { activeProfile, user } = useAuth();
 
-  // Verification check
-  const isVerified = activeProfile?.verification_state === "verified";
-  const verificationState = activeProfile?.verification_state;
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [candidates, setCandidates] = useState<CandidateData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
   const [total, setTotal] = useState(0);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [page, setPage] = useState(0);
   const [filters, setFilters] = useState<CandidateFilterValues>({
     search: "",
     state: "",
@@ -33,6 +31,8 @@ export default function ProviderCandidateBrowsePage() {
   });
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
   const [contacted, setContacted] = useState<Set<string>>(new Set());
+
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
   // Fetch existing interviews to know which candidates have been contacted
   useEffect(() => {
@@ -66,12 +66,16 @@ export default function ProviderCandidateBrowsePage() {
   }, [user]);
 
   const fetchCandidates = useCallback(
-    async (page: number) => {
-      setLoading(true);
+    async (pageNum: number, append: boolean) => {
+      if (append) {
+        setLoadingMore(true);
+      } else {
+        setLoading(true);
+      }
 
       try {
         const params = new URLSearchParams({
-          page: String(page - 1), // API uses 0-indexed pages
+          page: String(pageNum),
           pageSize: String(PAGE_SIZE),
           sort: filters.sort,
         });
@@ -82,13 +86,21 @@ export default function ProviderCandidateBrowsePage() {
         const res = await fetch(`/api/medjobs/candidates?${params}`);
         const data = await res.json();
 
-        setCandidates(data.candidates || []);
+        const newCandidates = data.candidates || [];
+
+        if (append) {
+          setCandidates((prev) => [...prev, ...newCandidates]);
+        } else {
+          setCandidates(newCandidates);
+        }
+
         setTotal(data.total || 0);
-        setCurrentPage(page);
+        setHasMore(newCandidates.length === PAGE_SIZE);
       } catch (err) {
         console.error("[provider/medjobs/candidates] fetch error:", err);
       } finally {
         setLoading(false);
+        setLoadingMore(false);
       }
     },
     [filters]
@@ -96,8 +108,30 @@ export default function ProviderCandidateBrowsePage() {
 
   // Initial load + filter changes
   useEffect(() => {
-    fetchCandidates(1);
+    setPage(0);
+    fetchCandidates(0, false);
   }, [fetchCandidates]);
+
+  // Infinite scroll — intersection observer. Only active on the "all" tab;
+  // the "contacted" tab filters client-side on already-loaded data.
+  useEffect(() => {
+    if (activeTab !== "all") return;
+    if (!sentinelRef.current || !hasMore || loadingMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loadingMore) {
+          const nextPage = page + 1;
+          setPage(nextPage);
+          fetchCandidates(nextPage, true);
+        }
+      },
+      { rootMargin: "200px" }
+    );
+
+    observer.observe(sentinelRef.current);
+    return () => observer.disconnect();
+  }, [hasMore, loadingMore, page, fetchCandidates, activeTab]);
 
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const handleFilterChange = useCallback(
@@ -114,13 +148,6 @@ export default function ProviderCandidateBrowsePage() {
     },
     [filters.search]
   );
-
-  const handlePageChange = (page: number) => {
-    fetchCandidates(page);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const totalPages = Math.ceil(total / PAGE_SIZE);
 
   // Verification handler
   const handleVerificationSubmit = useCallback(async (data: VerificationSubmission) => {
@@ -291,18 +318,16 @@ export default function ProviderCandidateBrowsePage() {
                 ))}
               </div>
 
-              {/* Pagination - only show for "All" tab */}
-              {activeTab === "all" && totalPages > 1 && (
-                <div className="mt-8">
-                  <Pagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    totalItems={total}
-                    itemsPerPage={PAGE_SIZE}
-                    onPageChange={handlePageChange}
-                    itemLabel="caregivers"
-                  />
+              {/* Loading more indicator — only on "all" tab */}
+              {activeTab === "all" && loadingMore && (
+                <div className="flex justify-center py-8">
+                  <div className="w-6 h-6 border-2 border-gray-300 border-t-primary-600 rounded-full animate-spin" />
                 </div>
+              )}
+
+              {/* Infinite scroll sentinel — only on "all" tab */}
+              {activeTab === "all" && hasMore && !loadingMore && (
+                <div ref={sentinelRef} className="h-1" />
               )}
             </>
           );

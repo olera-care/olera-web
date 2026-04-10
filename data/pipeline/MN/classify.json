@@ -1,33 +1,34 @@
 {
   "state": "MN",
   "stateName": "Minnesota",
-  "classifiedAt": "2026-04-09T09:35:33.555Z",
-  "total": 10,
+  "classifiedAt": "2026-04-09T14:17:39.319Z",
+  "total": 13,
   "typeSummary": {
     "benefit": 7,
-    "resource": 2,
-    "employment": 1
+    "resource": 4,
+    "employment": 1,
+    "navigator": 1
   },
   "scopeSummary": {
-    "state": 3,
-    "local": 1,
+    "state": 4,
+    "local": 3,
     "federal": 6
   },
   "complexitySummary": {
-    "deep": 6,
-    "simple": 2,
-    "medium": 2
+    "deep": 7,
+    "simple": 5,
+    "medium": 1
   },
   "programs": [
     {
-      "name": "Medical Assistance (MA) for Seniors",
+      "name": "Medical Assistance (Medicaid)",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "County human services offices statewide",
+            "name": "County Human Services offices statewide[2]",
             "type": "service-area"
           }
         ]
@@ -43,7 +44,7 @@
         "callout"
       ],
       "signals": {
-        "benefitType": "in_kind",
+        "benefitType": "service",
         "hasIncomeTiers": true,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
@@ -53,14 +54,22 @@
       }
     },
     {
-      "name": "Elderly Waiver (EW) and Alternative Care (AC) Program",
+      "name": "Elderly Waiver (EW)",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "County or tribal Long-Term Care Consultation offices; Minnesota Aging Pathways 800-333-2433[6]",
+            "name": "County human services agencies",
+            "type": "service-area"
+          },
+          {
+            "name": "Tribal nations",
+            "type": "service-area"
+          },
+          {
+            "name": "Enrolled MHCP providers for specific services",
             "type": "service-area"
           }
         ]
@@ -92,7 +101,7 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Administered by MN DHS and seven health plans; check county-specific plans via DHS.",
+            "name": "Health plans like HealthPartners, Medica DUAL Solution, UCare, BlueCross SecureBlue; county human services offices for MA app",
             "type": "service-area"
           }
         ]
@@ -103,7 +112,8 @@
         "income-table",
         "what-counts",
         "documents",
-        "county-directory"
+        "county-directory",
+        "callout"
       ],
       "signals": {
         "benefitType": "service",
@@ -116,14 +126,14 @@
       }
     },
     {
-      "name": "Medicare Savings Programs (MSP) including QMB, SLMB, QI",
+      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
       "programType": "benefit",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Local county or tribal human services offices (find via mn.gov/dhs)",
+            "name": "Local county or tribal human services offices (directory at mn.gov/dhs/people-we-serve/seniors/health-care/)",
             "type": "service-area"
           }
         ]
@@ -133,7 +143,6 @@
         "prose",
         "income-table",
         "what-counts",
-        "tier-comparison",
         "documents",
         "county-directory",
         "callout"
@@ -144,19 +153,19 @@
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
+        "hasMultipleTiers": false,
         "isStatewide": true
       }
     },
     {
-      "name": "Minnesota SNAP (Supplemental Nutrition Assistance Program) / Food Support",
+      "name": "Minnesota SNAP (Supplemental Nutrition Assistance Program)",
       "programType": "benefit",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "County human services offices statewide (e.g., Chisago County example[5])",
+            "name": "Local county human services offices; Tribal Nations; find via mn.gov/dhs.",
             "type": "service-area"
           }
         ]
@@ -180,14 +189,14 @@
       }
     },
     {
-      "name": "Senior Health Insurance Program (SHIP)",
+      "name": "Senior Health Insurance Assistance Program (SHIP)",
       "programType": "resource",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Minnesota Board on Aging, 540 Cedar Street, P.O. Box 64976, St. Paul, MN 55164-0976 (state office); local sites via Senior LinkAge Line[4]",
+            "name": "Minnesota Board on Aging, 540 Cedar Street, P.O. Box 64976, St. Paul, MN 55164-0976; local Area Agencies on Aging[1][2]",
             "type": "service-area"
           }
         ]
@@ -198,7 +207,7 @@
         "county-directory"
       ],
       "signals": {
-        "benefitType": "advocacy",
+        "benefitType": "service",
         "hasIncomeTiers": false,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
@@ -208,11 +217,29 @@
       }
     },
     {
-      "name": "Senior Nutrition Program / Meals on Wheels",
+      "name": "Senior Nutrition Program (Meals on Wheels)",
       "programType": "benefit",
       "geographicScope": {
         "type": "federal",
-        "stateVariation": true
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Three Rivers CAP (southeast MN): (507) 316-0610[1]",
+            "type": "service-area"
+          },
+          {
+            "name": "Meals on Wheels of Ramsey County[9]",
+            "type": "service-area"
+          },
+          {
+            "name": "Otter Tail County Nutrition Assistance[4]",
+            "type": "service-area"
+          },
+          {
+            "name": "43 congregate sites and Meals on Wheels in southeast MN via local services[5]",
+            "type": "service-area"
+          }
+        ]
       },
       "complexity": "medium",
       "recommendedSections": [
@@ -233,18 +260,14 @@
       }
     },
     {
-      "name": "Family Adult Caregiver Support Program",
+      "name": "Family Adult Assistance Program (FAA) / Alternative Care Grants",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Minnesota Aging Pathways (statewide helpline)",
-            "type": "service-area"
-          },
-          {
-            "name": "Licensed provider agencies for CFSS",
+            "name": "Local county human services or tribal agencies",
             "type": "service-area"
           }
         ]
@@ -252,20 +275,18 @@
       "complexity": "deep",
       "recommendedSections": [
         "prose",
-        "income-table",
         "what-counts",
-        "tier-comparison",
         "documents",
         "county-directory",
         "callout"
       ],
       "signals": {
         "benefitType": "service",
-        "hasIncomeTiers": true,
+        "hasIncomeTiers": false,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": false,
         "isStatewide": true
       }
     },
@@ -277,28 +298,20 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "MN DEED (state admin)",
+            "name": "MET, Inc. (multiple counties, 832-599-0872)[7]",
             "type": "service-area"
           },
           {
-            "name": "MET Inc.",
+            "name": "Minnesota Valley Action Council (Blue Earth etc., 507-345-6822, Mankato office)[5]",
             "type": "service-area"
           },
           {
-            "name": "Minnesota Valley Action Council (south-central counties)",
-            "type": "service-area"
-          },
-          {
-            "name": "CWI Works sub-grantees",
-            "type": "service-area"
-          },
-          {
-            "name": "Former: East Side Neighborhood Services (Hennepin)",
+            "name": "Administered via MN DEED and USDOL grantees like CWI Works[1][7]",
             "type": "service-area"
           }
         ]
       },
-      "complexity": "medium",
+      "complexity": "deep",
       "recommendedSections": [
         "prose",
         "income-table",
@@ -307,26 +320,62 @@
       "signals": {
         "benefitType": "employment",
         "hasIncomeTiers": true,
-        "hasAssetLimits": false,
+        "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
+        "hasMultipleTiers": true,
+        "isStatewide": false
       }
     },
     {
-      "name": "Long-Term Care Ombudsman Program",
+      "name": "Legal Assistance for Seniors",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Mid-Minnesota Legal Aid (e.g., Minneapolis: 111 N 5th St, Ste 100; serves Anoka, Hennepin counties and central MN)",
+            "type": "service-area"
+          },
+          {
+            "name": "Central Minnesota Legal Services (21 counties)",
+            "type": "service-area"
+          },
+          {
+            "name": "Justice North (northern MN)",
+            "type": "service-area"
+          },
+          {
+            "name": "Minnesota Regional Legal Services (other areas)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": false
+      }
+    },
+    {
+      "name": "Office of Ombudsman for Long-Term Care",
       "programType": "resource",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Central office: P.O. Box 64971, St. Paul, MN 55164-0971[7]",
-            "type": "service-area"
-          },
-          {
-            "name": "Example regional: 11600 State Ave., Brainerd, MN 56401[3]",
+            "name": "Regional ombudsman offices statewide (contact state office for local assignment).",
             "type": "service-area"
           }
         ]
@@ -342,6 +391,74 @@
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "UCare Minnesota Senior Care Plus (MSC+)",
+      "programType": "navigator",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local county human services offices",
+            "type": "service-area"
+          },
+          {
+            "name": "UCare (ucare.org)",
+            "type": "service-area"
+          },
+          {
+            "name": "Blue Plus (Blue Cross MN)",
+            "type": "service-area"
+          },
+          {
+            "name": "South Country Health Alliance (7-county area)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "provider-list"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": false,
+        "isStatewide": false
+      }
+    },
+    {
+      "name": "Minnesota Aging Pathways (formerly Senior LinkAge Line)",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Statewide phone/online; partners with Minnesota Board on Aging and area agencies on aging[7]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
         "hasMultipleTiers": false,
         "isStatewide": true
       }

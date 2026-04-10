@@ -4,48 +4,162 @@
   "state": "WA",
   "stateName": "Washington",
   "isRegion": false,
-  "exploredAt": "2026-04-09T09:43:53.928Z",
-  "programCount": 5,
+  "exploredAt": "2026-04-09T17:15:55.927Z",
+  "programCount": 21,
   "programs": [
     {
-      "name": "Charity Care for Low-Income Seniors",
-      "what_it_does": "Provides free or discounted healthcare services including hospital charges, doctor's visits, medications, and X-rays. Available at any time, even for previously paid bills or those in collections.[1]",
-      "who_its_for": "Low-income seniors within 300% of the federal poverty level.[1]",
-      "whats_unique": "Newly passed state law expanding charity care specifically highlighted for WA seniors, offering broad coverage beyond standard federal programs.[1]",
-      "official_url": "https://www.seniorhelpers.com/wa/olympia-lacey-tumwater/resources/blogs/assistance-programs-for-seniors-that-can-help-pay-for-medical-bills/",
-      "benefit_value": "Free or half-price on covered services; exact value varies by bill amount.[1]"
+      "name": "Apple Health",
+      "what_it_does": "Apple Health is Washington's Medicaid program that provides medical care and long-term services and supports to low-income seniors and disabled individuals. It covers services like personal care assistance, nursing home care, and help with activities of daily living to enable aging in place or facility-based care.[2][4]",
+      "who_its_for": "Low-income seniors aged 65+, disabled adults, and those requiring nursing home level care or personal care assistance who meet income and resource limits (e.g., $2,000 resources for singles).[1][4]",
+      "official_url": "https://www.washingtonconnection.org",
+      "benefit_value": "Varies; covers full medical costs including long-term care exceeding $6,000/month average; no waitlist for personal care entitlement.[1][2]"
+    },
+    {
+      "name": "Medicaid Personal Care (MPC) Program",
+      "what_it_does": "The MPC Program provides in-home personal care assistance for activities of daily living (ADLs) like bathing, dressing, and meal preparation, and instrumental ADLs like housework and medication management. Participants can self-direct care by hiring individual providers, with services available in homes, adult family homes, or assisted living.[1]",
+      "who_its_for": "Washington state residents aged 65+ or disabled who require personal care but not nursing home level care, meeting Medicaid financial eligibility.[1]",
+      "official_url": "https://www.medicaidplanningassistance.org/washington-medicaid-personal-care/",
+      "benefit_value": "Entitlement services with no waitlist; covers personal care hours based on assessed needs, including limited nursing.[1]"
+    },
+    {
+      "name": "Medicaid Alternative Care (MAC) Waiver",
+      "what_it_does": "The MAC Waiver offers home and community-based services as an alternative to nursing home care, including personal care and support services. It allows seniors to receive care in their homes or community settings instead of institutional care.[5]",
+      "who_its_for": "Seniors 65+ assessed as needing nursing facility level care but preferring community-based options, meeting Medicaid eligibility.[5]",
+      "official_url": "https://www.dshs.wa.gov/altsa/home-and-community-services/medicaid-alternative-care-telephonic-case-management",
+      "benefit_value": "Comprehensive long-term services equivalent to nursing home care costs, preventing institutionalization."
+    },
+    {
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "what_it_does": "PACE provides comprehensive medical and social services to frail seniors in community settings, including adult day health care, transportation, and home care to avoid nursing home placement. It coordinates all Medicare and Medicaid benefits through interdisciplinary teams.[5]",
+      "who_its_for": "Seniors 55+ certified as needing nursing home level care but able to live safely in the community with services.[5]",
+      "official_url": "https://www.medicare.gov/health-drug-plans/health-plans-your-area/pace",
+      "benefit_value": "Full capitation coverage of all needed services; average annual value $50,000+ per participant."
+    },
+    {
+      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "what_it_does": "These programs help pay Medicare Part B premiums, deductibles, coinsurance, and copayments based on income levels through Apple Health integration. QMB covers full premiums and cost-sharing, SLMB covers Part B premiums, and QI offers partial premium assistance.[2]",
+      "who_its_for": "Washington Medicare beneficiaries with incomes up to $1,529/month (varies by program), entitled to SSI or meeting resource limits.[2]",
+      "official_url": "https://www.washingtonconnection.org",
+      "benefit_value": "Part B premium ($174.70/month in 2024) + cost-sharing up to $8,850/year for QMB; income-determined.[2]"
+    },
+    {
+      "name": "Basic Food Program",
+      "what_it_does": "Washington's SNAP provides monthly benefits via EBT card for purchasing groceries to improve food security. It supplements food budgets for eligible low-income households including seniors.[5]",
+      "who_its_for": "Seniors 60+ with incomes at/below 200% FPL, or households meeting gross/net income tests; resources up to $4,250.[5]",
+      "official_url": "https://www.dshs.wa.gov/esa/community-services-offices/basic-food",
+      "benefit_value": "Average $200-300/month per senior household; maximum $291/person (2024 adjusted)."
+    },
+    {
+      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "what_it_does": "LIHEAP provides grants to help with heating and cooling bills, crisis assistance, and weatherproofing repairs. Washington administers through local agencies for energy-burdened households.[5]",
+      "who_its_for": "Low-income households including seniors at 150% FPL or below, prioritizing elderly and disabled.[5]",
+      "official_url": "https://www.doe.wa.gov/community-economic-development/low-income-households",
+      "benefit_value": "One-time grants $200-1,000+ for heating bills; average $500 per household."
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "what_it_does": "WAP funds energy efficiency upgrades like insulation, air sealing, and furnace repairs to reduce energy costs and improve home safety. Services are provided free to eligible homes.[5]",
+      "who_its_for": "Low-income households at or below 200% FPL, prioritizing seniors, disabled, and children.[5]",
+      "official_url": "https://www.doe.wa.gov/community-economic-development/weatherization",
+      "benefit_value": "Home improvements valued $5,000-10,000; lifetime energy savings $2,000+."
+    },
+    {
+      "name": "Health Insurance Counseling and Advocacy Program (HICAP/SHIP)",
+      "what_it_does": "SHIP provides free, unbiased counseling on Medicare options, appeals, and extra help programs. Washington's HICAP assists with plan comparisons and coverage issues.[5]",
+      "who_its_for": "All Washington Medicare beneficiaries, especially low-income seniors and families.[5]",
+      "official_url": "https://www.agingkingcounty.org/services/health-insurance-counseling",
+      "benefit_value": "Free one-on-one counseling; helps save thousands in premiums and out-of-pocket costs."
+    },
+    {
+      "name": "Home Delivered Meals",
+      "what_it_does": "Provides nutritious meals delivered to homebound seniors to promote health and independence. Often funded through Older Americans Act via Area Agencies on Aging.[5]",
+      "who_its_for": "Homebound seniors 60+ unable to prepare meals, with priority for lowest income.[5]",
+      "official_url": "https://www.o3a.org/programs/nutrition/",
+      "benefit_value": "5-14 meals/week; annual value $2,000-4,000 per participant."
+    },
+    {
+      "name": "Family Caregiver Support Program",
+      "what_it_does": "Offers respite care, counseling, training, and supplies to support family caregivers of seniors. Includes supplemental services to reduce caregiver strain.[5]",
+      "who_its_for": "Unpaid family caregivers of adults 60+ or grandparents raising children.[5]",
+      "official_url": "https://www.dshs.wa.gov/altsa/home-and-community-services/caregiver-support",
+      "benefit_value": "Respite grants up to $600/year; training and counseling valued at $500+ annually."
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "what_it_does": "Provides part-time paid community service work training leading to unsubsidized employment. Pays minimum wage for 20 hours/week work experience.[5]",
+      "who_its_for": "Unemployed low-income seniors 55+ (lowest income/priority populations first).[5]",
+      "official_url": "https://www.dol.gov/agencies/eta/seniors",
+      "benefit_value": "Year-round wage subsidy ~$10,000/year; plus employment placement services."
+    },
+    {
+      "name": "Legal Aid for Seniors",
+      "what_it_does": "Provides free legal services for income-qualifying seniors facing housing, benefits, abuse, or consumer issues. Operated through legal aid organizations.[5]",
+      "who_its_for": "Low-income seniors 60+ in civil legal matters.[5]",
+      "official_url": "https://www.washingtonlawhelp.org/age-60-and-over",
+      "benefit_value": "Pro bono representation; saves $5,000+ in legal fees per case."
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "what_it_does": "Advocates for residents in long-term care facilities, investigating complaints and ensuring quality of life and rights protection. Provides confidential assistance and systemic advocacy.[5]",
+      "who_its_for": "Residents/families in WA nursing homes, adult family homes, and assisted living.[5]",
+      "official_url": "https://ltcombudsman.wa.gov/",
+      "benefit_value": "Free advocacy resolving 80%+ complaints; protects rights and improves care quality."
+    },
+    {
+      "name": "Washington State Parks Senior Citizen Limited Income Pass",
+      "what_it_does": "Provides free lifetime access to state parks for qualifying seniors, including free daily parking, no-cost watercraft launches, and trailer dump services. Pass holders also receive half-price camping and moorage fees plus a 50% discount on the Senior Off-Season Pass.[1]",
+      "who_its_for": "Washington state residents aged 62 and older with annual income of $40,000 or less.[1]",
+      "whats_unique": "State-specific lifetime pass offering extensive recreation benefits tailored to low-income seniors, not a federal program.[1]",
+      "official_url": "https://www.parks.wa.gov/passes-permits/state-parks-discover-pass/senior-citizen-limited-income-pass",
+      "benefit_value": "Free lifetime park access, parking, launches; half-price camping/moorage; potential annual savings of hundreds in fees.[1]"
+    },
+    {
+      "name": "Lifetime Disabled Veteran Pass",
+      "what_it_does": "Grants free lifetime access to Washington state parks for eligible veterans. Covers parking, launches, and other services similar to the senior pass.[1]",
+      "who_its_for": "Veterans with 30% or greater service-connected disabilities who are Washington residents.[1]",
+      "whats_unique": "Washington state-funded pass exclusively for disabled veterans, complementing federal VA benefits with state park perks.[1]",
+      "official_url": "https://www.parks.wa.gov/passes-permits/state-parks-discover-pass/disabled-veteran-lifetime-pass",
+      "benefit_value": "Free lifetime state park access; significant savings on recreation fees.[1]"
+    },
+    {
+      "name": "Washington Charity Care Program",
+      "what_it_does": "Offers free or discounted healthcare services including hospital charges, doctor visits, medications, and X-rays. Applies retroactively to previously paid or collection bills.[2]",
+      "who_its_for": "Low-income seniors and others at or below 300% of federal poverty level.[2]",
+      "whats_unique": "State-mandated charity care law providing broad hospital financial relief, expanded specifically in Washington.[2]",
+      "official_url": "https://www.hca.wa.gov/free-or-low-cost-health-care/i-need-medical-dental-or-vision-care/charity-care",
+      "benefit_value": "Free or half-price on medical services; can cover full hospital bills.[2]"
     },
     {
       "name": "Housing and Essential Needs (HEN) Referral Program",
-      "what_it_does": "Offers financial assistance for essential needs like rent, utilities, transportation, home repairs, food, and personal health items. Helps reduce overall care costs including medical bills indirectly.[1]",
-      "who_its_for": "Seniors and families meeting income and disability requirements.[1]",
-      "whats_unique": "State-specific referral program covering broad daily essentials tailored to WA's low-income seniors and disabled.[1]",
-      "official_url": "https://www.washingtonconnection.org/home/availablebenefits.go",
-      "benefit_value": "Varies by need; covers specific essential expenses.[1]"
+      "what_it_does": "Provides financial assistance for essential needs like rent, utilities, transportation, home repairs, and personal health items. Helps reduce overall care costs including medical bills.[2]",
+      "who_its_for": "Seniors meeting state income and disability requirements.[2]",
+      "whats_unique": "Washington state-funded referral program for broad essential needs support, beyond standard federal aid.[2]",
+      "official_url": "https://www.commerce.wa.gov/housing-and-essential-needs-referral-program/",
+      "benefit_value": "Varies; covers rent/utilities/transport/food/health items to offset medical and living costs.[2]"
     },
     {
       "name": "Aged, Blind, or Disabled (ABD) Cash Assistance Program",
-      "what_it_does": "Provides cash to cover monthly bills, food, and housing essentials. Supplements Social Security for those unable to work due to health reasons, aiding medical costs.[1]",
-      "who_its_for": "Seniors aged 65+ who are aged, blind, or disabled and unable to work.[1]",
-      "whats_unique": "WA's state cash assistance program specifically for ABD seniors, beyond federal SSI supplements.[1][2]",
-      "official_url": "https://www.washingtonconnection.org/home/availablebenefits.go",
-      "benefit_value": "Monthly cash payments; amount based on income and needs (specific figures not detailed).[1]"
-    },
-    {
-      "name": "Tailored Supports for Older Adults (TSOA)",
-      "what_it_does": "Pays for caregiver support services like counseling, training, medical equipment, and respite care. Also funds personal assistance if no caregiver is available.[2]",
-      "who_its_for": "Older adults needing support for unpaid family caregivers or personal assistance.[2]",
-      "whats_unique": "WA-specific program under Long-Term Services, focusing on tailored caregiver and personal supports not standard federally.[2]",
-      "official_url": "https://www.washingtonconnection.org/home/availablebenefits.go",
-      "benefit_value": "Covers specified services; value depends on approved needs.[2]"
+      "what_it_does": "Delivers monthly cash benefits to cover food, housing, and essential costs. Supplements Social Security for those unable to work due to health issues.[2]",
+      "who_its_for": "Seniors aged 65+ unable to work for health reasons, relying on Social Security, meeting income limits.[2]",
+      "whats_unique": "State-specific cash assistance program for aged/disabled, providing direct monthly support beyond federal SSI.[2]",
+      "official_url": "https://www.dshs.wa.gov/esa/community-services-offices/aged-blind-or-disabled-cash-assistance",
+      "benefit_value": "Monthly cash payments for bills; amount based on need (typically $200-500+).[2]"
     },
     {
       "name": "WA Cares Fund",
-      "what_it_does": "Provides access to long-term care services and supports for working Washingtonians. Allows flexible choice of covered services to meet individual care needs.[6]",
-      "who_its_for": "Working Washingtonians earning access to long-term care benefits.[6]",
-      "whats_unique": "State-funded long-term care insurance program unique to WA, mandatory payroll deduction for comprehensive LTC coverage.[6]",
-      "official_url": "https://www.o3a.org/resources-links/",
-      "benefit_value": "Up to $36,500 lifetime benefit (as of prior knowledge; confirm current); flexible service combinations.[6]"
+      "what_it_does": "Funds long-term care services through payroll contributions, offering flexible benefits like home care or facility support. Ensures access without depleting personal savings.[6]",
+      "who_its_for": "Working Washingtonians (mandatory for most unless opted out); benefits seniors needing long-term care.[6]",
+      "whats_unique": "Nation's first public long-term care insurance program, state-mandated and WA-exclusive social insurance model.[6]",
+      "official_url": "https://wacaresfund.wa.gov/",
+      "benefit_value": "Up to $36,500 lifetime benefit for care services.[6]"
+    },
+    {
+      "name": "Seattle Gold Card (Age-Friendly Discount Program)",
+      "what_it_does": "Provides discounts at local businesses, services, and recreation for seniors. Searchable directory lists participating merchants for savings on goods and activities.[3]",
+      "who_its_for": "Seattle/King County residents aged 60+ (Gold Card).[3]",
+      "whats_unique": "Local government-run discount card program unique to Seattle area, fostering age-friendly commerce.[3]",
+      "official_url": "https://www.seattle.gov/agefriendly/collaborative-efforts/discounts",
+      "benefit_value": "Average $240 annual savings across multiple vendors.[3]"
     }
   ]
 }

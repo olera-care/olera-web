@@ -1,49 +1,42 @@
 {
   "state": "NH",
   "stateName": "New Hampshire",
-  "classifiedAt": "2026-04-09T09:37:20.098Z",
-  "total": 13,
+  "classifiedAt": "2026-04-09T15:11:52.022Z",
+  "total": 18,
   "typeSummary": {
-    "benefit": 9,
-    "navigator": 1,
-    "employment": 1,
-    "resource": 2
+    "benefit": 13,
+    "resource": 4,
+    "employment": 1
   },
   "scopeSummary": {
-    "state": 4,
-    "local": 1,
+    "state": 7,
+    "local": 3,
     "federal": 8
   },
   "complexitySummary": {
-    "deep": 8,
-    "medium": 2,
-    "simple": 3
+    "deep": 11,
+    "simple": 4,
+    "medium": 3
   },
   "programs": [
     {
-      "name": "New Hampshire Medicaid (Nursing Home Medicaid for seniors)",
+      "name": "Medicaid for Aged, Blind, Disabled (ABD)",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Local DHHS District Offices; nursing homes statewide that accept Medicaid",
-            "type": "service-area"
-          }
-        ]
+        "stateVariation": false
       },
       "complexity": "deep",
       "recommendedSections": [
         "prose",
-        "income-table",
         "what-counts",
         "documents",
-        "county-directory"
+        "county-directory",
+        "callout"
       ],
       "signals": {
         "benefitType": "service",
-        "hasIncomeTiers": true,
+        "hasIncomeTiers": false,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": true,
@@ -59,7 +52,7 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Community Partners, 25 Old Dover Road, Rochester, NH 03867 (example)[3]",
+            "name": "Local DHHS offices, ADRC/ServiceLink centers, NH Care Collaborative, Community Partners[1][3]",
             "type": "service-area"
           }
         ]
@@ -67,15 +60,15 @@
       "complexity": "deep",
       "recommendedSections": [
         "prose",
+        "income-table",
         "what-counts",
         "tier-comparison",
         "documents",
-        "county-directory",
-        "callout"
+        "county-directory"
       ],
       "signals": {
         "benefitType": "service",
-        "hasIncomeTiers": false,
+        "hasIncomeTiers": true,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": true,
@@ -84,30 +77,22 @@
       }
     },
     {
-      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "name": "NH PACE (Program of All-Inclusive Care for the Elderly)",
       "programType": "benefit",
       "geographicScope": {
         "type": "local",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Neighborhood Healthcare PACE (3 centers in NH, exact locations searchable via https://www.npaonline.org/find-a-pace-program or provider site)[1][7][8]",
-            "type": "service-area"
-          }
-        ]
+        "stateVariation": false
       },
       "complexity": "deep",
       "recommendedSections": [
         "prose",
-        "income-table",
         "what-counts",
         "documents",
-        "county-directory",
         "callout"
       ],
       "signals": {
         "benefitType": "service",
-        "hasIncomeTiers": true,
+        "hasIncomeTiers": false,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": true,
@@ -116,17 +101,11 @@
       }
     },
     {
-      "name": "Medicare Savings Program (MSP) - QMB, SLMB, QI",
+      "name": "Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), Qualified Individual (QI/SLMB-135)",
       "programType": "benefit",
       "geographicScope": {
         "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "Local DHHS District Offices across NH (e.g., Manchester, Nashua, Concord); find via dhhs.nh.gov",
-            "type": "service-area"
-          }
-        ]
+        "stateVariation": true
       },
       "complexity": "deep",
       "recommendedSections": [
@@ -135,7 +114,6 @@
         "what-counts",
         "tier-comparison",
         "documents",
-        "county-directory",
         "callout"
       ],
       "signals": {
@@ -156,7 +134,7 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "DHHS District Offices statewide (find via dhhs.nh.gov)",
+            "name": "Local DHHS District Offices across NH.",
             "type": "service-area"
           }
         ]
@@ -180,21 +158,34 @@
       }
     },
     {
-      "name": "Low Income Home Energy Assistance Program (LIHEAP)",
+      "name": "LIHEAP (Low-Income Home Energy Assistance Program)",
       "programType": "benefit",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Regional Community Action Agencies; e.g., CAPHR for certain areas, SCS for others.[2][4]",
+            "name": "Belknap/Merrimack (Concord: 603-223-0043)",
+            "type": "service-area"
+          },
+          {
+            "name": "Rockingham (Portsmouth: 603-436-3896)",
+            "type": "service-area"
+          },
+          {
+            "name": "Strafford (Dover: 603-435-2500)",
+            "type": "service-area"
+          },
+          {
+            "name": "Other regions via local Community Action Partnership of NH (CAPNH).[3][5]",
             "type": "service-area"
           }
         ]
       },
-      "complexity": "medium",
+      "complexity": "deep",
       "recommendedSections": [
         "prose",
+        "income-table",
         "what-counts",
         "documents",
         "county-directory",
@@ -202,7 +193,7 @@
       ],
       "signals": {
         "benefitType": "financial",
-        "hasIncomeTiers": false,
+        "hasIncomeTiers": true,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
@@ -218,15 +209,123 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "CAPBM (Merrimack/Belknap): capbm.org[1]",
+            "name": "CAPBM: Merrimack/Belknap Counties (capbm.org)[1]",
             "type": "service-area"
           },
           {
-            "name": "CAPHR: caphr.org[2][7]",
+            "name": "CAPHR: Hillsborough/Rockingham Counties (caphr.org)[3]",
             "type": "service-area"
           },
           {
-            "name": "CAPSC Strafford: straffordcap.org, 603-435-2500[4]",
+            "name": "CAPSC: Strafford County (straffordcap.org, 603-435-2500 x 2350)[5]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "SHIP (State Health Insurance Assistance Program)",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Administered statewide by ServiceLink Resource Center (NH DHHS Bureau of Elderly & Adult Services in Concord); local access via phone/website statewide[3][5]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": false,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Meals on Wheels (Elderly Nutrition Program)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Rockingham Nutrition & Meals on Wheels (Rockingham County)",
+            "type": "service-area"
+          },
+          {
+            "name": "Meals on Wheels of Hillsborough County",
+            "type": "service-area"
+          },
+          {
+            "name": "Gibson Center (specific NH towns: Albany, Bartlett, etc.)",
+            "type": "service-area"
+          },
+          {
+            "name": "Coalition via Meals on Wheels NH (https://mealsonwheelsnh.org)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": false
+      }
+    },
+    {
+      "name": "Family Caregiver Support Program",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Aging and Disability Resource Centers (ADRCs)",
+            "type": "service-area"
+          },
+          {
+            "name": "Granite State Independent Living",
             "type": "service-area"
           }
         ]
@@ -238,8 +337,7 @@
         "what-counts",
         "tier-comparison",
         "documents",
-        "county-directory",
-        "callout"
+        "county-directory"
       ],
       "signals": {
         "benefitType": "service",
@@ -252,121 +350,14 @@
       }
     },
     {
-      "name": "New Hampshire State Health Insurance Assistance Program (SHIP)",
-      "programType": "navigator",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "NH SHIP - ServiceLink Resource Center (primary contact): 105 Pleasant St., Gov. Gallan State Office Park S., Concord, NH 03301-3857[7]",
-            "type": "service-area"
-          },
-          {
-            "name": "Services also delivered through local area agencies on aging and community-based partners statewide[2]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "simple",
-      "recommendedSections": [
-        "prose",
-        "provider-list"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Meals on Wheels (Council on Aging programs)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "Local Area Agency on Aging (varies by region)",
-            "type": "service-area"
-          },
-          {
-            "name": "Aging and Disability Resource Center (ADRC) - statewide",
-            "type": "service-area"
-          },
-          {
-            "name": "Home Healthcare, Hospice and Community Services (HCS) - serves Cheshire County",
-            "type": "service-area"
-          },
-          {
-            "name": "Local DHHS offices throughout state",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "medium",
-      "recommendedSections": [
-        "prose",
-        "what-counts",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "in_kind",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "New Hampshire Family Caregiver Support Program",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Aging and Disability Resource Centers, Bureau of Elderly and Adult Services[1][3]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "what-counts",
-        "tier-comparison",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Senior Community Service Employment Program (SCSEP)",
+      "name": "SCSEP (Senior Community Service Employment Program)",
       "programType": "employment",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Operation ABLE (primary NH SCSEP provider)[1]",
+            "name": "Operation ABLE (primary NH SCSEP provider spotlighted for NH service areas)",
             "type": "service-area"
           }
         ]
@@ -388,18 +379,14 @@
       }
     },
     {
-      "name": "New Hampshire Legal Assistance (NHLA) Justice in Aging Project",
+      "name": "Legal Assistance for Older Adults",
       "programType": "resource",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "603 Legal Aid (statewide intake)",
-            "type": "service-area"
-          },
-          {
-            "name": "NHLA offices (e.g., Nashua: 21 East Pearl Street, Suite 2)",
+            "name": "Primary office: Concord, NH; statewide centralized intake via 603 Legal Aid/NHLA[3][5][7]",
             "type": "service-area"
           }
         ]
@@ -410,17 +397,17 @@
         "county-directory"
       ],
       "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": true,
+        "benefitType": "advocacy",
+        "hasIncomeTiers": false,
         "hasAssetLimits": true,
-        "hasRegionalVariation": true,
+        "hasRegionalVariation": false,
         "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
+        "hasMultipleTiers": false,
         "isStatewide": true
       }
     },
     {
-      "name": "New Hampshire Long-Term Care Ombudsman Program",
+      "name": "Long-Term Care Ombudsman Program",
       "programType": "resource",
       "geographicScope": {
         "type": "federal",
@@ -445,6 +432,183 @@
         "hasFunctionalReq": false,
         "hasMultipleTiers": false,
         "isStatewide": true
+      }
+    },
+    {
+      "name": "Adult Day Services",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Licensed under He-P 818; examples include facilities like Maple Leaf in southern NH, Rockingham County programs[2][7]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Easterseals NH In-Home Care & Health Services",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Offices in Manchester and Keene for related services, but in-home care via statewide team[3]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "medium",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Caregiver Respite and Senior Volunteer Programs",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Monadnock Region and Sullivan County Aging and Disability Resource Centers[3]",
+            "type": "service-area"
+          },
+          {
+            "name": "Comfort Keepers Plymouth (Central/Northern NH)[2]",
+            "type": "service-area"
+          },
+          {
+            "name": "St. Teresa Rehab Center[1]",
+            "type": "service-area"
+          },
+          {
+            "name": "As Life Goes On Eldercare[4]",
+            "type": "service-area"
+          },
+          {
+            "name": "Right at Home Portsmouth[5]",
+            "type": "service-area"
+          },
+          {
+            "name": "Visiting Angels Gilford[9]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "medium",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": false
+      }
+    },
+    {
+      "name": "AmeriCorps Senior Companion Program (NH)",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Community Action Program Belknap-Merrimack Counties Inc. (fiscal agency)[5]",
+            "type": "service-area"
+          },
+          {
+            "name": "Community Action Program in Concord[1]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "employment + in_kind",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": false,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Monadnock at Home Community Services",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Program of Catholic Charities NH, serving Monadnock Region towns.",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "medium",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "documents",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": false,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": false
       }
     }
   ]

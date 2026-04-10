@@ -4,99 +4,108 @@
   "state": "KS",
   "stateName": "Kansas",
   "isRegion": false,
-  "exploredAt": "2026-04-09T09:32:57.973Z",
-  "programCount": 13,
+  "exploredAt": "2026-04-09T13:34:33.538Z",
+  "programCount": 14,
   "programs": [
     {
-      "name": "KanCare Medicaid",
-      "what_it_does": "KanCare is Kansas's Medicaid program providing health coverage including long-term services for seniors and disabled individuals. It covers medical care, nursing home services, and coordinates with waivers for home-based care.",
-      "who_its_for": "Seniors aged 65+ and disabled individuals meeting income and asset limits, at risk of institutionalization.",
-      "official_url": "https://www.kdads.ks.gov",
-      "benefit_value": "Varies by eligibility; covers medical costs, long-term care up to full scope based on needs[1][3]"
-    },
-    {
       "name": "KanCare Frail Elderly Waiver (FE Waiver)",
-      "what_it_does": "The FE Waiver provides home and community-based services to help seniors avoid nursing home placement. Services include adult day care, personal care, emergency response systems, medical equipment, and wellness monitoring via managed care organizations.",
-      "who_its_for": "Kansas residents aged 65+ at risk of institutionalization, meeting financial and functional eligibility; limited slots with waitlist.",
+      "what_it_does": "The FE Waiver is a Medicaid home and community-based services (HCBS) waiver providing long-term supports to prevent nursing home placement. Services include adult day care, personal care, emergency response systems, medical equipment, and wellness monitoring delivered via managed care organizations.[2]",
+      "who_its_for": "Kansas residents aged 65+ at risk of institutionalization, meeting financial eligibility (via KanCare Clearinghouse) and functional needs (via ADRC); limited slots with waitlist.[2]",
       "official_url": "https://www.medicaidplanningassistance.org/kansas-frail-elderly-waiver/",
-      "benefit_value": "Customized services based on needs; no fixed dollar amount, provided through MCO networks[1]"
+      "benefit_value": "Customized services based on needs; no fixed value, but covers cost of institutional care equivalent in home settings; limited enrollment."
     },
     {
-      "name": "KanCare PACE",
-      "what_it_does": "PACE (Program of All-Inclusive Care for the Elderly) offers comprehensive medical and social services to eligible seniors in community settings. It includes adult day health care, transportation, home care, and hospital care coordination to support aging in place.",
-      "who_its_for": "Seniors aged 55+ certified as nursing facility eligible, able to live safely in community, meeting Medicaid/Medicare criteria.",
-      "official_url": "https://www.kdads.ks.gov",
-      "benefit_value": "Full capitated coverage of Medicare and Medicaid services; value varies by participant needs[3]"
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "what_it_does": "PACE provides comprehensive medical and social services to eligible seniors in community settings, including adult day health care and home care. It is administered through KDADS Aging Services to support frail elderly living independently.[1]",
+      "who_its_for": "Frail seniors aged 55+ (typically 65+) who are nursing home eligible and reside in PACE service areas.[1]",
+      "official_url": "https://www.kdads.ks.gov/services-programs/aging",
+      "benefit_value": "All-inclusive capitated care covering Medicare and Medicaid services; value equivalent to institutional care."
     },
     {
-      "name": "KanCare Medicare Savings Programs (QMB, SLMB, QI)",
-      "what_it_does": "These programs pay Medicare premiums, deductibles, and copays for eligible low-income seniors. QMB covers Part A/B premiums and costs; SLMB covers Part B; QI covers Part B for higher incomes.",
-      "who_its_for": "Seniors 65+ with Medicare, low income/asset limits (e.g., QMB: 100% FPL, SLMB: 120%, QI: 135%).",
-      "official_url": "https://www.kdads.ks.gov",
-      "benefit_value": "QMB: full Part A/B costs; SLMB: $185.90/mo Part B (2026); QI: Part B premium[3]"
+      "name": "Medicare Savings Programs (MSP) including QMB, SLMB, QI",
+      "what_it_does": "These programs help low-income Medicare beneficiaries pay premiums, deductibles, and co-pays via MIPPA outreach. Administered through KDADS with counseling support to enroll eligible seniors.[1][8]",
+      "who_its_for": "Low-income seniors with Medicare meeting income/asset limits for Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), or Qualifying Individual (QI).[1][8]",
+      "official_url": "https://www.kdads.ks.gov/services-programs/aging",
+      "benefit_value": "Covers Part B premiums ($174.70/month in 2024, adjusted annually), deductibles, and co-pays; QI up to $130/month per person."
     },
     {
-      "name": "Food Assistance Program (SNAP)",
-      "what_it_does": "Provides monthly benefits via EBT card for purchasing food at stores. Helps low-income households afford nutritious meals.",
-      "who_its_for": "Low-income seniors 60+, households at or below 130-200% FPL depending on deductions; automatic eligibility if receiving SSI.",
-      "official_url": "https://www.dcf.ks.gov",
-      "benefit_value": "Average $200-300/month per senior household; max varies by size/income[3][7]"
+      "name": "Food Assistance (SNAP)",
+      "what_it_does": "Provides monthly benefits via EBT card to purchase food for low-income households. Administered by Kansas Department of Children and Families (DCF).[3][7]",
+      "who_its_for": "Low-income seniors, disabled, and families; seniors may qualify with higher income thresholds if unable to work.[7]",
+      "official_url": "https://www.kansaslegalservices.org/page/1246/benefits-kansas",
+      "benefit_value": "Average $200-300/month per senior household; maximum varies by household size and income (e.g., up to $291/single in 2024, adjusted yearly)."
     },
     {
       "name": "Low-Income Energy Assistance Program (LIHEAP)",
-      "what_it_does": "LIHEAP provides grants to help pay heating/cooling bills and crisis assistance. Administered through local agencies for utility costs.",
-      "who_its_for": "Low-income households including seniors at or below 150% FPL, priority for elderly/disabled.",
-      "official_url": "https://www.dcf.ks.gov",
-      "benefit_value": "Grants $200-1,000 annually depending on fuel type, income, household size[3]"
+      "what_it_does": "Offers help with home heating and cooling bills, emergency aid, and weather-related crisis support. Funds distributed through local agencies via Kansas Housing Resources Corporation or DCF.[3]",
+      "who_its_for": "Low-income households including seniors meeting income guidelines (typically 150% FPL).[3]",
+      "official_url": "https://www.kdads.ks.gov/services-programs/aging-and-disability-resource-center-adrc/general-resources-and-information",
+      "benefit_value": "One-time grants $200-1,000 per season depending on fuel type, household size, and need."
     },
     {
-      "name": "Weatherization Assistance Program (WAP)",
-      "what_it_does": "WAP funds energy efficiency upgrades like insulation, sealing, and furnace repairs to reduce utility bills. Improves home safety and comfort for low-income residents.",
-      "who_its_for": "Low-income households at or below 200% FPL, priority for seniors, disabled, families with children.",
-      "official_url": "https://www.khrc.com",
-      "benefit_value": "Free services worth $5,000-10,000 per home in upgrades[3]"
+      "name": "Weatherization Assistance Program",
+      "what_it_does": "Provides home energy efficiency improvements like insulation, sealing, and furnace repairs to reduce utility costs. Administered by Kansas Housing Resources Corporation (KHRC).[3]",
+      "who_its_for": "Low-income homeowners/renters including seniors in eligible rural/urban areas.[3]",
+      "official_url": "https://www.kacap.org/fedstateprograms",
+      "benefit_value": "Free services valued at $3,000-7,000 per home; saves 10-20% on energy bills annually."
     },
     {
       "name": "Senior Health Insurance Counseling for Kansas (SHICK)",
-      "what_it_does": "SHICK offers free, unbiased counseling on Medicare, supplements, and other insurance options. Trained volunteers assist with claims, appeals, and enrollment.",
-      "who_its_for": "Kansas seniors 65+, younger disabled on Medicare, caregivers; no income limit.",
-      "official_url": "https://www.kdads.ks.gov",
-      "benefit_value": "Free counseling saving thousands in improper premiums/claims[6]"
+      "what_it_does": "Offers free, unbiased counseling on Medicare, supplements, and other health insurance options. Part of KDADS Aging Services including SMP for fraud prevention.[1]",
+      "who_its_for": "Kansas seniors and Medicare beneficiaries seeking insurance guidance.[1]",
+      "official_url": "https://www.kdads.ks.gov/services-programs/aging",
+      "benefit_value": "Free one-on-one counseling; potential savings thousands in premiums/claims via proper enrollment."
     },
     {
-      "name": "Kansas Senior Nutrition Program (Meals on Wheels)",
-      "what_it_does": "Delivers congregate and home-delivered meals to promote nutrition and social engagement. Part of Older Americans Act services through area agencies on aging.",
-      "who_its_for": "Seniors 60+ unable to prepare meals, homebound or at nutrition risk; suggested donation.",
-      "official_url": "https://www.kdads.ks.gov/services-programs/aging/older-americans-act",
-      "benefit_value": "1-2 meals/day; annual value $2,000-4,000 per participant[6]"
+      "name": "Kansas Senior Nutrition Program (Home-Delivered and Congregate Meals)",
+      "what_it_does": "Delivers nutritious meals to homebound seniors and serves congregate meals at senior centers under Older Americans Act. Administered by KDADS through Area Agencies on Aging.[1][5]",
+      "who_its_for": "Seniors aged 60+ who are homebound or attend congregate sites; some under 60 if with peers.[1]",
+      "official_url": "https://www.kdads.ks.gov/services-programs/aging-and-disability-resource-center-adrc/general-resources-and-information",
+      "benefit_value": "5-14 meals/week; suggested donation $3-4/meal for those able; fully funded for neediest."
     },
     {
-      "name": "Family Caregiver Support Program",
-      "what_it_does": "Provides respite care, training, counseling, and supplies to support family caregivers. Helps caregivers continue providing care while preventing burnout.",
-      "who_its_for": "Family caregivers of seniors 60+, or grandparents raising children; income-based.",
-      "official_url": "https://www.kdads.ks.gov/services-programs/aging/older-americans-act",
-      "benefit_value": "Respite grants up to $1,500/year; varies by service[6]"
+      "name": "Caregiver Support Programs",
+      "what_it_does": "Provides respite care, training, and support for family caregivers of seniors via Older Americans Act and Senior Care Act. Administered by KDADS Aging Services.[1]",
+      "who_its_for": "Family caregivers of seniors 60+ or 55+ with Alzheimer's; income-based eligibility.[1]",
+      "official_url": "https://www.kdads.ks.gov/services-programs/aging",
+      "benefit_value": "Respite grants up to $1,600/year; counseling and training at no/low cost."
     },
     {
       "name": "Senior Community Service Employment Program (SCSEP)",
-      "what_it_does": "Offers part-time community service jobs with training to low-income seniors for skill-building and employment transition. Pays minimum wage for 20 hours/week.",
-      "who_its_for": "Unemployed low-income seniors 55+ unable to find work; priority for hardest-to-serve.",
-      "official_url": "https://www.kdads.ks.gov/services-programs/aging/older-americans-act",
-      "benefit_value": "Wages ~$7.25-15/hour x 20 hrs/wk; plus training[6]"
+      "what_it_does": "Offers part-time paid community service work training leading to unsubsidized employment for low-income seniors. Funded under Older Americans Act via KDADS.[1]",
+      "who_its_for": "Unemployed low-income seniors aged 55+ unable to find work.[1]",
+      "official_url": "https://www.kdads.ks.gov/services-programs/aging",
+      "benefit_value": "Wages at minimum wage (~$7.25-15/hr) for 20 hrs/week; training and job placement."
     },
     {
-      "name": "Legal Services for Seniors",
-      "what_it_does": "Provides free legal aid for issues like benefits, housing, abuse, and consumer problems. Operates through Legal Aid of Kansas and elder law programs.",
-      "who_its_for": "Low-income seniors 60+ facing civil legal needs; priority for vulnerable.",
-      "official_url": "https://www.kansaslegalservices.org",
-      "benefit_value": "Free representation saving $5,000+ in legal fees per case[7]"
+      "name": "Kansas Legal Services (Legal Aid for Seniors)",
+      "what_it_does": "Provides free legal help for low-income seniors with benefits, housing, guardianship, and consumer issues. Refers to Kansas Guardianship Program for those needing court-appointed guardians.[5][7]",
+      "who_its_for": "Low-income seniors (under 125% FPL typically) facing civil legal problems.[7]",
+      "official_url": "https://www.kansaslegalservices.org/page/1246/benefits-kansas",
+      "benefit_value": "Free legal representation valued at $200+/hr; guardianship for vulnerable adults."
     },
     {
       "name": "Long-Term Care Ombudsman Program",
-      "what_it_does": "Advocates for residents in long-term care facilities, investigating complaints and ensuring quality care. Provides education and rights protection.",
-      "who_its_for": "Residents of nursing homes, assisted living in Kansas; families.",
-      "official_url": "https://www.kdads.ks.gov",
-      "benefit_value": "Free advocacy resolving 80%+ complaints without litigation[6]"
+      "what_it_does": "Advocates for residents in long-term care facilities, investigating complaints and ensuring quality care. Operated through KDADS Area Agencies on Aging.[1]",
+      "who_its_for": "Residents of nursing homes, assisted living, and board-and-care in Kansas.[1]",
+      "official_url": "https://www.kdads.ks.gov/services-programs/aging",
+      "benefit_value": "Free advocacy services; resolves 80%+ complaints without litigation."
+    },
+    {
+      "name": "Senior Care Act Services",
+      "what_it_does": "Provides state-funded in-home and community-based services to help seniors remain independent and avoid institutionalization. Funds supportive services through contracts with area agencies on aging.[1][3]",
+      "who_its_for": "Kansas seniors aged 60+ who meet income and functional need eligibility criteria, prioritizing those at risk of nursing home placement.",
+      "whats_unique": "Kansas-specific state-funded program under the Senior Care Act, supplementing federal Older Americans Act programs with dedicated state resources not available nationwide.[1][3]",
+      "official_url": "https://www.kdads.ks.gov/services-programs/aging",
+      "benefit_value": "Varies by service; includes personal care, homemaker, adult day care, and respite up to assessed need limits through state allocations."
+    },
+    {
+      "name": "Senior Citizen Law Project (SCLP)",
+      "what_it_does": "Provides civil legal services to address income support, medical assistance, elder abuse, and other issues. Partners with KDADS and area agencies using OAA and state funds.[6]",
+      "who_its_for": "Low-income Kansas seniors aged 60+ facing civil legal needs, targeting those with greatest economic or social vulnerabilities.",
+      "whats_unique": "Kansas-specific project funded by state aging network, LSC, and OAA; focuses on elder rights protection not universally replicated.[6]",
+      "official_url": "https://www.kansaslegalservices.org/page/1250/all-about-services-seniors",
+      "benefit_value": "Free legal representation and advice; secures benefits like MSPs worth thousands annually in Medicare cost savings."
     }
   ]
 }

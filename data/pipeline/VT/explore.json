@@ -4,107 +4,116 @@
   "state": "VT",
   "stateName": "Vermont",
   "isRegion": false,
-  "exploredAt": "2026-04-09T09:42:36.083Z",
-  "programCount": 14,
+  "exploredAt": "2026-04-09T16:53:19.830Z",
+  "programCount": 15,
   "programs": [
     {
       "name": "Choices for Care (CFC) Waiver",
-      "what_it_does": "The Choices for Care waiver provides long-term services and supports to eligible seniors to avoid or delay nursing home placement. It offers home and community-based services as an alternative to institutional care.[1]",
-      "who_its_for": "Vermont seniors needing nursing home level of care, aged 65 or older, or younger with disabilities.[1]",
+      "what_it_does": "The Choices for Care waiver provides long-term services and supports to eligible seniors needing nursing home level of care. It helps avoid or delay nursing home placement by offering home and community-based services.[1]",
+      "who_its_for": "Vermont seniors requiring nursing home level care who meet income and functional eligibility criteria.[1]",
       "official_url": "https://assets.ctfassets.net/61iwodu7d9u0/24SJgM4MdxKq7lTCSPDAzg/4f962fb5a099347706cc09f91cb88179/MC-3398269-state-resource-pages--vermont.pdf",
-      "benefit_value": "Long-term services and supports to remain at home instead of nursing home; value varies by individual needs.[1]"
+      "benefit_value": "Long-term services and supports to remain in community settings instead of nursing homes.[1]"
     },
     {
-      "name": "Medicaid for the Aged, Blind and Disabled (ABD)",
-      "what_it_does": "Provides health coverage for low-income seniors and disabled individuals. Covers medical services beyond standard Medicaid for this population.[4]",
-      "who_its_for": "Seniors aged 65+, blind, or disabled Vermonters meeting income and resource limits.[1][4]",
+      "name": "Medicaid for Aged, Blind, and Disabled (ABD)",
+      "what_it_does": "Provides health coverage for seniors and disabled individuals. Serves as the basis for Medicare Savings Programs eligibility in Vermont.[1][4]",
+      "who_its_for": "Seniors aged 65+, blind, or disabled Vermonters meeting income and resource limits (e.g., $2,000 individual/$3,000 couple for SSI-related).[1]",
       "official_url": "https://www.medicareresources.org/states/vermont-guide-content/",
-      "benefit_value": "Full Medicaid health coverage including long-term care services; premium-free for eligible.[4]"
+      "benefit_value": "Comprehensive Medicaid health coverage including long-term care services.[1][4]"
     },
     {
-      "name": "PACE (Program of All-Inclusive Care for the Elderly)",
-      "what_it_does": "Delivers comprehensive medical and social services to frail seniors in community settings. Coordinates all Medicare and Medicaid covered services plus additional support.",
-      "who_its_for": "Nursing home eligible seniors aged 55+ who can live safely in the community with services.",
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "what_it_does": "Not explicitly named in Vermont-specific results; federally administered but availability unclear from sources. Provides comprehensive medical and social services to eligible frail elderly.",
+      "who_its_for": "Nursing home eligible seniors 55+ who can live safely in community.",
       "official_url": "",
-      "benefit_value": "All-inclusive care; capitation model covers full needs (limited availability in VT; search results do not confirm VT-specific program)"
+      "benefit_value": "Full capitated care including adult day health and home care."
     },
     {
       "name": "Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), Qualified Individual (QI)",
-      "what_it_does": "QMB pays Medicare Part A/B premiums, deductibles, and coinsurance. SLMB and QI help pay Part B premiums for low-income Medicare beneficiaries.[1]",
-      "who_its_for": "Vermont Medicare enrollees meeting income guidelines (no resource limits in VT); U.S. citizens or legal residents.[1]",
+      "what_it_does": "QMB pays Medicare Part A/B premiums, deductibles, and coinsurance. SLMB and QI help pay Part B premiums for low-income Medicare beneficiaries; Vermont offers three MSPs without resource limits.[1]",
+      "who_its_for": "Vermont Medicare enrollees 65+ meeting income guidelines, U.S. citizens or legal residents.[1]",
       "official_url": "https://assets.ctfassets.net/61iwodu7d9u0/24SJgM4MdxKq7lTCSPDAzg/4f962fb5a099347706cc09f91cb88179/MC-3398269-state-resource-pages--vermont.pdf",
-      "benefit_value": "Full premium/deductible coverage (QMB); Part B premium only (SLMB/QI); 3 of 4 MSPs available.[1]"
+      "benefit_value": "Premium, deductible, and coinsurance payments saving hundreds annually.[1]"
     },
     {
-      "name": "3SquaresVT",
-      "what_it_does": "Provides monthly EBT benefits to supplement food purchases at stores and markets. Features simplified application (3SquaresVT IN A SNAP) for seniors 60+ and disabled.[3][5]",
-      "who_its_for": "Low-income Vermonters aged 60+ or disabled; households meeting income guidelines.[3][5]",
-      "official_url": "https://www.agewellvt.org/services/food-meal-delivery/3squaresvt/",
-      "benefit_value": "Average $180/month for older Vermonter living alone.[5]"
+      "name": "3SquaresVT for Older Vermonters",
+      "what_it_does": "Provides nutrition assistance with enhanced rules for seniors 60+, including cash benefits directly deposited into bank accounts if all household members are 65+ or on SSI. Allows deductions for medical expenses like over-the-counter meds, premiums, and home health aids to increase benefit amounts.[2]",
+      "who_its_for": "Vermonters 60+ or 65+, especially those with medical costs or in all-senior/disabled households; over 17,000 older Vermonters participate monthly.[2]",
+      "whats_unique": "State administration of SNAP (3SquaresVT) offers cash payments (vs. EBT only) for all-65+ households and up to 3-year recertification periods; medical expense deductions tailored for seniors exceed standard federal SNAP in accessibility.[2]",
+      "official_url": "https://vermontfoodhelp.com/learn-more/applicants-participants/older-vermonters",
+      "benefit_value": "Monthly food benefits (amount varies by income/household; higher with medical deductions); cash deposit option for eligible seniors."
     },
     {
       "name": "Fuel Assistance Program",
-      "what_it_does": "Helps low-income households pay heating costs during winter. Provides one-time payments to fuel vendors.[2]",
-      "who_its_for": "Low-income Vermont households including seniors; apply via myBenefits portal.[2][5]",
+      "what_it_does": "Provides help with heating costs during winter. Administered through myBenefits portal alongside 3SquaresVT.[2][5]",
+      "who_its_for": "Low-income Vermont households including seniors.",
       "official_url": "https://vtlawhelp.org/public-benefits",
-      "benefit_value": "One-time annual payment based on income, household size, fuel type; amount varies.[2]"
+      "benefit_value": "Cash grants for home heating expenses varying by household size and income."
     },
     {
       "name": "Weatherization Assistance Program",
-      "what_it_does": "Improves energy efficiency of homes through insulation, sealing, and upgrades. Reduces heating costs for low-income households.[7]",
-      "who_its_for": "Low-income Vermont homeowners/renters including seniors; prioritized for vulnerable groups.[7]",
+      "what_it_does": "Offers home energy efficiency improvements. Included in senior benefits screening tools for utilities.[7]",
+      "who_its_for": "Low-income Vermont seniors and households.",
       "official_url": "https://vermontmaturity.com/finance/how-seniors-can-get-help-paying-for-everyday-needs/",
-      "benefit_value": "Free home improvements; long-term energy savings (specific $ value not in results).[7]"
+      "benefit_value": "Free or low-cost home weatherization reducing energy bills."
     },
     {
       "name": "State Health Insurance Assistance Program (SHIP)",
-      "what_it_does": "Offers free counseling on Medicare enrollment, plans, and appeals. Provides referrals for home care and long-term services.[4]",
-      "who_its_for": "Vermont Medicare beneficiaries, especially seniors; available via AAAs.[4]",
+      "what_it_does": "Offers free counseling on Medicare enrollment, Advantage/Part D plans, and Medigap. Provides referrals for home care and long-term services via Area Agencies on Aging.[4]",
+      "who_its_for": "Vermont Medicare beneficiaries 65+ seeking guidance.",
       "official_url": "https://www.medicareresources.org/states/vermont-guide-content/",
-      "benefit_value": "Free one-on-one counseling; phone 800-642-5119.[4]"
+      "benefit_value": "Free one-on-one counseling at 800-642-5119.[4]"
     },
     {
       "name": "Meals on Wheels",
-      "what_it_does": "Delivers nutritious meals to homebound seniors. Often provided through Area Agencies on Aging.[1]",
-      "who_its_for": "Homebound Vermont seniors unable to prepare meals.",
-      "official_url": "https://assets.ctfassets.net/61iwodu7d9u0/24SJgM4MdxKq7lTCSPDAzg/4f962fb5a099347706cc09f91cb88179/MC-3398269-state-resource-pages--vermont.pdf",
-      "benefit_value": "Daily/weekly meal delivery; often low/no cost based on income (details via 800-642-5119).[1]"
+      "what_it_does": "Delivers nutritious meals to homebound seniors. Provided through Area Agencies on Aging and organizations like Senior Solutions.[4][8]",
+      "who_its_for": "Homebound Vermont seniors 60+.",
+      "official_url": "https://www.seniorsolutionsvt.org/seniors/",
+      "benefit_value": "Daily hot meals delivered to support nutrition and independence."
     },
     {
-      "name": "Caregiver Respite Support",
-      "what_it_does": "Provides temporary relief for family caregivers through in-home or facility care. Part of CFC waiver and AAA services.",
-      "who_its_for": "Family caregivers of CFC-eligible seniors needing nursing home level care.[1]",
-      "official_url": "https://assets.ctfassets.net/61iwodu7d9u0/24SJgM4MdxKq7lTCSPDAzg/4f962fb5a099347706cc09f91cb88179/MC-3398269-state-resource-pages--vermont.pdf",
-      "benefit_value": "Respite services covered under waiver; hours/value per care plan (via AAA helpline).[1]"
+      "name": "Caregiver Support Program",
+      "what_it_does": "Offers support services for family caregivers. Available through senior resource organizations.[7][8]",
+      "who_its_for": "Family caregivers of Vermont seniors.",
+      "official_url": "https://www.seniorsolutionsvt.org/seniors/",
+      "benefit_value": "Respite care, training, and counseling for caregivers."
     },
     {
       "name": "Senior Community Service Employment Program (SCSEP)",
-      "what_it_does": "Offers part-time paid work training at community sites. Helps unemployed low-income seniors gain skills and employment.",
-      "who_its_for": "Unemployed Vermonters 55+ with low income.",
-      "official_url": "",
-      "benefit_value": "Minimum wage training positions ~20 hrs/week (federal program; VT administered via AAA).[1]"
+      "what_it_does": "Provides part-time paid training and employment. Federal program accessible via senior benefits screening.[7]",
+      "who_its_for": "Unemployed low-income seniors 55+.",
+      "official_url": "https://vermontmaturity.com/finance/how-seniors-can-get-help-paying-for-everyday-needs/",
+      "benefit_value": "Minimum wage work experience leading to employment."
     },
     {
-      "name": "Legal Aid for Seniors",
-      "what_it_does": "Provides free legal help for income-eligible seniors on benefits, housing, abuse. Available through Legal Aid or AAA referrals.[2]",
-      "who_its_for": "Low-income Vermont seniors facing legal issues.[2]",
+      "name": "Legal Assistance for Seniors",
+      "what_it_does": "Provides free legal aid for public benefits, housing, and elder rights. Available through VTLawHelp and senior helplines.[2]",
+      "who_its_for": "Low-income Vermont seniors 60+.",
       "official_url": "https://vtlawhelp.org/public-benefits",
-      "benefit_value": "Free legal representation/services.[2]"
+      "benefit_value": "Pro bono legal representation and advice."
     },
     {
       "name": "Long-Term Care Ombudsman",
-      "what_it_does": "Advocates for residents in nursing homes/assisted living. Investigates complaints and ensures quality care.",
-      "who_its_for": "Residents/family in VT long-term care facilities; access via AAAs.[4]",
-      "official_url": "https://www.medicareresources.org/states/vermont-guide-content/",
-      "benefit_value": "Free advocacy and complaint resolution.[4]"
+      "what_it_does": "Advocates for residents in long-term care facilities. Protects rights in nursing homes and assisted living.[1]",
+      "who_its_for": "Vermont seniors in long-term care settings.",
+      "official_url": "https://assets.ctfassets.net/61iwodu7d9u0/24SJgM4MdxKq7lTCSPDAzg/4f962fb5a099347706cc09f91cb88179/MC-3398269-state-resource-pages--vermont.pdf",
+      "benefit_value": "Advocacy and complaint resolution services."
     },
     {
       "name": "Vermont Senior Companion Program",
-      "what_it_does": "This statewide program matches volunteers aged 55 and older with older neighbors needing companionship and assistance to help them stay in their homes longer. It provides support for daily tasks like grocery shopping and doctor visits, offers respite for family caregivers, and combats loneliness and isolation.[1]",
-      "who_its_for": "Volunteers aged 55+ with yearly income under $30,120 (single) or $40,880 (couple), serving 10 hours/week; serves older adults needing companionship.[1]",
-      "whats_unique": "Statewide volunteer matching program specifically tailored for Vermont's older adults, funded through AmeriCorps Seniors but operated locally by organizations like Central Vermont Council on Aging.[1]",
+      "what_it_does": "This statewide program matches volunteers aged 55 and older with older neighbors needing companionship and assistance with daily tasks like grocery shopping and doctor visits. It helps keep seniors in their homes longer, prevents loneliness, and provides respite for family caregivers.[1]",
+      "who_its_for": "Volunteers aged 55+ with income under $30,120 (single) or $40,880 (couple), serving 10 hours/week; serves older adults needing support.[1]",
+      "whats_unique": "Statewide volunteer matching program operated by Central Vermont Council on Aging, emphasizing community-based companionship to promote independence; funded through AmeriCorps Seniors but implemented uniquely across Vermont.[1]",
       "official_url": "https://cvcoa.org/senior-companion-program",
-      "benefit_value": "Non-monetary: companionship, assistance with daily tasks, and caregiver respite; volunteers receive stipends (not specified in source)."
+      "benefit_value": "Non-monetary: 10 hours/week of free companionship and assistance; stipend for volunteers not specified in detail."
+    },
+    {
+      "name": "Senior Solutions Vet-to-Vet Program",
+      "what_it_does": "Matches older veterans with veteran volunteers for phone-based companionship, regular chats, and safety check-ins. Provides targeted peer support to reduce isolation among senior vets.[4]",
+      "who_its_for": "Older veterans in southeastern Vermont seeking companionship.[4]",
+      "whats_unique": "Veteran-specific peer companionship program run by regional aging agency Senior Solutions, not a standard federal offering; focuses on vet-to-vet matching for emotional support.[4]",
+      "official_url": "https://www.seniorsolutionsvt.org/seniors/",
+      "benefit_value": "Non-monetary: Regular volunteer phone companionship and safety checks."
     }
   ]
 }

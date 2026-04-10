@@ -1,110 +1,706 @@
 {
   "state": "KY",
   "stateName": "Kentucky",
-  "comparedAt": "2026-04-09T09:33:08.645Z",
-  "total": 2,
-  "newPrograms": 1,
-  "withDiffs": 1,
-  "withNovelFields": 1,
+  "comparedAt": "2026-04-09T13:43:49.479Z",
+  "total": 16,
+  "newPrograms": 9,
+  "withDiffs": 7,
+  "withNovelFields": 7,
   "benefitTypes": {
-    "service": 2
+    "service": 9,
+    "financial": 3,
+    "in_kind": 1,
+    "service + in_kind + advocacy": 1,
+    "employment": 1,
+    "advocacy": 1
   },
   "variationPatterns": {
-    "region": 1,
-    "not_applicable": 1
+    "priority_tier": 3,
+    "Individual participant needs and preferences; services are personalized[2]": 1,
+    "region": 4,
+    "program_tier": 1,
+    "household_size": 1,
+    "household_priority_tier": 1,
+    "not_applicable": 4,
+    "Program type (NFCSP vs KFCP); respite care availability may vary by region": 1
   },
   "novelFieldSummary": {
     "asset_limits": {
-      "count": 1,
+      "count": 7,
       "programs": [
-        "Kentucky Family Caregiver Program (Grandparents Raising Grandchildren)"
+        "Kentucky Medicaid",
+        "Kentucky Medicare Savings Programs (QMB, SLMB, QI)",
+        "SNAP (Supplemental Nutrition Assistance Program)",
+        "Kentucky Energy Assistance Program (LIHEAP)",
+        "National Family Caregiver Support Program / Kentucky Family Caregiver Program",
+        "Kentucky Long-Term Care Ombudsman Program",
+        "Home and Community Based (HCB) Waiver"
       ],
       "note": "Our model has no asset limit fields"
     },
     "regional_variations": {
-      "count": 1,
+      "count": 6,
       "programs": [
-        "Kentucky Family Caregiver Program (Grandparents Raising Grandchildren)"
+        "Kentucky Medicaid",
+        "SNAP (Supplemental Nutrition Assistance Program)",
+        "Kentucky Energy Assistance Program (LIHEAP)",
+        "National Family Caregiver Support Program / Kentucky Family Caregiver Program",
+        "Kentucky Long-Term Care Ombudsman Program",
+        "Home and Community Based (HCB) Waiver"
       ],
       "note": "Program varies by region — our model doesn't capture this"
     },
-    "documents_required": {
-      "count": 1,
+    "waitlist": {
+      "count": 5,
       "programs": [
-        "Kentucky Family Caregiver Program (Grandparents Raising Grandchildren)"
+        "Kentucky Medicaid",
+        "Kentucky Medicare Savings Programs (QMB, SLMB, QI)",
+        "Kentucky Energy Assistance Program (LIHEAP)",
+        "National Family Caregiver Support Program / Kentucky Family Caregiver Program",
+        "Home and Community Based (HCB) Waiver"
+      ],
+      "note": "Has waitlist info — our model has no wait time field"
+    },
+    "documents_required": {
+      "count": 7,
+      "programs": [
+        "Kentucky Medicaid",
+        "Kentucky Medicare Savings Programs (QMB, SLMB, QI)",
+        "SNAP (Supplemental Nutrition Assistance Program)",
+        "Kentucky Energy Assistance Program (LIHEAP)",
+        "National Family Caregiver Support Program / Kentucky Family Caregiver Program",
+        "Kentucky Long-Term Care Ombudsman Program",
+        "Home and Community Based (HCB) Waiver"
       ],
       "note": "Has document checklist — our model doesn't store per-program documents"
+    },
+    "household_size_table": {
+      "count": 1,
+      "programs": [
+        "SNAP (Supplemental Nutrition Assistance Program)"
+      ],
+      "note": "Benefits/eligibility vary by household size — we store a single number"
     }
   },
   "comparisons": [
     {
-      "name": "Senior CommUnity Care of Kentucky (PACE)",
+      "name": "Kentucky Medicaid",
+      "isNew": false,
+      "existingId": "aged-blind-and-disabled-abd-medicaid",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$235",
+          "found": "$2,982",
+          "source": "https://kynect.ky.gov / https://chfs.ky.gov/agencies/dms/Pages/default.aspx"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$5,000 – $20,000/year",
+          "found": "Nursing Home Medicaid: full nursing home costs or home-based waiver equivalent (personal care, home health, therapies). ABD Long-Term Care: in-home personal care, adult day care, meal delivery, home modifications, PERS—one benefit at a time based on assessment (unlike immediate full access in nursing home). Covers doctor visits, prescriptions, hospital stays, LTC supports.[1][3][5]",
+          "source": "https://kynect.ky.gov / https://chfs.ky.gov/agencies/dms/Pages/default.aspx"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://kynect.ky.gov / https://chfs.ky.gov/agencies/dms/Pages/default.aspx"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Countable assets: $2,000 for single applicant; $4,000 combined if both spouses apply; applicant $2,000 + community spouse minimum $31,584 to $162,660 (2026 fair hearing level). Exempt: primary home (if intent to return and equity under $713,000 federal cap), one vehicle, personal belongings, burial plots/funds up to $1,500 prepaid, life insurance up to $1,500 face value. 60-month look-back for transfers with penalties.[1][2][5]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Processing/wait times vary by DCBS office load; waiver slots may differ regionally; providers (nursing homes, waiver agencies) local",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Possible for nursing home beds or waiver slots; no statewide waitlist length specified, check regionally",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of identity/citizenship (birth certificate, passport)",
+            "Residency proof (utility bill)",
+            "Income: bank statements, pension/SSI awards (3 months)",
+            "Assets: bank/investment statements, deeds, vehicle titles (current market value)",
+            "Medical: doctor's records, functional assessment if needed",
+            "Spousal info if married"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Income/asset caps with spousal impoverishment protections; tiered by program (Nursing Home vs. ABD/Waivers); QIT for income cap; functional NFLOC test required; benefits assessed one-by-one in ABD",
+      "gotchas": [
+        "60-month look-back penalties for asset transfers/gifts",
+        "Income over $2,982 requires QIT (Miller Trust)—special needs trust setup needed",
+        "ABD benefits one-at-a-time vs. full nursing home package",
+        "Must prove NFLOC; not automatic at 65",
+        "Community spouse asset protection has min/max—plan ahead",
+        "Many deplete savings unaware of eligibility[1]",
+        "Waivers may have waitlists unlike immediate nursing home coverage if bed available"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://kynect.ky.gov / https://chfs.ky.gov/agencies/dms/Pages/default.aspx"
+    },
+    {
+      "name": "Kentucky Home and Community-Based Services (HCBS) Waivers",
       "isNew": true,
       "existingId": null,
       "existingVerified": null,
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "County-restricted to Jefferson and Northern KY counties only; two regional providers with separate contacts; no income/asset dollar limits specified; fees for non-dually eligible; nursing home level of care certification required",
+      "dataShapeNotes": "This program's eligibility and benefits are highly individualized. Income limits are fixed ($2,022/month), but asset limits are not specified in available sources. Services are customized to participant goals rather than tiered by priority level. The program operates statewide but requires county-level application. A critical gotcha is the current waiting list — families should apply immediately even if services are not needed immediately. The program requires a two-step application process (Medicaid first, then waiver), and physician certification of nursing facility-level care need is mandatory. Patient liability varies by individual income and deductions.",
       "gotchas": [
-        "Not statewide—only specific counties; confirm residence[1][2][5]",
-        "Medicare-only or private pay participants face fees/restrictions, not 100% covered like dually eligible[3]",
-        "All non-emergency care must go through PACE providers to be covered[3]",
-        "Enrollment makes PACE the sole source of services—no duplication with other programs[5]",
-        "Must be able to live safely in community at enrollment time, despite nursing home level needs[1][2][3]"
+        "There is currently a waiting list for HCB services — applying early is critical, as placement is determined by the date the completed application is received[2][3]",
+        "Applicants must first qualify for Medicaid before they can apply for the waiver; this is a two-step process[2]",
+        "The 5-year lookback period for asset transfers can affect eligibility — families should be cautious about transferring assets before applying[1]",
+        "Medicaid's Estate Recovery program allows the state to recover costs from the applicant's estate, which can affect inheritance for heirs[1]",
+        "Patient liability (cost-sharing) applies — participants may need to pay part of care costs based on income after deductions[5]",
+        "A physician must certify in writing that nursing facility admission would occur without waiver services — this is a strict requirement[5]",
+        "The program is specifically for those who would otherwise require nursing facility level of care; it is not for lower levels of care[2][5]",
+        "Income limits are strict at $2,022/month gross; exceeding this requires establishing a Qualifying Income Trust, which adds complexity[5]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "Individual participant needs and preferences; services are personalized[2]",
+      "officialSource": "https://chfs.ky.gov/agencies/dms/dca/pages/hcb-waiver.aspx[2]"
+    },
+    {
+      "name": "Kentucky PACE",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Only available via 3 regional providers with county-restricted service areas; no income/asset test for entry but Medicaid needed for free services; all care centralized through PACE center",
+      "gotchas": [
+        "Not statewide - must live in specific provider service area; check county[2][3][4]",
+        "Medicare-only pay fees; all non-emergency care must go through PACE or risk personal liability[2]",
+        "Becomes sole source of services - no outside Medicare/Medicaid use for covered items[2][6]",
+        "Nursing home level certification required despite community living[1][5]",
+        "Voluntary but disenrollment coordinated with Medicare/Medicaid[1][2]"
       ],
       "benefitType": "service",
       "benefitVariesBy": "region",
       "officialSource": "https://chfs.ky.gov/agencies/dail/Pages/pace.aspx"
     },
     {
-      "name": "Kentucky Family Caregiver Program (Grandparents Raising Grandchildren)",
+      "name": "Kentucky Medicare Savings Programs (QMB, SLMB, QI)",
       "isNew": false,
-      "existingId": "national-family-caregiver-support-program-nfcsp",
+      "existingId": "medicare-savings-programs-qmb-slmb-qi",
       "existingVerified": null,
-      "diffsFound": 2,
+      "diffsFound": 1,
       "diffs": [
-        {
-          "field": "benefit_value",
-          "ours": "$2,000 – $8,000/year",
-          "found": "Wide range of services including matching with support groups, information about resources, assistance accessing services, counseling, and training. Eligible participants may receive a grant or voucher per grandchild per fiscal year for clothing, respite, school supplies, educational needs, required legal services, medical/dental services, and other approved expenses (specific dollar amounts not stated).[6][9]",
-          "source": "https://chfs.ky.gov/agencies/dail/Pages/caregiversupport.aspx"
-        },
         {
           "field": "source_url",
           "ours": "MISSING",
-          "found": "https://chfs.ky.gov/agencies/dail/Pages/caregiversupport.aspx"
+          "found": "https://chfs.ky.gov/agencies/dms/dpo/epb/Pages/msp.aspx"
         }
       ],
       "novelFields": [
         {
           "field": "asset_limits",
-          "value": "No asset limits mentioned.",
+          "value": {
+            "description": "Resource limits (assets) for QMB, SLMB, and QI-1:[5][7]",
+            "single": "$9,660",
+            "couple": "$14,470",
+            "notes": "Resources include countable assets; some states have more generous standards (e.g., Connecticut has no asset limit for QI)"
+          },
           "note": "Our model has no asset limit fields"
         },
         {
+          "field": "waitlist",
+          "value": "QI program has potential delays due to finite block-grant funding; no other waitlist information provided",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of Medicare eligibility",
+            "Income documentation (pay stubs, tax returns, Social Security statements)",
+            "Asset/resource documentation",
+            "Proof of Kentucky residency",
+            "Specific document requirements not fully detailed in search results"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Kentucky Medicare Savings Programs consist of three tiered programs based on income level (QMB < SLMB < QI), with benefits decreasing as income increases. QMB provides comprehensive cost-sharing coverage, while SLMB and QI cover only Part B premiums. The QI program is constrained by finite block-grant funding, creating potential access limitations. Income limits are uniform statewide and change annually. Asset limits are consistent across all three programs. No age requirement exists; eligibility is based solely on Medicare enrollment, income, and assets.",
+      "gotchas": [
+        "QI program has finite funding: Once block-grant funds are exhausted, even eligible individuals cannot access benefits[1]",
+        "Income limits change annually on April 1 based on Federal Poverty Level; families must requalify each year[1][5]",
+        "QMB automatically qualifies beneficiaries for Medicare Part D Extra Help program[3]",
+        "SLMB and QI only cover Part B premiums—they do NOT cover deductibles, coinsurance, or copayments[5]",
+        "Providers are prohibited from billing QMB beneficiaries for Medicare Part A or B deductibles or coinsurance[1]",
+        "Asset limits are strict: $9,660 for individuals, $14,470 for couples; exceeding these disqualifies applicants regardless of income[5]",
+        "The $20 income disregard is included in the stated limits[5]",
+        "Search results do not provide complete application procedures, phone numbers, or online portal information—families must contact CHFS directly"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "program_tier",
+      "officialSource": "https://chfs.ky.gov/agencies/dms/dpo/epb/Pages/msp.aspx"
+    },
+    {
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "isNew": false,
+      "existingId": "supplemental-nutrition-assistance-program-snap",
+      "existingVerified": null,
+      "diffsFound": 4,
+      "diffs": [
+        {
+          "field": "min_age",
+          "ours": "65",
+          "found": "60",
+          "source": "https://chfs.ky.gov/agencies/dcbs/dfs/nab/Pages/snap.aspx"
+        },
+        {
+          "field": "income_limit",
+          "ours": "$1980",
+          "found": "$2608",
+          "source": "https://chfs.ky.gov/agencies/dcbs/dfs/nab/Pages/snap.aspx"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$1,500 – $3,600/year",
+          "found": "Monthly EBT card for food purchases (groceries, not hot food/alcohol/tobacco). Amount based on net income: ~$30 less benefit per $100 more net income. Minimums/maximums vary; e.g., elderly/disabled 2-person example: $415/month after deductions. Average senior 1-person: ~$188/month (state-varying)[1][4][7].",
+          "source": "https://chfs.ky.gov/agencies/dcbs/dfs/nab/Pages/snap.aspx"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://chfs.ky.gov/agencies/dcbs/dfs/nab/Pages/snap.aspx"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limit in Kentucky for most households. Home and vehicles exempt. For elderly/disabled households failing gross income test, federal asset limit of $4500 applies (countable: bank accounts; exempt: home, vehicles, retirement savings in some cases)[1][2].",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "household_size_table",
+          "value": "For households with a member 60+ or disabled (Oct 1, 2025 - Sept 30, 2026): Gross income limit at 200% FPL - 1 person: $2608/month, 2: $3526, 3: $4442, 4: $5358, 5: $6276, 6: $7192, 7: $8108, +$916 per additional. If over gross, qualify via Net Income test (≤100% FPL) and Asset test ($4500). No gross income test required for elderly/disabled in KY's expanded rules; net income determines benefit amount[1][2][4].",
+          "note": "Benefits/eligibility vary by household size — we store a single number"
+        },
+        {
           "field": "regional_variations",
-          "value": "Administered through local Area Agencies on Aging and Independent Living (e.g., Pennyrile[1], KIPDA region: Jefferson, Oldham, Henry, Trimble, Spencer, Shelby, Hardin[2]). Variations in local providers and potentially services/wait times.",
+          "value": "Administered via local DCBS offices by county; possible processing/wait differences, but uniform rules statewide[6].",
           "note": "Program varies by region — our model doesn't capture this"
         },
         {
           "field": "documents_required",
           "value": [
-            "Proof of relationship, residency, household income, grandchild's age, confirmation parents do not live in home, and no Kinship Care (inferred; not explicitly listed)."
+            "Proof of income (Social Security, pension statements).",
+            "Proof of expenses (medical costs, shelter, utilities for deductions).",
+            "ID, residency proof, disability verification if applicable.",
+            "Household details (who lives together, food prep)[1][2][6]."
           ],
           "note": "Has document checklist — our model doesn't store per-program documents"
         }
       ],
-      "dataShapeNotes": "Administered statewide via local Area Agencies on Aging; financial aid requires 150% FPL income test and no Kinship Care overlap; benefits include non-cash services plus discretionary grants/vouchers per fiscal year.",
+      "dataShapeNotes": "KY expands federal SNAP with no asset limit standard, gross income optional for elderly/disabled; benefits scale by household size/net income with elderly medical/shelter deductions; ESAP tier for no-earned-income seniors; statewide via county DCBS.",
       "gotchas": [
-        "Cannot receive benefits if already getting Kinship Care payments ('double dip' rule); evaluate which program is better.[1][4][6]",
-        "Parents cannot reside in the household, even if not primary caregivers.[1][6][9]",
-        "Income limit (150% FPL) applies strictly to financial assistance; services like support groups may be more accessible.[1][4][6]",
-        "Adopted grandparents may still qualify under certain conditions.[7]"
+        "Elderly/disabled: Can skip gross income test in KY (expanded rules), but over 200% FPL triggers $4500 asset test—many miss this alternate path[1].",
+        "Household composition: Must include food-sharing members; adult kids 21+ may separate if preparing independently[6].",
+        "Medical/shelter deductions boost benefits—track high costs (e.g., Medicare premiums)[1][4].",
+        "ESAP simplifies for no-earned-income elderly/disabled households—fewer recertifications[8].",
+        "New 2026 work rules don't apply to 60+, but check for mixed households[3].",
+        "Own home/savings often exempt; ~half eligible seniors don't apply[2][7]."
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "household_size",
+      "officialSource": "https://chfs.ky.gov/agencies/dcbs/dfs/nab/Pages/snap.aspx"
+    },
+    {
+      "name": "Kentucky Energy Assistance Program (LIHEAP)",
+      "isNew": false,
+      "existingId": "low-income-home-energy-assistance-program-liheap",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$2470",
+          "found": "$511",
+          "source": "https://chfs.ky.gov/agencies/dcbs/dfs/pdb/Pages/liheap.aspx"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$500 – $2,000/year",
+          "found": "One-time payment to utility/fuel provider for heating/cooling costs. Subsidy: Based on income and fuel type. Crisis: Amount to alleviate crisis up to maximum benefit (exact max not specified). Summer cooling: One-time electric payment or air conditioner if no access and at health risk from heat[2][3].",
+          "source": "https://chfs.ky.gov/agencies/dcbs/dfs/pdb/Pages/liheap.aspx"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://chfs.ky.gov/agencies/dcbs/dfs/pdb/Pages/liheap.aspx"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Liquid resources not to exceed $2,000; up to $4,000 if a household member has a catastrophic illness and assets are used for medical/living expenses[3].",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered by 23 Community Action Agencies across all 120 counties; program dates, wait times, and availability may vary by agency and fund depletion[3][5]. Crisis: Jan 6-Mar 27, 2026 in some areas[4].",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "No waitlist mentioned; funds may run out[3][4].",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of SSN or Permanent Residence card (Green Card) for each household member[4][5].",
+            "Proof of all household income from preceding month[4][5].",
+            "Most current electric bill, landlord statement if included in rent, or pre-pay electric statement[4][5].",
+            "Account number and name on account for main heating fuel and electric[4][5].",
+            "For Crisis: Disconnect/past-due notice, eviction notice if applicable, or proof of ≤4 days fuel/≤10 days pre-pay[4][5]."
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Two-tiered (Subsidy vs Crisis) with crisis requiring emergency proof; administered via 23 local Community Action Agencies in all 120 counties; income at 150% FPL (sometimes 130%); benefits vary by income, fuel type, and component; seasonal with potential early close due to funding.",
+      "gotchas": [
+        "Multiple components (Subsidy Nov-Dec at 130% FPL in some cases; Crisis Jan-Mar; Summer if funds available)—must match crisis criteria for winter crisis aid[3].",
+        "No need for crisis notice for regular subsidy, but crisis requires proof of emergency[2].",
+        "Funds limited and first-come, first-served; apply early[4].",
+        "Prior LIHEAP does not disqualify from Crisis[4].",
+        "Income based on prior month's combined household income[1].",
+        "Liquid assets strictly limited, with exception only for catastrophic illness[3]."
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://chfs.ky.gov/agencies/dcbs/dfs/pdb/Pages/liheap.aspx"
+    },
+    {
+      "name": "Kentucky Weatherization Assistance Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Benefits are in-kind (energy improvements) rather than cash; value determined by individual energy audit rather than fixed amount. Eligibility uses dual-criterion approach (income OR categorical eligibility via TANF/K-TAP). Program prioritizes based on point system rather than application date. Income limits tied to federal poverty guidelines updated annually by OMB. Delivered through decentralized network of 20-22 local Community Action Agencies with regional variations in thresholds and wait times. No asset limits documented. No age requirement, but elderly status increases priority points.",
+      "gotchas": [
+        "Income limits vary by local program administrator—some use 125% of poverty level, others use 200%; verify with your local Community Action Agency[1][2]",
+        "Eligibility expires after 12 months if no work has begun; you must re-verify income and eligibility to continue[2]",
+        "Dwellings weatherized on or after September 30, 1994 are generally ineligible unless they meet specific re-weatherization criteria (weatherized prior to October 1, 1993)[1][4]",
+        "Renters must obtain landlord written permission before applying; landlord must sign documents granting permission to work on home[4][6]",
+        "Applications are prioritized based on point system, not first-come-first-served; elderly and disabled applicants and households with young children receive priority[1][6]",
+        "Households with children at risk of removal due to substandard dwelling conditions receive emergency priority and immediate assistance[1]",
+        "Program is funded through U.S. Department of Energy and Kentucky Cabinet for Health and Family Services' LIHEAP; funding and availability may vary year to year[3][7]",
+        "Staff and contractors must be trained and certified in dwelling needs evaluation, blower door testing, energy audits, and energy systems evaluations before performing work[1]"
+      ],
+      "benefitType": "in_kind",
+      "benefitVariesBy": "household_priority_tier",
+      "officialSource": "https://www.kyhousing.org/Partners/Developers/Single-Family/Weatherization-Assistance/Pages/default.aspx"
+    },
+    {
+      "name": "Kentucky State Health Insurance Assistance Program (SHIP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "no income test; statewide with local counselor delivery; counseling-only (no financial benefits or limits); open to families/caregivers without eligibility barriers",
+      "gotchas": [
+        "Not a financial aid or healthcare provider program—only free counseling/education, no direct payments or services; Counselors do not sell insurance and represent no companies; Primarily for Medicare-related decisions, not general health insurance; Services free but rely on trained volunteers/staff which may affect availability.[3][7][8][9]"
       ],
       "benefitType": "service",
       "benefitVariesBy": "not_applicable",
-      "officialSource": "https://chfs.ky.gov/agencies/dail/Pages/caregiversupport.aspx"
+      "officialSource": "https://chfs.ky.gov/agencies/dail/Pages/ship.aspx"
+    },
+    {
+      "name": "Kentucky Meals on Wheels",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Decentralized local providers with varying costs, eligibility details, and service areas; no uniform income/asset tests; spouses/dependents included but homebound focus for delivery",
+      "gotchas": [
+        "Not a single centralized program; must contact local provider for exact eligibility, zones, costs, and processes[1][2][8]",
+        "Fees may apply (e.g., $30/week in Lexington) even if not free; private pay options exist[2][6]",
+        "Car ownership or ability to leave home easily may disqualify[1]",
+        "No special diets in some areas[2]",
+        "Re-evaluation every 6 months in some programs[4]",
+        "Separate from Medicaid HCB waivers which have stricter rules[7]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "region",
+      "officialSource": "https://chfs.ky.gov/agencies/dail/Pages/nutrition.aspx"
+    },
+    {
+      "name": "National Family Caregiver Support Program / Kentucky Family Caregiver Program",
+      "isNew": false,
+      "existingId": "national-family-caregiver-support-program-nfcsp",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "min_age",
+          "ours": "60",
+          "found": "Varies by caregiver type: 55+ for grandparents/relatives; no age limit for adult family members caring for seniors 60+",
+          "source": "https://chfs.ky.gov/agencies/dail/Pages/caregiversupport.aspx (Cabinet for Health and Family Services, Department for Aging and Independent Living)"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$2,000 – $8,000/year",
+          "found": "National Family Caregiver Support Program: information about available services, assistance accessing services, educational opportunities, support group information, supplemental services (limited), and respite care (temporary relief from caregiving). Kentucky Family Caregiver Program: support group matching, information about resources, assistance accessing services, counseling, and training. No fee for services. Specific dollar amounts or hours per week NOT specified in search results.",
+          "source": "https://chfs.ky.gov/agencies/dail/Pages/caregiversupport.aspx (Cabinet for Health and Family Services, Department for Aging and Independent Living)"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://chfs.ky.gov/agencies/dail/Pages/caregiversupport.aspx (Cabinet for Health and Family Services, Department for Aging and Independent Living)"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Not specified in search results; contact local Area Agency on Aging for clarification",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Program administered through local Area Agencies on Aging; eligibility and services may vary slightly by region. Priority given to individuals with greatest social and economic need, particularly low-income older individuals.",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Not specified in search results",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of relationship (for grandparent/relative caregivers)",
+            "Proof of residency in eligible county",
+            "Income documentation (for Kentucky Family Caregiver Program only)",
+            "Functional assessment results (for respite care or supplemental services under NFCSP)",
+            "Specific document list not fully detailed in search results; contact local AAA for complete requirements"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "This program has a complex dual-structure: NFCSP (federal, broader, no income test) and KFCP (state, narrower, strict income test). Eligibility and benefits vary significantly by county and regional AAA. The program is service-based rather than cash-based, with respite care and support services as primary benefits. Specific dollar amounts, hours, and processing timelines are not standardized across regions and must be obtained from local AAA. The 'frailty' definition for care recipients creates an additional eligibility gate for certain services. Income limits apply only to KFCP, not NFCSP, creating a critical distinction for families just above the poverty threshold.",
+      "gotchas": [
+        "TWO SEPARATE PROGRAMS: National Family Caregiver Support Program (NFCSP, no income limit, broader eligibility) and Kentucky Family Caregiver Program (KFCP, 150% poverty income limit, grandparent/relative focused). Families must determine which applies to their situation.",
+        "INCOME LIMIT TRAP: Kentucky Family Caregiver Program has strict 150% federal poverty level income cap—much tighter than many other social programs. This is a common reason for rejection.",
+        "DOUBLE DIP RULE: Cannot receive Kentucky Family Caregiver Program benefits if already receiving Kinship Care payments; must evaluate which program offers better support.",
+        "PARENT RESIDENCY RULE: For grandparent/relative caregivers, biological/adoptive parents CANNOT reside in the home. This disqualifies many multi-generational households.",
+        "FRAILTY DEFINITION REQUIRED: For respite care or supplemental services under NFCSP, care recipient must meet specific 'frail' definition: (a) impaired in 2+ ADLs, OR (b) impaired in 3+ IADLs, OR (c) impaired in 1 ADL + 2 IADLs, OR (d) requires substantial supervision due to cognitive/mental impairment posing safety hazard.",
+        "COUNTY RESTRICTIONS: Eligibility depends on which county you live in and which AAA serves that region. Not all services available everywhere.",
+        "RELATIONSHIP REQUIREMENT: For KFCP, caregiver must be related by blood, marriage, or adoption—close friends do not qualify.",
+        "LIMITED SUPPLEMENTAL SERVICES: NFCSP offers 'limited' supplemental services; specific limits not detailed in search results.",
+        "NO SPECIFIC DOLLAR AMOUNTS: Search results do not specify respite care hours per week, dollar amounts for services, or how benefits scale. Contact local AAA for specific benefit amounts.",
+        "PROCESSING TIME UNKNOWN: No information provided on how long applications take or if there are waitlists."
+      ],
+      "benefitType": "service + in_kind + advocacy",
+      "benefitVariesBy": "Program type (NFCSP vs KFCP); respite care availability may vary by region",
+      "officialSource": "https://chfs.ky.gov/agencies/dail/Pages/caregiversupport.aspx (Cabinet for Health and Family Services, Department for Aging and Independent Living)"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Regionally administered by multiple grantees with county-specific coverage, varying contacts/hours, and slot limits managed via monthly enrollments and inter-grantee swaps; income fixed at 125% poverty scaled by household size",
+      "gotchas": [
+        "Not statewide; must contact specific regional provider for your county—coverage gaps possible",
+        "Unemployed status required; not for current workers",
+        "Priority tiers limit access; non-priority may face longer waits or denial",
+        "Temporary training program aimed at unsubsidized jobs, not permanent SCSEP employment",
+        "Income test strictly at 125% poverty (updates yearly; verify current levels)",
+        "Limited hours (15-20/week) at minimum wage only—no full benefits like health insurance specified"
+      ],
+      "benefitType": "employment",
+      "benefitVariesBy": "region",
+      "officialSource": "https://chfs.ky.gov/agencies/dail/Pages/scsep.aspx"
+    },
+    {
+      "name": "Kentucky Legal Aid for Seniors",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Delivered via 4 regional nonprofit legal aid orgs with county restrictions, not centralized state program; income 125-200% FPL varies by org; prioritizes vulnerable subgroups under OAA; tied to elder law like Medicaid LTC",
+      "gotchas": [
+        "Not fully statewide; must contact specific regional office for your county[5]",
+        "Prioritizes greatest need (e.g., low-income minorities, rural, dementia caregivers); may not serve all seniors[2]",
+        "For Medicaid-related, asset transfers can trigger ineligibility periods—contact legal aid for waivers[1]",
+        "OAA services target 60+ on Title III; general legal aid may have broader but county-limited reach[2][4]",
+        "No fixed processing times or asset limits detailed for legal aid itself[1][2]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "region",
+      "officialSource": "https://kycourts.gov/Legal-Help/Pages/Civil-Legal-Aid-Programs.aspx[5]"
+    },
+    {
+      "name": "Kentucky Long-Term Care Ombudsman Program",
+      "isNew": false,
+      "existingId": "kentucky-long-term-care-ombudsman-program",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$10,000 – $30,000/year",
+          "found": "Identifying, investigating, and resolving complaints; providing information on long-term care services; representing residents before agencies; seeking administrative, legal, or other remedies; regular friendly visits; technical support for resident and family councils; monitoring facilities and government actions; educating facilities, providers, and the public. No charge for services; funded by federal, state, and local sources.",
+          "source": "https://chfs.ky.gov/agencies/dail/Pages/ltcomb.aspx"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://chfs.ky.gov/agencies/dail/Pages/ltcomb.aspx"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits; no financial tests apply.",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Coordinated statewide through Office of the State Long Term Care Ombudsman, with 15 district programs (affiliated with Area Agencies on Aging and Independent Living) handling local services; different district offices and volunteer ombudsmen by region (e.g., NKADD for Boone, Campbell, etc.; Big Sandy for Floyd, Johnson, etc.). Contact varies by county.",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "No documents needed to initiate; provide details of complaint or concern. Access to resident records may be requested during investigation with resident authorization."
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "no income test; advocacy-only for long-term care facility residents; delivered via 15 regional districts with county-specific contacts; resident-centered with strict confidentiality and authorization requirements.",
+      "gotchas": [
+        "Not a direct care or financial aid program—purely advocacy and complaint resolution; requires resident/family authorization to act.",
+        "Services only for those in (or applying to) specific long-term care facilities (nursing homes, personal care homes, family care homes)—not home-based or community care.",
+        "Confidentiality protected, but ombudsmen only intervene with permission; find local contact by county to avoid delays.",
+        "Overseen by state office but delivered locally via districts—don't call state for local issues."
+      ],
+      "benefitType": "advocacy",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://chfs.ky.gov/agencies/dail/Pages/ltcomb.aspx"
+    },
+    {
+      "name": "Home and Community Based (HCB) Waiver",
+      "isNew": false,
+      "existingId": "home-and-community-based-hcb-waiver",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$10,000 – $30,000/year",
+          "found": "Adult day health, case management, specialized respite, financial management services, attendant care, environmental and minor home adaptations, goods and services, home delivered meals, non-specialized respite, homemaker services, personal care services, respite care, minor home adaptations, adult day health care, personal emergency response systems (PERS)[2][3][4][5].",
+          "source": "https://chfs.ky.gov/agencies/dms/dca/pages/hcb-waiver.aspx"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://chfs.ky.gov/agencies/dms/dca/pages/hcb-waiver.aspx"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset testing or restrictions specified for the program[1].",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered statewide by DMS and DAIL; local ADRCs or Community Mental Health Centers handle applications, potential regional wait time differences not detailed[3][7].",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Currently a waiting list for HCB services; priority by application receipt date[3].",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Documents listed in Medicaid Waiver Services Fact Sheet (e.g., for Medicaid financial eligibility); prepare proof for Medicaid and level of care assessment[3]."
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "No income/asset testing for waiver; must meet Medicaid financial eligibility first with special HCB rules; statewide with local application points and waitlist by receipt date.",
+      "gotchas": [
+        "Must first obtain Medicaid financial eligibility before HCB application; special financial rules apply but no income/asset test for waiver itself[1][3].",
+        "Waiting list exists with priority by application date—apply early[3].",
+        "Requires nursing facility level of care determination via assessment[1][3].",
+        "Not for intellectual/developmental disabilities (other waivers like SCL apply)[2][4].",
+        "Services support community living but vary by participant goals[3]."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://chfs.ky.gov/agencies/dms/dca/pages/hcb-waiver.aspx"
+    },
+    {
+      "name": "Money Follows the Person (Kentucky Transitions)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Requires prior institutionalization (60 days); 1-year enhanced funding then shifts to standard HCBS waivers (ABI/HCBW); referral-based via local agencies; no age minimum, tied to Medicaid LTC eligibility.",
+      "gotchas": [
+        "Limited to 365 days of enhanced MFP funding; after that, continues on standard Medicaid waivers (e.g., ABI, HCBW) without extras[2][3].",
+        "Must already be Medicaid-enrolled and in institution 60+ days; not for preventing institutionalization[1][9].",
+        "Services routed through existing waivers post-transition, so waiver slots/availability may limit options[3].",
+        "Program is 'Kentucky Transitions' specifically, not generic MFP[3][7][9].",
+        "Income/asset limits are for underlying Medicaid, not MFP itself—many miss need for prior Medicaid eligibility[2]."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://chfs.ky.gov/agencies/dms/dca/Pages/kytransitions.aspx"
+    },
+    {
+      "name": "State-Funded Senior Meals Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Administered via 12+ Area Agencies on Aging with local variation in sites/waitlists; no centralized income table in sources (FPL-based for CSFP); priority tiers for home-delivered; statewide but provider-specific.",
+      "gotchas": [
+        "Not all areas offer all services; check for waitlists.",
+        "CSFP has income limit (130% FPL) unlike main Nutrition Program which has none listed.",
+        "Home-delivered restricted to homebound with no meal prep help; spouses eligible but priority to frail/isolated.",
+        "CSFP supplements, not replaces, all food needs—can combine with SNAP.",
+        "Separate from Medicaid/Medicare meals or SNAP[1][2][5]."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://chfs.ky.gov/agencies/dail/Pages/nutrition.aspx"
     }
   ]
 }

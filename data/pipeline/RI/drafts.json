@@ -1,78 +1,2804 @@
 {
   "state": "RI",
   "stateName": "Rhode Island",
-  "draftedAt": "2026-04-09T09:41:17.656Z",
+  "draftedAt": "2026-04-09T16:21:47.230Z",
   "total": 17,
-  "successful": 0,
+  "successful": 16,
   "programs": [
     {
-      "name": "Rhode Island Medicaid",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "id": "rhode-island-medicaid-ltss-elderly",
+      "name": "Rhode Island Medicaid (Long-Term Services and Supports for Elderly)",
+      "shortName": "RI Medicaid LTSS",
+      "tagline": "Medicaid can cover nursing home care, assisted living, and home care for your parent if they need daily help and meet strict financial limits.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Neighborhood Health Plan of Rhode Island (NHPRI) for dual eligible INTEGRITY plan",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs daily help with bathing, dressing, or medication management, Rhode Island Medicaid can cover nursing home care, assisted living, shared living arrangements, and in-home supports. This program requires strict financial limits and a clinical assessment proving your parent needs nursing home-level care.\n\nYour parent must have no more than $4,000 in countable assets ($8,000 for married couples) and income below $2,982/month. The program covers comprehensive long-term care services, but if your parent enters a nursing home, they keep only $75/month for personal needs — the state receives the rest of their income to pay for care.\n\nIf your parent has both Medicare and Medicaid (dual eligible), their care gets coordinated through Neighborhood INTEGRITY plan, which manages both medical care and long-term services under one program.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+",
+          "Income below $2,982/month",
+          "Assets under $4,000",
+          "Needs nursing home-level care",
+          "Rhode Island resident"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2982
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 5964
+          }
+        ],
+        "assetLimits": {
+          "individual": 4000,
+          "couple": 8000,
+          "countedAssets": [
+            "Cash",
+            "Bank accounts",
+            "Stocks and bonds",
+            "Second vehicles",
+            "Non-exempt property"
+          ],
+          "exemptAssets": [
+            "Primary home (up to $730,000 equity)",
+            "One vehicle",
+            "Personal belongings",
+            "Burial plots",
+            "Life insurance up to $1,500 face value",
+            "Irrevocable burial trusts"
+          ],
+          "homeEquityCap": 730000
+        },
+        "functionalRequirement": "Must need nursing home-level care (daily help with bathing, dressing, eating, toileting, mobility, plus help with shopping, cooking, cleaning for 30+ consecutive days)",
+        "otherRequirements": [
+          "Rhode Island resident",
+          "U.S. citizen or qualified immigrant"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online through HealthSourceRI.com — processing time not specified by state.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Gather financial documents",
+            "description": "Collect 3 months of bank statements, income records (Social Security, pensions, IRA distributions), and asset documentation."
+          },
+          {
+            "step": 2,
+            "title": "Apply through HealthSourceRI",
+            "description": "Complete application at HealthSourceRI.com or HealthyRhode.ri.gov. You can also call for phone assistance or request paper application."
+          },
+          {
+            "step": 3,
+            "title": "Schedule functional assessment",
+            "description": "State will arrange clinical assessment to determine if your parent meets nursing home level of care requirement."
+          },
+          {
+            "step": 4,
+            "title": "Submit medical records",
+            "description": "Provide physician statements and medical records documenting your parent's need for daily assistance with activities of daily living."
+          }
+        ],
+        "processingTime": "Processing time not specified by state",
+        "waitlist": null,
+        "tip": "If your parent's income is over $2,982/month, they may still qualify for LTSS with a co-share payment toward care costs.",
+        "urls": [
+          {
+            "label": "Apply Online",
+            "url": "https://healthsourceri.com"
+          },
+          {
+            "label": "Alternative Application Site",
+            "url": "https://healthyrhode.ri.gov"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Cash and checking/savings accounts",
+            "Stocks, bonds, and investment accounts",
+            "Second vehicles (first car is exempt)",
+            "Non-exempt real estate or property",
+            "Life insurance with face value over $1,500"
+          ],
+          "excluded": [
+            "Primary home (up to $730,000 equity if spouse/child lives there or intent to return)",
+            "One vehicle of any value",
+            "Personal belongings and household items",
+            "Burial plots and irrevocable burial trusts",
+            "Life insurance with face value $1,500 or less"
+          ]
+        },
+        {
+          "type": "tier-comparison",
+          "heading": "Program Tiers",
+          "tiers": [
+            {
+              "name": "Basic EAD Medicaid",
+              "description": "Standard Medicaid for seniors 65+",
+              "incomeLimit": "$2,982/month",
+              "coverage": "Physician visits, prescriptions, emergency room, hospital stays. No long-term care services."
+            },
+            {
+              "name": "Medicaid LTSS",
+              "description": "Long-term services and supports",
+              "incomeLimit": "$2,982/month (higher income allowed with co-share)",
+              "coverage": "Nursing home care, assisted living, shared living, in-home supports, adult day health, respite care, plus all basic Medicaid benefits."
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Birth certificate or passport",
+                "Social Security card",
+                "Rhode Island ID or driver's license"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "3 months of bank statements",
+                "Social Security award letter",
+                "Pension statements",
+                "IRA or retirement account statements",
+                "Property deeds and vehicle titles",
+                "Life insurance policies"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Physician statement documenting daily care needs",
+                "Medical records showing functional limitations",
+                "Current medication list",
+                "Records of hospitalizations or nursing home stays"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "If your parent enters a nursing home, they keep only $75/month for personal needs. The state receives all other income to pay for care costs."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If your parent sells their home, the proceeds become countable assets and may disqualify them from Medicaid. Plan carefully before selling exempt property."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house if she qualifies for Medicaid?",
+          "answer": "Yes, if your mom lives in the home, intends to return, or if a spouse, child under 21, or disabled child lives there. The home equity limit is $730,000. But if she sells the house, the proceeds become countable assets and could disqualify her."
+        },
+        {
+          "question": "What if Dad's income is $3,200/month — just over the $2,982 limit?",
+          "answer": "He may still qualify for long-term services with a co-share payment. This means he'd pay part of his income toward care costs, and Medicaid covers the rest. Contact HealthSourceRI to calculate his co-share amount."
+        },
+        {
+          "question": "How much money will Mom have left each month in a nursing home?",
+          "answer": "Only $75/month for personal needs like clothing, haircuts, or small purchases. The state receives all other income to pay the nursing home. If she has Medicare premiums, those are also protected."
+        },
+        {
+          "question": "Can we transfer Dad's assets to avoid the limits?",
+          "answer": "Yes, to certain people without penalty: your spouse, disabled child, sibling who lived in the home for a year, or adult child who provided care for 2+ years allowing Dad to avoid nursing home placement. Other transfers may cause penalties."
+        },
+        {
+          "question": "What's the difference between basic Medicaid and LTSS?",
+          "answer": "Basic EAD Medicaid covers doctor visits, prescriptions, and hospital care for seniors 65+. LTSS (Long-Term Services and Supports) covers nursing home care, assisted living, and home care, but requires proving your parent needs nursing home-level care through a clinical assessment."
+        },
+        {
+          "question": "Does Dad need to be in a nursing home to get these services?",
+          "answer": "No. Medicaid LTSS covers care in multiple settings: nursing homes, assisted living facilities, shared living arrangements (adult foster care), in-home supports, adult day programs, and respite care. The goal is often to help people stay home longer."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://dhs.ri.gov/programs-and-services/long-term-services-and-supports/eligibility-how-apply",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
-      "name": "Home and Community-Based Services (HCBS) Waiver",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "name": "Rhode Island Community Living and Attendant Services Waiver (CLASS)",
+      "_error": "Claude 529: {\"type\":\"error\",\"error\":{\"type\":\"overloaded_error\",\"message\":\"Overloaded\"},\"request_id\":\"req_011CZtVa3CPCovoZvGCGtRuZ\"}"
     },
     {
-      "name": "PACE-RI (Program of All-Inclusive Care for the Elderly)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "id": "rhode-island-pace-senior-care",
+      "name": "PACE (Program of All-Inclusive Care for the Elderly)",
+      "shortName": "PACE",
+      "tagline": "All your parent's medical care coordinated by one team if they need nursing home level care but want to stay home.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Providence",
+            "type": "service-area"
+          },
+          {
+            "name": "Woonsocket",
+            "type": "service-area"
+          },
+          {
+            "name": "Westerly",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs nursing home level care but wants to stay home, PACE provides all their medical care through one coordinated team. Because PACE covers everything — doctors, specialists, prescriptions, adult day care, transportation, and home services — your parent won't need to manage multiple providers or insurance claims.\n\nYour parent must be 55+ and certified as needing nursing home level care (extensive daily help with bathing, dressing, medication management). If they qualify for Medicaid, PACE is free. If not, private pay costs approximately $4,000–$5,000 per month.\n\nPACE operates from three centers in Rhode Island: Providence, Woonsocket, and Westerly. Your parent must use only PACE doctors and providers — they cannot see outside specialists.",
+      "savingsRange": "",
+      "savingsSource": "Free service for Medicaid-eligible participants",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Need nursing home level care",
+          "Live in PACE service area",
+          "Use only PACE providers"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 2000,
+          "couple": null,
+          "countedAssets": [
+            "Bank accounts",
+            "Investments",
+            "Second vehicles"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "One vehicle"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "Must need nursing home level care (certified by state assessment — extensive daily assistance with bathing, dressing, eating, medication management, or mobility)",
+        "otherRequirements": [
+          "Live in Providence, Woonsocket, or Westerly service areas",
+          "Cannot have Medicare Advantage or other managed care plans",
+          "Must agree to use only PACE network providers"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call 401-434-1400 to start enrollment and clinical assessment.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call PACE RI",
+            "description": "Call 401-434-1400 or 401-654-4176 to discuss your parent's needs and schedule assessment."
+          },
+          {
+            "step": 2,
+            "title": "Clinical assessment",
+            "description": "PACE team evaluates whether your parent meets nursing home level of care requirements."
+          },
+          {
+            "step": 3,
+            "title": "Financial review",
+            "description": "Determine Medicaid eligibility or private pay arrangement."
+          },
+          {
+            "step": 4,
+            "title": "Care plan",
+            "description": "If approved, interdisciplinary team creates comprehensive care plan."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Have your parent's medical records ready — the clinical assessment determines eligibility.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts for Medicaid Eligibility",
+          "included": [
+            "Bank accounts and savings",
+            "Investments and stocks",
+            "Second vehicles",
+            "Property other than primary home"
+          ],
+          "excluded": [
+            "Primary home (any value)",
+            "One vehicle",
+            "Personal belongings",
+            "Burial plots and funeral funds"
+          ]
+        },
+        {
+          "type": "county-directory",
+          "heading": "PACE Service Centers",
+          "offices": [
+            {
+              "name": "Providence",
+              "type": "service-area",
+              "phone": "401-434-1400",
+              "address": "Providence service area"
+            },
+            {
+              "name": "Woonsocket",
+              "type": "service-area",
+              "phone": "401-434-1400",
+              "address": "Woonsocket service area"
+            },
+            {
+              "name": "Westerly",
+              "type": "service-area",
+              "phone": "401-434-1400",
+              "address": "Westerly service area"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Medical",
+              "items": [
+                "Recent medical records showing care needs",
+                "Current medication list",
+                "Healthcare provider contact information"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Medicare card",
+                "Medicaid card (if applicable)",
+                "Proof of income and assets for Medicaid determination"
+              ]
+            },
+            {
+              "name": "Personal",
+              "items": [
+                "Photo ID",
+                "Proof of Rhode Island residency in service area"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Your parent cannot see doctors outside the PACE network. If they have specialists they want to keep, PACE may not be right for them."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Private pay costs $4,000–$5,000 per month if your parent doesn't qualify for Medicaid, but this covers all medical care, prescriptions, and services with no additional costs."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep seeing her current doctor if she joins PACE?",
+          "answer": "No. PACE requires your parent to use only PACE network doctors and specialists. They cannot see outside providers except in emergencies."
+        },
+        {
+          "question": "What if Mom's income is too high for Medicaid but she can't afford $5,000/month?",
+          "answer": "She may still qualify for Medicaid if her medical expenses are high enough to \"spend down\" her income to qualifying levels. The PACE team can help determine this during enrollment."
+        },
+        {
+          "question": "Does PACE cover prescription drugs?",
+          "answer": "Yes, all prescription drugs are covered with no co-pays or deductibles. The PACE pharmacy team manages all medications as part of the comprehensive care."
+        },
+        {
+          "question": "What happens if Mom needs to go to the hospital?",
+          "answer": "PACE coordinates and covers all hospital care. The PACE team manages her care in the hospital and plans her return home or to appropriate care settings."
+        },
+        {
+          "question": "Can Mom live anywhere in Rhode Island and use PACE?",
+          "answer": "No. PACE only serves Providence, Woonsocket, and Westerly areas. Block Island and Prudence Island are not covered."
+        },
+        {
+          "question": "What if Mom's care needs change after she's enrolled?",
+          "answer": "The PACE team adjusts her care plan as needs change. If she no longer needs nursing home level care, she may need to transition to other programs."
+        }
+      ],
+      "phone": "401-434-1400",
+      "sourceUrl": "https://eohhs.ri.gov/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
-      "name": "Medicare Premium Payment Program (MPP) / QMB",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "id": "rhode-island-medicare-savings-programs",
+      "name": "Medicare Savings Programs (MSP)",
+      "shortName": "Medicare Savings",
+      "tagline": "If your parent's Medicare premiums and co-pays are straining their budget, Rhode Island may pay those costs directly.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Statewide via EOHHS; local offices for in-person.",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent struggles to afford Medicare premiums, co-pays, or deductibles, Rhode Island's Medicare Savings Programs can pay these costs directly to Medicare and healthcare providers. The state has two main programs: Qualified Medicare Beneficiary (QMB) covers all Medicare costs including premiums, deductibles, and co-pays, while Qualified Individual (QI) covers only the monthly Part B premium (about $185/month in 2025).\n\nYour parent must have Medicare and meet income limits: $1,683/month for QMB or $2,255/month for QI (single person). Because QI has limited funding, it operates first-come, first-served — so timing matters. Parents who qualify automatically get Extra Help with prescription drug costs too.",
+      "savingsRange": "$185 – $3,000/year in 2026",
+      "savingsSource": "Part B premiums plus co-pays and deductibles covered",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+ or on Medicare",
+          "Income below $2,255/month (single)",
+          "Assets under $9,950 (single)",
+          "U.S. citizen or qualified immigrant"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1683
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2275
+          }
+        ],
+        "assetLimits": {
+          "individual": 9950,
+          "couple": 14910,
+          "countedAssets": [
+            "Bank accounts",
+            "Stocks and bonds",
+            "Life insurance cash value"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "One vehicle",
+            "Personal belongings"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must have Medicare Parts A and/or B",
+          "Must be U.S. citizen or qualified immigrant (refugees, asylees, Lawful Permanent Residents)"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online at eohhs.ri.gov or call 401-462-0311 — processing time not specified by the state.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Gather Medicare and financial documents",
+            "description": "You'll need proof of Medicare enrollment, recent bank statements, Social Security award letters, and income documentation."
+          },
+          {
+            "step": 2,
+            "title": "Submit application through Rhode Island EOHHS",
+            "description": "Apply online at eohhs.ri.gov in the Medicare Premium Payment Program section, or call 401-462-0311 for phone application."
+          },
+          {
+            "step": 3,
+            "title": "For QI applicants: Apply early in the year",
+            "description": "Because QI has limited federal funding and operates first-come, first-served, submit applications as early as possible each year."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": "QI has limited funds and operates first-come, first-served",
+        "tip": "If applying for QI, submit as early in the year as possible since funding runs out.",
+        "urls": [
+          {
+            "label": "Rhode Island Medicare Premium Payment Program",
+            "url": "https://eohhs.ri.gov/Consumer/ProgramsServices/MedicarePremiumPaymentProgram.aspx"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "tier-comparison",
+          "heading": "Program Tiers",
+          "tiers": [
+            {
+              "name": "Qualified Medicare Beneficiary (QMB)",
+              "description": "Full Medicare cost coverage",
+              "incomeLimit": "$1,683/month (single), $2,275/month (couple)",
+              "coverage": "Pays Part A premiums (if applicable), Part B premiums, all co-payments, coinsurance, and deductibles"
+            },
+            {
+              "name": "Qualified Individual (QI)",
+              "description": "Part B premium only",
+              "incomeLimit": "$2,255/month (single), $3,050/month (couple)",
+              "coverage": "Pays Medicare Part B premiums only (~$185/month). Limited funding, first-come first-served."
+            }
+          ]
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and savings",
+            "Stocks, bonds, and investments",
+            "Life insurance cash value",
+            "Additional vehicles beyond one"
+          ],
+          "excluded": [
+            "Primary home (no equity limit specified)",
+            "One vehicle",
+            "Personal belongings and household items",
+            "Burial funds"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Immigration",
+              "items": [
+                "Driver's license or state ID",
+                "Proof of U.S. citizenship or qualified immigrant status"
+              ]
+            },
+            {
+              "name": "Medicare",
+              "items": [
+                "Medicare card",
+                "Proof of Medicare enrollment"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Social Security award letters",
+                "Pay stubs or pension statements",
+                "Bank statements for all accounts",
+                "Investment account statements"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "QI has limited federal funding each year. Once the money runs out, no new QI applications can be approved until the next year. Apply as early as possible."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Parents who qualify for either program automatically get Extra Help with prescription drug costs — you don't need to apply separately."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house if she qualifies?",
+          "answer": "Yes. The primary home doesn't count toward the asset limit, regardless of value. Rhode Island follows federal rules that exempt the home where your parent lives."
+        },
+        {
+          "question": "What if her income is just over the QMB limit but under the QI limit?",
+          "answer": "She can apply for QI, which covers the Part B premium (about $185/month). However, QI has limited funding and operates first-come, first-served, so apply early in the year."
+        },
+        {
+          "question": "Will providers still bill Mom for co-pays if she gets QMB?",
+          "answer": "No. With QMB, providers must bill the state directly and cannot charge your parent for Medicare co-pays, coinsurance, or deductibles. If they try to bill her, contact Rhode Island EOHHS."
+        },
+        {
+          "question": "Does she need to reapply every year?",
+          "answer": "The research doesn't specify renewal requirements. Contact 401-462-0311 to confirm whether annual renewal is required or if the state will send renewal notices."
+        },
+        {
+          "question": "Can she get this if she's under 65 but on Medicare due to disability?",
+          "answer": "Yes, if she's working and disabled. The Qualified Disabled Working Individual (QDWI) program serves people under 65 who work despite a disability and have Medicare. Income limits for QDWI weren't specified — call for details."
+        },
+        {
+          "question": "What happens if QI funding runs out after she's approved?",
+          "answer": "If she's already approved for QI, her benefits should continue for that year. The funding limitation affects new applications, not existing beneficiaries. Confirm this with EOHHS when applying."
+        }
+      ],
+      "phone": "401-462-0311",
+      "sourceUrl": "https://eohhs.ri.gov/Consumer/ProgramsServices/MedicarePremiumPaymentProgram.aspx",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
+      "id": "rhode-island-snap-food-benefits",
       "name": "Supplemental Nutrition Assistance Program (SNAP)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "shortName": "SNAP",
+      "tagline": "Monthly grocery benefits of $100–291 for parents 60+ on fixed incomes",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local DHS/Department of Social Services offices across RI",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and struggling with grocery costs, SNAP provides monthly benefits loaded onto an EBT card for food purchases. Benefits range from around $100–291 per month for single seniors, with higher amounts for couples or households with multiple people.\n\nRhode Island has expanded eligibility rules that make it easier for seniors to qualify. If your parent is 60+, they can qualify with income up to $2,608 per month (200% of federal poverty level) and there are no asset limits — meaning they can keep their home, retirement savings, and Social Security without affecting eligibility. The program also offers higher deductions for medical expenses over $35/month and shelter costs, which often increases benefit amounts for seniors.\n\nFor seniors with no earned income, Rhode Island offers ESAP (Elderly Simplified Application Process) which provides 36-month certification periods with simplified reporting requirements, reducing paperwork and renewal frequency.",
+      "savingsRange": "$1,200 – $3,492/year in 2026",
+      "savingsSource": "Monthly benefits of ~$100-291 for single seniors, multiplied by 12 months",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Income below $2,608/month",
+          "Rhode Island resident",
+          "U.S. citizen or qualified non-citizen"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2608
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 3540
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Rhode Island resident",
+          "U.S. citizen or qualified non-citizen",
+          "Household includes all who buy/prepare food together"
+        ],
+        "povertyLevelReference": "200% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online through the Rhode Island DHS portal or use the simplified paper form for seniors — processing takes up to 30 days.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Choose your application method",
+            "description": "If your parent is 60+ with no earned income, use the Simple Application for SNAP for Elderly/Disabled Households (ESAP) for easier processing and 36-month certification. Otherwise, apply through the standard online portal."
+          },
+          {
+            "step": 2,
+            "title": "Gather required documents",
+            "description": "Collect ID, proof of Rhode Island residency, Social Security or pension statements, and documentation of monthly expenses including rent, utilities, and medical costs over $35/month."
+          },
+          {
+            "step": 3,
+            "title": "Submit application",
+            "description": "Complete the online application at dhs.ri.gov or mail/deliver the ESAP paper form to your local DHS office. Include all supporting documents."
+          },
+          {
+            "step": 4,
+            "title": "Attend interview if required",
+            "description": "DHS may schedule a phone or in-person interview to verify information and finalize the application."
+          }
+        ],
+        "processingTime": "Standard SNAP: 30 days; expedited for urgent cases. ESAP extends certification to 36 months with simplified recertification.",
+        "waitlist": null,
+        "tip": "Seniors often qualify under the expanded 200% poverty level rules even if they were previously denied — it's worth reapplying if income has changed.",
+        "urls": [
+          {
+            "label": "Apply Online",
+            "url": "https://dhs.ri.gov/programs-and-services/supplemental-nutrition-assistance-program-snap"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits by Household Size (60+)",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 2608,
+              "yearlyLimit": 31296
+            },
+            {
+              "householdSize": 2,
+              "monthlyLimit": 3540,
+              "yearlyLimit": 42480
+            }
+          ],
+          "footnote": "2025 limits at 200% Federal Poverty Level for households with members 60+"
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [],
+          "excluded": [
+            "Primary home (any value)",
+            "Retirement savings (401k, IRA, pensions)",
+            "Social Security benefits",
+            "Most vehicles",
+            "Personal belongings and household items"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Driver's license or state ID",
+                "Proof of Rhode Island residency (utility bill, lease)"
+              ]
+            },
+            {
+              "name": "Income & Expenses",
+              "items": [
+                "Social Security award letter",
+                "Pension or retirement income statements",
+                "Bank statements (last 3 months)",
+                "Rent receipt or mortgage statement",
+                "Utility bills",
+                "Medical expense receipts (if over $35/month)"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Many seniors don't realize Rhode Island has no asset limits for people 60+. Your parent can own their home, have retirement savings, and receive Social Security while still qualifying for SNAP if their monthly income is under $2,608."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house and still get SNAP?",
+          "answer": "Yes. Rhode Island has no asset limits for households with someone 60 or older. Your parent can own their home (any value), have retirement savings, and receive Social Security without affecting SNAP eligibility."
+        },
+        {
+          "question": "What if my parent's Social Security puts them just over the regular income limit?",
+          "answer": "Seniors 60+ qualify under expanded rules with income up to $2,608/month (200% of poverty level), much higher than standard SNAP limits. Plus, medical expenses over $35/month and high shelter costs are deducted, which can bring them under the limit."
+        },
+        {
+          "question": "How much will my parent actually receive each month?",
+          "answer": "Benefits depend on income and deductions. Maximum is around $291/month for one person, but most receive less. Seniors often get higher amounts because they qualify for larger medical and shelter expense deductions."
+        },
+        {
+          "question": "Does my parent have to reapply every few months?",
+          "answer": "If your parent qualifies for ESAP (age 60+ with no earned income), they get 36-month certification with simplified reporting. Standard SNAP requires more frequent renewals, but seniors still get longer certification periods than younger applicants."
+        },
+        {
+          "question": "What if my parent was denied SNAP before?",
+          "answer": "It's worth reapplying. Rhode Island's expanded eligibility rules for seniors (200% poverty level, no asset limits) mean many who were previously denied now qualify, especially if their income or circumstances have changed."
+        },
+        {
+          "question": "Can my parent use SNAP benefits at farmers markets?",
+          "answer": "Yes, most farmers markets in Rhode Island accept EBT cards. Some also offer matching programs that double the value of SNAP benefits when used for fresh produce."
+        }
+      ],
+      "phone": "401-462-5300",
+      "sourceUrl": "https://dhs.ri.gov/programs-and-services/supplemental-nutrition-assistance-program-snap",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
+      "id": "rhode-island-liheap-heating-assistance",
       "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "shortName": "LIHEAP Heating Aid",
+      "tagline": "Help paying winter heating bills for parents earning under $42,252/year — grant goes directly to utility company.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local CAP agencies (e.g., CAPPRI, Westbay CAP, EBCAP); find via DHS or local search",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent struggles to pay heating bills during Rhode Island's cold months, LIHEAP provides a one-time grant paid directly to their utility or fuel company. The program helps with heating costs from October through May — no cooling assistance available.\n\nYour parent doesn't need to be behind on bills or own their home to qualify. Because LIHEAP has no asset limits, parents with savings can still receive help if their monthly income falls below limits (up to $42,252/year for a single person in 2026). The grant amount varies based on household size, income level, and fuel type.\n\nFunding is limited each season. Because agencies may stop accepting applications when money runs out, apply as soon as the program opens October 1st for the best chance of approval.",
+      "savingsRange": "",
+      "savingsSource": "Grant amount varies by income, household size, and fuel type",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Gross income below 60% state median",
+          "No asset limits",
+          "All household members on same utility bill",
+          "Rhode Island residents"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 3521
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 4604
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 5687
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Household includes everyone at the address covered by the same utility bill",
+          "No requirement to be on public assistance or have unpaid bills"
+        ],
+        "povertyLevelReference": "60% of Rhode Island State Median Income"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online through your local Community Action Program (CAP) agency starting October 1st — processing takes 3-5 business days.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local CAP agency",
+            "description": "Rhode Island has multiple CAP agencies serving different areas. Find yours through the DHS website or call 401-273-2000 for CAPP (covers Providence area)."
+          },
+          {
+            "step": 2,
+            "title": "Gather required documents",
+            "description": "You'll need Social Security cards and photo IDs for all household members, recent utility bills, and 3 months of income proof (pay stubs, Social Security statements)."
+          },
+          {
+            "step": 3,
+            "title": "Submit application",
+            "description": "New applicants should apply in-person when possible. If applying online, verify your email within 30 minutes or the application won't process."
+          },
+          {
+            "step": 4,
+            "title": "Wait for review",
+            "description": "CAP staff will contact you within 3-5 business days if they need additional information. The grant pays directly to your utility company."
+          }
+        ],
+        "processingTime": "3-5 business days for initial review after document submission",
+        "waitlist": "Funding limited — agencies may stop accepting applications when funds are exhausted. Priority given to shutoff notices and prior recipients.",
+        "tip": "Apply in early October when the program opens for the best chance of funding availability.",
+        "urls": [
+          {
+            "label": "CAPPRI Online Application",
+            "url": "https://cappri.org"
+          },
+          {
+            "label": "West Bay CAP Application",
+            "url": "https://westbaycap.org"
+          },
+          {
+            "label": "EBCAP Online Application",
+            "url": "https://ebcap.org"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Monthly Income Limits by Household Size",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 3521,
+              "annualLimit": 42252
+            },
+            {
+              "householdSize": 2,
+              "monthlyLimit": 4604,
+              "annualLimit": 55252
+            },
+            {
+              "householdSize": 3,
+              "monthlyLimit": 5687,
+              "annualLimit": 68253
+            },
+            {
+              "householdSize": 4,
+              "monthlyLimit": 6771,
+              "annualLimit": 81253
+            },
+            {
+              "householdSize": 5,
+              "monthlyLimit": 7854,
+              "annualLimit": 94254
+            }
+          ],
+          "footnote": "2026 limits (effective October 1, 2025). Based on 60% of Rhode Island State Median Income."
+        },
+        {
+          "type": "county-directory",
+          "heading": "Local Community Action Program (CAP) Agencies",
+          "offices": [
+            {
+              "name": "Community Action Program of Providence (CAPP)",
+              "type": "service-area",
+              "phone": "401-273-2000",
+              "address": "Providence area"
+            },
+            {
+              "name": "East Bay Community Action Program (EBCAP)",
+              "type": "service-area",
+              "phone": "401-437-1000 ext. 6606",
+              "address": "East Bay area"
+            },
+            {
+              "name": "Westbay Community Action Program",
+              "type": "service-area",
+              "phone": "Contact via westbaycap.org",
+              "address": "West Bay area"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "Required Documents",
+          "categories": [
+            {
+              "name": "Identity (all household members)",
+              "items": [
+                "Social Security cards",
+                "Valid photo ID (government-issued, non-expired) for primary applicant"
+              ]
+            },
+            {
+              "name": "Utility Information",
+              "items": [
+                "Recent gas and electric bills",
+                "Recent oil or propane delivery tickets"
+              ]
+            },
+            {
+              "name": "Income Verification",
+              "items": [
+                "Pay stubs for past 3 months (if employed)",
+                "Social Security benefit statements",
+                "Pension statements",
+                "Any other income documentation"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "LIHEAP runs October through May only. Funding is limited — agencies stop accepting applications when money runs out. Apply by early November for best chance of approval."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Household size includes everyone living at your parent's address who is covered by the same utility bill — this may differ from other programs like SNAP."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent qualify if they have savings or own their home?",
+          "answer": "Yes. LIHEAP has no asset limits, so your parent can have savings, own their home, or have other assets and still qualify if their monthly income is below the limits."
+        },
+        {
+          "question": "What if my parent's heat gets shut off during winter?",
+          "answer": "LIHEAP has a crisis component for heating emergencies like shutoffs or broken heating equipment. Contact your local CAP agency immediately — crisis cases get priority processing."
+        },
+        {
+          "question": "Does my parent need to be behind on their bills to apply?",
+          "answer": "No. Your parent doesn't need unpaid bills, shutoff notices, or any other utility emergency to qualify for regular LIHEAP assistance."
+        },
+        {
+          "question": "How much money will my parent receive?",
+          "answer": "The grant amount isn't fixed — it varies based on household size, income level, fuel type, and delivery requirements. The program doesn't publish standard grant amounts."
+        },
+        {
+          "question": "Can my parent get help with air conditioning costs?",
+          "answer": "No. Rhode Island's LIHEAP only covers heating costs during October through May. There's no cooling assistance available."
+        },
+        {
+          "question": "What if my parent applied last year — do they need to reapply?",
+          "answer": "Yes, you must apply every heating season. However, renewal forms are automatically mailed to previous recipients, making the process easier than first-time applications."
+        }
+      ],
+      "phone": "401-273-2000",
+      "sourceUrl": "https://dhs.ri.gov/programs-and-services/energy-assistance-programs-heating/low-income-home-energy-assistance-program",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
-      "name": "Residential Weatherization Assistance Program",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "id": "rhode-island-weatherization-assistance",
+      "name": "Weatherization Assistance Program",
+      "shortName": "Weatherization",
+      "tagline": "Free home energy upgrades including insulation, heating system repairs, and appliance replacements if your parent qualifies for heating assistance.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local Community Action Program (CAP) agencies statewide",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent already qualifies for heating assistance (LIHEAP), they can get comprehensive home weatherization services at no cost. This includes adding insulation to attics, walls, and floors, tuning or replacing heating systems, installing new energy-efficient appliances, and sealing drafts throughout the home.\n\nBecause the program requires LIHEAP qualification first, your parent's income must be at or below 60% of Rhode Island's median income or they must have low-income electric rates through RI Energy. The program prioritizes households with older adults, people with disabilities, or children.\n\nRenters can qualify, but their landlord must approve the work. Homeowners face no such restriction, though homes recently weatherized or with issues like mold may be deferred until those problems are resolved.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Must first qualify for LIHEAP heating assistance",
+          "Income at or below 60% of state median income",
+          "Priority for households with older adults",
+          "Homeowners automatically eligible",
+          "Renters need landlord approval"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must first apply for and qualify for LIHEAP heating assistance",
+          "Home cannot have been recently weatherized",
+          "Issues like mold may defer services until resolved",
+          "Renters must get landlord approval before work begins"
+        ],
+        "povertyLevelReference": "60% of state median income"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact your local Community Action Program agency year-round — they handle both LIHEAP and weatherization applications.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Apply for LIHEAP first",
+            "description": "Contact your local CAP agency to apply for heating assistance. You cannot get weatherization without LIHEAP approval."
+          },
+          {
+            "step": 2,
+            "title": "Request weatherization services",
+            "description": "Once LIHEAP is approved, ask the same CAP agency about weatherization. They will schedule a home energy audit."
+          },
+          {
+            "step": 3,
+            "title": "Complete home assessment",
+            "description": "A technician visits to assess what weatherization work your parent's home needs and prioritize the most cost-effective improvements."
+          },
+          {
+            "step": 4,
+            "title": "Schedule installation",
+            "description": "The CAP agency coordinates all work, from insulation installation to heating system repairs, at no cost to your parent."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "If your parent has RI Energy's low-income electric rate (A-60), they likely already meet the income requirements for both programs.",
+        "urls": [
+          {
+            "label": "Rhode Island Weatherization Program",
+            "url": "https://dhs.ri.gov/programs-and-services/energy-assistance-programs-heating/weatherization-assistance-program-wap"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "Local Community Action Agencies",
+          "offices": [
+            {
+              "name": "Blackstone Valley CAP (BVCAP)",
+              "type": "service-area",
+              "phone": "(401) 723-4520",
+              "address": "Serves Pawtucket, Central Falls, Cumberland, Lincoln"
+            },
+            {
+              "name": "Tri-County CAP",
+              "type": "service-area",
+              "phone": null,
+              "address": "Serves Johnston, North Providence, Smithfield, Burrillville, Glocester, Charlestown, Exeter, Hopkinton, Narragansett, North Kingstown, Richmond, South Kingstown, West Greenwich, Westerly"
+            },
+            {
+              "name": "CAPP RI",
+              "type": "service-area",
+              "phone": null,
+              "address": "Contact via their website for low-income residents"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring for LIHEAP Application",
+          "categories": [
+            {
+              "name": "Income Documentation",
+              "items": [
+                "Social Security award letters",
+                "Pension statements",
+                "Pay stubs if still working",
+                "Unemployment benefits documentation"
+              ]
+            },
+            {
+              "name": "Household Information",
+              "items": [
+                "List of all household members",
+                "Ages of all household members",
+                "Recent heating/electric bills"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Your parent must qualify for LIHEAP heating assistance first — weatherization is not available as a standalone program. The same local agency handles both applications."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent rents and the landlord won't approve the work?",
+          "answer": "Unfortunately, renters cannot get weatherization services without landlord approval. The landlord must agree because the improvements become part of the property. You might try explaining that the upgrades increase the property's value at no cost to the landlord."
+        },
+        {
+          "question": "Can my parent get weatherization if they were denied LIHEAP?",
+          "answer": "No. LIHEAP qualification is required for weatherization services. If your parent was denied LIHEAP, they cannot access weatherization assistance through this program."
+        },
+        {
+          "question": "What happens if the home assessment finds problems like mold?",
+          "answer": "The weatherization work may be deferred until health and safety issues like mold are resolved. The CAP agency will explain what needs to be fixed first, but your parent would need to address those issues before weatherization can proceed."
+        },
+        {
+          "question": "How much weatherization work will they actually do?",
+          "answer": "The program provides comprehensive services including attic, wall, and floor insulation, heating system tune-ups or replacements, new energy-efficient appliances, draft sealing, proper ventilation, and safety devices like smoke and carbon monoxide detectors. The exact work depends on what the energy audit identifies as most cost-effective."
+        },
+        {
+          "question": "What if my parent's home was weatherized years ago?",
+          "answer": "Homes that were recently weatherized are not eligible, but the timeframe for 'recently' isn't specified in the program materials. Contact your local CAP agency to ask about your parent's specific situation — older weatherization work may not disqualify them."
+        },
+        {
+          "question": "Do we have to pay anything upfront or get reimbursed later?",
+          "answer": "No. All weatherization services are provided at no cost to qualified households. There are no upfront payments, co-pays, or reimbursement processes — everything is covered by the program."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://dhs.ri.gov/programs-and-services/energy-assistance-programs-heating/weatherization-assistance-program-wap",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
-      "name": "RI SHIP (State Health Insurance Assistance Program)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "id": "rhode-island-ship-medicare-counseling",
+      "name": "State Health Insurance Assistance Program (SHIP)",
+      "shortName": "SHIP",
+      "tagline": "Free expert help navigating Medicare options, appeals, and finding programs to lower your parent's healthcare costs.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Office of Healthy Aging, 25 Howard Ave, Building 57, Cranston RI 02920 (central); regional via 2-1-1 (Providence), (401) 349-5760 x2635 (Northern RI)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is overwhelmed by Medicare choices, billing problems, or finding programs to reduce their healthcare costs, Rhode Island's SHIP provides free one-on-one counseling. Because Medicare has dozens of plan options and complex rules, having an expert walk through your parent's specific situation can save hundreds in premium costs and prevent coverage gaps.\n\nSHIP counselors help with all Medicare parts (A, B, C, D), Medigap policies, appeals when claims are denied, and applying for programs like Extra Help that can reduce prescription costs by $1,000+ annually. No income limits apply — any Medicare beneficiary, family member, or caregiver can get help.\n\nBecause SHIP counselors are trained volunteers who don't sell insurance, they provide unbiased advice focused entirely on what works best for your parent's health needs and budget.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Medicare beneficiary, family member, or caregiver",
+          "No income limits",
+          "No asset limits",
+          "Available statewide"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be Medicare beneficiary, family member, or caregiver"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call 1-888-884-8721 for immediate counseling — no forms required.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the helpline",
+            "description": "Dial 1-888-884-8721 to speak with a SHIP counselor immediately, or schedule an appointment."
+          },
+          {
+            "step": 2,
+            "title": "Gather Medicare documents",
+            "description": "Have your parent's Medicare card and current plan details ready. If applying for low-income programs, bring income information."
+          },
+          {
+            "step": 3,
+            "title": "Get personalized help",
+            "description": "Counselor reviews your parent's specific situation and explains options, helps with applications, or assists with appeals."
+          }
+        ],
+        "processingTime": "Immediate assistance via phone or in-person counseling sessions",
+        "waitlist": null,
+        "tip": "Call before Medicare Open Enrollment (October-December) when wait times are shorter.",
+        "urls": [
+          {
+            "label": "Rhode Island SHIP Website",
+            "url": "https://oha.ri.gov/Medicare"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "Contact Options",
+          "offices": [
+            {
+              "name": "Statewide SHIP Helpline",
+              "type": "service-area",
+              "phone": "1-888-884-8721",
+              "address": "TTY: 401-462-0740"
+            },
+            {
+              "name": "Providence Area",
+              "type": "service-area",
+              "phone": "2-1-1 or 462-4444",
+              "address": "POINT services"
+            },
+            {
+              "name": "Northern Rhode Island",
+              "type": "service-area",
+              "phone": "(401) 349-5760 x2635",
+              "address": "Regional access point"
+            },
+            {
+              "name": "Office of Healthy Aging",
+              "type": "service-area",
+              "phone": "1-888-884-8721",
+              "address": "25 Howard Ave, Building 57, Cranston RI 02920"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "SHIP only provides counseling and education — they don't give direct payments or medical services. But they can help your parent apply for programs that do provide financial assistance."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can SHIP help if my parent already has Medicare coverage?",
+          "answer": "Yes. SHIP helps with ongoing Medicare issues like understanding bills, filing appeals when claims are denied, switching plans during Open Enrollment, and finding programs to reduce costs."
+        },
+        {
+          "question": "Will the counselor try to sell my parent insurance?",
+          "answer": "No. SHIP counselors are trained volunteers who don't sell insurance. They provide unbiased advice focused only on what works best for your parent's situation."
+        },
+        {
+          "question": "What if my parent's income is too high for most assistance programs?",
+          "answer": "SHIP counseling has no income limits. Even if your parent doesn't qualify for low-income programs, counselors can help find the most cost-effective Medicare plan options and explain appeal rights."
+        },
+        {
+          "question": "Can I call on behalf of my parent?",
+          "answer": "Yes. Family members and caregivers can get SHIP counseling to better understand Medicare options and help their parents navigate the system."
+        },
+        {
+          "question": "How long does a counseling session take?",
+          "answer": "Sessions vary based on your needs — from quick questions answered in 15 minutes to comprehensive plan reviews that take an hour. There's no time limit."
+        },
+        {
+          "question": "What should I bring to a counseling session?",
+          "answer": "Bring your parent's Medicare card, current health and drug plan details, and income information if you're interested in applying for low-income assistance programs."
+        }
+      ],
+      "phone": "1-888-884-8721",
+      "sourceUrl": "https://oha.ri.gov/Medicare",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
-      "name": "Meals on Wheels",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "id": "rhode-island-meals-on-wheels",
+      "name": "Meals on Wheels of Rhode Island",
+      "shortName": "Meals on Wheels RI",
+      "tagline": "Home-delivered meals Monday through Friday for parents who can't safely leave home alone.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Main office: 70 Bath St., Providence, RI 02908",
+            "type": "service-area"
+          },
+          {
+            "name": "Capital City Café sites: Multiple locations throughout Providence (specific addresses not provided in documentation)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and can't safely leave home on their own, Meals on Wheels of Rhode Island delivers prepared meals Monday through Friday. Each meal meets one-third of daily nutritional requirements and comes from a professional caterer.\n\nThe program offers two options: home delivery for homebound seniors, or community dining at Capital City Café sites throughout Providence for those who can still get out. Because meals are only delivered weekdays, you'll need to plan for weekend nutrition separately.\n\nYour parent must live within the program's delivery zones — not all Rhode Island residents are covered geographically.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Homebound (unable to safely leave home alone)",
+          "Lives within delivery zone",
+          "Not in adult daycare on meal delivery days"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must be homebound — unable to safely leave the home on their own without assistance",
+        "otherRequirements": [
+          "Must reside within program delivery zone",
+          "Cannot participate in adult daycare or dining program on scheduled meal days"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online at rimeals.org or call (401) 351-6700 — processing time not specified.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Check delivery zone",
+            "description": "Confirm your parent's address is within the program's service area by calling (401) 351-6700"
+          },
+          {
+            "step": 2,
+            "title": "Choose program type",
+            "description": "Home-delivered meals for homebound seniors, or Capital City Café for community dining in Providence"
+          },
+          {
+            "step": 3,
+            "title": "Submit application",
+            "description": "Fill out referral form (home delivery) or enrollment form (café dining) at rimeals.org"
+          },
+          {
+            "step": 4,
+            "title": "Provide documentation",
+            "description": "Submit proof of age, residence, and any medical information showing homebound status"
+          }
+        ],
+        "processingTime": "Not specified — contact program directly for timeline",
+        "waitlist": null,
+        "tip": "Call first to verify your parent's address is in the delivery zone before applying — geographic coverage is limited.",
+        "urls": [
+          {
+            "label": "Apply Online",
+            "url": "https://www.rimeals.org"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "Program Office",
+          "offices": [
+            {
+              "name": "Meals on Wheels of Rhode Island",
+              "type": "service-area",
+              "phone": "(401) 351-6700",
+              "address": "70 Bath St., Providence, RI 02908"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residence",
+              "items": [
+                "Proof of age (driver's license, birth certificate)",
+                "Proof of residence within delivery zone"
+              ]
+            },
+            {
+              "name": "Medical Information",
+              "items": [
+                "Documentation showing homebound status (for home delivery)",
+                "Medical information as requested by program"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Meals are only delivered Monday through Friday — you'll need to arrange separate nutrition for weekends and holidays."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If your parent can still leave home with assistance, they won't qualify for home delivery but may be eligible for Capital City Café community dining instead."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent can leave home but needs help getting around?",
+          "answer": "They won't qualify for home-delivered meals, but they may be eligible for the Capital City Café program, which offers community dining at sites throughout Providence."
+        },
+        {
+          "question": "Can my parent get meals if they go to adult daycare?",
+          "answer": "No, they cannot receive meals on days they participate in adult daycare or other dining programs. The programs cannot overlap."
+        },
+        {
+          "question": "What if we don't live in Providence but are elsewhere in Rhode Island?",
+          "answer": "You must live within the program's delivery zones. Not all Rhode Island residents are covered — call (401) 351-6700 to verify your parent's address is served."
+        },
+        {
+          "question": "Will the meals cover all of my parent's nutrition needs?",
+          "answer": "No, each meal meets only one-third of daily dietary requirements. You'll need to arrange breakfast and dinner separately, plus weekend meals."
+        },
+        {
+          "question": "Is there a cost for the meals?",
+          "answer": "The program documentation doesn't specify costs, though some Meals on Wheels programs adjust fees based on financial ability. Contact them directly at (401) 351-6700 for pricing information."
+        },
+        {
+          "question": "How quickly can meals start after applying?",
+          "answer": "Processing time isn't specified in their documentation. Call (401) 351-6700 to ask about current wait times and when service could begin."
+        }
+      ],
+      "phone": "(401) 351-6700",
+      "sourceUrl": "https://www.rimeals.org",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
-      "name": "Alzheimer's Respite Voucher Program",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "id": "rhode-island-caregiver-respite-support",
+      "name": "Caregiver/Respite Support",
+      "shortName": "Respite Support",
+      "tagline": "Get professional help caring for your parent so you can take breaks without worrying about their safety.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Family Caregiver Alliance of Rhode Island (FCARI)",
+            "type": "service-area"
+          },
+          {
+            "name": "Carebreaks at Catholic Social Services",
+            "type": "service-area"
+          },
+          {
+            "name": "Office of Healthy Aging (OHA) partners",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If you're caring for an aging parent or disabled family member without pay, Rhode Island's Caregiver/Respite Support program connects you to trained professionals who can step in while you take breaks. The program provides financial assistance to help pay for respite care, whether you need someone for a few hours or several days.\n\nBecause this program operates regardless of your parent's Medicaid or Medicare status, you don't need to navigate insurance requirements first. The financial assistance is based on your income (or your parent's income if they're over 18), and the program connects you to approved providers across the state who can provide care in your home or community settings.\n\nBeyond respite care, the program includes peer support, mentorship, and advocacy to help you navigate other resources your family needs.",
+      "savingsRange": "",
+      "savingsSource": "Financial assistance for respite care services",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Unpaid caregiver for older adult or person with disability",
+          "Income-based financial assistance",
+          "Care recipient needs help with daily activities",
+          "Available statewide"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Your parent or family member must need assistance with activities of daily living (bathing, dressing, eating, toileting, transferring) or instrumental activities (managing medications, shopping, housework, transportation)",
+        "otherRequirements": [
+          "You must provide unpaid care (no financial compensation)",
+          "Care recipient can be older adult, adult/child with disability, or kinship minor",
+          "Available regardless of care recipient's Medicaid/Medicare status"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call the Family Caregiver Alliance at 401-421-7833 to request an application packet — processing time not specified.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call for application packet",
+            "description": "Contact Family Caregiver Alliance of Rhode Island at 401-421-7833 or visit their website to request the CareBreaks Care Recipient All Ages Application."
+          },
+          {
+            "step": 2,
+            "title": "Gather required documents",
+            "description": "Collect proof of your address, care recipient's age, medical diagnosis description, and income information for the appropriate household."
+          },
+          {
+            "step": 3,
+            "title": "Complete application with caregiver section",
+            "description": "Fill out the full application including the signed caregiver section — incomplete applications cause delays."
+          },
+          {
+            "step": 4,
+            "title": "Submit to provider agency",
+            "description": "Return completed application with all supporting documents to the respite provider agency that sent you the packet."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Income determination varies based on whether your care recipient is over or under 18, so make sure you're providing the right household's financial information.",
+        "urls": [
+          {
+            "label": "Family Caregiver Alliance of RI",
+            "url": "https://www.unitedwayri.org/get-help/fcari/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residence",
+              "items": [
+                "Proof of your address (driver's license, State ID, or utility bill)",
+                "Proof of care recipient's age (birth certificate, driver's license, or State ID)"
+              ]
+            },
+            {
+              "name": "Medical Information",
+              "items": [
+                "Medical diagnosis description for care recipient",
+                "Supporting documents from physicians, therapists, or educators (for children under 21)"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Income information for care recipient and spouse (if over 18)",
+                "Household income information (if care recipient under 18 and Medicaid-eligible)",
+                "Your income information (for CareBreaks program)"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "This program is separate from Medicaid respite programs like RIte@Home. Because it doesn't require Medicaid eligibility, you may qualify even if your parent's income is too high for other programs."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent makes too much money for Medicaid but we still can't afford respite care?",
+          "answer": "This program may still help because it has separate income limits from Medicaid and provides financial assistance based on a sliding scale. The income limits aren't publicly listed, but applications reference amounts over $40,000, suggesting higher thresholds than typical Medicaid programs."
+        },
+        {
+          "question": "Can I get help if I'm caring for my spouse?",
+          "answer": "Yes, the program covers unpaid caregivers for adults with disabilities regardless of relationship. However, if you're looking at Medicaid programs like RIte@Home, spouses cannot be paid caregivers under those rules."
+        },
+        {
+          "question": "How do I know if my parent needs enough care to qualify?",
+          "answer": "If your parent needs help with bathing, dressing, eating, using the toilet, getting in/out of bed, or managing medications, shopping, and household tasks, they likely meet the functional requirements. The program serves people who need this level of daily assistance."
+        },
+        {
+          "question": "What kind of respite care can I get?",
+          "answer": "The program connects you to trained professionals who can provide care in your home or community settings. This could be a few hours so you can run errands, or longer breaks for vacations or emergencies. They match you with providers across the state based on your specific needs."
+        },
+        {
+          "question": "Do I have to choose between this program and other caregiver support?",
+          "answer": "No, this program includes peer support, mentorship, and advocacy to help you find other resources. It's designed to connect you to the full range of support available, not just respite care."
+        },
+        {
+          "question": "What if my application is taking too long?",
+          "answer": "Contact the provider agency you submitted to directly. Incomplete applications cause most delays, especially missing caregiver signatures or required documentation. Make sure you submitted all proof documents listed in your application packet."
+        }
+      ],
+      "phone": "401-421-7833",
+      "sourceUrl": "https://oha.ri.gov/resources/caregiver-supportsrespite",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
+      "id": "rhode-island-scsep-employment",
       "name": "Senior Community Service Employment Program (SCSEP)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "shortName": "SCSEP",
+      "tagline": "If your parent is 55+ and unemployed, they can earn minimum wage while gaining job skills through community service work.",
+      "programType": "employment",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "RI Department of Labor & Training (primary state grantee)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 55+, unemployed, and struggling financially, SCSEP provides paid job training that builds toward permanent employment. Your parent earns minimum wage for part-time work (average 20 hours/week) at nonprofits and public agencies like schools, hospitals, or senior centers while developing new skills.\n\nBecause SCSEP combines immediate income with job placement assistance, your parent gets both financial relief now and help finding permanent work later. The program serves Rhode Island residents in specific counties including Bristol County, with priority given to veterans, people 65+, and those with barriers to employment.\n\nIncome must be at or below 125% of federal poverty level for your parent's household size over the past 12 months. For a single person, that's approximately $18,825 annually. Your parent can participate for up to 48 months total in their lifetime.",
+      "savingsRange": "",
+      "savingsSource": "Paid employment opportunity",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Currently unemployed",
+          "Income below 125% federal poverty level",
+          "Rhode Island resident in served areas"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1569
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2125
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Currently unemployed",
+          "Eligible to work in the United States",
+          "Reside in served Rhode Island areas (including Bristol County)"
+        ],
+        "povertyLevelReference": "125% FPL"
+      },
+      "applicationGuide": {
+        "method": "online",
+        "summary": "Submit the online pre-application survey and staff will contact you to assess eligibility.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Complete online pre-application",
+            "description": "Fill out the SCSEP Pre-Application Survey at the RI Department of Labor & Training website."
+          },
+          {
+            "step": 2,
+            "title": "Wait for staff contact",
+            "description": "Program staff will contact you after submission to discuss eligibility and next steps."
+          },
+          {
+            "step": 3,
+            "title": "Provide required documents",
+            "description": "Submit proof of age, income for past 12 months, Rhode Island residency, and work authorization."
+          },
+          {
+            "step": 4,
+            "title": "Complete eligibility assessment",
+            "description": "Meet with staff to finalize enrollment and discuss job placement options."
+          }
+        ],
+        "processingTime": "Staff contacts after pre-application submission (timeline varies)",
+        "waitlist": "Possible due to funding limits and priority enrollment",
+        "tip": "Apply even if there's a waitlist — priority is given to veterans, people 65+, and those with employment barriers.",
+        "urls": [
+          {
+            "label": "SCSEP Pre-Application Survey",
+            "url": "https://www.jotform.com/form/73065540820148"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits by Household Size (125% Federal Poverty Level)",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 1569,
+              "annualLimit": 18825
+            },
+            {
+              "householdSize": 2,
+              "monthlyLimit": 2125,
+              "annualLimit": 25500
+            }
+          ],
+          "footnote": "2023 estimates; check current HHS poverty guidelines for precise figures"
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Work Authorization",
+              "items": [
+                "Driver's license or state ID",
+                "Social Security card",
+                "Citizenship documents (if applicable)"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Tax returns for past 12 months",
+                "Pay stubs for past 12 months",
+                "Benefit statements (Social Security, disability, etc.)"
+              ]
+            },
+            {
+              "name": "Residency & Other",
+              "items": [
+                "Utility bill or lease showing Rhode Island address",
+                "Veteran status documents (if applicable for priority)"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Your parent has a lifetime limit of 48 months in SCSEP — once they've participated for 4 years total, they cannot re-enroll."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "SCSEP only serves certain areas in Rhode Island. Bristol County is confirmed, but check with RI Department of Labor & Training if your parent lives elsewhere."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent is currently working part-time?",
+          "answer": "Your parent must be completely unemployed to qualify for SCSEP. Even part-time work disqualifies them from the program."
+        },
+        {
+          "question": "How much will my parent earn?",
+          "answer": "Your parent earns the highest of federal, state, or local minimum wage for approximately 20 hours per week. This provides immediate income while they build skills for permanent employment."
+        },
+        {
+          "question": "What kind of work will my parent do?",
+          "answer": "SCSEP places participants at nonprofits and public agencies like schools, hospitals, senior centers, and day-care centers. The work provides real job experience and skill development."
+        },
+        {
+          "question": "What happens after the 48-month limit?",
+          "answer": "The goal is for your parent to find permanent, unsubsidized employment before reaching the limit. SCSEP provides job placement assistance throughout participation to help achieve this."
+        },
+        {
+          "question": "Does my income count toward the eligibility limit?",
+          "answer": "Yes, SCSEP uses total household income, not just your parent's individual income. Include income from all household members for the past 12 months."
+        },
+        {
+          "question": "What if there's a waitlist?",
+          "answer": "Veterans, people 65+, those with disabilities, and others with employment barriers get priority. Even if there's a waitlist, apply — your parent's priority status could move them up faster."
+        }
+      ],
+      "phone": "401-462-8000",
+      "sourceUrl": "https://dlt.ri.gov/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
-      "name": "Rhode Island Legal Services (RILS) Elder Law Unit",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "id": "rhode-island-legal-aid-seniors",
+      "name": "Legal Aid for Seniors",
+      "shortName": "Legal Aid",
+      "tagline": "Free legal help for parents with benefit appeals, housing disputes, and consumer problems.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "RI Legal Services: 56 Pine Street, Providence, RI 02903 (401-274-2652); 50 Washington, Newport, RI 02840 (401-846-2264)",
+            "type": "service-area"
+          },
+          {
+            "name": "RI Bar Association: 41 Sharpe Dr, Cranston, RI (401-521-5040); Lawyer Referral 401-421-7799",
+            "type": "service-area"
+          },
+          {
+            "name": "Volunteer Lawyer Program: Phone-based (401-421-7758)",
+            "type": "service-area"
+          },
+          {
+            "name": "Rhode Island Disability Law Center: 275 Westminster Street, Suite 401, Providence, RI 02903 (401-831-3150 or 1-800-733-5332)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and low-income, they can get free legal help with benefit appeals, landlord problems, and consumer issues in Rhode Island. Because legal problems with government benefits or housing can cost thousands in attorney fees, this program provides free representation for qualifying seniors.\n\nThe program covers appeals when benefits get denied (like Social Security or Medicaid), disputes with landlords, problems getting into subsidized housing, consumer fraud issues, and family law matters. Your parent gets a free 30-minute consultation through the Rhode Island Bar Association, and full representation if they qualify based on income screening at 125% of federal poverty guidelines.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Low income (125% federal poverty)",
+          "Rhode Island resident",
+          "Legal issue with benefits, housing, or consumer problems"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Rhode Island resident",
+          "Legal issues must relate to government benefits, housing disputes, or consumer problems"
+        ],
+        "povertyLevelReference": "125% FPL"
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call for a free consultation — no application needed, just income screening over the phone.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the right number for your situation",
+            "description": "RI Legal Services (401-274-2652) for benefit appeals and housing issues, or RI Bar Association (401-421-7799) for the free 30-minute consultation"
+          },
+          {
+            "step": 2,
+            "title": "Describe the legal problem",
+            "description": "Explain whether it's a benefit denial, landlord dispute, housing application, consumer issue, or family law matter"
+          },
+          {
+            "step": 3,
+            "title": "Complete income screening",
+            "description": "Provide household income information to confirm eligibility under 125% federal poverty guidelines"
+          },
+          {
+            "step": 4,
+            "title": "Schedule consultation or representation",
+            "description": "Get assigned to an attorney for ongoing help or schedule your free consultation appointment"
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Have your benefit denial letter, lease agreement, or court papers ready when you call — it helps attorneys understand your case faster.",
+        "urls": [
+          {
+            "label": "RI Legal Services",
+            "url": "https://www.helprilaw.org"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "Legal Aid Offices",
+          "offices": [
+            {
+              "name": "RI Legal Services - Providence",
+              "type": "service-area",
+              "phone": "401-274-2652",
+              "address": "56 Pine Street, Providence, RI 02903"
+            },
+            {
+              "name": "RI Legal Services - Newport",
+              "type": "service-area",
+              "phone": "401-846-2264",
+              "address": "50 Washington, Newport, RI 02840"
+            },
+            {
+              "name": "RI Bar Association",
+              "type": "service-area",
+              "phone": "401-421-7799",
+              "address": "41 Sharpe Dr, Cranston, RI"
+            },
+            {
+              "name": "Volunteer Lawyer Program",
+              "type": "service-area",
+              "phone": "401-421-7758",
+              "address": "Phone-based service"
+            },
+            {
+              "name": "RI Disability Law Center",
+              "type": "service-area",
+              "phone": "401-831-3150",
+              "address": "275 Westminster Street, Suite 401, Providence, RI 02903"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Even with free legal help, your parent may still owe court filing fees and other costs — ask the attorney upfront what expenses aren't covered."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if Mom's Social Security was denied — can legal aid help with the appeal?",
+          "answer": "Yes, benefit appeals are exactly what this program handles. Because Social Security and Medicaid appeals have strict deadlines (usually 60 days), call RI Legal Services at 401-274-2652 immediately after any denial."
+        },
+        {
+          "question": "Can Dad get help if his landlord is trying to evict him from his apartment?",
+          "answer": "Yes, landlord-tenant disputes are covered for qualifying low-income seniors. The attorney can help negotiate with the landlord, represent him in housing court, or help him understand his tenant rights under Rhode Island law."
+        },
+        {
+          "question": "What if my parent's income is just slightly above the poverty guidelines?",
+          "answer": "The program uses 125% of federal poverty guidelines, which is higher than many other programs. Call anyway — attorneys sometimes make exceptions for cases involving urgent issues like eviction or benefit termination."
+        },
+        {
+          "question": "Does Mom need to bring documents to the first meeting?",
+          "answer": "Bring whatever legal papers you have — benefit denial letters, lease agreements, court notices, or bills related to the problem. Also bring proof of income for the eligibility screening."
+        },
+        {
+          "question": "Is the 30-minute consultation really free with no strings attached?",
+          "answer": "Yes, through the RI Bar Association's program, any Rhode Island resident 60+ gets a free 30-minute consultation regardless of income. Call 401-421-7799 to schedule. Full representation requires the income screening."
+        },
+        {
+          "question": "What if Dad needs help with a will or estate planning?",
+          "answer": "This program focuses on government benefits, housing, and consumer issues. For wills and estate planning, try the 30-minute consultation through the Bar Association first, but you may need to pay for ongoing estate work."
+        }
+      ],
+      "phone": "401-274-2652",
+      "sourceUrl": "https://www.helprilaw.org",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
-      "name": "Rhode Island State Long-Term Care Ombudsman Program (RISLTCOP)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "id": "rhode-island-long-term-care-ombudsman",
+      "name": "Long-Term Care Ombudsman Program",
+      "shortName": "Care Ombudsman",
+      "tagline": "Free advocacy when your parent faces problems in nursing homes, assisted living, or home care services.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Office of the RI State Long Term Care Ombudsman, housed within the Alliance for Better Long Term Care, 422 Post Road, Suite 204, Warwick, RI 02888",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent lives in a nursing home, assisted living facility, or receives licensed home care and faces problems with their care, the Long-Term Care Ombudsman provides free advocacy to resolve complaints. The program investigates issues like neglect, abuse, medication errors, billing disputes, or violations of residents' rights through mediation and negotiation with facilities.\n\nBecause the ombudsman operates independently from care facilities, they can advocate directly for your parent without fear of retaliation. The service covers all long-term care settings including nursing homes, assisted living, hospice care, licensed home care, and specific facilities like Bristol Veterans Home and Eleanor Slater Hospital. Anyone can file a complaint on behalf of a resident, and there are no income limits or financial requirements.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Must be in long-term care facility",
+          "No income limits",
+          "No age requirements",
+          "Covers nursing homes, assisted living, home care"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Parent must be receiving services in a nursing home, assisted living facility, hospice, licensed home care, Bristol Veterans Home, Eleanor Slater Hospital Regan Building, or Zambarano Hospital"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call (401) 785-3340 to report concerns — no formal application needed and services begin immediately.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact the ombudsman",
+            "description": "Call (401) 785-3340 or toll-free 1-888-351-0808 to report your parent's care concerns or facility problems."
+          },
+          {
+            "step": 2,
+            "title": "Provide complaint details",
+            "description": "Describe the specific issue — medication errors, neglect, billing problems, or rights violations. No formal documents required."
+          },
+          {
+            "step": 3,
+            "title": "Ombudsman investigates",
+            "description": "The ombudsman contacts the facility, mediates disputes, and advocates for resolution of your parent's complaint."
+          }
+        ],
+        "processingTime": "Services begin immediately when you contact the program",
+        "waitlist": null,
+        "tip": "You can file a complaint on behalf of your parent even if they haven't asked you to — the ombudsman will work directly with them.",
+        "urls": [
+          {
+            "label": "Online Contact Form",
+            "url": "https://alliancebltc.org/ombudsman-program/contact/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "Contact Information",
+          "offices": [
+            {
+              "name": "Office of the RI State Long Term Care Ombudsman",
+              "type": "service-area",
+              "phone": "(401) 785-3340 or 1-888-351-0808",
+              "address": "422 Post Road, Suite 204, Warwick, RI 02888"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "This program only helps residents of facilities or those receiving licensed long-term care services — it doesn't cover independent living situations or provide direct care or funding."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can I file a complaint if my parent doesn't want me to get involved?",
+          "answer": "Yes, anyone can file a complaint on behalf of a resident. The ombudsman will work directly with your parent and respect their wishes about how to proceed with the complaint."
+        },
+        {
+          "question": "What if the facility retaliates against my parent for filing a complaint?",
+          "answer": "The ombudsman operates independently from care facilities and monitors for retaliation. Retaliation against residents for filing complaints is illegal, and the ombudsman will take action if it occurs."
+        },
+        {
+          "question": "Does this program help with independent living communities?",
+          "answer": "No, the program only covers residents in nursing homes, assisted living facilities, hospice care, licensed home care services, and specific facilities like Bristol Veterans Home. Independent living without licensed services is not covered."
+        },
+        {
+          "question": "Will the ombudsman help with billing disputes or insurance problems?",
+          "answer": "Yes, the ombudsman handles billing disputes, insurance issues, and financial exploitation concerns related to your parent's long-term care services and facility charges."
+        },
+        {
+          "question": "How is this different from calling the state health department about facility problems?",
+          "answer": "The ombudsman focuses on advocacy and resolving complaints through mediation and negotiation. For serious abuse or safety violations, they will report to relevant authorities while continuing to advocate for your parent's specific needs."
+        },
+        {
+          "question": "Can the ombudsman help if my parent wants to move to a different facility?",
+          "answer": "Yes, the ombudsman can help with conflicts about facility transfers, provide information about other facilities, and ensure your parent's rights are protected during any transition process."
+        }
+      ],
+      "phone": "(401) 785-3340",
+      "sourceUrl": "https://alliancebltc.org/ombudsman-program/overview/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
-      "name": "Rhode Island Pharmaceutical Assistance Program for the Elderly (RIPAE)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "id": "rhode-island-ripae-prescription-help",
+      "name": "Rhode Island Pharmaceutical Assistance for the Elderly (RIPAE)",
+      "shortName": "RIPAE",
+      "tagline": "Help paying for prescriptions when Medicare Part D doesn't cover the full cost",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Office of Healthy Aging (OHA); senior centers around the state",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 65+ and struggling with prescription costs during their Medicare Part D deductible period, RIPAE can help cover what Medicare doesn't pay. The program works alongside Medicare Part D — it doesn't replace it — to reduce out-of-pocket costs for approved medications.\n\nHow much help depends on income. Parents in the lowest income tier ($23,595 or less for individuals) pay nothing after reaching $1,500 out-of-pocket for the year. Higher income tiers pay 15-85% copays on covered medications. Because RIPAE only covers the deductible period and non-covered Part D drugs, it's most valuable for parents who hit their deductible early or need medications Medicare doesn't cover.\n\nYour parent must already be enrolled in Medicare Part D and cannot be eligible for Medicare's Extra Help program (which often provides better coverage). Rhode Island residents only.",
+      "savingsRange": "",
+      "savingsSource": "Variable based on income tier and medication costs",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+ (or 55+ on SSDI)",
+          "Rhode Island resident",
+          "Enrolled in Medicare Part D",
+          "Not eligible for Extra Help"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be enrolled in Medicare Part D",
+          "Cannot be eligible for Medicare Extra Help",
+          "Must be Rhode Island resident"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Download the form online or pick one up at any senior center — processing time not specified.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Get the RIPAE application",
+            "description": "Download from the OHA website or pick up at any Rhode Island senior center"
+          },
+          {
+            "step": 2,
+            "title": "Gather required documents",
+            "description": "Proof of age, income, Medicare Part D enrollment, and Rhode Island residence"
+          },
+          {
+            "step": 3,
+            "title": "Submit completed application",
+            "description": "Mail or deliver in-person to Office of Healthy Aging or participating senior centers"
+          },
+          {
+            "step": 4,
+            "title": "If denied, you can appeal",
+            "description": "Call OHA at (401) 462-3000 to request an appeal"
+          }
+        ],
+        "processingTime": "Not specified",
+        "waitlist": null,
+        "tip": "Check if your parent qualifies for Medicare Extra Help first — it often provides better coverage and would disqualify them from RIPAE.",
+        "urls": [
+          {
+            "label": "Download RIPAE Application",
+            "url": "https://oha.ri.gov/resources/health-insurance-health-care-cost-assistance/drug-cost-assistance"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "tier-comparison",
+          "heading": "Income Tiers and Coverage",
+          "tiers": [
+            {
+              "name": "Level 1 (Lowest Income)",
+              "description": "State pays full cost after $1,500 out-of-pocket per year",
+              "incomeLimit": "Individuals: $0-$23,595 | Couples: $0-$31,900",
+              "coverage": "Full coverage after $1,500 OOP"
+            },
+            {
+              "name": "Level 2",
+              "description": "40% copay after discounts",
+              "incomeLimit": "Individuals: $23,596-$47,630 | Couples: $31,901-$59,558",
+              "coverage": "40% copay"
+            },
+            {
+              "name": "Level 3",
+              "description": "70% copay after discounts",
+              "incomeLimit": "Individuals: $47,631-$83,510 | Couples: $59,559-$95,261",
+              "coverage": "70% copay"
+            },
+            {
+              "name": "Ages 55-64 (SSDI)",
+              "description": "15% copay after discounts",
+              "incomeLimit": "Individuals: $0-$83,510",
+              "coverage": "15% copay"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Age",
+              "items": [
+                "Rhode Island driver's license or state ID",
+                "Birth certificate",
+                "Or pharmacy printout showing date of birth"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Proof of income (Social Security statement, pension records, etc.)"
+              ]
+            },
+            {
+              "name": "Medicare",
+              "items": [
+                "Proof of Medicare Part D enrollment"
+              ]
+            },
+            {
+              "name": "Residence",
+              "items": [
+                "Proof of Rhode Island residence"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "RIPAE only covers medications during your Part D deductible period or drugs Part D doesn't cover. It's not a replacement for Medicare Part D — you must keep your Part D plan."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent use RIPAE if they're already getting Medicare Extra Help?",
+          "answer": "No. Parents who are eligible for or enrolled in Medicare's Extra Help program cannot use RIPAE. Extra Help often provides better coverage anyway, so check that first."
+        },
+        {
+          "question": "What happens if my parent's income is just over the limit?",
+          "answer": "Income limits are firm — there's no flexibility if your parent is $1 over. The highest tier allows individuals up to $83,510, so parents with higher incomes won't qualify."
+        },
+        {
+          "question": "Does RIPAE cover all of my parent's medications?",
+          "answer": "No. RIPAE only covers approved medications during the Medicare Part D deductible period or medications that Part D doesn't cover at all. It excludes experimental drugs and prescriptions older than one year."
+        },
+        {
+          "question": "Can my parent apply if they don't have Medicare Part D yet?",
+          "answer": "No. Your parent must already be enrolled in a Medicare Part D plan before applying to RIPAE. The program works alongside Part D, not instead of it."
+        },
+        {
+          "question": "How much will my parent actually save with RIPAE?",
+          "answer": "It depends on their income tier and medication costs. The lowest income tier gets full coverage after $1,500 out-of-pocket per year. Other tiers pay 15-85% copays, which could still mean significant savings on expensive medications."
+        },
+        {
+          "question": "What if my parent moves to a different state?",
+          "answer": "RIPAE is only for Rhode Island residents. If your parent moves out of state, they'll lose RIPAE coverage and need to look into their new state's prescription assistance programs."
+        }
+      ],
+      "phone": "(401) 462-3000",
+      "sourceUrl": "https://oha.ri.gov/resources/health-insurance-health-care-cost-assistance/drug-cost-assistance",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
+      "id": "rhode-island-at-home-cost-share",
       "name": "At HOME Cost Share Program",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "shortName": "At HOME",
+      "tagline": "Subsidized home care and adult day services for Rhode Island seniors who don't qualify for Medicaid",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Administered statewide by RI Office of Healthy Aging (OHA); contact via ADRC/POINT at 401-462-4444",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs help with personal care, housekeeping, or meals but doesn't qualify for Medicaid, Rhode Island's At HOME program can dramatically reduce the cost of these services. Instead of paying $25–27/hour for private home care or $90–100/day for adult day services, your parent pays a subsidized rate based on income — as low as $4.50/hour for home care or $7/day for adult day services.\n\nThis program serves Rhode Island residents age 65+ (or younger adults with dementia) whose income is too high for Medicaid but below 250% of the Federal Poverty Level. Because there are no asset limits, your parent can keep their home, savings, and investments while still receiving help. The state covers most of the service cost; your parent pays a sliding-scale share based on their income tier.",
+      "savingsRange": "$15,000 – $25,000/year",
+      "savingsSource": "Difference between subsidized rates ($4.50-7.50/hour home care, $7-15/day adult day) versus private pay rates ($25-27/hour, $90-100/day) for typical service hours",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+ (or younger with dementia)",
+          "Income below 250% Federal Poverty Level",
+          "Rhode Island resident",
+          "Needs help with personal care or housekeeping",
+          "Not eligible for Medicaid"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2510
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 3407
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": "Must need assistance with personal care, health care, housekeeping, or meal preparation (assessed during application process)",
+        "otherRequirements": [
+          "Rhode Island resident",
+          "Does not qualify for Medicaid"
+        ],
+        "povertyLevelReference": "250% FPL"
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call the ADRC helpline to start your application and schedule a needs assessment.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call ADRC helpline",
+            "description": "Contact 401-462-4444 to discuss eligibility and begin the application process"
+          },
+          {
+            "step": 2,
+            "title": "Complete needs assessment",
+            "description": "Staff will evaluate your parent's need for assistance with daily activities"
+          },
+          {
+            "step": 3,
+            "title": "Provide documentation",
+            "description": "Submit proof of income, age, Rhode Island residency, and non-Medicaid eligibility"
+          },
+          {
+            "step": 4,
+            "title": "Receive care plan",
+            "description": "If approved, you'll receive an individualized plan for subsidized home care or adult day services"
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Apply for Medicaid first if your parent might qualify — Medicaid covers more services at no cost",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits by Household Size (2024)",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 2510,
+              "annualLimit": 30120
+            },
+            {
+              "householdSize": 2,
+              "monthlyLimit": 3407,
+              "annualLimit": 40880
+            }
+          ],
+          "footnote": "Limits adjust annually with Federal Poverty Level. Confirm current amounts at 401-462-4444."
+        },
+        {
+          "type": "tier-comparison",
+          "heading": "Cost-Share Tiers",
+          "tiers": [
+            {
+              "name": "Tier 1",
+              "description": "Lower income households",
+              "incomeLimit": "$18,825 (single), $25,550 (couple)",
+              "coverage": "Pay ~$4.50/hour for home care, $7/day for adult day services"
+            },
+            {
+              "name": "Tier 2",
+              "description": "Higher income households",
+              "incomeLimit": "Up to $30,120 (single), $40,880 (couple)",
+              "coverage": "Pay ~$7.50/hour for home care, $15/day for adult day services"
+            }
+          ]
+        },
+        {
+          "type": "county-directory",
+          "heading": "How to Apply",
+          "offices": [
+            {
+              "name": "Rhode Island ADRC/POINT Helpline",
+              "type": "statewide",
+              "phone": "401-462-4444",
+              "address": "Statewide service"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Driver's license or state ID",
+                "Proof of Rhode Island residency",
+                "Birth certificate or other age verification"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Social Security award letter",
+                "Pension statements",
+                "Bank statements",
+                "Tax returns"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Dementia diagnosis (if under age 65)",
+                "Documentation of why Medicaid was denied (if applicable)"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "This program requires you to pay for Medicaid first if your parent might qualify. Don't assume they won't qualify — Medicaid covers more services at no cost to you."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house and savings if she qualifies?",
+          "answer": "Yes. At HOME has no asset limits, so your parent can keep their home, bank accounts, and investments. This is different from Medicaid, which has strict asset limits."
+        },
+        {
+          "question": "What's the difference between this and RIte@Home?",
+          "answer": "RIte@Home is Rhode Island's Medicaid program with higher income limits but strict asset limits. At HOME is for people who don't qualify for Medicaid — either because their assets are too high or they were denied Medicaid for other reasons."
+        },
+        {
+          "question": "How much will Mom actually pay for home care?",
+          "answer": "It depends on her income. If she's in Tier 1 (income under $18,825/year), she'll pay about $4.50/hour. Tier 2 pays about $7.50/hour. Private pay averages $25–27/hour, so this saves $17–22/hour."
+        },
+        {
+          "question": "What if her income is just over the limit?",
+          "answer": "Income limits are firm at 250% of Federal Poverty Level ($30,120 for singles, $40,880 for couples in 2024). If she's over, she won't qualify. Consider whether any income can be reduced or if she might qualify for Medicaid instead."
+        },
+        {
+          "question": "Does this cover 24-hour care?",
+          "answer": "The program covers in-home personal care and housekeeping services, but the research doesn't specify hour limits. Call 401-462-4444 to discuss your parent's specific needs and what level of care the program can support."
+        },
+        {
+          "question": "What happens if she needs more care later?",
+          "answer": "The program creates an individualized care plan based on the needs assessment. If her needs change, you can request a reassessment to adjust services. If she eventually needs nursing home level care, you may need to explore Medicaid."
+        }
+      ],
+      "phone": "401-462-4444",
+      "sourceUrl": "https://oha.ri.gov/resources/home-care/home-cost-share",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
-      "name": "Ocean State Senior Dining Program",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "id": "rhode-island-hcc-senior-companion",
+      "name": "HCC Senior Companion Program",
+      "shortName": "Senior Companion",
+      "tagline": "Free trained volunteers provide companionship, transportation, and daily task help for isolated parents 60+.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "RI Office of Healthy Aging (primary contact)",
+            "type": "service-area"
+          },
+          {
+            "name": "Network of regional case management agencies",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+, lives alone, and struggles to get out of the house or manage daily tasks, they may qualify for a free trained volunteer companion. The HCC Senior Companion Program matches your parent with a volunteer age 55+ who provides companionship, transportation to medical appointments, grocery shopping help, light housework, and meal preparation.\n\nBecause volunteers handle these regular tasks, your parent can stay safely at home longer while you get respite from daily caregiving responsibilities. The program serves nearly 500 Rhode Island seniors weekly through visits in homes, adult day centers, or community locations. Your parent must meet low-income guidelines and demonstrate frailty or isolation to qualify.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Rhode Island resident",
+          "Low income (call for limits)",
+          "Frail or isolated",
+          "Need help with daily tasks"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must be frail or isolated, unable to leave home without considerable assistance, and need help with tasks of daily living",
+        "otherRequirements": [
+          "Rhode Island resident",
+          "Live alone or have no one to help"
+        ],
+        "povertyLevelReference": "200% FPL"
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call 401-462-0569 to request services and discuss your parent's needs.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the program",
+            "description": "Contact 401-462-0569 to discuss your parent's situation and needs."
+          },
+          {
+            "step": 2,
+            "title": "Provide income documentation",
+            "description": "Submit proof of your parent's income to verify eligibility."
+          },
+          {
+            "step": 3,
+            "title": "Document need for services",
+            "description": "Provide information about your parent's frailty, isolation, or disability if under 60."
+          },
+          {
+            "step": 4,
+            "title": "Wait for volunteer matching",
+            "description": "Program staff will match your parent with an available trained volunteer in your area."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Volunteers must pass background checks and physical exams, so matching may take time depending on volunteer availability in your area.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Volunteers provide companionship and daily task help but cannot provide medical care, personal care, medication management, wound care, or lifting assistance."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What exactly can the volunteer do for my parent?",
+          "answer": "Volunteers provide companionship, transportation to medical appointments, grocery shopping assistance, meal preparation, light housework, appropriate exercise guidance, and help paying bills. They cannot provide medical care, personal care like bathing, medication management, wound care, or lifting assistance."
+        },
+        {
+          "question": "How much does my parent need to pay the volunteer?",
+          "answer": "Nothing. Services are completely free to eligible clients. Volunteers may receive small stipends if they are low-income themselves, but your parent pays nothing."
+        },
+        {
+          "question": "What are the exact income limits to qualify?",
+          "answer": "The program follows low-income guidelines similar to other HCC services (typically around 200% Federal Poverty Level), but exact current dollar amounts aren't published. You must call 401-462-0569 to verify if your parent's income qualifies."
+        },
+        {
+          "question": "Can I choose which volunteer is matched with my parent?",
+          "answer": "Program staff handle volunteer matching based on your parent's needs, location, and volunteer availability. All volunteers are age 55+, trained, and have passed background checks and physical exams."
+        },
+        {
+          "question": "What if my parent's income is slightly over the limit?",
+          "answer": "The program considers 'great need' even if income is slightly higher. Call 401-462-0569 to discuss your parent's specific situation - they may still qualify based on isolation, frailty, or other circumstances."
+        },
+        {
+          "question": "How often will the volunteer visit my parent?",
+          "answer": "Visit frequency depends on your parent's needs and volunteer availability. The program serves nearly 500 seniors weekly statewide, with visits occurring in homes, adult day centers, or community sites."
+        }
+      ],
+      "phone": "401-462-0569",
+      "sourceUrl": "https://oha.ri.gov/get-involved/volunteering/senior-companions",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
-      "name": "RIPTA Senior Reduced Fare Bus Pass",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "id": "rhode-island-point-ltss",
+      "name": "The POINT",
+      "shortName": "The POINT",
+      "tagline": "Get help keeping your parent at home instead of a nursing home with Rhode Island's gateway to long-term care services.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "RI Department of Human Services (DHS) LTSS offices statewide",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 65+ and needs daily help with bathing, dressing, or medication management, The POINT can connect them to home care services through Rhode Island Medicaid. This is the single entry point for all long-term care services that help seniors avoid nursing homes — from personal care aides to respite care for family caregivers.\n\nBecause The POINT coordinates all assessments and referrals, your parent won't need to navigate multiple agencies or repeat their story to different caseworkers. One team evaluates their needs and connects them to services like the Personal Choice program (self-directed care) or traditional home care.\n\nYour parent must qualify for Rhode Island Medicaid Long-Term Services and Supports, which has higher income limits than regular Medicaid — up to $2,982/month for a single person in 2026. They also need to meet clinical requirements showing they need nursing home-level care.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+",
+          "Income under $2,982/month (single)",
+          "Assets under $4,000",
+          "Needs daily care assistance",
+          "Rhode Island resident"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 4000,
+          "couple": null,
+          "countedAssets": [
+            "Cash",
+            "Bank accounts"
+          ],
+          "exemptAssets": [
+            "Primary residence",
+            "One vehicle"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "Must need Nursing Facility Level of Care (daily help with bathing, dressing, medication management, or inability to leave home without considerable assistance)",
+        "otherRequirements": [
+          "Rhode Island resident",
+          "U.S. citizen or qualified immigrant",
+          "Medicaid-eligible"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call (401) 462-4444 to start the assessment process — no forms required upfront.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call The POINT",
+            "description": "Call (401) 462-4444 to schedule your parent's initial assessment. Staff will screen for basic eligibility over the phone."
+          },
+          {
+            "step": 2,
+            "title": "Complete clinical assessment",
+            "description": "A caseworker will evaluate your parent's functional needs to determine if they meet Nursing Facility Level of Care requirements."
+          },
+          {
+            "step": 3,
+            "title": "Financial eligibility review",
+            "description": "Provide income, asset, and property documentation to confirm Medicaid LTSS eligibility."
+          },
+          {
+            "step": 4,
+            "title": "Receive care plan",
+            "description": "If eligible, The POINT will create a customized care plan and refer your parent to appropriate home and community services."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": "Possible waitlist for services after assessment depending on need and provider availability",
+        "tip": "Gather financial documents before calling — income statements, bank records, and property information will speed up the process.",
+        "urls": [
+          {
+            "label": "RI Department of Human Services LTSS",
+            "url": "https://dhs.ri.gov/programs-and-services/long-term-services-and-supports/eligibility-how-apply"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Cash and savings accounts",
+            "Bank accounts",
+            "Investment accounts"
+          ],
+          "excluded": [
+            "Primary residence (home your parent lives in)",
+            "One vehicle",
+            "Personal belongings and household items"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Driver's license or state ID",
+                "Social Security card",
+                "Proof of citizenship or qualified immigrant status"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "3 months of bank statements",
+                "Social Security award letters",
+                "Pension or retirement income statements",
+                "Property deeds or mortgage statements",
+                "Investment account statements"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "List of current medications",
+                "Recent medical records showing functional limitations",
+                "Doctor's assessment of daily care needs"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "The POINT only assesses and refers — it doesn't provide direct services. After assessment, you may face waitlists for actual home care services depending on provider availability in your area."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Your parent must meet both financial AND clinical requirements. Even if their income and assets qualify, they need to demonstrate functional impairments that would otherwise require nursing home care."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house if she qualifies for services through The POINT?",
+          "answer": "Yes, your parent can keep their primary residence. The home doesn't count toward the $4,000 asset limit as long as they live in it or plan to return home."
+        },
+        {
+          "question": "What if Dad's income is just over the $2,982 limit?",
+          "answer": "If your parent is slightly over the income limit, they may still qualify through spend-down provisions where medical expenses reduce countable income. The POINT caseworker will calculate this during assessment."
+        },
+        {
+          "question": "How long does it take to get services after calling The POINT?",
+          "answer": "The assessment process timeline isn't specified, but there may be waitlists for actual services after you're approved. Wait times vary by your location and the type of care needed."
+        },
+        {
+          "question": "What happens to my spouse's income and assets during the application?",
+          "answer": "Spousal impoverishment rules apply, meaning your parent's spouse can keep certain income and assets. The exact amounts depend on complex Medicaid rules that The POINT will calculate during assessment."
+        },
+        {
+          "question": "Can we choose our own home care agency?",
+          "answer": "This depends on which program The POINT refers you to. Personal Choice (self-directed care) offers more control over providers, while traditional programs may assign specific agencies."
+        },
+        {
+          "question": "What if Mom needs more help than The POINT can provide?",
+          "answer": "The POINT assesses for all levels of long-term care, including nursing home placement if home care isn't sufficient. They'll help coordinate the most appropriate level of care based on your parent's needs."
+        }
+      ],
+      "phone": "(401) 462-4444",
+      "sourceUrl": "https://dhs.ri.gov/programs-and-services/long-term-services-and-supports/eligibility-how-apply",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     }
   ],
-  "stateOverview": null
+  "stateOverview": {
+    "intro": "Rhode Island offers 16 programs to help your aging parent — 11 provide direct financial benefits or services, while 4 offer free resources and advocacy available to everyone. These range from monthly grocery assistance ($100–291 through SNAP) to comprehensive medical care coordination (PACE) to free legal help and Medicare guidance. Rhode Island also runs unique programs like RIPAE for prescription assistance and The POINT as your gateway to keeping parents at home instead of nursing facilities. Start by identifying your parent's most urgent need — whether that's paying bills, getting medical care, or staying safely at home — then explore the specific programs that address that challenge.",
+    "startHere": [
+      {
+        "name": "The POINT",
+        "programId": "the-point",
+        "why": "Rhode Island's single entry point for all long-term care services — they'll assess your parent's needs and connect you to the right combination of programs."
+      },
+      {
+        "name": "Rhode Island Medicaid (Long-Term Services and Supports for Elderly)",
+        "programId": "rhode-island-medicaid-ltss",
+        "why": "Covers the most expensive needs — nursing home care, assisted living, and home care — if your parent meets strict financial limits."
+      },
+      {
+        "name": "State Health Insurance Assistance Program (SHIP)",
+        "programId": "ship-rhode-island",
+        "why": "Free expert help navigating all Medicare options and finding programs to lower healthcare costs — saves time researching on your own."
+      }
+    ],
+    "byNeed": [
+      {
+        "need": "Help paying for care at home or in facilities",
+        "programs": [
+          "Rhode Island Medicaid (Long-Term Services and Supports for Elderly)",
+          "PACE",
+          "At HOME Cost Share Program"
+        ],
+        "description": "Programs that cover nursing home care, assisted living, home care, and comprehensive medical services."
+      },
+      {
+        "need": "Monthly assistance with basic living costs",
+        "programs": [
+          "SNAP",
+          "LIHEAP",
+          "Rhode Island Pharmaceutical Assistance for the Elderly (RIPAE)"
+        ],
+        "description": "Direct financial help with groceries, heating bills, and prescription costs."
+      },
+      {
+        "need": "Healthcare cost relief",
+        "programs": [
+          "Medicare Savings Programs (MSP)",
+          "RIPAE"
+        ],
+        "description": "Programs that pay Medicare premiums, co-pays, and prescription costs your parent can't afford."
+      },
+      {
+        "need": "Support for family caregivers",
+        "programs": [
+          "Caregiver/Respite Support",
+          "HCC Senior Companion Program"
+        ],
+        "description": "Professional and volunteer help so you can take breaks from caregiving responsibilities."
+      },
+      {
+        "need": "Free advice and advocacy",
+        "programs": [
+          "SHIP",
+          "Legal Aid for Seniors",
+          "Long-Term Care Ombudsman Program"
+        ],
+        "description": "Expert guidance on Medicare, legal issues, and problems with care facilities — no income requirements."
+      },
+      {
+        "need": "Home improvements and daily meals",
+        "programs": [
+          "Weatherization Assistance Program",
+          "Meals on Wheels of Rhode Island"
+        ],
+        "description": "Free energy upgrades to make homes safer and more efficient, plus delivered meals for homebound seniors."
+      }
+    ],
+    "quickFacts": [
+      "Rhode Island uses The POINT as the single gateway to long-term care services — call them first before navigating individual programs",
+      "RIPAE is Rhode Island's state-specific prescription assistance program that works alongside Medicare Part D",
+      "Most income-based programs use similar thresholds — around $2,152/month for a single person, $2,901 for couples"
+    ],
+    "resourcesVsBenefits": "Rhode Island's benefit programs (like Medicaid, SNAP, and LIHEAP) require your parent to meet specific income and asset limits, but the state also provides free resources available to everyone regardless of finances. SHIP offers free Medicare counseling, Legal Aid provides free legal help for seniors, and the Long-Term Care Ombudsman advocates for anyone in care facilities — no qualification needed."
+  }
 }

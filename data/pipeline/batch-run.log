@@ -1,0 +1,63 @@
+
+  Benefits Pipeline — Batch Runner
+  States: 46 (CA, CO, CT, DE, GA, HI, ID, IL, IN, IA, KS, KY, LA, ME, MD, MA, MI, MN, MS, MO, MT, NE, NV, NH, NJ, NM, NY, NC, ND, OH, OK, OR, PA, RI, SC, SD, TN, TX, UT, VT, VA, WA, WV, WI, WY, DC)
+  Concurrency: 1 states at once
+  Force: true
+
+  ✓ CA — 16 programs, 559s [1/46, 9.3m elapsed]
+  ✓ CO — 15 programs, 471s [2/46, 17.2m elapsed]
+  ✓ CT — 11 programs, 379s [3/46, 23.5m elapsed]
+  ✓ DE — 13 programs, 450s [4/46, 31.0m elapsed]
+  ✓ GA — 13 programs, 424s [5/46, 38.1m elapsed]
+  ✓ HI — 21 programs, 711s [6/46, 49.9m elapsed]
+  ✓ ID — 16 programs, 475s [7/46, 57.8m elapsed]
+  ✓ IL — 13 programs, 447s [8/46, 65.3m elapsed]
+  ✓ IN — 13 programs, 445s [9/46, 72.7m elapsed]
+  ✓ IA — 13 programs, 371s [10/46, 78.9m elapsed]
+  ✓ KS — 14 programs, 518s [11/46, 87.5m elapsed]
+  ✗ KY — FAILED (exit 1), 55s [12/46]
+    
+  ✓ LA — 9 programs, 381s [13/46, 94.8m elapsed]
+  ✓ ME — 9 programs, 260s [14/46, 99.1m elapsed]
+  ✓ MD — 16 programs, 520s [15/46, 107.8m elapsed]
+  ✓ MA — 17 programs, 596s [16/46, 117.7m elapsed]
+  ✓ MI — 6 programs, 224s [17/46, 121.5m elapsed]
+  ✓ MN — 15 programs, 465s [18/46, 129.2m elapsed]
+  ✓ MS — 16 programs, 483s [19/46, 137.3m elapsed]
+  ✓ MO — 17 programs, 627s [20/46, 147.7m elapsed]
+  ✓ MT — 14 programs, 550s [21/46, 156.9m elapsed]
+  ✓ NE — 17 programs, 536s [22/46, 165.8m elapsed]
+  ✓ NV — 18 programs, 586s [23/46, 175.6m elapsed]
+  ✓ NH — 18 programs, 623s [24/46, 185.9m elapsed]
+  ✓ NJ — 8 programs, 284s [25/46, 190.7m elapsed]
+  ✓ NM — ? programs, 245s [26/46, 194.8m elapsed]
+  ✓ NY — 19 programs, 674s [27/46, 206.0m elapsed]
+  ✓ NC — 18 programs, 607s [28/46, 216.1m elapsed]
+  ✓ ND — 4 programs, 113s [29/46, 218.0m elapsed]
+  ✓ OH — 13 programs, 358s [30/46, 224.0m elapsed]
+  ✓ OK — 16 programs, 155s [31/46, 226.6m elapsed]
+  ✓ OR — 16 programs, 271s [32/46, 231.1m elapsed]
+  ✓ PA — 13 programs, 341s [33/46, 236.8m elapsed]
+  ✓ RI — 18 programs, 578s [34/46, 246.4m elapsed]
+  ✓ SC — 17 programs, 554s [35/46, 255.6m elapsed]
+  ✗ SD — FAILED (exit 1), 16s [36/46]
+    
+  ✓ TN — 13 programs, 344s [37/46, 261.6m elapsed]
+  ✓ TX — 13 programs, 467s [38/46, 269.4m elapsed]
+  ✓ UT — 13 programs, 498s [39/46, 277.7m elapsed]
+  ✓ VT — 15 programs, 510s [40/46, 286.2m elapsed]
+  ✓ VA — 5 programs, 205s [41/46, 289.6m elapsed]
+  ✓ WA — 21 programs, 1354s [42/46, 312.2m elapsed]
+  ✓ WV — 16 programs, 573s [43/46, 321.7m elapsed]
+  ✓ WI — 5 programs, 192s [44/46, 324.9m elapsed]
+  ✓ WY — 3 programs, 138s [45/46, 327.2m elapsed]
+  ✓ DC — 5 programs, 167s [46/46, 330.0m elapsed]
+
+  Regenerating pipeline-drafts.ts...
+
+  ━━━ BATCH COMPLETE ━━━
+  Total time: 330.0 minutes
+  Success: 44 states
+  Failed: 2 states (KY, SD)
+  Retry failed: node scripts/benefits-batch.js KY SD
+

@@ -1,33 +1,33 @@
 {
   "state": "NY",
   "stateName": "New York",
-  "classifiedAt": "2026-04-09T09:38:10.590Z",
-  "total": 14,
+  "classifiedAt": "2026-04-09T15:32:39.206Z",
+  "total": 17,
   "typeSummary": {
     "benefit": 12,
-    "employment": 1,
-    "resource": 1
+    "resource": 4,
+    "employment": 1
   },
   "scopeSummary": {
     "state": 6,
-    "federal": 5,
-    "local": 3
+    "local": 5,
+    "federal": 6
   },
   "complexitySummary": {
-    "deep": 12,
-    "medium": 1,
-    "simple": 1
+    "deep": 11,
+    "simple": 4,
+    "medium": 2
   },
   "programs": [
     {
-      "name": "New York State Home and Community-Based Services (HCBS) Waiver Programs",
+      "name": "Community Medicaid",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "DDSOs by county (list at http://www.opwdd.ny.gov/document/hp_contacts.jsp); providers must be OPWDD/DOH-authorized and Medicaid-enrolled[2]",
+            "name": "Local county DSS offices; MLTC plans vary by region.",
             "type": "service-area"
           }
         ]
@@ -35,6 +35,7 @@
       "complexity": "deep",
       "recommendedSections": [
         "prose",
+        "income-table",
         "what-counts",
         "tier-comparison",
         "documents",
@@ -43,7 +44,40 @@
       ],
       "signals": {
         "benefitType": "service",
-        "hasIncomeTiers": false,
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "New York State Home and Community-Based Services (HCBS) Waiver Programs",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "DDSOs by county (see http://www.opwdd.ny.gov/document/hp_contacts.jsp)[1].",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": true,
@@ -55,15 +89,15 @@
       "name": "Program of All-Inclusive Care for the Elderly (PACE)",
       "programType": "benefit",
       "geographicScope": {
-        "type": "state",
+        "type": "local",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "ArchCare Senior Life PACE (NYC and Westchester)[5]",
+            "name": "ElderONE (Rochester Regional Health): Monroe, Ontario, Wayne Counties[4]",
             "type": "service-area"
           },
           {
-            "name": "Other PACE organizations operate in New York State but are not enumerated in search results",
+            "name": "ArchCare Senior Life PACE: Bronx (900 Intervale Avenue, Bronx, NY 10459), Westchester[5]",
             "type": "service-area"
           }
         ]
@@ -83,18 +117,18 @@
         "hasRegionalVariation": true,
         "hasFunctionalReq": true,
         "hasMultipleTiers": false,
-        "isStatewide": true
+        "isStatewide": false
       }
     },
     {
-      "name": "Medicare Savings Program (MSP)",
+      "name": "Medicare Savings Program (MSP) - QMB, SLMB, QI",
       "programType": "benefit",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Local Department of Social Services; NYC HRA Community Medicaid Offices[2][3].",
+            "name": "Local Department of Social Services (DSS) in each county.",
             "type": "service-area"
           }
         ]
@@ -120,11 +154,17 @@
       }
     },
     {
-      "name": "Supplemental Nutrition Assistance Program (SNAP)",
+      "name": "Supplemental Nutrition Assistance Program (SNAP) / ESAP / NYSCAP",
       "programType": "benefit",
       "geographicScope": {
         "type": "federal",
-        "stateVariation": true
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local Department of Social Services (DSS) offices county-wide",
+            "type": "service-area"
+          }
+        ]
       },
       "complexity": "deep",
       "recommendedSections": [
@@ -132,8 +172,7 @@
         "income-table",
         "what-counts",
         "documents",
-        "county-directory",
-        "callout"
+        "county-directory"
       ],
       "signals": {
         "benefitType": "financial",
@@ -153,7 +192,15 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Local Department of Social Services (DSS), HEAP Local District Contact, Office of the Aging for 60+ in select counties.",
+            "name": "Local Department of Social Services (DSS) offices throughout New York State[6]",
+            "type": "service-area"
+          },
+          {
+            "name": "HEAP Local District Contacts (specific locations not listed in search results)[6]",
+            "type": "service-area"
+          },
+          {
+            "name": "National Grid (for Upstate NY customers)[6]",
             "type": "service-area"
           }
         ]
@@ -186,7 +233,7 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Local providers listed via HCR/OTDA sites; examples: Chautauqua Opportunities (716-661-9430), CEO Greater Capital Region[7][8].",
+            "name": "Local NYS WAP providers listed via OTDA/HCR sites; examples: Chautauqua Opportunities, Inc. (716-661-9430), EAC Network (Nassau)[1][5][8]",
             "type": "service-area"
           }
         ]
@@ -212,30 +259,42 @@
       }
     },
     {
-      "name": "Meals on Wheels (via Expanded In-Home Services for the Elderly - EISEP)",
+      "name": "State Health Insurance Assistance Program (SHIP) / Health Insurance Information, Counseling and Assistance Program (HIICAP)",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Headquartered at NYS Office for the Aging, Two Empire State Plaza, Albany NY 12223; local via 59 AAAs.[1][5]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Meals on Wheels (via Expanded In-Home Services for the Elderly Program - EISEP)",
       "programType": "benefit",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Nassau: EAC Network, 1505 Kellum Place, Suite 100, Mineola, NY 11501 (516-992-0081)[3]",
-            "type": "service-area"
-          },
-          {
-            "name": "Wyoming County Office for the Aging (585-786-8833)[4]",
-            "type": "service-area"
-          },
-          {
-            "name": "Genesee County Office for the Aging (585-343-1611)[5]",
-            "type": "service-area"
-          },
-          {
-            "name": "Monroe: Catholic Charities, Urban League, Lifespan, Jewish Family Service[6]",
-            "type": "service-area"
-          },
-          {
-            "name": "NYC: Citymeals on Wheels case agencies via address lookup[1]",
+            "name": "Local Area Agencies on Aging; examples: Wyoming County (585-786-8833), Genesee County (585-343-1611), Nassau via EAC Network, Monroe via Catholic Charities/FCS[4][5][6][7].",
             "type": "service-area"
           }
         ]
@@ -254,20 +313,20 @@
         "hasIncomeTiers": true,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
-        "hasFunctionalReq": true,
+        "hasFunctionalReq": false,
         "hasMultipleTiers": false,
-        "isStatewide": false
+        "isStatewide": true
       }
     },
     {
-      "name": "New York Foundation for Senior Citizens Respite Care Program",
+      "name": "Respite Care Program (NYFSC) / Caregiver Resource Centers",
       "programType": "benefit",
       "geographicScope": {
         "type": "local",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "New York Foundation for Senior Citizens (NYFSC), serving NYC exclusively[5][6]",
+            "name": "Single intake office: 11 Park Place, 14th Floor, New York, NY 10007-2801[3]",
             "type": "service-area"
           }
         ]
@@ -275,17 +334,18 @@
       "complexity": "medium",
       "recommendedSections": [
         "prose",
-        "what-counts",
+        "tier-comparison",
         "documents",
-        "county-directory"
+        "county-directory",
+        "callout"
       ],
       "signals": {
-        "benefitType": "service",
+        "benefitType": "in_kind",
         "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": false,
+        "hasAssetLimits": false,
+        "hasRegionalVariation": true,
         "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
+        "hasMultipleTiers": true,
         "isStatewide": false
       }
     },
@@ -297,31 +357,23 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "NY State Office for Aging: https://aging.ny.gov/senior-community-service-employment-program-scsep[1]",
+            "name": "NYC: Aging Connect (212-244-6469) for referral[9]",
             "type": "service-area"
           },
           {
-            "name": "CPC NYC (Brooklyn/Manhattan): pshen@cpc-nyc.org[2]",
+            "name": "Westchester County: Senior Citizens Department[3]",
             "type": "service-area"
           },
           {
-            "name": "Urban League Westchester: (914) 428-5850[4]",
+            "name": "York County: Crispus Attucks York (Monday–Friday, 8:30 AM–5:00 PM)[6]",
             "type": "service-area"
           },
           {
-            "name": "Robert Couche Senior Center (Queens): 718-978-8352[8]",
+            "name": "CPC (Community Preservation Corporation) in NYC: Penny Shen, pshen@cpc-nyc.org[2]",
             "type": "service-area"
           },
           {
-            "name": "Goodwill Western NY (Cattaraugus/Chautauqua): (716) 854-3494 x 3018[8]",
-            "type": "service-area"
-          },
-          {
-            "name": "Pro Action (Allegany/Chemung/Schuyler/Steuben): 607-776-2125[8]",
-            "type": "service-area"
-          },
-          {
-            "name": "NYC Aging Connect: 212-244-6469[7]",
+            "name": "Approximately 50 local partner organizations statewide through CWI Works[4]",
             "type": "service-area"
           }
         ]
@@ -333,38 +385,88 @@
         "documents"
       ],
       "signals": {
-        "benefitType": "employment",
+        "benefitType": "employment + in_kind",
         "hasIncomeTiers": true,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
+        "hasMultipleTiers": false,
         "isStatewide": true
       }
     },
     {
-      "name": "Elderly Pharmaceutical Insurance Coverage Program (EPIC)",
+      "name": "Legal Services for Seniors",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Legal Aid Society of Northeastern NY (Albany)[1]",
+            "type": "service-area"
+          },
+          {
+            "name": "Legal Aid Society of Mid-NY (Central NY)[2]",
+            "type": "service-area"
+          },
+          {
+            "name": "NYC Aging contractors (all boroughs)[4]",
+            "type": "service-area"
+          },
+          {
+            "name": "Paul I. Weinberger/Dutchess OFA[5]",
+            "type": "service-area"
+          },
+          {
+            "name": "VOLS (NYC)[7]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": false
+      }
+    },
+    {
+      "name": "Senior Citizen Homeowners' Exemption (SCHE)",
       "programType": "benefit",
       "geographicScope": {
-        "type": "state",
-        "stateVariation": false
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "NYC Department of Finance (administers SCHE for all five boroughs)[7]",
+            "type": "service-area"
+          }
+        ]
       },
       "complexity": "deep",
       "recommendedSections": [
         "prose",
         "income-table",
-        "what-counts",
         "tier-comparison",
-        "documents"
+        "documents",
+        "county-directory"
       ],
       "signals": {
         "benefitType": "financial",
         "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": false,
+        "hasAssetLimits": false,
+        "hasRegionalVariation": true,
         "hasFunctionalReq": false,
         "hasMultipleTiers": true,
-        "isStatewide": true
+        "isStatewide": false
       }
     },
     {
@@ -375,11 +477,11 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "NYC: NYC Department of Finance (DOF), 59 Maiden Lane, 19th Floor, New York, NY 10038.",
+            "name": "NYC Department of Finance (citywide).",
             "type": "service-area"
           },
           {
-            "name": "Nassau/Westchester: Local HCR offices or designated authorities.",
+            "name": "HPD for HPD developments.",
             "type": "service-area"
           }
         ]
@@ -400,58 +502,15 @@
       }
     },
     {
-      "name": "Senior Citizen Homeowners' Exemption (SCHE)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "local",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "NYC: Department of Finance.[2]",
-            "type": "service-area"
-          },
-          {
-            "name": "Outside NYC: Local assessor/county/city/town/village/school district offices.[4]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "tier-comparison",
-        "documents",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "financial",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
-        "isStatewide": false
-      }
-    },
-    {
-      "name": "Enhanced STAR (School Tax Relief for Seniors)",
+      "name": "Enhanced STAR Program",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "NYS Department of Taxation and Finance (statewide); local assessors for pre-2026 or verification.",
-            "type": "service-area"
-          }
-        ]
+        "stateVariation": false
       },
-      "complexity": "deep",
+      "complexity": "medium",
       "recommendedSections": [
         "prose",
-        "income-table",
         "what-counts",
         "documents",
         "county-directory",
@@ -459,7 +518,7 @@
       ],
       "signals": {
         "benefitType": "financial",
-        "hasIncomeTiers": true,
+        "hasIncomeTiers": false,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
@@ -468,22 +527,22 @@
       }
     },
     {
-      "name": "NYS Supportive Housing Program",
+      "name": "Expanded In-home Services for the Elderly Program (EISEP)",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "NYS Office of Mental Health (OMH) providers, LGUs[7].",
+            "name": "Local Area Agencies on Aging",
             "type": "service-area"
           },
           {
-            "name": "NYC DHS/HRA for NYC referrals[2][3][5].",
+            "name": "NY Connects",
             "type": "service-area"
           },
           {
-            "name": "Nonprofit 501(c)3 organizations experienced in SMI housing[6].",
+            "name": "Examples: EAC Network (Nassau), Jefferson County Office for the Aging, Catholic Charities/Family and Community Services (Monroe)",
             "type": "service-area"
           }
         ]
@@ -491,7 +550,6 @@
       "complexity": "deep",
       "recommendedSections": [
         "prose",
-        "income-table",
         "what-counts",
         "tier-comparison",
         "documents",
@@ -500,11 +558,32 @@
       ],
       "signals": {
         "benefitType": "service",
-        "hasIncomeTiers": true,
+        "hasIncomeTiers": false,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
         "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Golden Park Program",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose"
+      ],
+      "signals": {
+        "benefitType": "in_kind",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
         "isStatewide": true
       }
     }

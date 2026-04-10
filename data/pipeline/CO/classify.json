@@ -1,22 +1,22 @@
 {
   "state": "CO",
   "stateName": "Colorado",
-  "classifiedAt": "2026-04-09T09:29:17.470Z",
-  "total": 14,
+  "classifiedAt": "2026-04-09T12:25:44.031Z",
+  "total": 13,
   "typeSummary": {
-    "benefit": 11,
-    "resource": 2,
+    "benefit": 9,
+    "resource": 3,
     "employment": 1
   },
   "scopeSummary": {
     "state": 7,
-    "local": 2,
+    "local": 1,
     "federal": 5
   },
   "complexitySummary": {
-    "deep": 11,
-    "simple": 2,
-    "medium": 1
+    "deep": 8,
+    "simple": 3,
+    "medium": 2
   },
   "programs": [
     {
@@ -27,7 +27,7 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Local county Department of Human Services offices",
+            "name": "Local county Department of Human Services offices statewide.",
             "type": "service-area"
           }
         ]
@@ -53,28 +53,17 @@
       }
     },
     {
-      "name": "Colorado Medicaid HCBS Waivers (e.g., Home Care Allowance)",
+      "name": "Home and Community-Based Services (HCBS) Waivers in Colorado",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "64 County Departments of Human/Social Services",
-            "type": "service-area"
-          },
-          {
-            "name": "47 Case Management Agencies (regional)",
-            "type": "service-area"
-          }
-        ]
+        "stateVariation": false
       },
       "complexity": "deep",
       "recommendedSections": [
         "prose",
         "income-table",
         "what-counts",
-        "tier-comparison",
         "documents",
         "county-directory",
         "callout"
@@ -85,23 +74,19 @@
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": true,
-        "hasMultipleTiers": true,
+        "hasMultipleTiers": false,
         "isStatewide": true
       }
     },
     {
-      "name": "Colorado PACE",
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
       "programType": "benefit",
       "geographicScope": {
         "type": "local",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Colorado PACE (main): 303-381-1234, Office Hours 8 AM–5 PM Monday–Friday[2]",
-            "type": "service-area"
-          },
-          {
-            "name": "Rocky Mountain PACE: 719-314-2327[6]",
+            "name": "Colorado PACE (primary identified provider; specific office locations not provided in search results)",
             "type": "service-area"
           }
         ]
@@ -109,6 +94,7 @@
       "complexity": "deep",
       "recommendedSections": [
         "prose",
+        "income-table",
         "what-counts",
         "documents",
         "county-directory",
@@ -116,7 +102,7 @@
       ],
       "signals": {
         "benefitType": "service",
-        "hasIncomeTiers": false,
+        "hasIncomeTiers": true,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": true,
@@ -125,7 +111,7 @@
       }
     },
     {
-      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "name": "Supplemental Nutrition Assistance Program (SNAP)",
       "programType": "benefit",
       "geographicScope": {
         "type": "federal",
@@ -156,39 +142,6 @@
       }
     },
     {
-      "name": "LEAP (Low-income Energy Assistance Program)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "County human services offices; Goodwill Colorado (state processor); Energy Outreach Colorado[1][3][4][5]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "tier-comparison",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "financial",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
-        "isStatewide": true
-      }
-    },
-    {
       "name": "Weatherization Assistance Program (WAP)",
       "programType": "benefit",
       "geographicScope": {
@@ -196,19 +149,19 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Energy Resource Center (Denver): 953 Decatur St, Denver, CO 80204, (720) 236-1321[1]",
+            "name": "Pueblo County Human Services",
             "type": "service-area"
           },
           {
-            "name": "NWCCOG (northwest CO)[2]",
+            "name": "Energy Resource Center (Denver, Boulder, Larimer, Weld)",
             "type": "service-area"
           },
           {
-            "name": "Pueblo County[5]",
+            "name": "NWCCOG (NW Colorado)",
             "type": "service-area"
           },
           {
-            "name": "Local providers via Colorado Energy Office or utility (Xcel, Atmos, etc.)[3][4]",
+            "name": "Local agencies via Colorado Energy Office",
             "type": "service-area"
           }
         ]
@@ -218,7 +171,6 @@
         "prose",
         "income-table",
         "what-counts",
-        "tier-comparison",
         "documents",
         "county-directory",
         "callout"
@@ -229,19 +181,23 @@
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
+        "hasMultipleTiers": false,
         "isStatewide": true
       }
     },
     {
-      "name": "Colorado SHIP (State Health Insurance Assistance Program)",
+      "name": "State Health Insurance Assistance Program (SHIP)",
       "programType": "resource",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Primary: Department of Regulatory Agencies, 1560 Broadway Suite 850, Denver CO 80202; local network of over 2,200 sites nationally, including Colorado partners[2][4]",
+            "name": "State office: Department of Regulatory Agencies, 1560 Broadway, Suite 850, Denver, CO 80202[3]",
+            "type": "service-area"
+          },
+          {
+            "name": "Local: Area Agencies on Aging and over 2,200 national sites, including Colorado partners[2][6][8]",
             "type": "service-area"
           }
         ]
@@ -262,30 +218,22 @@
       }
     },
     {
-      "name": "Meals on Wheels Colorado",
+      "name": "Community Access Services (CAS) and Respite Care",
       "programType": "benefit",
       "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
+        "type": "state",
+        "stateVariation": false,
         "localEntities": [
           {
-            "name": "VOA Colorado (Denver metro counties)",
+            "name": "Local county Case Management Agency (CMA)[5]",
             "type": "service-area"
           },
           {
-            "name": "Meals on Wheels Fort Collins",
+            "name": "Community Connections, Inc. for Southwest Colorado[2]",
             "type": "service-area"
           },
           {
-            "name": "Broomfield Senior Services",
-            "type": "service-area"
-          },
-          {
-            "name": "Meals on Wheels Mesa County",
-            "type": "service-area"
-          },
-          {
-            "name": "Coal Creek Meals on Wheels",
+            "name": "Developmental Disabilities Resource Center (DDRC)[5]",
             "type": "service-area"
           }
         ]
@@ -295,6 +243,7 @@
         "prose",
         "income-table",
         "what-counts",
+        "tier-comparison",
         "documents",
         "county-directory",
         "callout"
@@ -304,32 +253,9 @@
         "hasIncomeTiers": true,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": false
-      }
-    },
-    {
-      "name": "Community Access Services (CAS)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "local",
-        "stateVariation": false
-      },
-      "complexity": "medium",
-      "recommendedSections": [
-        "prose",
-        "what-counts",
-        "documents"
-      ],
-      "signals": {
-        "benefitType": "not_applicable",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": false,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": false
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": true,
+        "isStatewide": true
       }
     },
     {
@@ -340,11 +266,15 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "SER National (covers Colorado)",
+            "name": "SER National (https://ser-national.org/scsep-2/ – serves Colorado)",
             "type": "service-area"
           },
           {
-            "name": "Other DOL grantees (19 national non-profits and state agencies; locate via local workforce office or dol.gov)",
+            "name": "IPDC (https://www.ipdcscsep.org/scsep-application – Colorado areas)",
+            "type": "service-area"
+          },
+          {
+            "name": "Local sub-grantees via CWI Works network or state agencies (check state-specific)",
             "type": "service-area"
           }
         ]
@@ -358,34 +288,22 @@
       "signals": {
         "benefitType": "employment",
         "hasIncomeTiers": true,
-        "hasAssetLimits": true,
+        "hasAssetLimits": false,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
         "hasMultipleTiers": true,
-        "isStatewide": true
+        "isStatewide": false
       }
     },
     {
-      "name": "Colorado Legal Services (Senior Legal Hotline)",
+      "name": "Colorado Legal Services (Legal Aid for Seniors)",
       "programType": "resource",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "13 offices statewide (specific locations available at coloradolegalservices.org)[4]",
-            "type": "service-area"
-          },
-          {
-            "name": "Colorado Springs: 102 S. Tejon Street Ste 430, CO 80903, (719)471-0380[8]",
-            "type": "service-area"
-          },
-          {
-            "name": "Pueblo County: Provided by Colorado Legal Services[1]",
-            "type": "service-area"
-          },
-          {
-            "name": "Larimer County: Senior Access Points office[3]",
+            "name": "13 CLS offices; 21 legal assistance providers via 16 AAA regions for elders[3][4]",
             "type": "service-area"
           }
         ]
@@ -396,8 +314,44 @@
         "county-directory"
       ],
       "signals": {
-        "benefitType": "service|advocacy",
+        "benefitType": "service",
         "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "State: https://www.coombudsman.org",
+            "type": "service-area"
+          },
+          {
+            "name": "Boulder: Erica Corson, 303-441-1170",
+            "type": "service-area"
+          },
+          {
+            "name": "Pueblo: SRDA, 719-601-6282",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "advocacy",
+        "hasIncomeTiers": false,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
@@ -413,22 +367,21 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "County departments of human services (e.g., Boulder, Douglas, Grand, Mesa Counties)[3][5][6]",
+            "name": "Local county human services departments (e.g., Boulder, Douglas, Grand, Jefferson, Mesa Counties)[3][5][6][7]",
             "type": "service-area"
           }
         ]
       },
-      "complexity": "deep",
+      "complexity": "medium",
       "recommendedSections": [
         "prose",
-        "income-table",
         "what-counts",
         "documents",
         "county-directory"
       ],
       "signals": {
         "benefitType": "financial",
-        "hasIncomeTiers": true,
+        "hasIncomeTiers": false,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
@@ -444,7 +397,15 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Local county human services (e.g., Douglas: 4400 Castleton Ct, Castle Rock; Jefferson County office)[2][3].",
+            "name": "Douglas County: 4400 Castleton Court, Castle Rock, CO 80109[2]",
+            "type": "service-area"
+          },
+          {
+            "name": "Jefferson County: Contact through county human services[3]",
+            "type": "service-area"
+          },
+          {
+            "name": "Statewide: Apply through Colorado PEAK or contact local county human services office",
             "type": "service-area"
           }
         ]
@@ -452,19 +413,18 @@
       "complexity": "deep",
       "recommendedSections": [
         "prose",
-        "income-table",
         "what-counts",
-        "tier-comparison",
         "documents",
-        "county-directory"
+        "county-directory",
+        "callout"
       ],
       "signals": {
         "benefitType": "financial",
-        "hasIncomeTiers": true,
+        "hasIncomeTiers": false,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": true,
-        "hasMultipleTiers": true,
+        "hasMultipleTiers": false,
         "isStatewide": true
       }
     },
@@ -476,12 +436,12 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "County Department of Human Services offices statewide",
+            "name": "Administered by Colorado’s Office on Aging; apply via local county Department of Human Services",
             "type": "service-area"
           }
         ]
       },
-      "complexity": "deep",
+      "complexity": "medium",
       "recommendedSections": [
         "prose",
         "income-table",
@@ -493,7 +453,7 @@
         "benefitType": "financial",
         "hasIncomeTiers": true,
         "hasAssetLimits": true,
-        "hasRegionalVariation": true,
+        "hasRegionalVariation": false,
         "hasFunctionalReq": false,
         "hasMultipleTiers": false,
         "isStatewide": true

@@ -1,15 +1,275 @@
 {
   "state": "NJ",
   "stateName": "New Jersey",
-  "draftedAt": "2026-04-09T09:39:07.714Z",
-  "total": 11,
-  "successful": 3,
+  "draftedAt": "2026-04-09T15:26:03.381Z",
+  "total": 8,
+  "successful": 8,
   "programs": [
     {
-      "id": "nj-familycare-abd-medicaid",
-      "name": "NJ FamilyCare Aged, Blind, Disabled (ABD) Medicaid Programs",
-      "shortName": "NJ FamilyCare ABD",
-      "tagline": "If your parent is 65+ or disabled in New Jersey, this Medicaid program covers their medical costs and may pay their Medicare premiums.",
+      "id": "new-jersey-stay-nj-property-tax-relief",
+      "name": "Stay NJ",
+      "shortName": "Stay NJ",
+      "tagline": "If your parent is 65+ and owns their New Jersey home, they may qualify for up to $6,500 back on property taxes.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false
+      },
+      "intro": "If your parent is 65+ and owns their New Jersey home, Stay NJ can reimburse 50% of their property taxes — up to $6,500 per year. Because the program reimburses actual property taxes paid, parents with higher tax bills get larger benefits (those paying $13,000+ in property taxes receive the maximum $6,500).\n\nYour parent must have owned and lived in their New Jersey home for the full prior year and have annual income below $500,000. The program covers traditional homeowners paying property taxes or P.I.L.O.T. payments, but mobile homeowners don't qualify. One application (PAS-1) automatically checks eligibility for Stay NJ plus other New Jersey property tax relief programs.",
+      "savingsRange": "$1 – $6,500/year in 2026",
+      "savingsSource": "50% reimbursement of property taxes up to maximum $6,500",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+",
+          "Own New Jersey home",
+          "Income below $500,000/year",
+          "Lived in home full prior year"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must own and live in New Jersey home as principal residence for full 12 months of prior year",
+          "Must pay property taxes (mobile homeowners not eligible)",
+          "P.I.L.O.T. payments qualify"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online at propertytaxreliefapp.nj.gov or mail the PAS-1 form by October 31.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Gather documents",
+            "description": "Latest property tax bill and gross income from most recent state tax return"
+          },
+          {
+            "step": 2,
+            "title": "Choose application method",
+            "description": "Online requires ID.me verification with driver's license, state ID, or passport. Mail option: print and send PAS-1 form"
+          },
+          {
+            "step": 3,
+            "title": "Complete PAS-1 application",
+            "description": "Single form automatically checks eligibility for Stay NJ, ANCHOR, and Senior Freeze programs"
+          },
+          {
+            "step": 4,
+            "title": "Submit by deadline",
+            "description": "Applications due October 31. Online required for direct deposit of reimbursement"
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Apply online if possible — it's required for direct deposit and processes faster than mail applications.",
+        "urls": [
+          {
+            "label": "Apply Online",
+            "url": "https://propertytaxreliefapp.nj.gov"
+          },
+          {
+            "label": "Download PAS-1 Form",
+            "url": "https://www.nj.gov/treasury/taxation/staynj/index.shtml"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Driver's license, state ID, passport card, or passport (for online application only)"
+              ]
+            },
+            {
+              "name": "Property",
+              "items": [
+                "Latest property tax bill",
+                "Property information from state Tax Assessor's office (if no tax bill available)"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Gross income from most recent New Jersey state income tax return"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "The October 31 deadline is firm. If your parent misses it, they'll have to wait until the next application cycle for the following tax year."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "How much will my parent actually get back?",
+          "answer": "Your parent gets 50% of their property taxes back, up to $6,500 maximum. If they pay $8,000 in property taxes, they get $4,000. If they pay $15,000, they get the maximum $6,500."
+        },
+        {
+          "question": "What if my parent just moved to their current home?",
+          "answer": "They must have owned and lived in the home for the full 12 months of the prior year. If they moved in 2025, they can't apply until 2027 (for 2026 taxes)."
+        },
+        {
+          "question": "Can my parent get Stay NJ if they live in a mobile home?",
+          "answer": "No. Mobile homeowners are explicitly not eligible for Stay NJ, even if they pay property taxes or site fees."
+        },
+        {
+          "question": "What if my parent's income is from Social Security disability?",
+          "answer": "Social Security disability income counts toward the $500,000 limit, but disability status alone doesn't qualify them for Stay NJ — they must still be 65+ and meet all other requirements."
+        },
+        {
+          "question": "Will applying for Stay NJ affect other benefits my parent receives?",
+          "answer": "No. Stay NJ is a property tax reimbursement that doesn't count as income for other programs like SNAP or Medicaid."
+        },
+        {
+          "question": "What happens if the state determines my parent qualifies for multiple programs?",
+          "answer": "The PAS-1 application automatically checks eligibility for Stay NJ, ANCHOR, and Senior Freeze. Your parent will receive whichever program provides the highest benefit — they can't combine programs."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://www.nj.gov/treasury/taxation/staynj/index.shtml",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "new-jersey-senior-freeze-property-tax-reimbursement",
+      "name": "Senior Freeze (Property Tax Reimbursement)",
+      "shortName": "Senior Freeze",
+      "tagline": "Get reimbursed for property tax increases if your parent is 65+ and has lived in their New Jersey home for years.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "NJ Division of Taxation (statewide)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 65+ and owns their New Jersey home, they may qualify to get money back when property taxes increase. Senior Freeze reimburses the difference between current property taxes and what they paid in their first qualifying year (called the \"base year\"). This isn't a tax freeze — taxes still go up, but the state pays the increase.\n\nYour parent must have lived in New Jersey continuously for 10 years and owned their home since their base year. Income limit: $99,735 or less per year for recent applications (limits updated annually). They must meet all requirements every single year from their base year through the application year to remain eligible.",
+      "savingsRange": "",
+      "savingsSource": "Reimbursement varies by property tax increases",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+",
+          "10+ years in New Jersey",
+          "Income under $99,735/year",
+          "Own and live in home since base year"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Lived in New Jersey continuously for 10 years before base year",
+          "Owned and lived in same home since base year through application year",
+          "Property taxes paid by June 1 each year (homeowners) or site fees by December 31 (mobile home owners)",
+          "Must meet all requirements every year from base year to application year"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online through the combined PAS-1 application, which also covers ANCHOR and Stay NJ programs.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Gather required documents",
+            "description": "Collect proof of age, 10 years of New Jersey residency, home ownership documents, and property tax payment receipts for all relevant years."
+          },
+          {
+            "step": 2,
+            "title": "Complete PAS-1 application online",
+            "description": "Use the combined application at nj.gov/treasury/taxation/ptr/ — this single form covers Senior Freeze, ANCHOR, and Stay NJ programs."
+          },
+          {
+            "step": 3,
+            "title": "Submit income documentation",
+            "description": "Provide income records for all years from your parent's base year through the application year."
+          },
+          {
+            "step": 4,
+            "title": "Wait for state determination",
+            "description": "New Jersey will send a letter explaining which programs your parent qualifies for and the reimbursement amount."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Don't try to calculate the reimbursement yourself — the state determines eligibility and amount after reviewing your application.",
+        "urls": [
+          {
+            "label": "Apply online (PAS-1)",
+            "url": "https://www.nj.gov/treasury/taxation/ptr/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "Contact Information",
+          "offices": [
+            {
+              "name": "NJ Division of Taxation",
+              "type": "service-area",
+              "phone": "1-800-882-6597",
+              "address": "Statewide service"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Your parent must meet ALL requirements every single year from their base year to the application year. Missing eligibility for even one year disqualifies them permanently."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if Mom's property taxes went down instead of up?",
+          "answer": "She won't receive any reimbursement that year since Senior Freeze only pays for increases above the base year amount. But she can still apply to maintain eligibility for future years when taxes might increase."
+        },
+        {
+          "question": "Can Dad still get Senior Freeze if he moves to a different house in New Jersey?",
+          "answer": "Only if he received reimbursement for his previous residence in the last full year he lived there. Otherwise, moving breaks the continuous ownership requirement and he loses eligibility."
+        },
+        {
+          "question": "What happens if Mom was eligible for three years but missed applying one year?",
+          "answer": "She loses Senior Freeze eligibility permanently. The program requires meeting all requirements every single year from the base year through the application year with no gaps."
+        },
+        {
+          "question": "Does the income limit include both parents if they're married?",
+          "answer": "Yes. If your parents are married or in a civil union and living in the same home, their combined income must be under the limit ($99,735 for recent applications)."
+        },
+        {
+          "question": "When is the application deadline?",
+          "answer": "Deadlines are strict and vary by year. For example, 2025 applications are due by November 2, 2026. Check the current deadline at nj.gov/treasury/taxation/ptr/ since late applications aren't accepted."
+        },
+        {
+          "question": "What's the difference between Senior Freeze and ANCHOR?",
+          "answer": "Senior Freeze reimburses property tax increases above your parent's base year amount. ANCHOR provides a flat benefit amount. The same PAS-1 application covers both — New Jersey determines which programs your parent qualifies for."
+        }
+      ],
+      "phone": "1-800-882-6597",
+      "sourceUrl": "https://www.nj.gov/treasury/taxation/ptr/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "new-jersey-jacc-home-care",
+      "name": "Jersey Assistance for Community Caregiving (JACC)",
+      "shortName": "JACC",
+      "tagline": "If your parent needs nursing home-level care but earns too much for Medicaid, JACC provides up to $1,156/month in home care services.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -17,144 +277,90 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "County Boards of Social Services",
+            "name": "County Aging and Disability Resource Connections via 1-877-222-3737",
             "type": "service-area"
           },
           {
-            "name": "ADRC for LTSS clinical eval",
+            "name": "Examples: Hunterdon Human Services (908-788-1361), Warren Division of Aging (908-475-6591), FCS Monmouth/Mercer/Ocean[2][3][7]",
             "type": "service-area"
           }
         ]
       },
-      "intro": "If your parent is 65+, blind, or disabled and living on a fixed income in New Jersey, NJ FamilyCare ABD covers nearly all their healthcare costs — including doctor visits, hospital stays, prescriptions, and Medicare premiums if they have Medicare. Because this program has multiple tiers with different income limits, your parent may qualify even if their income seems too high for traditional Medicaid.\n\nFor parents who need daily help with bathing, dressing, or medication management, the program also covers long-term care services through managed care plans. If your parent receives SSI, they automatically qualify — no separate application needed.\n\nThe program considers your parent's income and assets, with limits ranging from $1,350/month for individuals in the basic tier up to slightly higher amounts in other tiers. Asset limits are $4,000 for single people and $6,000 for couples in most programs.",
+      "intro": "If your parent needs daily help with bathing, dressing, or medication but earns too much to qualify for Medicaid, JACC bridges this gap. The program provides up to $1,156 per month in home care services — including personal care, homemaking, and care coordination — for New Jersey residents age 60+ who need nursing facility level of care but want to stay home.\n\nBecause JACC serves people who fall in the coverage gap (too much income for Medicaid, not enough for private care), it has higher income limits — up to 365% of Federal Poverty Level. Your parent pays a sliding-scale co-pay based on their income, but the bulk of services are covered.\n\nThe program also allows your parent to hire family members or friends as paid caregivers through the Participant-Employed Providers option, giving you more control over who provides care.",
       "savingsRange": "",
-      "savingsSource": "Free service",
+      "savingsSource": "Free service with sliding-scale co-pay",
       "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
-          "Age 65+ or blind/disabled",
-          "Income under $1,350-1,763/month",
-          "Assets under $4,000-6,000",
+          "Age 60+",
+          "Income up to 365% Federal Poverty Level",
+          "Need nursing home-level care",
+          "Ineligible for Medicaid",
           "New Jersey resident"
         ],
-        "ageRequirement": "65+",
-        "incomeTable": [
-          {
-            "householdSize": 1,
-            "monthlyLimit": 1350
-          },
-          {
-            "householdSize": 2,
-            "monthlyLimit": 1763
-          }
-        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
         "assetLimits": {
-          "individual": 4000,
-          "couple": 6000,
-          "countedAssets": [
-            "Financial accounts and resources"
-          ],
+          "individual": 40000,
+          "couple": 60000,
+          "countedAssets": [],
           "exemptAssets": [],
           "homeEquityCap": null
         },
-        "functionalRequirement": "For long-term care services: must meet nursing facility level of care (clinical assessment of whether your parent needs daily help with bathing, dressing, or medication management)",
+        "functionalRequirement": "Must be determined clinically eligible for nursing facility level of care (needs daily help with activities like bathing, dressing, or medication management)",
         "otherRequirements": [
-          "U.S. citizen or qualified immigrant",
-          "No intent to leave New Jersey"
+          "New Jersey resident",
+          "Lives in own home or with family/friends (not in licensed facility)",
+          "US citizen or Qualified Alien",
+          "Not receiving other state-funded programs"
         ],
-        "povertyLevelReference": "100% FPL"
+        "povertyLevelReference": "365% FPL"
       },
       "applicationGuide": {
-        "method": "multiple",
-        "summary": "Apply online at njfamilycare.org or call your county Board of Social Services — processing time not specified.",
+        "method": "phone",
+        "summary": "Call 1-877-222-3737 for NJ EASE to start the application and clinical assessment process.",
         "steps": [
           {
             "step": 1,
-            "title": "Gather 5 years of financial records",
-            "description": "If applying for long-term care services, you'll need 5 years of bank statements, asset transfers, and financial documentation due to the look-back period."
+            "title": "Call NJ EASE",
+            "description": "Call 1-877-222-3737 to begin the application process and schedule a clinical assessment."
           },
           {
             "step": 2,
-            "title": "Complete the ABD application",
-            "description": "Use the NJ FamilyCare Aged, Blind, Disabled Program Application online at njfamilycare.org or download the PDF from the state website."
+            "title": "Complete clinical assessment",
+            "description": "A care manager will assess your parent's need for nursing facility level of care and determine eligibility."
           },
           {
             "step": 3,
-            "title": "Contact your county office",
-            "description": "Call your county Board of Social Services to submit documents and schedule any required interviews."
+            "title": "Financial review",
+            "description": "Provide income, asset, and residency documentation for financial eligibility determination."
           },
           {
             "step": 4,
-            "title": "Get clinical evaluation if needed",
-            "description": "If your parent needs long-term care services, contact your local ADRC (Area Agency on Aging) for the nursing facility level of care assessment."
+            "title": "Develop Plan of Care",
+            "description": "If eligible, work with care manager to create a personalized Plan of Care based on your parent's specific needs and monthly service cap."
           }
         ],
         "processingTime": null,
-        "waitlist": null,
-        "tip": "If your parent already receives SSI, they're automatically eligible — contact your county office to confirm enrollment rather than starting a new application.",
+        "waitlist": "Subject to funding availability — waitlists may exist",
+        "tip": "Have your parent's income, asset, and medical information ready when you call to speed up the process.",
         "urls": [
           {
-            "label": "Apply Online",
-            "url": "https://njfamilycare.org"
-          },
-          {
-            "label": "Download Application",
-            "url": "https://www.nj.gov/humanservices/dmahs/clients/medicaid/abd/"
+            "label": "Official JACC Page",
+            "url": "https://www.state.nj.us/humanservices/doas/services/jacc/"
           }
         ]
       },
       "contentSections": [
         {
-          "type": "income-table",
-          "heading": "Income Limits by Household Size (2025)",
-          "rows": [
-            {
-              "householdSize": "Single person",
-              "monthlyLimit": "$1,350",
-              "annualLimit": "$16,200"
-            },
-            {
-              "householdSize": "Married couple",
-              "monthlyLimit": "$1,763",
-              "annualLimit": "$21,156"
-            }
-          ],
-          "footnote": "2025 limits for New Jersey Care/Special Medicaid and NJRAER ABD programs"
-        },
-        {
           "type": "what-counts",
           "heading": "Asset Limits: What Counts",
           "included": [
-            "Bank accounts and savings",
-            "Investment accounts",
-            "Other financial resources"
+            "Countable resources must be $40,000 or less for individual",
+            "Countable resources must be $60,000 or less for couple"
           ],
           "excluded": [
-            "Information not detailed in official sources — contact county office for complete list"
-          ]
-        },
-        {
-          "type": "tier-comparison",
-          "heading": "Program Tiers",
-          "tiers": [
-            {
-              "name": "SSI-Related Medicaid Only",
-              "description": "For SSI recipients or those meeting SSI income/asset standards",
-              "incomeLimit": "SSI standards (varies)",
-              "coverage": "Basic Medicaid coverage"
-            },
-            {
-              "name": "New Jersey Care/Special Medicaid",
-              "description": "For those at or below 100% Federal Poverty Level",
-              "incomeLimit": "$1,350/month single, $1,763/month couple",
-              "coverage": "Comprehensive Medicaid coverage"
-            },
-            {
-              "name": "NJRAER ABD",
-              "description": "For working disabled with slightly higher income",
-              "incomeLimit": "Up to $1,350/month individual, $1,763/month couple",
-              "coverage": "Medicaid coverage for working disabled"
-            }
+            "Specific exempt assets not detailed in available sources"
           ]
         },
         {
@@ -164,212 +370,24 @@
             {
               "name": "Identity & Residency",
               "items": [
-                "Photo ID or driver's license",
-                "Proof of New Jersey residency",
-                "Citizenship or immigration documentation"
-              ]
-            },
-            {
-              "name": "Financial Records",
-              "items": [
-                "5 years of bank statements (if applying for long-term care)",
-                "Proof of income from all sources",
-                "Asset documentation",
-                "SSI award letter (if applicable)"
-              ]
-            },
-            {
-              "name": "Medical",
-              "items": [
-                "Medicare card (if applicable)",
-                "SSA disability determination (if under 65)",
-                "Medical records supporting need for long-term care"
-              ]
-            }
-          ]
-        },
-        {
-          "type": "callout",
-          "tone": "warning",
-          "text": "If your parent needs long-term care services, any asset transfers in the past 5 years below fair market value can delay eligibility. Keep records of all financial transactions."
-        }
-      ],
-      "faqs": [
-        {
-          "question": "Can Mom keep her house if she qualifies for NJ FamilyCare ABD?",
-          "answer": "The research doesn't specify home equity exemptions, but most Medicaid programs allow you to keep your primary residence. Contact your county Board of Social Services for specific rules about home ownership."
-        },
-        {
-          "question": "What if Dad already has Medicare — will this program still help?",
-          "answer": "Yes. If your dad has Medicare, NJ FamilyCare ABD will pay his Medicare premiums and cover costs that Medicare doesn't pay, like copays and deductibles. Medicare remains his primary insurance."
-        },
-        {
-          "question": "My parent's income is just over the limit — are there any options?",
-          "answer": "Yes. Because there are multiple program tiers with different income limits, your parent may qualify for a different tier. The NJRAER ABD program is specifically designed for working disabled individuals with slightly higher incomes."
-        },
-        {
-          "question": "How long does the 5-year look-back period affect eligibility?",
-          "answer": "The 5-year look-back only applies if your parent needs long-term care services. If they transferred assets below fair market value during those 5 years, it could delay eligibility. Basic medical coverage isn't subject to this rule."
-        },
-        {
-          "question": "Will the state try to recover costs from Mom's estate after she passes away?",
-          "answer": "Potentially, but not if there's a surviving spouse, or a child under 21, blind, or disabled. Estate recovery rules apply, but there are important protections for families."
-        },
-        {
-          "question": "Does my parent's spouse's income count toward the limits?",
-          "answer": "Yes. The program considers spousal income and resources when determining eligibility. Both spouses' finances are evaluated together for married couples."
-        }
-      ],
-      "phone": null,
-      "sourceUrl": "https://www.nj.gov/humanservices/dmahs/clients/medicaid/abd/",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-09"
-    },
-    {
-      "id": "new-jersey-mltss",
-      "name": "Managed Long Term Services and Supports (MLTSS)",
-      "shortName": "MLTSS",
-      "tagline": "If your parent needs daily help with bathing, dressing, or eating, this program covers nursing home care or home-based support.",
-      "programType": "benefit",
-      "complexity": "deep",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false
-      },
-      "intro": "If your parent needs nursing home-level care but you want them to stay home, New Jersey's MLTSS program can pay for personal care assistants, nursing services, and other support in their own home or assisted living. Your parent must need hands-on help with at least 3 daily activities like bathing, dressing, eating, toileting, moving from bed to chair, or walking around. Because MLTSS is managed care, one team coordinates all their medical care and support services — no juggling between different providers. The program covers both nursing home care and community-based care, so your parent can receive services at home instead of moving to a facility.",
-      "savingsRange": "",
-      "savingsSource": "Free service",
-      "savingsVerified": false,
-      "structuredEligibility": {
-        "summary": [
-          "Age 21+",
-          "Income below $2,982/month (2026)",
-          "Assets under $2,000 (individual)",
-          "Need help with 3+ daily activities"
-        ],
-        "ageRequirement": "21+",
-        "incomeTable": [
-          {
-            "householdSize": 1,
-            "monthlyLimit": 2982
-          }
-        ],
-        "assetLimits": {
-          "individual": 2000,
-          "couple": 3000,
-          "countedAssets": [
-            "Bank accounts",
-            "Savings",
-            "Investments",
-            "Cash"
-          ],
-          "exemptAssets": [
-            "Primary home (up to $1,097,000 equity)",
-            "Household furnishings",
-            "Personal effects",
-            "One vehicle"
-          ],
-          "homeEquityCap": 1097000
-        },
-        "functionalRequirement": "Must need hands-on assistance with at least 3 activities of daily living (bathing, dressing, eating, toileting, transferring from bed to chair, or mobility)",
-        "otherRequirements": [
-          "U.S. citizen or qualified immigrant",
-          "New Jersey resident",
-          "Age 65+ OR determined disabled by Social Security"
-        ],
-        "povertyLevelReference": null
-      },
-      "applicationGuide": {
-        "method": "multiple",
-        "summary": "Contact your county's Aging and Disability Resource Center if your parent doesn't have Medicaid, or their current Medicaid plan if they do.",
-        "steps": [
-          {
-            "step": 1,
-            "title": "Determine application path",
-            "description": "If your parent already has Medicaid, contact their assigned Managed Care Organization. If not, contact your county's Aging and Disability Resource Center."
-          },
-          {
-            "step": 2,
-            "title": "Complete clinical assessment",
-            "description": "A state assessor will evaluate whether your parent meets nursing facility level of care by documenting their need for help with daily activities."
-          },
-          {
-            "step": 3,
-            "title": "Financial eligibility review",
-            "description": "Provide income, asset, and citizenship documentation. The 60-month look-back period will review any asset transfers."
-          },
-          {
-            "step": 4,
-            "title": "MCO enrollment",
-            "description": "Once approved, your parent must enroll with a Managed Care Organization to receive services."
-          }
-        ],
-        "processingTime": null,
-        "waitlist": null,
-        "tip": "Gather 5 years of financial records before applying — any gifts or below-market sales within 60 months can trigger a penalty period.",
-        "urls": [
-          {
-            "label": "Official MLTSS Information",
-            "url": "https://www.nj.gov/humanservices/dmahs/home/mltss.html"
-          }
-        ]
-      },
-      "contentSections": [
-        {
-          "type": "income-table",
-          "heading": "Income Limits by Household Size",
-          "rows": [
-            {
-              "householdSize": 1,
-              "monthlyLimit": 2982,
-              "yearlyLimit": 35784
-            }
-          ],
-          "footnote": "2026 limits. Each spouse in a couple is evaluated individually at $2,982/month. Limits increase annually in January."
-        },
-        {
-          "type": "what-counts",
-          "heading": "Asset Limits: What Counts",
-          "included": [
-            "Bank accounts and savings",
-            "Investments and stocks",
-            "Cash on hand",
-            "Second homes or rental property"
-          ],
-          "excluded": [
-            "Primary home (if equity under $1,097,000)",
-            "Household furnishings and appliances",
-            "Personal effects and clothing",
-            "One vehicle of any value"
-          ]
-        },
-        {
-          "type": "documents",
-          "heading": "What to Bring",
-          "categories": [
-            {
-              "name": "Identity",
-              "items": [
-                "Birth certificate or passport",
-                "Social Security card",
+                "Proof of US citizenship or Qualified Alien status",
                 "Proof of New Jersey residency"
               ]
             },
             {
               "name": "Financial",
               "items": [
-                "Bank statements (last 60 months)",
-                "Social Security award letter",
-                "Tax returns (recent)",
-                "Records of any asset transfers or gifts (last 5 years)"
+                "Income documentation (Social Security, pensions, wages)",
+                "Asset statements (bank accounts, investments)",
+                "Proof of other benefits received"
               ]
             },
             {
               "name": "Medical",
               "items": [
-                "Medical records documenting functional limitations",
-                "List of current medications",
-                "Social Security disability determination letter (if applicable)"
+                "Medical records showing need for daily assistance",
+                "Current medications list",
+                "Healthcare provider contact information"
               ]
             }
           ]
@@ -377,73 +395,73 @@
         {
           "type": "callout",
           "tone": "warning",
-          "text": "60-month look-back rule: Any gifts or below-market sales within 5 years before applying will trigger a penalty period where your parent cannot receive benefits. This includes transfers to family members, even with good intentions."
+          "text": "JACC has monthly service caps around $1,100-$1,156 per person and is subject to funding availability. Waitlists may exist."
         },
         {
           "type": "callout",
           "tone": "tip",
-          "text": "If your parent's income is over $2,982/month, ask about a Qualified Income Trust (QIT). This legal tool can help them qualify by redirecting excess income, but requires attorney setup."
+          "text": "JACC allows your parent to hire family members or friends as paid caregivers through the Participant-Employed Providers option — this gives you more control over care."
         }
       ],
       "faqs": [
         {
-          "question": "Can my parent keep their house if they qualify for MLTSS?",
-          "answer": "Yes, if they live there or intend to return, and if the home equity is under $1,097,000 (2025 limit). The primary home doesn't count toward the $2,000 asset limit."
+          "question": "Can my parent keep their house and savings if they qualify for JACC?",
+          "answer": "Yes. Your parent can own their home and have up to $40,000 in countable assets ($60,000 for couples). Because JACC isn't Medicaid, there are no estate recovery requirements."
         },
         {
-          "question": "What if Mom's income is $3,100/month — just over the $2,982 limit?",
-          "answer": "She may still qualify through a Qualified Income Trust (QIT). This legal arrangement redirects the excess income and requires attorney setup, but can make her eligible."
+          "question": "What if my parent's income is just over the Medicaid limit but they need help at home?",
+          "answer": "JACC is designed exactly for this situation. It serves people who earn too much for Medicaid but still need nursing home-level care. Income limits go up to 365% of Federal Poverty Level, much higher than Medicaid."
         },
         {
-          "question": "Does having dementia automatically qualify my father?",
-          "answer": "No. A dementia diagnosis alone doesn't qualify. He must need hands-on help with at least 3 daily activities like bathing, dressing, or eating. The state will assess his actual functional limitations."
+          "question": "Can I get paid to care for my parent through JACC?",
+          "answer": "Yes. JACC's Participant-Employed Providers option allows your parent to hire family members or friends as paid caregivers, giving you more control over who provides care."
         },
         {
-          "question": "We gave $20,000 to help our daughter buy a house 2 years ago. Will this affect Dad's application?",
-          "answer": "Yes. This gift will trigger a penalty period where your father cannot receive MLTSS benefits. The penalty length depends on the gift amount and when it was made within the 60-month look-back period."
+          "question": "How much will my parent have to pay out-of-pocket?",
+          "answer": "Your parent pays a sliding-scale co-pay based on their countable income. The exact amount depends on their financial situation, but the bulk of services up to the monthly cap are covered."
         },
         {
-          "question": "Can MLTSS pay for care in assisted living instead of a nursing home?",
-          "answer": "Yes. MLTSS covers long-term care services in your parent's home, assisted living facilities, or nursing homes. The program is designed to help people avoid nursing homes when possible."
+          "question": "What's the difference between JACC and Medicaid home care?",
+          "answer": "JACC serves people who don't qualify for Medicaid due to higher income or assets. It has higher income limits (365% Federal Poverty Level) but caps services around $1,156/month, while Medicaid may provide more extensive services."
         },
         {
-          "question": "How is this different from regular Medicaid?",
-          "answer": "MLTSS is Medicaid, but delivered through managed care organizations that coordinate all services. Your parent must meet stricter functional requirements — needing nursing home-level care — but gets more comprehensive long-term support services."
+          "question": "What happens if my parent needs more care than the monthly cap allows?",
+          "answer": "JACC caps services around $1,156/month. If your parent needs more intensive care, you'd need to pay privately for additional services or explore other options like transitioning to Medicaid if their financial situation changes."
         }
       ],
-      "phone": "1-888-285-3036",
-      "sourceUrl": "https://www.nj.gov/humanservices/dmahs/home/mltss.html",
+      "phone": "1-877-222-3737",
+      "sourceUrl": "https://www.state.nj.us/humanservices/doas/services/jacc/",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-09"
     },
     {
-      "id": "new-jersey-paad-prescription-help",
-      "name": "Pharmaceutical Assistance to the Aged and Disabled (PAAD)",
+      "id": "new-jersey-paad-prescription-assistance",
+      "name": "Pharmaceutical Assistance to the Aged & Disabled (PAAD)",
       "shortName": "PAAD",
-      "tagline": "If your parent lives in New Jersey and pays high prescription costs, PAAD can reduce copays to just $5-7 per medication.",
+      "tagline": "If your parent is 65+ and earns less than $54,943/year, they can get prescriptions for just $5-7 per medication.",
       "programType": "benefit",
-      "complexity": "medium",
+      "complexity": "deep",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Central processing: P.O. Box 360, Trenton, NJ 08625-0360",
+            "name": "Central processing in Trenton; pharmacies statewide accept PAAD",
             "type": "service-area"
           }
         ]
       },
-      "intro": "If your parent is struggling with prescription costs in New Jersey, PAAD (Pharmaceutical Assistance to the Aged and Disabled) can dramatically reduce what they pay at the pharmacy. Instead of paying full copays through Medicare Part D, your parent will pay just $5 for generic drugs and $7 for brand-name medications. PAAD also helps pay Medicare Part D premiums up to the regional benchmark amount.\n\nThis program is for New Jersey residents age 65+ or those receiving Social Security disability benefits. Income limits are generous: $54,943 for single people and $62,390 for married couples filing jointly in 2026. Unlike many programs, PAAD has no asset test — your parent can own their home, have savings, and still qualify.\n\nThe key requirement: if your parent has Medicare, they must enroll in a Medicare Part D prescription drug plan. PAAD works alongside Medicare Part D, not instead of it. Your parent cannot be on Medicaid to qualify for PAAD.",
-      "savingsRange": "$500 – $3,000/year in 2026",
-      "savingsSource": "Estimated based on reduced copays from typical Medicare Part D costs to $5-7 per prescription",
+      "intro": "If your parent is 65+ (or disabled and receiving Social Security disability benefits) with income under $54,943/year (single) or $62,390/year (married), PAAD can reduce their prescription costs to just $5 for generic drugs and $7 for brand-name drugs — no matter how expensive the medication actually costs.\n\nBecause PAAD works with Medicare Part D, your parent must enroll in a Medicare prescription drug plan, but PAAD will pay the premium for qualifying low-cost plans. This means they get both Medicare Part D coverage and the reduced copays through PAAD.\n\nUnlike Medicaid, PAAD has no asset limits — your parent can own a home, have savings, and still qualify based solely on income. The program covers all FDA-approved prescription drugs and insulin, though it doesn't cover diabetic testing supplies.",
+      "savingsRange": "$1,200 – $3,600/year in 2026",
+      "savingsSource": "Based on $5-7 copays versus typical prescription costs for seniors taking multiple medications",
       "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
           "Age 65+ or disabled",
-          "Income below $54,943 (single) or $62,390 (married)",
+          "Income under $54,943 (single) or $62,390 (married)",
           "New Jersey resident",
           "Not on Medicaid",
-          "Must have Medicare Part D"
+          "Must enroll in Medicare Part D"
         ],
         "ageRequirement": "65+",
         "incomeTable": [
@@ -461,81 +479,94 @@
         "otherRequirements": [
           "New Jersey resident",
           "Not eligible for Medicaid",
-          "Must enroll in Medicare Part D if Medicare-eligible",
-          "Do not need to be U.S. citizen"
+          "Must enroll in Medicare Part D prescription drug plan",
+          "U.S. citizenship not required"
         ],
         "povertyLevelReference": null
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at NJSaves or call 1-800-792-9745 — processing time varies but most renewals are every 2 years.",
+        "summary": "Apply online at njsaves.org — processing time not specified by the state.",
         "steps": [
           {
             "step": 1,
-            "title": "Gather required documents",
-            "description": "You'll need proof of New Jersey residency, age or disability status, income documentation, and Medicare Part D enrollment details."
+            "title": "Enroll in Medicare Part D first",
+            "description": "If your parent has Medicare, they must enroll in a Medicare Part D prescription drug plan before applying to PAAD. PAAD will pay the premium for qualifying low-cost plans."
           },
           {
             "step": 2,
-            "title": "Apply online or by phone",
-            "description": "Use the NJSaves website (njsave.net) or call 1-800-792-9745. You can also mail a paper application to the Trenton address."
+            "title": "Complete form AP-2 online",
+            "description": "Go to njsaves.org and click 'Start New Application.' Fill out the Universal Application for PAAD (form AP-2)."
           },
           {
             "step": 3,
-            "title": "Coordinate with Medicare Part D",
-            "description": "If your parent has Medicare, ensure they're enrolled in a Part D prescription drug plan. PAAD will help pay the premium up to the regional benchmark amount."
+            "title": "Upload required documents",
+            "description": "Provide proof of income (tax returns, Social Security statements), proof of New Jersey residency, Medicare cards, and proof of disability if under 65."
           },
           {
             "step": 4,
-            "title": "Start using reduced copays",
-            "description": "Once approved, your parent pays $5 for generics and $7 for brand-name drugs at New Jersey pharmacies that participate in the state rebate program."
+            "title": "Submit application",
+            "description": "Applications are processed centrally in Trenton. You'll receive notification of approval and can use PAAD at participating pharmacies statewide."
           }
         ],
-        "processingTime": "Not specified in sources; most renew every 2 years, some annually",
+        "processingTime": "Not specified",
         "waitlist": null,
-        "tip": "If your parent's income is just over the PAAD limit, ask about Senior Gold — it's a similar program for higher-income New Jersey residents.",
+        "tip": "Income limits change annually — use 2026 figures ($54,943 single/$62,390 married) when applying in 2026.",
         "urls": [
           {
             "label": "Apply online at NJSaves",
-            "url": "https://njsave.net"
+            "url": "https://njsaves.org"
+          },
+          {
+            "label": "NJ Division of Aging Services",
+            "url": "https://www.nj.gov/humanservices/doas/home/"
           }
         ]
       },
       "contentSections": [
         {
           "type": "income-table",
-          "heading": "2026 Income Limits",
+          "heading": "Income Limits by Household Size",
           "rows": [
             {
-              "householdSize": "Single person",
-              "monthlyIncome": "$4,579",
-              "annualIncome": "$54,943"
+              "householdSize": "1 person",
+              "monthlyLimit": "$4,579",
+              "annualLimit": "$54,943"
             },
             {
-              "householdSize": "Married couple",
-              "monthlyIncome": "$5,199",
-              "annualIncome": "$62,390"
+              "householdSize": "2 people (married couple)",
+              "monthlyLimit": "$5,199",
+              "annualLimit": "$62,390"
             }
           ],
-          "footnote": "2026 limits; includes Social Security benefits and all other income"
+          "footnote": "2026 limits. Updated annually by federal guidelines."
         },
         {
           "type": "documents",
           "heading": "What to Bring",
           "categories": [
             {
-              "name": "Identity & Residency",
+              "name": "Income",
               "items": [
-                "Proof of New Jersey residency",
-                "Proof of age (65+) or Social Security Title II Disability benefits",
-                "Medicare card if applicable"
+                "Tax returns",
+                "Social Security benefit statements",
+                "Pension statements",
+                "Any other income documentation"
               ]
             },
             {
-              "name": "Financial",
+              "name": "Residency & Identity",
               "items": [
-                "Tax returns or Social Security statements showing income",
-                "Proof of Medicare Part D enrollment (if Medicare-eligible)"
+                "Proof of New Jersey residency",
+                "Medicare cards (Parts A, B, and D if applicable)",
+                "Proof of Social Security Title II Disability (if under 65)"
+              ]
+            },
+            {
+              "name": "Medical Coverage",
+              "items": [
+                "Documentation showing not eligible for Medicaid",
+                "Medicare Part D plan information"
               ]
             }
           ]
@@ -543,72 +574,700 @@
         {
           "type": "callout",
           "tone": "tip",
-          "text": "PAAD only covers prescriptions filled at New Jersey pharmacies from manufacturers that participate in the state rebate program. Out-of-state prescriptions are not covered."
+          "text": "Your parent must enroll in Medicare Part D even to get PAAD — but choose carefully. PAAD only pays premiums for specific low-cost plans at or near the regional benchmark. Self-enrolling in a higher-premium plan may disqualify them from premium assistance."
         }
       ],
       "faqs": [
         {
-          "question": "Can my parent keep PAAD if they move to a different state?",
-          "answer": "No. PAAD is only for New Jersey residents. If your parent moves out of state, they'll lose PAAD coverage and need to find prescription assistance in their new state."
+          "question": "Can Mom keep her house and savings if she qualifies for PAAD?",
+          "answer": "Yes. PAAD has no asset limits — your mom can own a home, have savings in the bank, and still qualify based solely on her income being under the limits."
         },
         {
-          "question": "What happens if my parent's income goes up and they no longer qualify for PAAD?",
-          "answer": "If their income exceeds PAAD limits, ask about Senior Gold — it's another New Jersey program for higher-income residents that provides similar prescription assistance."
+          "question": "What if Dad already has Medicare Part D but it's expensive?",
+          "answer": "PAAD will pay the premium only for specific low-cost plans at or near the regional benchmark. If his current plan is more expensive, he may need to switch to a qualifying plan to get premium assistance, but he'll still get the $5-7 copays regardless."
         },
         {
-          "question": "Does my parent need to choose between PAAD and Medicaid?",
-          "answer": "Yes. Your parent cannot have both PAAD and Medicaid. If they qualify for Medicaid, they should use Medicaid's prescription benefits instead, which typically provide better coverage."
+          "question": "Does PAAD cover diabetic testing supplies?",
+          "answer": "No. PAAD covers insulin and insulin supplies, plus syringes and needles for MS injectables, but does not cover diabetic testing supplies or strips."
         },
         {
-          "question": "Will PAAD pay for all of my parent's Medicare Part D premium?",
-          "answer": "PAAD pays premiums up to the regional benchmark amount. If your parent chooses a more expensive plan, they'll pay the difference. Plans with no deductible get up to $5 extra coverage."
+          "question": "What's the difference between PAAD and Senior Gold?",
+          "answer": "PAAD is for lower incomes (under $54,943 single) with $5-7 copays. Senior Gold is for higher incomes with different copay structures. Don't apply for both — choose based on your parent's income level."
         },
         {
-          "question": "Can my parent use PAAD at any pharmacy?",
-          "answer": "Only at New Jersey pharmacies, and only for medications from manufacturers that participate in the state rebate program. Most major pharmacies and common medications are covered, but always verify before filling prescriptions."
+          "question": "Can Mom use PAAD if she moves from another state?",
+          "answer": "Yes, as long as she becomes a New Jersey resident. U.S. citizenship is not required — lawful permanent residents and other legal residents can qualify."
         },
         {
-          "question": "How often does my parent need to reapply for PAAD?",
-          "answer": "Most people renew every 2 years, but some must reapply annually. Your parent will receive a renewal notice telling them when to reapply and what documents they need."
+          "question": "What if her income is just over the PAAD limit?",
+          "answer": "She may qualify for Senior Gold, which has higher income limits but different copay amounts. Check both programs to see which fits her situation better."
         }
       ],
-      "phone": "1-800-792-9745",
-      "sourceUrl": "https://www.nj.gov/humanservices/doas/services/q-z/ship/medicare_drug.shtml",
+      "phone": "866-657-2835",
+      "sourceUrl": "https://www.nj.gov/humanservices/doas/home/",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-09"
     },
     {
-      "name": "Specified Low-Income Medicare Beneficiary (SLMB and SLMB QI-1)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
-    },
-    {
+      "id": "new-jersey-lifeline-credit",
       "name": "Lifeline Credit",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "shortName": "Lifeline Credit",
+      "tagline": "If your parent is 65+ and on a fixed income, they may qualify for $225/year off their electric and gas bills in New Jersey.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false
+      },
+      "intro": "If your parent is struggling with utility bills in New Jersey, Lifeline Credit provides up to $225 per year directly credited to their electric and natural gas bills. This program specifically helps seniors 65+ and disabled adults with limited incomes — but only covers electric and natural gas customers (not oil, propane, or other heating sources).\n\nThe credit appears automatically on their utility bill once approved. Because only one person per household can receive this benefit, you'll need to decide which family member should apply if multiple people are eligible. Income limits are $54,943/year for single seniors or $62,390/year for married couples in 2026.",
+      "savingsRange": "$225/year in 2026",
+      "savingsSource": "Annual bill credit for eligible electric and natural gas customers",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+",
+          "Income below $54,943/year (single) or $62,390/year (married)",
+          "New Jersey resident",
+          "Electric or natural gas customer only"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 4579
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 5199
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be enrolled in or eligible for PAAD (Pharmaceutical Assistance to the Aged and Disabled)",
+          "Must be residential electric or natural gas customer only",
+          "Only one applicant per household",
+          "U.S. citizenship not required"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "online",
+        "summary": "Apply online through the NJSave application, which covers both PAAD and Lifeline Credit in one form.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Complete NJSave application online",
+            "description": "The application automatically includes Lifeline Credit questions when you apply for PAAD eligibility."
+          },
+          {
+            "step": 2,
+            "title": "Gather required documents",
+            "description": "You'll need proof of income for past 30 days, Social Security cards, photo ID, and most recent utility bill."
+          },
+          {
+            "step": 3,
+            "title": "Submit application",
+            "description": "If your parent receives SSI, they get Lifeline Credit automatically in their check — do not apply separately."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "If your parent already receives MAA, MAO, or New Jersey Care benefits, they'll automatically get a Lifeline application mailed to them each August.",
+        "urls": [
+          {
+            "label": "NJSave Application",
+            "url": "https://www.nj.gov/humanservices/doas/services/l-p/lifeline-utility/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits (2026)",
+          "rows": [
+            {
+              "householdSize": "Single (or widowed/divorced)",
+              "monthlyLimit": "$4,579",
+              "annualLimit": "$54,943"
+            },
+            {
+              "householdSize": "Married couple",
+              "monthlyLimit": "$5,199",
+              "annualLimit": "$62,390"
+            }
+          ],
+          "footnote": "Income limits are individual gross income for the applicant, not total household income beyond spouse"
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Photo ID (driver's license, passport, or government-issued ID)",
+                "Social Security cards for household members"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Proof of income for past 30 days",
+                "Most recent utility bill",
+                "Proof of address (rental lease, mortgage statement, tax bill, or deed)"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "This program only covers electric and natural gas — not oil, propane, wood, or coal heating. If your parent uses these other heating sources, they won't qualify."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent gets SSI?",
+          "answer": "If your parent receives SSI, they automatically get the Lifeline Credit included in their SSI check. Do not apply separately — the credit is handled automatically."
+        },
+        {
+          "question": "Can both my parents apply if they're married?",
+          "answer": "No, only one person per household can receive Lifeline Credit. If both parents are eligible, choose one to apply. The benefit covers the household's electric and gas bills regardless of whose name is on the application."
+        },
+        {
+          "question": "What if my parent heats with oil or propane?",
+          "answer": "They won't qualify for Lifeline Credit. This program only covers electric and natural gas customers. Oil, propane, wood, and coal heating are specifically excluded."
+        },
+        {
+          "question": "How does the $225 credit appear on the bill?",
+          "answer": "The credit appears directly on your parent's utility bill as an annual credit. They don't receive a separate check — the utility company applies the credit to reduce what they owe."
+        },
+        {
+          "question": "What if my parent's income is just over the limit?",
+          "answer": "Income limits are firm — $54,943/year for single seniors or $62,390/year for married couples in 2026. If your parent's gross income exceeds these amounts, they won't qualify for Lifeline Credit."
+        },
+        {
+          "question": "Does my parent need to apply every year?",
+          "answer": "If your parent receives MAA, MAO, or New Jersey Care benefits, applications are automatically mailed each August. For others, eligibility is checked as of July 1 or within the next 6 months, but the research doesn't specify annual reapplication requirements."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://www.nj.gov/humanservices/doas/services/l-p/lifeline-utility/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
-      "name": "State Health Insurance Assistance Program (SHIP)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "id": "new-jersey-statewide-respite-care-program",
+      "name": "New Jersey Statewide Respite Care Program",
+      "shortName": "NJ Respite Care",
+      "tagline": "Get temporary caregiver relief through in-home care, adult day programs, or short-term placement for your parent.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false
+      },
+      "intro": "If you're caring for a parent with a chronic disability or illness, New Jersey's Statewide Respite Care Program provides temporary relief through professional caregivers. The program offers companion care, home health aides, adult day programs, and even short-term placement in approved homes or medical facilities. Your parent pays 0-25% of the service cost based on their income — many families pay nothing. To qualify, your parent must live at home (not in a facility), have income below $2,982/month if single ($5,964 if married), and receive daily care from you or another unpaid family member. A licensed medical provider must certify that your parent needs supervision or assistance with daily activities.",
+      "savingsRange": "",
+      "savingsSource": "Subsidized service with sliding scale co-pay",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 18+ with chronic disability",
+          "Income below $2,982/month (single) or $5,964/month (married)",
+          "Assets under $40,000 (single) or $60,000 (married)",
+          "Lives at home with unpaid caregiver",
+          "Medical provider certification required"
+        ],
+        "ageRequirement": "18+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2982
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 5964
+          }
+        ],
+        "assetLimits": {
+          "individual": 40000,
+          "couple": 60000,
+          "countedAssets": [
+            "Assets that can be converted to cash within 20 working days"
+          ],
+          "exemptAssets": [],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "Must have a chronic physical or mental disability requiring supervision or assistance with basic daily needs, certified by a licensed medical provider",
+        "otherRequirements": [
+          "Must live in New Jersey",
+          "Must live in the community (not in assisted living, nursing home, or residential care facility)",
+          "Must receive daily care from an unpaid caregiver age 18 or older",
+          "Cannot participate in MLTSS, JACC, Alzheimer's Adult Day Services, or Congregate Housing Services programs"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call the Aging and Disability Resource Connection at 1-877-222-3737 to start your application.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call ADRC",
+            "description": "Contact 1-877-222-3737 to discuss your parent's needs and begin the eligibility assessment."
+          },
+          {
+            "step": 2,
+            "title": "Income and asset verification",
+            "description": "Provide documentation of your parent's income and assets to confirm financial eligibility."
+          },
+          {
+            "step": 3,
+            "title": "Medical certification",
+            "description": "Have your parent's licensed medical provider certify their functional impairments and need for daily supervision or assistance."
+          },
+          {
+            "step": 4,
+            "title": "County assignment",
+            "description": "ADRC will connect you with your county's local sponsor agency that administers the program."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Priority goes to families where the care recipient is at risk of nursing home placement due to caregiver burnout — mention this if it applies to your situation.",
+        "urls": [
+          {
+            "label": "Official Program Information",
+            "url": "https://www.nj.gov/humanservices/doas/services/q-z/srcp/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts, CDs, savings bonds",
+            "Stocks, mutual funds, other investments",
+            "Any assets convertible to cash within 20 working days"
+          ],
+          "excluded": []
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Only your parent's income counts for eligibility — your income as the caregiver doesn't matter, even if you live in the same household."
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "You cannot receive services from this program if your parent is already enrolled in MLTSS, JACC, Alzheimer's Adult Day Services, or Congregate Housing Services programs."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent's income is just over the $2,982 limit?",
+          "answer": "Income limits are strict. If your parent exceeds $2,982/month (single) or $5,964/month (married), they won't qualify. However, these limits are updated annually, and only your parent's income counts — not yours."
+        },
+        {
+          "question": "Can Mom keep getting respite care if she moves to assisted living?",
+          "answer": "No. This program is only for people living in the community. If your parent moves to assisted living, a nursing home, or any residential care facility, they lose eligibility."
+        },
+        {
+          "question": "How much will we actually pay for services?",
+          "answer": "You'll pay 0-25% of the service cost based on your parent's income. Many families with lower incomes pay nothing. The exact percentage depends on where your parent's income falls on the sliding scale."
+        },
+        {
+          "question": "What happens if I can no longer provide daily care?",
+          "answer": "Your parent must receive daily care from an unpaid caregiver to qualify. If you can no longer provide this care and no other unpaid family member or friend can take over, your parent may lose eligibility for this program."
+        },
+        {
+          "question": "Can we use respite care for emergencies?",
+          "answer": "Yes. Once enrolled, you get access to emergency respite care as well as planned respite services. The program recognizes that caregiving crises happen unexpectedly."
+        },
+        {
+          "question": "What if our county's program has different rules?",
+          "answer": "While each county administers the program locally, the eligibility requirements and basic structure are the same statewide. However, available services or wait times may vary by county."
+        }
+      ],
+      "phone": "1-877-222-3737",
+      "sourceUrl": "https://www.nj.gov/humanservices/doas/services/q-z/srcp/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
-      "name": "Stay NJ",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "id": "new-jersey-alzheimers-adult-day-services",
+      "name": "Alzheimer's Adult Day Services Program",
+      "shortName": "Adult Day Services",
+      "tagline": "Subsidized dementia-specialized day programs help your parent stay engaged while giving you daily caregiver relief.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Participating centers found at https://www.nj.gov/humanservices/",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent has been diagnosed with Alzheimer's or another dementia and you're providing daily care, this program subsidizes their attendance at specialized adult day centers throughout New Jersey. Because these centers are designed specifically for people with cognitive loss, your parent gets appropriate activities and high staff-to-client ratios while you get respite during the day.\n\nThe program covers attendance at both social model and medical model adult day centers, all with dementia specialization. You'll pay an income-based copay rather than full private-pay rates. The program serves people at any stage of dementia as long as family or friends are providing daily assistance.\n\nYour parent must have a diagnosis of permanent, progressive dementia and be a New Jersey resident. They cannot currently be receiving Medicaid long-term services (MLTSS), JACC, or Congregate Housing Services.",
+      "savingsRange": "",
+      "savingsSource": "Subsidized service with income-based copay",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "New Jersey resident",
+          "Diagnosed permanent, progressive dementia",
+          "Income and asset limits apply",
+          "Cannot be on Medicaid MLTSS"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must need daily assistance from family or friends with care due to dementia symptoms",
+        "otherRequirements": [
+          "New Jersey resident",
+          "Diagnosis of qualifying dementia (Alzheimer's, Pick's disease, Parkinson's dementia, Huntington's dementia, vascular dementia, Creutzfeldt-Jakob, Fronto-Temporal, Lewy body, normal pressure hydrocephalus dementia, or Wernicke-Korsakoff syndrome)",
+          "Not currently participating in Medicaid MLTSS, JACC, or Congregate Housing Services Program"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Find a participating center online, then contact them directly to apply and get current income guidelines.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find participating centers",
+            "description": "Use the center finder at nj.gov/humanservices to locate dementia-specialized adult day centers near you that accept this program."
+          },
+          {
+            "step": 2,
+            "title": "Contact center directly",
+            "description": "Call your chosen center to get current income and asset guidelines, since specific dollar amounts aren't published in state materials."
+          },
+          {
+            "step": 3,
+            "title": "Gather required documents",
+            "description": "Collect proof of NJ residency, medical diagnosis of qualifying dementia, income documentation, and asset information."
+          },
+          {
+            "step": 4,
+            "title": "Apply through center or Division of Aging Services",
+            "description": "Submit your application either directly to the participating center or through your local Division of Aging Services office."
+          }
+        ],
+        "processingTime": "Not specified by state",
+        "waitlist": null,
+        "tip": "Since exact income limits aren't published, call centers directly before gathering all documents to confirm your parent likely qualifies.",
+        "urls": [
+          {
+            "label": "Find participating centers",
+            "url": "https://www.nj.gov/humanservices/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Medical",
+              "items": [
+                "Medical diagnosis of qualifying dementia from licensed provider",
+                "Documentation of functional impairments requiring daily assistance"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Income documentation for all household members",
+                "Asset information (bank statements, investment accounts)",
+                "Documented evidence meeting asset guidelines"
+              ]
+            },
+            {
+              "name": "Residency",
+              "items": [
+                "Proof of New Jersey residency"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "You cannot use this program if your parent is already receiving Medicaid long-term services (MLTSS). The program is designed as an alternative for families not yet using Medicaid."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent is already on Medicaid?",
+          "answer": "Your parent cannot participate if they're currently receiving NJ FamilyCare (Medicaid), Managed Long-Term Services and Supports (MLTSS), JACC, or Congregate Housing Services. This program serves as an alternative for families not yet using these other programs."
+        },
+        {
+          "question": "Can any adult day center accept this program?",
+          "answer": "No. Only participating centers that specialize in dementia care accept this program. These centers have higher staff-to-client ratios and activities designed for people with cognitive loss. Use the state's center finder to locate qualifying providers."
+        },
+        {
+          "question": "What dementia diagnoses qualify?",
+          "answer": "Qualifying diagnoses include Alzheimer's disease, Pick's disease, dementia due to Parkinson's, Huntington's, vascular/multi-infarct dementia, Creutzfeldt-Jakob disease, Fronto-Temporal dementia, Lewy body dementia, normal pressure hydrocephalus dementia, or Wernicke-Korsakoff syndrome. The diagnosis must be permanent and progressive."
+        },
+        {
+          "question": "How much will we pay out of pocket?",
+          "answer": "You'll pay an income-based copay, but the state doesn't publish specific dollar amounts. Contact participating centers directly to get current copay rates based on your family's income and household size."
+        },
+        {
+          "question": "What if my parent is in early-stage dementia?",
+          "answer": "The program serves people at any stage of dementia, as long as family or friends are providing daily assistance. Early-stage participants often benefit from the specialized programming and social interaction."
+        },
+        {
+          "question": "Where can I find the exact income limits?",
+          "answer": "The state requires documented evidence of income eligibility but doesn't publish specific dollar thresholds. Contact the Division of Aging Services or participating centers directly to get current income and asset guidelines for your household size."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://www.nj.gov/humanservices/doas/documents/Adult%20Day%20Services%20Program%20Brochure%20(Web-English).pdf",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
-      "name": "Senior Freeze (Property Tax Reimbursement)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
-    },
-    {
-      "name": "PAAD (Pharmaceutical Assistance to the Aged and Disabled)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
-    },
-    {
-      "name": "JACC (Jersey Assistance for Community Caregiving)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
-    },
-    {
-      "name": "Statewide Respite Care Program",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "id": "new-jersey-senior-epass-discount",
+      "name": "Senior Citizen E-ZPass Discount",
+      "shortName": "Senior E-ZPass",
+      "tagline": "If your parent drives regularly on NJ Turnpike or Parkway, they can save 10% on tolls with this age 65+ discount.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "NJ Turnpike Authority (NJTA) for Turnpike/GSP",
+            "type": "service-area"
+          },
+          {
+            "name": "Delaware River Port Authority (DRPA) for bridges",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 65+ and drives regularly on the New Jersey Turnpike or Garden State Parkway, they can get a 10% discount on off-peak tolls. The program requires a New Jersey E-ZPass account (anyone can open one, regardless of state residency) and your parent must be the actual driver when the discount is used.\n\nThere are no income limits — eligibility is based only on age 65+, having a valid driver's license, and a passenger vehicle registered in their name or their spouse's name. The discount applies during weekdays off-peak hours and all weekend hours on the Turnpike and Parkway. A separate program covers four bridges between New Jersey and Pennsylvania.\n\nYour parent must renew annually, and the renewal date aligns with their vehicle registration renewal. Only one E-ZPass tag per senior is allowed, and they must be physically driving (not just a passenger) for the discount to apply.",
+      "savingsRange": "",
+      "savingsSource": "10% discount on off-peak tolls",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+",
+          "Valid driver's license",
+          "Passenger vehicle registration",
+          "NJ E-ZPass account"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must have active New Jersey E-ZPass account",
+          "Must have valid driver's license from any state",
+          "Must have passenger vehicle registered in their name or spouse's name",
+          "Must be driving (not passenger) when using discount",
+          "Business/commercial accounts not eligible"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online at the NJTA website with your E-ZPass account number and required documents — processing time not specified.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Get New Jersey E-ZPass account",
+            "description": "If your parent doesn't have one, open a NJ E-ZPass account online at ezpassnj.com or call 888-288-6865. Out-of-state residents can open NJ accounts."
+          },
+          {
+            "step": 2,
+            "title": "Gather required documents",
+            "description": "You'll need: copy of driver's license (to prove age 65+), copy of vehicle registration in their name or spouse's name, NJ E-ZPass account number (13 digits), and E-ZPass tag number (11 digits)."
+          },
+          {
+            "step": 3,
+            "title": "Apply for Turnpike/Parkway discount",
+            "description": "Complete application online at seniordiscount.njta.gov or call 732-750-5300. For DRPA bridges, call 856-968-2000 press 5 separately."
+          }
+        ],
+        "processingTime": "Not specified",
+        "waitlist": null,
+        "tip": "If your parent uses the four bridges to Pennsylvania frequently, apply for the separate DRPA program which gives $18 credit for 18+ trips per month.",
+        "urls": [
+          {
+            "label": "Apply for NJTA Senior Discount",
+            "url": "https://seniordiscount.njta.gov"
+          },
+          {
+            "label": "Open NJ E-ZPass Account",
+            "url": "https://www.ezpassnj.com"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "Required Documents",
+          "categories": [
+            {
+              "name": "Identity & Age Verification",
+              "items": [
+                "Copy of valid driver's license (must show age 65+ — no other ID accepted)"
+              ]
+            },
+            {
+              "name": "Vehicle & Account Information",
+              "items": [
+                "Copy of passenger vehicle registration (in your parent's name or spouse's name)",
+                "If leasing: Top portion of lease agreement showing your parent as lessee",
+                "NJ E-ZPass Account Number (13 digits)",
+                "E-ZPass Tag/Transponder Number (11 digits)"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "county-directory",
+          "heading": "Contact Information",
+          "offices": [
+            {
+              "name": "NJ Turnpike Authority (Turnpike & Parkway)",
+              "type": "service-area",
+              "phone": "732-750-5300",
+              "address": "Online: seniordiscount.njta.gov"
+            },
+            {
+              "name": "Delaware River Port Authority (4 Bridges)",
+              "type": "service-area",
+              "phone": "856-968-2000 press 5 or 215-218-3750 press 5",
+              "address": "Separate enrollment required"
+            },
+            {
+              "name": "New E-ZPass Account Setup",
+              "type": "service-area",
+              "phone": "888-288-6865",
+              "address": "Online: ezpassnj.com"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Your parent must be the actual driver to get the discount — if someone else drives their car, the discount won't apply and could result in program removal."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent lives in Pennsylvania but drives in New Jersey frequently?",
+          "answer": "They can open a New Jersey E-ZPass account regardless of where they live. The vehicle just needs to be registered in their name or their spouse's name in any state."
+        },
+        {
+          "question": "Can my parent use the discount if I'm driving their car?",
+          "answer": "No. Your parent must be the driver when the toll is charged. If others use their E-ZPass tag, it could result in removal from the program."
+        },
+        {
+          "question": "Does this work during rush hour?",
+          "answer": "No. The 10% discount only applies during off-peak hours on weekdays and all hours on weekends. Peak hour tolls get no discount."
+        },
+        {
+          "question": "What's the difference between the NJTA program and DRPA program?",
+          "answer": "NJTA covers Turnpike and Parkway with 10% off-peak discount. DRPA covers four specific bridges (Benjamin Franklin, Walt Whitman, Betsy Ross, Commodore Barry) and gives $18 credit if you make 18+ trips in a month. You need to apply separately for each."
+        },
+        {
+          "question": "How often does my parent need to renew?",
+          "answer": "Annually, and the renewal date matches their vehicle registration renewal date. So their first enrollment period might be less than 12 months depending on when they apply."
+        },
+        {
+          "question": "Can my parent have multiple E-ZPass tags for different vehicles?",
+          "answer": "No. Only one E-ZPass tag per senior is allowed for the discount program, and it must start with 009 or 022."
+        }
+      ],
+      "phone": "732-750-5300",
+      "sourceUrl": "https://seniordiscount.njta.gov",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     }
   ],
-  "stateOverview": null
+  "stateOverview": {
+    "intro": "New Jersey offers 8 senior benefit programs that could save your parent thousands annually — from $6,500 property tax rebates to $5 prescription medications. Most focus on financial relief: property tax assistance, prescription drug savings, utility bill reductions, and subsidized care services. Unlike many states that primarily offer information and referrals, New Jersey provides direct financial benefits if your parent qualifies based on age, income, or care needs.\n\nStart by checking the highest-value programs first: Stay NJ for property tax relief, PAAD for prescription savings, and JACC if your parent needs home care but earns too much for Medicaid. Most have income limits, but several programs serve middle-income seniors who wouldn't qualify for federal assistance.",
+    "startHere": [
+      {
+        "name": "Stay NJ",
+        "programId": "stay-nj",
+        "why": "Provides the largest potential savings — up to $6,500 back on property taxes for homeowners 65+."
+      },
+      {
+        "name": "PAAD",
+        "programId": "paad",
+        "why": "Reduces prescription costs to just $5-7 per medication for seniors earning less than $54,943/year."
+      },
+      {
+        "name": "JACC",
+        "programId": "jacc",
+        "why": "Provides up to $1,156/month in home care for parents who need nursing home-level care but earn too much for Medicaid."
+      },
+      {
+        "name": "Lifeline Credit",
+        "programId": "lifeline-credit",
+        "why": "Quick $225/year savings on utility bills for seniors on fixed incomes."
+      }
+    ],
+    "byNeed": [
+      {
+        "need": "Property tax relief",
+        "programs": [
+          "Stay NJ",
+          "Senior Freeze"
+        ],
+        "description": "Two separate programs that can reduce or reimburse property taxes for homeowners 65+."
+      },
+      {
+        "need": "Prescription drug costs",
+        "programs": [
+          "PAAD"
+        ],
+        "description": "State program that caps prescription costs at $5-7 per medication for qualifying seniors."
+      },
+      {
+        "need": "Home care services",
+        "programs": [
+          "JACC"
+        ],
+        "description": "Monthly funding for in-home care when your parent needs nursing home-level assistance."
+      },
+      {
+        "need": "Caregiver relief and respite",
+        "programs": [
+          "New Jersey Statewide Respite Care Program",
+          "Alzheimer's Adult Day Services Program"
+        ],
+        "description": "Temporary care services and specialized day programs to give family caregivers breaks."
+      },
+      {
+        "need": "Monthly bills and expenses",
+        "programs": [
+          "Lifeline Credit",
+          "Senior Citizen E-ZPass Discount"
+        ],
+        "description": "Ongoing discounts on utilities and highway tolls for qualifying seniors."
+      }
+    ],
+    "quickFacts": [
+      "7 out of 8 New Jersey senior programs provide direct financial benefits, not just information or referrals",
+      "Income limits vary widely: PAAD allows up to $54,943/year while other programs have much lower thresholds",
+      "Property owners have two separate tax relief options: Stay NJ (rebates) and Senior Freeze (reimbursement for increases)"
+    ],
+    "resourcesVsBenefits": "Most New Jersey senior programs are qualification-based benefits requiring age, income, or asset verification — like PAAD's prescription drug savings or Stay NJ's property tax rebates. Only the Senior Freeze program functions as a free resource, providing reimbursement information to homeowners without strict financial qualifying criteria. The majority require applications and annual income documentation to receive direct financial assistance."
+  }
 }

@@ -4,131 +4,139 @@
   "state": "RI",
   "stateName": "Rhode Island",
   "isRegion": false,
-  "exploredAt": "2026-04-09T09:40:44.493Z",
-  "programCount": 17,
+  "exploredAt": "2026-04-09T16:12:22.883Z",
+  "programCount": 18,
   "programs": [
     {
-      "name": "Rhode Island Medicaid",
-      "what_it_does": "Provides comprehensive healthcare coverage including long-term care services for eligible seniors and individuals with disabilities. Administered by the Executive Office of Health and Human Services (EOHHS), it covers doctor visits, hospital stays, prescription drugs, and home-based care.",
-      "who_its_for": "Seniors aged 65+ and individuals with disabilities meeting income and asset limits.",
-      "official_url": "https://eohhs.ri.gov/",
-      "benefit_value": "Varies by eligibility; covers full cost of approved medical services with no or low copays."
+      "name": "Medicaid",
+      "what_it_does": "Provides healthcare coverage through Rhode Island's publicly-funded state Medicaid program for eligible seniors and disabled individuals. It offers multiple options including long-term services and supports (LTSS).[3]",
+      "who_its_for": "Low-income older adults, people with disabilities, and those with chronic care needs.[3]",
+      "official_url": "https://dhs.ri.gov/programs-and-services",
+      "benefit_value": "Comprehensive healthcare including LTSS, home care, and Medicare premium assistance for qualified individuals.[1][3]"
     },
     {
-      "name": "Home and Community-Based Services (HCBS) Waiver",
-      "what_it_does": "Offers waiver services to allow seniors and disabled individuals to receive care at home instead of nursing facilities. Includes personal care, homemaker services, and adult day care funded through Medicaid.",
-      "who_its_for": "Medicaid-eligible seniors and disabled persons at risk of nursing home placement.",
-      "official_url": "https://oha.ri.gov/programs/home-and-community-care-services-hccs",
-      "benefit_value": "Annual funding limits based on assessed needs; prevents institutionalization."
+      "name": "Rhode Island Community Living and Attendant Services Waiver (CLASS)",
+      "what_it_does": "Delivers home and community-based services to help seniors and disabled individuals avoid institutionalization. Custom services for those living in community settings rather than nursing homes.[3]",
+      "who_its_for": "Older adults and people with disabilities or chronic care needs eligible for nursing home level care.[3]",
+      "official_url": "https://dhs.ri.gov/programs-and-services",
+      "benefit_value": "Personal care, home modifications, respite, and other supports to maintain independence in the community.[1]"
     },
     {
-      "name": "PACE-RI (Program of All-Inclusive Care for the Elderly)",
-      "what_it_does": "Delivers comprehensive medical and social services to frail seniors in community settings including adult day health centers. Integrates Medicare and Medicaid benefits for coordinated care.",
-      "who_its_for": "Seniors 55+ certified as nursing facility eligible who can live safely in the community.",
-      "official_url": "https://pacenewengland.org/pace-ri/",
-      "benefit_value": "Full coverage of primary, acute, and long-term care services."
+      "name": "PACE (Program of All-Inclusive Care for the Elderly)",
+      "what_it_does": "Offers comprehensive medical and social services to eligible seniors in community settings, including adult day health care. Integrates Medicare and Medicaid benefits for coordinated care.[1]",
+      "who_its_for": "Seniors age 55+ who are nursing home eligible but can live safely in the community with services.[4]",
+      "official_url": "https://www.unitedwayri.org/get-help/adrc/",
+      "benefit_value": "Full coverage of Medicare/Medicaid services plus extras like transportation, meals, and therapies.[1]"
     },
     {
-      "name": "Medicare Premium Payment Program (MPP) / QMB",
-      "what_it_does": "Pays Medicare Part A and B premiums, deductibles, copayments, and coinsurance for eligible low-income seniors. As of 2026, expanded to automatically enroll former SLMB/QI eligible into QMB.",
-      "who_its_for": "Low-income Medicare beneficiaries; income up to 100-135% FPL depending on category.",
-      "official_url": "https://economicprogressri.org/resources/medicare-premium-payment-program",
-      "benefit_value": "Full payment of Medicare premiums (Part B ~$185/month in 2026) and cost-sharing."
+      "name": "Medicare Savings Programs (MSP)",
+      "what_it_does": "Helps pay Medicare premiums, deductibles, copays, and coinsurance for eligible low-income seniors; includes QMB (full assistance), SLMB (Part B premium), and QI (Part B premium). Also QDWI for working disabled under 65.[4]",
+      "who_its_for": "Limited income and assets Medicare beneficiaries age 65+ or disabled under 65 for QDWI.[4]",
+      "official_url": "https://oha.ri.gov/media/1071/download?language=en",
+      "benefit_value": "Pays Part A/B premiums, deductibles, copays; QMB covers most out-of-pocket costs.[1][4]"
     },
     {
       "name": "Supplemental Nutrition Assistance Program (SNAP)",
-      "what_it_does": "Provides monthly EBT card benefits to purchase healthy groceries at approved stores. Seniors can access simplified application, phone interviews, and 24-month recertification.",
-      "who_its_for": "Low-income seniors 60+; gross income ≤185% FPL, net ≤100% FPL.",
+      "what_it_does": "Provides monthly benefits via EBT card for low-income individuals to buy healthy groceries. Helps combat food insecurity for seniors.[5]",
+      "who_its_for": "Low-income Rhode Islanders age 60+, with slightly adjusted eligibility for seniors/disabled.[5][6]",
       "official_url": "https://dhs.ri.gov/programs-and-services/supplemental-nutrition-assistance-program-snap",
-      "benefit_value": "Average $200-300/month per senior household; max benefits scale with income[1][7]."
+      "benefit_value": "Average $200+ monthly per household depending on size/income; no cooking requirement for seniors.[5]"
     },
     {
       "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
-      "what_it_does": "Provides grants to help pay heating costs during winter months. Offers crisis assistance for utility shutoffs and weatherization referrals.",
-      "who_its_for": "Low-income households including seniors; priority for 60+ and disabled.",
-      "official_url": "https://eohhs.ri.gov/programs/low-income-home-energy-assistance-program-liheap",
-      "benefit_value": "Average grant $800-1,200 per heating season."
+      "what_it_does": "Assists with heating costs and energy bills for low-income households. Includes crisis assistance for emergencies.[6]",
+      "who_its_for": "Low-income seniors and disabled adults meeting income guidelines.[6]",
+      "official_url": "https://dhs.ri.gov/programs-and-services",
+      "benefit_value": "Grants up to $1,000+ annually for heating bills, weatherproofing, and emergencies.[4]"
     },
     {
-      "name": "Residential Weatherization Assistance Program",
-      "what_it_does": "Funds energy efficiency upgrades like insulation, air sealing, and furnace repairs for low-income homes. Reduces energy costs and improves health/safety.",
-      "who_its_for": "Low-income homeowners/renters including seniors; income ≤200% FPL.",
-      "official_url": "https://weatherizationri.org/",
-      "benefit_value": "Free services valued at $7,000-12,000 per home."
+      "name": "Weatherization Assistance Program",
+      "what_it_does": "Improves energy efficiency in homes of low-income households through insulation, sealing, and efficiency upgrades. Reduces energy costs and improves comfort.[6]",
+      "who_its_for": "Low-income seniors, disabled, and families in eligible RI homes.[6]",
+      "official_url": "https://dhs.ri.gov/programs-and-services",
+      "benefit_value": "Free home upgrades saving hundreds annually on energy bills.[4]"
     },
     {
-      "name": "RI SHIP (State Health Insurance Assistance Program)",
-      "what_it_does": "Offers free, unbiased counseling on Medicare options, supplemental insurance, and assistance programs. Helps with applications, appeals, and understanding coverage.",
-      "who_its_for": "All Medicare beneficiaries and caregivers in Rhode Island.",
-      "official_url": "https://oha.ri.gov/programs/ship",
-      "benefit_value": "Free personalized counseling; average savings $1,000+/year through proper enrollment."
+      "name": "State Health Insurance Assistance Program (SHIP)",
+      "what_it_does": "Offers free counseling on Medicare options, savings programs, and appeals. Helps seniors navigate coverage and costs.[1]",
+      "who_its_for": "Rhode Island Medicare beneficiaries, especially low-income seniors.[1]",
+      "official_url": "https://www.unitedwayri.org/get-help/adrc/",
+      "benefit_value": "Personalized advice preventing costly mistakes; application assistance.[1]"
     },
     {
-      "name": "Meals on Wheels",
-      "what_it_does": "Delivers nutritious meals to homebound seniors' doors daily. Provides safety checks and links to other services through local senior centers.",
-      "who_its_for": "Homebound seniors 60+ unable to prepare meals; suggested donation basis.",
-      "official_url": "https://www.ri.gov/press/view/50492",
-      "benefit_value": "$8-12 per meal; often free for low-income."
+      "name": "Meals on Wheels of Rhode Island",
+      "what_it_does": "Delivers nutritious meals to homebound seniors to promote health and independence. Provides social contact during delivery.[5]",
+      "who_its_for": "Homebound older adults unable to prepare meals, often low-income.[5]",
+      "official_url": "https://www.rimeals.org",
+      "benefit_value": "5-7 meals/week; reduces hunger and isolation.[5]"
     },
     {
-      "name": "Alzheimer's Respite Voucher Program",
-      "what_it_does": "Provides vouchers for respite care services allowing caregivers temporary breaks. Covers in-home care, adult day programs, or overnight stays.",
-      "who_its_for": "Family caregivers of RI residents with Alzheimer's/dementia.",
-      "official_url": "https://oha.ri.gov/programs/alzheimers-respite-voucher",
-      "benefit_value": "Up to $27/hour vouchers; annual cap $3,600 per caregiver."
+      "name": "Caregiver/Respite Support",
+      "what_it_does": "Offers respite services and support for family caregivers through LTSS programs. Includes counseling and training via ADRC.[1]",
+      "who_its_for": "Family caregivers of seniors/disabled adults needing relief.[1][3]",
+      "official_url": "https://www.unitedwayri.org/get-help/adrc/",
+      "benefit_value": "Paid respite hours, training, and support groups.[1]"
     },
     {
       "name": "Senior Community Service Employment Program (SCSEP)",
-      "what_it_does": "Provides part-time community service work training leading to unsubsidized employment. Pays minimum wage for 20 hours/week at nonprofit/community sites.",
-      "who_its_for": "Unemployed low-income seniors 55+ lacking skills for self-support.",
-      "official_url": "https://www.cwri.org/scsep",
-      "benefit_value": "$15/hour wage (RI minimum); work experience and job placement."
+      "what_it_does": "Provides part-time paid training jobs in community service to low-income seniors. Builds skills for unsubsidized employment.[6]",
+      "who_its_for": "Unemployed low-income adults age 55+.[6]",
+      "official_url": "https://cranstonseniorcenter.com/rsvp-retired-senior-volunteer-program/",
+      "benefit_value": "Minimum wage training positions up to 20 hours/week.[6]"
     },
     {
-      "name": "Rhode Island Legal Services (RILS) Elder Law Unit",
-      "what_it_does": "Provides free legal assistance for income-eligible seniors on housing, benefits, consumer issues, and abuse prevention. Offers advice, representation, and community education.",
-      "who_its_for": "Seniors 60+ with income ≤125% FPL and priority legal problems.",
-      "official_url": "https://rils.org/elder-law/",
-      "benefit_value": "Free legal services valued at $300+/hour attorney rate."
+      "name": "Legal Aid for Seniors",
+      "what_it_does": "Provides free legal assistance for issues like benefits, housing, and abuse. Operated through elder advocacy networks.[5]",
+      "who_its_for": "Low-income Rhode Island seniors age 60+.[5]",
+      "official_url": "https://rielderinfo.com/advocacy-assistance/",
+      "benefit_value": "Representation in benefits appeals, evictions, and elder rights cases.[1]"
     },
     {
       "name": "Long-Term Care Ombudsman Program",
-      "what_it_does": "Advocates for residents in nursing homes, assisted living, and other long-term care facilities. Investigates complaints, resolves issues, and promotes quality of life.",
-      "who_its_for": "All residents and families in RI long-term care facilities.",
-      "official_url": "https://ombudsman.ri.gov/",
-      "benefit_value": "Free advocacy; resolves 80%+ of complaints without litigation."
+      "what_it_does": "Advocates for residents in long-term care facilities resolving complaints and ensuring quality care. Protects rights of nursing home/assisted living residents.[1]",
+      "who_its_for": "Seniors in RI nursing homes, assisted living, or similar facilities.[3]",
+      "official_url": "https://www.unitedwayri.org/get-help/adrc/",
+      "benefit_value": "Free advocacy, investigations, and systemic improvements.[1]"
     },
     {
-      "name": "Rhode Island Pharmaceutical Assistance Program for the Elderly (RIPAE)",
-      "what_it_does": "RIPAE provides financial assistance to eligible seniors for purchasing prescription drugs not covered by Medicare. It helps reduce out-of-pocket costs for medications essential to health management.[3]",
-      "who_its_for": "Rhode Island seniors aged 65+ with limited income and assets, beyond standard federal Medicare coverage.",
-      "whats_unique": "State-funded pharmaceutical aid specifically tailored for RI elderly, supplementing federal programs like Medicare Part D.",
-      "official_url": "https://ripate.ri.gov/",
-      "benefit_value": "Varies by income; covers copays and premiums up to state-set limits, potentially thousands annually in drug cost savings."
+      "name": "Rhode Island Pharmaceutical Assistance for the Elderly (RIPAE)",
+      "what_it_does": "RIPAE provides financial assistance to eligible seniors for prescription drug costs not covered by Medicare or other insurance. It helps reduce out-of-pocket expenses for medications, supplementing federal programs like Medicare Part D Extra Help.",
+      "who_its_for": "Rhode Island residents aged 65+ with limited income and assets, who are enrolled in Medicare.",
+      "whats_unique": "State-funded pharmaceutical assistance program specific to RI, going beyond federal Medicare Part D by providing additional copayment coverage for seniors.",
+      "official_url": "https://oha.ri.gov/resources/public-benefits-legal-housing-transportation-supports/benefits-enrollment-center",
+      "benefit_value": "Varies by income; covers prescription copays up to annual maximums (e.g., $1,500-$2,100 based on income levels)[7][5]"
     },
     {
       "name": "At Home Cost Share Program",
-      "what_it_does": "This program offers case management and coordinated access to long-term services and supports (LTSS) to help seniors remain safely at home. It partners with local agencies for personalized care planning.[2]",
-      "who_its_for": "Eligible seniors in Newport County and Providence with limited income, often in partnership with RI Office of Healthy Aging.",
-      "whats_unique": "RI-specific state-funded initiative for home-based case management, distinct from federal Medicaid waivers.",
-      "official_url": "https://oha.ri.gov/programs/at-home-cost-share",
-      "benefit_value": "Free case management services; connects to LTSS worth thousands in home care support annually."
+      "what_it_does": "This program offers case management and supportive services to help seniors remain safely in their homes. Participants contribute a cost-share based on income, with state funding covering the rest for services like personal care and homemaking.",
+      "who_its_for": "Rhode Island seniors aged 60+ who meet income guidelines (typically up to 225% FPL) and need assistance to avoid nursing home placement.",
+      "whats_unique": "RI state-funded program administered by Office of Healthy Aging, providing non-Medicaid home-based services with income-based cost-sharing unique to the state's aging services model.",
+      "official_url": "https://oha.ri.gov",
+      "benefit_value": "Up to $1,800 annually in services per participant, with cost-share from $0-$50/month depending on income[4][3]"
     },
     {
-      "name": "Ocean State Senior Dining Program",
-      "what_it_does": "Provides nutritious meals at congregate dining sites for seniors to promote health and social engagement. It supports nutrition access for those facing food insecurity.[3]",
-      "who_its_for": "Rhode Island seniors aged 60+ who are homebound or attend senior centers.",
-      "whats_unique": "State-specific congregate meal program branded for RI, expanding beyond federal Meals on Wheels.",
-      "official_url": "https://oha.ri.gov/programs/ocean-state-senior-dining",
-      "benefit_value": "Free or low-cost meals (up to 5 per week), valued at $10-15 per meal."
+      "name": "HCC Senior Companion Program",
+      "what_it_does": "Trained volunteers provide companionship, assistance with daily tasks, and socialization to isolated seniors in homes, adult day centers, or community sites. The program fosters independence and reduces loneliness through regular visits.",
+      "who_its_for": "Isolated Rhode Island seniors aged 60+ funded through RI Division of Elderly Affairs, regardless of income.",
+      "whats_unique": "State-funded volunteer companion service via RI Division of Elderly Affairs, emphasizing community-based support not universally replicated in other states.",
+      "official_url": "https://www.dea.ri.gov",
+      "benefit_value": "Free volunteer services averaging 20 hours/month per senior[3]"
     },
     {
-      "name": "RIPTA Senior Reduced Fare Bus Pass",
-      "what_it_does": "Offers discounted fares on all Rhode Island Public Transit Authority (RIPTA) buses for senior riders. Enables affordable access to errands, medical appointments, and recreation statewide.[1]",
-      "who_its_for": "Rhode Island residents aged 65 and older.",
-      "whats_unique": "Statewide reduced fare pass unique to RI's public transit system, not a federal program.",
-      "official_url": "https://www.ripta.com/fares-passes/senior-citizen",
-      "benefit_value": "$1 fare (half of regular $2); annual pass options available for frequent users."
+      "name": "The POINT",
+      "what_it_does": "The POINT is a statewide call center offering information, referrals, and assistance enrolling in long-term care options, Medicare, Medicaid, and other senior programs. It handles 40,000 calls yearly to connect seniors and caregivers to resources.",
+      "who_its_for": "Rhode Island seniors aged 60+, adults with disabilities, and caregivers seeking statewide aging services support.",
+      "whats_unique": "RI's centralized, multilingual Aging and Disability Resource Network (ADRN) hub operated by United Way, unique in its comprehensive statewide integration through 2-1-1.",
+      "official_url": "https://www.rhodeislandfamilyguide.com/senior-services",
+      "benefit_value": "Free enrollment assistance into programs worth thousands in annual benefits per enrollee[1]"
+    },
+    {
+      "name": "Benefits Enrollment Center (BEC)",
+      "what_it_does": "BEC provides free enrollment help for RI Medicare beneficiaries into state and federal benefits programs. Counselors assist with applications for RIPAE, LIHEAP, SNAP, MSP, and LIS to maximize benefits.",
+      "who_its_for": "Rhode Island Medicare beneficiaries, especially seniors aged 65+, seeking benefits screening and application support.",
+      "whats_unique": "Statewide RI Office of Healthy Aging service focused on state-specific programs like RIPAE alongside federal ones, with dedicated phone appointments.",
+      "official_url": "https://oha.ri.gov/resources/public-benefits-legal-housing-transportation-supports/benefits-enrollment-center",
+      "benefit_value": "Free service unlocking benefits averaging $5,000+ annually per enrollee (e.g., RIPAE, energy aid)[7]"
     }
   ]
 }

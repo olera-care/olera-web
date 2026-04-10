@@ -1,217 +1,15 @@
 {
   "state": "DE",
   "stateName": "Delaware",
-  "draftedAt": "2026-04-09T09:30:51.501Z",
-  "total": 17,
-  "successful": 3,
+  "draftedAt": "2026-04-09T12:46:22.238Z",
+  "total": 12,
+  "successful": 12,
   "programs": [
     {
-      "id": "delaware-medicaid-elderly",
-      "name": "Delaware Medicaid for the Elderly",
-      "shortName": "Delaware Medicaid",
-      "tagline": "If your parent needs nursing home care or daily help at home, Delaware Medicaid can cover the full cost of long-term care.",
-      "programType": "benefit",
-      "complexity": "deep",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false
-      },
-      "intro": "If your parent needs daily help with bathing, dressing, or medication management, Delaware Medicaid can cover the full cost of nursing home care or comprehensive home-based services. Because this program covers long-term care that can cost $8,000-15,000 per month privately, it provides essential financial protection for families facing care decisions.\n\nDelaware offers three pathways: Nursing Home Medicaid for institutional care, Long-Term Care Community Services (LTCCS) for comprehensive home care, and Regular Medicaid for basic healthcare. Your parent must meet strict functional requirements — they need to qualify for nursing facility level of care, meaning they require daily assistance that can only be provided by trained professionals.\n\nDelaware is an income cap state with a $2,417.50/month income limit for nursing home and LTCCS programs (2025). However, excess income can be placed into a Qualified Income Trust (Miller Trust) to achieve eligibility, so higher-income seniors can still qualify.",
-      "savingsRange": "",
-      "savingsSource": "Free service",
-      "savingsVerified": true,
-      "structuredEligibility": {
-        "summary": [
-          "Age 65+ (or disabled/blind)",
-          "Income below $2,417.50/month for long-term care",
-          "Assets below $2,000 (single)",
-          "Requires nursing facility level of care",
-          "Delaware resident"
-        ],
-        "ageRequirement": "65+",
-        "incomeTable": null,
-        "assetLimits": {
-          "individual": 2000,
-          "couple": 3000,
-          "countedAssets": [
-            "Cash",
-            "Savings accounts",
-            "Investments",
-            "Property you own"
-          ],
-          "exemptAssets": [
-            "Primary home",
-            "One car",
-            "Retirement accounts (IRAs, 401(k)s)",
-            "Personal items",
-            "Prepaid funeral trusts"
-          ],
-          "homeEquityCap": null
-        },
-        "functionalRequirement": "Must require nursing facility level of care — daily help with bathing, dressing, eating, toileting, mobility, plus cognitive or behavioral issues requiring professional supervision",
-        "otherRequirements": [
-          "Delaware resident",
-          "U.S. citizen or lawful permanent resident",
-          "Willing to accept nursing facility or LTCCS services"
-        ],
-        "povertyLevelReference": null
-      },
-      "applicationGuide": {
-        "method": "multiple",
-        "summary": "Apply online through Delaware ASSIST or contact your local Long Term Care unit — processing times vary but can be longer than expected.",
-        "steps": [
-          {
-            "step": 1,
-            "title": "Gather financial documents",
-            "description": "Collect 3 months of bank statements, Social Security statements, pension information, and property deeds"
-          },
-          {
-            "step": 2,
-            "title": "Get medical assessment",
-            "description": "Your parent will need evaluation to determine if they meet nursing facility level of care requirements"
-          },
-          {
-            "step": 3,
-            "title": "Submit application",
-            "description": "Use Delaware ASSIST online tool or contact your local Long Term Care unit directly"
-          },
-          {
-            "step": 4,
-            "title": "Follow up regularly",
-            "description": "Ask about typical approval timeframes when you apply — processing can take longer than expected"
-          }
-        ],
-        "processingTime": "Variable — ask about typical approval timeframes when applying",
-        "waitlist": null,
-        "tip": "If your parent's income exceeds $2,417.50/month, ask about setting up a Miller Trust to qualify — excess income can be placed in this trust.",
-        "urls": [
-          {
-            "label": "Delaware ASSIST Online Application",
-            "url": "https://www.dhss.delaware.gov/"
-          }
-        ]
-      },
-      "contentSections": [
-        {
-          "type": "tier-comparison",
-          "heading": "Three Program Options",
-          "tiers": [
-            {
-              "name": "Nursing Home Medicaid",
-              "description": "Full institutional care",
-              "incomeLimit": "$2,417.50/month (2025)",
-              "coverage": "Complete nursing facility care for as long as needed, even multiple years. Your parent keeps $50/month of income."
-            },
-            {
-              "name": "LTCCS (Home Care)",
-              "description": "Comprehensive community-based care",
-              "incomeLimit": "$2,417.50/month (2025)",
-              "coverage": "Full range of home care services for those who meet nursing home level of care but prefer to stay home. Must be 55+ and live in service area."
-            },
-            {
-              "name": "Regular ABD Medicaid",
-              "description": "Basic healthcare coverage",
-              "incomeLimit": "$967/month (2025)",
-              "coverage": "Doctor visits, prescriptions, emergency care, hospital stays. Does not cover long-term care."
-            }
-          ]
-        },
-        {
-          "type": "what-counts",
-          "heading": "Asset Limits: What Counts",
-          "included": [
-            "Cash and checking/savings accounts",
-            "Stocks, bonds, and investments",
-            "Property you own (beyond primary home)",
-            "Second vehicles"
-          ],
-          "excluded": [
-            "Primary home (no equity limit)",
-            "One car of any value",
-            "IRAs and 401(k) retirement accounts",
-            "Personal belongings and household items",
-            "Prepaid funeral trusts",
-            "Life insurance policies owned by applicant or spouse"
-          ]
-        },
-        {
-          "type": "documents",
-          "heading": "What to Bring",
-          "categories": [
-            {
-              "name": "Identity & Residency",
-              "items": [
-                "Proof of Delaware residency",
-                "U.S. citizenship or permanent residency documentation"
-              ]
-            },
-            {
-              "name": "Financial Records",
-              "items": [
-                "3 months of bank statements",
-                "Social Security statements",
-                "Pension statements",
-                "IRA/retirement account statements",
-                "Property deeds"
-              ]
-            },
-            {
-              "name": "Medical Documentation",
-              "items": [
-                "Medical records supporting need for nursing facility level care",
-                "Current medication lists",
-                "Doctor assessments of daily living abilities"
-              ]
-            }
-          ]
-        },
-        {
-          "type": "callout",
-          "tone": "warning",
-          "text": "Delaware is an income cap state — even $1 over the limit disqualifies your parent. However, excess income can be placed into a Miller Trust to achieve eligibility. Don't assume high income automatically disqualifies."
-        },
-        {
-          "type": "callout",
-          "tone": "tip",
-          "text": "For married couples: if only one spouse needs care, the healthy spouse can keep up to $157,920 in assets and receive a monthly income allowance. Only the applicant spouse's income counts toward the limit."
-        }
-      ],
-      "faqs": [
-        {
-          "question": "Can Mom keep her house if she qualifies for Delaware Medicaid?",
-          "answer": "Yes, the primary home is completely exempt regardless of value. Delaware Medicaid cannot force the sale of your parent's home while they're living or if a spouse still lives there."
-        },
-        {
-          "question": "What if Dad's Social Security is $2,500/month — just over the $2,417.50 limit?",
-          "answer": "He can still qualify by setting up a Miller Trust (Qualified Income Trust). The excess $82.50/month goes into the trust, bringing his countable income to exactly the limit. This is a common solution in Delaware."
-        },
-        {
-          "question": "If Mom gets approved for nursing home Medicaid, how much of her income does she keep?",
-          "answer": "She keeps only $50/month for personal needs. The rest of her income goes toward the cost of care. This is significantly less than community programs in other states."
-        },
-        {
-          "question": "Can Dad get home care through this program instead of going to a nursing home?",
-          "answer": "Yes, through LTCCS (Long-Term Care Community Services) if he meets nursing facility level of care, is 55+, and lives within the service area. Same income limits apply, but he can receive comprehensive care at home."
-        },
-        {
-          "question": "We're married and I'm healthy — will I lose everything if my spouse needs Medicaid?",
-          "answer": "No. The healthy spouse can keep up to $157,920 in assets and may receive a monthly income allowance. Only your spouse's income counts toward the $2,417.50 limit, not yours."
-        },
-        {
-          "question": "How long does Delaware Medicaid approval take?",
-          "answer": "Processing times vary and can be longer than expected. Ask about typical timeframes when you apply. Coverage can potentially be backdated up to 3 months before approval, so apply as soon as you think your parent may qualify."
-        }
-      ],
-      "phone": null,
-      "sourceUrl": "https://www.dhss.delaware.gov/",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-09"
-    },
-    {
-      "id": "delaware-diamond-state-hcbs-waiver",
-      "name": "Diamond State HCBS Waiver",
-      "shortName": "Diamond State HCBS",
-      "tagline": "If your parent needs daily help with bathing, dressing, or medication but wants to stay home instead of a nursing facility, Delaware's HCBS waiver covers personal care, respite, and assistive technology.",
+      "id": "delaware-diamond-state-health-plan",
+      "name": "Diamond State Health Plan (DSHP and DSHP-Plus)",
+      "shortName": "Diamond State Health Plan",
+      "tagline": "Free comprehensive healthcare for your Delaware parent if their income is under $1,255/month, or long-term care services if under $2,485/month and they need daily help.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -219,25 +17,28 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Division of Medicaid and Medical Assistance (DMMA)",
+            "name": "Managed Care Organizations (MCOs) like Highmark Health Options, Delaware First Health; statewide",
             "type": "service-area"
           }
         ]
       },
-      "intro": "If your parent needs significant daily help but wants to avoid nursing home placement, Delaware's Diamond State HCBS Waiver can cover personal care, respite services, and assistive technology at home. Your parent must qualify for Medicaid and meet Nursing Facility Level of Care (a clinical assessment showing they need daily help with bathing, dressing, eating, toileting, or managing medications).\n\nThe program is now integrated into Delaware's Long-Term Care Community Services (LTCCS) under Diamond State Health Plan Plus. Because all elderly and disabled HCBS waivers were absorbed into this system, there's no separate application — but slots may still be limited. Income must be under $2,485/month for single applicants, with assets under $2,000.",
+      "intro": "If your parent lives in Delaware and has low income, Diamond State Health Plan provides free comprehensive healthcare through Delaware's Medicaid program. There are two tiers: standard DSHP covers doctor visits, hospital care, prescription drugs, and transportation for adults with income at or below $1,255/month. DSHP-Plus adds long-term home care services for parents 65+ who need daily help with bathing, dressing, or medication management and have income below $2,485/month.\n\nBecause this is managed care, your parent must enroll with a specific health plan (like Highmark Health Options) to receive any services — simply qualifying isn't enough. The program covers everything from routine checkups to hearing aids to ambulance services, eliminating the need to coordinate between multiple insurance programs.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
           "Delaware resident",
-          "Medicaid eligible",
-          "Income under $2,485/month (single)",
-          "Assets under $2,000",
-          "Needs nursing-level care"
+          "Income below $1,255/month (standard) or $2,485/month (with long-term care)",
+          "Age 65+ for DSHP-Plus",
+          "No Medicare or comprehensive insurance"
         ],
-        "ageRequirement": null,
+        "ageRequirement": "65+ (for DSHP-Plus long-term care services)",
         "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1255
+          },
           {
             "householdSize": 1,
             "monthlyLimit": 2485
@@ -248,87 +49,90 @@
           "couple": null,
           "countedAssets": [
             "Bank accounts",
-            "Stocks",
-            "Bonds",
-            "Cash"
+            "Investments"
           ],
           "exemptAssets": [
-            "Primary home (if intent to return)",
-            "One vehicle",
-            "Personal belongings",
-            "Burial plots"
+            "Home (if living there or spouse lives there)",
+            "One vehicle"
           ],
-          "homeEquityCap": null
+          "homeEquityCap": 752000
         },
-        "functionalRequirement": "Must meet Nursing Facility Level of Care (clinical assessment showing need for daily help with bathing, dressing, eating, toileting, medication management, or significant cognitive/behavioral support)",
+        "functionalRequirement": "For DSHP-Plus: Must need daily help with at least one activity like bathing, dressing, mobility, toileting, eating, or transferring. Assessed through Pre-Admission Screening.",
         "otherRequirements": [
-          "Must qualify for Medicaid first",
-          "60-month look-back period applies to asset transfers"
+          "Cannot have Medicare",
+          "Cannot have comprehensive insurance",
+          "Cannot have military health coverage",
+          "Must enroll in a Managed Care Organization"
         ],
-        "povertyLevelReference": null
+        "povertyLevelReference": "100% FPL (standard DSHP)"
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply through Division of Medicaid and Medical Assistance after first qualifying for Medicaid — processing time not specified.",
+        "summary": "Apply online at dhss.delaware.gov or call 1-800-372-2022 — processing time not specified by the state.",
         "steps": [
           {
             "step": 1,
-            "title": "Apply for Medicaid first",
-            "description": "Contact Diamond State Health Plan to apply for Medicaid eligibility — you cannot get HCBS without Medicaid qualification first."
+            "title": "Gather required documents",
+            "description": "Collect proof of income, assets, Delaware residency, and medical records if applying for DSHP-Plus long-term care services."
           },
           {
             "step": 2,
-            "title": "Request NFLOC assessment",
-            "description": "Ask DMMA for a Nursing Facility Level of Care assessment to determine if your parent needs nursing-level care but can be safely served at home."
+            "title": "Complete Delaware Medicaid application",
+            "description": "Apply online at dhss.delaware.gov/dmma/medicaid.html, call 1-800-372-2022, or visit a local Division of Medicaid & Medical Assistance office."
           },
           {
             "step": 3,
-            "title": "Submit financial documentation",
-            "description": "Provide 60 months of financial records, including bank statements, asset documentation, and proof of any asset transfers."
+            "title": "Complete functional assessment (DSHP-Plus only)",
+            "description": "If applying for long-term care services, your parent will need a Pre-Admission Screening to confirm they need daily help with activities like bathing or dressing."
           },
           {
             "step": 4,
-            "title": "Complete HCBS application",
-            "description": "Submit the 1915(c) HCBS Waiver application through DMMA once Medicaid eligibility and NFLOC are confirmed."
+            "title": "Choose a Managed Care Organization",
+            "description": "Once approved, your parent must enroll with an MCO like Highmark Health Options or Delaware First Health to receive any services."
           }
         ],
         "processingTime": null,
-        "waitlist": "Prior HCBS waivers had limited slots and waitlists — current capacity limits under LTCCS are unclear",
-        "tip": "Start with Medicaid application first — you cannot qualify for HCBS without Medicaid eligibility, and the financial review takes time.",
+        "waitlist": null,
+        "tip": "Your parent cannot receive any services until they enroll with a specific health plan, even after qualifying — don't skip the MCO enrollment step.",
         "urls": [
           {
-            "label": "Delaware Medicaid Division",
-            "url": "https://dhss.delaware.gov/dmma"
+            "label": "Delaware Medicaid Application",
+            "url": "https://dhss.delaware.gov/dmma/medicaid.html"
           }
         ]
       },
       "contentSections": [
         {
           "type": "income-table",
-          "heading": "Income Limits (2026)",
+          "heading": "Income Limits by Program Tier",
           "rows": [
             {
-              "householdSize": 1,
+              "category": "Standard DSHP (basic healthcare)",
+              "monthlyLimit": 1255,
+              "annualLimit": 15060
+            },
+            {
+              "category": "DSHP-Plus (includes long-term care)",
               "monthlyLimit": 2485,
-              "yearlyLimit": 29820
+              "annualLimit": 29820
             }
           ],
-          "footnote": "Couples follow Medicaid spousal impoverishment protections with different limits"
+          "footnote": "2026 limits. For DSHP-Plus, spouse income is not counted."
         },
         {
           "type": "what-counts",
-          "heading": "Asset Limits: What Counts",
+          "heading": "Asset Limits: What Counts (DSHP-Plus Only)",
           "included": [
             "Bank accounts and savings",
-            "Stocks and bonds",
-            "Cash on hand",
-            "Investment accounts"
+            "Investments and stocks",
+            "Second vehicles",
+            "Property other than primary home"
           ],
           "excluded": [
-            "Primary home (if intent to return)",
+            "Primary home (if you live there or spouse/disabled child lives there, and equity under $752,000)",
             "One vehicle",
-            "Personal belongings and furniture",
-            "Burial plots and prepaid funeral expenses"
+            "Personal belongings and household items",
+            "Life insurance policies under $1,500"
           ]
         },
         {
@@ -336,201 +140,187 @@
           "heading": "What to Bring",
           "categories": [
             {
-              "name": "Identity & Residency",
+              "name": "Identity",
               "items": [
-                "Delaware ID or driver's license",
-                "Proof of Delaware residency"
+                "Birth certificate",
+                "Social Security card",
+                "Proof of Delaware residency (utility bill)"
               ]
             },
             {
-              "name": "Financial Records",
+              "name": "Financial",
               "items": [
-                "60 months of bank statements",
-                "Social Security award letters",
-                "Pension or retirement income proof",
-                "Documentation of any asset transfers in past 5 years"
-              ]
-            },
-            {
-              "name": "Medical Documentation",
-              "items": [
-                "Medical records showing need for daily care",
-                "Physician statement about functional limitations",
-                "Current medication list and management needs"
+                "Pay stubs or tax returns (proof of income)",
+                "Bank statements (proof of assets)",
+                "Medical records showing need for daily assistance (DSHP-Plus only)"
               ]
             }
           ]
         },
         {
           "type": "callout",
-          "tone": "warning",
-          "text": "Prior elderly HCBS waivers were absorbed into the Long-Term Care Community Services program — verify current availability as the system was recently restructured and may have waitlists."
-        },
-        {
-          "type": "callout",
           "tone": "tip",
-          "text": "The 60-month look-back period penalizes asset transfers — don't gift money or assets to qualify. Any transfers in the past 5 years can delay eligibility."
+          "text": "If your parent qualifies for DSHP-Plus long-term care, most of their income will go to the state — they keep only $75/month for personal needs."
         }
       ],
       "faqs": [
         {
-          "question": "Can Mom keep her house if she qualifies for this waiver?",
-          "answer": "Yes, the primary home is exempt from the $2,000 asset limit as long as she intends to return to it. The home won't count against her eligibility even if she's temporarily in care."
+          "question": "Can Mom keep her house if she qualifies for DSHP-Plus?",
+          "answer": "Yes, if she lives there or intends to return, or if a spouse or disabled child lives there. The home equity must be under $752,000 in 2026."
         },
         {
-          "question": "What if her income is just over $2,485/month?",
-          "answer": "She may still qualify through other Medicaid pathways or spend-down options. Contact DMMA to review her specific situation — couples have different income rules with spousal protections."
+          "question": "What happens if Dad has Medicare — can he still get Diamond State Health Plan?",
+          "answer": "No. Parents who are eligible for Medicare cannot enroll in Diamond State Health Plan. This program is specifically for those without Medicare or comprehensive insurance."
         },
         {
-          "question": "Does having Alzheimer's automatically qualify her for nursing-level care?",
-          "answer": "No, an Alzheimer's diagnosis alone doesn't guarantee qualification. She must meet Nursing Facility Level of Care based on her specific needs for daily help with bathing, dressing, eating, medication management, or safety supervision."
+          "question": "Mom has dementia but can still dress herself. Does she qualify for DSHP-Plus long-term care?",
+          "answer": "Maybe. Dementia diagnosis alone doesn't qualify her — she must need daily help with at least one activity like bathing, dressing, mobility, toileting, eating, or transferring. A Pre-Admission Screening will determine if she meets this requirement."
         },
         {
-          "question": "We gifted money to grandchildren last year — will this affect eligibility?",
-          "answer": "Yes, the 60-month look-back period reviews all asset transfers in the past 5 years. Gifts can create a penalty period that delays eligibility. Report all transfers honestly during the application."
+          "question": "How quickly will services start once Mom is approved?",
+          "answer": "She must first enroll with a Managed Care Organization like Highmark Health Options after approval. No services are available until this MCO enrollment is complete."
         },
         {
-          "question": "What services are actually covered under this waiver?",
-          "answer": "Personal care assistance, respite care for family caregivers, assistive technology, and day services are covered. The specific hours and services depend on her assessed needs and the care plan developed after approval."
+          "question": "What if her income is just over the $2,485 limit for DSHP-Plus?",
+          "answer": "She won't qualify for DSHP-Plus long-term care services. However, if her income is under $1,255/month, she may still qualify for standard DSHP basic healthcare coverage."
         },
         {
-          "question": "How long is the waitlist for services?",
-          "answer": "Delaware recently restructured its HCBS system, absorbing prior waivers into Long-Term Care Community Services. Current wait times are unclear — contact DMMA directly to check availability in your area."
+          "question": "Does my income count toward Mom's application if I help support her?",
+          "answer": "No, only your parent's income counts for the application. If your parent is married, their spouse's income also doesn't count for DSHP-Plus eligibility."
         }
       ],
-      "phone": null,
-      "sourceUrl": "https://dhss.delaware.gov/dmma",
+      "phone": "1-800-372-2022",
+      "sourceUrl": "https://dhss.delaware.gov/dmma/medicaid.html",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-09"
     },
     {
-      "id": "delaware-pace",
-      "name": "Delaware PACE",
-      "shortName": "Delaware PACE",
-      "tagline": "All-inclusive medical and personal care for parents 55+ who need nursing home-level help but want to stay home.",
+      "id": "delaware-dsaapd-waivers",
+      "name": "Division of Services for Aging and Adults with Physical Disabilities (DSAAPD) Waivers",
+      "shortName": "DSAAPD Waivers",
+      "tagline": "Get home care services covered by Medicaid instead of moving your parent to a nursing home.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
-        "type": "local",
+        "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Saint Francis LIFE (Trinity Health PACE)",
+            "name": "Delaware Aging & Disability Resource Center (ADRC): www.dhss.delaware.gov/dhss/dsaapd/adrc.html[1]",
             "type": "service-area"
           },
           {
-            "name": "PACE Your LIFE",
+            "name": "Joining Generations: 800.223.9074[4]",
             "type": "service-area"
           }
         ]
       },
-      "intro": "If your parent is 55+ and needs significant daily help but wants to avoid a nursing home, Delaware PACE provides all their medical and personal care under one program. Because PACE covers everything from doctor visits to prescription drugs to adult day care through one coordinated team, your parent won't need to juggle multiple providers or worry about coverage gaps.\n\nYour parent must qualify for nursing home-level care (needing daily help with bathing, dressing, or medication management) but be safe to live in the community with PACE support. If they're eligible for Medicaid, all services are free. If their income is above Medicaid limits, they can pay a flat monthly fee to access the same comprehensive care.\n\nPACE is only available in specific ZIP codes served by two providers: Saint Francis LIFE and PACE Your LIFE. Your parent must live within their service areas and agree to receive all care exclusively through the PACE program.",
+      "intro": "If your parent needs nursing home level care but wants to stay in their own home, Delaware's DSAAPD waivers may cover personal care services that would otherwise cost thousands per month out-of-pocket. These Medicaid waivers pay for daily help with bathing, dressing, mobility, and other essential care — plus assistive devices like shower chairs and ramps — so your parent can remain safely at home instead of moving to a facility.\n\nThe program serves Delaware residents age 60+ who are Medicaid-eligible and need significant daily assistance. Because this is an alternative to nursing home care, your parent must qualify for nursing home level of care (meaning they need daily help with multiple activities like bathing, dressing, toileting, or medication management). The state offers several different waivers including Elderly & Disabled and Assisted Living options, each covering different combinations of services.",
       "savingsRange": "",
       "savingsSource": "Free service",
-      "savingsVerified": true,
+      "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
-          "Age 55+",
-          "Need nursing home-level care",
-          "Live in specific service areas",
-          "Safe to remain in community",
-          "Not in other managed care programs"
+          "Age 60+ (or 18-59 with stricter criteria)",
+          "Delaware resident",
+          "Medicaid eligible",
+          "Need nursing home level care",
+          "Living in own home/apartment"
         ],
-        "ageRequirement": "55+",
+        "ageRequirement": "60+",
         "incomeTable": null,
         "assetLimits": {
           "individual": 2000,
           "couple": null,
           "countedAssets": [
             "Bank accounts",
-            "Investments",
-            "Retirement accounts"
+            "CDs",
+            "Property other than residence",
+            "Whole life insurance",
+            "401K"
           ],
           "exemptAssets": [
-            "Primary home",
-            "Personal belongings",
-            "One vehicle"
+            "Primary residence"
           ],
           "homeEquityCap": null
         },
-        "functionalRequirement": "Must meet Delaware's nursing home level of care criteria (needing daily help with activities like bathing, dressing, medication management, or mobility)",
+        "functionalRequirement": "Must need nursing home level of care — meaning daily assistance with activities like bathing, dressing, mobility, toileting, feeding, or health maintenance",
         "otherRequirements": [
-          "Live in PACE provider service area",
-          "Currently living in community (not nursing home)",
-          "Not enrolled in Medicare Advantage, Medicaid managed care, or hospice",
-          "Agree to receive all care exclusively through PACE"
+          "Must be eligible for Medicaid",
+          "Must live in Delaware in own home or apartment",
+          "Cannot currently be in a nursing home"
         ],
-        "povertyLevelReference": "300% FPL"
+        "povertyLevelReference": null
       },
       "applicationGuide": {
-        "method": "phone",
-        "summary": "Contact your local PACE provider directly for intake and assessment - no standard processing timeline available.",
+        "method": "multiple",
+        "summary": "Call 800-223-9074 to start the referral process through Delaware's Aging & Disability Resource Center — processing time not specified.",
         "steps": [
           {
             "step": 1,
-            "title": "Contact your local PACE provider",
-            "description": "Call Saint Francis LIFE or PACE Your LIFE to start intake process"
+            "title": "Contact Delaware ADRC for referral",
+            "description": "Call 800-223-9074 or visit www.dhss.delaware.gov/dsaapd to connect with the statewide referral system"
           },
           {
             "step": 2,
-            "title": "Complete intake forms",
-            "description": "Fill out intake form and release of medical records consent"
+            "title": "Complete Medicaid application",
+            "description": "You'll need to apply for Medicaid first since the waiver is a Medicaid program — this determines financial eligibility"
           },
           {
             "step": 3,
-            "title": "Medical records review",
-            "description": "Provider reviews medical history to assess care needs"
+            "title": "Undergo functional assessment",
+            "description": "A clinical assessment determines if your parent meets nursing home level of care requirements for the waiver"
           },
           {
             "step": 4,
-            "title": "Nursing home level of care assessment",
-            "description": "State conducts clinical assessment to verify eligibility"
-          },
-          {
-            "step": 5,
-            "title": "Home visit assessment",
-            "description": "PACE team visits to ensure your parent can be safely maintained in community with PACE services"
+            "title": "Choose waiver type",
+            "description": "Work with case manager to determine which specific waiver (Elderly & Disabled, Assisted Living, etc.) fits your parent's needs"
           }
         ],
-        "processingTime": "Not specified - involves multiple assessments and state approval",
+        "processingTime": null,
         "waitlist": null,
-        "tip": "Gather all medical records before calling - the nursing home level of care assessment requires detailed documentation of your parent's daily care needs.",
-        "urls": []
+        "tip": "Apply for Medicaid first — you cannot get the waiver without being Medicaid-eligible, and this often takes longest to process.",
+        "urls": [
+          {
+            "label": "DSAAPD Main Site",
+            "url": "www.dhss.delaware.gov/dsaapd"
+          },
+          {
+            "label": "Delaware ADRC",
+            "url": "www.dhss.delaware.gov/dhss/dsaapd/adrc.html"
+          }
+        ]
       },
       "contentSections": [
         {
           "type": "what-counts",
-          "heading": "Asset Limits for Free Services (Medicaid Eligibility)",
+          "heading": "Asset Limits: What Counts",
           "included": [
             "Bank accounts and savings",
-            "Stocks, bonds, and investments",
-            "Retirement accounts (401k, IRA)",
-            "Second home or rental property",
-            "Vehicles beyond one car"
+            "Certificates of deposit (CDs)",
+            "Property other than primary residence",
+            "Whole life insurance policies",
+            "401K and retirement accounts"
           ],
           "excluded": [
-            "Primary home (any value)",
-            "Personal belongings and household items",
-            "One vehicle for transportation",
-            "Burial funds up to $1,500",
-            "Life insurance with face value under $1,500"
+            "Primary residence where your parent lives"
           ]
         },
         {
           "type": "county-directory",
-          "heading": "PACE Providers in Delaware",
+          "heading": "How to Apply",
           "offices": [
             {
-              "name": "Saint Francis LIFE (Trinity Health PACE)",
+              "name": "Delaware Aging & Disability Resource Center (ADRC)",
               "type": "service-area",
-              "phone": null,
-              "address": "Specific ZIP codes - contact provider for service area"
+              "phone": "800-223-9074",
+              "address": "Statewide referral system"
             },
             {
-              "name": "PACE Your LIFE",
+              "name": "Joining Generations",
               "type": "service-area",
-              "phone": null,
-              "address": "Email: info@paceyourlifemwv.com"
+              "phone": "800-223-9074",
+              "address": "Contact for local provider locations"
             }
           ]
         },
@@ -541,24 +331,218 @@
             {
               "name": "Identity",
               "items": [
-                "Photo ID or driver's license (to verify age 55+)",
-                "Proof of address in PACE service area"
-              ]
-            },
-            {
-              "name": "Medical",
-              "items": [
-                "Complete medical records from all doctors",
-                "Current medication list",
-                "Hospital discharge summaries",
-                "Physical therapy or occupational therapy reports"
+                "Delaware residency proof",
+                "Social Security card",
+                "Photo ID"
               ]
             },
             {
               "name": "Financial",
               "items": [
-                "Medicare card (if applicable)",
-                "Medicaid eligibility information (if applicable)",
+                "Bank statements",
+                "Income documentation",
+                "Property deeds (if applicable)",
+                "Insurance policies",
+                "Retirement account statements"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Recent medical records showing functional limitations",
+                "Doctor assessments of daily care needs",
+                "Current medication lists"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If your parent's assets exceed the $2,000 limit, you may be able to set up an irrevocable trust to qualify — but do this before applying, not after."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if they qualify for a DSAAPD waiver?",
+          "answer": "Yes. The primary residence doesn't count toward the asset limit, and the whole point of these waivers is to help people stay in their own homes instead of moving to nursing facilities."
+        },
+        {
+          "question": "What's the difference between the Elderly & Disabled waiver and Assisted Living waiver?",
+          "answer": "The research doesn't specify exact differences, but the Assisted Living waiver appears to cover costs in licensed assisted living facilities that provide covered services, while other waivers focus on in-home care. Call 800-223-9074 to discuss which fits your parent's situation."
+        },
+        {
+          "question": "My parent is 58 and has a disability — can they qualify?",
+          "answer": "Possibly, but people ages 18-59 face stricter financial and medical criteria than those 60+. They still need to meet Medicaid eligibility and require assistance with daily activities like dressing, bathing, or mobility."
+        },
+        {
+          "question": "What if my parent doesn't quite need nursing home level care but still needs help?",
+          "answer": "They won't qualify for these waivers, which specifically require nursing home level of care. However, DSAAPD offers other programs for less intensive needs — call 800-223-9074 to explore alternatives."
+        },
+        {
+          "question": "How much will we have to pay for services under the waiver?",
+          "answer": "Because this is a Medicaid program, covered services are free to qualified participants. Your parent's Medicaid eligibility determines any potential copays or contributions."
+        },
+        {
+          "question": "Can my parent get a waiver if they're already in assisted living?",
+          "answer": "It depends on the specific waiver and whether the assisted living facility is licensed to provide covered services. The waiver can potentially cover costs in qualifying licensed facilities."
+        }
+      ],
+      "phone": "800-223-9074",
+      "sourceUrl": "www.dhss.delaware.gov/dsaapd",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "delaware-pace-comprehensive-care",
+      "name": "Program of All-Inclusive Care for the Elderly (PACE) - Delaware PACE",
+      "shortName": "Delaware PACE",
+      "tagline": "All medical care, medications, and transportation covered under one program for parents who need nursing home-level care but want to stay home.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "PACE Your LIFE (contact: info@paceyourlifemwv.com)[7]",
+            "type": "service-area"
+          },
+          {
+            "name": "Saint Francis LIFE (Trinity Health PACE) — serves specific Delaware service area zip codes[6]",
+            "type": "service-area"
+          },
+          {
+            "name": "Additional providers may exist; verify with Delaware Division of Medicaid and Medical Assistance",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs nursing home-level care but wants to stay in their own home, Delaware PACE covers everything under one program: all doctor visits, medications, therapy, medical equipment, and transportation. No deductibles, no co-pays, no coordinating between different providers. Your parent must be 55+ and certified by the state as needing extensive daily help with bathing, dressing, eating, or mobility. PACE is only available in specific Delaware zip codes served by approved organizations like PACE Your LIFE and Saint Francis LIFE. Because PACE covers all medical care under one program, your parent won't need Medicare Advantage or separate prescription drug plans — one interdisciplinary team manages everything.",
+      "savingsRange": "",
+      "savingsSource": "Free comprehensive medical service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Needs nursing home-level care",
+          "Lives in approved PACE service area",
+          "Can live safely at home with services"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 2000,
+          "couple": null,
+          "countedAssets": [
+            "Bank accounts",
+            "Investments",
+            "Property other than primary home"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "One vehicle",
+            "Personal belongings"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "Must be certified by the state as needing nursing home-level care (requiring extensive assistance with bathing, grooming, toileting, walking, transferring, or eating)",
+        "otherRequirements": [
+          "Must live in approved PACE service area",
+          "Must be able to live safely in community with PACE services",
+          "Cannot be enrolled in Medicare Advantage or prescription drug plans",
+          "Must receive all care exclusively through PACE organization"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "in-person",
+        "summary": "Contact your local PACE provider directly for an intake visit — processing time varies by provider.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact your local PACE provider",
+            "description": "Call PACE Your LIFE or Saint Francis LIFE to verify your parent lives in their service area and schedule an intake visit."
+          },
+          {
+            "step": 2,
+            "title": "Complete intake screening",
+            "description": "PACE staff will visit your parent's home to assess their needs and complete intake forms."
+          },
+          {
+            "step": 3,
+            "title": "State assessment",
+            "description": "Delaware will determine if your parent meets nursing facility level of care requirements through clinical assessment."
+          },
+          {
+            "step": 4,
+            "title": "Enrollment decision",
+            "description": "PACE Enrollment Assessment Team reviews all criteria and makes final enrollment decision."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Verify your parent's zip code is in a PACE service area before starting the application — not all of Delaware is covered.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and savings",
+            "Investments and stocks",
+            "Property other than primary home",
+            "Valuable collections or jewelry"
+          ],
+          "excluded": [
+            "Primary home (any value)",
+            "One vehicle",
+            "Personal belongings and household items",
+            "Burial funds"
+          ]
+        },
+        {
+          "type": "county-directory",
+          "heading": "PACE Providers in Delaware",
+          "offices": [
+            {
+              "name": "PACE Your LIFE",
+              "type": "service-area",
+              "phone": null,
+              "address": "info@paceyourlifemwv.com"
+            },
+            {
+              "name": "Saint Francis LIFE (Trinity Health PACE)",
+              "type": "service-area",
+              "phone": null,
+              "address": "Serves specific Delaware zip codes"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "ID showing age 55 or older",
+                "Proof of residency in PACE service area"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Current medications list",
+                "Recent medical records (PACE will request via release form)",
+                "Medicare and Medicaid cards if applicable"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Bank statements if applying as private-pay participant",
                 "Income documentation if applying for Medicaid coverage"
               ]
             }
@@ -567,101 +551,1745 @@
         {
           "type": "callout",
           "tone": "warning",
-          "text": "Your parent cannot use any other Medicare or Medicaid providers while enrolled in PACE. All medical care must go through the PACE team exclusively."
+          "text": "PACE is all-or-nothing: your parent must receive all medical care exclusively through the PACE organization and cannot use other doctors or Medicare Advantage plans."
         },
         {
           "type": "callout",
           "tone": "tip",
-          "text": "If your parent's income is over Medicaid limits, they can still enroll in PACE by paying a flat monthly fee. Contact providers directly for private pay rates."
+          "text": "If your parent doesn't qualify for Medicaid, they can still enroll in PACE as a private-pay participant with a flat monthly premium."
         }
       ],
       "faqs": [
         {
+          "question": "Can Mom keep seeing her current doctors if she enrolls in PACE?",
+          "answer": "No. PACE requires exclusive enrollment — your parent must receive all medical care through the PACE interdisciplinary team and cannot use outside providers. This includes specialists, prescription drugs, and medical equipment."
+        },
+        {
+          "question": "What if Mom's income is too high for Medicaid but she needs PACE services?",
+          "answer": "Your parent can enroll as a private-pay participant. PACE has no income limits for eligibility itself — only Medicaid coverage has income limits. Private-pay participants pay a flat monthly premium directly to the PACE organization."
+        },
+        {
           "question": "Can Mom keep her house if she qualifies for PACE?",
-          "answer": "Yes. Your mom can keep her home of any value and still qualify for free PACE services through Medicaid. The home doesn't count toward the $2,000 asset limit."
+          "answer": "Yes. Your parent's primary home is exempt from asset limits and PACE is designed to help people stay in their own homes instead of moving to nursing facilities. The home has no equity cap."
         },
         {
-          "question": "What if her income is just over the Medicaid limit of $2,901/month?",
-          "answer": "She can still enroll in PACE by paying a flat monthly fee instead of getting free services. Contact Saint Francis LIFE or PACE Your LIFE directly for private pay rates."
+          "question": "What happens if we move to a different part of Delaware after enrollment?",
+          "answer": "Your parent must live within the PACE service area to remain enrolled. Moving outside the service area or being away for more than 30 consecutive days without prior arrangement can result in disenrollment."
         },
         {
-          "question": "Can she keep her current doctor if she joins PACE?",
-          "answer": "No. PACE requires using their medical team exclusively. She cannot see outside doctors or use other Medicare/Medicaid providers while enrolled in PACE."
+          "question": "How do we know if Mom needs 'nursing home-level care'?",
+          "answer": "The state will assess whether your parent needs extensive daily help with bathing, dressing, eating, walking, transferring from bed to chair, or toileting. This isn't self-determined — Delaware conducts a formal clinical assessment."
         },
         {
-          "question": "What happens if we move to a different part of Delaware?",
-          "answer": "She'll be disenrolled from PACE if she moves outside the provider's service area for more than 30 days. PACE is only available in specific ZIP codes, not statewide."
-        },
-        {
-          "question": "How is this different from regular home health care?",
-          "answer": "PACE provides all medical care, prescriptions, adult day care, and personal care through one coordinated team. Regular home health only covers specific services and requires coordinating between multiple providers."
-        },
-        {
-          "question": "What if she's already on Medicare Advantage?",
-          "answer": "She must disenroll from Medicare Advantage before joining PACE. You cannot be enrolled in both programs simultaneously."
+          "question": "Can Mom have Medicare Advantage and PACE at the same time?",
+          "answer": "No. Your parent cannot be enrolled in Medicare Advantage, Medicare prepayment plans, or prescription drug plans while in PACE. PACE replaces these programs and provides comprehensive coverage instead."
         }
       ],
       "phone": null,
-      "sourceUrl": "https://www.dhss.delaware.gov/dmma/",
+      "sourceUrl": "https://www.law.cornell.edu/regulations/delaware/16-Del-Admin-Code-SS-20000-20775",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-09"
     },
     {
-      "name": "Delaware Medicare Savings Programs (QMB, SLMB, QI)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "id": "delaware-qmb-slmb-medicare-help",
+      "name": "Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB)",
+      "shortName": "QMB/SLMB Medicare Help",
+      "tagline": "If your parent's Medicare premiums and copays are eating into their budget, Delaware may cover these costs entirely.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Statewide via DMMA; local offices in each county (New Castle, Kent, Sussex).",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is on Medicare with limited income, they may qualify for help paying Medicare premiums, deductibles, and copays through Delaware's QMB or SLMB programs. QMB covers all Medicare out-of-pocket costs for people with income at or below $1,325/month (single) or $1,783/month (couple). SLMB covers Medicare Part B premiums only for those with slightly higher incomes up to $1,585/month (single) or $2,135/month (couple).\n\nUnlike most states, Delaware has no asset limits for these programs — your parent can own a home, car, and savings without disqualification. Because these programs only help with Medicare costs, your parent keeps their regular Medicare benefits and providers but pays nothing out-of-pocket for covered services.",
+      "savingsRange": "$2,000 – $6,000/year in 2026",
+      "savingsSource": "Medicare Part B premium ($185/month) plus typical deductibles and copays for medical services",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Medicare Part A eligible",
+          "Income below $1,585/month (single)",
+          "Delaware resident",
+          "No asset limits"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1585
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2135
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be entitled to Medicare Part A (enrolled or eligible)",
+          "Delaware resident",
+          "U.S. citizen or qualified non-citizen",
+          "Cannot be eligible for full Medicaid"
+        ],
+        "povertyLevelReference": "120% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply by phone at 1-800-852-9089 or online through Delaware ASSIST — typically processed within 45 days.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Gather Medicare and income documents",
+            "description": "You'll need your parent's Medicare card, Social Security award letters, and recent bank statements."
+          },
+          {
+            "step": 2,
+            "title": "Call DMMA or apply online",
+            "description": "Call 1-800-852-9089 to apply by phone, or use the Delaware ASSIST website for online application."
+          },
+          {
+            "step": 3,
+            "title": "Submit required documentation",
+            "description": "Provide proof of Medicare Part A entitlement, income verification, and Delaware residency within the requested timeframe."
+          },
+          {
+            "step": 4,
+            "title": "Receive eligibility determination",
+            "description": "Delaware will determine whether your parent qualifies for QMB (full coverage) or SLMB (Part B premium only) based on income level."
+          }
+        ],
+        "processingTime": "Typically 45 days for Medicaid programs",
+        "waitlist": null,
+        "tip": "Coverage is not retroactive, so apply as soon as you think your parent qualifies to avoid paying out-of-pocket costs while waiting.",
+        "urls": [
+          {
+            "label": "Delaware ASSIST Online Application",
+            "url": "https://dhss.delaware.gov/dmma"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "tier-comparison",
+          "heading": "QMB vs SLMB Coverage",
+          "tiers": [
+            {
+              "name": "QMB (Qualified Medicare Beneficiary)",
+              "description": "Income at or below 100% Federal Poverty Level",
+              "incomeLimit": "$1,325/month single, $1,783/month couple",
+              "coverage": "Covers Medicare Part A premiums (if applicable), Part B premiums, deductibles, coinsurance, and copayments for all Medicare-covered services"
+            },
+            {
+              "name": "SLMB (Specified Low-Income Medicare Beneficiary)",
+              "description": "Income between 100-120% Federal Poverty Level",
+              "incomeLimit": "$1,585/month single, $2,135/month couple",
+              "coverage": "Covers Medicare Part B premium only (about $185/month in 2026). Does not cover deductibles or copayments"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Medicare",
+              "items": [
+                "Medicare card showing Part A entitlement",
+                "Photo ID",
+                "Social Security card"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Social Security award letters",
+                "Bank statements (recent)",
+                "Pay stubs if still working",
+                "Spouse income documentation if married"
+              ]
+            },
+            {
+              "name": "Residency",
+              "items": [
+                "Utility bill showing Delaware address",
+                "Lease agreement or mortgage statement"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "county-directory",
+          "heading": "Local DMMA Offices",
+          "offices": [
+            {
+              "name": "DMMA Central Office",
+              "type": "statewide",
+              "phone": "1-800-852-9089",
+              "address": "1901 N. Dupont Highway, New Castle, DE 19720"
+            },
+            {
+              "name": "New Castle County",
+              "type": "county",
+              "phone": "1-800-852-9089",
+              "address": "Local Social Services office"
+            },
+            {
+              "name": "Kent County",
+              "type": "county",
+              "phone": "1-800-852-9089",
+              "address": "Local Social Services office"
+            },
+            {
+              "name": "Sussex County",
+              "type": "county",
+              "phone": "1-800-852-9089",
+              "address": "Local Social Services office"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Delaware has no asset limits for QMB/SLMB — your parent can own a home, car, and savings without affecting eligibility. This is unusual compared to other states."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house and still qualify?",
+          "answer": "Yes. Delaware excludes all resources (assets) for QMB and SLMB programs. Your parent can own a home, car, and any amount of savings without affecting eligibility — only income matters."
+        },
+        {
+          "question": "What if Dad's income is $1,400/month — between the QMB and SLMB limits?",
+          "answer": "He would qualify for SLMB, which covers his Medicare Part B premium (about $185/month) but not deductibles or copayments. QMB is only for income at or below $1,325/month for a single person."
+        },
+        {
+          "question": "Will this affect Mom's regular Medicare doctors?",
+          "answer": "No. She keeps the same Medicare coverage and can see the same doctors. The program just pays her Medicare premiums and out-of-pocket costs — providers cannot bill QMB recipients for Medicare-covered services."
+        },
+        {
+          "question": "Can my parents get other Medicaid services through QMB/SLMB?",
+          "answer": "No. QMB and SLMB only help with Medicare costs. They provide no additional Medicaid services like long-term care or prescription drug coverage beyond what Medicare already covers."
+        },
+        {
+          "question": "What if we apply and their income changes next month?",
+          "answer": "Report income changes to DMMA immediately at 1-800-852-9089. If income goes up, they might lose QMB but still qualify for SLMB. If income goes down, they might qualify for more coverage."
+        },
+        {
+          "question": "How long does it take to start saving money on Medicare costs?",
+          "answer": "Coverage begins the month after approval — it's not retroactive. Apply as soon as possible to avoid paying out-of-pocket costs while waiting for the decision."
+        }
+      ],
+      "phone": "1-800-852-9089",
+      "sourceUrl": "https://regulations.delaware.gov/board/division-of-medicaid-and-medical-assistance",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
-      "name": "Delaware Food First/SNAP",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "id": "delaware-snap-food-benefits",
+      "name": "Food Stamp Program (SNAP)",
+      "shortName": "SNAP Benefits",
+      "tagline": "Get $100-300 monthly for your parent's groceries if they're 60+ on a fixed income.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local DSS offices statewide; contact via dhss.delaware.gov/dss.",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and struggling to afford groceries, Delaware's SNAP program can provide $100-300 monthly loaded onto an EBT card. Because Delaware has expanded eligibility beyond federal limits, your parent may qualify even with higher income than other states allow — up to $2,608 monthly for a single person versus the federal limit of $1,580.\n\nDelaware makes it easier for seniors by removing asset limits entirely if your parent is 60+ or disabled. Your parent's home, car, and savings won't count against them. The program also allows higher deductions for medical expenses over $35 monthly and shelter costs, which often helps seniors qualify even when their income seems too high.\n\nBenefits load monthly on an EBT card that works like a debit card at grocery stores. Because SNAP reduces by about 30 cents for every dollar of income, even small changes in how you report expenses can significantly impact the monthly benefit amount.",
+      "savingsRange": "$1,200 – $3,600/year in 2026",
+      "savingsSource": "Monthly benefits of $100-300 based on household size and income",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Income below $2,608/month (1 person)",
+          "Delaware resident",
+          "No asset limits for seniors"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2608
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 3526
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 4442
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 5358
+          },
+          {
+            "householdSize": 5,
+            "monthlyLimit": 6276
+          },
+          {
+            "householdSize": 6,
+            "monthlyLimit": 7192
+          },
+          {
+            "householdSize": 7,
+            "monthlyLimit": 8108
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Delaware resident",
+          "U.S. citizen or eligible lawful alien",
+          "Include all household members who live together and share meals"
+        ],
+        "povertyLevelReference": "200% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online at mybenefits.delaware.gov — decision within 30 days, expedited processing in 7 days if very low income.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Complete online application",
+            "description": "Use Delaware's online portal at mybenefits.delaware.gov. Phone interview can be scheduled instead of in-person visit for seniors."
+          },
+          {
+            "step": 2,
+            "title": "Gather required documents",
+            "description": "Proof of income (Social Security letters, pension statements), expenses (rent, utilities, medical costs over $35/month), and identity."
+          },
+          {
+            "step": 3,
+            "title": "Complete phone interview",
+            "description": "DSS will schedule an interview to review your parent's application. Seniors can do this by phone rather than visiting an office."
+          },
+          {
+            "step": 4,
+            "title": "Receive EBT card",
+            "description": "If approved, benefits load monthly on an EBT card that works at authorized grocery stores."
+          }
+        ],
+        "processingTime": "Eligibility decision within 30 days; expedited benefits within 7 days if meet certain conditions",
+        "waitlist": null,
+        "tip": "If your parent receives SSI, they're automatically eligible and may not need a separate application.",
+        "urls": [
+          {
+            "label": "Apply Online",
+            "url": "https://mybenefits.delaware.gov"
+          },
+          {
+            "label": "Delaware DSS",
+            "url": "https://dhss.delaware.gov/dss/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits by Household Size (200% Federal Poverty Level)",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 2608
+            },
+            {
+              "householdSize": 2,
+              "monthlyLimit": 3526
+            },
+            {
+              "householdSize": 3,
+              "monthlyLimit": 4442
+            },
+            {
+              "householdSize": 4,
+              "monthlyLimit": 5358
+            },
+            {
+              "householdSize": 5,
+              "monthlyLimit": 6276
+            },
+            {
+              "householdSize": 6,
+              "monthlyLimit": 7192
+            },
+            {
+              "householdSize": 7,
+              "monthlyLimit": 8108
+            }
+          ],
+          "footnote": "2026 limits. Each additional household member adds $916."
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [],
+          "excluded": [
+            "No asset limits for households where all members are 60+ or disabled",
+            "Home you live in",
+            "One vehicle",
+            "Retirement accounts",
+            "Life insurance policies"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Driver's license or state ID",
+                "Social Security card"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Social Security award letters",
+                "Pension statements",
+                "Bank statements (last 3 months)",
+                "Medical bills over $35/month",
+                "Rent receipts or mortgage statements",
+                "Utility bills"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Medical expenses over $35 monthly can be deducted from income, often making the difference between qualifying and not. Gather all medical bills, prescription receipts, and health insurance premiums."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "My mom gets Social Security — is that too much income?",
+          "answer": "Not necessarily. Delaware allows up to $2,608 monthly for a single person, much higher than the federal limit. Even if her Social Security seems high, medical expenses over $35 monthly and housing costs can be deducted, potentially bringing her under the net income limit."
+        },
+        {
+          "question": "Will applying for SNAP affect my dad's other benefits?",
+          "answer": "No. SNAP won't reduce Social Security, Medicare, or most other benefits. If he gets SSI, he's automatically eligible for SNAP without a separate application."
+        },
+        {
+          "question": "What if my parent lives with family but buys their own groceries?",
+          "answer": "If your parent buys and prepares food separately from others in the household, they can apply as a one-person household. This often results in better benefits than including the whole household's income."
+        },
+        {
+          "question": "Can SNAP benefits pay for groceries delivered to the house?",
+          "answer": "Yes, if the grocery store accepts EBT for delivery. Many major chains like Amazon, Walmart, and local stores now accept EBT for online grocery orders and delivery."
+        },
+        {
+          "question": "My mother's income is just over the limit — is there any flexibility?",
+          "answer": "Yes. Delaware seniors get special deductions for medical expenses over $35 monthly and shelter costs. These deductions reduce counted income, so even if gross income seems too high, she may still qualify based on net income after deductions."
+        },
+        {
+          "question": "How long does SNAP certification last for seniors?",
+          "answer": "Typically 12 months for households with members 60+ or disabled, versus shorter periods for other households. This means less paperwork and fewer renewal appointments."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://dhss.delaware.gov/dss/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
-      "name": "Delaware LIHEAP",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "id": "delaware-liheap-energy-assistance",
+      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "shortName": "LIHEAP Energy Help",
+      "tagline": "Get $100–2,561/year toward heating bills and emergency shut-off help for your parent.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Catholic Charities Diocese of Wilmington",
+            "type": "service-area"
+          },
+          {
+            "name": "Division of State Service Centers",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent struggles to pay heating or cooling bills, Delaware's LIHEAP program provides direct cash help toward energy costs. Your parent could receive $100–2,561/year for heating assistance, up to $1,000 for cooling, and up to $10,000 for energy emergencies like shut-off notices.\n\nBecause LIHEAP prioritizes seniors 60+, disabled individuals, and households with high energy burdens, your parent may get faster processing if they qualify for priority status. The program works for both homeowners and renters, and covers all major heating fuels including electricity, natural gas, oil, propane, and wood.\n\nIncome limit: $3,278/month for a single person, $4,287/month for a couple (2026). No asset limits apply — your parent can own their home, have savings, and still qualify.",
+      "savingsRange": "$100 – $2,561/year in 2026",
+      "savingsSource": "Delaware DHSS LIHEAP program data",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Income below $3,278/month (single)",
+          "Homeowners and renters qualify",
+          "Priority for age 60+",
+          "No asset limits"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 3278
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 4287
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 5296
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 6304
+          },
+          {
+            "householdSize": 5,
+            "monthlyLimit": 7313
+          },
+          {
+            "householdSize": 6,
+            "monthlyLimit": 8322
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Household includes all people sharing the utility bill",
+          "Must need help with eligible heating fuel (electricity, gas, oil, kerosene, propane, coal, wood)"
+        ],
+        "povertyLevelReference": "200% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online through Catholic Charities or call (302) 255-9875 — funding is first-come, first-served.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Gather required documents",
+            "description": "Collect proof of income from last 30 days, recent utility bill, and shut-off notice if applying for crisis help."
+          },
+          {
+            "step": 2,
+            "title": "Apply through Catholic Charities online portal",
+            "description": "Visit the LIHEAP application portal linked from dhss.delaware.gov/dhss/dss/liheap.html or call (302) 255-9875."
+          },
+          {
+            "step": 3,
+            "title": "Submit complete application before funds run out",
+            "description": "Applications close when funding is exhausted, even during open seasons (heating Oct-Mar, cooling May-Aug)."
+          }
+        ],
+        "processingTime": "Not specified — varies by funding availability",
+        "waitlist": "Applications may be placed in pending status if incomplete; first-come, first-served until funds exhausted",
+        "tip": "Apply early in the season — Delaware stops taking applications once funds run out, sometimes before the heating season ends.",
+        "urls": [
+          {
+            "label": "Delaware LIHEAP Application",
+            "url": "https://www.dhss.delaware.gov/dhss/dss/liheap.html"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits by Household Size",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 3278,
+              "yearlyLimit": 39336
+            },
+            {
+              "householdSize": 2,
+              "monthlyLimit": 4287,
+              "yearlyLimit": 51444
+            },
+            {
+              "householdSize": 3,
+              "monthlyLimit": 5296,
+              "yearlyLimit": 63552
+            },
+            {
+              "householdSize": 4,
+              "monthlyLimit": 6304,
+              "yearlyLimit": 75648
+            },
+            {
+              "householdSize": 5,
+              "monthlyLimit": 7313,
+              "yearlyLimit": 87756
+            },
+            {
+              "householdSize": 6,
+              "monthlyLimit": 8322,
+              "yearlyLimit": 99864
+            }
+          ],
+          "footnote": "2026 limits, 200% Federal Poverty Level"
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Financial",
+              "items": [
+                "Proof of income from last 30 days for all adults in household",
+                "Recent utility bill showing your parent's name and address"
+              ]
+            },
+            {
+              "name": "For Crisis Help",
+              "items": [
+                "Shut-off notice from utility company",
+                "Proof of energy emergency or high energy burden"
+              ]
+            },
+            {
+              "name": "Identity",
+              "items": [
+                "Proof of residency at address matching utility bill"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "county-directory",
+          "heading": "Local Offices",
+          "offices": [
+            {
+              "name": "Catholic Charities Diocese of Wilmington",
+              "type": "service-area",
+              "phone": "(302) 255-9875",
+              "address": "Statewide service"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Delaware stops accepting LIHEAP applications when funds run out — sometimes before the heating season ends. Apply as early as possible when applications open in October."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If your parent is 60+, disabled, or has children 5 and under in the household, they get priority processing. Make sure to mention this when applying."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent's income is just over the limit?",
+          "answer": "The income limits are firm — gross monthly household income must be at or below 200% of federal poverty guidelines. If your parent is just over, they won't qualify for LIHEAP, but they may qualify for other utility assistance programs through their energy company."
+        },
+        {
+          "question": "Can Mom keep getting LIHEAP if she moves in with me?",
+          "answer": "It depends on the utility arrangement. LIHEAP counts everyone sharing a utility bill as one household. If your mom moves in and goes on your utility bill, your combined household income and size would be used for eligibility."
+        },
+        {
+          "question": "Will LIHEAP cover my parent's entire heating bill?",
+          "answer": "No. LIHEAP provides supplemental assistance, not full coverage. The grant ($100–2,561 for heating) is applied toward energy bills, but your parent will still be responsible for remaining costs."
+        },
+        {
+          "question": "What if my parent gets a shut-off notice in July?",
+          "answer": "Crisis assistance is available year-round, up to $10,000. Your parent needs to apply immediately with the shut-off notice as proof. Don't wait for regular heating/cooling seasons — crisis help has separate funding."
+        },
+        {
+          "question": "Does my parent's house or savings count against them?",
+          "answer": "No. Delaware LIHEAP has no asset limits. Your parent can own their home, have savings accounts, and other assets without affecting eligibility. Only income matters."
+        },
+        {
+          "question": "Can renters get LIHEAP help?",
+          "answer": "Yes. Both homeowners and renters qualify, as long as they're responsible for paying energy bills. If utilities are included in rent, your parent may not be eligible since they're not directly paying the utility company."
+        }
+      ],
+      "phone": "(302) 255-9875",
+      "sourceUrl": "https://www.dhss.delaware.gov/dhss/dss/liheap.html",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
-      "name": "Delaware Weatherization Assistance Program",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "id": "delaware-weatherization-assistance-program",
+      "name": "Weatherization Assistance Program (WAP)",
+      "shortName": "Home Weatherization",
+      "tagline": "Free home repairs and energy improvements that can cut your parent's heating bills by hundreds of dollars yearly.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Energy Coordinating Agency (ECA): 302-504-6111, ecasavesenergy.org",
+            "type": "service-area"
+          },
+          {
+            "name": "Delaware Opportunities Inc.: weatherization@deop.org",
+            "type": "service-area"
+          },
+          {
+            "name": "DNREC Division of Climate, Coastal, and Energy: 302-735-3480",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent's household income is under $30,120 (single person) or $40,880 (couple), they may qualify for free weatherization services that make their home more energy-efficient. The program provides air-sealing, insulation, heating system repairs, window and door replacement, and other improvements at no cost to reduce monthly energy bills.\n\nYour parent can own or rent their home — renters need landlord permission and a copy of their lease. The program covers single-family homes, rowhomes, and trailers, but not apartments or condos. After applying, eligible households are placed on a waiting list prioritized by need, age, and available funding.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Household income under $30,120 (single) or $40,880 (couple)",
+          "Single-family home, rowhouse, or trailer only",
+          "Renters need landlord permission",
+          "Both homeowners and renters eligible"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2510
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 3407
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 4303
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 5200
+          },
+          {
+            "householdSize": 5,
+            "monthlyLimit": 6097
+          },
+          {
+            "householdSize": 6,
+            "monthlyLimit": 6993
+          },
+          {
+            "householdSize": 7,
+            "monthlyLimit": 7890
+          },
+          {
+            "householdSize": 8,
+            "monthlyLimit": 8787
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must live in single-family home, rowhouse, or trailer (no apartments/condos)",
+          "Renters must provide landlord permission and rental agreement",
+          "Adult (18+) must be home when contractors work"
+        ],
+        "povertyLevelReference": "200% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online through Energy Coordinating Agency or call 302-504-6111 for an appointment — processing time varies based on waiting list.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Gather required documents",
+            "description": "Collect Social Security cards and birth certificates for all household members, plus 3 months of income proof (pay stubs, benefit statements). Renters also need rental agreement and written landlord permission."
+          },
+          {
+            "step": 2,
+            "title": "Submit application",
+            "description": "Apply online at ecasavesenergy.org or call Energy Coordinating Agency at 302-504-6111 to schedule an appointment. You can also email weatherization@deop.org for a callback."
+          },
+          {
+            "step": 3,
+            "title": "Wait for eligibility determination",
+            "description": "If eligible, your parent will be placed on a waiting list. Priority is based on need, age of residents, and available funding."
+          },
+          {
+            "step": 4,
+            "title": "Home energy audit",
+            "description": "When your parent's name comes up, contractors will assess the home to determine which weatherization measures are needed."
+          }
+        ],
+        "processingTime": "Not specified — depends on waiting list position",
+        "waitlist": "Yes — after approval, households are placed on waiting list prioritized by need and age. Not all applicants served each year.",
+        "tip": "If your parent doesn't receive services within 12 months, they must reapply annually to stay eligible.",
+        "urls": [
+          {
+            "label": "Apply Online (Energy Coordinating Agency)",
+            "url": "https://ecasavesenergy.org"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits by Household Size",
+          "rows": [
+            {
+              "householdSize": "1 person",
+              "annualLimit": "$30,120",
+              "monthlyLimit": "$2,510"
+            },
+            {
+              "householdSize": "2 people",
+              "annualLimit": "$40,880",
+              "monthlyLimit": "$3,407"
+            },
+            {
+              "householdSize": "3 people",
+              "annualLimit": "$51,640",
+              "monthlyLimit": "$4,303"
+            },
+            {
+              "householdSize": "4 people",
+              "annualLimit": "$62,400",
+              "monthlyLimit": "$5,200"
+            },
+            {
+              "householdSize": "5 people",
+              "annualLimit": "$73,160",
+              "monthlyLimit": "$6,097"
+            },
+            {
+              "householdSize": "6 people",
+              "annualLimit": "$83,920",
+              "monthlyLimit": "$6,993"
+            },
+            {
+              "householdSize": "7 people",
+              "annualLimit": "$94,680",
+              "monthlyLimit": "$7,890"
+            },
+            {
+              "householdSize": "8 people",
+              "annualLimit": "$105,440",
+              "monthlyLimit": "$8,787"
+            }
+          ],
+          "footnote": "Add $10,280 for each additional person beyond 8. Limits updated annually."
+        },
+        {
+          "type": "county-directory",
+          "heading": "Local Offices",
+          "offices": [
+            {
+              "name": "Energy Coordinating Agency (ECA)",
+              "type": "service-area",
+              "phone": "302-504-6111",
+              "address": "Serves statewide - ecasavesenergy.org"
+            },
+            {
+              "name": "Delaware Opportunities Inc.",
+              "type": "service-area",
+              "phone": "weatherization@deop.org",
+              "address": "Serves specific regions"
+            },
+            {
+              "name": "DNREC Division of Climate, Coastal, and Energy",
+              "type": "service-area",
+              "phone": "302-735-3480",
+              "address": "State program questions"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Social Security cards for all household members",
+                "Birth certificate or passport for all household members",
+                "Proof of identity",
+                "Proof of ownership (homeowners only)"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Pay stubs for last 3 months",
+                "Social Security/SSI payment documentation",
+                "Public assistance statements (TANF/GA)",
+                "Unemployment compensation records",
+                "Proof of child support payments"
+              ]
+            },
+            {
+              "name": "Housing (Renters Only)",
+              "items": [
+                "Copy of rental agreement",
+                "Written landlord permission for weatherization work"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Waiting list does not guarantee service — funding is limited and not all applicants receive services each year. If your parent isn't served within 12 months, they must reapply annually to maintain eligibility."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Renters need written landlord permission before applying. Get this in writing along with a copy of the lease — uncooperative landlords can block eligibility even if income qualifies."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent lives in a condo or apartment?",
+          "answer": "Multi-family homes including apartments and condos are not eligible, even if your parent owns their unit. Only single-family homes, rowhomes, and trailers qualify."
+        },
+        {
+          "question": "My parent's landlord won't give permission. Are there any alternatives?",
+          "answer": "Unfortunately, renters must have written landlord permission and a copy of their rental agreement to qualify. Without landlord cooperation, your parent cannot receive weatherization services through this program."
+        },
+        {
+          "question": "How long is the waiting list?",
+          "answer": "Processing time isn't specified and depends on available funding each year. Priority is given based on household need, age of residents, and funding levels. Not all eligible applicants receive services in any given year."
+        },
+        {
+          "question": "What happens if my parent's income is just over the limit?",
+          "answer": "Income limits are strict at 200% of Federal Poverty Level. If your parent's household income exceeds $30,120 (single) or $40,880 (couple), they won't qualify. There's no partial assistance for higher incomes."
+        },
+        {
+          "question": "Can my parent choose which improvements to make?",
+          "answer": "No — specific services are determined by a home energy audit conducted by contractors. Not all households receive the same improvements. The audit identifies which measures will be most effective for that particular home."
+        },
+        {
+          "question": "Does someone need to be home during the work?",
+          "answer": "Yes — an adult (18 or older) must be present each time contractors are in the home. This can require a significant time commitment over multiple days depending on the scope of work needed."
+        }
+      ],
+      "phone": "302-504-6111",
+      "sourceUrl": "https://dnrec.delaware.gov/climate-coastal-energy/sustainable-communities/weatherization/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
+      "id": "delaware-senior-medicare-patrol",
       "name": "Delaware Senior Medicare Patrol (SMP/SHIP)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "shortName": "Delaware SMP/SHIP",
+      "tagline": "Free help protecting your parent from Medicare fraud and resolving billing errors.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Administered statewide by Delaware Division of Services for Aging and Adults with Physical Disabilities (DSAAPD) under DHSS; local sites via SMP locator",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent has Medicare, they can get free one-on-one help spotting Medicare fraud, resolving billing disputes, and understanding their coverage options. Delaware's Senior Medicare Patrol (SMP/SHIP) provides trained counselors who review Medicare statements, help report suspicious charges, and guide families through enrollment decisions.\n\nBecause Medicare fraud costs billions annually and often targets seniors, this program teaches your parent to recognize warning signs like duplicate billing, services they never received, or identity theft. The counselors also help navigate Medicare Advantage vs. Medigap decisions and resolve claim denials.\n\nNo income limits apply — any Medicare beneficiary in Delaware qualifies, along with their family caregivers. You'll get immediate phone counseling and can request in-person meetings through local sites statewide.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Medicare beneficiary in Delaware",
+          "Family caregivers also eligible",
+          "No income or asset limits",
+          "All ages welcome"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be a Medicare beneficiary, family member, or caregiver in Delaware"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call 877-808-2468 for immediate phone counseling — connects directly to Delaware's program.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the Delaware SMP line",
+            "description": "Dial 877-808-2468 Monday-Friday 9am-5:30pm ET. This connects directly to Delaware's program."
+          },
+          {
+            "step": 2,
+            "title": "Describe your Medicare concern",
+            "description": "Explain whether you need help with suspicious billing, coverage decisions, or fraud prevention education."
+          },
+          {
+            "step": 3,
+            "title": "Schedule follow-up if needed",
+            "description": "For complex billing reviews, counselors can arrange in-person meetings at local sites or additional phone sessions."
+          }
+        ],
+        "processingTime": "Immediate phone counseling; individualized assistance upon contact (timely response within 2 business days via contact form)",
+        "waitlist": null,
+        "tip": "Have your parent's Medicare statements and Medicare card ready when you call — counselors can review suspicious charges in real time.",
+        "urls": [
+          {
+            "label": "Find Delaware SMP Contact",
+            "url": "https://smpresource.org/smp-locator/"
+          },
+          {
+            "label": "Delaware DHSS SMP/SHIP",
+            "url": "https://dhss.delaware.gov/dsaapd"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Medicare Documents",
+              "items": [
+                "Medicare Summary Notices (MSNs) - monthly statements showing services billed",
+                "Medicare card with ID number",
+                "Explanation of Benefits (EOB) forms from Medicare Advantage plans"
+              ]
+            },
+            {
+              "name": "Billing Questions",
+              "items": [
+                "Medical bills you're questioning",
+                "Receipts for services your parent says they never received",
+                "Notes about suspicious phone calls or visits from healthcare providers"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "This program focuses on fraud prevention and Medicare counseling — it doesn't provide direct medical care or cash benefits. You'll need to actively report suspected fraud they help you identify."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent doesn't think they've been a victim of Medicare fraud?",
+          "answer": "The program also provides general Medicare education and helps with coverage decisions. Even if there's no fraud concern, counselors can explain Medicare Advantage vs. Medigap options or help resolve claim denials."
+        },
+        {
+          "question": "Can I call on behalf of my parent who has dementia?",
+          "answer": "Yes, family caregivers can contact the program directly. If you need to discuss specific billing details, you may need to have your parent present or provide documentation showing you can act on their behalf."
+        },
+        {
+          "question": "What happens if we find actual Medicare fraud on Mom's statements?",
+          "answer": "SMP counselors will help you report it to Medicare, the Office of Inspector General, and other appropriate agencies. They'll guide you through the reporting process and follow up to ensure it's addressed."
+        },
+        {
+          "question": "Is this the same as SHIP insurance counseling?",
+          "answer": "Delaware combines both programs — SMP focuses on fraud prevention while SHIP provides general Medicare counseling. You'll often get help with both issues from the same counselors."
+        },
+        {
+          "question": "What if we live in a rural area — can we still get help?",
+          "answer": "Yes, the program operates statewide with local sites throughout Delaware. Phone counseling is always available, and they can arrange in-person meetings even in rural areas."
+        },
+        {
+          "question": "How do I know if a Medicare charge is actually fraudulent?",
+          "answer": "Counselors will review your parent's statements line by line and help identify red flags like services on dates your parent wasn't at that provider, duplicate charges, or medical equipment your parent never received."
+        }
+      ],
+      "phone": "877-808-2468",
+      "sourceUrl": "https://dhss.delaware.gov/dsaapd",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
-      "name": "Delaware Meals on Wheels",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "id": "delaware-meals-on-wheels",
+      "name": "Home Delivered Meals (Meals on Wheels)",
+      "shortName": "Meals on Wheels",
+      "tagline": "Free hot meals delivered to your parent's door if they're 60+ and can't safely shop or cook.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "New Castle County: City Fare Meals On Wheels / St. Anthony's Center",
+            "type": "service-area"
+          },
+          {
+            "name": "Kent County: Modern Maturity Center",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and struggles to shop for groceries or prepare meals safely, they may qualify for free home-delivered meals through Meals on Wheels. The program delivers nutritionally balanced meals at least 5 days per week directly to your parent's door — no time limit on how long they can receive service.\n\nBecause there are no income limits, your parent can qualify regardless of their financial situation. The key requirement is that they must be homebound due to a physical disability that makes it difficult to leave home independently or prepare meals safely. This includes conditions that affect bathing, walking, or other daily activities and are expected to last 12 months or longer.\n\nDelivery depends on your parent living within a service area covered by local providers. New Castle County and Kent County have confirmed providers, though coverage may exist in other areas through local Area Agencies on Aging.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Homebound due to physical disability",
+          "No income limits",
+          "Must live in delivery zone"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must be homebound due to physical disability expected to last 12+ months with at least one deficit in activities of daily living (such as bathing, dressing, or walking)",
+        "otherRequirements": [
+          "Delaware resident",
+          "Lives within a provider's delivery zone"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your local provider directly — some programs can start service within a week if no waitlist exists.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call your county's provider",
+            "description": "New Castle County: 302-421-3734 or 302-293-0008. Kent County: 302-734-1200 ext. 119. For other areas, contact your local Area Agency on Aging."
+          },
+          {
+            "step": 2,
+            "title": "Complete phone assessment",
+            "description": "Staff will ask about your parent's age, health conditions, mobility, ability to prepare meals, dietary restrictions, and emergency contacts."
+          },
+          {
+            "step": 3,
+            "title": "Provide required documents",
+            "description": "Submit proof of age, residence, and medical documentation of disability or health conditions that make your parent homebound."
+          },
+          {
+            "step": 4,
+            "title": "Wait for approval and scheduling",
+            "description": "Processing time varies by provider. Some programs start within a week, others may have waitlists."
+          }
+        ],
+        "processingTime": "Varies by provider — some within a week, others longer if waitlists exist",
+        "waitlist": "Possible waitlists in some programs",
+        "tip": "Call even if your parent can sometimes leave home — the assessment will determine if they meet the homebound requirement.",
+        "urls": [
+          {
+            "label": "New Castle County (City Fare)",
+            "url": "www.cityfare.org/meals/eligibility"
+          },
+          {
+            "label": "Kent County (Modern Maturity)",
+            "url": "www.modern-maturity.org/nutrition"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "Local Providers",
+          "offices": [
+            {
+              "name": "New Castle County - City Fare Meals On Wheels / St. Anthony's Center",
+              "type": "service-area",
+              "phone": "302-421-3734 or 302-293-0008",
+              "address": ""
+            },
+            {
+              "name": "Kent County - Modern Maturity Center",
+              "type": "service-area",
+              "phone": "302-734-1200 ext. 119",
+              "address": ""
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residence",
+              "items": [
+                "Proof of age (driver's license, birth certificate)",
+                "Proof of Delaware residence (utility bill, lease)"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Documentation of physical disability or health conditions",
+                "Social Security Disability Insurance proof (if under 60 and in eligible household)"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Meals cannot be delivered to assisted living facilities, nursing homes, adult day care centers, or senior centers. Your parent must live in their own home or apartment."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If your parent owns a car or can sometimes shop, they may still qualify if they have difficulty with meal preparation due to health conditions. The assessment focuses on overall ability to maintain nutrition independently."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent can drive sometimes but has trouble cooking?",
+          "answer": "They may still qualify. The program looks at overall ability to maintain proper nutrition, not just transportation. Conditions affecting meal preparation, like arthritis making it hard to open containers or memory issues affecting cooking safety, can qualify someone as homebound."
+        },
+        {
+          "question": "Can my parent choose what meals they receive?",
+          "answer": "During the assessment, staff will ask about dietary restrictions and preferences. Most programs accommodate medical dietary needs (diabetic, low-sodium) but specific meal choices vary by provider."
+        },
+        {
+          "question": "What if we live in Sussex County or another area not listed?",
+          "answer": "Contact your local Area Agency on Aging to find providers in your area. The program is statewide but delivered through different local organizations that may not be listed in the main directory."
+        },
+        {
+          "question": "How long can my parent receive meals?",
+          "answer": "There's no time limit. Your parent can continue receiving meals as long as they meet the homebound requirement and live in a delivery area."
+        },
+        {
+          "question": "What happens if my parent's condition improves?",
+          "answer": "Programs periodically reassess participants. If your parent's mobility and cooking ability significantly improve, they may no longer qualify. However, many participants continue long-term due to ongoing health conditions."
+        },
+        {
+          "question": "Are there meals available on weekends?",
+          "answer": "The program guarantees at least 5 days per week. Weekend delivery varies by local provider — ask during your assessment about their specific delivery schedule."
+        }
+      ],
+      "phone": "302-421-3734",
+      "sourceUrl": "https://dhss.delaware.gov/wp-content/uploads/sites/2/dsaapd/pdf/home_delivered_meals2.pdf",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
-      "name": "Delaware Family Caregiver Support Program",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "id": "delaware-scsep-employment",
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "shortName": "SCSEP",
+      "tagline": "Part-time paid work experience at nonprofits and schools — $370/week while building skills for permanent employment.",
+      "programType": "employment",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "New Castle: National Able Network, 300 East Lea Blvd, Wilmington, DE 19802",
+            "type": "service-area"
+          },
+          {
+            "name": "New Castle: Rose Hill Community Center, Inc., 19 Lambson Lane, Suite 105A",
+            "type": "service-area"
+          },
+          {
+            "name": "Sussex: First State Community Action Agency",
+            "type": "service-area"
+          },
+          {
+            "name": "Kent/Sussex: Contact via Delaware 211 or county SCSEP manager",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 55+ and unemployed with low income, SCSEP provides paid part-time work at schools, hospitals, and senior centers while they build skills for permanent employment. Your parent earns at least $9.25/hour for about 20 hours per week working at nonprofit organizations, plus receives job training, resume help, and career counseling. Because SCSEP operates as a bridge to regular employment, participants work toward landing unsubsidized jobs with the program's support. The program is funding-limited, so availability varies by county and some applicants may face waitlists.",
+      "savingsRange": "$9,620/year in 2026",
+      "savingsSource": "Based on 20 hours/week at $9.25/hour minimum wage for 52 weeks",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Unemployed",
+          "Income at or below 125% poverty level",
+          "Live in Delaware"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be unemployed",
+          "Live in New Castle, Kent, or Sussex County",
+          "U.S. work authorized",
+          "Have barriers to employment"
+        ],
+        "povertyLevelReference": "125% FPL"
+      },
+      "applicationGuide": {
+        "method": "in-person",
+        "summary": "Contact your county's SCSEP office for orientation and assessment — processing time varies by funding availability.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact your county office",
+            "description": "New Castle County: Call National Able Network at (302) 252-3211. Kent/Sussex Counties: Call Delaware 211 for your county SCSEP manager."
+          },
+          {
+            "step": 2,
+            "title": "Attend orientation",
+            "description": "Complete paperwork and provide required documents proving age, income, residency, and work authorization."
+          },
+          {
+            "step": 3,
+            "title": "Assessment and planning",
+            "description": "Work with staff to create your Individual Employment Plan (IEP) based on your skills and job goals."
+          },
+          {
+            "step": 4,
+            "title": "Wait for placement",
+            "description": "If selected, you'll be placed at a host site like a school, hospital, or community center to begin paid work experience."
+          }
+        ],
+        "processingTime": "Processing time varies by funding availability and county",
+        "waitlist": "Waitlists possible due to limited funding — availability varies by county",
+        "tip": "Veterans, people 65+, and those with disabilities get priority placement",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Age",
+              "items": [
+                "Birth certificate or driver's license (to prove age 55+)",
+                "Proof of U.S. work authorization"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Income documentation for all household members",
+                "Unemployment verification"
+              ]
+            },
+            {
+              "name": "Residency",
+              "items": [
+                "Utility bill or lease showing Delaware county address"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Each county has different providers and wait times. New Castle County applicants must contact National Able Network directly, while Kent and Sussex residents should call Delaware 211 first."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Your parent must be completely unemployed to qualify — even part-time work disqualifies them. The program aims to transition participants to permanent employment within the program period."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent has been retired but needs income now?",
+          "answer": "They can qualify if they're currently unemployed and meet the income limits, even if they were previously retired. The program is designed for people 55+ who need work experience to re-enter the job market."
+        },
+        {
+          "question": "Can my parent choose where they work?",
+          "answer": "No, SCSEP places participants at approved host sites like schools, hospitals, senior centers, and nonprofits. The placement depends on available openings and your parent's skills and interests discussed in their Individual Employment Plan."
+        },
+        {
+          "question": "What happens if my parent can't find permanent work after the program?",
+          "answer": "SCSEP provides ongoing job search support, but the goal is transition to unsubsidized employment. Participants can't stay in SCSEP indefinitely — it's designed as temporary work experience, not permanent employment."
+        },
+        {
+          "question": "How does the income limit work if my parent lives with family?",
+          "answer": "Income limits apply to the entire household, not just your parent. All household income counts toward the 125% poverty level limit, though some exclusions may apply. The exact dollar amounts vary by household size."
+        },
+        {
+          "question": "What if there's a waitlist in our county?",
+          "answer": "Wait times vary by county and funding availability. Veterans, people 65+, and those with disabilities get priority. Contact your county office to understand current wait times and get on the list if needed."
+        },
+        {
+          "question": "Does this affect other benefits like Social Security or Medicare?",
+          "answer": "SCSEP wages count as earned income, which could affect income-based benefits. Because participants earn regular wages, this may impact programs with income limits. Check with each benefit program about how earned income affects eligibility."
+        }
+      ],
+      "phone": "(302) 252-3211",
+      "sourceUrl": "https://laborfiles.delaware.gov/main/det/faqs-scsep/SCSEP_FAQs.pdf",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
-      "name": "Delaware Senior Community Service Employment Program (SCSEP)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "id": "delaware-legal-aid-seniors",
+      "name": "Legal Aid for Seniors",
+      "shortName": "Legal Aid",
+      "tagline": "Free legal help for Delaware seniors 60+ facing eviction, benefit denials, or financial abuse.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Community Legal Aid Society, Inc. (CLASI) Elder Law Program (statewide focus, county offices)",
+            "type": "service-area"
+          },
+          {
+            "name": "Legal Services Corporation of Delaware (county offices)",
+            "type": "service-area"
+          },
+          {
+            "name": "Coordination with Division of Services for Aging and Adults with Physical Disabilities[1][3][6]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is facing eviction, benefit denials, nursing home discharge issues, or financial abuse, Delaware provides free legal services to residents 60 and older. This program covers elder-specific civil legal matters including Social Security appeals, Medicare problems, housing issues, and help creating powers of attorney and advance directives.\n\nTwo main organizations provide these services statewide: Community Legal Aid Society (CLASI) and Legal Services Corporation of Delaware. While Delaware says all residents 60+ are eligible, each provider applies their own income guidelines (typically around 125% of Federal Poverty Level) and reviews assets case-by-case. Priority goes to those with the greatest social and economic need.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Delaware resident",
+          "Income typically below 125% Federal Poverty Level",
+          "Elder-specific legal matters only"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Delaware resident",
+          "Legal matter must be elder-related (housing, benefits, financial abuse, nursing home issues, powers of attorney)"
+        ],
+        "povertyLevelReference": "125% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call your county's legal aid office directly or use the online screening tool at delegalhelplink.org.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact your county office",
+            "description": "Call the legal aid office serving your parent's county (see phone numbers below) or visit delegalhelplink.org for online screening."
+          },
+          {
+            "step": 2,
+            "title": "Complete intake process",
+            "description": "Provide proof of age, income, assets, residency, and details about the legal issue (benefit denial letters, eviction notices, etc.)."
+          },
+          {
+            "step": 3,
+            "title": "Wait for eligibility determination",
+            "description": "Each provider will review your parent's case individually and determine if they qualify based on income, assets, and priority level."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Gather all relevant legal documents (eviction notices, benefit denial letters, discharge papers) before calling to speed up the intake process.",
+        "urls": [
+          {
+            "label": "Legal Help Link Online Screening",
+            "url": "https://delegalhelplink.org"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "Legal Aid Offices by County",
+          "offices": [
+            {
+              "name": "New Castle County - CLASI",
+              "type": "county",
+              "phone": "302-575-0660",
+              "address": null
+            },
+            {
+              "name": "New Castle County - Legal Services Corp",
+              "type": "county",
+              "phone": "302-575-0408",
+              "address": null
+            },
+            {
+              "name": "Kent County - CLASI",
+              "type": "county",
+              "phone": "302-674-8500",
+              "address": null
+            },
+            {
+              "name": "Kent County - Legal Services Corp",
+              "type": "county",
+              "phone": "302-734-8820",
+              "address": null
+            },
+            {
+              "name": "Sussex County - CLASI",
+              "type": "county",
+              "phone": "302-856-0038",
+              "address": null
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Being 60+ doesn't guarantee eligibility. Each legal aid provider applies their own income guidelines (typically 125% of Federal Poverty Level) and reviews assets individually. Call to confirm your parent qualifies before gathering extensive documentation."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Priority goes to cases with greatest social and economic need. If your parent is low-income, lives in a rural area, or faces immediate legal threats like eviction or benefit termination, mention this when calling."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What legal issues can this program help with?",
+          "answer": "Elder-specific civil matters only: Social Security/Medicare/Medicaid issues, housing problems and evictions, financial abuse and exploitation, nursing home discharge issues, and creating powers of attorney or advance directives. They cannot help with criminal cases or general family law matters."
+        },
+        {
+          "question": "Can Mom keep her house if she qualifies for legal aid?",
+          "answer": "Assets are reviewed case-by-case with no fixed limits published. Your primary home may be exempt, but each provider makes individual determinations. Call your county office to discuss her specific situation before assuming she'll qualify."
+        },
+        {
+          "question": "What if her income is just over the typical 125% poverty level limit?",
+          "answer": "Exceptions are possible, especially for seniors facing urgent legal issues. Each provider can make individual determinations based on the severity of the legal problem and other circumstances. Call to discuss her case even if income seems too high."
+        },
+        {
+          "question": "How long does it take to get help once she qualifies?",
+          "answer": "Processing times aren't published. Priority goes to high-need cases, so urgent matters like pending evictions or benefit terminations may be handled faster than routine document preparation."
+        },
+        {
+          "question": "Does she need to choose between CLASI and Legal Services Corporation?",
+          "answer": "No. Both organizations coordinate services and you can call either one. They'll determine which provider is best suited for your parent's specific legal issue and location."
+        },
+        {
+          "question": "What documents should I gather before calling?",
+          "answer": "Proof of age, income, assets, Delaware residency, and all documents related to the legal issue (benefit denial letters, eviction notices, discharge papers, financial statements showing suspected abuse). The exact list varies by case type."
+        }
+      ],
+      "phone": "302-575-0660",
+      "sourceUrl": "https://dhss.delaware.gov/wp-content/uploads/sites/2/dsaapd/pdf/SS_legal_svs_for_elderly.pdf",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
-      "name": "Delaware Long-Term Care Ombudsman Program",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
-    },
-    {
-      "name": "Delaware Prescription Assistance Program (DPAP)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
-    },
-    {
-      "name": "Wilmington Senior Tax Assistance Program",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
-    },
-    {
-      "name": "SCAT – Senior Citizens Affordable Taxi",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
-    },
-    {
-      "name": "Over-60 Tuition Benefit",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
-    },
-    {
-      "name": "Assistive Devices Program",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "id": "delaware-long-term-care-ombudsman",
+      "name": "Long-Term Care Ombudsman Program",
+      "shortName": "Ombudsman Program",
+      "tagline": "Free advocacy to resolve problems with your parent's nursing home or assisted living facility care.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Main Administration Building, 1901 North DuPont Highway, New Castle, DE (statewide office)",
+            "type": "service-area"
+          },
+          {
+            "name": "Kent/Sussex regional program",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent lives in a Delaware nursing home or assisted living facility and you're concerned about their care, food quality, or treatment by staff, the Long-Term Care Ombudsman Program provides free advocacy services. Because ombudsman staff are trained in nursing home regulations and resident rights, they can investigate complaints and work directly with facility management to resolve problems that families often struggle to address on their own.\n\nThe program serves all long-term care facility residents in Delaware, regardless of income or how they pay for care. Ombudsman staff make regular visits to facilities, investigate complaints within days of contact, and help protect your parent's legal rights. They cannot provide direct care or financial assistance, but focus solely on advocacy and ensuring facilities follow state and federal care standards.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Must live in nursing home or assisted living",
+          "No income limits",
+          "Available statewide",
+          "All payment types accepted"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be a resident of a long-term care facility such as nursing home, assisted living residence, or related facility in Delaware"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call 800-223-9074 to file a complaint or request assistance — no forms required and investigation begins immediately.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the ombudsman hotline",
+            "description": "Call 800-223-9074 and describe your parent's situation or concern about their facility care."
+          },
+          {
+            "step": 2,
+            "title": "Provide complaint details",
+            "description": "Give specific information about the problem — staff can accept details verbally, no written documentation required."
+          },
+          {
+            "step": 3,
+            "title": "Ombudsman investigates",
+            "description": "Staff will visit the facility as needed and work directly with management to address the complaint."
+          }
+        ],
+        "processingTime": "Investigation begins upon contact, with facility visits scheduled as needed",
+        "waitlist": null,
+        "tip": "Keep a written record of incidents with dates and staff names involved — this helps ombudsman staff investigate more effectively.",
+        "urls": [
+          {
+            "label": "Delaware Division of Services for Aging",
+            "url": "https://dhss.delaware.gov/dsaapd"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "Local Offices",
+          "offices": [
+            {
+              "name": "Statewide Office",
+              "type": "service-area",
+              "phone": "800-223-9074",
+              "address": "Main Administration Building, 1901 North DuPont Highway, New Castle, DE"
+            },
+            {
+              "name": "Kent/Sussex Regional Program",
+              "type": "service-area",
+              "phone": "800-223-9074",
+              "address": ""
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "The ombudsman cannot investigate abuse, neglect, or financial exploitation — these complaints are referred to the Division of Long Term Care Residents Protection. For serious safety concerns, call Adult Protective Services immediately."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What types of problems can the ombudsman help resolve?",
+          "answer": "The ombudsman investigates complaints about care quality, food service, medication management, staff treatment of residents, facility policies, and billing issues. They cannot handle abuse, neglect, or financial exploitation — those complaints are referred to other state agencies."
+        },
+        {
+          "question": "Will the facility know I complained?",
+          "answer": "The ombudsman will work with your parent and you to determine how to handle the complaint. They can investigate while protecting your family's privacy, but some resolution may require the facility to know a complaint was filed."
+        },
+        {
+          "question": "Can I call even if my parent doesn't want me to?",
+          "answer": "Yes, family members can file complaints on behalf of residents. The ombudsman will work with your parent directly and respect their wishes about how to proceed with the investigation."
+        },
+        {
+          "question": "How long does it take to resolve complaints?",
+          "answer": "Investigation begins immediately after you call. Simple issues may be resolved within days, while complex problems involving multiple residents or facility-wide policies may take several weeks."
+        },
+        {
+          "question": "What if the facility retaliates against my parent for the complaint?",
+          "answer": "Retaliation is illegal under federal law. The ombudsman monitors for retaliation and will take additional action if the facility punishes residents for filing complaints or cooperating with investigations."
+        },
+        {
+          "question": "Does this cost anything or affect my parent's care coverage?",
+          "answer": "The ombudsman program is completely free and does not affect Medicare, Medicaid, or private pay arrangements. Your parent's insurance or payment status has no impact on receiving ombudsman services."
+        }
+      ],
+      "phone": "800-223-9074",
+      "sourceUrl": "https://dhss.delaware.gov/dsaapd",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     }
   ],
-  "stateOverview": null
+  "stateOverview": {
+    "intro": "Delaware offers 12 programs that can save your parent hundreds or thousands of dollars annually — from $100–300/month in grocery assistance to complete healthcare coverage. Nine of these are income-based benefits (requiring qualification), while three are free resources available to any Delaware senior. If your parent's income is under $2,485/month, they likely qualify for multiple programs including healthcare coverage, home care services, and utility assistance. Start by checking the highest-impact benefits first — Diamond State Health Plan can eliminate healthcare costs entirely, while DSAAPD Waivers can keep your parent home instead of moving to a nursing home.",
+    "startHere": [
+      {
+        "name": "Diamond State Health Plan (DSHP)",
+        "programId": "diamond-state-health-plan",
+        "why": "Free comprehensive healthcare if income is under $1,255/month, or long-term care services if under $2,485/month — eliminating your biggest expense category."
+      },
+      {
+        "name": "DSAAPD Waivers",
+        "programId": "dsaapd-waivers",
+        "why": "Covers home care services through Medicaid, letting your parent stay home instead of moving to a nursing facility."
+      },
+      {
+        "name": "Food Stamp Program (SNAP)",
+        "programId": "snap-delaware",
+        "why": "Immediate monthly grocery assistance of $100–300 for seniors 60+ on fixed incomes."
+      },
+      {
+        "name": "QMB/SLMB Medicare Assistance",
+        "programId": "qmb-slmb-delaware",
+        "why": "Eliminates Medicare premiums and copays that may be draining your parent's budget monthly."
+      }
+    ],
+    "byNeed": [
+      {
+        "need": "Complete healthcare coverage",
+        "programs": [
+          "Diamond State Health Plan",
+          "PACE Delaware"
+        ],
+        "description": "Full medical care, medications, and coordination under state or comprehensive programs."
+      },
+      {
+        "need": "Help staying home instead of nursing care",
+        "programs": [
+          "DSAAPD Waivers",
+          "PACE Delaware"
+        ],
+        "description": "Home-based care services covered by Medicaid or comprehensive programs."
+      },
+      {
+        "need": "Monthly financial assistance",
+        "programs": [
+          "Food Stamp Program (SNAP)",
+          "QMB/SLMB Medicare Assistance"
+        ],
+        "description": "Ongoing monthly help with groceries and Medicare costs."
+      },
+      {
+        "need": "Home and utility costs",
+        "programs": [
+          "LIHEAP",
+          "Weatherization Assistance Program"
+        ],
+        "description": "Annual heating bill assistance and free energy-saving home improvements."
+      },
+      {
+        "need": "Free advice and advocacy",
+        "programs": [
+          "Delaware Senior Medicare Patrol",
+          "Legal Aid for Seniors",
+          "Long-Term Care Ombudsman"
+        ],
+        "description": "No-qualification resources for Medicare protection, legal help, and care facility advocacy."
+      },
+      {
+        "need": "Food and employment",
+        "programs": [
+          "Home Delivered Meals",
+          "Senior Community Service Employment Program"
+        ],
+        "description": "Meal delivery for homebound seniors and paid work experience opportunities."
+      }
+    ],
+    "quickFacts": [
+      "Most Delaware benefits use income limits around $1,255–2,485/month for single seniors",
+      "Three programs (Medicare Patrol, Legal Aid, Ombudsman) are free to all Delaware seniors regardless of income",
+      "Delaware PACE operates in New Castle County only — check if your parent's location qualifies",
+      "DSAAPD Waivers and Diamond State Health Plan both use Medicaid but serve different needs"
+    ],
+    "resourcesVsBenefits": "Nine of Delaware's programs require income qualification — like Diamond State Health Plan (under $1,255/month) or SNAP (varies by household size). Three programs are free resources for any Delaware senior: Medicare Patrol helps with fraud protection, Legal Aid provides free legal help, and the Ombudsman advocates for nursing home residents. Check qualification-based benefits first since they provide the largest financial impact."
+  }
 }

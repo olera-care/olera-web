@@ -4,48 +4,124 @@
   "state": "CA",
   "stateName": "California",
   "isRegion": false,
-  "exploredAt": "2026-04-09T09:28:29.667Z",
-  "programCount": 5,
+  "exploredAt": "2026-04-09T12:15:39.463Z",
+  "programCount": 16,
   "programs": [
     {
-      "name": "State Supplementary Payment (SSP)",
-      "what_it_does": "SSP provides additional monthly cash payments to eligible Supplemental Security Income (SSI) recipients to help cover essential living expenses like food and housing. It supplements the federal SSI benefit, making California's total payment higher than the federal amount alone.[1][4]",
-      "who_its_for": "Low-income seniors aged 65 or older, blind, or disabled individuals receiving SSI.[1][4]",
-      "whats_unique": "California adds its own state-funded supplement to federal SSI, boosting the monthly benefit (e.g., maximum combined ~$943 in 2020); not all states provide such a supplement at this level.[1][4]",
+      "name": "Medi-Cal Medicare Savings Programs (QMB, SLMB, QI)",
+      "what_it_does": "These programs help pay Medicare Part A/B premiums, deductibles, coinsurance, and copays for low-income beneficiaries. QMB covers full costs, SLMB/QI cover premiums only.[3]",
+      "who_its_for": "Low-income Medicare enrollees; income limits vary (e.g., tied to Medi-Cal thresholds); serves 1.7M in CA.[3][6]",
+      "official_url": "https://www.dhcs.ca.gov/services/medi-cal/eligibility/Pages/Medi-CalMedicareSavingsPrograms.aspx",
+      "benefit_value": "Covers premiums/out-of-pocket up to thousands annually; essential for affordability.[3]"
+    },
+    {
+      "name": "Multipurpose Senior Services Program (MSSP) Waiver",
+      "what_it_does": "The MSSP Waiver provides home and community-based services (HCBS) like personal care, homemaker services, home modifications, and emergency response to prevent nursing home placement. It supports safe aging in place and includes telehealth options.[1][4]",
+      "who_its_for": "Medi-Cal eligible individuals aged 60+ at risk of nursing facility level of care, residing in counties with MSSP sites.[4]",
+      "official_url": "https://www.dhcs.ca.gov/services/medi-cal/Pages/MSSPMedi-CalWaiver.aspx",
+      "benefit_value": "HCBS as alternative to institutional care; funded by state/federal Medicaid; enrollment limited to one waiver.[4]"
+    },
+    {
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "what_it_does": "PACE provides comprehensive medical and social services to frail seniors in community settings, including adult day health care, transportation, and home care to avoid nursing homes. It coordinates all Medicare and Medicaid-covered services plus extras.",
+      "who_its_for": "Medi-Cal/Medicare eligible nursing home-certifiable seniors aged 55+ able to live safely in community.",
+      "official_url": "https://www.medi-cal.ca.gov/2020/10/19/pace/",
+      "benefit_value": "Full capitation coverage of health/LTC needs; available in select CA counties."
+    },
+    {
+      "name": "CalFresh",
+      "what_it_does": "CalFresh (California's SNAP) provides monthly EBT card benefits for groceries to low-income households. It helps seniors afford nutritious food.",
+      "who_its_for": "Low-income seniors 60+ with income/resources below limits; automatic eligibility for SSI recipients in some cases.",
+      "official_url": "https://www.cdss.ca.gov/calfresh",
+      "benefit_value": "Average $200-300/month per person; higher for households."
+    },
+    {
+      "name": "LIHEAP",
+      "what_it_does": "The Low-Income Home Energy Assistance Program provides grants for heating/cooling bills and crisis assistance. It prevents utility shutoffs for vulnerable residents.",
+      "who_its_for": "Low-income households including seniors 60+ meeting income guidelines (e.g., <150% FPL).",
+      "official_url": "https://cdss.ca.gov/liheap",
+      "benefit_value": "$200-$1,000 one-time grants annually."
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "what_it_does": "WAP funds energy efficiency upgrades like insulation, sealing, and efficient appliances to reduce utility costs. It improves home safety and comfort for low-income residents.",
+      "who_its_for": "Low-income households, prioritizing seniors, disabled, and families with children.",
+      "official_url": "https://www.energy.ca.gov/programs-and-topics/programs/weatherization-and-retrofit-programs",
+      "benefit_value": "Free home improvements worth $5,000-$10,000+ per household."
+    },
+    {
+      "name": "Health Insurance Counseling & Advocacy Program (HICAP)",
+      "what_it_does": "HICAP offers free, unbiased counseling on Medicare, Medi-Cal, and supplemental insurance options. It assists with appeals, enrollment, and cost-saving strategies.[7]",
+      "who_its_for": "Medicare beneficiaries, families, caregivers; all ages 65+ statewide via AAAs.",
+      "official_url": "https://aging.ca.gov/Programs_and_Services/SHIP/",
+      "benefit_value": "Free one-on-one counseling; saves thousands via proper enrollment."
+    },
+    {
+      "name": "Meals on Wheels (via AAAs)",
+      "what_it_does": "Provides home-delivered nutritious meals to homebound seniors to promote health and reduce isolation. Often includes safety check-ins.",
+      "who_its_for": "Homebound seniors 60+ unable to prepare meals, low-income prioritized; via local AAAs.[7]",
       "official_url": "https://aging.ca.gov/Programs_and_Services/",
-      "benefit_value": "Varies by living situation; up to several hundred dollars monthly beyond federal SSI (e.g., combined max $943.72 in 2020).[4]"
+      "benefit_value": "5-14 meals/week at low/no cost ($3-7/suggested donation)."
+    },
+    {
+      "name": "Family Caregiver Support Program",
+      "what_it_does": "Offers respite care, counseling, training, and supplies to family caregivers of seniors. Helps prevent caregiver burnout.",
+      "who_its_for": "Unpaid family caregivers of adults 60+ or younger with Alzheimer's; via AAAs.[7]",
+      "official_url": "https://aging.ca.gov/Programs_and_Services/Family_and_Caregiver_Support/",
+      "benefit_value": "Respite grants up to $1,500+/year; counseling/training."
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "what_it_does": "Provides part-time paid community service jobs with training for employability. Helps low-income seniors transition to unsubsidized work.",
+      "who_its_for": "Unemployed low-income adults 55+ (priority 65+); income <125% FPL.",
+      "official_url": "https://aging.ca.gov/Programs_and_Services/SCSEP/",
+      "benefit_value": "Minimum wage jobs (20 hrs/wk) + support services."
+    },
+    {
+      "name": "Legal Services for Seniors (via AAAs)",
+      "what_it_does": "Provides free legal advice, representation for issues like housing, benefits, abuse, and conservatorships. Operated through Area Agencies on Aging.",
+      "who_its_for": "Low-income seniors 60+ facing legal barriers; priority for most vulnerable.[7]",
+      "official_url": "https://aging.ca.gov/Programs_and_Services/Legal_Services/",
+      "benefit_value": "Free legal aid worth thousands; statewide access."
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "what_it_does": "Advocates for residents in long-term care facilities, investigating complaints and ensuring quality care. Provides education and support to resolve issues.",
+      "who_its_for": "Residents/families in nursing homes, RCFEs, and board & care; statewide via AAAs.[7]",
+      "official_url": "https://aging.ca.gov/Programs_and_Services/Long-Term_Care_Ombudsman/",
+      "benefit_value": "Free advocacy; protects rights of 100,000+ residents."
+    },
+    {
+      "name": "State Supplementary Payment (SSP)",
+      "what_it_does": "SSP provides additional monthly cash payments to eligible Supplemental Security Income (SSI) recipients to help cover essential living expenses like food and housing. It supplements the federal SSI benefit, making California's total payment higher than the federal amount alone.",
+      "who_its_for": "Low-income seniors aged 65 or older, blind, or disabled individuals receiving SSI.",
+      "whats_unique": "California adds its own state-funded supplement to federal SSI, which is higher than in most states and automatically provides Medi-Cal eligibility.",
+      "official_url": "https://aging.ca.gov/Programs_and_Services/",
+      "benefit_value": "Up to approximately $943 per month combined with federal SSI (as of 2020 data)"
     },
     {
       "name": "Property Tax Postponement Program",
-      "what_it_does": "This program allows eligible homeowners to defer property tax payments, with the state covering the taxes as an interest-free loan repaid upon sale or transfer of the property. It reduces immediate financial burden for seniors on fixed incomes.[1]",
-      "who_its_for": "Homeowners aged 62 or older with low income and limited assets.[1]",
-      "whats_unique": "California's unique deferral option postpones taxes until property sale/transfer without interest, unlike standard federal programs or typical state exemptions.[1]",
-      "official_url": "https://www.boe.ca.gov/proptaxes/postponed.htm",
-      "benefit_value": "Full postponement of property taxes (value depends on home assessment); repaid later with property sale proceeds."
+      "what_it_does": "This program allows eligible homeowners to defer property tax payments, with the state covering the taxes as an interest-free loan. The deferred amount plus interest is repaid when the home is sold or transferred.",
+      "who_its_for": "Homeowners aged 62 or older with low income and limited assets.",
+      "whats_unique": "California's unique deferral option postpones taxes until sale or transfer, unlike standard exemptions or reductions in other states.",
+      "official_url": "https://www.boe.ca.gov/proptaxes/postponed/",
+      "benefit_value": "Defers 100% of property taxes owed, saving immediate cash flow"
     },
     {
       "name": "In-Home Supportive Services (IHSS)",
-      "what_it_does": "IHSS provides in-home personal care and supportive services like bathing, dressing, housekeeping, and meal preparation to help seniors remain safely in their homes. Medi-Cal funds these services as an alternative to nursing home care.[3][5]",
-      "who_its_for": "Low-income seniors and disabled adults eligible for Medi-Cal who need assistance with daily activities.[3][5]",
-      "whats_unique": "California's large-scale, Medi-Cal funded program emphasizes home-based care over institutionalization, serving far more recipients than typical state programs.[5]",
+      "what_it_does": "IHSS provides personal care aides to assist with daily tasks like bathing, dressing, housekeeping, and meal preparation. It enables seniors to remain safely in their homes rather than entering nursing facilities.",
+      "who_its_for": "Low-income seniors and disabled adults eligible for Medi-Cal who need assistance to stay independent at home.",
+      "whats_unique": "California's Medi-Cal-funded program is one of the largest state home care systems, covering over 1.1 million in long-term services and emphasizing community-based care over institutionalization.",
       "official_url": "https://www.cdss.ca.gov/ihss",
-      "benefit_value": "Up to 283 hours/month of paid in-home care (average ~$137,000/year equivalent for long-term needs, but in-home).[5]"
+      "benefit_value": "Up to 283 hours of paid care per month, valued at average $137,000/year equivalent for long-term needs"
     },
     {
       "name": "Caregiver Resource Centers (CRC)",
-      "what_it_does": "CRCs offer comprehensive support to family caregivers, including counseling, respite care, support groups, training, and care planning for conditions like Alzheimer's. Services are provided at low or no cost statewide.[2]",
-      "who_its_for": "Family caregivers of seniors with Alzheimer's, stroke, Parkinson's, or similar conditions.[2]",
-      "whats_unique": "California is the first state with a comprehensive, statewide network of CRCs ensuring every resident has local access; no equivalent national network exists.[2]",
+      "what_it_does": "CRCs offer support to family caregivers including respite care, counseling, support groups, training, and care planning. Services are provided at low or no cost to help caregivers manage conditions like Alzheimer's and Parkinson's.",
+      "who_its_for": "Family caregivers of older adults with Alzheimer's, stroke, Parkinson's, or other disorders.",
+      "whats_unique": "California is the first state with a comprehensive, statewide network of CRCs accessible to every resident.",
       "official_url": "https://aging.ca.gov/Programs_and_Services/Caregiver_Resource_Centers/",
-      "benefit_value": "Free or low-cost services including respite care (hours vary), counseling, and training."
-    },
-    {
-      "name": "Multipurpose Senior Services Program (MSSP)",
-      "what_it_does": "MSSP provides case management, counseling, and community-based services to help at-risk seniors avoid nursing home placement. It coordinates care for independent living at home.[4]",
-      "who_its_for": "Medi-Cal eligible seniors aged 65+ at risk of nursing facility placement.[4]",
-      "whats_unique": "California-specific Medi-Cal waiver program focused on comprehensive assessment and home-based alternatives to institutional care.[4]",
-      "official_url": "https://aging.ca.gov/Programs_and_Services/Home_and_Community_Services/",
-      "benefit_value": "Case management and services valued at preventing costly nursing home stays (average $137,000/year).[5]"
+      "benefit_value": "Free or low-cost services including respite care and counseling"
     }
   ]
 }

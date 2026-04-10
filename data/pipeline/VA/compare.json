@@ -1,576 +1,55 @@
 {
   "state": "VA",
   "stateName": "Virginia",
-  "comparedAt": "2026-04-09T09:43:09.561Z",
-  "total": 16,
-  "newPrograms": 9,
-  "withDiffs": 7,
-  "withNovelFields": 7,
+  "comparedAt": "2026-04-09T17:02:28.467Z",
+  "total": 5,
+  "newPrograms": 3,
+  "withDiffs": 2,
+  "withNovelFields": 2,
   "benefitTypes": {
-    "service": 9,
-    "financial": 4,
-    "in_kind": 1,
-    "employment": 1,
-    "advocacy": 1
+    "service": 4,
+    "employment": 1
   },
   "variationPatterns": {
-    "priority_tier": 8,
-    "region": 3,
-    "program_tier": 1,
-    "household_size": 1,
-    "not_applicable": 2,
-    "fixed": 1
+    "priority_tier": 2,
+    "priority_tier|region": 1,
+    "not_applicable": 1,
+    "region": 1
   },
   "novelFieldSummary": {
     "asset_limits": {
-      "count": 7,
+      "count": 1,
       "programs": [
-        "Virginia PACE (Program of All-Inclusive Care for the Elderly)",
-        "Medicare Savings Programs (QMB, SLMB, QI)",
-        "Supplemental Nutrition Assistance Program (SNAP)",
-        "Low-Income Home Energy Assistance Program (LIHEAP)",
-        "State Health Insurance Assistance Program (SHIP)",
-        "Long-Term Care Ombudsman Program",
         "Commonwealth Coordinated Care Plus (CCC+) Waiver"
       ],
       "note": "Our model has no asset limit fields"
     },
     "regional_variations": {
-      "count": 7,
+      "count": 2,
       "programs": [
-        "Virginia PACE (Program of All-Inclusive Care for the Elderly)",
-        "Medicare Savings Programs (QMB, SLMB, QI)",
-        "Supplemental Nutrition Assistance Program (SNAP)",
-        "Low-Income Home Energy Assistance Program (LIHEAP)",
-        "State Health Insurance Assistance Program (SHIP)",
-        "Long-Term Care Ombudsman Program",
-        "Commonwealth Coordinated Care Plus (CCC+) Waiver"
+        "Commonwealth Coordinated Care Plus (CCC+) Waiver",
+        "Virginia Insurance Counseling and Assistance Program (VICAP)"
       ],
       "note": "Program varies by region — our model doesn't capture this"
     },
     "waitlist": {
-      "count": 4,
+      "count": 2,
       "programs": [
-        "Virginia PACE (Program of All-Inclusive Care for the Elderly)",
-        "Medicare Savings Programs (QMB, SLMB, QI)",
-        "Low-Income Home Energy Assistance Program (LIHEAP)",
-        "Commonwealth Coordinated Care Plus (CCC+) Waiver"
+        "Commonwealth Coordinated Care Plus (CCC+) Waiver",
+        "Virginia Insurance Counseling and Assistance Program (VICAP)"
       ],
       "note": "Has waitlist info — our model has no wait time field"
     },
     "documents_required": {
-      "count": 7,
+      "count": 2,
       "programs": [
-        "Virginia PACE (Program of All-Inclusive Care for the Elderly)",
-        "Medicare Savings Programs (QMB, SLMB, QI)",
-        "Supplemental Nutrition Assistance Program (SNAP)",
-        "Low-Income Home Energy Assistance Program (LIHEAP)",
-        "State Health Insurance Assistance Program (SHIP)",
-        "Long-Term Care Ombudsman Program",
-        "Commonwealth Coordinated Care Plus (CCC+) Waiver"
+        "Commonwealth Coordinated Care Plus (CCC+) Waiver",
+        "Virginia Insurance Counseling and Assistance Program (VICAP)"
       ],
       "note": "Has document checklist — our model doesn't store per-program documents"
-    },
-    "household_size_table": {
-      "count": 1,
-      "programs": [
-        "Supplemental Nutrition Assistance Program (SNAP)"
-      ],
-      "note": "Benefits/eligibility vary by household size — we store a single number"
     }
   },
   "comparisons": [
-    {
-      "name": "Medicaid for Seniors/Disabled",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "Multiple tiers (full/limited coverage, spenddown, Medicare Savings, waivers like CBC/Medicaid Works) with varying income/resource limits; resource test required (unlike MAGI Medicaid); statewide but local DSS processing; 2026 income guidelines effective Jan 13.",
-      "gotchas": [
-        "Income/resources both required for most ABD; spenddown needed if over limits.",
-        "Exempt assets limited (home, one car); estate recovery after death for long-term care.",
-        "Multiple ABD categories/tiers with different limits; not automatic SSI linkage in VA.",
-        "HCBS waivers may have waitlists; working disabled need Medicaid Works (under 65).",
-        "Documentation intensive; 45-90 day process.",
-        "Medicare Savings Programs only cover premiums/cost-sharing, not full Medicaid."
-      ],
-      "benefitType": "service",
-      "benefitVariesBy": "priority_tier",
-      "officialSource": "https://coverva.dmas.virginia.gov/learn/coverage-for-adults/medicaid-for-persons-who-are-aged-blind-or-disabled-abd/"
-    },
-    {
-      "name": "Virginia PACE (Program of All-Inclusive Care for the Elderly)",
-      "isNew": false,
-      "existingId": "program-of-all-inclusive-care-for-the-elderly-pace",
-      "existingVerified": null,
-      "diffsFound": 3,
-      "diffs": [
-        {
-          "field": "income_limit",
-          "ours": "$1781",
-          "found": "$2,901",
-          "source": "https://www.dmas.virginia.gov/for-members/benefits-and-services/other-programs-and-guidelines/pace/"
-        },
-        {
-          "field": "benefit_value",
-          "ours": "$15,000 – $35,000/year",
-          "found": "All Medicare and Medicaid benefits plus additional services: prescription medications, dentistry, adult day care, occupational/physical therapy, hospital care, primary care, respite care, nursing facility care if needed (covers costs, but only ~7% of enrollees reside there long-term), and any other medically necessary services determined by interdisciplinary team to support health, preferences, and goals. Comprehensive coordinated care via team of professionals; becomes sole source of Medicare/Medicaid services for enrollees.",
-          "source": "https://www.dmas.virginia.gov/for-members/benefits-and-services/other-programs-and-guidelines/pace/"
-        },
-        {
-          "field": "source_url",
-          "ours": "MISSING",
-          "found": "https://www.dmas.virginia.gov/for-members/benefits-and-services/other-programs-and-guidelines/pace/"
-        }
-      ],
-      "novelFields": [
-        {
-          "field": "asset_limits",
-          "value": "Resources equal to or less than the current resource allowance in the State Plan (typically $2,000 for an individual under Virginia Medicaid long-term care rules, excluding primary home, one vehicle, burial plots, and certain other exempt items). DMAS determines under State Plan provisions; countable assets include bank accounts, investments, second vehicles (with exceptions).",
-          "note": "Our model has no asset limit fields"
-        },
-        {
-          "field": "regional_variations",
-          "value": "Different PACE providers/organizations by region with unique service areas, centers, wait times, and contracts; e.g., InnovAge operates in Virginia among other states.",
-          "note": "Program varies by region — our model doesn't capture this"
-        },
-        {
-          "field": "waitlist",
-          "value": "Possible regional waitlists (varies by PACE site; not detailed statewide).",
-          "note": "Has waitlist info — our model has no wait time field"
-        },
-        {
-          "field": "documents_required",
-          "value": [
-            "Proof of age, residency in service area, income/resources for DMAS financial eligibility.",
-            "Medicare/Medicaid info.",
-            "Medical records/history for NFLOC screening."
-          ],
-          "note": "Has document checklist — our model doesn't store per-program documents"
-        }
-      ],
-      "dataShapeNotes": "Limited to specific regional PACE centers/providers (not statewide); eligibility combines federal PACE standards with Virginia Medicaid financial caps (300% SSI income, State Plan resource limits); NFLOC via UAI screening required; dual Medicare/Medicaid focus with private pay possible if financially eligible.",
-      "gotchas": [
-        "Not statewide—must live in specific PACE service area; check local availability first.",
-        "Requires NFLOC certification via formal LTSS screening (not automatic).",
-        "Becomes sole provider of all Medicare/Medicaid services—cannot use other providers for covered services.",
-        "Financial eligibility tied to Medicaid LTSS rules (300% SSI income, ~$2,000 assets); spend-down or planning may be needed if over limits.",
-        "Voluntary enrollment with agreement to terms; can disenroll anytime but may affect prior coverage.",
-        "Only ~7% use nursing facilities despite coverage—focus is community living.",
-        "Note: Virginia C-PACE (Commercial Property Assessed Clean Energy) is unrelated (different program for energy financing)."
-      ],
-      "benefitType": "service",
-      "benefitVariesBy": "region",
-      "officialSource": "https://www.dmas.virginia.gov/for-members/benefits-and-services/other-programs-and-guidelines/pace/"
-    },
-    {
-      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
-      "isNew": false,
-      "existingId": "medicare-savings-programs-qmb-slmb-qi",
-      "existingVerified": null,
-      "diffsFound": 3,
-      "diffs": [
-        {
-          "field": "income_limit",
-          "ours": "$1781",
-          "found": "$1,350",
-          "source": "https://www.dss.virginia.gov/benefit_programs/msp.html or https://www.dmas.virginia.gov/"
-        },
-        {
-          "field": "benefit_value",
-          "ours": "$2,000 – $8,000/year",
-          "found": "QMB: Medicare Part A premiums (if applicable), Part B premiums, deductibles, coinsurance, copays[1][3][5][6]. SLMB: Part B premiums only[1][3]. QI: Part B premiums only[1][3]. Automatic qualification for Extra Help LIS drug program[2][3]. Providers cannot bill QMB enrollees for cost-sharing.",
-          "source": "https://www.dss.virginia.gov/benefit_programs/msp.html or https://www.dmas.virginia.gov/"
-        },
-        {
-          "field": "source_url",
-          "ours": "MISSING",
-          "found": "https://www.dss.virginia.gov/benefit_programs/msp.html or https://www.dmas.virginia.gov/"
-        }
-      ],
-      "novelFields": [
-        {
-          "field": "asset_limits",
-          "value": "Federal limits apply in VA: $9,660 single/$14,470 couple for QMB/SLMB/QI (per [1], close to 2026 federal $9,950/$14,910[5]). Countable: checking/savings, stocks, bonds. Exempt: home, one car, burial plot, up to $3,500 burial expenses (QMB/SLMB/QI)[3].",
-          "note": "Our model has no asset limit fields"
-        },
-        {
-          "field": "regional_variations",
-          "value": "Administered by 116+ local DSS offices; processing/wait times may vary by locality (e.g., urban vs rural); no benefit differences noted",
-          "note": "Program varies by region — our model doesn't capture this"
-        },
-        {
-          "field": "waitlist",
-          "value": "QI may have funding limits and waitlists federally (1st priority QMB, 2nd SLMB, 3rd QI)[4]; check with local DSS",
-          "note": "Has waitlist info — our model has no wait time field"
-        },
-        {
-          "field": "documents_required",
-          "value": [
-            "Proof of income (SSA awards, pay stubs, bank statements)",
-            "Proof of resources (bank statements, stock values)",
-            "Medicare card (Parts A/B)",
-            "ID (birth certificate, Social Security card)",
-            "Proof of residency",
-            "Burial fund statements if claiming exclusion"
-          ],
-          "note": "Has document checklist — our model doesn't store per-program documents"
-        }
-      ],
-      "dataShapeNotes": "Tiered by income brackets (QMB <100% FPL, SLMB 100-120%, QI 120-135%); limits for single/couple only (no larger households); state follows federal but may expand slightly; annual FPL adjustments; local DSS administration with potential waitlist for QI",
-      "gotchas": [
-        "Income/asset limits change yearly with FPL (January); sources conflict due to dates—verify current with DSS[1][2][3][5]",
-        "QI has lower funding priority, potential waitlist or cap[4]",
-        "Must apply locally, not statewide online; no central portal",
-        "QMB protects from provider billing, but enrollee must show QMB status (Medicaid card)",
-        "Automatic Extra Help, but report changes promptly to avoid overpayments",
-        "Working disabled under 65 may qualify for QDWI separately (different limits)[2]"
-      ],
-      "benefitType": "financial",
-      "benefitVariesBy": "program_tier",
-      "officialSource": "https://www.dss.virginia.gov/benefit_programs/msp.html or https://www.dmas.virginia.gov/"
-    },
-    {
-      "name": "Supplemental Nutrition Assistance Program (SNAP)",
-      "isNew": false,
-      "existingId": "supplemental-nutrition-assistance-program-snap",
-      "existingVerified": null,
-      "diffsFound": 4,
-      "diffs": [
-        {
-          "field": "min_age",
-          "ours": "65",
-          "found": "60",
-          "source": "https://www.dss.virginia.gov/benefit/snap.cgi"
-        },
-        {
-          "field": "income_limit",
-          "ours": "$1980",
-          "found": "$1,696",
-          "source": "https://www.dss.virginia.gov/benefit/snap.cgi"
-        },
-        {
-          "field": "benefit_value",
-          "ours": "$1,500 – $3,600/year",
-          "found": "Monthly EBT card for food purchases. Maximum allotments (Oct 2025-Sep 2026): $298 (1-person), $546 (2), $785 (3), $994 (4), $1,183 (5), $1,421 (6), $1,571 (7), $1,789 (8), +$218 each additional. Actual amount: max allotment minus 30% net income (elderly/disabled deduct medical/shelter). E.g., 2-person elderly: $546 max - 30% net.[4][5]",
-          "source": "https://www.dss.virginia.gov/benefit/snap.cgi"
-        },
-        {
-          "field": "source_url",
-          "ours": "MISSING",
-          "found": "https://www.dss.virginia.gov/benefit/snap.cgi"
-        }
-      ],
-      "novelFields": [
-        {
-          "field": "asset_limits",
-          "value": "Countable resources ≤$2,750 general; ≤$4,250 if ≥1 member 60+ or disabled. Counts: cash, bank accounts. Exempt: home/land, most retirement/pension plans (withdrawals count as income), BBCE households have no asset limit. Exempt also: house value, retirement savings, life insurance cash value (some states), household goods.[1][2]",
-          "note": "Our model has no asset limit fields"
-        },
-        {
-          "field": "household_size_table",
-          "value": "Virginia SNAP uses gross income limits: Non-BBCE households at 130% FPL (e.g., $1,696/month for 1, $2,292 for 2); BBCE households at 165% FPL (e.g., $2,152/month for 1, $2,909 for 2). Seniors (60+) with high shelter/medical expenses may qualify if net income <100% FPL ($1,305/month for 1, $1,763 for 2), deducting medical costs >$35/month. Full table (monthly, Oct 2025-Sep 2026):\n|Household Size|Non-BBCE Net (100% FPL)|Non-BBCE Gross (130% FPL)|BBCE Gross (165% FPL)|\n|-|-|-|-|\n|1|$1,305|$1,696|$2,152|\n|2|$1,763|$2,292|$2,909|\n|3|$2,221|$2,888|$3,665|\n|4|$2,680|$3,483|$4,421|\n|5|$3,138|$4,079|$5,177|\n|6|$3,596|$4,675|$5,934|\n|7|$4,055|$5,271|$6,690|\n|8|$4,513|$5,867|$7,446|\n|Each additional|$459|$596|$757|[5][3]",
-          "note": "Benefits/eligibility vary by household size — we store a single number"
-        },
-        {
-          "field": "regional_variations",
-          "value": "Administered locally by 120 DSS offices; no major benefit differences, possible processing variations by local office.[5]",
-          "note": "Program varies by region — our model doesn't capture this"
-        },
-        {
-          "field": "documents_required",
-          "value": [
-            "Proof of income (Social Security, pensions, etc.).",
-            "Proof of expenses (shelter, medical >$35/month for seniors, childcare, transport).",
-            "ID, residency, citizenship/immigration status.",
-            "Resource info if applicable (bank statements)."
-          ],
-          "note": "Has document checklist — our model doesn't store per-program documents"
-        }
-      ],
-      "dataShapeNotes": "Elderly Simplified Application Project (ESAP) for 60+ households: simplified form, 36-month certification, medical/shelter deductions key for seniors; BBCE waives assets; income tiers by BBCE status and household size.",
-      "gotchas": [
-        "Seniors often miss medical expense deductions (>35/month increases benefits).[3][8]",
-        "Only ~half eligible seniors apply/enroll.[2]",
-        "ESAP 3-year certification requires reporting specific changes.[3]",
-        "Income includes Social Security/veterans/disability; BBCE waives assets but needs TANF service.[1][5]",
-        "Work requirements exempt seniors/disabled, but able-bodied rules apply otherwise.[1]"
-      ],
-      "benefitType": "financial",
-      "benefitVariesBy": "household_size",
-      "officialSource": "https://www.dss.virginia.gov/benefit/snap.cgi"
-    },
-    {
-      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
-      "isNew": false,
-      "existingId": "low-income-home-energy-assistance-program-liheap",
-      "existingVerified": null,
-      "diffsFound": 3,
-      "diffs": [
-        {
-          "field": "income_limit",
-          "ours": "$2355",
-          "found": "$1,956",
-          "source": "https://www.dss.virginia.gov/benefit/ea/"
-        },
-        {
-          "field": "benefit_value",
-          "ours": "$500 – $2,000/year",
-          "found": "Regular heating: $198-$703 one-time payment to utility. Cooling: $50-$700. Crisis (winter): up to $4,200; summer crisis not available. Payments go directly to utility company.",
-          "source": "https://www.dss.virginia.gov/benefit/ea/"
-        },
-        {
-          "field": "source_url",
-          "ours": "MISSING",
-          "found": "https://www.dss.virginia.gov/benefit/ea/"
-        }
-      ],
-      "novelFields": [
-        {
-          "field": "asset_limits",
-          "value": "No asset limit applies.",
-          "note": "Our model has no asset limit fields"
-        },
-        {
-          "field": "regional_variations",
-          "value": "Administered by local departments of social services; processing times and availability may vary by locality. Contact local DSS for specifics.",
-          "note": "Program varies by region — our model doesn't capture this"
-        },
-        {
-          "field": "waitlist",
-          "value": "Possible during high-demand periods; crisis applications prioritized but may close (e.g., regular crisis Nov 1-Mar 15, fuel crisis Jan 2-Mar 15).",
-          "note": "Has waitlist info — our model has no wait time field"
-        },
-        {
-          "field": "documents_required",
-          "value": [
-            "Recent utility bills",
-            "Proof of income (Social Security, payroll, unemployment, pension, disability)",
-            "Proof of address (rent receipt, lease, deed, property tax bill)",
-            "Social Security numbers for all household members",
-            "Proof of citizenship/legal residency (birth certificates, etc.)"
-          ],
-          "note": "Has document checklist — our model doesn't store per-program documents"
-        }
-      ],
-      "dataShapeNotes": "Benefits vary by component (regular, crisis, cooling) and priority (e.g., elderly/disabled); income at exactly 150% FPL; local DSS administration leads to regional processing variations; no asset test.",
-      "gotchas": [
-        "Must reapply annually even if previously approved.",
-        "Household includes all at address sharing utility (e.g., roommates count).",
-        "Crisis programs have seasonal windows and may close early.",
-        "Eligibility doesn't guarantee benefits; funding limited.",
-        "Utility provider must participate.",
-        "Public/subsidized housing eligibility depends on how energy costs are paid."
-      ],
-      "benefitType": "financial",
-      "benefitVariesBy": "priority_tier",
-      "officialSource": "https://www.dss.virginia.gov/benefit/ea/"
-    },
-    {
-      "name": "Weatherization Assistance Program (WAP)",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "Virginia WAP uses a dual-threshold income test (higher of 60% SMI or 200% poverty level), which is more complex than single-threshold programs. Benefits are standardized in-kind services, not cash assistance. The program operates through a decentralized network of local providers rather than centralized offices, requiring applicants to identify and contact their regional provider. Priority is given based on household composition (elderly, disabled, children) and energy burden, not on first-come-first-served basis. No specific dollar cap on services per household is mentioned in available documentation.",
-      "gotchas": [
-        "WAP does **not** pay utility bills — it only provides in-kind weatherization services[8]",
-        "Income eligibility uses the **higher of** 60% SMI or 200% poverty level, not the lower — this is more generous than some states[2][7]",
-        "Income limits are updated annually effective July 1, so families should verify current limits each year[7]",
-        "Applicants must be placed on a waitlist after approval; there is no guarantee of immediate service[1]",
-        "The homeowner or authorized representative must be present during the energy assessment; appointments will be rescheduled if no one is home[6]",
-        "Weatherization providers need access to every room (excluding closets), the exterior, attic, and basement[6]",
-        "Some utility companies (like Appalachian Power Company and Dominion Energy) offer separate income-qualifying programs with different income thresholds (120% SMI for Dominion's age-qualifying program) — families should check if they qualify for utility-specific programs in addition to WAP[5][6]"
-      ],
-      "benefitType": "in_kind",
-      "benefitVariesBy": "priority_tier",
-      "officialSource": "dhcd.virginia.gov/wx (Virginia Department of Housing and Community Development Weatherization Assistance Program)[8]"
-    },
-    {
-      "name": "State Health Insurance Assistance Program (SHIP)",
-      "isNew": false,
-      "existingId": "virginia-insurance-counseling-and-assistance-program-vicap",
-      "existingVerified": null,
-      "diffsFound": 2,
-      "diffs": [
-        {
-          "field": "benefit_value",
-          "ours": "$3,000 – $10,000/year",
-          "found": "Free one-on-one counseling and assistance on Medicare options, Medigap, Medicare Advantage, Part D, costs, appeals, fraud prevention/reporting; help applying for Medicare Savings Programs, Extra Help/LIS, Medicaid; group presentations, outreach, education[1][2][4][5][6]",
-          "source": "www.vda.virginia.gov"
-        },
-        {
-          "field": "source_url",
-          "ours": "MISSING",
-          "found": "www.vda.virginia.gov"
-        }
-      ],
-      "novelFields": [
-        {
-          "field": "asset_limits",
-          "value": "No asset limits or tests[2]",
-          "note": "Our model has no asset limit fields"
-        },
-        {
-          "field": "regional_variations",
-          "value": "Delivered through local networks of area agencies on aging, senior centers, and community partners; locally focused on regional Medicare options and resources[2][5]",
-          "note": "Program varies by region — our model doesn't capture this"
-        },
-        {
-          "field": "documents_required",
-          "value": [
-            "Medicare card, current insurance details, questions about coverage (recommended but not required)[6]"
-          ],
-          "note": "Has document checklist — our model doesn't store per-program documents"
-        }
-      ],
-      "dataShapeNotes": "no income/asset test; counseling service only via statewide network of local providers; prioritizes low-income and disabled but open to all Medicare beneficiaries",
-      "gotchas": [
-        "Not a healthcare or financial aid program itself—provides counseling only, not direct payments or services; in Virginia called VICAP (Virginia Insurance Counseling and Assistance Program)[3][7][8]",
-        "Services are free but rely on trained volunteers/staff—availability may depend on local site capacity[2][5]",
-        "Helps apply for other programs like Extra Help but does not guarantee approval[2][6]"
-      ],
-      "benefitType": "service",
-      "benefitVariesBy": "not_applicable",
-      "officialSource": "www.vda.virginia.gov"
-    },
-    {
-      "name": "Home Delivered Meals",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "Decentralized by region with local providers; no fixed income table or statewide uniformity; eligibility emphasizes functional needs over finances; varies by Area Agency on Aging service area",
-      "gotchas": [
-        "Not a single statewide program—must contact local provider for service area and exact rules",
-        "No uniform income/asset tests, but needs assessment can exclude some",
-        "Spouses/disabled children may qualify regardless of age, often missed",
-        "Free but donations expected; private/confidential",
-        "Medicaid/Medicare users may have separate access via health plans (e.g., Mom's Meals)",
-        "Waitlists likely due to priority system",
-        "Not available everywhere in Virginia—check specific counties/cities"
-      ],
-      "benefitType": "service",
-      "benefitVariesBy": "region",
-      "officialSource": "https://dars.virginia.gov/aging/home-community/nutrition-meals/"
-    },
-    {
-      "name": "Virginia Lifespan Respite Voucher Program",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "Statewide voucher reimbursement with fixed annual cap per household; no income/asset test; limited by funding availability rather than waitlist; includes Kinship Caregiver Expansion for childcare",
-      "gotchas": [
-        "Limited funding means not all applicants approved",
-        "Funds expire June 30, 2026, or when depleted",
-        "Reimbursement only; cannot cover rent, food, cleaning, or medical supplies",
-        "Must reside part-time with care recipient",
-        "Verification document must be less than 2 years old"
-      ],
-      "benefitType": "financial",
-      "benefitVariesBy": "fixed",
-      "officialSource": "https://dars.virginia.gov/aging/caregiver-support/lifespan-respite-voucher/"
-    },
-    {
-      "name": "Senior Community Service Employment Program (SCSEP)",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "Federally-funded with state grantees (e.g., DARS, Goodwill); priority tiers for enrollment; regional providers with specific service areas; income at 125% FPL (updates annually, household-size scaled); no asset test; part-time hours/wage fixed by min wage laws",
-      "gotchas": [
-        "Priority given to veterans, qualified spouses, those over 65, with disabilities, low literacy, limited English, rural residents, homeless/at risk, low employment prospects, or American Job Center users—may affect entry if not in priority group[3]",
-        "Program is temporary training (about 6 months), not permanent job or guaranteed placement[2][4]",
-        "SCSEP earnings generally do not affect SNAP/EBT/SSI/SSDI, but confirm with Social Security[6]",
-        "Funding by DOL grants to state agencies/nonprofits like DARS, Goodwill; availability tied to local grantee capacity[3][6]",
-        "Must be unemployed and seeking workforce re-entry; not for current workers"
-      ],
-      "benefitType": "employment",
-      "benefitVariesBy": "priority_tier",
-      "officialSource": "https://dars.virginia.gov/aging/senior-employment-program/"
-    },
-    {
-      "name": "Legal Aid for Seniors",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "Delivered via 9 regional legal aid societies with varying income thresholds (125-200% FPL), senior priority exceptions; no uniform asset table or fixed benefits; statewide helpline for triage but services local",
-      "gotchas": [
-        "Not a single statewide program—must identify and contact correct regional legal aid society",
-        "Seniors get priority/advice without strict finances, but full representation limited by resources/caseload",
-        "Income guidelines use % of federal poverty (contact for current $ amounts/table)",
-        "Excludes certain cases (e.g., criminal, domestic violence in some offices)",
-        "Limited lawyers (fewer than 240 statewide) lead to unserved eligible cases",
-        "Deductions considered (e.g., medical, childcare) but verify with intake"
-      ],
-      "benefitType": "service",
-      "benefitVariesBy": "priority_tier",
-      "officialSource": "https://www.valegalaid.org/ (VaLegalAid.org); https://selfhelp.vacourts.gov/node/33/statewide-senior-legal-helpline"
-    },
-    {
-      "name": "Long-Term Care Ombudsman Program",
-      "isNew": false,
-      "existingId": "virginia-long-term-care-ombudsman-program",
-      "existingVerified": null,
-      "diffsFound": 2,
-      "diffs": [
-        {
-          "field": "benefit_value",
-          "ours": "$10,000 – $30,000/year",
-          "found": "Investigate and resolve complaints about care and rights; provide information on rights and benefits; advocate with facilities, families, and agencies; assist in problem-solving, facility selection, and accessing resources like Medicare; confidential support; no fixed dollar amounts or hours",
-          "source": "https://dars.virginia.gov/aging/ombudsman/"
-        },
-        {
-          "field": "source_url",
-          "ours": "MISSING",
-          "found": "https://dars.virginia.gov/aging/ombudsman/"
-        }
-      ],
-      "novelFields": [
-        {
-          "field": "asset_limits",
-          "value": "No asset limits; no financial tests apply",
-          "note": "Our model has no asset limit fields"
-        },
-        {
-          "field": "regional_variations",
-          "value": "Administered through multiple regional offices with different local Ombudsmen, addresses, and phone numbers; e.g., Northern Virginia, Bay Aging (multiple sites in Williamsburg, Norfolk, Urbanna), Span Center (Richmond and surrounding counties), Appalachian Agency (Cedar Bluff)",
-          "note": "Program varies by region — our model doesn't capture this"
-        },
-        {
-          "field": "documents_required",
-          "value": [
-            "No specific documents required; provide details of the concern, facility name, and resident information"
-          ],
-          "note": "Has document checklist — our model doesn't store per-program documents"
-        }
-      ],
-      "dataShapeNotes": "no income test; advocacy only, not benefits or services; regionally administered with local contacts required; open to all facility residents without eligibility barriers",
-      "gotchas": [
-        "Not a healthcare or financial benefits program—purely advocacy and complaint resolution, no direct services or payments",
-        "Must already be in a qualifying long-term care setting; not for pre-admission qualification",
-        "Services are free and confidential but rely on volunteers and local offices, so response may vary by region",
-        "Contact local Ombudsman, not just state office, for fastest service"
-      ],
-      "benefitType": "advocacy",
-      "benefitVariesBy": "not_applicable",
-      "officialSource": "https://dars.virginia.gov/aging/ombudsman/"
-    },
     {
       "name": "Commonwealth Coordinated Care Plus (CCC+) Waiver",
       "isNew": false,
@@ -581,50 +60,49 @@
         {
           "field": "benefit_value",
           "ours": "$10,000 – $30,000/year",
-          "found": "Home and Community-Based Services (HCBS) to avoid nursing facility or hospital placement. Specific services include: Respite (480 hours per state fiscal year, July 1-June 30); Environmental Modifications (up to $5,000 per individual per calendar year); Assistive Technology (up to $5,000 per individual per calendar year); Private Duty Nursing (up to 112 hours per week); Transition Services (up to $5,000 per individual per lifetime). Other supports for older adults, physical disabilities, chronic illness. Waiver reimbursement rates on DMAS site.[2][3]",
-          "source": "https://www.dmas.virginia.gov/for-members/benefits-and-services/waivers/ccc-plus-waiver/"
+          "found": "Home and Community-Based Services (HCBS) including: Respite (480 hours per State fiscal year, July 1-June 30); Environmental Modifications (EM, up to $5,000 per individual per calendar year); Assistive Technology (AT, up to $5,000 per individual per calendar year); Private Duty Nursing (up to 112 hours per week); Transition Services (up to $5,000 per individual per lifetime). Other supports for older adults, physical disabilities, chronic illness; enrolled in managed care receive transition supports. Waiver reimbursement rates on DMAS site.[2][3]",
+          "source": "https://www.dmas.virginia.gov/for-members/benefits-and-services/waivers/ccc-plus-waiver/[2]"
         },
         {
           "field": "source_url",
           "ours": "MISSING",
-          "found": "https://www.dmas.virginia.gov/for-members/benefits-and-services/waivers/ccc-plus-waiver/"
+          "found": "https://www.dmas.virginia.gov/for-members/benefits-and-services/waivers/ccc-plus-waiver/[2]"
         }
       ],
       "novelFields": [
         {
           "field": "asset_limits",
-          "value": "Must meet Virginia Medicaid asset limits for LTC (specific amounts not detailed in sources). Income and resources requirements apply generally.[1][4]",
+          "value": "Must meet Virginia Medicaid financial eligibility (income and assets). No specific dollar amounts provided; spousal protections apply.[1]",
           "note": "Our model has no asset limit fields"
         },
         {
           "field": "regional_variations",
-          "value": "Screenings done by local DSS and health departments; provider location assistance by screening team. Regional contacts vary (e.g., Fairfax-specific numbers).[2][4][5]",
+          "value": "Screenings by local DSS and health departments; providers located by screening team in applicant's area. Examples: Fairfax County - under 18 call 703-222-0880, 18+ call 703-324-7948.[2][6]",
           "note": "Program varies by region — our model doesn't capture this"
         },
         {
           "field": "waitlist",
-          "value": "No waiting list currently.[4]",
+          "value": "No current waiting list.[5]",
           "note": "Has waitlist info — our model has no wait time field"
         },
         {
           "field": "documents_required",
           "value": [
-            "Documents for Medicaid eligibility (income, assets, etc.); prepare for UAI functional assessment. Specific list not detailed; ensure eligibility before applying to avoid denial.[1]"
+            "Documents for Medicaid eligibility and LTSS screening (not detailed; prepare income/asset proof, medical records for NFLOC assessment via UAI).[1][2]"
           ],
           "note": "Has document checklist — our model doesn't store per-program documents"
         }
       ],
-      "dataShapeNotes": "No waitlist unlike some waivers; eligibility ties to NFLOC via UAI tool; services have hard caps (e.g., 480 respite hours/year, 112 nursing hours/week); screenings local but statewide; no specific income/asset dollar tables in sources, refers to general Medicaid LTC rules.",
+      "dataShapeNotes": "No waitlist unlike some waivers; eligibility ties to Medicaid with NFLOC via UAI tool; services have hard caps (e.g., 480 respite hours/year, 112 nursing hours/week); screenings always local via DSS/health depts.",
       "gotchas": [
-        "Must meet strict NFLOC via UAI; dementia diagnosis alone insufficient.[1]",
-        "Apply only if financially eligible to avoid denial.[1]",
-        "Medicaid eligibility required first.[2]",
-        "Services limited compared to DD waivers; can use CCC+ while waiting for DD.[4][5]",
-        "Imminent risk of NF placement required.[3]"
+        "Must meet Medicaid financial eligibility first; applying over limits leads to denial.[1]",
+        "Dementia diagnosis alone does not qualify; must meet NFLOC via UAI.[1]",
+        "Services more limited than DD waivers; can use CCC+ while on DD waitlist.[5][6]",
+        "Must be at imminent risk of NF placement.[3]"
       ],
       "benefitType": "service",
       "benefitVariesBy": "priority_tier",
-      "officialSource": "https://www.dmas.virginia.gov/for-members/benefits-and-services/waivers/ccc-plus-waiver/"
+      "officialSource": "https://www.dmas.virginia.gov/for-members/benefits-and-services/waivers/ccc-plus-waiver/[2]"
     },
     {
       "name": "Virginia Adult Services Program",
@@ -634,36 +112,74 @@
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "Administered locally by county/city DSS with statewide oversight; no fixed income/asset limits or age minimum; services focused on in-home independence with screenings/referrals rather than direct funding; varies by local availability and priority",
+      "dataShapeNotes": "Administered locally by 120+ DSS offices with state oversight; no fixed statewide income/asset test; services scale by assessed need/priority and local funding; provider approvals vary by locality",
       "gotchas": [
-        "Not Medicaid-funded; no case management included, only referrals[4]",
-        "Must provide accurate info or face prosecution; changes must be reported in 10 days[3]",
-        "Optional services only if local department offers them[3]",
-        "Provider standards strict (age 16-18+, background checks) but apply to services received[1]",
-        "Anyone can apply but eligibility based on need, not automatic[3]"
+        "Not Medicaid (separate financial eligibility); services optional and funding-limited",
+        "Must report changes within 10 days or risk prosecution for inaccurate info",
+        "Targeted at at-risk elderly/disabled; anyone can apply but priority for protective needs",
+        "Local variations in providers/hours; no guaranteed hours statewide[2][4][7]"
       ],
       "benefitType": "service",
-      "benefitVariesBy": "priority_tier",
+      "benefitVariesBy": "priority_tier|region",
       "officialSource": "https://www.dss.virginia.gov/adults.cgi"
     },
     {
-      "name": "No Wrong Door System",
-      "isNew": true,
-      "existingId": null,
+      "name": "Virginia Insurance Counseling and Assistance Program (VICAP)",
+      "isNew": false,
+      "existingId": "virginia-insurance-counseling-and-assistance-program-vicap",
       "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "No income/asset test for access; eligibility determined for downstream LTSS programs; statewide but locally implemented via 25 AAAs; virtual tools enable self-service without fixed tiers[2][4][6]",
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$3,000 – $10,000/year",
+          "found": "Free, unbiased, confidential one-on-one counseling and group workshops. No dollar limits specified; services include plan comparison, enrollment assistance, appeals support, and fraud prevention education.",
+          "source": "https://dars.virginia.gov/aging/home-community/medicare-counseling/"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://dars.virginia.gov/aging/home-community/medicare-counseling/"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "regional_variations",
+          "value": "Different regional offices have different phone numbers and mailing addresses. For example, Fairfax County uses (703) 324-5851, while other regions use (540) 635-7141. Each locality has its own Area Agency on Aging contact point.",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Not mentioned in available sources",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Current Medicare plan information (if applicable)",
+            "Preferred pharmacy name",
+            "Home zip code",
+            "Information about Medicaid status (if applicable)",
+            "Information about Supplemental Security Income (SSI) status (if applicable)",
+            "Information about Medicare Savings Programs enrollment (if applicable)",
+            "Information about Extra Help enrollment (if applicable)"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "VICAP is a service-based counseling program, not a financial assistance program. There are no income limits, asset limits, or benefit dollar amounts because the program provides education and guidance, not direct payments. Eligibility is based on Medicare status, not financial need. The program is delivered through a network of local Area Agencies on Aging, so access points vary by county. The key distinction is that VICAP counselors do not sell insurance and cannot receive commissions, ensuring unbiased advice. Services are entirely free. Processing time and waitlist information are not publicly documented, suggesting either no significant delays or that this information is managed locally by each Area Agency on Aging.",
       "gotchas": [
-        "Not a direct benefits program—it's an access/navigation system; families must still qualify for referred LTSS programs (e.g., Medicaid income/asset tests apply there, not to NWD)[1][3][6]",
-        "People miss that it connects to public/private services without 'wrong door'—start anywhere in network for person-centered options counseling[2][4]",
-        "Veterans or specific groups may access via VDC tools, but requires follow-up eligibility[8]",
-        "No guaranteed services; depends on availability in connected programs[5]"
+        "VICAP counselors cannot sell insurance — they provide unbiased guidance only. Do not expect them to push any particular plan.",
+        "You must contact your local Area Agency on Aging to access VICAP services; there is no direct walk-in service at the main DARS office.",
+        "Medicare Annual Open Enrollment Period is October 15 to December 7 each year; changes made during this period are effective January 1 of the following year. Outside this window, plan changes are limited.",
+        "VICAP serves not just seniors but 'any beneficiary, including those with disabilities and younger than 65,' meaning younger disabled Medicare beneficiaries qualify.",
+        "The program is free and confidential — there are no hidden fees or sales pitches.",
+        "Counselors are trained and certified specifically for Medicare counseling; they are not general financial advisors.",
+        "If you have both Medicare and Medicaid, you may qualify for special Dual Eligible Special Needs Plans (D-SNPs) — VICAP counselors can help identify these."
       ],
       "benefitType": "service",
-      "benefitVariesBy": "priority_tier",
-      "officialSource": "https://www.nowrongdoor.virginia.gov[4]"
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://dars.virginia.gov/aging/home-community/medicare-counseling/"
     },
     {
       "name": "SeniorNavigator",
@@ -673,15 +189,34 @@
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "Navigation platform linking to localized services rather than a single benefits program; no universal eligibility/income test; varies heavily by region and selected service[1][3]",
+      "dataShapeNotes": "Resource directory with drill-down details on 27,000+ programs; varies by locality with no direct eligibility test for the tool itself; public-private nonprofit partnership unique in using technology for customized local searches[1]",
       "gotchas": [
-        "Not a direct service provider—it's a navigation and referral tool; users must follow up on listed programs' separate eligibility/application[1]",
-        "Details like costs/eligibility are service-specific, not platform-wide[1]",
-        "Requires selecting locality for relevant results; may overwhelm with 27,000+ options without narrowing search[1]"
+        "Not a direct service or benefits program—it's a navigator tool to find and compare other programs' eligibility, applications, and costs; users must follow through on listed services separately, which may have their own waitlists or requirements[1][3]",
+        "Over 1 million annual visits indicate high usage, but success depends on acting on referrals[1]"
       ],
       "benefitType": "service",
       "benefitVariesBy": "region",
-      "officialSource": "https://www.seniornavigator.org (inferred from context; primary access via VirginiaNavigator.org per sources[1][3])"
+      "officialSource": "https://www.virginianavigator.org/"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Federally-authorized (Older Americans Act) but regionally-administered by grantees like DARS; income at 125% FPL by household size (annual update); priority tiers; no asset test; availability/waitlists vary by local provider and funding",
+      "gotchas": [
+        "Must be fully unemployed; any paid hours disqualifies[3][4]",
+        "Income at 125% FPL (not 100%); regular Social Security counts, but SSI/SSDI does not[1][2][3]",
+        "Priority service for veterans, 65+, disabled, rural, homeless, low literacy—not guaranteed slot[3][5]",
+        "Temporary training only (up to 29 hrs/wk); goal is unsubsidized job exit[4][5][7]",
+        "Regional providers only; must live in their coverage area[1][4]"
+      ],
+      "benefitType": "employment",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://dars.virginia.gov/aging/senior-employment-program/"
     }
   ]
 }

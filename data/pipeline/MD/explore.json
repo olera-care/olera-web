@@ -4,82 +4,124 @@
   "state": "MD",
   "stateName": "Maryland",
   "isRegion": false,
-  "exploredAt": "2026-04-09T09:34:19.773Z",
-  "programCount": 10,
+  "exploredAt": "2026-04-09T13:54:47.007Z",
+  "programCount": 16,
   "programs": [
     {
-      "name": "Medicaid Long Term Care Services and Supports (LTSS)",
-      "what_it_does": "Offers long-term care services with goals of privacy, dignity, and respect. Eligible individuals may receive long-term care at home or in special facilities.",
-      "who_its_for": "Eligible older adults and people with disabilities needing long-term care",
-      "official_url": "maryland.gov/benefits/older-adults",
-      "benefit_value": "Varies by service type and eligibility"
-    },
-    {
-      "name": "Medicare Savings Program (includes SLMB and QI programs)",
-      "what_it_does": "Helps cover out-of-pocket Medicare expenses and assists with Medicare Part B premiums for those with limited income and resources. The SLMB and QI programs specifically help pay for Medicare Part B premiums.",
-      "who_its_for": "Medicare beneficiaries with limited income and resources",
-      "official_url": "maryland.gov/benefits/older-adults",
-      "benefit_value": "Covers Medicare Part B premiums and out-of-pocket expenses"
-    },
-    {
-      "name": "State Health Insurance Assistance Program (SHIP)",
-      "what_it_does": "Provides unbiased confidential counseling and assistance for older adults on Medicare and support with health insurance options. Uses trained volunteers to help beneficiaries understand Medicare and reduce out-of-pocket costs.",
-      "who_its_for": "Older adults on Medicare",
-      "official_url": "maryland.gov/benefits/older-adults",
-      "benefit_value": "Free counseling and assistance"
-    },
-    {
-      "name": "Supplemental Nutrition Assistance Program (SNAP)",
-      "what_it_does": "Helps low-income households buy healthy food. Eligible older adults can also receive money specifically for fresh fruits and vegetables at farmers markets.",
-      "who_its_for": "Low-income households and eligible older adults",
-      "official_url": "maryland.gov/benefits/older-adults",
-      "benefit_value": "Monthly food assistance benefits; farmers market subsidies"
-    },
-    {
-      "name": "Senior Assisted Living Subsidy Program (SALS)",
-      "what_it_does": "Offers a monthly subsidy to help cover costs for residents in licensed assisted living facilities. Eligibility is based on specific financial and other criteria.",
-      "who_its_for": "Maryland seniors residing in licensed assisted living facilities who meet eligibility criteria.",
-      "whats_unique": "State-funded monthly subsidy program for assisted living, distinct from federal Medicaid waivers available in every state.",
-      "official_url": "https://aging.maryland.gov/pages/programsandservices.aspx",
-      "benefit_value": "Monthly subsidy amount varies by eligibility (specific figures not detailed in sources)."
-    },
-    {
-      "name": "National Family Caregiver Support Program",
-      "what_it_does": "Provides information, referral, counseling and respite services for caregivers of older adults and grandparents raising grandchildren.",
-      "who_its_for": "Family caregivers of older adults and grandparents raising grandchildren",
-      "official_url": "aging.maryland.gov",
-      "benefit_value": "Free information, counseling, and respite services"
-    },
-    {
-      "name": "Maryland Access Point (MAP)",
-      "what_it_does": "Provides information and referrals on available financial, health, and support services. Serves as a central resource for navigating senior benefits and services.",
-      "who_its_for": "Older adults, people with disabilities, and caregivers in Maryland",
-      "official_url": "maryland.gov/benefits/older-adults",
-      "benefit_value": "Free information and referral services"
-    },
-    {
-      "name": "Maryland Senior Call Check Program (SCC)",
-      "what_it_does": "This program provides a daily automated call to verify the well-being of participants at a scheduled time of their convenience. Registration is free for eligible Maryland residents.",
-      "who_its_for": "Maryland residents aged 65 years and older.",
-      "whats_unique": "State-specific automated daily wellness check calls unique to Maryland, not a standard federal program.",
-      "official_url": "https://aging.maryland.gov/pages/programsandservices.aspx",
-      "benefit_value": "Free daily wellness verification calls."
-    },
-    {
       "name": "Maryland Durable Medical Equipment Reuse Program (DME)",
-      "what_it_does": "Provides free durable medical equipment to Marylanders of all ages and abilities. Equipment is donated, sanitized, repaired, and redistributed with high safety standards.",
-      "who_its_for": "Marylanders of all ages and abilities in need of durable medical equipment.",
-      "whats_unique": "State-run reuse program for durable medical equipment, extending benefits to seniors beyond federal offerings.",
+      "what_it_does": "Provides free durable medical equipment to those in need by accepting donations, sanitizing, repairing, and redistributing items with high safety standards. Serves Marylanders across ages and abilities to support independent living.[1]",
+      "who_its_for": "Maryland residents of all ages and abilities needing durable medical equipment.[1]",
+      "whats_unique": "State-operated reuse program for durable medical equipment specific to Maryland, focusing on free redistribution after rigorous safety processing.[1]",
       "official_url": "https://aging.maryland.gov/pages/programsandservices.aspx",
       "benefit_value": "Free sanitized and repaired durable medical equipment."
     },
     {
-      "name": "Senior Care Services",
-      "what_it_does": "Delivers coordinated, community-based in-home services, equipment, and medical supplies. Aims to support independent community living for eligible individuals.",
-      "who_its_for": "Maryland seniors meeting eligibility criteria who wish to remain independent at home.",
-      "whats_unique": "State-funded program providing in-home services and supplies beyond standard federal home care options.",
+      "name": "Community First Choice (CFC)",
+      "what_it_does": "Offers home and community-based services as an alternative to nursing homes for eligible Medicaid recipients. Provides personal care, homemaker services, and other supports to help seniors remain in their communities.[3]",
+      "who_its_for": "Medicaid-eligible seniors and disabled individuals needing nursing home level of care but preferring home-based services.",
+      "official_url": "https://health.maryland.gov/mmcp/adulttoll/Pages/LTSS.aspx",
+      "benefit_value": "Comprehensive in-home services tailored to individual needs, potentially saving costs compared to institutional care."
+    },
+    {
+      "name": "Maryland PACE",
+      "what_it_does": "Delivers comprehensive medical and social services to frail seniors in community settings like adult day centers. Includes primary care, hospitalization if needed, prescription drugs, and supportive services to avoid nursing home placement.[1]",
+      "who_its_for": "Seniors aged 55+ certified as nursing facility eligible with limited income and assets.",
+      "official_url": "https://aging.maryland.gov/pages/pace.aspx",
+      "benefit_value": "All-inclusive capitated coverage for Medicare and Medicaid services."
+    },
+    {
+      "name": "Maryland Medicare Savings Program (MSP)",
+      "what_it_does": "Helps pay Medicare premiums, deductibles, and copayments for eligible low-income beneficiaries through QMB, SLMB, and QI categories. QMB covers Part A/B premiums and most out-of-pocket costs; SLMB and QI cover Part B premiums.[3][6]",
+      "who_its_for": "Medicare beneficiaries with limited income and resources (income limits vary: e.g., QMB up to 100% FPL, SLMB 120%, QI 135%).",
+      "official_url": "https://www.marylandhealthconnection.gov/health-coverage/older-adults/",
+      "benefit_value": "QMB: Full premium/cost-sharing coverage; SLMB: Part B premium (~$174.70/mo in 2024); QI: Part B premium for highest eligible."
+    },
+    {
+      "name": "Supplemental Nutrition Assistance Program (SNAP)",
+      "what_it_does": "Provides monthly benefits via EBT card to purchase healthy food at approved retailers. Helps low-income households afford nutritious meals.[3][5]",
+      "who_its_for": "Low-income seniors (60+), disabled individuals, and households meeting income tests (e.g., gross income ≤130% FPL).",
+      "official_url": "https://www.maryland.gov/benefits/food-assistance",
+      "benefit_value": "Average $200-300/month per household; max for 1 person ~$291/month (2024 rates, adjusted annually)."
+    },
+    {
+      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "what_it_does": "Offers grants to help with heating and electric bills, crisis assistance, and furnace repairs. Reduces energy burden for vulnerable households.[5]",
+      "who_its_for": "Low-income households, prioritizing seniors 60+, disabled, families with children under 6; income ≤150% FPL.",
+      "official_url": "https://www.dhs.maryland.gov/weathering-the-storm/",
+      "benefit_value": "One-time grants $200-$1,000+ depending on fuel type, income, household size, and need."
+    },
+    {
+      "name": "Maryland Weatherization Assistance Program",
+      "what_it_does": "Provides free home energy efficiency upgrades like insulation, sealing, and efficient appliances. Lowers energy costs and improves home safety/comfort.[3]",
+      "who_its_for": "Low-income homeowners/renters, prioritizing seniors, disabled, and families with children; income ≤200% FPL.",
+      "official_url": "https://dhcd.maryland.gov/Residents/Pages/Weatherization-Assistance-Program.aspx",
+      "benefit_value": "Free comprehensive weatherization services valued at $5,000-$10,000 per home."
+    },
+    {
+      "name": "State Health Insurance Assistance Program (SHIP)",
+      "what_it_does": "Offers free, unbiased counseling on Medicare options, savings programs, and health insurance issues. Helps prevent fraud via Senior Medicare Patrol (SMP).[1][3]",
+      "who_its_for": "Maryland Medicare beneficiaries, especially seniors seeking guidance on coverage and costs.",
+      "official_url": "https://aging.maryland.gov/pages/ship.aspx",
+      "benefit_value": "Free one-on-one counseling; potential savings thousands annually through proper enrollment."
+    },
+    {
+      "name": "Home Delivered Meals",
+      "what_it_does": "Delivers nutritious meals to homebound seniors through Area Agencies on Aging. Promotes health and reduces isolation via wellness checks.[1]",
+      "who_its_for": "Homebound seniors 60+ unable to prepare meals, meeting low-income or at-risk guidelines.",
+      "official_url": "https://aging.maryland.gov/pages/nutrition.aspx",
+      "benefit_value": "5-14 meals/week; ~$8-10/meal cost covered for eligible (suggested donation for others)."
+    },
+    {
+      "name": "National Family Caregiver Support Program",
+      "what_it_does": "Provides information, counseling, training, and respite services to family caregivers. Offers supplemental services like respite to relieve caregiver burden.[1]",
+      "who_its_for": "Family caregivers of seniors 60+, grandparents raising grandchildren, older relatives caring for children.",
+      "official_url": "https://aging.maryland.gov/pages/caregiver.aspx",
+      "benefit_value": "Respite up to $32/hour; counseling and training at low/no cost."
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "what_it_does": "Offers part-time paid work training at community sites leading to unsubsidized employment. Builds skills for older workers.[1]",
+      "who_its_for": "Unemployed low-income seniors 55+ (income ≤125% FPL) unable to find work.",
+      "official_url": "https://aging.maryland.gov/pages/scsep.aspx",
+      "benefit_value": "Minimum wage part-time work (20 hrs/wk, up to 48 wks/yr); avg $10-15/hr."
+    },
+    {
+      "name": "Legal Assistance for Seniors",
+      "what_it_does": "Provides free legal services for civil issues like benefits, housing, and consumer problems. Delivered via Maryland Legal Aid and pro bono partners.[1]",
+      "who_its_for": "Low-income seniors 60+ facing civil legal needs.",
+      "official_url": "https://www.mdlab.org/seniors",
+      "benefit_value": "Free legal representation valued at $200+/hr."
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "what_it_does": "Advocates for residents in nursing homes, assisted living, and similar facilities. Investigates complaints and resolves issues to protect rights.[1]",
+      "who_its_for": "Residents of long-term care facilities and their families in Maryland.",
+      "official_url": "https://aging.maryland.gov/pages/ombudsman.aspx",
+      "benefit_value": "Free advocacy services statewide."
+    },
+    {
+      "name": "Maryland Senior Call Check Program (SCC)",
+      "what_it_does": "This program provides a daily automated call to verify the well-being of participants at a scheduled time of their convenience. Registration is free for eligible residents.[1][2]",
+      "who_its_for": "Maryland residents aged 65 years and older.[1]",
+      "whats_unique": "State-specific automated daily wellness check calls unique to Maryland, not a standard federal program.[1][2]",
       "official_url": "https://aging.maryland.gov/pages/programsandservices.aspx",
-      "benefit_value": "In-home services, equipment, and supplies (value based on assessed needs)."
+      "benefit_value": "Free daily automated well-being verification calls."
+    },
+    {
+      "name": "Senior Assisted Living Subsidy Program (SALS)",
+      "what_it_does": "Provides a monthly subsidy to help cover costs for residents of licensed assisted living facilities. Supports services including meals, personal care, and 24-hour supervision for those needing assistance.[1][3][5]",
+      "who_its_for": "Maryland residents aged 65 or older meeting specific eligibility criteria, such as income and assessment requirements, residing in licensed assisted living facilities.[1][3][5]",
+      "whats_unique": "Maryland state-funded monthly subsidy specifically for assisted living facility residents, beyond federal Medicaid options and not universally available in other states.[1][3][5]",
+      "official_url": "https://aging.maryland.gov/pages/programsandservices.aspx",
+      "benefit_value": "Monthly subsidy amount varies by eligibility and need; covers assisted living services."
+    },
+    {
+      "name": "Senior Care Services Program",
+      "what_it_does": "Coordinates community-based in-home services, equipment, medical supplies, personal care, chore services, home-delivered meals, and local transportation. Aims to help seniors maintain independent living and avoid nursing home placement through assessment and case management.[1][3]",
+      "who_its_for": "Maryland residents aged 65 or older at risk of nursing facility placement, determined via face-to-face assessment.[1][3]",
+      "whats_unique": "State-funded program offering coordinated in-home long-term care services tailored to Maryland seniors, exceeding standard federal home care options.[1][3]",
+      "official_url": "https://aging.maryland.gov/pages/programsandservices.aspx",
+      "benefit_value": "Varies by assessment; includes personal care, meals, transportation, supplies, and equipment."
     }
   ]
 }

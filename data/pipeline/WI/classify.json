@@ -1,10 +1,11 @@
 {
   "state": "WI",
   "stateName": "Wisconsin",
-  "classifiedAt": "2026-04-09T09:44:32.021Z",
+  "classifiedAt": "2026-04-09T17:37:33.527Z",
   "total": 5,
   "typeSummary": {
-    "benefit": 4,
+    "benefit": 3,
+    "resource": 1,
     "employment": 1
   },
   "scopeSummary": {
@@ -12,8 +13,8 @@
     "local": 1
   },
   "complexitySummary": {
-    "medium": 1,
-    "deep": 4
+    "deep": 4,
+    "simple": 1
   },
   "programs": [
     {
@@ -24,15 +25,16 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Centralized enrollment via phone and online; most pharmacies in Wisconsin accept SeniorCare card[4]",
+            "name": "Administered statewide by Wisconsin DHS; use any participating pharmacy (most WI pharmacies accept SeniorCare card)[1][6]",
             "type": "service-area"
           }
         ]
       },
-      "complexity": "medium",
+      "complexity": "deep",
       "recommendedSections": [
         "prose",
         "income-table",
+        "what-counts",
         "tier-comparison",
         "documents",
         "county-directory"
@@ -40,8 +42,81 @@
       "signals": {
         "benefitType": "financial",
         "hasIncomeTiers": true,
-        "hasAssetLimits": false,
+        "hasAssetLimits": true,
         "hasRegionalVariation": false,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Elder Benefit Specialist (EBS) Program",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local Aging and Disability Resource Centers (ADRCs), county aging offices, tribal partners; find via FindMyADRC.org",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "advocacy",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Wisconsin Senior Employment Program (WISE)",
+      "programType": "employment",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Fox Valley Workforce Development Board (920-229-5557)[1]",
+            "type": "service-area"
+          },
+          {
+            "name": "GWAAR (608-242-4928 or 608-243-5670, Dane County)[5][7]",
+            "type": "service-area"
+          },
+          {
+            "name": "Employ Milwaukee[4]",
+            "type": "service-area"
+          },
+          {
+            "name": "Job Center of Wisconsin (detwise@dwd.wisconsin.gov)[3]",
+            "type": "service-area"
+          },
+          {
+            "name": "CWI Works subgrantee network including Wisconsin[2]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "documents"
+      ],
+      "signals": {
+        "benefitType": "employment",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
         "hasFunctionalReq": false,
         "hasMultipleTiers": true,
         "isStatewide": true
@@ -55,11 +130,11 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Local ADRCs (county-based)",
+            "name": "Local ADRCs statewide[2][4][5]",
             "type": "service-area"
           },
           {
-            "name": "Managed care organizations (e.g., Community Care Inc., Anthem)",
+            "name": "Managed Care Organizations (CMOs) like Community Care Inc., Anthem, My Choice Wisconsin[1][5][8]",
             "type": "service-area"
           }
         ]
@@ -91,7 +166,11 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Local ADRCs (county-specific), Tribal ADRS",
+            "name": "Local ADRCs (find via dhs.wisconsin.gov/adrc/consumer/index.htm)",
+            "type": "service-area"
+          },
+          {
+            "name": "Tribal ADRS (dhs.wisconsin.gov/adrc/consumer/tribes.htm)",
             "type": "service-area"
           }
         ]
@@ -113,83 +192,6 @@
         "hasRegionalVariation": true,
         "hasFunctionalReq": true,
         "hasMultipleTiers": true,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Wisconsin Senior Employment Program (WISE)",
-      "programType": "employment",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Fox Valley Workforce Development Board: (920) 229-5557[1]",
-            "type": "service-area"
-          },
-          {
-            "name": "Employ Milwaukee (Milwaukee area)[4]",
-            "type": "service-area"
-          },
-          {
-            "name": "Greater Wisconsin Agency on Aging Resources: 1414 MacArthur Road, Suite A, Madison; (608) 243-5670[6]",
-            "type": "service-area"
-          },
-          {
-            "name": "CWI Works subgrantee network across Wisconsin[2]",
-            "type": "service-area"
-          },
-          {
-            "name": "Job Center of Wisconsin / DWD contacts[3]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "documents"
-      ],
-      "signals": {
-        "benefitType": "employment",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Wisconsin Home Energy Assistance Program (WHEAP)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Local WHEAP agencies; find via https://energybenefit.wi.gov/ or Customer Care Center.",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "financial",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
         "isStatewide": true
       }
     }

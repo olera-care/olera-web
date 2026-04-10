@@ -1,26 +1,1580 @@
 {
   "state": "OH",
   "stateName": "Ohio",
-  "draftedAt": "2026-04-09T09:39:28.176Z",
-  "total": 4,
-  "successful": 0,
+  "draftedAt": "2026-04-09T15:59:21.585Z",
+  "total": 12,
+  "successful": 8,
   "programs": [
     {
-      "name": "Healthy Aging Grants",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "id": "ohio-medicaid-aged-blind-disabled",
+      "name": "Medicaid for the Aged, Blind, or Disabled (ABD)",
+      "shortName": "Medicaid ABD",
+      "tagline": "Free comprehensive health coverage for parents 65+ or disabled with limited income and assets.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local county JFS offices statewide",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 65+, blind, or disabled and living on limited income, Ohio Medicaid ABD provides complete health coverage at no cost. This includes all medical care, hospital visits, prescription drugs, and potentially long-term care services like nursing home coverage.\n\nIncome limits are strict: around $794/month for a single person, though exact amounts vary by county and update annually. Your parent can have no more than $2,000 in countable assets ($3,000 for couples). Because counties administer this program locally, you'll need to work with your parent's county Job and Family Services office for current limits and applications.\n\nEven if your parent's income exceeds the limit, they may still qualify through \"spend-down\" — using medical bills to meet the income requirement, similar to meeting a deductible.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+ OR blind/disabled",
+          "Income around $794/month (varies by county)",
+          "Assets under $2,000 single/$3,000 couple",
+          "Ohio resident",
+          "US citizen or qualified immigrant"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 2000,
+          "couple": 3000,
+          "countedAssets": [
+            "Cash and savings",
+            "Stocks and bonds",
+            "Second vehicle",
+            "Life insurance cash value",
+            "Property beyond primary home"
+          ],
+          "exemptAssets": [
+            "Primary home (up to $752,000 equity)",
+            "One vehicle",
+            "Personal belongings",
+            "Burial funds"
+          ],
+          "homeEquityCap": 752000
+        },
+        "functionalRequirement": "Must meet Social Security Administration's definition of blindness or disability expected to last more than 12 months",
+        "otherRequirements": [
+          "Ohio resident",
+          "US citizen or qualified non-citizen",
+          "Social Security number",
+          "Provide proof of other health insurance if applicable"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply through your county's Job and Family Services office online, by phone, or in person — processing times vary by county.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your county JFS office",
+            "description": "Each of Ohio's 88 counties administers Medicaid ABD locally. Income limits and processing may vary slightly by county."
+          },
+          {
+            "step": 2,
+            "title": "Gather financial documents",
+            "description": "Collect proof of all income (Social Security, pensions, wages), bank statements, and asset documentation for the past 3 months."
+          },
+          {
+            "step": 3,
+            "title": "Prove disability or age",
+            "description": "Bring Social Security disability award letter, birth certificate showing age 65+, or medical documentation of blindness."
+          },
+          {
+            "step": 4,
+            "title": "Submit application",
+            "description": "Complete the Medicaid application online through Ohio Benefits portal, by phone, or in person at your county JFS office."
+          }
+        ],
+        "processingTime": "Varies by county",
+        "waitlist": null,
+        "tip": "If approved, coverage can be retroactive up to 90 days for medical bills already incurred.",
+        "urls": [
+          {
+            "label": "Ohio Medicaid ABD Information",
+            "url": "https://medicaid.ohio.gov/families-and-individuals/citizen-programs-and-initiatives/aged-blind-disabled"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Cash and savings accounts",
+            "Checking accounts over monthly expenses",
+            "Stocks, bonds, and investments",
+            "Second vehicle or recreational vehicles",
+            "Life insurance cash value",
+            "Property beyond primary home"
+          ],
+          "excluded": [
+            "Primary home (up to $752,000 equity)",
+            "One vehicle of any value",
+            "Personal belongings and furniture",
+            "Burial plots and reasonable burial funds",
+            "Engagement and wedding rings"
+          ]
+        },
+        {
+          "type": "tier-comparison",
+          "heading": "Related Ohio Medicaid Programs",
+          "tiers": [
+            {
+              "name": "Medicaid ABD (This Program)",
+              "description": "For age 65+, blind, or disabled",
+              "incomeLimit": "~$794/month single (varies by county)",
+              "coverage": "Full Medicaid including long-term care"
+            },
+            {
+              "name": "MBIWD (Working Disabled)",
+              "description": "For disabled individuals who work",
+              "incomeLimit": "Higher income limits allowed",
+              "coverage": "Higher asset limit ($10,000)"
+            },
+            {
+              "name": "Nursing Home Medicaid",
+              "description": "Institutional long-term care",
+              "incomeLimit": "Up to $2,982/month in 2026",
+              "coverage": "Requires Nursing Facility Level of Care assessment"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Eligibility",
+              "items": [
+                "Social Security card",
+                "Birth certificate (if claiming age 65+)",
+                "Social Security disability award letter",
+                "Citizenship or immigration documents"
+              ]
+            },
+            {
+              "name": "Financial Records",
+              "items": [
+                "Bank statements (3 months)",
+                "Social Security benefit statements",
+                "Pension or retirement income proof",
+                "Property deeds and mortgage statements",
+                "Life insurance policies"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Current health insurance cards",
+                "Recent medical bills (for spend-down calculation)",
+                "Medicare cards if applicable"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Income limits vary by county and update annually. Always verify current limits with your local county JFS office — don't rely on outdated information found online."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent's income is just over the limit?",
+          "answer": "Your parent may still qualify through 'spend-down.' This means using medical bills to reduce their countable income to the Medicaid limit, similar to meeting a deductible. Bring recent medical bills when applying."
+        },
+        {
+          "question": "Can my parent keep their house if they qualify?",
+          "answer": "Yes, the primary home is exempt from asset limits as long as the equity doesn't exceed $752,000. If your parent or their spouse lives in the home, there's no equity limit at all."
+        },
+        {
+          "question": "Does Social Security income count toward the income limit?",
+          "answer": "Regular Social Security retirement benefits count toward income limits. However, SSI (Supplemental Security Income) is often excluded from countable income, but this must be verified with your county office."
+        },
+        {
+          "question": "How does this differ from regular Medicare?",
+          "answer": "Medicaid ABD provides comprehensive coverage including services Medicare doesn't cover, like long-term care and enhanced prescription drug coverage. If your parent has both Medicare and Medicaid ABD, Medicaid can help pay Medicare premiums and fill coverage gaps."
+        },
+        {
+          "question": "Can I apply on behalf of my parent?",
+          "answer": "Yes, you can apply as an authorized representative for your parent. You'll need to complete additional paperwork establishing your authority to act on their behalf during the application process."
+        },
+        {
+          "question": "What's the difference between county offices?",
+          "answer": "While Ohio sets overall program rules, each county's Job and Family Services office administers applications locally. Income limits may be cited differently and processing times can vary, so always work directly with your parent's county office."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://medicaid.ohio.gov/families-and-individuals/citizen-programs-and-initiatives/aged-blind-disabled",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
-      "name": "Ohio Senior Citizen Tax Credit",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "id": "ohio-passport-waiver",
+      "name": "PASSPORT Waiver",
+      "shortName": "PASSPORT Waiver",
+      "tagline": "If your parent needs daily help at home, Ohio may pay for personal care, meals, and modifications to keep them out of a nursing home.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local Area Agencies on Aging (AAAs) coordinate services from local providers",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and needs help with daily activities like bathing, dressing, or meal preparation, Ohio's PASSPORT Waiver can pay for home care services to keep them out of a nursing home. Because this program covers personal care, home-delivered meals, adult day care, emergency response systems, and even minor home modifications, your parent gets coordinated support at home instead of institutional care.\n\nYour parent must qualify for Medicaid and meet the same care level required for nursing home placement — meaning they need significant daily assistance. The program also includes a new option (added October 2024) called Structured Family Caregiving, which can pay family members, including spouses, to provide care at home.\n\nServices are customized to your parent's needs, but the total cost cannot exceed 60% of what nursing home care would cost. This ensures the program remains cost-effective while providing comprehensive home-based support.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Ohio resident",
+          "Medicaid-eligible",
+          "Needs nursing home level of care",
+          "Can remain safely at home"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must need nursing home level of care, determined through Adult Comprehensive Assessment Tool (ACAT) — this means needing daily help with activities like bathing, dressing, eating, mobility, or toileting, plus instrumental activities like meal prep and shopping",
+        "otherRequirements": [
+          "Ohio resident",
+          "Medicaid financial eligibility",
+          "Primary care provider approval for home safety",
+          "Total service cost at or below 60% of nursing home care cost"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your local Area Agency on Aging for a phone screening, followed by an in-home assessment if you pre-qualify.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call for initial screening",
+            "description": "Contact your local Area Agency on Aging to discuss your parent's needs and determine if they might qualify for PASSPORT services."
+          },
+          {
+            "step": 2,
+            "title": "Complete phone pre-screening",
+            "description": "Answer questions about your parent's income, assets, and care needs to determine Medicaid eligibility and functional requirements."
+          },
+          {
+            "step": 3,
+            "title": "Schedule in-home assessment",
+            "description": "If pre-qualified, a care coordinator will visit your parent's home to complete the Adult Comprehensive Assessment Tool (ACAT)."
+          },
+          {
+            "step": 4,
+            "title": "Develop care plan",
+            "description": "Work with the care team to identify needed services and local providers, ensuring total costs stay within the 60% nursing home cost limit."
+          }
+        ],
+        "processingTime": "Not specified in official sources",
+        "waitlist": null,
+        "tip": "Have your parent's doctor's contact information ready — they'll need to approve that your parent can safely receive services at home.",
+        "urls": [
+          {
+            "label": "Ohio Department of Aging",
+            "url": "https://aging.ohio.gov/passport"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "Local Area Agencies on Aging",
+          "offices": [
+            {
+              "name": "Central Ohio Area Agency on Aging",
+              "type": "service-area",
+              "phone": "(614) 645-7250 or (800) 589-7277",
+              "address": "Central Ohio region"
+            },
+            {
+              "name": "Area Aging Solutions",
+              "type": "service-area",
+              "phone": "(216) 539-9240",
+              "address": "Northeast Ohio region"
+            },
+            {
+              "name": "Ohio Department of Aging (statewide)",
+              "type": "service-area",
+              "phone": "1-800-266-4346 or (614) 466-1220",
+              "address": "TTY: 1-614-466-6190"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Prepare",
+          "categories": [
+            {
+              "name": "Medical Information",
+              "items": [
+                "Primary care physician contact information",
+                "List of current medications",
+                "Medical conditions requiring daily assistance"
+              ]
+            },
+            {
+              "name": "Financial Records",
+              "items": [
+                "Income documentation for Medicaid eligibility",
+                "Asset information for Medicaid determination",
+                "Insurance cards and coverage details"
+              ]
+            },
+            {
+              "name": "Functional Assessment",
+              "items": [
+                "Detailed list of daily activities your parent needs help with",
+                "Safety concerns in the home",
+                "Current care arrangements and providers"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "New as of October 2024: Structured Family Caregiving allows PASSPORT to pay family members, including spouses, to provide care — ask specifically about this option if family members are already helping with daily care."
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Your parent must qualify for Medicaid financially AND need nursing home level of care clinically. This isn't for minor assistance — it's for significant daily help with personal care and safety."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house if she qualifies for PASSPORT?",
+          "answer": "Yes. Because PASSPORT is designed to keep people in their homes instead of nursing homes, your parent can keep their house and receive services there. The program may even pay for minor home modifications to make it safer."
+        },
+        {
+          "question": "What if her income is just over the Medicaid limit?",
+          "answer": "Your parent must qualify for Medicaid to get PASSPORT services. Contact the local Area Agency on Aging to discuss spend-down options or other Medicaid pathways that might help your parent qualify despite higher income."
+        },
+        {
+          "question": "Can family members get paid to provide care?",
+          "answer": "Yes, as of October 2024. The new Structured Family Caregiving option allows PASSPORT to pay family members, including spouses, to provide care. Ask specifically about this when you call for screening."
+        },
+        {
+          "question": "How much care can Mom actually get through PASSPORT?",
+          "answer": "Services are customized to your parent's assessed needs, but the total cost cannot exceed 60% of what nursing home care would cost. This typically allows for substantial home-based services including personal care, meals, and day programs."
+        },
+        {
+          "question": "What's the difference between PASSPORT and the Assisted Living Waiver?",
+          "answer": "PASSPORT provides services in your parent's home or community settings. The Assisted Living Waiver is specifically for people living in assisted living facilities. If your parent wants to stay in their own home, PASSPORT is the right program."
+        },
+        {
+          "question": "Does PASSPORT cover all of Mom's medical needs too?",
+          "answer": "Yes. Because PASSPORT requires Medicaid eligibility, your parent gets a Medicaid card covering physician care, hospital stays, and prescription drugs, plus the home-based services coordinated through PASSPORT."
+        }
+      ],
+      "phone": "1-800-266-4346",
+      "sourceUrl": "https://aging.ohio.gov/passport",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
-      "name": "Elderly Services Program (ESP)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "name": "Ohio Program of All-Inclusive Care for the Elderly (PACE)",
+      "_error": "Claude 529: {\"type\":\"error\",\"error\":{\"type\":\"overloaded_error\",\"message\":\"Overloaded\"},\"request_id\":\"req_011CZtUB2wkF3ACqAs3fGWVW\"}"
     },
     {
-      "name": "Franklin County Senior Services Levy Programs (Senior Options)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "id": "ohio-medicare-savings-programs",
+      "name": "Medicare Savings Programs (QMB, SLMB, QI-1)",
+      "shortName": "Medicare Savings Programs",
+      "tagline": "Help your parent save $185–$2,500+ per year on Medicare premiums and out-of-pocket costs",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local County Job and Family Services offices statewide",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent has Medicare and limited income, Ohio's Medicare Savings Programs can eliminate their Medicare Part B premium ($185/month in 2025) and potentially cover all Medicare deductibles and copayments. These federal programs have three tiers based on income — QMB provides the most comprehensive coverage for parents earning up to $1,350/month, while SLMB and QI-1 cover premiums for slightly higher incomes.\n\nBecause these programs work alongside Medicare, your parent keeps their current doctors and benefits while getting help with costs. QMB acts like free Medigap insurance — providers cannot bill your parent for any Medicare-covered services. The application process takes up to 45 days, but SLMB and QI-1 can provide up to 3 months of retroactive coverage if your parent was eligible during that time.",
+      "savingsRange": "$2,220 – $2,500+/year in 2025",
+      "savingsSource": "Part B premium savings plus potential deductible/copayment coverage",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Has Medicare Part A and Part B",
+          "Income below $1,824/month (single)",
+          "Assets below $9,950 (single)",
+          "Ohio resident"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1824
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2460
+          }
+        ],
+        "assetLimits": {
+          "individual": 9950,
+          "couple": 14910,
+          "countedAssets": [
+            "Bank accounts",
+            "Stocks and bonds",
+            "Life insurance over $1,500 cash value"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "One vehicle",
+            "Household items",
+            "Wedding/engagement rings",
+            "Burial plots/expenses up to $1,500"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be eligible for Medicare Part A",
+          "Must be enrolled in Medicare Part B",
+          "U.S. citizen or qualified immigrant",
+          "Not eligible for full Medicaid (except specific QI cases)"
+        ],
+        "povertyLevelReference": "100-135% FPL depending on program tier"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online at benefits.ohio.gov or call 1-800-324-8680 — processing takes up to 45 days.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Gather required documents",
+            "description": "Collect 3 months of pay stubs or benefit statements, bank statements, Medicare card, and ID"
+          },
+          {
+            "step": 2,
+            "title": "Submit JFS 07273 Medical Assistance Application",
+            "description": "Apply online at benefits.ohio.gov, call 1-800-324-8680, or visit your County Job and Family Services office"
+          },
+          {
+            "step": 3,
+            "title": "Wait for determination",
+            "description": "Ohio has 45 days to process — SLMB and QI-1 can provide up to 3 months retroactive coverage if eligible"
+          },
+          {
+            "step": 4,
+            "title": "For QI-1 applicants: Apply early",
+            "description": "QI-1 has limited federal slots that fill up — apply January 1st for best chance, priority given to prior year recipients"
+          }
+        ],
+        "processingTime": "Up to 45 days",
+        "waitlist": "QI-1 only: Limited federal slots, first-come first-served, may close when filled",
+        "tip": "If applying for QI-1, submit your application January 1st when slots reset — they fill up quickly throughout the year.",
+        "urls": [
+          {
+            "label": "Ohio Benefits Portal",
+            "url": "https://benefits.ohio.gov"
+          },
+          {
+            "label": "Find County Office",
+            "url": "https://jfs.ohio.gov/counties.stm"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "tier-comparison",
+          "heading": "Program Tiers",
+          "tiers": [
+            {
+              "name": "QMB (Qualified Medicare Beneficiary)",
+              "description": "Most comprehensive coverage",
+              "incomeLimit": "Up to $1,350/month (single), $1,824/month (couple)",
+              "coverage": "Part B premium + all Medicare deductibles, coinsurance, and copayments"
+            },
+            {
+              "name": "SLMB (Specified Low-income Medicare Beneficiary)",
+              "description": "Premium assistance only",
+              "incomeLimit": "Up to $1,620/month (single), $2,189/month (couple)",
+              "coverage": "Part B premium only"
+            },
+            {
+              "name": "QI-1 (Qualifying Individual)",
+              "description": "Limited slots, annual reapplication required",
+              "incomeLimit": "Up to $1,824/month (single), $2,460/month (couple)",
+              "coverage": "Part B premium only"
+            }
+          ]
+        },
+        {
+          "type": "income-table",
+          "heading": "2026 Income Limits (After Standard Deductions)",
+          "rows": [
+            {
+              "tier": "QMB",
+              "single": "$1,350",
+              "couple": "$1,824"
+            },
+            {
+              "tier": "SLMB",
+              "single": "$1,620",
+              "couple": "$2,189"
+            },
+            {
+              "tier": "QI-1",
+              "single": "$1,824",
+              "couple": "$2,460"
+            }
+          ],
+          "footnote": "Limits updated annually. Standard deductions: $20 general income, $65 earned income + half remaining wages."
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and savings",
+            "Stocks and bonds (excluding certain Native American stocks)",
+            "Life insurance with cash value over $1,500"
+          ],
+          "excluded": [
+            "Primary home (no equity limit)",
+            "One vehicle of any value",
+            "Household items and personal belongings",
+            "Wedding and engagement rings",
+            "Burial plots and burial expenses up to $1,500",
+            "SNAP benefits"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Birth certificate or driver's license",
+                "Social Security card",
+                "Proof of Ohio residency",
+                "Medicare card"
+              ]
+            },
+            {
+              "name": "Financial Information",
+              "items": [
+                "3 months of pay stubs or benefit award letters",
+                "Bank statements for all accounts",
+                "Investment account statements",
+                "Life insurance policies with cash value"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "QI-1 slots fill up fast. If your parent's income qualifies for QI-1, apply January 1st when federal slots reset. Previous recipients get priority, but new applicants compete for remaining spots on a first-come, first-served basis."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If your parent has QMB coverage, Medicare providers cannot bill them for any Medicare-covered services — but make sure providers know about the QMB coverage and that they participate in Medicare."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if they qualify?",
+          "answer": "Yes. Ohio does not count your parent's primary home toward the asset limit, regardless of its value. They can own their home and still qualify for Medicare Savings Programs."
+        },
+        {
+          "question": "What if Mom's income is just over the QMB limit but under SLMB?",
+          "answer": "She can still get help with her Part B premium through SLMB (up to $1,620/month for a single person). While SLMB doesn't cover deductibles and copayments like QMB does, saving $185/month on the Part B premium is still significant."
+        },
+        {
+          "question": "Will this affect Dad's Medicare doctors or coverage?",
+          "answer": "No. Medicare Savings Programs work with his existing Medicare — same doctors, same coverage. The program just helps pay his Medicare costs. If he has QMB, providers cannot bill him for Medicare-covered services."
+        },
+        {
+          "question": "My parent was just approved for QI-1. Do they need to reapply next year?",
+          "answer": "Yes. Unlike QMB and SLMB which automatically renew, QI-1 recipients must reapply every year. Apply January 1st for the best chance — previous recipients get priority, but approval isn't guaranteed due to limited federal funding."
+        },
+        {
+          "question": "Can my parent have both Medicare Savings Programs and a Medigap policy?",
+          "answer": "If your parent has QMB, they don't need Medigap because QMB covers all Medicare deductibles and copayments. For SLMB or QI-1, they could keep Medigap since those programs only cover the Part B premium."
+        },
+        {
+          "question": "What happens if my parent's income changes after they're approved?",
+          "answer": "They should report income changes to their County Job and Family Services office. Significant increases might affect eligibility, while decreases might qualify them for a higher tier of benefits (like moving from SLMB to QMB)."
+        }
+      ],
+      "phone": "1-800-324-8680",
+      "sourceUrl": "https://insurance.ohio.gov/consumers/medicare/msp",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "name": "Ohio SNAP (Supplemental Nutrition Assistance Program)",
+      "_error": "Claude 529: {\"type\":\"error\",\"error\":{\"type\":\"overloaded_error\",\"message\":\"Overloaded\"},\"request_id\":\"req_011CZtUEaXcm2Hh6J45BuaZu\"}"
+    },
+    {
+      "name": "Home Energy Assistance Program (HEAP)",
+      "_error": "Claude 529: {\"type\":\"error\",\"error\":{\"type\":\"overloaded_error\",\"message\":\"Overloaded\"},\"request_id\":\"req_011CZtUFAqcvKR3GvmyNWQZj\"}"
+    },
+    {
+      "id": "ohio-weatherization-assistance-program",
+      "name": "Weatherization Assistance Program (WAP)",
+      "shortName": "Weatherization Assistance",
+      "tagline": "Free home weatherization to cut your parent's heating and cooling bills by hundreds of dollars annually",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "County-based local agencies including COAD, IMPACT, NOCAC, MORPC, BridgesCAP",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent's household income is below $31,300 (for one person) or $42,300 (for two people), they can get free weatherization services that typically save $200-400 annually on energy bills. The program provides insulation, air sealing, heating system repairs or replacement, and other energy improvements at no cost.\n\nPriority goes to households with someone over 60, people with disabilities, children, or high energy bills. Because each county has its own local agency, you'll need to contact the specific provider for your parent's area — not a single statewide office.\n\nYour parent automatically qualifies for income if they received SSI, TANF, or regular HEAP benefits in the last 12 months, but they still need to apply through their county agency.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Income at or below 200% federal poverty level",
+          "Priority for age 60+, disabilities, or children",
+          "Automatic eligibility with SSI/TANF/HEAP",
+          "Must apply through county agency"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2608
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 3525
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 4442
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 5358
+          },
+          {
+            "householdSize": 5,
+            "monthlyLimit": 6275
+          },
+          {
+            "householdSize": 6,
+            "monthlyLimit": 7192
+          },
+          {
+            "householdSize": 7,
+            "monthlyLimit": 8108
+          },
+          {
+            "householdSize": 8,
+            "monthlyLimit": 9025
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Priority given to households with members over 60, disabilities, children, or high energy burden",
+          "Automatic income eligibility if received SSI, TANF, or HEAP (not Emergency HEAP) in last 12 months",
+          "Application required even with automatic eligibility",
+          "Renters eligible but need landlord contact information"
+        ],
+        "povertyLevelReference": "200% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact your county's local weatherization agency by phone — processing time varies by county and waitlist.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your county agency",
+            "description": "Use the county provider directory at coadinc.org/energy-services/hwap/ or call the state helpline at (800) 848-1300 for your local contact."
+          },
+          {
+            "step": 2,
+            "title": "Contact your local agency",
+            "description": "Call your county agency directly to request an application. Each county has different intake processes and forms."
+          },
+          {
+            "step": 3,
+            "title": "Submit income documentation",
+            "description": "Provide proof of income for the last 90 days or total annual household income, plus ID, Social Security information, and recent utility bills."
+          },
+          {
+            "step": 4,
+            "title": "Wait for energy audit",
+            "description": "Your parent will be placed on a waitlist by priority ranking. The agency will schedule a home energy audit to determine needed services."
+          }
+        ],
+        "processingTime": "Not specified - varies by county agency",
+        "waitlist": "Served in order of application receipt per priority ranking - waitlists likely due to funding limits",
+        "tip": "If your parent received SSI, TANF, or HEAP benefits in the last year, mention this when calling — they automatically qualify for income but still need to apply.",
+        "urls": [
+          {
+            "label": "Find County Provider",
+            "url": "https://coadinc.org/energy-services/hwap/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits by Household Size (2025)",
+          "rows": [
+            {
+              "size": 1,
+              "annual": 31300,
+              "monthly": 2608
+            },
+            {
+              "size": 2,
+              "annual": 42300,
+              "monthly": 3525
+            },
+            {
+              "size": 3,
+              "annual": 53300,
+              "monthly": 4442
+            },
+            {
+              "size": 4,
+              "annual": 64300,
+              "monthly": 5358
+            },
+            {
+              "size": 5,
+              "annual": 75300,
+              "monthly": 6275
+            },
+            {
+              "size": 6,
+              "annual": 86300,
+              "monthly": 7192
+            },
+            {
+              "size": 7,
+              "annual": 97300,
+              "monthly": 8108
+            },
+            {
+              "size": 8,
+              "annual": 108300,
+              "monthly": 9025
+            }
+          ],
+          "footnote": "Add $11,000 per additional household member beyond 8 people. Source: 200% Federal Poverty Guidelines 2025"
+        },
+        {
+          "type": "tier-comparison",
+          "heading": "Priority Tiers",
+          "tiers": [
+            {
+              "name": "Priority 1",
+              "description": "Households with members over age 60, disabilities, children under 18, or high energy burden",
+              "incomeLimit": "At or below 200% federal poverty level",
+              "coverage": "Served first from waitlist"
+            },
+            {
+              "name": "Priority 2",
+              "description": "All other eligible households",
+              "incomeLimit": "At or below 200% federal poverty level",
+              "coverage": "Served after Priority 1 households in order of application"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Photo ID",
+                "Social Security card or Social Security number"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Proof of income for last 90 days or total annual household income",
+                "Recent electric and gas bills"
+              ]
+            },
+            {
+              "name": "Housing",
+              "items": [
+                "For renters: landlord or property manager contact information"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Each county uses a different local agency with its own application process. You cannot apply through a single statewide office — you must contact the specific agency serving your parent's county."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Multi-family housing units may require special arrangements and services may not be completely free. Single-family homes receive all services at no cost."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent get weatherization services if they rent their home?",
+          "answer": "Yes, renters are eligible, but you'll need to provide the landlord or property manager's contact information during the application process. The agency may need landlord permission for certain improvements."
+        },
+        {
+          "question": "What if Mom just received weatherization services a few years ago?",
+          "answer": "Your parent cannot receive HWAP services if they got weatherization assistance in the last 12 months. Beyond that timeframe, they may be eligible again depending on program rules."
+        },
+        {
+          "question": "How long is the wait for services after we apply?",
+          "answer": "Wait times vary by county and depend on your parent's priority ranking. Households with members over 60, disabilities, or children are served first. Contact your county agency for current wait time estimates."
+        },
+        {
+          "question": "What exactly will they do to improve the house?",
+          "answer": "Services depend on a home energy audit but typically include attic, wall, and floor insulation; air sealing; duct sealing; heating system or water heater repairs or replacement; and health and safety inspections. All work is based on what your parent's specific home needs."
+        },
+        {
+          "question": "My father gets SSI — does he still need to prove his income?",
+          "answer": "If your father received SSI, TANF, or regular HEAP benefits in the last 12 months, he automatically meets the income requirement. However, he still needs to apply through the county agency and may need to provide documentation of those benefits."
+        },
+        {
+          "question": "Can Dad apply if his income is slightly over the limit some months?",
+          "answer": "The program looks at either the last 90 days of income or total annual household income — whichever works better for your dad's situation. If his annual income averages below the limit, he may still qualify even if some months are higher."
+        }
+      ],
+      "phone": "(800) 848-1300",
+      "sourceUrl": "https://development.ohio.gov/individual/energy-assistance/6-home-weatherization-assistance-program",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "ohio-senior-health-insurance-information-program",
+      "name": "Ohio Senior Health Insurance Information Program (OSHIIP)",
+      "shortName": "OSHIIP",
+      "tagline": "Free expert help navigating Medicare choices, claims problems, and finding cost-saving programs for your parent.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Central office: 50 W Town St, 3rd Floor Suite 300, Columbus OH 43215[4][5]",
+            "type": "service-area"
+          },
+          {
+            "name": "Local coordinators listed at https://insurance.ohio.gov/consumers/medicare/oshiip-coordinators-list[9]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is overwhelmed by Medicare choices, dealing with claim denials, or paying too much for health insurance, OSHIIP provides free one-on-one counseling to help them navigate their options. Because Medicare decisions can save or cost thousands per year, having an unbiased expert review your parent's situation can prevent costly mistakes.\n\nThis free service is available to anyone enrolled in or eligible for Medicare in Ohio — including seniors 65+ and people under 65 with disabilities. OSHIIP counselors help compare Medicare plans, explain benefits, assist with enrollment, resolve claims issues, and find programs that reduce costs. No income limits or fees apply.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Must have Medicare",
+          "No income limits",
+          "No asset limits",
+          "Available statewide"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be enrolled in or eligible for Medicare"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call the hotline for immediate help — no application needed.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the OSHIIP hotline",
+            "description": "Call 800-686-1578 (Monday-Friday 7:30am-5pm) to speak with a counselor immediately"
+          },
+          {
+            "step": 2,
+            "title": "Have Medicare information ready",
+            "description": "Having your parent's Medicare card or details helps provide personalized guidance, but isn't required"
+          },
+          {
+            "step": 3,
+            "title": "Get connected locally if needed",
+            "description": "The hotline can connect you with local coordinators in your area for in-person help"
+          }
+        ],
+        "processingTime": "Services provided immediately upon contact",
+        "waitlist": null,
+        "tip": "If the hotline is busy, ask for your local coordinator's direct number for faster service.",
+        "urls": [
+          {
+            "label": "OSHIIP website",
+            "url": "https://insurance.ohio.gov/consumers/medicare/01-oshiip"
+          },
+          {
+            "label": "Find local coordinators",
+            "url": "https://insurance.ohio.gov/consumers/medicare/oshiip-coordinators-list"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "OSHIIP provides counseling and information only — they don't pay for healthcare or process benefit applications. For Medicare enrollment issues, you may need to call Social Security at 800-633-4227."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can OSHIIP help if my parent is already enrolled in Medicare?",
+          "answer": "Yes. OSHIIP helps current Medicare beneficiaries compare plans during open enrollment, resolve claim problems, understand benefits, and find cost-saving programs they may be missing."
+        },
+        {
+          "question": "Will they try to sell my parent insurance?",
+          "answer": "No. OSHIIP counselors are completely unbiased and don't sell insurance. They're funded by federal and state grants to provide objective information only."
+        },
+        {
+          "question": "What if my parent is under 65 but has Medicare due to disability?",
+          "answer": "OSHIIP serves all Medicare beneficiaries regardless of age, including people under 65 who qualify for Medicare due to disability."
+        },
+        {
+          "question": "Can they help with Medicare Advantage vs. traditional Medicare decisions?",
+          "answer": "Yes. OSHIIP counselors specialize in explaining the differences between Medicare Advantage, traditional Medicare with supplements, and standalone Part D plans to help your parent choose what's best for their situation."
+        },
+        {
+          "question": "What if we need help outside normal business hours?",
+          "answer": "The hotline operates Monday-Friday 7:30am-5pm. You can also email oshiipmail@insurance.ohio.gov or contact local coordinators who may have different availability."
+        },
+        {
+          "question": "Can OSHIIP help find programs to reduce my parent's Medicare costs?",
+          "answer": "Yes. They provide information about financial assistance programs for limited income households and other cost-saving programs that can reduce Medicare premiums, deductibles, and prescription costs."
+        }
+      ],
+      "phone": "800-686-1578",
+      "sourceUrl": "https://insurance.ohio.gov/consumers/medicare/01-oshiip",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "ohio-home-delivered-meals",
+      "name": "Home-Delivered Meals (via Ohio Aging Network)",
+      "shortName": "Home-Delivered Meals",
+      "tagline": "Nutritious meals delivered to your parent's door if they're 60+ and can't shop or cook for themselves.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Franklin County Senior Options: (614) 525-6200[1]",
+            "type": "service-area"
+          },
+          {
+            "name": "Geauga County Department on Aging[5]",
+            "type": "service-area"
+          },
+          {
+            "name": "Vantage Aging (NE Ohio): 330-832-7220[6]",
+            "type": "service-area"
+          },
+          {
+            "name": "Ohio Department of Aging: 1-800-266-4346, Aging.Ohio.gov[2]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and struggles to shop for groceries or prepare meals safely, Ohio's Home-Delivered Meals program brings nutritious meals directly to their door. Because volunteers deliver meals Monday through Friday, your parent gets both nutrition and a daily check-in from a friendly visitor. Each meal provides one-third of daily nutritional needs and comes in options including hot daily meals, weekly frozen meals, or special diets like diabetic or renal.\n\nThis isn't just meal delivery — it's designed for parents who are homebound or have health conditions that make cooking unsafe. Because the program operates through 33 local Area Agencies on Aging across Ohio, you'll need to contact your parent's county office directly. Some counties charge a sliding fee based on income, while others request donations but don't require payment.",
+      "savingsRange": "",
+      "savingsSource": "Free service with possible sliding fee",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Homebound or unable to cook safely",
+          "Ohio resident",
+          "Sliding fee in some counties"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Your parent must be homebound or unable to prepare their own meals due to age, disability, or health condition that affects their ability to maintain independence",
+        "otherRequirements": [
+          "Must live in Ohio",
+          "Must be in the service area of a local provider"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your local Area Agency on Aging — each county has its own office and application process.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your county's Area Agency on Aging",
+            "description": "Look up your parent's county office using the directory below or call the statewide number 1-800-266-4346"
+          },
+          {
+            "step": 2,
+            "title": "Call to request an assessment",
+            "description": "Explain your parent's situation — difficulty shopping, cooking, or being homebound"
+          },
+          {
+            "step": 3,
+            "title": "Complete the Person-Centered Service Plan",
+            "description": "A caseworker will assess your parent's needs and create a meal delivery plan"
+          },
+          {
+            "step": 4,
+            "title": "Get diet orders if needed",
+            "description": "For special diets like diabetic or renal, you'll need an order from your parent's doctor"
+          }
+        ],
+        "processingTime": null,
+        "waitlist": "Some areas may have waiting lists depending on local capacity",
+        "tip": "Call early in the day (9 AM - 12 PM) when county offices are typically less busy",
+        "urls": [
+          {
+            "label": "Ohio Department of Aging",
+            "url": "https://aging.ohio.gov/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Proof of age (driver's license, birth certificate)",
+                "Proof of Ohio residency"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Income information for sliding fee determination (Social Security statement, pension records)",
+                "Medicaid or PASSPORT enrollment if applicable"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Diet order from licensed prescriber for therapeutic meals (diabetic, renal, etc.)",
+                "Documentation of health conditions affecting ability to cook or shop"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "county-directory",
+          "heading": "Local Area Agencies on Aging",
+          "offices": [
+            {
+              "name": "Franklin County Senior Options",
+              "type": "county",
+              "phone": "(614) 525-6200",
+              "address": "Weekdays 9AM-4:30PM"
+            },
+            {
+              "name": "Vantage Aging (Northeast Ohio)",
+              "type": "service-area",
+              "phone": "(330) 832-7220",
+              "address": "referrals@vantageaging.org"
+            },
+            {
+              "name": "Geauga County Department on Aging",
+              "type": "county",
+              "phone": "Contact via county website",
+              "address": "No fees, donations appreciated"
+            },
+            {
+              "name": "Statewide Information Line",
+              "type": "state",
+              "phone": "1-800-266-4346",
+              "address": "Can help locate your local office"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "You cannot apply statewide — each county runs its own program. Fees, meal options, and delivery schedules vary by location."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Even if your parent's income seems 'too high,' call anyway. Many counties use sliding fees rather than strict cutoffs, and some areas prioritize need over income."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent sometimes can cook but not every day?",
+          "answer": "That still qualifies. The program covers parents who have difficulty preparing meals due to health conditions, even if they can manage occasionally. The assessment will determine how many meals per week your parent needs."
+        },
+        {
+          "question": "Can my parent choose special meals for diabetes or other conditions?",
+          "answer": "Yes, but you'll need a diet order from their doctor. Options include diabetic, renal, kosher, and vegetarian meals, though availability varies by county provider."
+        },
+        {
+          "question": "What if my parent lives just over the county line from me?",
+          "answer": "They must contact the Area Agency on Aging where they live, not where you live. Each county serves only its own residents."
+        },
+        {
+          "question": "Will someone check on my parent when they deliver meals?",
+          "answer": "Yes. Volunteer delivery includes a brief friendly visit for safety and socialization. If your parent doesn't answer the door, volunteers are trained to follow up."
+        },
+        {
+          "question": "Can my parent get meals on weekends?",
+          "answer": "Most programs deliver Monday through Friday only, but some provide frozen weekend meals. Ask your local office about weekend options."
+        },
+        {
+          "question": "What if my parent already gets SNAP benefits?",
+          "answer": "They can receive both. Home-delivered meals supplement SNAP — they don't replace grocery benefits or count against SNAP eligibility."
+        }
+      ],
+      "phone": "1-800-266-4346",
+      "sourceUrl": "https://aging.ohio.gov/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "name": "National Family Caregiver Support Program (NFCSP)",
+      "_error": "Claude 529: {\"type\":\"error\",\"error\":{\"type\":\"overloaded_error\",\"message\":\"Overloaded\"},\"request_id\":\"req_011CZtUNWrq3ikoFjCd1EPsi\"}"
+    },
+    {
+      "id": "ohio-scsep-employment",
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "shortName": "SCSEP",
+      "tagline": "Your parent can earn minimum wage while learning job skills through community service work if they're 55+ and unemployed.",
+      "programType": "employment",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Ohio Department of Aging",
+            "type": "service-area"
+          },
+          {
+            "name": "AARP Foundation",
+            "type": "service-area"
+          },
+          {
+            "name": "Goodwill Industries, Inc.",
+            "type": "service-area"
+          },
+          {
+            "name": "Goodwill Easter Seals Miami Valley",
+            "type": "service-area"
+          },
+          {
+            "name": "VANTAGE Aging (e.g., Hillsboro: 1575 N. High Street Suite 402, Hillsboro, OH 45133; 937-840-0055)",
+            "type": "service-area"
+          },
+          {
+            "name": "National Caucus and Center on Black Aged, Inc.",
+            "type": "service-area"
+          },
+          {
+            "name": "National Council on Aging/Pathstone",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 55+ and struggling to find work, SCSEP provides paid job training through community service at schools, hospitals, and senior centers. Your parent earns minimum wage for about 20 hours per week while learning new skills like computer training or vocational skills. The program typically lasts 6 months and includes job placement assistance to help transition to permanent employment.\n\nTo qualify, your parent must be unemployed with family income at or below 125% of federal poverty (roughly $19,000-$20,000 annually for a single person in 2026, but exact amounts change yearly). Priority goes to veterans, those over 65, people with disabilities, and others with barriers to employment. Because funding is limited, non-priority applicants may face waitlists depending on their county's demand.",
+      "savingsRange": "",
+      "savingsSource": "Free service with paid training",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Unemployed",
+          "Family income ≤125% federal poverty",
+          "Ohio resident"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Currently unemployed",
+          "Ohio resident in any of 88 counties",
+          "Priority given to veterans, those 65+, people with disabilities, low literacy, limited English, rural residents, homeless, or those with low employment prospects"
+        ],
+        "povertyLevelReference": "125% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact your county's SCSEP provider for eligibility screening — processing time varies by provider and county demand.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your county provider",
+            "description": "Visit aging.ohio.gov/care-and-living/staying-active/staying-active-catalog/senior-community-services-employment-program to identify which organization serves your parent's county."
+          },
+          {
+            "step": 2,
+            "title": "Contact provider for screening",
+            "description": "Call your county provider (like VANTAGE Aging at 937-840-0055 for Hillsboro area) to discuss eligibility and available slots."
+          },
+          {
+            "step": 3,
+            "title": "Attend orientation",
+            "description": "Complete in-person or phone orientation with required documents to verify age, income, unemployment status, and Ohio residency."
+          },
+          {
+            "step": 4,
+            "title": "Begin placement process",
+            "description": "If accepted, work with provider to match your parent with appropriate community service work site and training opportunities."
+          }
+        ],
+        "processingTime": "Not specified — varies by provider",
+        "waitlist": "Possible due to funding limits and priority system",
+        "tip": "Call multiple providers in your area if the first has a waitlist — different organizations may have different availability.",
+        "urls": [
+          {
+            "label": "Find Ohio SCSEP Provider by County",
+            "url": "https://aging.ohio.gov/care-and-living/staying-active/staying-active-catalog/senior-community-services-employment-program"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Government-issued ID (driver's license, state ID, or passport)",
+                "Proof of Ohio residency (utility bill, lease, or mail)"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Recent tax returns or tax transcripts",
+                "Pay stubs from last 6 months (if any)",
+                "Benefit statements (Social Security, unemployment, etc.)",
+                "Documentation of current unemployment status"
+              ]
+            },
+            {
+              "name": "Military (if applicable)",
+              "items": [
+                "DD-214 or other veteran status documentation",
+                "Spouse documentation if applying as qualified spouse"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Income limits include all household members, not just your parent. A couple living together would need combined income under the two-person poverty threshold, even if only one person applies."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "This is temporary training (average 6 months), not permanent employment. The goal is to help your parent transition to unsubsidized work, so they'll need to actively job search during the program."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "How much will my parent earn during the program?",
+          "answer": "Your parent earns the highest of federal, state, or local minimum wage for about 20 hours per week. In Ohio, this means at least $10.45 per hour (2026), or roughly $1,090 per month before taxes."
+        },
+        {
+          "question": "What if my parent's income is just over the 125% poverty limit?",
+          "answer": "They won't qualify. The income limit is firm and includes all household members. However, limits change annually, so they could reapply next year if their situation changes."
+        },
+        {
+          "question": "Can my parent choose where they work?",
+          "answer": "The provider matches participants with available community service sites like schools, hospitals, or senior centers based on skills and interests. Your parent can discuss preferences, but placement depends on what's available."
+        },
+        {
+          "question": "What happens after the 6 months ends?",
+          "answer": "The program includes job placement assistance to help your parent find permanent, unsubsidized employment. Some may be eligible for extension in certain circumstances, but the goal is transition to regular jobs."
+        },
+        {
+          "question": "Does this affect my parent's Social Security or other benefits?",
+          "answer": "Earnings from SCSEP count as income and may affect means-tested benefits like SNAP or Medicaid. Contact your parent's other benefit programs to understand how work income will impact them."
+        },
+        {
+          "question": "What if there's a waitlist in our county?",
+          "answer": "Priority goes to veterans, those 65+, people with disabilities, and others with employment barriers. Non-priority applicants may wait longer. Try contacting multiple providers in your area — different organizations may have different availability."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://aging.ohio.gov/care-and-living/staying-active/staying-active-catalog/senior-community-services-employment-program",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "ohio-legal-assistance-seniors",
+      "name": "Legal Assistance for Seniors (via Ohio Legal Services)",
+      "shortName": "Legal Assistance",
+      "tagline": "Free legal help for Ohio seniors with Medicare, housing, wills, and elder abuse issues.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Pro Seniors (Cincinnati-area focus)",
+            "type": "service-area"
+          },
+          {
+            "name": "Legal Aid of Western Ohio (LAWO: Northwest counties)",
+            "type": "service-area"
+          },
+          {
+            "name": "Legal Aid Society of Cleveland (Northeast)",
+            "type": "service-area"
+          },
+          {
+            "name": "LASCO (Central Ohio seniors team)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs help with Medicare appeals, housing problems, or creating a will, Ohio provides free legal assistance for seniors 60+. The Pro Seniors Legal Helpline offers 30-minute attorney consultations by phone to any Ohio resident over 60, regardless of income. For more complex issues requiring ongoing representation, regional legal aid organizations provide full legal services to low-income seniors.\n\nThe program covers civil legal matters including Medicare/Medicaid issues, wills and powers of attorney, housing disputes, consumer problems, and elder abuse cases. Because this connects seniors directly with attorneys who specialize in elder law, your parent gets advice tailored to Ohio's specific laws and procedures rather than generic information.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Ohio resident",
+          "Civil legal matters only",
+          "Low income required for full representation"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Ohio resident",
+          "Civil legal issues only (no criminal matters)",
+          "Low-income requirement varies by regional provider for full representation"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call the Pro Seniors Legal Helpline to schedule a 30-minute attorney consultation, typically available within a few days.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the helpline",
+            "description": "Call Pro Seniors Legal Helpline at (513) 345-4160 or 1-800-488-6070. Intake staff will gather basic information about your parent's legal issue."
+          },
+          {
+            "step": 2,
+            "title": "Schedule consultation",
+            "description": "Staff will schedule a 30-minute phone appointment with an attorney, typically within a few days."
+          },
+          {
+            "step": 3,
+            "title": "Prepare for the call",
+            "description": "Gather relevant documents and write down specific questions before the attorney consultation."
+          },
+          {
+            "step": 4,
+            "title": "Get referral if needed",
+            "description": "If your parent needs ongoing representation, the attorney will refer to appropriate regional legal aid based on income and location."
+          }
+        ],
+        "processingTime": "30-minute attorney consultations typically scheduled within a few days",
+        "waitlist": null,
+        "tip": "Have your parent's specific legal documents ready during the call to maximize the 30-minute consultation time.",
+        "urls": [
+          {
+            "label": "Pro Seniors Legal Services",
+            "url": "https://www.proseniors.org/legal-services/legal-hotline/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "Regional Legal Aid Providers",
+          "offices": [
+            {
+              "name": "Pro Seniors (Hamilton, Butler, Clermont, Clinton, Warren counties)",
+              "type": "service-area",
+              "phone": "(513) 345-4160 or 1-800-488-6070",
+              "address": "Statewide helpline, in-house representation for 5 southwest counties"
+            },
+            {
+              "name": "Legal Aid of Western Ohio - LAWO (Northwest Ohio)",
+              "type": "service-area",
+              "phone": "Legal Aid Line (toll-free number not specified)",
+              "address": "Offices in Defiance, Findlay, Sandusky, Toledo. Serves Erie, Fulton, Henry, Lucas, Ottawa, Paulding, Sandusky, Williams, Wood, Defiance counties"
+            },
+            {
+              "name": "Legal Aid Society of Cleveland (Northeast Ohio)",
+              "type": "service-area",
+              "phone": "Contact via Legal Aid Line",
+              "address": "Serves Northeast Ohio region"
+            },
+            {
+              "name": "LASCO (Central Ohio)",
+              "type": "service-area",
+              "phone": "Contact via Legal Aid Line",
+              "address": "Central Ohio seniors team"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "The helpline provides advice and referrals only. Full legal representation requires meeting low-income guidelines and is limited by region — you may receive a private attorney referral instead."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Anyone 60+ can access the advice helpline regardless of income, but ongoing representation beyond the initial consultation requires income qualification through regional providers."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent's income is too high for full legal representation?",
+          "answer": "Your parent can still access the free 30-minute attorney consultation through the helpline regardless of income. If ongoing representation isn't available through legal aid, the attorney will provide referrals to private attorneys who handle elder law cases."
+        },
+        {
+          "question": "Can this help with Medicare denials or Medicaid applications?",
+          "answer": "Yes, Medicare appeals and Medicaid issues are specifically covered. The attorneys can help challenge Medicare claim denials, navigate Medicaid application problems, and advocate for proper coverage."
+        },
+        {
+          "question": "What if my parent lives in a nursing home and has problems with care or billing?",
+          "answer": "The program specifically handles nursing home issues including care quality problems, billing disputes, and resident rights violations. They can advocate directly with facilities and regulators."
+        },
+        {
+          "question": "Can they help create a will or power of attorney?",
+          "answer": "Yes, they provide document preparation including wills and powers of attorney. They also offer self-help toolkits online for simple financial power of attorney and basic wills if your parent prefers to handle it themselves."
+        },
+        {
+          "question": "What if my parent is being financially abused by a caregiver or family member?",
+          "answer": "Elder abuse cases, including financial exploitation, are a priority area. The attorneys can help stop ongoing abuse, recover stolen assets, and coordinate with adult protective services and law enforcement."
+        },
+        {
+          "question": "How quickly can my parent speak with an attorney?",
+          "answer": "The helpline typically schedules 30-minute attorney consultations within a few days of the initial call. For urgent elder abuse cases, they may prioritize scheduling."
+        }
+      ],
+      "phone": "(513) 345-4160 or 1-800-488-6070",
+      "sourceUrl": "https://www.proseniors.org/legal-services/legal-hotline/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     }
   ],
-  "stateOverview": null
+  "stateOverview": {
+    "intro": "Ohio offers 8 key programs that can save your aging parent hundreds to thousands of dollars annually — from free health coverage and home care assistance to meal delivery and utility bill reductions. Five are income-based benefits requiring qualification, while three are free resources available to any Ohio senior regardless of income. Most programs serve parents 60+ or 65+, with income limits typically around $2,152–$2,901 monthly for single seniors. Start by checking if your parent qualifies for Medicaid ABD or Medicare Savings Programs — these create the biggest immediate savings and often make other programs easier to access.",
+    "startHere": [
+      {
+        "name": "Medicaid for the Aged, Blind, or Disabled (ABD)",
+        "programId": "medicaid-abd",
+        "why": "Free comprehensive health coverage that can save thousands annually and opens doors to other Ohio programs."
+      },
+      {
+        "name": "Medicare Savings Programs (QMB, SLMB, QI-1)",
+        "programId": "medicare-savings-programs",
+        "why": "Immediate savings of $185–$2,500+ per year on Medicare costs with relatively high income limits."
+      },
+      {
+        "name": "PASSPORT Waiver",
+        "programId": "passport-waiver",
+        "why": "Pays for home care, meals, and safety modifications to help your parent avoid nursing home placement."
+      }
+    ],
+    "byNeed": [
+      {
+        "need": "Health insurance and medical costs",
+        "programs": [
+          "Medicaid for the Aged, Blind, or Disabled (ABD)",
+          "Medicare Savings Programs (QMB, SLMB, QI-1)"
+        ],
+        "description": "Free health coverage plus help with Medicare premiums and out-of-pocket costs."
+      },
+      {
+        "need": "Home care and staying independent",
+        "programs": [
+          "PASSPORT Waiver"
+        ],
+        "description": "Personal care assistance, meal delivery, and home modifications to prevent nursing home placement."
+      },
+      {
+        "need": "Food assistance",
+        "programs": [
+          "Home-Delivered Meals (via Ohio Aging Network)"
+        ],
+        "description": "Nutritious meals delivered to seniors who can't shop or cook independently."
+      },
+      {
+        "need": "Lower utility bills",
+        "programs": [
+          "Weatherization Assistance Program (WAP)"
+        ],
+        "description": "Free home weatherization improvements to reduce heating and cooling costs."
+      },
+      {
+        "need": "Free guidance and advocacy",
+        "programs": [
+          "Ohio Senior Health Insurance Information Program (OSHIIP)",
+          "Legal Assistance for Seniors (via Ohio Legal Services)"
+        ],
+        "description": "Expert help with Medicare decisions, legal issues, and navigating benefit programs."
+      },
+      {
+        "need": "Employment for active seniors",
+        "programs": [
+          "Senior Community Service Employment Program (SCSEP)"
+        ],
+        "description": "Paid community service work for unemployed seniors 55+ who want to earn while learning new skills."
+      }
+    ],
+    "quickFacts": [
+      "Ohio's PASSPORT Waiver serves all 88 counties through regional Area Agencies on Aging",
+      "Medicare Savings Programs have higher income limits than most other benefits — up to $2,901/month for single seniors in 2026",
+      "OSHIIP counselors provide free Medicare help at over 200 locations statewide, no income requirements"
+    ],
+    "resourcesVsBenefits": "Ohio offers both income-based benefits that require qualification and free resources available to all seniors. Benefits like Medicaid ABD and PASSPORT Waiver have strict income and asset limits but provide substantial financial assistance. Free resources like OSHIIP Medicare counseling and Legal Assistance for Seniors help any Ohio senior regardless of income — use these first to understand your parent's options and get expert guidance on applying for income-based programs."
+  }
 }

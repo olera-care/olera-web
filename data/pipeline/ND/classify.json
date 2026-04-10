@@ -1,84 +1,39 @@
 {
   "state": "ND",
   "stateName": "North Dakota",
-  "classifiedAt": "2026-04-09T09:38:30.106Z",
-  "total": 4,
+  "classifiedAt": "2026-04-09T15:52:00.616Z",
+  "total": 3,
   "typeSummary": {
     "benefit": 2,
-    "resource": 1,
-    "navigator": 1
+    "resource": 1
   },
   "scopeSummary": {
-    "local": 1,
     "state": 2,
-    "federal": 1
+    "local": 1
   },
   "complexitySummary": {
-    "deep": 2,
-    "simple": 2
+    "deep": 1,
+    "medium": 1,
+    "simple": 1
   },
   "programs": [
     {
-      "name": "North Dakota Aging in Community (AIC) Project",
+      "name": "North Dakota Basic Care Assistance Program (BCAP)",
       "programType": "benefit",
       "geographicScope": {
-        "type": "local",
+        "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "NDSU Extension leading, with community stakeholders in two rural communities[2][7]",
+            "name": "Customer Support Center (statewide)",
             "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "documents",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": false
-      }
-    },
-    {
-      "name": "Senior Safety Program (ND Assistive)",
-      "programType": "resource",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false
-      },
-      "complexity": "simple",
-      "recommendedSections": [
-        "prose"
-      ],
-      "signals": {
-        "benefitType": "in_kind",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": false,
-        "hasFunctionalReq": true,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Basic Care Assistance Program (BCAP)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
+          },
           {
-            "name": "Local Human Service Zone offices, county social workers[1][2]",
+            "name": "County social workers for assessments",
+            "type": "service-area"
+          },
+          {
+            "name": "Licensed basic care facilities statewide",
             "type": "service-area"
           }
         ]
@@ -102,22 +57,28 @@
       }
     },
     {
-      "name": "North Dakota State Health Insurance Assistance Program (ND SHIP)",
-      "programType": "navigator",
+      "name": "North Dakota Aging in Community (AIC) Project",
+      "programType": "benefit",
       "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
+        "type": "local",
+        "stateVariation": false,
         "localEntities": [
           {
-            "name": "Volunteers via North Dakota Insurance Department; contact central line for local counselor[2][6]",
+            "name": "NDSU Extension Service (Lisbon, western Morton Counties)",
+            "type": "service-area"
+          },
+          {
+            "name": "Local community partners and volunteers",
             "type": "service-area"
           }
         ]
       },
-      "complexity": "simple",
+      "complexity": "medium",
       "recommendedSections": [
         "prose",
-        "provider-list"
+        "what-counts",
+        "documents",
+        "county-directory"
       ],
       "signals": {
         "benefitType": "service",
@@ -126,6 +87,34 @@
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
         "hasMultipleTiers": false,
+        "isStatewide": false
+      }
+    },
+    {
+      "name": "ND Assistive Senior Safety Program",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Central office: 3240 15th St. S, Suite B, Fargo, ND 58104",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "in_kind",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": false,
+        "hasRegionalVariation": false,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
         "isStatewide": true
       }
     }

@@ -4,107 +4,32 @@
   "state": "WY",
   "stateName": "Wyoming",
   "isRegion": false,
-  "exploredAt": "2026-04-09T09:44:22.297Z",
-  "programCount": 14,
+  "exploredAt": "2026-04-09T17:40:46.733Z",
+  "programCount": 3,
   "programs": [
     {
-      "name": "Wyoming Medicaid",
-      "what_it_does": "Wyoming Medicaid is a state and federally funded program that covers the cost of care for low-income or medically needy seniors, including long-term care services like nursing home care when functional needs are met. It helps pay for healthcare, prescriptions, and related services to support seniors' health and independence.[3]",
-      "who_its_for": "Low-income seniors aged 65+ or medically needy individuals who meet income, resource, and functional eligibility criteria.[3]",
-      "official_url": "https://health.wyo.gov/healthcarefinancing",
-      "benefit_value": "Varies by eligibility; covers nursing home care and long-term services with state funding of $53M+ for related waivers (SFY data).[1][3]"
+      "name": "Wyoming State Parks Senior Discounts",
+      "what_it_does": "Provides reduced fees for camping, day-use activities, and cabin rentals at Wyoming state parks and historic sites. Eligible seniors receive discounted rates on outdoor recreation activities.[2]",
+      "who_its_for": "Wyoming residents aged 62 and older[2]",
+      "whats_unique": "State-specific discount program tied to Wyoming residency, complementing the federal National Parks Senior Pass[2]",
+      "official_url": "Not provided in search results",
+      "benefit_value": "Specific discount amounts not detailed in search results[2]"
     },
     {
-      "name": "Community Choices Waiver (CCW)",
-      "what_it_does": "The Community Choices Waiver is a Home and Community-Based Services (HCBS) waiver program that provides long-term care services in home and community settings as an alternative to nursing homes. It supports seniors and disabled adults to live independently with services like personal care and homemaker support.[1]",
-      "who_its_for": "Ages 65+ or 19-64 with disabilities requiring nursing home level care.[1]",
-      "official_url": "https://health.wyo.gov/healthcarefinancing/long-term-care",
-      "benefit_value": "$53,118,748 (state funding).[1]"
+      "name": "Low Income Energy Assistance Program (LIHEAP)",
+      "what_it_does": "Helps seniors reduce heating and utility bills during winter months. Administered through Wyoming's Department of Family Services.[2]",
+      "who_its_for": "Low-income Wyoming seniors[2]",
+      "whats_unique": "State-administered energy assistance program addressing Wyoming's harsh winter conditions[2]",
+      "official_url": "Not provided in search results",
+      "benefit_value": "Specific benefit amounts not detailed in search results[2]"
     },
     {
-      "name": "PACE Wyoming",
-      "what_it_does": "Program of All-Inclusive Care for the Elderly (PACE) provides comprehensive medical and social services to eligible seniors in community settings, including adult day health care and transportation. It coordinates all Medicare and Medicaid services to keep frail seniors out of nursing homes.",
-      "who_its_for": "Seniors 55+ who are nursing home eligible, live in a PACE service area, and can be safely served in the community.",
-      "official_url": "https://health.wyo.gov/aging",
-      "benefit_value": "Full capitation coverage of all needed services; value varies by participant needs."
-    },
-    {
-      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
-      "what_it_does": "These programs help pay Medicare Part A and B premiums, deductibles, coinsurance, and copayments for qualifying low-income beneficiaries. In Wyoming, they are administered through the Department of Health to reduce out-of-pocket costs for healthcare.[3]",
-      "who_its_for": "Low-income Medicare beneficiaries meeting specific income and resource limits (e.g., QMB up to 100% FPL, SLMB up to 120%, QI up to 135%).[3]",
-      "official_url": "https://health.wyo.gov/healthcarefinancing/medicaid",
-      "benefit_value": "Up to full coverage of premiums/deductibles; e.g., QMB pays all Medicare costs."
-    },
-    {
-      "name": "SNAP (Food Stamps)",
-      "what_it_does": "SNAP provides monthly benefits via EBT card to buy nutritious food, with senior-specific deductions for medical expenses over $35/month. Wyoming offers simplified applications for those 60+ and access to food banks.[2]",
-      "who_its_for": "Low-income seniors 60+ with household income under $1,580/month (individual).[2]",
-      "official_url": "https://mywyomingbenefits.wyo.gov",
-      "benefit_value": "Up to $291/month maximum.[2]"
-    },
-    {
-      "name": "Wyoming Energy Assistance (LIHEAP)",
-      "what_it_does": "Provides financial assistance to help with heating costs during winter months. Applications accepted October through March.[2]",
-      "who_its_for": "Low-income households, including seniors, meeting income guidelines.",
-      "official_url": "https://health.wyo.gov/healthcarefinancing/dhs/wyoming-energy-assistance",
-      "benefit_value": "$500–$1,000/year maximum.[2]"
-    },
-    {
-      "name": "Weatherization Assistance Program",
-      "what_it_does": "Improves energy efficiency in homes by sealing leaks, insulating, and upgrading heating systems to reduce energy costs. Available to low-income households including seniors.[2]",
-      "who_its_for": "Low-income seniors and families.",
-      "official_url": "https://www.wyomingweatherization.org",
-      "benefit_value": "Free home improvements; average savings $300+/year on energy bills."
-    },
-    {
-      "name": "Wyoming State Health Insurance Information Program (WSHIIP)",
-      "what_it_does": "Provides free, confidential counseling on Medicare, supplements, Part D, and related issues through trained volunteers across counties. Helps seniors understand rights, solve problems, and make informed decisions.[5]",
-      "who_its_for": "Medicare beneficiaries, primarily seniors 65+.[5]",
-      "official_url": "https://www.wyomingseniors.com/services/wyoming-state-health-insurance-information-program",
-      "benefit_value": "Free counseling services; potential savings thousands on insurance/claims."
-    },
-    {
-      "name": "Meals on Wheels (via Title III-C)",
-      "what_it_does": "Delivers nutritious meals to homebound seniors to promote health and reduce hunger. Often provided through senior centers funded by Wyoming Senior Services Board and Title III.[1][6]",
-      "who_its_for": "Homebound seniors 60+ unable to prepare meals.[6]",
-      "official_url": "https://health.wyo.gov/aging/communityliving/older-americans-act-programs/nutrition",
-      "benefit_value": "1-2 meals/day; $7-10/meal value, often low/no cost."
-    },
-    {
-      "name": "National Family Caregiver Support Program",
-      "what_it_does": "Offers support services like caregiver training, respite care, and counseling to relieve family caregivers. Includes subsidies and access via Wyoming ADRC.[1][7]",
-      "who_its_for": "Family caregivers of seniors 60+ or adults 60+ caring for disabled dependents.[7]",
-      "official_url": "https://health.wyo.gov/aging/communityliving/older-americans-act-programs/caregiver",
-      "benefit_value": "Respite up to $32/hour; varies by funding ($350K+ ARPA).[1]"
-    },
-    {
-      "name": "Senior Community Service Employment Program (SCSEP)",
-      "what_it_does": "Provides part-time paid community service work training to unemployed low-income seniors to gain skills and transition to unsubsidized employment. Operated through Wyoming senior centers.",
-      "who_its_for": "Unemployed low-income seniors 55+.",
-      "official_url": "https://health.wyo.gov/aging",
-      "benefit_value": "Minimum wage pay at 20 hours/week."
-    },
-    {
-      "name": "Legal Assistance for Seniors (via Wyoming Legal Services)",
-      "what_it_does": "Provides free legal help for issues like benefits, housing, and abuse through senior centers and state funding. Wyoming Senior Services Board funds legal assistance.[1]",
-      "who_its_for": "Low-income seniors 60+.",
-      "official_url": "https://www.wyominglegalservices.org",
-      "benefit_value": "Free legal services."
-    },
-    {
-      "name": "Long-Term Care Ombudsman Program",
-      "what_it_does": "Advocates for residents in long-term care facilities, investigating complaints and ensuring quality care. Part of Wyoming Aging Division services.[1]",
-      "who_its_for": "Residents of nursing homes, assisted living, and similar facilities.",
-      "official_url": "https://health.wyo.gov/aging/ombudsman",
-      "benefit_value": "Free advocacy and complaint resolution."
-    },
-    {
-      "name": "Wyoming Home Services Program (WyHS)",
-      "what_it_does": "The Wyoming Home Services Program provides in-home services to qualified individuals at risk of premature institutionalization. These services are designed to help people remain in the least restrictive community environment for as long as possible.[3]",
-      "who_its_for": "Qualified individuals at risk of nursing home placement, primarily seniors, served in Albany, Fremont, and Park Counties.[3]",
-      "whats_unique": "State-funded program administered by Wyoming Senior Citizens, Inc. (WSCI) specifically targeting premature institutionalization prevention in select Wyoming counties, beyond standard federal OAA or Medicaid HCBS.[3]",
-      "official_url": "https://www.wyomingseniors.com",
-      "benefit_value": "Varies by need; in-home services to prevent institutionalization (specific dollar amounts not detailed).[3]"
+      "name": "Wyoming Tax Refund for Elder & Disabled",
+      "what_it_does": "Provides tax refund assistance for eligible elderly and disabled residents. Applications are available June through August.[6]",
+      "who_its_for": "Wyoming elders and disabled residents[6]",
+      "whats_unique": "State-specific tax relief program with seasonal application windows[6]",
+      "official_url": "health.wyo.gov (contact: 866-989-8901)[6]",
+      "benefit_value": "Specific refund amounts not detailed in search results[6]"
     }
   ]
 }

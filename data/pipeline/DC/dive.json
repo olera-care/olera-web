@@ -1,250 +1,43 @@
 {
   "state": "DC",
   "stateName": "District of Columbia",
-  "diveAt": "2026-04-09T09:04:32.438Z",
-  "total": 6,
-  "parsed": 6,
+  "diveAt": "2026-04-09T17:43:15.153Z",
+  "total": 5,
+  "parsed": 4,
   "programs": [
     {
       "name": "Elderly and Persons with Physical Disabilities (EPD) Waiver Program",
       "eligibility": {
-        "age": "65+ or 18-64 with physical disability[1][2][3]",
-        "income_limits": "Countable income must not exceed 300% of SSI (e.g., $2,743/month in 2023, $2,382/month in 2021, $2,130/month in 2013) or meet Medicaid spend-down; no household size table specified, applies to individual[2][3][5]",
-        "asset_limits": "$4,000 countable assets for individual (e.g., checking/savings/investments); home equity ≤$1,130,000 in 2026 if living in home or intent to return (exempt if spouse or dependent child in home); exemptions include primary home under equity limit, spouse/dependent child home occupancy[1][2][3][4]",
+        "age": "65 or older, or 18-64 with physical disability[1][2]",
+        "income_limits": "Countable income not exceeding 300% of SSI (e.g., $2,743/month in 2023, $2,382/month in 2021, $2,130/month in 2013); must meet Medicaid spend-down if over limit. No household size table specified—appears fixed for individual[1][2][4][5]",
+        "asset_limits": "Countable assets ≤ $4,000 for individual (e.g., checking/savings/investments count; exemptions not detailed in sources)[1][2][4][5]",
         "other_requirements": [
-          "DC resident",
-          "US citizen or qualified immigrant",
-          "Nursing Facility Level of Care (NFLOC) via interRAI Home Care Assessment (≥9 points on ADLs, cognition, behavior)",
-          "DC Medicaid provider-completed Prescription Order Form (POF) signed by physician/APRN",
-          "Liberty Healthcare face-to-face assessment for level of need",
-          "Live in home, family home, or assisted living (no room/board coverage)"
+          "DC resident[1][2]",
+          "US citizen or qualified immigration status for Medicaid[1][2][5]",
+          "Require nursing facility level of care (NFLOC), determined by face-to-face assessment by Liberty Healthcare establishing 'level of need' and assistance with ≥2 ADLs (e.g., eating, dressing, toileting, bathing)[1][2][3][4]",
+          "DC Medicaid provider completes Prescription Order Form (POF), signed by physician or advanced practice registered nurse[1][2]"
         ]
       },
       "benefits": {
         "type": "service",
-        "value": "Long-term care services/supports in home or assisted living to avoid nursing home: personal care aide, adult day health, home health aide, Services My Way (family/friend paid caregiving); specific hours/dollars not fixed, based on assessed level of need[2][3][4][7]",
+        "value": "Adult day health, case management, homemaker, personal care aide, respite, assisted living, chore aide, community transition services, DSNP/managed care capitated waiver services, environment accessibility/adaptation, individual directed goods/services, participant-directed community support services. Provided in home or assisted living (room/board not covered). No fixed dollar amounts or hours specified[1][3]",
         "varies_by": "priority_tier"
       },
       "application": {
         "methods": [
-          "Contact Aging and Disability Resource Center (ADRC) via dacl.dc.gov/service/epd-waiver or Department of Aging and Community Living (DACL) Medicaid Enrollment Services Unit (MES)",
-          "Phone: 1-800-677-1116 (Elder Locator) or local Department of Aging[7]",
-          "In-person: ADRC or DACL offices"
+          "Contact DACL Medicaid Services Enrollment Unit (MES) for assistance with coordination/submission/linkage to case management[1][2][6]",
+          "Website: https://dacl.dc.gov/service/epd-waiver[1][6]",
+          "Aging and Disability Resource Center (ADRC) submits complete application to Economic Security Administration (ESA)[2]"
         ],
-        "processing_time": "ESA determines eligibility within 45 calendar days after complete application submission[3]",
-        "waitlist": "Currently has a waiting list on first-come, first-served basis[5]",
+        "processing_time": "ESA determines eligibility within 45 calendar days after ADRC submits complete application[2]",
+        "waitlist": "Program has a waiting list on first-come, first-served basis[5]",
         "forms": [
-          "Prescription Order Form (POF)",
-          "EPD Waiver Application (via ADRC guide)"
+          "Prescription Order Form (POF)[1][2]"
         ],
         "documents": [
-          "Proof of DC residency",
-          "Proof of income/assets",
-          "POF signed by physician/APRN",
-          "Liberty Healthcare assessment results"
-        ]
-      },
-      "geography": {
-        "statewide": true,
-        "restrictions": "District of Columbia only",
-        "regional_variations": null,
-        "offices_or_providers": [
-          "Aging and Disability Resource Center (ADRC)",
-          "Liberty Healthcare (assessments)",
-          "Economic Security Administration (ESA) for eligibility",
-          "DACL Medicaid Enrollment Services Unit (MES)"
-        ]
-      },
-      "official_source": "https://dacl.dc.gov/service/epd-waiver",
-      "gotchas": [
-        "Must be Medicaid-eligible (or become so via spend-down), but apply for waiver first[7]",
-        "POF must be fully completed by DC Medicaid provider; incomplete forms delay processing[3]",
-        "NFLOC not automatic (e.g., dementia diagnosis alone insufficient; needs ≥9 points on assessment)[1]",
-        "Home equity limit applies ($1,130,000 in 2026); countable assets strictly $4,000[1][4]",
-        "Waitlist is first-come, first-served; no priority bypassing mentioned[5]",
-        "No room/board in assisted living; services only[4]"
-      ],
-      "data_shape_notes": "Income at 300% SSI (updates annually, no household table); fixed $4,000 individual asset limit with home equity cap; services tiered by assessed NFLOC level; waitlisted with statewide first-come processing",
-      "_raw": "{\n  \"name\": \"Elderly and Persons with Physical Disabilities (EPD) Waiver Program\",\n  \"eligibility\": {\n    \"age\": \"65+ or 18-64 with physical disability[1][2][3]\",\n    \"income_limits\": \"Countable income must not exceed 300% of SSI (e.g., $2,743/month in 2023, $2,382/month in 2021, $2,130/month in 2013) or meet Medicaid spend-down; no household size table specified, applies to individual[2][3][5]\",\n    \"asset_limits\": \"$4,000 countable assets for individual (e.g., checking/savings/investments); home equity ≤$1,130,000 in 2026 if living in home or intent to return (exempt if spouse or dependent child in home); exemptions include primary home under equity limit, spouse/dependent child home occupancy[1][2][3][4]\",\n    \"other_requirements\": [\n      \"DC resident\",\n      \"US citizen or qualified immigrant\",\n      \"Nursing Facility Level of Care (NFLOC) via interRAI Home Care Assessment (≥9 points on ADLs, cognition, behavior)\",\n      \"DC Medicaid provider-completed Prescription Order Form (POF) signed by physician/APRN\",\n      \"Liberty Healthcare face-to-face assessment for level of need\",\n      \"Live in home, family home, or assisted living (no room/board coverage)\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Long-term care services/supports in home or assisted living to avoid nursing home: personal care aide, adult day health, home health aide, Services My Way (family/friend paid caregiving); specific hours/dollars not fixed, based on assessed level of need[2][3][4][7]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact Aging and Disability Resource Center (ADRC) via dacl.dc.gov/service/epd-waiver or Department of Aging and Community Living (DACL) Medicaid Enrollment Services Unit (MES)\",\n      \"Phone: 1-800-677-1116 (Elder Locator) or local Department of Aging[7]\",\n      \"In-person: ADRC or DACL offices\"\n    ],\n    \"processing_time\": \"ESA determines eligibility within 45 calendar days after complete application submission[3]\",\n    \"waitlist\": \"Currently has a waiting list on first-come, first-served basis[5]\",\n    \"forms\": [\n      \"Prescription Order Form (POF)\",\n      \"EPD Waiver Application (via ADRC guide)\"\n    ],\n    \"documents\": [\n      \"Proof of DC residency\",\n      \"Proof of income/assets\",\n      \"POF signed by physician/APRN\",\n      \"Liberty Healthcare assessment results\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"District of Columbia only\",\n    \"regional_variations\": null,\n    \"offices_or_providers\": [\n      \"Aging and Disability Resource Center (ADRC)\",\n      \"Liberty Healthcare (assessments)\",\n      \"Economic Security Administration (ESA) for eligibility\",\n      \"DACL Medicaid Enrollment Services Unit (MES)\"\n    ]\n  },\n  \"official_source\": \"https://dacl.dc.gov/service/epd-waiver\",\n  \"gotchas\": [\n    \"Must be Medicaid-eligible (or become so via spend-down), but apply for waiver first[7]\",\n    \"POF must be fully completed by DC Medicaid provider; incomplete forms delay processing[3]\",\n    \"NFLOC not automatic (e.g., dementia diagnosis alone insufficient; needs ≥9 points on assessment)[1]\",\n    \"Home equity limit applies ($1,130,000 in 2026); countable assets strictly $4,000[1][4]\",\n    \"Waitlist is first-come, first-served; no priority bypassing mentioned[5]\",\n    \"No room/board in assisted living; services only[4]\"\n  ],\n  \"data_shape_notes\": \"Income at 300% SSI (updates annually, no household table); fixed $4,000 individual asset limit with home equity cap; services tiered by assessed NFLOC level; waitlisted with statewide first-come processing\"\n}"
-    },
-    {
-      "name": "Qualified Medicare Beneficiaries (QMB) Program",
-      "eligibility": {
-        "age": null,
-        "income_limits": "In the District of Columbia, eligibility requires household income up to 300% of the Federal Poverty Level (FPL) plus a $20 disregard. For 2026 (approximate based on available data): 1-person household: $3,990 + $20 = $4,010 monthly; 2-person household: $5,410 + $20 = $5,430 monthly. Limits scale by household size per FPL tables, with DC applying higher threshold than federal standard[1][2].",
-        "asset_limits": "DC does not impose asset limits for QMB eligibility, aligning with states that eliminated resource tests[1][4].",
-        "other_requirements": [
-          "Entitled to Medicare Part A or Part B (or both)",
-          "District of Columbia resident",
-          "U.S. citizen or eligible immigration status"
-        ]
-      },
-      "benefits": {
-        "type": "financial",
-        "value": "Pays Medicare Part A and Part B premiums, deductibles, coinsurance, and copayments for covered services. Also provides Extra Help for Medicare Part D, limiting prescription costs to a few dollars each. Providers cannot bill QMB enrollees for Medicare cost-sharing; payments are considered full[1][2][5][6][7].",
-        "varies_by": "not_applicable"
-      },
-      "application": {
-        "methods": [
-          "Phone: 202-727-8370 (DC State Health Insurance Assistance Program/SHIP) or contact DHCF",
-          "Email: [email protected]",
-          "Website: https://dhcf.dc.gov/service/qualified-Medicare-beneficiary-qmb",
-          "In-person or mail: Contact DC Department of Health Care Finance (DHCF) for locations and addresses"
-        ],
-        "processing_time": "Not specified in sources; automatic enrollment required in DC starting October 1, 2024, for eligible individuals[4].",
-        "waitlist": null,
-        "forms": [
-          "Specific form not named; apply through DHCF Medicaid application process"
-        ],
-        "documents": [
-          "Proof of Medicare enrollment (Part A/B)",
-          "Proof of income",
-          "Proof of residency in DC",
-          "Proof of U.S. citizenship or immigration status",
-          "Social Security number"
-        ]
-      },
-      "geography": {
-        "statewide": true,
-        "restrictions": null,
-        "regional_variations": null,
-        "offices_or_providers": [
-          "Administered uniformly by DC Department of Health Care Finance (DHCF) across District"
-        ]
-      },
-      "official_source": "https://dhcf.dc.gov/service/qualified-Medicare-beneficiary-qmb",
-      "gotchas": [
-        "DC uses higher 300% FPL limit vs. federal 100% FPL standard, but confirm current FPL figures as they update annually[1][2]",
-        "No asset test in DC, unlike many states[4]",
-        "QMB Plus (Full Duals) provides full Medicaid + Medicare help; distinguish from QMB-only[1][9]",
-        "Providers cannot bill you for Medicare cost-sharing, even if out-of-state[6]",
-        "Must already have Medicare Part A; automatic enrollment may apply post-2024[3][4]"
-      ],
-      "data_shape_notes": "DC-specific: 300% FPL income threshold (higher than federal), no asset limits, uniform statewide administration, integrates with Full Duals/QMB Plus for broader benefits",
-      "_raw": "{\n  \"name\": \"Qualified Medicare Beneficiaries (QMB) Program\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"In the District of Columbia, eligibility requires household income up to 300% of the Federal Poverty Level (FPL) plus a $20 disregard. For 2026 (approximate based on available data): 1-person household: $3,990 + $20 = $4,010 monthly; 2-person household: $5,410 + $20 = $5,430 monthly. Limits scale by household size per FPL tables, with DC applying higher threshold than federal standard[1][2].\",\n    \"asset_limits\": \"DC does not impose asset limits for QMB eligibility, aligning with states that eliminated resource tests[1][4].\",\n    \"other_requirements\": [\n      \"Entitled to Medicare Part A or Part B (or both)\",\n      \"District of Columbia resident\",\n      \"U.S. citizen or eligible immigration status\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Pays Medicare Part A and Part B premiums, deductibles, coinsurance, and copayments for covered services. Also provides Extra Help for Medicare Part D, limiting prescription costs to a few dollars each. Providers cannot bill QMB enrollees for Medicare cost-sharing; payments are considered full[1][2][5][6][7].\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: 202-727-8370 (DC State Health Insurance Assistance Program/SHIP) or contact DHCF\",\n      \"Email: [email protected]\",\n      \"Website: https://dhcf.dc.gov/service/qualified-Medicare-beneficiary-qmb\",\n      \"In-person or mail: Contact DC Department of Health Care Finance (DHCF) for locations and addresses\"\n    ],\n    \"processing_time\": \"Not specified in sources; automatic enrollment required in DC starting October 1, 2024, for eligible individuals[4].\",\n    \"waitlist\": null,\n    \"forms\": [\"Specific form not named; apply through DHCF Medicaid application process\"],\n    \"documents\": [\n      \"Proof of Medicare enrollment (Part A/B)\",\n      \"Proof of income\",\n      \"Proof of residency in DC\",\n      \"Proof of U.S. citizenship or immigration status\",\n      \"Social Security number\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": null,\n    \"regional_variations\": null,\n    \"offices_or_providers\": [\"Administered uniformly by DC Department of Health Care Finance (DHCF) across District\"]\n  },\n  \"official_source\": \"https://dhcf.dc.gov/service/qualified-Medicare-beneficiary-qmb\",\n  \"gotchas\": [\n    \"DC uses higher 300% FPL limit vs. federal 100% FPL standard, but confirm current FPL figures as they update annually[1][2]\",\n    \"No asset test in DC, unlike many states[4]\",\n    \"QMB Plus (Full Duals) provides full Medicaid + Medicare help; distinguish from QMB-only[1][9]\",\n    \"Providers cannot bill you for Medicare cost-sharing, even if out-of-state[6]\",\n    \"Must already have Medicare Part A; automatic enrollment may apply post-2024[3][4]\"\n  ],\n  \"data_shape_notes\": \"DC-specific: 300% FPL income threshold (higher than federal), no asset limits, uniform statewide administration, integrates with Full Duals/QMB Plus for broader benefits\"\n}"
-    },
-    {
-      "name": "DC State Health Insurance Assistance Program (SHIP)",
-      "eligibility": {
-        "age": null,
-        "income_limits": "No income limits; prioritizes people with limited incomes but open to all Medicare beneficiaries, families, and caregivers[1][3]",
-        "asset_limits": "No asset limits or tests apply[1]",
-        "other_requirements": [
-          "Must be a Medicare beneficiary, family member, or caregiver living in the District of Columbia[1][3]"
-        ]
-      },
-      "benefits": {
-        "type": "service",
-        "value": "Free one-on-one personalized health insurance counseling, education, and assistance on Medicare (Parts A, B, C, D), Medigap, Medicaid, Medicare Savings Programs, Extra Help/Low Income Subsidy, federal retiree benefits, durable medical equipment, billing issues; group educational presentations, outreach at community events, and Senior Medicare Patrol services to prevent fraud[1][3][4]",
-        "varies_by": "not_applicable"
-      },
-      "application": {
-        "methods": [
-          "Phone: (202) 727-8370[2][4][5]",
-          "Email: ship.dacl@dc.gov[2][4][5]",
-          "Website: https://dacl.dc.gov/service/health-insurance-counseling[2][3]",
-          "In-person: DC Dept. of Aging and Community Living, 250 E Street SW, Washington DC 20024 (hours 9:00 am - 5:00 pm)[2][4]"
-        ],
-        "processing_time": "No formal application or processing time; services provided directly upon contact[1][3][4]",
-        "waitlist": null,
-        "forms": [
-          "No specific forms required; counselors assist directly[1][4]"
-        ],
-        "documents": [
-          "Medicare card, current insurance details, billing statements if applicable (recommended but not mandatory)[4]"
-        ]
-      },
-      "geography": {
-        "statewide": true,
-        "restrictions": "District of Columbia residents only[2][3]",
-        "regional_variations": null,
-        "offices_or_providers": [
-          "Primary office: DC Dept. of Aging and Community Living (DACL), 250 E Street SW, Washington DC 20024; delivered statewide via partnerships with local agencies[1][2]"
-        ]
-      },
-      "official_source": "https://dacl.dc.gov/service/health-insurance-counseling",
-      "gotchas": [
-        "Not a financial aid or healthcare provider program—only free counseling and education, no direct payments or medical services; services are unbiased and do not sell plans; prioritizes limited-income and dually eligible but open to all; increasing demand may affect availability despite no waitlist[1][3][6]"
-      ],
-      "data_shape_notes": "no income or asset test; counseling-only service for Medicare beneficiaries; single centralized DC provider via DACL with phone/email/in-person access",
-      "_raw": "{\n  \"name\": \"DC State Health Insurance Assistance Program (SHIP)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No income limits; prioritizes people with limited incomes but open to all Medicare beneficiaries, families, and caregivers[1][3]\",\n    \"asset_limits\": \"No asset limits or tests apply[1]\",\n    \"other_requirements\": [\"Must be a Medicare beneficiary, family member, or caregiver living in the District of Columbia[1][3]\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free one-on-one personalized health insurance counseling, education, and assistance on Medicare (Parts A, B, C, D), Medigap, Medicaid, Medicare Savings Programs, Extra Help/Low Income Subsidy, federal retiree benefits, durable medical equipment, billing issues; group educational presentations, outreach at community events, and Senior Medicare Patrol services to prevent fraud[1][3][4]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: (202) 727-8370[2][4][5]\", \"Email: ship.dacl@dc.gov[2][4][5]\", \"Website: https://dacl.dc.gov/service/health-insurance-counseling[2][3]\", \"In-person: DC Dept. of Aging and Community Living, 250 E Street SW, Washington DC 20024 (hours 9:00 am - 5:00 pm)[2][4]\"],\n    \"processing_time\": \"No formal application or processing time; services provided directly upon contact[1][3][4]\",\n    \"waitlist\": null,\n    \"forms\": [\"No specific forms required; counselors assist directly[1][4]\"],\n    \"documents\": [\"Medicare card, current insurance details, billing statements if applicable (recommended but not mandatory)[4]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"District of Columbia residents only[2][3]\",\n    \"regional_variations\": null,\n    \"offices_or_providers\": [\"Primary office: DC Dept. of Aging and Community Living (DACL), 250 E Street SW, Washington DC 20024; delivered statewide via partnerships with local agencies[1][2]\"]\n  },\n  \"official_source\": \"https://dacl.dc.gov/service/health-insurance-counseling\",\n  \"gotchas\": [\"Not a financial aid or healthcare provider program—only free counseling and education, no direct payments or medical services; services are unbiased and do not sell plans; prioritizes limited-income and dually eligible but open to all; increasing demand may affect availability despite no waitlist[1][3][6]\"],\n  \"data_shape_notes\": \"no income or asset test; counseling-only service for Medicare beneficiaries; single centralized DC provider via DACL with phone/email/in-person access\"\n}"
-    },
-    {
-      "name": "DACL Senior Wellness Centers",
-      "eligibility": {
-        "age": 60,
-        "income_limits": "No specific income limits identified; open to DC residents age 60+ without mention of financial thresholds in program descriptions[3][5][6]",
-        "asset_limits": "No asset limits specified for Senior Wellness Centers[3][5][6]",
-        "other_requirements": [
-          "District of Columbia resident[3][5][6]"
-        ]
-      },
-      "benefits": {
-        "type": "service",
-        "value": "Comprehensive programs promoting health and wellness, including health activities, social activities, nutrition services, trips, and events; typically available Monday-Friday 8:00 AM-5:00 PM (varies slightly by center); programming offered virtually and in-person[3][5]",
-        "varies_by": "region"
-      },
-      "application": {
-        "methods": [
-          "Contact specific center directly by phone to sign up for activities and trips (e.g., Bernice Fonteneau: (202) 727-0338; Model Cities: (202) 635-1900; Hayes: (202) 727-0357; Congress Heights: (202) 563-7225); Call DACL Information and Referral Assistance (I&R/A) line for general intake and screening; Visit centers in-person or check event calendars on center websites[2][5]"
-        ],
-        "processing_time": "No formal processing time; direct sign-up for activities, no enrollment or re-certification required for trips and programs[2]",
-        "waitlist": "No waitlist mentioned; expansions at some centers (e.g., Model Cities, Congress Heights) to increase capacity[2][3]",
-        "forms": [
-          "No specific forms required for general participation; enrollment applications may be used for related programs like trips via I&R/A or ConnectorCard via Seabury[2]"
-        ],
-        "documents": [
-          "No documents specified for basic participation; DC residency verification may be needed informally[6]"
-        ]
-      },
-      "geography": {
-        "statewide": false,
-        "restrictions": "District of Columbia only",
-        "regional_variations": "Six centers across Wards 1,4,5,6,7,8 with different operators, phone numbers, hours (e.g., 8:30AM-4PM vs 8AM-5PM), websites, and event calendars; programming modes vary (e.g., Hayes in-person Tue-Thu, virtual Mon); expansions in Wards 5 and 8[2][3][5]",
-        "offices_or_providers": [
-          "Ward 1: Bernice Fonteneau Senior Wellness Center, 3531 Georgia Ave NW, (202) 727-0338; Ward 5: Model Cities Senior Wellness Center, 1901 Evarts St NE, (202) 635-1900, www.seaburyresources.org/model-cities-senior-wellness-center; Ward 6: Hayes Senior Wellness Center, 500 K St NE, (202) 727-0358, www.hayesswc.com; Ward 7: Washington Seniors Wellness Center; Ward 8: Congress Heights Senior Wellness Center, 3500 MLK Jr Ave SE, (202) 563-7225[5]"
-        ]
-      },
-      "official_source": "https://dacl.dc.gov/service/senior-centers",
-      "gotchas": [
-        "Not a Medicaid waiver program (confused with EPD Waiver which has strict income <$2,382/mo, assets <$4,000, age 65+ or disabled); no formal eligibility screening or income test—direct center contact; availability limited to specific wards/centers, not citywide; primarily drop-in wellness/social, not medical care or home assistance[1][3][5][6]",
-        "Expansions ongoing at select centers may affect capacity[2][3]"
-      ],
-      "data_shape_notes": "Ward-specific centers with direct sign-up, no income/asset test, open to age 60+ DC residents; separate from stricter EPD Waiver program",
-      "_raw": "{\n  \"name\": \"DACL Senior Wellness Centers\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"No specific income limits identified; open to DC residents age 60+ without mention of financial thresholds in program descriptions[3][5][6]\",\n    \"asset_limits\": \"No asset limits specified for Senior Wellness Centers[3][5][6]\",\n    \"other_requirements\": [\"District of Columbia resident[3][5][6]\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Comprehensive programs promoting health and wellness, including health activities, social activities, nutrition services, trips, and events; typically available Monday-Friday 8:00 AM-5:00 PM (varies slightly by center); programming offered virtually and in-person[3][5]\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\"Contact specific center directly by phone to sign up for activities and trips (e.g., Bernice Fonteneau: (202) 727-0338; Model Cities: (202) 635-1900; Hayes: (202) 727-0357; Congress Heights: (202) 563-7225); Call DACL Information and Referral Assistance (I&R/A) line for general intake and screening; Visit centers in-person or check event calendars on center websites[2][5]\"],\n    \"processing_time\": \"No formal processing time; direct sign-up for activities, no enrollment or re-certification required for trips and programs[2]\",\n    \"waitlist\": \"No waitlist mentioned; expansions at some centers (e.g., Model Cities, Congress Heights) to increase capacity[2][3]\",\n    \"forms\": [\"No specific forms required for general participation; enrollment applications may be used for related programs like trips via I&R/A or ConnectorCard via Seabury[2]\"],\n    \"documents\": [\"No documents specified for basic participation; DC residency verification may be needed informally[6]\"]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"District of Columbia only\",\n    \"regional_variations\": \"Six centers across Wards 1,4,5,6,7,8 with different operators, phone numbers, hours (e.g., 8:30AM-4PM vs 8AM-5PM), websites, and event calendars; programming modes vary (e.g., Hayes in-person Tue-Thu, virtual Mon); expansions in Wards 5 and 8[2][3][5]\",\n    \"offices_or_providers\": [\"Ward 1: Bernice Fonteneau Senior Wellness Center, 3531 Georgia Ave NW, (202) 727-0338; Ward 5: Model Cities Senior Wellness Center, 1901 Evarts St NE, (202) 635-1900, www.seaburyresources.org/model-cities-senior-wellness-center; Ward 6: Hayes Senior Wellness Center, 500 K St NE, (202) 727-0358, www.hayesswc.com; Ward 7: Washington Seniors Wellness Center; Ward 8: Congress Heights Senior Wellness Center, 3500 MLK Jr Ave SE, (202) 563-7225[5]\"]\n  },\n  \"official_source\": \"https://dacl.dc.gov/service/senior-centers\",\n  \"gotchas\": [\"Not a Medicaid waiver program (confused with EPD Waiver which has strict income <$2,382/mo, assets <$4,000, age 65+ or disabled); no formal eligibility screening or income test—direct center contact; availability limited to specific wards/centers, not citywide; primarily drop-in wellness/social, not medical care or home assistance[1][3][5][6]\", \"Expansions ongoing at select centers may affect capacity[2][3]\"],\n  \"data_shape_notes\": \"Ward-specific centers with direct sign-up, no income/asset test, open to age 60+ DC residents; separate from stricter EPD Waiver program\"\n}"
-    },
-    {
-      "name": "Legal Services for Seniors",
-      "eligibility": {
-        "age": 60,
-        "income_limits": "No specific income limits stated for AARP Legal Counsel for the Elderly (LCE) or DACL program; prioritizes those with economic or social needs. Related programs like Legal Aid DC use 200-300% of Federal Poverty Guidelines, but not explicitly tied here[1][2][4].",
-        "asset_limits": "No asset limits mentioned in sources[1][2].",
-        "other_requirements": [
-          "Must be DC resident",
-          "For LCE Legal Hotline: DC residents 60+ or 55+ with Social Security/SSI disability issues[2]",
-          "Targeted to older individuals with economic or social needs per OAA guidelines[3]"
-        ]
-      },
-      "benefits": {
-        "type": "service",
-        "value": "Free legal advice, assistance, referrals, and representation by attorneys/paralegals in: victims of abuse, medical bills, advocacy, public benefits (SS/SSI/SSDI, Medicaid, Medicare, veterans benefits), drafting wills, conservatorship/guardianship, housing/eviction/foreclosure, long-term care access, elder abuse/financial exploitation, tenant advocacy, notary services[1][2][3].",
-        "varies_by": "not_applicable"
-      },
-      "application": {
-        "methods": [
-          "Phone: AARP LCE (202) 434-2120[1][2]",
-          "Phone: DACL/DC Office on Aging (202) 724-5626 or TTY 711[1]",
-          "Website: AARP LCE https://www.aarp.org/legal-counsel-for-elderly/[1][2]",
-          "LCE Legal Hotline for advice/referrals/intake[2]",
-          "DC Resource Bridge referral: 202-933-HELP[4][5]"
-        ],
-        "processing_time": "Not specified; LCE hotline provides quick access to advice/referrals/intake[2].",
-        "waitlist": null,
-        "forms": [
-          "No specific form names/numbers listed; online intake for related Legal Aid DC[4]"
-        ],
-        "documents": [
-          "Documents related to legal problem if available (e.g., for upload in related online intakes)[4]"
+          "Proof of DC residency, citizenship/immigration status, income, countable assets ≤$4,000",
+          "Completed POF signed by physician/advanced practice nurse",
+          "Liberty Healthcare face-to-face assessment results[1][2]"
         ]
       },
       "geography": {
@@ -252,56 +45,212 @@
         "restrictions": "District of Columbia residents only[1][2]",
         "regional_variations": null,
         "offices_or_providers": [
-          "AARP Legal Counsel for the Elderly: 601 E Street, NW, Room A-4, Washington, DC 20049[1]",
-          "DC Office on Aging Notary: 500 K Street, NE, Washington, DC 20002[1]"
+          "Liberty Healthcare (assessments)[1][2]",
+          "DACL Medicaid Services Enrollment Unit (MES)[1][6]"
         ]
       },
-      "official_source": "https://dacl.dc.gov/service/legal-services-seniors[1]",
+      "official_source": "https://dacl.dc.gov/service/epd-waiver[1]",
       "gotchas": [
-        "No explicit income/asset dollar limits for core LCE/DACL services, unlike some related programs (e.g., Legal Aid DC at 200-300% FPG)[4]; eligibility focuses on age, residency, and needs[1][2][3]",
-        "Services via hotline or specific providers; may need referral through DC Resource Bridge for broader help[4][5]",
-        "Targeted representation not guaranteed for all issues; often advice/referrals first[2]"
+        "Must be Medicaid-eligible (or meet spend-down), but can apply without prior Medicaid[6]",
+        "Requires NFLOC via specific assessment (score ≥9 on scale) and POF—application incomplete without them[1][2][8]",
+        "Assets fixed at $4,000 individual limit; income at 300% SSI (updates annually—check current)[1][2][4]",
+        "Waitlist is first-come, first-served; services in home/assisted living only, no room/board[3][4][5]",
+        "DACL MES coordinates but ESA determines eligibility[1][2]"
       ],
-      "data_shape_notes": "No income/asset tests specified; age/residency-based with needs priority; delivered via specific DC providers/hotlines under OAA framework[1][2][3]",
-      "_raw": "{\n  \"name\": \"Legal Services for Seniors\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"No specific income limits stated for AARP Legal Counsel for the Elderly (LCE) or DACL program; prioritizes those with economic or social needs. Related programs like Legal Aid DC use 200-300% of Federal Poverty Guidelines, but not explicitly tied here[1][2][4].\",\n    \"asset_limits\": \"No asset limits mentioned in sources[1][2].\",\n    \"other_requirements\": [\"Must be DC resident\", \"For LCE Legal Hotline: DC residents 60+ or 55+ with Social Security/SSI disability issues[2]\", \"Targeted to older individuals with economic or social needs per OAA guidelines[3]\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free legal advice, assistance, referrals, and representation by attorneys/paralegals in: victims of abuse, medical bills, advocacy, public benefits (SS/SSI/SSDI, Medicaid, Medicare, veterans benefits), drafting wills, conservatorship/guardianship, housing/eviction/foreclosure, long-term care access, elder abuse/financial exploitation, tenant advocacy, notary services[1][2][3].\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: AARP LCE (202) 434-2120[1][2]\",\n      \"Phone: DACL/DC Office on Aging (202) 724-5626 or TTY 711[1]\",\n      \"Website: AARP LCE https://www.aarp.org/legal-counsel-for-elderly/[1][2]\",\n      \"LCE Legal Hotline for advice/referrals/intake[2]\",\n      \"DC Resource Bridge referral: 202-933-HELP[4][5]\"\n    ],\n    \"processing_time\": \"Not specified; LCE hotline provides quick access to advice/referrals/intake[2].\",\n    \"waitlist\": null,\n    \"forms\": [\"No specific form names/numbers listed; online intake for related Legal Aid DC[4]\"],\n    \"documents\": [\"Documents related to legal problem if available (e.g., for upload in related online intakes)[4]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"District of Columbia residents only[1][2]\",\n    \"regional_variations\": null,\n    \"offices_or_providers\": [\n      \"AARP Legal Counsel for the Elderly: 601 E Street, NW, Room A-4, Washington, DC 20049[1]\",\n      \"DC Office on Aging Notary: 500 K Street, NE, Washington, DC 20002[1]\"\n    ]\n  },\n  \"official_source\": \"https://dacl.dc.gov/service/legal-services-seniors[1]\",\n  \"gotchas\": [\n    \"No explicit income/asset dollar limits for core LCE/DACL services, unlike some related programs (e.g., Legal Aid DC at 200-300% FPG)[4]; eligibility focuses on age, residency, and needs[1][2][3]\",\n    \"Services via hotline or specific providers; may need referral through DC Resource Bridge for broader help[4][5]\",\n    \"Targeted representation not guaranteed for all issues; often advice/referrals first[2]\"\n  ],\n  \"data_shape_notes\": \"No income/asset tests specified; age/residency-based with needs priority; delivered via specific DC providers/hotlines under OAA framework[1][2][3]\"\n}"
+      "data_shape_notes": "Income fixed at 300% SSI (individual, updates yearly); assets strictly $4,000 individual (no household variation specified); requires physician-signed POF + Liberty assessment for NFLOC; waitlisted; DC-only[1][2][4][5]",
+      "_raw": "{\n  \"name\": \"Elderly and Persons with Physical Disabilities (EPD) Waiver Program\",\n  \"eligibility\": {\n    \"age\": \"65 or older, or 18-64 with physical disability[1][2]\",\n    \"income_limits\": \"Countable income not exceeding 300% of SSI (e.g., $2,743/month in 2023, $2,382/month in 2021, $2,130/month in 2013); must meet Medicaid spend-down if over limit. No household size table specified—appears fixed for individual[1][2][4][5]\",\n    \"asset_limits\": \"Countable assets ≤ $4,000 for individual (e.g., checking/savings/investments count; exemptions not detailed in sources)[1][2][4][5]\",\n    \"other_requirements\": [\n      \"DC resident[1][2]\",\n      \"US citizen or qualified immigration status for Medicaid[1][2][5]\",\n      \"Require nursing facility level of care (NFLOC), determined by face-to-face assessment by Liberty Healthcare establishing 'level of need' and assistance with ≥2 ADLs (e.g., eating, dressing, toileting, bathing)[1][2][3][4]\",\n      \"DC Medicaid provider completes Prescription Order Form (POF), signed by physician or advanced practice registered nurse[1][2]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Adult day health, case management, homemaker, personal care aide, respite, assisted living, chore aide, community transition services, DSNP/managed care capitated waiver services, environment accessibility/adaptation, individual directed goods/services, participant-directed community support services. Provided in home or assisted living (room/board not covered). No fixed dollar amounts or hours specified[1][3]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact DACL Medicaid Services Enrollment Unit (MES) for assistance with coordination/submission/linkage to case management[1][2][6]\",\n      \"Website: https://dacl.dc.gov/service/epd-waiver[1][6]\",\n      \"Aging and Disability Resource Center (ADRC) submits complete application to Economic Security Administration (ESA)[2]\"\n    ],\n    \"processing_time\": \"ESA determines eligibility within 45 calendar days after ADRC submits complete application[2]\",\n    \"waitlist\": \"Program has a waiting list on first-come, first-served basis[5]\",\n    \"forms\": [\n      \"Prescription Order Form (POF)[1][2]\"\n    ],\n    \"documents\": [\n      \"Proof of DC residency, citizenship/immigration status, income, countable assets ≤$4,000\",\n      \"Completed POF signed by physician/advanced practice nurse\",\n      \"Liberty Healthcare face-to-face assessment results[1][2]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"District of Columbia residents only[1][2]\",\n    \"regional_variations\": null,\n    \"offices_or_providers\": [\n      \"Liberty Healthcare (assessments)[1][2]\",\n      \"DACL Medicaid Services Enrollment Unit (MES)[1][6]\"\n    ]\n  },\n  \"official_source\": \"https://dacl.dc.gov/service/epd-waiver[1]\",\n  \"gotchas\": [\n    \"Must be Medicaid-eligible (or meet spend-down), but can apply without prior Medicaid[6]\",\n    \"Requires NFLOC via specific assessment (score ≥9 on scale) and POF—application incomplete without them[1][2][8]\",\n    \"Assets fixed at $4,000 individual limit; income at 300% SSI (updates annually—check current)[1][2][4]\",\n    \"Waitlist is first-come, first-served; services in home/assisted living only, no room/board[3][4][5]\",\n    \"DACL MES coordinates but ESA determines eligibility[1][2]\"\n  ],\n  \"data_shape_notes\": \"Income fixed at 300% SSI (individual, updates yearly); assets strictly $4,000 individual (no household variation specified); requires physician-signed POF + Liberty assessment for NFLOC; waitlisted; DC-only[1][2][4][5]\"\n}"
     },
     {
-      "name": "Community Transition Program",
+      "name": "Safe at Home Program",
       "eligibility": {
-        "age": "60 and older, or 18 and older with a disability[1]",
-        "income_limits": "No specific income limits stated in program materials; must have current DC Long-Term (likely Long-Term Care) services[1]",
-        "asset_limits": "No asset limits specified[1]",
+        "age": "60 years or older, OR adults 18 and older with disabilities",
+        "income_limits": "Maximum annual household income at or below 80% of Area Median Income (AMI). As of the most recent data available: $72,550 for an individual or $82,550 for a married couple. Note: In May 2019, a cost-share component was implemented allowing eligibility up to 100% AMI ($99,600 for individual, $113,850 for household of two), though sources show variation in current thresholds.[2][3][4][6][8]",
+        "asset_limits": "Not specified in available program documentation",
         "other_requirements": [
-          "District of Columbia resident[1]",
-          "Have current DC Long-Term (incomplete in source, likely Long-Term Care services or Medicaid enrollment)[1]"
+          "Must be a District of Columbia resident[1]",
+          "Must own the property OR be a renter with owner permission to make modifications[1][2]",
+          "Property must be used as primary residence (dwelling unit where individual lives more than 50% of calendar year)[1]",
+          "Must provide proof of disability (waived for applicants 60+)[1]",
+          "Must pass falls risk and fear of falling assessment[4]"
+        ]
+      },
+      "benefits": {
+        "type": "in_kind",
+        "value": "Up to $6,000 in preventative home modifications for clients at 'low falls risk.' Beginning Fiscal Year 2024, maximum raised to $7,000. Projects exceeding $6,000 or clients with 'high falls risk' are referred to Department of Housing and Community Development's Single Family Residential Rehabilitation Program. Original statute authorizes up to $10,000 per residence.[1][4][5]",
+        "varies_by": "falls_risk_level",
+        "specific_modifications": [
+          "Handrails",
+          "Grab bars",
+          "Bathtub cuts",
+          "Shower seats",
+          "Furniture risers",
+          "Chair lifts",
+          "Stair lifts",
+          "Private security camera systems (through separate Home Security component)[2][3]"
+        ]
+      },
+      "application": {
+        "methods": [
+          "Phone: (202) 724-5626[2][3]",
+          "In-person or mail through Department of Aging and Community Living (DACL)",
+          "Online application not explicitly documented in available sources"
+        ],
+        "processing_time": "Not specified in available documentation",
+        "waitlist": "Not specified in available documentation",
+        "forms": [
+          "Safe at Home grant application form (specific form number not provided in available sources)[1]"
+        ],
+        "documents": [
+          "Proof of District of Columbia residency",
+          "Proof of principal place of residence",
+          "Proof of property ownership OR written permission from property owner to make modifications[1]",
+          "Proof of disability (unless applicant is 60+)[1]",
+          "Proof of household income",
+          "Results of falls risk and fear of falling assessment (conducted by program)[4]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "District of Columbia only",
+        "regional_variations": null,
+        "offices_or_providers": [
+          "Administered by Department of Aging and Community Living (DACL)",
+          "Historically administered through Home Care Partners (DCOA grantee) in partnership with District of Columbia Office on Aging and Department of Housing and Community Development[5]"
+        ]
+      },
+      "official_source": "https://dacl.dc.gov/service/safe-home",
+      "gotchas": [
+        "High rate of ineligible applications (60%) due to incomplete documentation — ensure all required proof is gathered before applying[4]",
+        "Income limits have changed over time; verify current thresholds with DACL as sources show conflicting figures ($72,550–$99,600 for individuals depending on cost-share tier)[2][4][6]",
+        "Clients can only be considered for eligibility for two episodes (two separate modification projects)[4]",
+        "Projects exceeding $6,000 or high-risk clients are automatically referred to a different program (DHCD Single Family Residential Rehabilitation), not handled by Safe at Home[4]",
+        "Disability proof is required for applicants under 60, but waived entirely for those 60+[1]",
+        "Property owner permission is required for renters; this must be documented[1]",
+        "Program focuses on fall prevention specifically — modifications must address falls risk, not general accessibility[2][4]",
+        "Grants are exempt from District income taxation[1]"
+      ],
+      "data_shape_notes": "This program has two distinct income tiers: base eligibility at 80% AMI and expanded eligibility at 100% AMI (with cost-share component added May 2019). Benefits scale by falls risk level, not household size. The program has a two-episode lifetime limit per client. A significant portion of applications are rejected for incomplete documentation, suggesting applicants should prepare thoroughly before calling. The program refers higher-cost projects to a separate DHCD program, creating a potential gap in understanding where responsibility lies.",
+      "_raw": "```json\n{\n  \"name\": \"Safe at Home Program\",\n  \"eligibility\": {\n    \"age\": \"60 years or older, OR adults 18 and older with disabilities\",\n    \"income_limits\": \"Maximum annual household income at or below 80% of Area Median Income (AMI). As of the most recent data available: $72,550 for an individual or $82,550 for a married couple. Note: In May 2019, a cost-share component was implemented allowing eligibility up to 100% AMI ($99,600 for individual, $113,850 for household of two), though sources show variation in current thresholds.[2][3][4][6][8]\",\n    \"asset_limits\": \"Not specified in available program documentation\",\n    \"other_requirements\": [\n      \"Must be a District of Columbia resident[1]\",\n      \"Must own the property OR be a renter with owner permission to make modifications[1][2]\",\n      \"Property must be used as primary residence (dwelling unit where individual lives more than 50% of calendar year)[1]\",\n      \"Must provide proof of disability (waived for applicants 60+)[1]\",\n      \"Must pass falls risk and fear of falling assessment[4]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"in_kind\",\n    \"value\": \"Up to $6,000 in preventative home modifications for clients at 'low falls risk.' Beginning Fiscal Year 2024, maximum raised to $7,000. Projects exceeding $6,000 or clients with 'high falls risk' are referred to Department of Housing and Community Development's Single Family Residential Rehabilitation Program. Original statute authorizes up to $10,000 per residence.[1][4][5]\",\n    \"varies_by\": \"falls_risk_level\",\n    \"specific_modifications\": [\n      \"Handrails\",\n      \"Grab bars\",\n      \"Bathtub cuts\",\n      \"Shower seats\",\n      \"Furniture risers\",\n      \"Chair lifts\",\n      \"Stair lifts\",\n      \"Private security camera systems (through separate Home Security component)[2][3]\"\n    ]\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: (202) 724-5626[2][3]\",\n      \"In-person or mail through Department of Aging and Community Living (DACL)\",\n      \"Online application not explicitly documented in available sources\"\n    ],\n    \"processing_time\": \"Not specified in available documentation\",\n    \"waitlist\": \"Not specified in available documentation\",\n    \"forms\": [\n      \"Safe at Home grant application form (specific form number not provided in available sources)[1]\"\n    ],\n    \"documents\": [\n      \"Proof of District of Columbia residency\",\n      \"Proof of principal place of residence\",\n      \"Proof of property ownership OR written permission from property owner to make modifications[1]\",\n      \"Proof of disability (unless applicant is 60+)[1]\",\n      \"Proof of household income\",\n      \"Results of falls risk and fear of falling assessment (conducted by program)[4]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"District of Columbia only\",\n    \"regional_variations\": null,\n    \"offices_or_providers\": [\n      \"Administered by Department of Aging and Community Living (DACL)\",\n      \"Historically administered through Home Care Partners (DCOA grantee) in partnership with District of Columbia Office on Aging and Department of Housing and Community Development[5]\"\n    ]\n  },\n  \"official_source\": \"https://dacl.dc.gov/service/safe-home\",\n  \"gotchas\": [\n    \"High rate of ineligible applications (60%) due to incomplete documentation — ensure all required proof is gathered before applying[4]\",\n    \"Income limits have changed over time; verify current thresholds with DACL as sources show conflicting figures ($72,550–$99,600 for individuals depending on cost-share tier)[2][4][6]\",\n    \"Clients can only be considered for eligibility for two episodes (two separate modification projects)[4]\",\n    \"Projects exceeding $6,000 or high-risk clients are automatically referred to a different program (DHCD Single Family Residential Rehabilitation), not handled by Safe at Home[4]\",\n    \"Disability proof is required for applicants under 60, but waived entirely for those 60+[1]\",\n    \"Property owner permission is required for renters; this must be documented[1]\",\n    \"Program focuses on fall prevention specifically — modifications must address falls risk, not general accessibility[2][4]\",\n    \"Grants are exempt from District income taxation[1]\"\n  ],\n  \"data_shape_notes\": \"This program has two distinct income tiers: base eligibility at 80% AMI and expanded eligibility at 100% AMI (with cost-share component added May 2019). Benefits scale by falls risk level, not household size. The program has a two-episode lifetime limit per client. A significant portion of applications are rejected for incomplete documentation, suggesting applicants should prepare thoroughly before calling. The program refers higher-cost projects to a separate DHCD program, creating a potential gap in understanding where responsibility lies.\"\n}\n```\n\n## Key Takeaways for Families\n\n**Before calling (202) 724-5626, gather these documents:**\n- Proof of DC residency (utility bill, lease, etc.)\n- Proof of property ownership or written owner permission\n- Recent tax return or income verification\n- Disability documentation (if applicant under 60)\n\n**Income verification is critical:** The program has rejected 60% of applications for incomplete documentation.[4] Verify your household income falls within current limits before applying—sources show variation between $72,550 and $99,600 for individuals depending on which tier applies.\n\n**Understand the two-tier system:** If modifications cost under $6,000 and the applicant is low-risk for falls, Safe at Home covers it fully. If costs exceed $6,000 or the applicant is high-risk, you'll be referred to the Department of Housing and Community Development's Single Family Residential Rehabilitation Program instead.[4]\n\n**The program is limited to two episodes per client lifetime,[4]** so plan modifications strategically if multiple adaptations are needed.\n\n**Processing timelines and waitlist status are not publicly documented,** so ask about current wait times when you call."
+    },
+    {
+      "name": "DACL Benefits Assistance",
+      "eligibility": {
+        "age": "65 or older, or 18-64 with physical disability",
+        "income_limits": "Countable income not exceeding $2,743/month (2023) or $2,382/month (2021); must meet Medicaid spend-down if over limit. No household size table specified; applies to individual.[1][2]",
+        "asset_limits": "Countable assets (e.g., savings, checking, investments, cash value of life insurance minus $10,000 burial allowance) not exceeding $4,000 for an individual. No couple/household limits specified.[1][2]",
+        "other_requirements": [
+          "U.S. citizen or qualified immigration status for Medicaid",
+          "District of Columbia resident",
+          "DC Medicaid provider completes Prescription Order Form (POF)",
+          "Liberty Healthcare completes face-to-face assessment for level of need",
+          "Nursing home level of care need while living at home or assisted living"
         ]
       },
       "benefits": {
         "type": "service",
-        "value": "Supports transition from institutional settings to community living (specific services not detailed in available sources)[1]",
-        "varies_by": "not_applicable"
+        "value": "Case management by social worker; Personal Care Aide (PCA) services for grooming, dressing, eating, toileting; other home/community-based supports to avoid nursing home placement. No fixed dollar amounts or hours specified.[1]",
+        "varies_by": "priority_tier"
       },
       "application": {
-        "methods": [],
-        "processing_time": "No information available",
-        "waitlist": null,
-        "forms": [],
-        "documents": []
+        "methods": [
+          "Phone: Contact DACL Medicaid Enrollment Services (MES) or ADRC at (202) 724-5626",
+          "In-person: Aging and Disability Resource Center (ADRC) appointment",
+          "DACL assists with coordination, submission, and linkage to EPD Waiver case management"
+        ],
+        "processing_time": "Economic Security Administration (ESA) determines eligibility within 45 calendar days after complete application submission.[2]",
+        "waitlist": "Not mentioned in sources",
+        "forms": [
+          "Prescription Order Form (POF) by DC Medicaid provider"
+        ],
+        "documents": [
+          "Proof of DC residency",
+          "Proof of age or disability",
+          "Proof of income and assets",
+          "Prescription Order Form (POF)",
+          "Liberty Healthcare assessment results"
+        ]
       },
       "geography": {
         "statewide": true,
-        "restrictions": "District of Columbia residents only[1]",
+        "restrictions": "District of Columbia residents only",
         "regional_variations": null,
-        "offices_or_providers": []
+        "offices_or_providers": [
+          "DACL Medicaid Enrollment Services (MES)",
+          "Aging and Disability Resource Center (ADRC)",
+          "Liberty Healthcare for assessments"
+        ]
       },
-      "official_source": "https://dacl.dc.gov/sites/default/files/dc/sites/dacl/service_content/attachments/Community%20Transition%20Flyer.pdf[1]",
+      "official_source": "https://dacl.dc.gov/service/benefits-assistance",
       "gotchas": [
-        "Limited public details available; eligibility tied to 'current DC Long-Term' which is truncated in sources—likely requires prior Long-Term Care enrollment or assessment[1]",
-        "May overlap with Medicaid waivers or DBH transition services for mental health, but distinct program under DACL[2]",
-        "Not the same as school-based CTP or other transitional programs[4]"
+        "Primarily assistance enrolling in EPD Waiver, Medicaid, SNAP—not direct benefits; requires separate Medicaid eligibility and spend-down if income over limit.",
+        "Must have nursing home level of care need; face-to-face assessment by Liberty Healthcare required.",
+        "Income/asset limits outdated in sources (2021-2023); verify current figures as they tie to SSI (300% SSI).",
+        "Countable assets exclude $10,000 burial but include most financial accounts."
       ],
-      "data_shape_notes": "Sparse official details; flyer cuts off key info like full eligibility and services. Administered by DACL (likely Department on Aging and Community Living). No income/asset tests explicitly stated, distinguishing from means-tested programs[1]",
-      "_raw": "{\n  \"name\": \"Community Transition Program\",\n  \"eligibility\": {\n    \"age\": \"60 and older, or 18 and older with a disability[1]\",\n    \"income_limits\": \"No specific income limits stated in program materials; must have current DC Long-Term (likely Long-Term Care) services[1]\",\n    \"asset_limits\": \"No asset limits specified[1]\",\n    \"other_requirements\": [\n      \"District of Columbia resident[1]\",\n      \"Have current DC Long-Term (incomplete in source, likely Long-Term Care services or Medicaid enrollment)[1]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Supports transition from institutional settings to community living (specific services not detailed in available sources)[1]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [],\n    \"processing_time\": \"No information available\",\n    \"waitlist\": null,\n    \"forms\": [],\n    \"documents\": []\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"District of Columbia residents only[1]\",\n    \"regional_variations\": null,\n    \"offices_or_providers\": []\n  },\n  \"official_source\": \"https://dacl.dc.gov/sites/default/files/dc/sites/dacl/service_content/attachments/Community%20Transition%20Flyer.pdf[1]\",\n  \"gotchas\": [\n    \"Limited public details available; eligibility tied to 'current DC Long-Term' which is truncated in sources—likely requires prior Long-Term Care enrollment or assessment[1]\",\n    \"May overlap with Medicaid waivers or DBH transition services for mental health, but distinct program under DACL[2]\",\n    \"Not the same as school-based CTP or other transitional programs[4]\"\n  ],\n  \"data_shape_notes\": \"Sparse official details; flyer cuts off key info like full eligibility and services. Administered by DACL (likely Department on Aging and Community Living). No income/asset tests explicitly stated, distinguishing from means-tested programs[1]\"\n}"
+      "data_shape_notes": "Assistance program for EPD Waiver enrollment; eligibility mirrors EPD (individual asset/income caps, no household table); requires provider POF and external assessment; DC-wide via DACL/ADRC.",
+      "_raw": "{\n  \"name\": \"DACL Benefits Assistance\",\n  \"eligibility\": {\n    \"age\": \"65 or older, or 18-64 with physical disability\",\n    \"income_limits\": \"Countable income not exceeding $2,743/month (2023) or $2,382/month (2021); must meet Medicaid spend-down if over limit. No household size table specified; applies to individual.[1][2]\",\n    \"asset_limits\": \"Countable assets (e.g., savings, checking, investments, cash value of life insurance minus $10,000 burial allowance) not exceeding $4,000 for an individual. No couple/household limits specified.[1][2]\",\n    \"other_requirements\": [\n      \"U.S. citizen or qualified immigration status for Medicaid\",\n      \"District of Columbia resident\",\n      \"DC Medicaid provider completes Prescription Order Form (POF)\",\n      \"Liberty Healthcare completes face-to-face assessment for level of need\",\n      \"Nursing home level of care need while living at home or assisted living\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Case management by social worker; Personal Care Aide (PCA) services for grooming, dressing, eating, toileting; other home/community-based supports to avoid nursing home placement. No fixed dollar amounts or hours specified.[1]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: Contact DACL Medicaid Enrollment Services (MES) or ADRC at (202) 724-5626\",\n      \"In-person: Aging and Disability Resource Center (ADRC) appointment\",\n      \"DACL assists with coordination, submission, and linkage to EPD Waiver case management\"\n    ],\n    \"processing_time\": \"Economic Security Administration (ESA) determines eligibility within 45 calendar days after complete application submission.[2]\",\n    \"waitlist\": \"Not mentioned in sources\",\n    \"forms\": [\n      \"Prescription Order Form (POF) by DC Medicaid provider\"\n    ],\n    \"documents\": [\n      \"Proof of DC residency\",\n      \"Proof of age or disability\",\n      \"Proof of income and assets\",\n      \"Prescription Order Form (POF)\",\n      \"Liberty Healthcare assessment results\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"District of Columbia residents only\",\n    \"regional_variations\": null,\n    \"offices_or_providers\": [\n      \"DACL Medicaid Enrollment Services (MES)\",\n      \"Aging and Disability Resource Center (ADRC)\",\n      \"Liberty Healthcare for assessments\"\n    ]\n  },\n  \"official_source\": \"https://dacl.dc.gov/service/benefits-assistance\",\n  \"gotchas\": [\n    \"Primarily assistance enrolling in EPD Waiver, Medicaid, SNAP—not direct benefits; requires separate Medicaid eligibility and spend-down if income over limit.\",\n    \"Must have nursing home level of care need; face-to-face assessment by Liberty Healthcare required.\",\n    \"Income/asset limits outdated in sources (2021-2023); verify current figures as they tie to SSI (300% SSI).\",\n    \"Countable assets exclude $10,000 burial but include most financial accounts.\"\n  ],\n  \"data_shape_notes\": \"Assistance program for EPD Waiver enrollment; eligibility mirrors EPD (individual asset/income caps, no household table); requires provider POF and external assessment; DC-wide via DACL/ADRC.\"\n}"
+    },
+    {
+      "name": "DC Senior Centers",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "No strict income limits for general DC senior centers; many operate on voluntary contributions, sliding scale fees, or are free for DC residents age 60+. Specific programs like employment training require income <125% federal poverty level. Medicaid-related services cap at 300% SSI ($2,982 individual in 2026) or medically needy limits ($856.90 individual, $902 household of 2+ in 2026).[2][1]",
+        "asset_limits": "Not applicable for general senior centers. Medicaid long-term care services limit resources to $4,000 (individual) or $6,000 (couple); home equity ≤$1,130,000 exempt if intent to return or spouse/minor/disabled child resides there.[2][3]",
+        "other_requirements": [
+          "DC resident",
+          "Able to complete daily living activities independently or with personal care assistant (no dementia/Alzheimer's diagnosis for some centers)",
+          "US citizen or eligible immigration status for Medicaid-linked services",
+          "Nursing facility level of care for waiver programs (assessed via interRAI tool, score ≥9 points on ADLs/cognition/behavior)"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Social, recreational, nutritional, health promotion activities (e.g., free meals, food commodities, health screenings like blood pressure/blood sugar, nutritional counseling, mental health support, education classes, exercise, social services case management); hours vary by center (e.g., Mon/Thu 10am-4pm, Tue/Wed/Fri 10am-2pm at SOME); no fixed dollar amount, often free or low-cost.[4][9][5]",
+        "varies_by": "region"
+      },
+      "application": {
+        "methods": [
+          "In-person at centers (e.g., SOME at 1395 Aspen St. NW, Washington, DC 20012; Vida Senior Centers locations)",
+          "Phone: (202) 724-7000 for employment program info",
+          "Contact Aging and Disability Resource Center (ADRC) via D.C. Office on Aging for referrals",
+          "Email for specific programs"
+        ],
+        "processing_time": "Not specified; typically immediate intake at centers upon eligibility screening",
+        "waitlist": null,
+        "forms": [
+          "No specific form named; intake assessment at centers or ADRC"
+        ],
+        "documents": [
+          "Proof of DC residency (ID, utility bill)",
+          "Proof of age (ID/birth certificate)",
+          "Income proof if applying for means-tested services",
+          "Medical records for functional assessments if needed"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "District of Columbia residents only",
+        "regional_variations": "Multiple providers/centers with varying hours/services (e.g., SOME in NW DC excludes dementia; Vida focuses on Hispanic seniors with Spanish services; citywide network via D.C. Office on Aging and ADRC)",
+        "offices_or_providers": [
+          "SOME Senior Services (1395 Aspen St. NW)",
+          "Vida Senior Centers (multiple sites for Hispanic seniors)",
+          "D.C. Office on Aging ADRC",
+          "Various community centers across DC"
+        ]
+      },
+      "official_source": "https://dcoa.dc.gov/ (D.C. Office on Aging primary site; specific centers via provider sites)",
+      "gotchas": [
+        "Not a single centralized program—network of independent centers with varying eligibility (e.g., no dementia at some); often confused with employment training (SCSEP, age 55+, job-focused) or Medicaid waivers; many free but some sliding scale/voluntary fees; priority for most-in-need in some services; must confirm center-specific rules as no uniform application.[1][4][5][9]",
+        "Medical/functional needs assessed for advanced services, not automatic.",
+        "Targeted groups like Hispanic seniors at Vida may have cultural/language focus others lack."
+      ],
+      "data_shape_notes": "Decentralized network of centers/providers under D.C. Office on Aging, no uniform income/asset test for core social services, varies by provider (e.g., dementia exclusion, language-specific), employment/nutrition/waiver programs have stricter financial/functional criteria.",
+      "_raw": "{\n  \"name\": \"DC Senior Centers\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"No strict income limits for general DC senior centers; many operate on voluntary contributions, sliding scale fees, or are free for DC residents age 60+. Specific programs like employment training require income <125% federal poverty level. Medicaid-related services cap at 300% SSI ($2,982 individual in 2026) or medically needy limits ($856.90 individual, $902 household of 2+ in 2026).[2][1]\",\n    \"asset_limits\": \"Not applicable for general senior centers. Medicaid long-term care services limit resources to $4,000 (individual) or $6,000 (couple); home equity ≤$1,130,000 exempt if intent to return or spouse/minor/disabled child resides there.[2][3]\",\n    \"other_requirements\": [\"DC resident\", \"Able to complete daily living activities independently or with personal care assistant (no dementia/Alzheimer's diagnosis for some centers)\", \"US citizen or eligible immigration status for Medicaid-linked services\", \"Nursing facility level of care for waiver programs (assessed via interRAI tool, score ≥9 points on ADLs/cognition/behavior)\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Social, recreational, nutritional, health promotion activities (e.g., free meals, food commodities, health screenings like blood pressure/blood sugar, nutritional counseling, mental health support, education classes, exercise, social services case management); hours vary by center (e.g., Mon/Thu 10am-4pm, Tue/Wed/Fri 10am-2pm at SOME); no fixed dollar amount, often free or low-cost.[4][9][5]\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\"In-person at centers (e.g., SOME at 1395 Aspen St. NW, Washington, DC 20012; Vida Senior Centers locations)\", \"Phone: (202) 724-7000 for employment program info\", \"Contact Aging and Disability Resource Center (ADRC) via D.C. Office on Aging for referrals\", \"Email for specific programs\"],\n    \"processing_time\": \"Not specified; typically immediate intake at centers upon eligibility screening\",\n    \"waitlist\": null,\n    \"forms\": [\"No specific form named; intake assessment at centers or ADRC\"],\n    \"documents\": [\"Proof of DC residency (ID, utility bill)\", \"Proof of age (ID/birth certificate)\", \"Income proof if applying for means-tested services\", \"Medical records for functional assessments if needed\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"District of Columbia residents only\",\n    \"regional_variations\": \"Multiple providers/centers with varying hours/services (e.g., SOME in NW DC excludes dementia; Vida focuses on Hispanic seniors with Spanish services; citywide network via D.C. Office on Aging and ADRC)\",\n    \"offices_or_providers\": [\"SOME Senior Services (1395 Aspen St. NW)\", \"Vida Senior Centers (multiple sites for Hispanic seniors)\", \"D.C. Office on Aging ADRC\", \"Various community centers across DC\"]\n  },\n  \"official_source\": \"https://dcoa.dc.gov/ (D.C. Office on Aging primary site; specific centers via provider sites)\",\n  \"gotchas\": [\"Not a single centralized program—network of independent centers with varying eligibility (e.g., no dementia at some); often confused with employment training (SCSEP, age 55+, job-focused) or Medicaid waivers; many free but some sliding scale/voluntary fees; priority for most-in-need in some services; must confirm center-specific rules as no uniform application.[1][4][5][9]\", \"Medical/functional needs assessed for advanced services, not automatic.\", \"Targeted groups like Hispanic seniors at Vida may have cultural/language focus others lack.\"],\n  \"data_shape_notes\": \"Decentralized network of centers/providers under D.C. Office on Aging, no uniform income/asset test for core social services, varies by provider (e.g., dementia exclusion, language-specific), employment/nutrition/waiver programs have stricter financial/functional criteria.\"\n}"
+    },
+    {
+      "name": "Legal Services for Seniors",
+      "_parseError": true,
+      "_raw": "{\n  \"name\": \"Legal Services for Seniors\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"No specific income limits stated; services target D.C. residents 60+ or 55+ with SSI/SSDI issues. Related providers like Legal Aid DC use 200-300% of Federal Poverty Guidelines, but not confirmed for this program.[1][2][6]\",\n    \"asset_limits\": \"No asset limits or exemptions mentioned in sources.[1][2]\",\n    \"other_requirements\": [\"Must be a resident of the District of Columbia.\", \"Priority for those with economic or social needs, abuse victims, public benefits issues, or disability-related matters (55+ for SSI/SSDI).\"][1][2][3]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free legal advice, guidance, representation in administrative actions/proceedings by attorneys/paralegals; specific services include: victims of abuse, medical bills, advocacy, public benefits access (SS/SSI/SSDI, Medicaid, Medicare, SNAP, veterans benefits), drafting wills, conservatorship/guardianship, advance directives, housing/eviction/foreclosure, long-term care, elder rights protections, consumer fraud, financial exploitation; also notary public service and Legal Hotline for advice/referrals/representation intake.[1][2][3]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: AARP Legal Counsel for the Elderly (202) 434-2120; DACL/DC Office on Aging (202) 724-5626; TTY 711.[1][2]\",\n      \"Website: https://www.aarp.org/legal-counsel-for-elderly/ for Legal Hotline and services; https://dacl.dc.gov/service/legal-services-seniors.[1][2]\",\n      \"In-person: AARP Legal Counsel for the Elderly at 601 E Street, NW, Room A-4, Washington, DC 20049; DC Office on Aging Notary at 500 K Street, NE, Washington, DC 20002 (Mon-Fri 8:30am-4pm).[1]\",\n      \"Email: [email protected]; Fax options available.[1]\"\n    ],\n    \"processing_time\": \"Not specified; Legal Hotline offers quick access to advice, referrals, and intake.[2]\",\n    \"waitlist\": \"No waitlist information provided.[1][2]\",\n    \"forms\": [\"No specific form names/numbers listed; online intake application may apply via related providers like Legal Aid DC.[6]\"],\n    \"documents\": [\"Documents related to legal problem if available (e.g., for income/household screening or case specifics); not mandatory for initial hotline/advice.[6]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"District of Columbia residents only.\",\n    \"regional_variations\": \"No regional variations mentioned; DC-wide program with central offices.[1][2]\",\n    \"offices_or_providers\": [\"AARP Legal Counsel for the Elderly (601 E Street NW), DC Office on Aging (500 K Street NE).\"][1]\n  },\n  \"official_source\": \"https://dacl.dc.gov/service/legal-services-seniors\",\n  \"gotchas\": [\n    \"No explicit income/asset dollar limits published; families must contact providers for screening (e.g., may align with 200-300% FPL via partners).[6]\",\n    \"Age 55+ only for specific SSI/SSDI issues; otherwise 60+.[2]\",\n    \"Services are advice/representation focused, not financial aid; may refer for benefits enrollment.[1][3]\",\n    \"Funded under Older Americans Act, targeting economic/social needs—may prioritize high-need cases.[3]\"\n  ],\n  \"data_shape_notes\": \"No fixed income/asset tables; eligibility primarily age/residency-based with priority tiers for needs like abuse or benefits; delivered via specific DC providers like AARP LCE, no county variations as DC is single jurisdiction.\"\n}"
     }
   ]
 }

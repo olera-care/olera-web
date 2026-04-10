@@ -4,131 +4,99 @@
   "state": "IN",
   "stateName": "Indiana",
   "isRegion": false,
-  "exploredAt": "2026-04-09T09:32:08.350Z",
-  "programCount": 17,
+  "exploredAt": "2026-04-09T13:20:58.534Z",
+  "programCount": 13,
   "programs": [
     {
       "name": "Hoosier Care Connect",
-      "what_it_does": "Provides health insurance coverage to medically and financially needy seniors and disabled individuals through Indiana's Medicaid program. It covers long-term care services including home-based options to help recipients remain in the community.[3][9]",
-      "who_its_for": "Seniors aged 65+, blind, or disabled individuals with low income and assets (e.g., $2,000 individual/$3,000 couple resources limit).[3]",
-      "official_url": "https://www.in.gov/medicaid/",
-      "benefit_value": "Varies by eligibility; covers doctor visits, hospital care, prescriptions, and long-term services like attendant care and home-delivered meals.[3]"
+      "what_it_does": "Hoosier Care Connect is a Medicaid program providing health care coverage for seniors aged 65 and older, blind, or disabled individuals who are not eligible for Medicare. It offers medical benefits to low-income members meeting specific aid categories.[1]",
+      "who_its_for": "Indiana residents aged 65+, blind, or disabled, with low income, not eligible for Medicare.[1]",
+      "official_url": "https://frankkraft.com/medicaid-programs-for-seniors-in-indiana/",
+      "benefit_value": "Full health care coverage for eligible low-income seniors; specific value varies by needs and services approved."
     },
     {
-      "name": "Aged and Disabled Waiver",
-      "what_it_does": "Offers home and community-based services as an alternative to nursing home placement. Services include adult day health care, assisted living, attendant care, case management, home-delivered meals, and personal emergency response systems.[3]",
-      "who_its_for": "Seniors and disabled adults aged 65+ who meet nursing facility level of care and Medicaid financial eligibility.[3]",
-      "official_url": "https://www.in.gov/fssa/da/4953.htm",
-      "benefit_value": "Covers specific waiver services up to assessed needs; prevents institutionalization with personalized home care support.[3]"
+      "name": "Indiana PathWays for Aging Waiver",
+      "what_it_does": "The PathWays for Aging Waiver provides home and community-based services (HCBS) as an alternative to nursing facility placement, allowing seniors to live independently at home or in community settings. Services include participant-directed home care, respite care, transportation, and specialized medical equipment, customized via a Plan of Care.[2][3][4]",
+      "who_its_for": "Indiana Medicaid enrollees aged 60+, blind or disabled, meeting nursing facility level of care, with income ≤300% SSI (~$2,829/month single in 2024) and assets ≤$2,000 single/$3,000 couple.[2][3]",
+      "official_url": "https://www.in.gov/pathways/home/",
+      "benefit_value": "Nursing facility level of care at home; annual cost limit ~$120,000 per participant (statewide waiver cap)."
     },
     {
-      "name": "Program for All-Inclusive Care for the Elderly (PACE)",
-      "what_it_does": "Delivers comprehensive medical and social services to eligible seniors in community settings, including adult day health care and home care. It coordinates all Medicare and Medicaid benefits for participants.[4]",
-      "who_its_for": "Seniors aged 55+ certified for nursing facility level of care who can live safely in the community with PACE services.[4]",
-      "official_url": "https://www.in.gov/fssa/ddars/bba/programs-and-services2/",
-      "benefit_value": "Full capitation coverage of all needed health and long-term care services at no cost to eligible dual-eligible participants."
+      "name": "Indiana PathWays for Aging (PACE equivalent)",
+      "what_it_does": "PathWays for Aging incorporates PACE-like managed long-term services and supports for Medicaid enrollees, coordinating care to enable aging at home with nursing-level services in community settings. It partners with health plans for care coordination, including home health, meals, and transportation.[4][5][7]",
+      "who_its_for": "Hoosiers aged 60+ on Medicaid (including dually eligible), blind/disabled, or in nursing facilities/hospice.[4]",
+      "official_url": "https://www.in.gov/pathways/home/",
+      "benefit_value": "Comprehensive LTSS managed care; supports 120,000 Hoosiers with personalized services."
     },
     {
       "name": "Healthy Indiana Plan Medicare Savings Programs (QMB, SLMB, QI)",
-      "what_it_does": "Pays Medicare Part A/B premiums, deductibles, and co-insurance for low-income seniors via Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), and Qualifying Individual (QI) programs. Administered through Indiana Medicaid.[3]",
-      "who_its_for": "Medicare beneficiaries with limited income/assets (e.g., QMB: ~$1,255/month individual income limit in 2026; higher for SLMB/QI).[3]",
-      "official_url": "https://www.in.gov/medicaid/msp/",
-      "benefit_value": "QMB covers full Part A/B costs (~$185 Part B premium + deductibles); SLMB pays Part B premium; QI pays Part B premium for highest eligible."
+      "what_it_does": "Indiana's Medicare Savings Programs (Qualified Medicare Beneficiary - QMB, Specified Low-Income Medicare Beneficiary - SLMB, Qualifying Individual - QI) pay Medicare premiums, deductibles, and copays for eligible low-income seniors. They are administered through traditional Medicaid for dually eligible members.[1]",
+      "who_its_for": "Low-income Medicare beneficiaries; income limits vary (e.g., QMB ~100% FPL, SLMB ~120%, QI ~135%).[1]",
+      "official_url": "https://www.in.gov/medicaid/",
+      "benefit_value": "Covers Part A/B premiums/costs; e.g., QMB pays full Part B premium (~$174.70/month)."
     },
     {
-      "name": "Supplemental Nutrition Assistance Program (SNAP)",
-      "what_it_does": "Provides monthly benefits via EBT card to purchase nutritious food at approved retailers. Helps low-income seniors afford groceries and combat food insecurity.[1]",
-      "who_its_for": "Seniors 60+ with income below ~130% federal poverty level (~$1,951/month individual in 2026); higher asset limits for elderly/disabled.[1]",
-      "official_url": "https://www.in.gov/dwd/snap/",
-      "benefit_value": "Average $200-$300/month per eligible senior household; max benefits up to ~$291/individual (2026 rates vary by income)."
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "what_it_does": "SNAP provides monthly benefits via EBT card for purchasing food at approved retailers. In Indiana, it's administered by the Division of Family Resources for low-income households including seniors.[1]",
+      "who_its_for": "Low-income seniors (60+) with income ≤130-165% FPL (net ~$1,580/month single); higher deductions for elderly.[1]",
+      "official_url": "https://www.in.gov/dfr/",
+      "benefit_value": "Average $200-300/month per senior household; max ~$291 single (2026 adjusted)."
     },
     {
-      "name": "Energy Assistance Program (EAP)",
-      "what_it_does": "Offers grants to help pay heating and cooling bills during winter and non-winter months. Provides one-time payments directly to utility providers.[1]",
-      "who_its_for": "Low-income households including seniors 60+ with income ≤150% poverty (~$2,325/month individual); priority for elderly/disabled.[1]",
-      "official_url": "https://www.in.gov/oed/energy-assistance/",
-      "benefit_value": "Average $400-$600 grant per household per heating season; additional crisis grants up to $1,000."
+      "name": "Indiana LIHEAP",
+      "what_it_does": "The Low Income Home Energy Assistance Program (LIHEAP) helps with heating/cooling bills and crisis assistance. Administered statewide for energy-burdened low-income households.[1]",
+      "who_its_for": "Low-income households (≤150% FPL, ~$22,590 single); priority for seniors 60+, disabled.[1]",
+      "official_url": "https://www.in.gov/fssa/di/services/liheap/",
+      "benefit_value": "Average grant $400-700/year; crisis up to $1,000."
     },
     {
-      "name": "Weatherization Assistance Program (WAP)",
-      "what_it_does": "Provides free energy efficiency upgrades like insulation, sealing, and furnace repairs to owner-occupied homes. Reduces energy costs and improves safety/comfort.[6]",
-      "who_its_for": "Low-income homeowners/renters including seniors 60+ at or below 200% poverty; priority for elderly, disabled, and high energy users.[6]",
+      "name": "Indiana Weatherization Assistance Program",
+      "what_it_does": "Provides home energy efficiency upgrades like insulation, sealing, and furnace repairs to reduce utility costs. Federally funded, state-administered for low-income homes.[1]",
+      "who_its_for": "Low-income (≤200% FPL) owner/renter households; priority seniors, disabled.[1]",
       "official_url": "https://www.in.gov/oed/weatherization/",
-      "benefit_value": "Home improvements valued at $5,000-$10,000+ per household; lifetime energy savings of 20-30%."
+      "benefit_value": "Free services valued $5,000-10,000 per home."
     },
     {
-      "name": "State Health Insurance Assistance Program (SHIP)",
-      "what_it_does": "Offers free, unbiased counseling on Medicare options, including Parts A/B/D, Medigap, and Medicare Advantage. Helps seniors select and appeal coverage issues.[1]",
-      "who_its_for": "All Indiana Medicare beneficiaries, especially those 65+ navigating complex insurance choices.[1]",
+      "name": "Indiana SHIP (State Health Insurance Assistance Program)",
+      "what_it_does": "SHIP offers free counseling on Medicare, supplements, and savings programs. Local counselors assist with enrollment and appeals.[1]",
+      "who_its_for": "Indiana Medicare beneficiaries, especially seniors.[1]",
       "official_url": "https://www.in.gov/fssa/da/ship/",
-      "benefit_value": "Personalized guidance preventing costly errors; average savings $500+/year through optimal plan selection."
+      "benefit_value": "Free one-on-one counseling; saves avg $1,000+/year via proper enrollment."
     },
     {
-      "name": "Home-Delivered Meals (via Aging & Disability Resource Centers)",
-      "what_it_does": "Delivers nutritious meals to homebound seniors to promote health and independence. Often includes safety wellness checks by delivery staff.[4]",
-      "who_its_for": "Homebound seniors 60+ unable to prepare meals, often low-income or with mobility impairments.[4]",
+      "name": "Meals on Wheels (Indiana)",
+      "what_it_does": "Delivers nutritious meals to homebound seniors, often with friendly visits. Administered via Area Agencies on Aging (AAAs).[1]",
+      "who_its_for": "Homebound seniors 60+ unable to prepare meals; suggested donation.[1]",
       "official_url": "https://www.in.gov/fssa/da/area-agencies-on-aging/",
-      "benefit_value": "5-7 meals/week at no/low cost (suggested $3/donation); serves 1M+ meals annually statewide."
+      "benefit_value": "5 meals/week; value ~$10/meal."
     },
     {
-      "name": "National Family Caregiver Support Program",
-      "what_it_does": "Provides respite care, training, counseling, and supplies to family caregivers of seniors. Offers breaks from caregiving duties through paid services.[4]",
-      "who_its_for": "Unpaid family caregivers of adults 60+ or grandparents raising children; income-based eligibility.[4]",
-      "official_url": "https://www.in.gov/fssa/ddars/bba/programs-and-services2/",
-      "benefit_value": "Respite grants up to $2,000/year; training and support preventing caregiver burnout."
+      "name": "Indiana Caregiver Respite Services",
+      "what_it_does": "Provides temporary relief for family caregivers via in-home, adult day, or facility respite. Available through PathWays Waiver and AAAs.[2]",
+      "who_its_for": "Family caregivers of seniors 60+ on Medicaid waivers.[2]",
+      "official_url": "https://www.in.gov/pathways/home/",
+      "benefit_value": "Up to 240 hours/year structured respite; varies by plan."
     },
     {
       "name": "Senior Community Service Employment Program (SCSEP)",
-      "what_it_does": "Offers part-time paid community service work training leading to unsubsidized employment. Provides minimum wage jobs at nonprofits for skill-building.[1]",
-      "who_its_for": "Unemployed low-income seniors 55+ (income ≤125% poverty); priority for veterans, qualified spouses, older individuals.[1]",
-      "official_url": "https://www.in.gov/dwd/job-services/scsep/",
-      "benefit_value": "20 hours/week at federal/state minimum wage (~$7.25-$10/hour); work experience + employment placement."
+      "what_it_does": "Offers part-time paid community service jobs with training for older low-income workers. Federally funded, state partners administer.[1]",
+      "who_its_for": "Unemployed low-income 55+ (income ≤125% FPL).[1]",
+      "official_url": "https://www.in.gov/dwd/job-seekers/scsep/",
+      "benefit_value": "Minimum wage jobs (20 hrs/week); ~$7,000/year earnings."
     },
     {
-      "name": "Indiana Legal Services (Senior Legal Aid)",
-      "what_it_does": "Provides free civil legal assistance for issues like benefits, housing, consumer problems, and elder abuse. Includes advice, representation, and self-help resources.[6]",
-      "who_its_for": "Low-income seniors 60+ (≤125% poverty) unable to afford private attorneys.[6]",
-      "official_url": "https://www.indianalegalservices.org/",
-      "benefit_value": "Full-scope representation recovering thousands in benefits/housing; statewide senior hotline."
+      "name": "Indiana Senior Legal Aid",
+      "what_it_does": "Provides free legal help for issues like benefits, housing, abuse via Legal Services organizations and AAAs. Pro bono and low-cost services.[1]",
+      "who_its_for": "Low-income seniors 60+.[1]",
+      "official_url": "https://www.in.gov/courts/pro-bono/seniors/",
+      "benefit_value": "Free representation; resolves issues worth thousands."
     },
     {
-      "name": "Long-Term Care Ombudsman Program",
-      "what_it_does": "Advocates for residents in nursing homes, assisted living, and other long-term care facilities. Investigates complaints and resolves issues confidentially.[4]",
-      "who_its_for": "All residents/families in Indiana long-term care facilities; services free and independent.[4]",
-      "official_url": "https://www.in.gov/fssa/da/ombudsman/",
-      "benefit_value": "Resolves 80%+ of 5,000+ annual complaints; protects rights and improves care quality."
-    },
-    {
-      "name": "Indiana's Senior Property Tax Deduction",
-      "what_it_does": "Reduces property tax burdens for eligible seniors, making homeownership more affordable.[1] This is a state-funded initiative specific to Indiana.",
-      "who_its_for": "Eligible Indiana seniors who own property.[1]",
-      "whats_unique": "This is a state-specific property tax relief program not universally available across all states.[1]",
-      "official_url": "Not provided in search results",
-      "benefit_value": "Not specified in search results"
-    },
-    {
-      "name": "Structured Family Caregiving",
-      "what_it_does": "Provides financial stipends and comprehensive support services to family members who care for elderly relatives at home.[1] This innovative Indiana program recognizes the role of family caregivers in maintaining senior health and welfare.",
-      "who_its_for": "Family members caring for elderly relatives at home in Indiana.[1]",
-      "whats_unique": "Indiana's approach combines both financial compensation and guidance resources specifically designed for family caregivers, fostering aging in place within family settings.[1]",
-      "official_url": "Not provided in search results",
-      "benefit_value": "Stipend amount not specified in search results"
-    },
-    {
-      "name": "Community and Home Options to Institutional Care for the Elderly and Disabled (CHOICE)",
-      "what_it_does": "Offers services that help seniors stay in their homes or communities as long as possible rather than moving to institutional care.[1] This waiver program provides home and community-based services.",
-      "who_its_for": "Eligible Indiana seniors and disabled individuals.[2]",
-      "whats_unique": "CHOICE is Indiana's home and community-based waiver program with income limits (monthly income limit of $2,901 for eligible individuals).[2]",
-      "official_url": "Not provided in search results",
-      "benefit_value": "Varies by services provided; not specified in search results"
-    },
-    {
-      "name": "Indiana PathWays for Aging",
-      "what_it_does": "The new Aged & Disabled Waiver specifically for Hoosiers age 60 and older, providing home and community-based services through a care and service coordinator.[3] Beneficiaries receive the same services as the previous Aged and Disabled Waiver program.",
-      "who_its_for": "Indiana residents age 60 and older who meet eligibility criteria.[3]",
-      "whats_unique": "This is Indiana's updated version of the Aged & Disabled Waiver, restructured to serve seniors 60+ with coordinated care services.[3]",
-      "official_url": "Not provided in search results",
-      "benefit_value": "Not specified in search results"
+      "name": "Indiana Long-Term Care Ombudsman Program",
+      "what_it_does": "Advocates for residents in nursing homes, assisted living; investigates complaints, ensures rights. Statewide volunteer network.[1]",
+      "who_its_for": "Long-term care residents and families.[1]",
+      "official_url": "https://www.in.gov/fssa/ltc-ombudsman/",
+      "benefit_value": "Free advocacy; resolves 80% complaints without escalation."
     }
   ]
 }

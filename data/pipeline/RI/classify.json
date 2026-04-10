@@ -1,11 +1,11 @@
 {
   "state": "RI",
   "stateName": "Rhode Island",
-  "classifiedAt": "2026-04-09T09:41:15.274Z",
+  "classifiedAt": "2026-04-09T16:12:58.732Z",
   "total": 17,
   "typeSummary": {
-    "benefit": 11,
-    "resource": 5,
+    "benefit": 12,
+    "resource": 4,
     "employment": 1
   },
   "scopeSummary": {
@@ -14,28 +14,20 @@
     "federal": 8
   },
   "complexitySummary": {
-    "deep": 9,
-    "simple": 5,
-    "medium": 3
+    "deep": 12,
+    "simple": 4,
+    "medium": 1
   },
   "programs": [
     {
-      "name": "Rhode Island Medicaid",
+      "name": "Rhode Island Medicaid (Long-Term Services and Supports for Elderly)",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Neighborhood Health Plan of Rhode Island (NHPRI) for dual eligibles/MMP (Neighborhood INTEGRITY)",
-            "type": "service-area"
-          },
-          {
-            "name": "Office of Healthy Aging (OHA) for specific home services",
-            "type": "service-area"
-          },
-          {
-            "name": "Executive Office of Health and Human Services (EOHHS) administers statewide",
+            "name": "Neighborhood Health Plan of Rhode Island (NHPRI) for dual eligible INTEGRITY plan[8]",
             "type": "service-area"
           }
         ]
@@ -46,20 +38,21 @@
         "what-counts",
         "tier-comparison",
         "documents",
-        "county-directory"
+        "county-directory",
+        "callout"
       ],
       "signals": {
         "benefitType": "service",
         "hasIncomeTiers": false,
         "hasAssetLimits": true,
-        "hasRegionalVariation": false,
+        "hasRegionalVariation": true,
         "hasFunctionalReq": true,
         "hasMultipleTiers": true,
         "isStatewide": true
       }
     },
     {
-      "name": "Home and Community-Based Services (HCBS) Waiver",
+      "name": "Rhode Island Community Living and Attendant Services Waiver (CLASS)",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
@@ -70,37 +63,35 @@
         "prose",
         "income-table",
         "what-counts",
-        "tier-comparison",
-        "documents",
-        "callout"
+        "documents"
       ],
       "signals": {
         "benefitType": "service",
         "hasIncomeTiers": true,
         "hasAssetLimits": true,
-        "hasRegionalVariation": true,
+        "hasRegionalVariation": false,
         "hasFunctionalReq": true,
-        "hasMultipleTiers": true,
+        "hasMultipleTiers": false,
         "isStatewide": true
       }
     },
     {
-      "name": "PACE-RI (Program of All-Inclusive Care for the Elderly)",
+      "name": "PACE (Program of All-Inclusive Care for the Elderly)",
       "programType": "benefit",
       "geographicScope": {
         "type": "local",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Providence PACE Health Care Center",
+            "name": "Providence",
             "type": "service-area"
           },
           {
-            "name": "Woonsocket PACE Health Care Center",
+            "name": "Woonsocket",
             "type": "service-area"
           },
           {
-            "name": "Westerly PACE Health Care Center",
+            "name": "Westerly",
             "type": "service-area"
           }
         ]
@@ -124,14 +115,14 @@
       }
     },
     {
-      "name": "Medicare Premium Payment Program (MPP) / QMB",
+      "name": "Medicare Savings Programs (MSP)",
       "programType": "benefit",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Local Department of Human Services (DHS) offices statewide; find via eohhs.ri.gov or call.",
+            "name": "Statewide via EOHHS; local offices for in-person.",
             "type": "service-area"
           }
         ]
@@ -150,7 +141,7 @@
         "benefitType": "financial",
         "hasIncomeTiers": true,
         "hasAssetLimits": true,
-        "hasRegionalVariation": true,
+        "hasRegionalVariation": false,
         "hasFunctionalReq": false,
         "hasMultipleTiers": true,
         "isStatewide": true
@@ -164,7 +155,7 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Local DHS offices; find via dhs.ri.gov/locations",
+            "name": "Local DHS/Department of Social Services offices across RI",
             "type": "service-area"
           }
         ]
@@ -178,7 +169,7 @@
         "county-directory"
       ],
       "signals": {
-        "benefitType": "in_kind",
+        "benefitType": "financial",
         "hasIncomeTiers": true,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
@@ -195,7 +186,7 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Local CAP agencies: CAPP (Providence, 401-273-2000), Westbay CAP, EBCAP (401-437-1000), others via DHS locator.[3][6][7][8]",
+            "name": "Local CAP agencies (e.g., CAPPRI, Westbay CAP, EBCAP); find via DHS or local search[3][5][7][8]",
             "type": "service-area"
           }
         ]
@@ -220,14 +211,14 @@
       }
     },
     {
-      "name": "Residential Weatherization Assistance Program",
+      "name": "Weatherization Assistance Program",
       "programType": "benefit",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Local Community Action Program (CAP) agencies statewide.[1][3][5][6][9]",
+            "name": "Local Community Action Program (CAP) agencies statewide[1][3][4][6][7]",
             "type": "service-area"
           }
         ]
@@ -252,14 +243,14 @@
       }
     },
     {
-      "name": "RI SHIP (State Health Insurance Assistance Program)",
+      "name": "State Health Insurance Assistance Program (SHIP)",
       "programType": "resource",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Office of Healthy Aging (OHA), 25 Howard Ave, Building 57, Cranston RI 02920; local sites in Providence, Northern RI[4][5]",
+            "name": "Office of Healthy Aging, 25 Howard Ave, Building 57, Cranston RI 02920 (central); regional via 2-1-1 (Providence), (401) 349-5760 x2635 (Northern RI)[2][6]",
             "type": "service-area"
           }
         ]
@@ -280,14 +271,18 @@
       }
     },
     {
-      "name": "Meals on Wheels",
+      "name": "Meals on Wheels of Rhode Island",
       "programType": "benefit",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Meals on Wheels of RI, Inc., 70 Bath St., Providence, RI 02908",
+            "name": "Main office: 70 Bath St., Providence, RI 02908",
+            "type": "service-area"
+          },
+          {
+            "name": "Capital City Café sites: Multiple locations throughout Providence (specific addresses not provided in documentation)",
             "type": "service-area"
           }
         ]
@@ -295,46 +290,55 @@
       "complexity": "medium",
       "recommendedSections": [
         "prose",
-        "what-counts",
         "documents",
-        "county-directory"
+        "county-directory",
+        "callout"
       ],
       "signals": {
-        "benefitType": "service",
+        "benefitType": "in_kind",
         "hasIncomeTiers": false,
-        "hasAssetLimits": true,
+        "hasAssetLimits": false,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
         "hasMultipleTiers": false,
-        "isStatewide": true
+        "isStatewide": false
       }
     },
     {
-      "name": "Alzheimer's Respite Voucher Program",
+      "name": "Caregiver/Respite Support",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Office for Healthy Aging (OHA), Catholic Social Services, Roman Catholic Diocese of Providence.[4][6]",
+            "name": "Family Caregiver Alliance of Rhode Island (FCARI)[1][6].",
+            "type": "service-area"
+          },
+          {
+            "name": "Carebreaks at Catholic Social Services[1].",
+            "type": "service-area"
+          },
+          {
+            "name": "Office of Healthy Aging (OHA) partners[6].",
             "type": "service-area"
           }
         ]
       },
-      "complexity": "medium",
+      "complexity": "deep",
       "recommendedSections": [
         "prose",
+        "income-table",
         "what-counts",
         "documents",
         "county-directory"
       ],
       "signals": {
-        "benefitType": "financial",
-        "hasIncomeTiers": false,
+        "benefitType": "service",
+        "hasIncomeTiers": true,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
+        "hasFunctionalReq": true,
         "hasMultipleTiers": false,
         "isStatewide": true
       }
@@ -347,15 +351,7 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "RI DLT (https://dlt.ri.gov/individuals/jobseeker-resources-2025)",
-            "type": "service-area"
-          },
-          {
-            "name": "AARP Foundation SCSEP locator (https://my.aarpfoundation.org/locator/scsep/)",
-            "type": "service-area"
-          },
-          {
-            "name": "Potential: Goodwill, NAPCA",
+            "name": "RI Department of Labor & Training (primary state grantee)",
             "type": "service-area"
           }
         ]
@@ -373,22 +369,30 @@
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
         "hasMultipleTiers": true,
-        "isStatewide": true
+        "isStatewide": false
       }
     },
     {
-      "name": "Rhode Island Legal Services (RILS) Elder Law Unit",
+      "name": "Legal Aid for Seniors",
       "programType": "resource",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Providence: 56 Pine Street, Fourth Floor, Providence, RI 02903",
+            "name": "RI Legal Services: 56 Pine Street, Providence, RI 02903 (401-274-2652); 50 Washington, Newport, RI 02840 (401-846-2264)",
             "type": "service-area"
           },
           {
-            "name": "Newport: 50 Washington Square, Newport, RI 02840",
+            "name": "RI Bar Association: 41 Sharpe Dr, Cranston, RI (401-521-5040); Lawyer Referral 401-421-7799",
+            "type": "service-area"
+          },
+          {
+            "name": "Volunteer Lawyer Program: Phone-based (401-421-7758)",
+            "type": "service-area"
+          },
+          {
+            "name": "Rhode Island Disability Law Center: 275 Westminster Street, Suite 401, Providence, RI 02903 (401-831-3150 or 1-800-733-5332)",
             "type": "service-area"
           }
         ]
@@ -409,35 +413,14 @@
       }
     },
     {
-      "name": "Rhode Island State Long-Term Care Ombudsman Program (RISLTCOP)",
+      "name": "Long-Term Care Ombudsman Program",
       "programType": "resource",
       "geographicScope": {
         "type": "federal",
-        "stateVariation": true
-      },
-      "complexity": "simple",
-      "recommendedSections": [
-        "prose"
-      ],
-      "signals": {
-        "benefitType": "unknown",
-        "hasIncomeTiers": null,
-        "hasAssetLimits": false,
-        "hasRegionalVariation": false,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Rhode Island Pharmaceutical Assistance Program for the Elderly (RIPAE)",
-      "programType": "resource",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
+        "stateVariation": true,
         "localEntities": [
           {
-            "name": "Office of Healthy Aging (OHA); senior centers statewide[1]",
+            "name": "Office of the RI State Long Term Care Ombudsman, housed within the Alliance for Better Long Term Care, 422 Post Road, Suite 204, Warwick, RI 02888",
             "type": "service-area"
           }
         ]
@@ -445,6 +428,38 @@
       "complexity": "simple",
       "recommendedSections": [
         "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "advocacy",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": false,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Rhode Island Pharmaceutical Assistance for the Elderly (RIPAE)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Office of Healthy Aging (OHA); senior centers around the state[1]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
         "county-directory"
       ],
       "signals": {
@@ -465,7 +480,7 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Administered statewide by RI Office of Healthy Aging (OHA) via ADRC",
+            "name": "Administered statewide by RI Office of Healthy Aging (OHA); contact via ADRC/POINT at 401-462-4444",
             "type": "service-area"
           }
         ]
@@ -490,61 +505,18 @@
       }
     },
     {
-      "name": "Ocean State Senior Dining Program",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "AEOA (1-800-662-5711 ext. 6899)",
-            "type": "service-area"
-          },
-          {
-            "name": "Meals on Wheels of RI (https://www.rimeals.org/)",
-            "type": "service-area"
-          },
-          {
-            "name": "Office of Healthy Aging meal sites (https://oha.ri.gov/resources/food-and-nutrition)",
-            "type": "service-area"
-          },
-          {
-            "name": "RI Community Food Bank resources.",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "medium",
-      "recommendedSections": [
-        "prose",
-        "what-counts",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "RIPTA Senior Reduced Fare Bus Pass",
+      "name": "HCC Senior Companion Program",
       "programType": "resource",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Primary: Photo ID Office, Kennedy Plaza, Providence.",
+            "name": "RI Office of Healthy Aging (primary contact)",
             "type": "service-area"
           },
           {
-            "name": "Mobile: Statewide community events via RIPTA Customer Service.",
+            "name": "Network of regional case management agencies",
             "type": "service-area"
           }
         ]
@@ -560,6 +532,39 @@
         "hasAssetLimits": false,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "The POINT",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "RI Department of Human Services (DHS) LTSS offices statewide",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
         "hasMultipleTiers": true,
         "isStatewide": true
       }

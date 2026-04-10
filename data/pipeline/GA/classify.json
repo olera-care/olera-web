@@ -1,58 +1,32 @@
 {
   "state": "GA",
   "stateName": "Georgia",
-  "classifiedAt": "2026-04-09T09:31:41.680Z",
-  "total": 13,
+  "classifiedAt": "2026-04-09T12:47:13.740Z",
+  "total": 11,
   "typeSummary": {
-    "benefit": 9,
-    "resource": 3,
+    "benefit": 8,
+    "resource": 2,
     "employment": 1
   },
   "scopeSummary": {
     "state": 5,
-    "local": 1,
-    "federal": 7
+    "federal": 6
   },
   "complexitySummary": {
-    "deep": 10,
-    "simple": 3
+    "deep": 7,
+    "medium": 2,
+    "simple": 2
   },
   "programs": [
     {
-      "name": "Medicaid Aged, Blind, and Disabled Program (ABD Medicaid)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "what-counts",
-        "tier-comparison",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": true,
-        "hasMultipleTiers": true,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Elderly and Disabled Waiver Program (EDWP)",
+      "name": "Community Care Services Program (CCSP)",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Area Agencies on Aging (AAA) statewide",
+            "name": "Area Agencies on Aging (contact via 866-552-4464 for local)[7]",
             "type": "service-area"
           }
         ]
@@ -60,6 +34,7 @@
       "complexity": "deep",
       "recommendedSections": [
         "prose",
+        "income-table",
         "what-counts",
         "tier-comparison",
         "documents",
@@ -68,7 +43,7 @@
       ],
       "signals": {
         "benefitType": "service",
-        "hasIncomeTiers": false,
+        "hasIncomeTiers": true,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": true,
@@ -77,39 +52,47 @@
       }
     },
     {
-      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "name": "Home & Community-Based Services Program",
       "programType": "benefit",
       "geographicScope": {
-        "type": "local",
-        "stateVariation": false
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local Area Agency on Aging offices",
+            "type": "service-area"
+          }
+        ]
       },
       "complexity": "deep",
       "recommendedSections": [
         "prose",
+        "income-table",
         "what-counts",
+        "tier-comparison",
         "documents",
         "county-directory",
         "callout"
       ],
       "signals": {
         "benefitType": "service",
-        "hasIncomeTiers": false,
+        "hasIncomeTiers": true,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": true,
-        "hasMultipleTiers": false,
-        "isStatewide": false
+        "hasMultipleTiers": true,
+        "isStatewide": true
       }
     },
     {
-      "name": "Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), Qualifying Individual (QI)",
+      "name": "Georgia Medicare Savings Programs (QMB, SLMB, QI)",
       "programType": "benefit",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Local DFCS offices (https://dfcs.georgia.gov/locations)",
+            "name": "Local Department of Family & Children Services (DFCS) offices; SHIP counselors statewide[6]",
             "type": "service-area"
           }
         ]
@@ -135,19 +118,19 @@
       }
     },
     {
-      "name": "Supplemental Nutrition Assistance Program (SNAP) - Senior SNAP in Georgia",
+      "name": "Senior Supplemental Nutrition Assistance Program (Senior SNAP)",
       "programType": "benefit",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Local DFCS offices (find via dfcs.georgia.gov/locations)",
+            "name": "Administered by Georgia Division of Family & Children Services (DFCS); apply via central phone/email, no regional offices specified for Senior SNAP[1][3][4]",
             "type": "service-area"
           }
         ]
       },
-      "complexity": "deep",
+      "complexity": "medium",
       "recommendedSections": [
         "prose",
         "income-table",
@@ -159,7 +142,7 @@
         "benefitType": "financial",
         "hasIncomeTiers": true,
         "hasAssetLimits": true,
-        "hasRegionalVariation": true,
+        "hasRegionalVariation": false,
         "hasFunctionalReq": false,
         "hasMultipleTiers": false,
         "isStatewide": true
@@ -173,7 +156,7 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Local Community Action Agencies (CAAs), e.g., Community Action For Improvement (https://www.cafi-ga.org), Enrichment Services (https://enrichmentservices.org), Fulton Atlanta Community Action Authority (https://www.facaa.org), Southwest Georgia Community Action Council (https://www.swgacac.com)[1][2][3][4].",
+            "name": "Local Community Action Agencies (CAAs), e.g., Community Action For Improvement (https://www.cafi-ga.org), Enrichment Services (https://enrichmentservices.org), Fulton Atlanta Community Action Authority (https://www.facaa.org), Southwest Georgia Community Action Council (https://www.swgacac.com). Full list via Georgia DFCS[2][3][4].",
             "type": "service-area"
           }
         ]
@@ -206,7 +189,7 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "County-specific agencies listed at https://gefa.georgia.gov/weatherization-assistance-program.[4]",
+            "name": "Local providers listed by county at https://gefa.georgia.gov/weatherization.[4]",
             "type": "service-area"
           }
         ]
@@ -239,7 +222,7 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Administered by Georgia Department of Human Services Division of Aging Services; local contacts via 1-866-552-4464[2][5][8]",
+            "name": "Statewide helpline; local examples: Athens (706-549-4850, lplatter@accaging.org)[5]",
             "type": "service-area"
           }
         ]
@@ -260,22 +243,14 @@
       }
     },
     {
-      "name": "Home Delivered Meals (via Community Care Services Program)",
+      "name": "Home-Delivered Meals",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Local Area Agency on Aging (AAA) for each region.[7]",
-            "type": "service-area"
-          },
-          {
-            "name": "County Department of Family and Children Services (DFCS) for Medicaid.[4]",
-            "type": "service-area"
-          },
-          {
-            "name": "Examples: All Care (Macon), Mom's Meals, GA Foods.[3][5][8]",
+            "name": "12 AAAs statewide; examples: Open Hand Atlanta (Fulton), Mom's Meals, GA Foods via Medicaid/Medicare plans.[3][5][7][8]",
             "type": "service-area"
           }
         ]
@@ -300,26 +275,22 @@
       }
     },
     {
-      "name": "Caregiver Respite Services (via Georgia Medicaid Home and Community-Based Services)",
+      "name": "Caregiver Programs (Out-of-Home Respite Care)",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Regional DBHDD offices (specific locations not provided in search results)",
+            "name": "Medicaid HCBS waiver providers statewide.",
             "type": "service-area"
           },
           {
-            "name": "Georgia Department of Human Services Division of Aging Services",
+            "name": "Easterseals Southern Georgia.",
             "type": "service-area"
           },
           {
-            "name": "Licensed children's transition care centers for medically fragile children[6]",
-            "type": "service-area"
-          },
-          {
-            "name": "Individual respite care providers enrolled as Medicaid providers[5]",
+            "name": "Georgia Center for Resources and Support.",
             "type": "service-area"
           }
         ]
@@ -327,18 +298,20 @@
       "complexity": "deep",
       "recommendedSections": [
         "prose",
+        "income-table",
         "what-counts",
+        "tier-comparison",
         "documents",
         "county-directory",
         "callout"
       ],
       "signals": {
         "benefitType": "service",
-        "hasIncomeTiers": false,
+        "hasIncomeTiers": true,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
-        "hasFunctionalReq": true,
-        "hasMultipleTiers": false,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
         "isStatewide": true
       }
     },
@@ -350,24 +323,24 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Legacy Link",
+            "name": "AARP Foundation: 1718 Peachtree Street NW, Suite 991, Atlanta, GA 30309 (Cobb, DeKalb, Douglas, Fulton, Gwinnett)",
             "type": "service-area"
           },
           {
-            "name": "AARP Foundation SCSEP",
+            "name": "ACC Aging: Contact (706) 549-4850 (NW GA counties)",
             "type": "service-area"
           },
           {
-            "name": "ACCA (Northwest GA counties)",
+            "name": "Legacy Link (statewide remainder)",
             "type": "service-area"
           },
           {
-            "name": "Northeast Georgia Regional Commission (120 counties)",
+            "name": "WorkSource Georgia Career Centers for referrals",
             "type": "service-area"
           }
         ]
       },
-      "complexity": "deep",
+      "complexity": "medium",
       "recommendedSections": [
         "prose",
         "income-table",
@@ -379,31 +352,31 @@
         "hasAssetLimits": false,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
+        "hasMultipleTiers": false,
         "isStatewide": false
       }
     },
     {
-      "name": "Legal Assistance for Older Georgians",
+      "name": "Elderly Legal Assistance Program (ELAP)",
       "programType": "resource",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "County-specific law firms listed on aging.georgia.gov/tools-resources/elderly-legal-assistance-program",
+            "name": "County-specific law firms listed at https://aging.georgia.gov/tools-resources/elderly-legal-assistance-program[1]",
             "type": "service-area"
           },
           {
-            "name": "Georgia Legal Services Program (most counties outside Metro-Atlanta)",
+            "name": "Atlanta: 2 Peachtree St. NW 33rd Floor, (404) 657-5258[6]",
             "type": "service-area"
           },
           {
-            "name": "Atlanta Legal Aid (Atlanta area)",
+            "name": "River Valley (16 counties): Columbus office of Georgia Legal Services[3]",
             "type": "service-area"
           },
           {
-            "name": "Georgia Senior Legal Hotline (statewide phone)[1][2][7][8]",
+            "name": "Coastal: Georgia Legal Services 1-888-220-8399[4]",
             "type": "service-area"
           }
         ]
@@ -415,39 +388,11 @@
       ],
       "signals": {
         "benefitType": "service",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Long-Term Care Ombudsman Program",
-      "programType": "resource",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "Office of the State Ombudsman (Atlanta: 2 Peachtree St NW Suite 9-231); Community programs via georgiaombudsman.org county locator; Sowega COA (south GA); ACCA (east GA)[1][2][4][5]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "simple",
-      "recommendedSections": [
-        "prose",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "advocacy",
         "hasIncomeTiers": false,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
+        "hasMultipleTiers": true,
         "isStatewide": true
       }
     }

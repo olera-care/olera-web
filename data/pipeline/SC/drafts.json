@@ -1,70 +1,2383 @@
 {
   "state": "SC",
   "stateName": "South Carolina",
-  "draftedAt": "2026-04-09T09:41:23.033Z",
-  "total": 15,
-  "successful": 0,
+  "draftedAt": "2026-04-09T16:31:01.626Z",
+  "total": 14,
+  "successful": 14,
   "programs": [
     {
-      "name": "Healthy Connections Medicaid",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
-    },
-    {
+      "id": "south-carolina-community-choices-waiver",
       "name": "Community Choices Waiver",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "shortName": "Community Choices",
+      "tagline": "Keeps your parent at home with daily care support instead of nursing home placement.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local Health and Human Services Community Long Term Care (CLTC) Offices",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs daily help with bathing, dressing, or medication but wants to stay home, South Carolina's Community Choices Waiver provides personal care, adult day care, home modifications, and other services to prevent nursing home placement. Your parent must qualify for Medicaid and meet Nursing Facility Level of Care (a clinical assessment showing they need assistance with daily activities like mobility, eating, or toileting).\n\nThe waiver covers services like personal care attendants, companion care, home-delivered meals, emergency response systems, and home accessibility modifications. Because waiver slots are limited, there may be a waitlist — and your parent must use services regularly to keep their slot.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+ or disabled adult",
+          "Medicaid eligible",
+          "Needs nursing home level of care",
+          "South Carolina resident"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": null,
+          "couple": null,
+          "countedAssets": [],
+          "exemptAssets": [
+            "Home (if equity ≤ $730,000)",
+            "Spouse's residence",
+            "Home where disabled/blind child lives"
+          ],
+          "homeEquityCap": 730000
+        },
+        "functionalRequirement": "Must need assistance with daily activities like mobility, eating, toileting, bathing, or dressing — or require 8+ hours of skilled nursing per day. Dementia may qualify if nursing facility level of care is met.",
+        "otherRequirements": [
+          "South Carolina resident",
+          "U.S. citizen or qualified alien",
+          "Lives at home (not in institution)",
+          "At risk of nursing home placement"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply through your local Community Long Term Care office by phone or in-person — processing time varies by office.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact your local CLTC office",
+            "description": "Call your regional Community Long Term Care office to start the application process and schedule an assessment."
+          },
+          {
+            "step": 2,
+            "title": "Complete Medicaid application",
+            "description": "If your parent isn't already on Medicaid, you'll need to apply through SCDHHS — the waiver requires Medicaid eligibility."
+          },
+          {
+            "step": 3,
+            "title": "Get clinical assessment",
+            "description": "A care coordinator will assess whether your parent meets Nursing Facility Level of Care through evaluation of daily living needs."
+          },
+          {
+            "step": 4,
+            "title": "Wait for slot availability",
+            "description": "If approved, you may be placed on a waitlist until a waiver slot becomes available in your area."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": "Waiver slots are limited and may involve a waitlist",
+        "tip": "Start the Medicaid application early — you cannot get waiver services without Medicaid eligibility first.",
+        "urls": [
+          {
+            "label": "SCDHHS Community Choices Waiver",
+            "url": "https://www.scdhhs.gov/resources/waivers/community-choices-cc-waiver"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and savings",
+            "Stocks, bonds, and investments",
+            "Home equity over $730,000",
+            "Second homes or rental property",
+            "Vehicles beyond one primary car"
+          ],
+          "excluded": [
+            "Primary home (if equity ≤ $730,000)",
+            "Home where spouse lives",
+            "Home where disabled or blind child lives",
+            "One vehicle for transportation",
+            "Personal belongings and household items",
+            "Burial plots and funeral funds"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Driver's license or state ID",
+                "Social Security card",
+                "Proof of South Carolina residency"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Bank statements (last 3 months)",
+                "Social Security award letter",
+                "Pension or retirement income statements",
+                "Property deeds or mortgage statements"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Medical records showing need for daily assistance",
+                "Current medication list",
+                "Doctor's assessment of functional limitations",
+                "Records of current care needs"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Waiver slots are limited and there may be a waitlist. Once you get a slot, your parent must use services regularly or risk losing it."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Your parent must already qualify for Medicaid or apply simultaneously — the waiver doesn't provide Medicaid coverage, it adds services to existing Medicaid benefits."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house if she qualifies for the waiver?",
+          "answer": "Yes, as long as the home equity is $730,000 or less (2025 limit). The home is exempt from asset limits if your parent lives there, intends to return, or if a spouse or disabled child lives there."
+        },
+        {
+          "question": "What if Dad needs nursing home care but I want him to stay home?",
+          "answer": "The waiver is designed exactly for this situation. If he meets Nursing Facility Level of Care but can safely remain at home with services, the waiver provides personal care, companion care, and other supports to make home care possible."
+        },
+        {
+          "question": "How long is the waitlist for waiver services?",
+          "answer": "Waitlist times aren't specified and likely vary by region. Contact your local CLTC office for current wait times in your area. Getting on the waitlist early is important even if your parent doesn't need services immediately."
+        },
+        {
+          "question": "What happens if Mom's income is just over the Medicaid limit?",
+          "answer": "She may still qualify through Medicaid's spend-down process, where medical expenses can reduce countable income. Use the American Council on Aging Medicaid Eligibility Test or speak with a CLTC office about spend-down options."
+        },
+        {
+          "question": "Can the waiver pay for modifications to make the house safer?",
+          "answer": "Yes, the waiver covers home accessibility adaptations and environmental modifications like ramps, grab bars, or bathroom modifications to help your parent remain safely at home."
+        },
+        {
+          "question": "What if Dad is under 65 but has a disability?",
+          "answer": "Adults ages 18-64 with physical disabilities can qualify for the waiver if they meet all other requirements including Medicaid eligibility and Nursing Facility Level of Care. They can continue benefits after turning 65."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://www.scdhhs.gov/resources/waivers/community-choices-cc-waiver",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
-      "name": "South Carolina PACE (Program of All-Inclusive Care for the Elderly)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
-    },
-    {
+      "id": "south-carolina-medicare-savings-programs",
       "name": "Medicare Savings Programs (QMB, SLMB, QI)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "shortName": "Medicare Savings Programs",
+      "tagline": "Help paying Medicare premiums and out-of-pocket costs if your parent's income is under $1,823/month.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "SCDHHS county offices statewide; contact 1-888-549-0820 for local",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent struggles with Medicare costs on a fixed income, South Carolina's Medicare Savings Programs can eliminate their monthly Medicare Part B premium ($202.90 in 2026) and other out-of-pocket expenses. Three programs serve different income levels: QMB covers the most costs for those earning under $1,350/month, while SLMB and QI help with premiums for slightly higher incomes up to $1,823/month.\n\nBecause these programs coordinate directly with Medicare, your parent won't see bills for covered services — the state pays providers directly. QMB enrollees in South Carolina get full Medicaid benefits, meaning no copays for Medicare-covered services and protection from surprise medical bills.\n\nThe catch: QI (the highest income tier) has limited federal funding and operates first-come, first-served. Apply early in the calendar year to avoid waitlists.",
+      "savingsRange": "$2,435 – $3,670/year in 2026",
+      "savingsSource": "Medicare Part B premium ($202.90/month) plus deductibles and copayments for QMB; premium only for SLMB/QI",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+ with Medicare",
+          "Income under $1,823/month (single)",
+          "Assets under $9,660 (single)",
+          "South Carolina resident"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1350
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 1824
+          }
+        ],
+        "assetLimits": {
+          "individual": 9660,
+          "couple": 14470,
+          "countedAssets": [
+            "Bank accounts",
+            "Stocks and bonds",
+            "CDs and savings"
+          ],
+          "exemptAssets": [
+            "Primary home and land",
+            "One car",
+            "Burial plots",
+            "Life insurance up to $1,500 face value",
+            "Household goods"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be eligible for Medicare Part A (even if not enrolled)",
+          "U.S. citizen or qualified immigrant",
+          "Not eligible for full Medicaid"
+        ],
+        "povertyLevelReference": "100-135% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply by phone at 1-888-549-0820 or online through SCDHHS ACCESS portal — processing takes up to 45 days.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Gather financial documents",
+            "description": "Collect 2-3 months of bank statements, Social Security award letters, and proof of any other income."
+          },
+          {
+            "step": 2,
+            "title": "Complete SCDHHS Medicaid Application",
+            "description": "Use Form 3400P or apply online at access.scdhhs.gov — these programs use the same application as Medicaid."
+          },
+          {
+            "step": 3,
+            "title": "Submit with Medicare proof",
+            "description": "Include your parent's Medicare card or proof of Medicare eligibility along with the completed application."
+          },
+          {
+            "step": 4,
+            "title": "Follow up within 45 days",
+            "description": "SCDHHS will process the application and notify you of approval or need for additional information."
+          }
+        ],
+        "processingTime": "Up to 45 days, but varies by county office workload",
+        "waitlist": "QI has limited federal funding and may have waitlists or denial if funds are exhausted",
+        "tip": "Apply for QI early in the calendar year — it's first-come, first-served and funding can run out.",
+        "urls": [
+          {
+            "label": "Apply Online",
+            "url": "https://access.scdhhs.gov/"
+          },
+          {
+            "label": "SCDHHS Eligibility Info",
+            "url": "https://www.scdhhs.gov/members/program-eligibility-and-income-limits"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "tier-comparison",
+          "heading": "Three Programs by Income Level",
+          "tiers": [
+            {
+              "name": "QMB (Qualified Medicare Beneficiary)",
+              "description": "Lowest income tier with most benefits",
+              "incomeLimit": "Up to $1,350/month (single), $1,824/month (couple)",
+              "coverage": "Pays Part A premium (if applicable), Part B premium ($202.90/month), deductibles, and all copayments. Full Medicaid benefits in South Carolina."
+            },
+            {
+              "name": "SLMB (Specified Low-Income Medicare Beneficiary)",
+              "description": "Middle income tier",
+              "incomeLimit": "$1,350-$1,620/month (single), $1,824-$2,189/month (couple)",
+              "coverage": "Pays Part B premium only ($202.90/month in 2026)."
+            },
+            {
+              "name": "QI (Qualifying Individual)",
+              "description": "Highest income tier with limited funding",
+              "incomeLimit": "$1,620-$1,823/month (single), $2,189-$2,461/month (couple)",
+              "coverage": "Pays Part B premium only ($202.90/month in 2026). First-come, first-served."
+            }
+          ]
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and savings",
+            "Stocks, bonds, and investments",
+            "Certificates of deposit"
+          ],
+          "excluded": [
+            "Primary home and land (no equity limit)",
+            "One car of any value",
+            "Burial plots and burial funds",
+            "Life insurance with face value up to $1,500",
+            "Household goods and personal belongings",
+            "Native American settlements"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residence",
+              "items": [
+                "Birth certificate or driver's license",
+                "Social Security card",
+                "Proof of South Carolina residency (utility bill)",
+                "Medicare card or proof of Medicare eligibility"
+              ]
+            },
+            {
+              "name": "Financial Records",
+              "items": [
+                "Last 2-3 months of bank statements",
+                "Social Security or SSI award letters",
+                "Pay stubs if still working",
+                "Investment account statements",
+                "Information about all household members"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "QI funding is limited and operates first-come, first-served. Apply early in the calendar year to avoid waitlists or being denied due to exhausted funds."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "South Carolina applies a $20 general income disregard, so your parent's net income after this deduction determines eligibility. Don't assume they're over the limit without checking the calculation."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if they qualify?",
+          "answer": "Yes. The primary home and land are completely exempt from asset limits, regardless of value. There's no home equity cap in South Carolina for these programs."
+        },
+        {
+          "question": "What if my parent's income is just over the limit?",
+          "answer": "South Carolina applies a $20 general income disregard, plus deductions for earned income. Have SCDHHS calculate the exact net income — your parent may still qualify even if their gross income appears too high."
+        },
+        {
+          "question": "Will my parent still have Medicare if they get QMB?",
+          "answer": "Yes. QMB works alongside Medicare, not instead of it. Your parent keeps their Medicare coverage, but QMB pays the premiums and out-of-pocket costs. In South Carolina, QMB also provides full Medicaid benefits."
+        },
+        {
+          "question": "How is this different from regular Medicaid?",
+          "answer": "These programs specifically help with Medicare costs for people who don't qualify for full Medicaid due to slightly higher income. QMB provides Medicaid-like benefits in South Carolina, but SLMB and QI only cover Medicare premiums."
+        },
+        {
+          "question": "What happens if QI runs out of funding?",
+          "answer": "If QI funding is exhausted, new applicants may be waitlisted or denied until the next federal funding cycle. This is why applying early in the calendar year is crucial for QI."
+        },
+        {
+          "question": "Do both spouses need to apply if they're married?",
+          "answer": "The programs consider both spouses' income and assets even if only one applies, but both can potentially benefit. Each spouse who has Medicare should apply separately to get their own coverage."
+        }
+      ],
+      "phone": "1-888-549-0820",
+      "sourceUrl": "https://www.scdhhs.gov/members/program-eligibility-and-income-limits",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
-      "name": "SNAP (Supplemental Nutrition Assistance Program)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "id": "south-carolina-snap-food-benefits",
+      "name": "SNAP (Food Assistance)",
+      "shortName": "SNAP Food Benefits",
+      "tagline": "Monthly grocery assistance up to $546 for seniors on fixed incomes in South Carolina.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local DSS county offices for general SNAP; central mail for ESAP",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and struggling with grocery costs, SNAP provides monthly money on an EBT card to buy food. For a 2-person elderly household, this typically means around $415 per month, with a maximum of $546 depending on income and deductions.\n\nSouth Carolina offers expanded income limits and a simplified application (ESAP) specifically for seniors. Because all household members must be 60+ with no earned income to use ESAP, many families find this the easiest path. Otherwise, standard SNAP rules apply with higher income limits than most states.\n\nThe program covers groceries but excludes alcohol, tobacco, and prepared foods. Your parent gets an EBT card that works like a debit card at most grocery stores and farmers markets.",
+      "savingsRange": "$200 – $6,552/year in 2026",
+      "savingsSource": "Based on typical elderly household benefit of $415/month, maximum $546/month",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Income below $2,608/month (single)",
+          "South Carolina resident",
+          "U.S. citizen or qualified immigrant"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2608
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 3526
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 4442
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 5358
+          },
+          {
+            "householdSize": 5,
+            "monthlyLimit": 6276
+          },
+          {
+            "householdSize": 6,
+            "monthlyLimit": 7192
+          },
+          {
+            "householdSize": 7,
+            "monthlyLimit": 8108
+          }
+        ],
+        "assetLimits": {
+          "individual": 4500,
+          "couple": 4500,
+          "countedAssets": [
+            "Bank accounts",
+            "Cash",
+            "Stocks and bonds"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "Most vehicles",
+            "Retirement accounts"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must live in South Carolina",
+          "Social Security and pensions count as income",
+          "For simplified ESAP application: no earned income in household"
+        ],
+        "povertyLevelReference": "165% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply by mail using the simplified ESAP form if all household members are 60+ with no work income — processing begins immediately once received.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Choose your application path",
+            "description": "If everyone in the household is 60+ with no earned income and not receiving SNAP through another program, use the simplified ESAP application. Otherwise, apply for standard SNAP."
+          },
+          {
+            "step": 2,
+            "title": "Gather required documents",
+            "description": "Collect proof of age, identity, income (Social Security statements, pension documents), and medical expenses over $35 monthly if claiming deductions."
+          },
+          {
+            "step": 3,
+            "title": "Submit your application",
+            "description": "For ESAP: Mail completed form to ESAP, South Carolina Department of Social Services, PO Box 100203, Columbia, SC 29202. For standard SNAP: Apply online at dss.sc.gov or visit your local DSS office."
+          },
+          {
+            "step": 4,
+            "title": "Wait for decision",
+            "description": "You'll receive written notification of the decision. If approved, benefits start from the date you filed your application."
+          }
+        ],
+        "processingTime": "Benefits begin from application date if eligible",
+        "waitlist": null,
+        "tip": "The ESAP application requires no interview and has a 36-month certification period, making it much simpler than standard SNAP.",
+        "urls": [
+          {
+            "label": "SC Department of Social Services SNAP",
+            "url": "https://dss.sc.gov/assistance-programs/snap/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits by Household Size (Expanded for All-Elderly Households)",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": "$2,608"
+            },
+            {
+              "householdSize": 2,
+              "monthlyLimit": "$3,526"
+            },
+            {
+              "householdSize": 3,
+              "monthlyLimit": "$4,442"
+            },
+            {
+              "householdSize": 4,
+              "monthlyLimit": "$5,358"
+            },
+            {
+              "householdSize": 5,
+              "monthlyLimit": "$6,276"
+            },
+            {
+              "householdSize": 6,
+              "monthlyLimit": "$7,192"
+            },
+            {
+              "householdSize": 7,
+              "monthlyLimit": "$8,108"
+            }
+          ],
+          "footnote": "October 2025 - September 2026, for households where all adults are 60+ or disabled"
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and cash",
+            "Stocks and bonds",
+            "Non-retirement investments"
+          ],
+          "excluded": [
+            "Primary home (any value)",
+            "Most vehicles",
+            "401(k), IRA, and other retirement accounts",
+            "Life insurance policies",
+            "Burial plots and funeral funds"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Age",
+              "items": [
+                "Driver's license or state ID",
+                "Birth certificate or passport",
+                "Social Security card"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Social Security award letter",
+                "Pension statements",
+                "Bank statements (recent 3 months)",
+                "Medical expense receipts (if over $35/month)"
+              ]
+            },
+            {
+              "name": "Residency",
+              "items": [
+                "Utility bill or lease agreement",
+                "Mail with current South Carolina address"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If everyone in your parent's household is 60+ with no work income, use the ESAP application — it requires no interview and renews every 36 months instead of annually."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Does my parent's Social Security count against the income limit?",
+          "answer": "Yes, Social Security and pension income count toward the monthly income limits. However, South Carolina has expanded income limits that are higher than federal standards — up to $2,608/month for a single person if all household members are 60+ or disabled."
+        },
+        {
+          "question": "Will getting SNAP affect my parent's other benefits?",
+          "answer": "No, SNAP won't reduce Social Security, Medicare, or most other benefits. However, if your parent receives SSI, SNAP benefits won't count as income against SSI limits."
+        },
+        {
+          "question": "Can my parent use SNAP to buy groceries online?",
+          "answer": "Yes, the EBT card works for online grocery orders at participating retailers like Amazon and Walmart. Your parent can also use it at most grocery stores, farmers markets, and some convenience stores."
+        },
+        {
+          "question": "What if my parent's income is just over the limit?",
+          "answer": "Medical expenses over $35/month can be deducted from income, potentially bringing your parent under the limit. This includes insurance premiums, prescription costs, and medical equipment not covered by insurance."
+        },
+        {
+          "question": "How long does SNAP last once approved?",
+          "answer": "If using the simplified ESAP application, benefits continue for 36 months before needing renewal. Standard SNAP typically requires annual recertification. Benefits continue as long as your parent remains eligible."
+        },
+        {
+          "question": "What happens if my parent lives with me?",
+          "answer": "If your parent buys and prepares food separately from your household, they can apply as a separate household. If you share meals and grocery expenses, you'd need to apply together as one household, which could affect eligibility based on combined income."
+        }
+      ],
+      "phone": "1-888-898-0055",
+      "sourceUrl": "https://dss.sc.gov/assistance-programs/snap/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
-      "name": "LIHEAP (Low-Income Home Energy Assistance Program)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "id": "south-carolina-liheap-energy-assistance",
+      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "shortName": "LIHEAP Energy Help",
+      "tagline": "Your parent could get up to $1,500/year to pay heating and cooling bills if their income is under $2,667/month",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Community Action Agencies",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent struggles to pay heating or cooling bills, LIHEAP provides direct payments to utility companies on their behalf. The program pays up to $850 for heating bills, $775 for cooling, and up to $1,500 for energy emergencies — with higher amounts for parents who are 60+ or disabled. Because funds are limited and distributed first-come-first-served, vulnerable households including those 60+ get priority processing.\n\nYour parent can receive help with up to two types of energy assistance per year (heating and cooling, for example), with a maximum of $1,500 per service type. The program operates seasonally — heating assistance typically runs fall through winter, cooling assistance in summer, with crisis help available year-round when funds allow.",
+      "savingsRange": "$400 – $1,500/year in 2026",
+      "savingsSource": "Maximum benefit amounts per service type",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Income under $2,667/month for 1 person",
+          "Must be responsible for energy bill",
+          "Priority for age 60+, disabled, or households with children 5 and under",
+          "U.S. citizen or eligible status",
+          "No asset limits"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2667
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 3487
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 4307
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 5127
+          },
+          {
+            "householdSize": 5,
+            "monthlyLimit": 5947
+          },
+          {
+            "householdSize": 6,
+            "monthlyLimit": 6767
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must include at least one household member responsible for the energy bill",
+          "Renters need itemized energy bill if utilities included in rent",
+          "U.S. citizenship or eligible immigration status required"
+        ],
+        "povertyLevelReference": "60% of South Carolina Median Income"
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your county's Community Action Agency — applications are processed locally, not statewide.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your county's Community Action Agency",
+            "description": "Visit oeo.sc.gov for a county map or call 803-734-0662 to find your local office"
+          },
+          {
+            "step": 2,
+            "title": "Call your local agency",
+            "description": "Each county has its own agency that handles LIHEAP applications and determines eligibility"
+          },
+          {
+            "step": 3,
+            "title": "Complete agency-specific application",
+            "description": "Bring required documents including ID, income proof, and energy bills in a household member's name"
+          },
+          {
+            "step": 4,
+            "title": "Wait for eligibility review",
+            "description": "Priority households (60+, disabled, young children) are processed first when funds are available"
+          }
+        ],
+        "processingTime": "Varies by county agency and fund availability",
+        "waitlist": "Funds are limited and services continue until exhausted — priority processing for vulnerable households",
+        "tip": "Apply as early as possible when the program opens for your season (heating or cooling) since funds run out quickly.",
+        "urls": [
+          {
+            "label": "Find Your County Agency",
+            "url": "https://oeo.sc.gov"
+          },
+          {
+            "label": "Federal Eligibility Tool",
+            "url": "https://liheap.acf.hhs.gov/eligibility-tool"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits by Household Size",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 2667,
+              "annualLimit": 32004
+            },
+            {
+              "householdSize": 2,
+              "monthlyLimit": 3487,
+              "annualLimit": 41844
+            },
+            {
+              "householdSize": 3,
+              "monthlyLimit": 4307,
+              "annualLimit": 51684
+            },
+            {
+              "householdSize": 4,
+              "monthlyLimit": 5127,
+              "annualLimit": 61524
+            },
+            {
+              "householdSize": 5,
+              "monthlyLimit": 5947,
+              "annualLimit": 71364
+            },
+            {
+              "householdSize": 6,
+              "monthlyLimit": 6767,
+              "annualLimit": 81204
+            }
+          ],
+          "footnote": "2026 limits, approximately 60% of South Carolina Median Income"
+        },
+        {
+          "type": "tier-comparison",
+          "heading": "Benefit Amounts by Service Type",
+          "tiers": [
+            {
+              "name": "Heating Assistance",
+              "description": "Available fall through winter",
+              "incomeLimit": "Same income limits apply",
+              "coverage": "Up to $850 per year, minimum $200"
+            },
+            {
+              "name": "Cooling Assistance",
+              "description": "Available during summer months",
+              "incomeLimit": "Same income limits apply",
+              "coverage": "Up to $775 per year, minimum $200"
+            },
+            {
+              "name": "Crisis Assistance",
+              "description": "Emergency help available year-round",
+              "incomeLimit": "Same income limits apply",
+              "coverage": "Up to $1,500 per crisis situation"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Photo ID for applicant",
+                "Social Security cards for all household members",
+                "Proof of U.S. citizenship or eligible immigration status"
+              ]
+            },
+            {
+              "name": "Housing",
+              "items": [
+                "Rental agreement (if applicable)",
+                "Energy bills in a household member's name",
+                "Itemized utility bill if renter and utilities included in rent"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Proof of income for all household members",
+                "Recent tax records",
+                "Any other income documentation"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Funds run out quickly each year. Priority goes to households with members 60+, disabled individuals (proof required), or children 5 and under. Apply as soon as the program opens for your season."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If your parent is a renter and utilities are included in rent, they'll need an itemized bill from the landlord showing the energy portion to qualify."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if Mom's income is just over the limit?",
+          "answer": "Income limits are firm, but they're based on gross monthly household income for everyone living at the address. If her income recently dropped due to retirement or other changes, make sure you're using current monthly amounts, not last year's tax return."
+        },
+        {
+          "question": "Can she get help with both heating and cooling bills?",
+          "answer": "Yes, your parent can receive up to two services per calendar year — for example, heating assistance in winter and cooling assistance in summer. The maximum is $1,500 per service type."
+        },
+        {
+          "question": "What if she's already behind on her energy bill?",
+          "answer": "LIHEAP can help with past-due bills through crisis assistance (up to $1,500). The payment goes directly to the utility company, not to your parent."
+        },
+        {
+          "question": "Does she have to pay this money back?",
+          "answer": "No, LIHEAP benefits are grants, not loans. The money is paid directly to the utility company and never needs to be repaid."
+        },
+        {
+          "question": "What if the program runs out of money before she applies?",
+          "answer": "Unfortunately, she'll have to wait until the next program year. This is why it's crucial to apply early, especially since households 60+ get priority processing when funds are available."
+        },
+        {
+          "question": "Can she still apply if her utilities are included in her rent?",
+          "answer": "Yes, but she'll need an itemized bill from her landlord showing how much of the rent goes toward energy costs. The energy portion must also be in a household member's name."
+        }
+      ],
+      "phone": "803-734-0662",
+      "sourceUrl": "https://oeo.sc.gov/managedsites/prd/oeo/liheap.html",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
-      "name": "Weatherization Assistance Program (WAP)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "id": "south-carolina-weatherization-assistance",
+      "name": "Weatherization Assistance Program",
+      "shortName": "Home Weatherization",
+      "tagline": "Free home improvements to reduce your parent's energy bills if income is below $31,200 for one person.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "8 community action agencies covering all 46 counties",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent struggles with high heating and cooling bills, South Carolina's Weatherization Assistance Program provides free home improvements to reduce energy costs. The program installs insulation, seals air leaks, and addresses safety issues like carbon monoxide problems — at no cost to your parent.\n\nYour parent qualifies if their household income is at or below 200% of the federal poverty level ($31,200 annually for one person in 2026). Households with seniors 60+, people with disabilities, or children under 18 get priority. The program covers all 46 South Carolina counties through 8 regional community action agencies.\n\nBecause each home gets a professional energy assessment, the improvements are tailored to what will save your parent the most money. Homes that were weatherized in the last 15 years are not eligible.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Income at or below 200% federal poverty level",
+          "South Carolina resident",
+          "Home not weatherized in last 15 years",
+          "Priority for age 60+ households"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2600
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 3520
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 4440
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 5360
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "South Carolina resident needing help with home energy costs",
+          "Renters need written landlord permission",
+          "Homeowners need proof of ownership"
+        ],
+        "povertyLevelReference": "200% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact your local community action agency to apply — processing time varies by region and funding availability.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local agency",
+            "description": "Look up which of the 8 community action agencies serves your parent's county at oeo.sc.gov or energyfundsforall.org."
+          },
+          {
+            "step": 2,
+            "title": "Gather required documents",
+            "description": "Collect ID for all household members 18+, Social Security cards, 30 days of income verification, current utility bills, and property ownership proof."
+          },
+          {
+            "step": 3,
+            "title": "Contact the agency",
+            "description": "Call or visit your local agency to start the intake process — each agency handles applications differently."
+          },
+          {
+            "step": 4,
+            "title": "Wait for assessment",
+            "description": "If approved, a professional will assess your parent's home to determine which weatherization measures will provide the most energy savings."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Priority households (seniors 60+, disabled, or with children) may get served faster than others.",
+        "urls": [
+          {
+            "label": "Find Your Local Agency",
+            "url": "https://oeo.sc.gov/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits by Household Size (200% Federal Poverty Level)",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 2600,
+              "annualLimit": 31200
+            },
+            {
+              "householdSize": 2,
+              "monthlyLimit": 3520,
+              "annualLimit": 42240
+            },
+            {
+              "householdSize": 3,
+              "monthlyLimit": 4440,
+              "annualLimit": 53280
+            },
+            {
+              "householdSize": 4,
+              "monthlyLimit": 5360,
+              "annualLimit": 64320
+            }
+          ],
+          "footnote": "2026 federal poverty guidelines. Add $880/month for each additional household member."
+        },
+        {
+          "type": "tier-comparison",
+          "heading": "Priority Tiers",
+          "tiers": [
+            {
+              "name": "Priority Households",
+              "description": "Seniors 60+, people with disabilities, or households with children under 18",
+              "incomeLimit": "200% federal poverty level",
+              "coverage": "May receive services faster due to priority status"
+            },
+            {
+              "name": "Other Eligible Households",
+              "description": "All other households meeting income requirements",
+              "incomeLimit": "200% federal poverty level",
+              "coverage": "May have longer wait times depending on funding and demand"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Valid SC driver's license or picture ID for all household members 18+ (address must match home address)",
+                "Original Social Security card for all household members"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "30 days of income verification: Social Security award letter, pension statement, consecutive payroll receipts, or DSS food stamp report",
+                "Current electric bill (and gas bill if applicable) with applicant's name",
+                "Bank statements are NOT accepted for income verification"
+              ]
+            },
+            {
+              "name": "Property",
+              "items": [
+                "Homeowners: county tax receipt as proof of ownership",
+                "Renters: written permission from landlord",
+                "Proof of disability if claiming priority status"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Your parent's ID address must exactly match their home address, and you'll need documents for ALL household members. No bank statements accepted for income — only specific documents like Social Security award letters or payroll receipts."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If your parent was automatically approved for SSI or Aid to Families with Dependent Children, they're automatically eligible for weatherization — no additional income verification needed."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if Mom is renting and her landlord won't give permission?",
+          "answer": "Your mom cannot get weatherization services without written landlord permission. Try explaining to the landlord that the improvements increase property value and energy efficiency at no cost to them."
+        },
+        {
+          "question": "Our house was weatherized 12 years ago — can we apply again?",
+          "answer": "No. Homes that received weatherization services in the last 15 years are not eligible. You'd need to wait until the 15-year period is complete."
+        },
+        {
+          "question": "What exactly will they do to Dad's house?",
+          "answer": "A professional will assess your dad's home and determine the most cost-effective improvements. This typically includes insulation, sealing air leaks, and addressing health and safety issues like carbon monoxide problems. The specific work depends on what will save the most energy."
+        },
+        {
+          "question": "Dad's income is just over the limit — are there any exceptions?",
+          "answer": "The income limit is firm at 200% of federal poverty level. However, if your dad receives SSI or Aid to Families with Dependent Children, he's automatically eligible regardless of other income."
+        },
+        {
+          "question": "How long is the wait after we apply?",
+          "answer": "Wait times aren't specified and likely vary by region and funding availability. Priority households (seniors 60+, disabled, or with children under 18) may be served faster."
+        },
+        {
+          "question": "Which community action agency covers our county?",
+          "answer": "South Carolina has 8 community action agencies covering different service areas across all 46 counties. Visit oeo.sc.gov or energyfundsforall.org to find which agency serves your parent's specific county."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://oeo.sc.gov/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
-      "name": "I-Care (SHIP)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "id": "south-carolina-ship-i-care",
+      "name": "SHIP / I-Care",
+      "shortName": "SHIP I-Care",
+      "tagline": "Free Medicare counseling to help your parent compare plans and solve coverage problems.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Lt. Governor's Office on Aging, 1301 Gervais Street, Suite 350, Columbia SC 29201",
+            "type": "service-area"
+          },
+          {
+            "name": "Local contacts via 1-800-868-9095",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent has Medicare and feels overwhelmed by plan options or coverage problems, SHIP (State Health Insurance Assistance Program) provides free one-on-one counseling. Because Medicare plans change every year and comparing dozens of options is confusing, SHIP counselors help your parent find the right Medicare health plan, prescription drug coverage, or Medigap supplement — potentially saving hundreds of dollars annually by switching to a better plan.\n\nSHIP counselors are trained volunteers who work independently of insurance companies. They can help resolve billing problems, explain coverage changes, review prescription assistance options, and walk through plan comparisons during Medicare Open Enrollment (October 15 - December 7). No income or asset limits — any Medicare-eligible person in South Carolina can use this service.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+ or disabled",
+          "Has Medicare",
+          "South Carolina resident",
+          "No income limits"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be eligible for Medicare",
+          "South Carolina resident"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call 1-800-868-9095 for immediate counseling — no application required.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the helpline",
+            "description": "Call 1-800-868-9095 to be connected with a local SHIP counselor in your area."
+          },
+          {
+            "step": 2,
+            "title": "Gather Medicare documents",
+            "description": "Have your parent's Medicare card, current insurance details, and list of medications ready for the counseling session."
+          },
+          {
+            "step": 3,
+            "title": "Schedule counseling",
+            "description": "Meet with counselor by phone or in-person to review Medicare options, compare plans, or resolve billing issues."
+          }
+        ],
+        "processingTime": "Immediate counseling upon contact",
+        "waitlist": null,
+        "tip": "Call during Medicare Open Enrollment (October 15 - December 7) when your parent can actually switch plans based on the counselor's recommendations.",
+        "urls": [
+          {
+            "label": "Official SHIP South Carolina",
+            "url": "https://www.shiphelp.org/ships/south-carolina/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "Local Offices",
+          "offices": [
+            {
+              "name": "Lt. Governor's Office on Aging",
+              "type": "service-area",
+              "phone": "1-800-868-9095",
+              "address": "1301 Gervais Street, Suite 350, Columbia SC 29201"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "SHIP only provides counseling and referrals — not direct financial benefits or healthcare services. They help you navigate Medicare, but don't pay for coverage or medical care."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can SHIP help if my parent already has Medicare coverage?",
+          "answer": "Yes. SHIP counselors help people who already have Medicare compare their current plan to other options, especially during Open Enrollment. They can identify if your parent could save money or get better coverage by switching plans."
+        },
+        {
+          "question": "Will the counselor try to sell my parent insurance?",
+          "answer": "No. SHIP counselors are federally funded volunteers who work independently of insurance companies. They provide unbiased information and don't sell any insurance products."
+        },
+        {
+          "question": "What should my parent bring to a SHIP counseling session?",
+          "answer": "Bring their Medicare card, current insurance information, list of medications with dosages, and any Medicare bills or Summary Notices if they have billing problems to resolve."
+        },
+        {
+          "question": "Can SHIP help with Medicaid or other non-Medicare programs?",
+          "answer": "SHIP focuses on Medicare, Medigap supplements, and Medicare-related issues. For Medicaid questions, they can provide referrals to appropriate agencies but don't provide direct Medicaid counseling."
+        },
+        {
+          "question": "Is there a limit to how often my parent can use SHIP services?",
+          "answer": "No limit. Your parent can contact SHIP whenever they have Medicare questions, need help with plan changes, or have billing issues to resolve."
+        },
+        {
+          "question": "Can I attend the counseling session with my parent?",
+          "answer": "Yes. SHIP services are available to beneficiaries, families, and caregivers. You can participate in the counseling session to help your parent understand their options."
+        }
+      ],
+      "phone": "1-800-868-9095",
+      "sourceUrl": "https://www.shiphelp.org/ships/south-carolina/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
-      "name": "SC Meals on Wheels",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "id": "south-carolina-congregate-home-delivered-meals",
+      "name": "Congregate Meals / Home Delivered Meals",
+      "shortName": "Senior Meals",
+      "tagline": "Hot, nutritious meals delivered to your homebound parent or served at local senior centers with activities and socialization.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "SC Department on Aging (SCDOA) coordinates.",
+            "type": "service-area"
+          },
+          {
+            "name": "Local AAAs: Appalachian COG, Piedmont Agency on Aging, Upstate Circle of Friends (Greenville), Senior Centers of Cherokee County, SENIOR Solutions (Oconee).",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and struggling to shop for groceries or cook meals, South Carolina provides hot, nutritious meals either delivered to their home or served at local senior centers. Home-delivered meals are for parents who are homebound and cannot leave home unassisted except for medical appointments. Congregate meals are served in group settings with socialization and activities like fitness classes and educational programs.\n\nThere are two tracks: the basic program has no income limits — only age 60+ is required. The Medicaid track requires your parent to be enrolled in a Medicaid waiver program. Both provide meals that meet one-third of daily nutritional requirements and can be tailored for diabetic, cardiac, or other special diets.\n\nBecause this program is administered by local Area Agencies on Aging, you'll need to contact your regional provider directly. Some areas have waitlists due to demand, and suggested donations help cover partial costs though the service isn't fully free.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "No income limits (basic track)",
+          "Homebound status required for delivered meals",
+          "Spouses of any age qualify if living with eligible person"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "For home-delivered meals: Must be homebound, ill, or incapacitated and unable to leave home unassisted except for medical appointments. Must be unable to purchase or prepare food due to disability with no one in the home able to prepare meals daily.",
+        "otherRequirements": [
+          "Must be South Carolina resident",
+          "For Medicaid track: Must be enrolled in Medicaid HCBS waiver or Community Long Term Care"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your local Area Agency on Aging directly — providers must respond to referrals within 2 working days for Medicaid track.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local provider",
+            "description": "Contact your regional Area Agency on Aging or senior center. Each county has different providers and contact numbers."
+          },
+          {
+            "step": 2,
+            "title": "Complete assessment",
+            "description": "Provider will assess your parent's homebound status and meal preparation needs. For Medicaid track, they'll verify Medicaid eligibility."
+          },
+          {
+            "step": 3,
+            "title": "Get approval",
+            "description": "Provider must accept or decline referrals within 2 working days for Medicaid programs. Other programs vary by local AAA processing time."
+          },
+          {
+            "step": 4,
+            "title": "Start service",
+            "description": "Meals begin once approved. For Medicaid track, eligibility must be reconfirmed monthly."
+          }
+        ],
+        "processingTime": "Within 2 working days for Medicaid programs; varies by local AAA for other programs",
+        "waitlist": "Not specified — varies by region due to local demand",
+        "tip": "Call early in the day — some providers have limited phone hours and high call volumes.",
+        "urls": [
+          {
+            "label": "SC Department on Aging",
+            "url": "https://aging.sc.gov/"
+          },
+          {
+            "label": "SC Department of Health and Human Services (Medicaid track)",
+            "url": "https://www.scdhhs.gov/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "Local Area Agencies on Aging",
+          "offices": [
+            {
+              "name": "Appalachian Council of Governments",
+              "type": "service-area",
+              "phone": "864-242-9733 or 800-434-4036",
+              "address": "Multiple counties in upstate region"
+            },
+            {
+              "name": "Senior Centers of Cherokee County",
+              "type": "county",
+              "phone": "864-489-3868",
+              "address": "Cherokee County"
+            },
+            {
+              "name": "SENIOR Solutions (Oconee)",
+              "type": "county",
+              "phone": "864-885-1000",
+              "address": "Oconee County"
+            },
+            {
+              "name": "Upstate Circle of Friends",
+              "type": "service-area",
+              "phone": "Contact local office",
+              "address": "Greenville area"
+            },
+            {
+              "name": "Piedmont Agency on Aging",
+              "type": "service-area",
+              "phone": "Contact local office",
+              "address": "Piedmont region"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Driver's license or state ID",
+                "Proof of age (birth certificate if needed)",
+                "Proof of South Carolina residency"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Medicaid card (for Medicaid track)",
+                "Documentation of homebound status or disability",
+                "Special diet requirements from doctor"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Two different tracks exist: the basic program (age 60+, no income test) and the Medicaid track (requires Medicaid waiver enrollment). Make sure you're applying to the right one — the Medicaid track has stricter eligibility but may have better availability."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If your parent doesn't qualify or there's a waitlist, private meal delivery options like Mom's Meals are available for $9.49 per meal. Some insurance plans may cover these costs."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What's the difference between congregate meals and home-delivered meals?",
+          "answer": "Congregate meals are served at senior centers with group activities and socialization — your parent needs to be able to attend in person. Home-delivered meals are for parents who are homebound and cannot leave home unassisted except for medical appointments."
+        },
+        {
+          "question": "How much do the meals cost?",
+          "answer": "There's no set price, but suggested donations are requested based on ability to pay. The meals aren't fully free — donations help cover partial costs. If your parent can't afford donations, they won't be denied service."
+        },
+        {
+          "question": "Can my parent get meals if their income is too high for Medicaid?",
+          "answer": "Yes. The basic program through the Older Americans Act has no income limits — only age 60+ is required. This is separate from the Medicaid track which does have income requirements."
+        },
+        {
+          "question": "What happens if my parent goes to the hospital or moves?",
+          "answer": "Service ends if your parent is institutionalized or moves out of the service area. For the Medicaid track, eligibility must be reconfirmed monthly, so notify the provider immediately of any changes."
+        },
+        {
+          "question": "What if there's a waitlist in my area?",
+          "answer": "Waitlists vary by region due to local demand. Ask your Area Agency on Aging about estimated wait times. You can also explore private meal delivery services or see if your parent qualifies for SNAP benefits for grocery assistance."
+        },
+        {
+          "question": "Can my parent get special diet meals?",
+          "answer": "Yes. Meals can be tailored for diabetic, cardiac, renal, mechanical soft, pureed, and no-salt diets. The provider will work with you to accommodate your parent's medical dietary needs."
+        }
+      ],
+      "phone": "864-242-9733",
+      "sourceUrl": "https://aging.sc.gov/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
-      "name": "SC Senior Community Service Employment Program (SCSEP)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "id": "south-carolina-legal-assistance-seniors",
+      "name": "Legal Assistance for Seniors",
+      "shortName": "Legal Assistance",
+      "tagline": "Free legal help for seniors 60+ facing issues with housing, healthcare, benefits, or elder abuse.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Area Agencies on Aging throughout the state",
+            "type": "service-area"
+          },
+          {
+            "name": "SC Bar Pro Bono Program",
+            "type": "service-area"
+          },
+          {
+            "name": "SC Legal Services statewide offices",
+            "type": "service-area"
+          },
+          {
+            "name": "Santee-Lynches Regional Council of Governments (regional example)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and struggling with legal problems around housing, healthcare, benefits, or elder abuse, they may qualify for free legal advice and representation through South Carolina's Legal Assistance for Seniors program. This isn't a public defender — these are attorneys who handle civil legal matters that affect older adults.\n\nThe program handles around 1,160 cases per year statewide across 11 priority areas: income protection, healthcare, long-term care, nutrition, housing, utilities, protective services, guardianship defense, abuse, neglect, and age discrimination. Because funding is limited (approximately $330,000 annually statewide), priority goes to seniors with the greatest economic need, particularly low-income minority older adults, those with limited English proficiency, and rural residents.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Greatest economic need",
+          "Civil legal matters only",
+          "Non-criminal cases"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must have greatest economic or social need",
+          "Legal matter must be civil (non-criminal)",
+          "Priority to low-income minority seniors, limited English speakers, rural residents"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact your local Area Agency on Aging through GetCareSC.com or call SC Legal Services at 1-888-346-5592 — you'll hear back within 5-7 business days.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local provider",
+            "description": "Go to GetCareSC.com and enter your ZIP code to find your Area Agency on Aging, or call SC Legal Services directly at 1-888-346-5592."
+          },
+          {
+            "step": 2,
+            "title": "Describe the legal problem",
+            "description": "Explain your parent's situation — whether it's housing, healthcare, benefits, elder abuse, or another civil legal matter."
+          },
+          {
+            "step": 3,
+            "title": "Provide income information",
+            "description": "Be ready to share basic income details to verify your parent qualifies based on economic need."
+          },
+          {
+            "step": 4,
+            "title": "Wait for screening",
+            "description": "SC Legal Services will contact you within 5-7 business days. Other providers may have different timelines."
+          }
+        ],
+        "processingTime": "5-7 business days for SC Legal Services response",
+        "waitlist": null,
+        "tip": "Have details about your parent's legal problem ready when you call — the more specific you can be, the faster they can determine if it fits the program's scope.",
+        "urls": [
+          {
+            "label": "Find local services",
+            "url": "https://GetCareSC.com"
+          },
+          {
+            "label": "SC Legal Services application",
+            "url": "https://sclegal.org"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "With only 1,160 cases handled annually statewide, not every eligible senior will receive services. Priority goes to those with the greatest economic need, so gather income documentation before applying."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Don't apply directly to the state — you must go through your local Area Agency on Aging or SC Legal Services. Each county has different providers, so use GetCareSC.com to find yours."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What types of legal problems does this cover?",
+          "answer": "Eleven priority areas: protecting income/benefits, healthcare issues, long-term care problems, nutrition assistance appeals, housing disputes, utility shutoffs, protective services, fighting unwanted guardianship, elder abuse, neglect, and age discrimination. This is only for civil legal matters — not criminal defense."
+        },
+        {
+          "question": "How do I know if my parent's income qualifies?",
+          "answer": "There's no published income limit. Priority goes to seniors with 'greatest economic need,' particularly low-income minority older adults. If your parent is struggling financially, they likely qualify — the screening process will determine eligibility."
+        },
+        {
+          "question": "Can my parent get help if they're already working with another lawyer?",
+          "answer": "This program is for seniors who can't afford private legal help. If your parent already has an attorney for the same legal matter, they wouldn't qualify for this free service."
+        },
+        {
+          "question": "What if we live in a rural area with no nearby legal aid office?",
+          "answer": "Rural residents get priority under this program. Even if there's no local office, services are delivered statewide through Area Agencies on Aging, and attorneys may provide phone consultations or travel to reach rural clients."
+        },
+        {
+          "question": "How long will it take to get an attorney assigned?",
+          "answer": "SC Legal Services responds within 5-7 business days, but other providers may have different timelines. Because only about 1,160 cases are handled statewide each year, there may be additional wait times depending on case complexity and local capacity."
+        },
+        {
+          "question": "What if my parent needs help with a criminal matter?",
+          "answer": "This program only handles civil legal issues. For criminal matters, contact the public defender's office in your county or the SC Bar's Lawyer Referral Service at (803) 799-7100."
+        }
+      ],
+      "phone": "1-888-346-5592",
+      "sourceUrl": "https://aging.sc.gov/programs-initiatives/legal-assistance-older-adults",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
-      "name": "SC Legal Help for Seniors",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
-    },
-    {
+      "id": "south-carolina-long-term-care-ombudsman",
       "name": "Long-Term Care Ombudsman Program",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "shortName": "Long-Term Care Ombudsman",
+      "tagline": "Free advocacy when your parent faces problems in their nursing home or assisted living facility.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "State office: South Carolina Department on Aging, 1301 Gervais Street, Suite 350, Columbia, SC 29201 (803-734-9900)[1][6]",
+            "type": "service-area"
+          },
+          {
+            "name": "10 regional offices (examples: Santee-Lynches Regional Council of Governments[2][4], Appalachian Council of Governments[3])",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent lives in a nursing home, assisted living, or other long-term care facility in South Carolina, you have a free advocate available to help resolve problems. The Long-Term Care Ombudsman Program investigates complaints about quality of care, residents' rights violations, abuse, neglect, or improper discharges.\n\nBecause ombudsmen are independent advocates focused solely on residents' rights, they can investigate issues and work directly with facilities to resolve problems. You, your parent, or anyone else can file a complaint on your parent's behalf — no paperwork or eligibility requirements needed.\n\nThe service is completely free and available statewide through 10 regional offices. Complaints are handled confidentially, and your parent controls whether their identity is disclosed during resolution.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Parent lives in SC long-term care facility",
+          "No income or asset limits",
+          "Free for everyone",
+          "Anyone can file complaint"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Parent must be resident of nursing home, assisted living, community residential care facility, or DDSN/DMH facility in South Carolina",
+          "Complaint must relate to quality of care, residents' rights, abuse/neglect, or facility issues"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call the statewide hotline at 1-800-868-9095 — no forms required and ombudsmen respond promptly.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the statewide hotline",
+            "description": "Call 1-800-868-9095 to file a complaint about abuse, neglect, or other facility issues."
+          },
+          {
+            "step": 2,
+            "title": "Describe the problem",
+            "description": "Explain the situation to the ombudsman — no forms needed, just provide details verbally."
+          },
+          {
+            "step": 3,
+            "title": "Ombudsman investigates",
+            "description": "The ombudsman will investigate your complaint and work with the facility to resolve the issue."
+          },
+          {
+            "step": 4,
+            "title": "Follow-up on resolution",
+            "description": "The ombudsman follows up to ensure the problem is properly addressed and resolved."
+          }
+        ],
+        "processingTime": "Ombudsmen investigate promptly and follow up to ensure resolution",
+        "waitlist": null,
+        "tip": "You can file a complaint even if your parent doesn't want you to — ombudsmen will protect confidentiality and let your parent decide how to proceed.",
+        "urls": [
+          {
+            "label": "South Carolina Department on Aging Ombudsman Program",
+            "url": "https://aging.sc.gov/programs-initiatives/long-term-care-ombudsman-program"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "Regional Ombudsman Offices",
+          "offices": [
+            {
+              "name": "Statewide Hotline",
+              "type": "service-area",
+              "phone": "1-800-868-9095",
+              "address": "For abuse/neglect or general complaints"
+            },
+            {
+              "name": "State Office",
+              "type": "service-area",
+              "phone": "803-734-9900",
+              "address": "1301 Gervais Street, Suite 350, Columbia, SC 29201"
+            },
+            {
+              "name": "Santee-Lynches Region (Clarendon, Lee, Kershaw, Sumter)",
+              "type": "service-area",
+              "phone": "803-774-1983",
+              "address": "Email: sbrooks@slcog.org"
+            },
+            {
+              "name": "Appalachian Region (Anderson, Cherokee, Greenville, Oconee, Pickens, Spartanburg)",
+              "type": "service-area",
+              "phone": "864-242-9733",
+              "address": "Email: ombudintake@scacog.org"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "This program only helps residents of long-term care facilities. If your parent lives at home and faces abuse or neglect, you need to contact Adult Protective Services instead."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can I file a complaint if my parent doesn't want me to?",
+          "answer": "Yes, anyone can file a complaint on behalf of a facility resident. The ombudsman will protect confidentiality and let your parent decide whether to disclose their identity during the investigation."
+        },
+        {
+          "question": "What kinds of problems can the ombudsman help with?",
+          "answer": "Quality of care issues, violations of residents' rights, abuse or neglect, improper transfers or discharges, problems with benefits, and issues affecting dignity or quality of life in the facility."
+        },
+        {
+          "question": "Will the facility know I complained?",
+          "answer": "Only if you or your parent give permission. The ombudsman keeps complaints confidential unless disclosure is needed to resolve the problem and the resident agrees."
+        },
+        {
+          "question": "Can the ombudsman get my parent moved to a different facility?",
+          "answer": "The ombudsman can help if your parent is being improperly transferred or discharged, but they don't arrange new placements. They focus on resolving problems within the current facility or ensuring proper procedures are followed."
+        },
+        {
+          "question": "How long does it take to resolve a complaint?",
+          "answer": "The ombudsman investigates promptly, but timing depends on the complexity of the issue. They follow up to ensure problems are properly resolved rather than rushing to close cases."
+        },
+        {
+          "question": "What if my parent is in a memory care unit and can't advocate for themselves?",
+          "answer": "The ombudsman is specifically trained to advocate for residents who cannot speak for themselves, including those with dementia or other cognitive impairments."
+        }
+      ],
+      "phone": "1-800-868-9095",
+      "sourceUrl": "https://aging.sc.gov/programs-initiatives/long-term-care-ombudsman-program",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
-      "name": "Homestead Exemption",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "id": "south-carolina-homestead-exemption",
+      "name": "Homestead Exemption (State Property Tax Assistance)",
+      "shortName": "Homestead Exemption",
+      "tagline": "If your parent owns their home and is 65+, they can save hundreds per year on property taxes.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "County Auditor's Office (primary jurisdiction)",
+            "type": "service-area"
+          },
+          {
+            "name": "County Real Property Services Office (administers applications in some counties like Greenville)",
+            "type": "service-area"
+          },
+          {
+            "name": "County Tax Assessor's Office (handles related 4% legal residence assessment, not homestead exemption)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 65+, disabled, or legally blind and owns their home in South Carolina, they can get $50,000 removed from their home's taxable value. Because property taxes are calculated on the assessed value minus this exemption, your parent's annual property tax bill drops by hundreds of dollars — the exact savings depend on local tax rates.\n\nThis exemption has no income limits, so it works whether your parent is wealthy or on a fixed income. The only catch: they must have lived in South Carolina for at least one calendar year and own the home as their primary residence. If your parent's home is worth $50,000 or less, they pay no property taxes at all.\n\nThe application is one-time only. Once approved, the exemption continues automatically each year without renewal.",
+      "savingsRange": "$200 – $800/year in 2026",
+      "savingsSource": "Estimated based on $50,000 exemption applied to typical property tax rates of 0.4% to 1.6%",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+, disabled, or legally blind",
+          "Own and live in the home",
+          "South Carolina resident for 1+ years",
+          "No income limits"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must own home as primary residence where they live most of the year",
+          "Must be South Carolina legal resident for one full calendar year as of December 31",
+          "Must hold complete title, life estate, or be trust beneficiary"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply once at your county auditor's office — approval continues automatically each year.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your county auditor's office",
+            "description": "Each of South Carolina's 46 counties handles applications through their auditor's office or real property services office."
+          },
+          {
+            "step": 2,
+            "title": "Gather required documents",
+            "description": "Bring proof of age (driver's license or birth certificate), Social Security number, deed or ownership proof, and disability documentation if applying based on disability."
+          },
+          {
+            "step": 3,
+            "title": "Submit application",
+            "description": "Apply in person, by mail, or by phone (varies by county). Most counties accept applications year-round."
+          },
+          {
+            "step": 4,
+            "title": "Receive automatic renewal",
+            "description": "Once approved, the exemption continues each year without reapplying unless ownership or residency status changes."
+          }
+        ],
+        "processingTime": "Processing time not specified by state — varies by county",
+        "waitlist": null,
+        "tip": "Don't confuse this with the separate '4% legal residence assessment' — that's a different program handled by the tax assessor's office.",
+        "urls": [
+          {
+            "label": "South Carolina Department of Revenue - Exempt Property",
+            "url": "https://dor.sc.gov/property/exempt-property"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Age",
+              "items": [
+                "South Carolina driver's license or ID card",
+                "Birth certificate (if no SC license/ID)",
+                "Social Security number"
+              ]
+            },
+            {
+              "name": "Property Ownership",
+              "items": [
+                "Deed or proof of home ownership",
+                "Documentation of ownership percentages if deed lists multiple names"
+              ]
+            },
+            {
+              "name": "Disability (if applicable)",
+              "items": [
+                "Social Security Administration award letter for disability",
+                "Documentation from state/federal agency certifying total permanent disability",
+                "Licensed ophthalmologist certification for legal blindness"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "If your parent moved to South Carolina mid-year, they must wait until the following tax year to qualify. The one-year residency requirement is measured as of December 31 preceding the tax year."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If the deed lists your parent's name plus a non-spouse co-owner, the exemption is prorated based on ownership percentage. For the full $50,000 exemption, the deed should be in your parent's name alone or jointly with their spouse only."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent's home is worth more than $50,000?",
+          "answer": "The exemption still applies. If their home is worth $150,000, they only pay property taxes on $100,000 ($150,000 minus the $50,000 exemption). If the home is worth $50,000 or less, they pay no property taxes."
+        },
+        {
+          "question": "Can my parent qualify if they're not yet 65 but receive Social Security Disability?",
+          "answer": "Yes, if they've been declared totally and permanently disabled by a state or federal agency with authority to make that determination. Social Security Disability qualifies — bring the award letter as proof."
+        },
+        {
+          "question": "What if my parent owns the home jointly with me?",
+          "answer": "The exemption is prorated based on your parent's ownership percentage shown on the deed. If they own 50%, they get a $25,000 exemption. For the full $50,000, ownership should be in their name alone or jointly with their spouse only."
+        },
+        {
+          "question": "Does my parent have to reapply every year?",
+          "answer": "No. Once approved, the exemption continues automatically each year as long as they maintain ownership and residency. They only need to notify the county if their situation changes."
+        },
+        {
+          "question": "Can my parent have this exemption on a second home or rental property?",
+          "answer": "No. The exemption only applies to their primary legal residence — the home where they live for the majority of the year. Investment properties, second homes, and rentals don't qualify."
+        },
+        {
+          "question": "What if my parent makes too much money — is there an income limit?",
+          "answer": "There are no income limits. Whether your parent lives on Social Security alone or has substantial retirement income, they can still qualify for the full $50,000 exemption if they meet the age, ownership, and residency requirements."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://dor.sc.gov/property/exempt-property",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
+      "id": "south-carolina-esap-food-assistance",
       "name": "Elderly Simplified Application Project (ESAP)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "shortName": "ESAP Food Assistance",
+      "tagline": "If your parent is 60+ with no work income, simplified SNAP benefits with less paperwork and longer approval periods.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "South Carolina Department of Social Services",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60 or older and living on retirement income only, ESAP provides SNAP food assistance through a simplified application process. Because ESAP is designed specifically for seniors, your parent gets a 36-month approval period instead of the usual 6-12 months, meaning fewer renewals and less paperwork.\n\nESAP has one strict requirement: everyone in your parent's household must be 60+ with zero earned income from work. Social Security, pensions, and other retirement income are allowed, but even part-time work disqualifies the entire household. South Carolina has achieved a 93% approval rate for ESAP applications since 2015, indicating most eligible seniors are approved.",
+      "savingsRange": "",
+      "savingsSource": "SNAP benefit amounts vary by household size and income",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "All household members 60+",
+          "No earned income from work",
+          "Not currently receiving SNAP"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "All household members must be age 60 or older",
+          "No earned income from work (Social Security and pensions allowed)",
+          "Cannot already receive SNAP benefits",
+          "Household members must purchase and prepare food together"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "mail",
+        "summary": "Mail completed DSS Form 16176 to the state office, then complete a required interview at your local DSS office.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Get DSS Form 16176",
+            "description": "Download the ESAP application form or request one from your local DSS office"
+          },
+          {
+            "step": 2,
+            "title": "Complete and mail application",
+            "description": "Mail to: ESAP, South Carolina Department of Social Services, PO Box 100203, Columbia, SC 29202"
+          },
+          {
+            "step": 3,
+            "title": "Attend initial interview",
+            "description": "Complete required interview at your local DSS office (they will contact you to schedule)"
+          },
+          {
+            "step": 4,
+            "title": "Provide limited verification",
+            "description": "Bring requested documents to verify income and household circumstances"
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Once approved, you won't need recertification interviews for 36 months and no periodic reporting is required.",
+        "urls": [
+          {
+            "label": "ESAP Information",
+            "url": "https://dss.sc.gov/assistance-programs/snap/how-do-i-apply/help-for-the-elderly/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "If anyone in your parent's household is under 60 or has any earned income from work, they cannot use ESAP. They would need to apply for regular SNAP instead."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "ESAP requires an initial interview but waives all future recertification interviews. Your parent gets 36 months of benefits with just a simple one-page mail-in form for renewal."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my 65-year-old mother apply if she lives with my 58-year-old stepfather?",
+          "answer": "No. ESAP requires all household members to be 60+. If your stepfather is 58, they cannot use ESAP but may qualify for regular SNAP benefits."
+        },
+        {
+          "question": "What if my parent has a small part-time job?",
+          "answer": "Any earned income from work disqualifies the entire household from ESAP. However, Social Security, pensions, retirement accounts, and other unearned income are allowed."
+        },
+        {
+          "question": "How is ESAP different from regular SNAP?",
+          "answer": "ESAP has stricter eligibility (everyone 60+ with no work income) but much simpler ongoing requirements. Your parent gets 36-month approval periods, no recertification interviews, and no periodic reporting between renewals."
+        },
+        {
+          "question": "Can my parent apply if they already get SNAP benefits?",
+          "answer": "No. If your parent currently receives SNAP through South Carolina Combined Application Project (SCCAP), they cannot also receive ESAP. They would need to choose one program."
+        },
+        {
+          "question": "What happens after the 36-month period ends?",
+          "answer": "Your parent receives a simple one-page mail-in form for renewal. No interview is required for recertification, just the completed form."
+        },
+        {
+          "question": "Are there income limits for ESAP?",
+          "answer": "Yes, but specific dollar amounts aren't publicly listed. Contact your local DSS office at the start of the application process to confirm your parent's income qualifies."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://dss.sc.gov/assistance-programs/snap/how-do-i-apply/help-for-the-elderly/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
-      "name": "Eldercare Trust Fund",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "id": "south-carolina-senior-farmers-market-nutrition-program",
+      "name": "Senior Farmers Market Nutrition Program (SFMNP)",
+      "shortName": "Farmers Market Vouchers",
+      "tagline": "If your parent is 60+ and on a fixed income, they can get $50 in vouchers for fresh produce at local farmers markets.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false
+      },
+      "intro": "If your parent is 60+ and lives on a limited income in South Carolina, they may qualify for $50 in vouchers each year to buy fresh fruits, vegetables, honey, and herbs at authorized farmers markets. The program provides five $10 vouchers that can be used from May through October at participating farmers markets, roadside stands, and community-supported agriculture programs.\n\nBecause vouchers are distributed on a first-come, first-served basis each year, your parent will need to apply early when the season opens in summer 2026. They must apply in person at an approved location in their county of residence and reapply every year. The program serves 46 counties across South Carolina through local distribution sites.",
+      "savingsRange": "$50/year in 2026",
+      "savingsSource": "Five $10 vouchers for fresh produce",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Income below 185% federal poverty level",
+          "South Carolina resident",
+          "Must live in participating county"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be South Carolina resident",
+          "Must live in one of 46 participating counties",
+          "Must have valid South Carolina driver's license or state ID",
+          "Must apply in person annually"
+        ],
+        "povertyLevelReference": "185% FPL"
+      },
+      "applicationGuide": {
+        "method": "in-person",
+        "summary": "Your parent must apply in person at their county distribution site when the 2026 season opens.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Wait for 2026 season to open",
+            "description": "The 2025 season has ended. Applications for 2026 will be available starting summer 2026."
+          },
+          {
+            "step": 2,
+            "title": "Find your county distribution site",
+            "description": "Contact Willie Nixon at 803-898-1760 to find the approved distribution location in your parent's county of residence."
+          },
+          {
+            "step": 3,
+            "title": "Bring required documents",
+            "description": "Your parent needs their South Carolina driver's license or state ID. They'll self-declare their annual income and household size."
+          },
+          {
+            "step": 4,
+            "title": "Apply early",
+            "description": "Because vouchers are distributed first-come, first-served, apply as soon as your county opens applications."
+          }
+        ],
+        "processingTime": "Same-day approval or waitlist placement",
+        "waitlist": "If vouchers are exhausted, your parent may be placed on a waiting list for future availability",
+        "tip": "Call ahead to confirm your county's distribution schedule - all 46 counties may not open applications on the same date.",
+        "urls": [
+          {
+            "label": "Official SFMNP page",
+            "url": "https://dss.sc.gov/assistance-programs/food-and-nutrition-programs/senior-farmers-market/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Valid South Carolina driver's license OR South Carolina state-issued ID card"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Knowledge of your parent's annual gross income (self-declared - no documentation required)",
+                "Household size information"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "The program runs May 1 through October 15 only. The 2025 season has concluded - your parent must wait until summer 2026 to apply. Vouchers are distributed first-come, first-served, so applying early is critical."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Your parent must reapply every year. Benefits don't automatically renew, and vouchers can only be used at authorized vendors - not all farmers markets participate in the program."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent's income is just over the federal poverty guidelines?",
+          "answer": "The income limit is 185% of federal poverty guidelines, which is higher than the standard poverty level. For example, in recent years this meant around $27,861 for individuals and $37,814 for couples, but these amounts change annually. Contact Willie Nixon at 803-898-1760 to verify current income limits."
+        },
+        {
+          "question": "Can my parent use the vouchers at any farmers market?",
+          "answer": "No. Vouchers can only be used at authorized farmers markets, roadside stands, and community-supported agriculture programs that participate in SFMNP. Not all farmers markets accept these vouchers. Ask the program coordinator for a list of participating vendors in your area."
+        },
+        {
+          "question": "What happens if vouchers run out before my parent applies?",
+          "answer": "Your parent may be placed on a waiting list. Because vouchers are distributed first-come, first-served, it's important to apply as early as possible when the 2026 season opens. There's no guarantee that additional vouchers will become available."
+        },
+        {
+          "question": "Does my parent need to live in the county where they apply?",
+          "answer": "Yes. Your parent must apply at an approved distribution location in their county of residence. They cannot apply in a different county, even if it's more convenient."
+        },
+        {
+          "question": "What if my parent doesn't have a South Carolina driver's license?",
+          "answer": "They can use a South Carolina state-issued identification card instead of a driver's license. However, they must have one of these two forms of South Carolina ID - out-of-state IDs are not accepted."
+        },
+        {
+          "question": "Can my parent save unused vouchers for next year?",
+          "answer": "No. Vouchers must be used during the current season (May 1 through October 15). Any unused vouchers expire, and your parent must reapply for new vouchers each year."
+        }
+      ],
+      "phone": "803-898-1760",
+      "sourceUrl": "https://dss.sc.gov/assistance-programs/food-and-nutrition-programs/senior-farmers-market/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "south-carolina-vantage-point",
+      "name": "Vantage Point",
+      "shortName": "Vantage Point",
+      "tagline": "Free help connecting your parent to home care, meal delivery, and insurance counseling in the Pee Dee region.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Hartsville main office (640 South Fourth Street, PO Box 999, Hartsville, SC 29551)",
+            "type": "service-area"
+          },
+          {
+            "name": "Division of CareSouth Carolina (FQHC and ADRC)",
+            "type": "service-area"
+          },
+          {
+            "name": "Local Councils on Aging for meals/referrals",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent lives in Chesterfield, Darlington, Dillon, Florence, Marion, or Marlboro counties, Vantage Point can connect them to home-delivered meals, respite care, insurance counseling, and other services to help them stay at home safely. Because Vantage Point serves as the Area Agency on Aging for the Pee Dee region, they know which local programs have openings and can advocate for your parent's benefits.\n\nServices are free, but many have waiting lists. Vantage Point prioritizes people with the highest need using an assessment tool, so your parent doesn't need to be low-income to qualify — though income may affect priority for certain services like the $25 Senior Farmers Market vouchers.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Lives in 6 Pee Dee counties",
+          "Assessed by need level",
+          "No strict income limits"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must live in Chesterfield, Darlington, Dillon, Florence, Marion, or Marlboro County",
+          "Complete Question Pro assessment for service priority",
+          "Annual reassessment required"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call (843) 857-0111 to complete a phone assessment that determines your parent's priority level for services.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the main office",
+            "description": "Call (843) 857-0111 in Hartsville. Staff will complete the Question Pro assessment over the phone to determine your parent's needs and priority score."
+          },
+          {
+            "step": 2,
+            "title": "Get matched to available services",
+            "description": "Based on the assessment, Vantage Point will refer your parent to services with current openings or place them on waiting lists for priority programs."
+          },
+          {
+            "step": 3,
+            "title": "Complete annual reassessment",
+            "description": "Your parent's needs will be reassessed each year to maintain services and adjust priority levels."
+          }
+        ],
+        "processingTime": "Not specified; referrals made as service openings become available",
+        "waitlist": "Yes, maintained by Assessment Coordinator when demand exceeds funding; priority by electronic tier score",
+        "tip": "Call early in the day — staff shortages in the Pee Dee region can make it harder to reach someone later.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "Local Offices",
+          "offices": [
+            {
+              "name": "Vantage Point Main Office",
+              "type": "service-area",
+              "phone": "(843) 857-0111",
+              "address": "640 South Fourth Street, PO Box 999, Hartsville, SC 29551"
+            },
+            {
+              "name": "I-CARE Insurance Counseling",
+              "type": "service-area",
+              "phone": "(843) 383-8632 or toll-free (866) 505-3331",
+              "address": "Through CareSouth Carolina division"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Many services have waiting lists due to funding limits and staff shortages. Priority goes to people with the highest assessment scores, not first-come, first-served."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "The $25 Senior Farmers Market vouchers run out quickly each summer. If your parent wants these grocery coupons, apply as soon as they become available in June."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent lives just outside the Pee Dee region?",
+          "answer": "Vantage Point only serves Chesterfield, Darlington, Dillon, Florence, Marion, and Marlboro counties. If your parent lives elsewhere in South Carolina, contact your local Council on Aging or call SC Access (1-866-SCHELP) for referrals in their area."
+        },
+        {
+          "question": "How long will my parent wait for home-delivered meals?",
+          "answer": "Wait times vary by county and depend on funding. Vantage Point partners with local Councils on Aging for meal programs, so they'll refer your parent to the shortest wait list in their area."
+        },
+        {
+          "question": "Can my parent get help even if their income is too high for other programs?",
+          "answer": "Yes. While some specific programs like the $25 farmers market vouchers prioritize low-income seniors, Vantage Point's main services focus on need level rather than strict income limits. The assessment determines priority."
+        },
+        {
+          "question": "What's the difference between Vantage Point and the local Council on Aging?",
+          "answer": "Vantage Point is the regional coordinator that refers people to services, while local Councils on Aging actually deliver services like meals. Think of Vantage Point as the central intake point that knows what's available where."
+        },
+        {
+          "question": "Will my parent lose services if their assessment score changes?",
+          "answer": "Not necessarily. Annual reassessments can change priority levels for new services, but existing services typically continue unless your parent no longer needs them or becomes ineligible for other reasons."
+        },
+        {
+          "question": "Can Vantage Point help with Medicare questions?",
+          "answer": "Yes, through their I-CARE program. Call (843) 383-8632 or toll-free (866) 505-3331 for free Medicare, Medicaid, and long-term care insurance counseling."
+        }
+      ],
+      "phone": "(843) 857-0111",
+      "sourceUrl": "https://www.caresouth-carolina.com/seniors",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "south-carolina-senior-medicare-patrol",
+      "name": "Senior Medicare Patrol",
+      "shortName": "Medicare Patrol",
+      "tagline": "Free help detecting Medicare fraud and billing errors that could be costing your parent money.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "South Carolina Department on Aging; local Area Agencies on Aging",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent gets confusing Medicare bills or you suspect billing errors, Senior Medicare Patrol provides free one-on-one help reviewing Medicare Summary Notices and investigating potential fraud. Because Medicare fraud costs beneficiaries through higher premiums and out-of-pocket expenses, catching billing errors can save your parent money and protect their benefits.\n\nVolunteer counselors will sit with you and your parent to review their Medicare statements, explain charges, and help identify suspicious billing. If they find potential fraud or errors, they'll file complaints with Medicare and federal agencies on your parent's behalf. This isn't a benefits program—it's free fraud prevention and advocacy available to any Medicare beneficiary, family member, or caregiver in South Carolina.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Any Medicare beneficiary",
+          "Family members and caregivers welcome",
+          "No income or age limits",
+          "Must suspect billing errors or fraud"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be a Medicare beneficiary, family member, or caregiver with questions about Medicare billing or suspected fraud"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call the state hotline—no application needed, immediate help available.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Gather Medicare documents",
+            "description": "Collect your parent's Medicare Summary Notice (MSN), billing statements, or details about suspected fraud before calling."
+          },
+          {
+            "step": 2,
+            "title": "Call the state office",
+            "description": "Contact South Carolina Department on Aging at 1-800-868-9095 or your local Area Agency on Aging for immediate counseling."
+          },
+          {
+            "step": 3,
+            "title": "Review documents together",
+            "description": "A volunteer counselor will go through Medicare statements with you to identify errors or suspicious charges."
+          },
+          {
+            "step": 4,
+            "title": "File complaints if needed",
+            "description": "If fraud or errors are found, the counselor will help file complaints with Medicare and federal agencies."
+          }
+        ],
+        "processingTime": "Immediate counseling and referral assistance available upon contact",
+        "waitlist": null,
+        "tip": "Keep all Medicare Summary Notices—even ones that look correct—so counselors can spot patterns of fraud over time.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "This is education and fraud prevention only—Senior Medicare Patrol doesn't provide healthcare services or direct financial assistance. For Medicare benefits counseling, ask about SHIP (State Health Insurance Assistance Program) services, which some of the same agencies also offer."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent's Medicare bills look normal but seem too high?",
+          "answer": "Call anyway. Senior Medicare Patrol counselors are trained to spot billing patterns that beneficiaries might miss. Even legitimate-looking charges can contain errors or duplicate billing that you wouldn't notice without experience."
+        },
+        {
+          "question": "Will reporting fraud affect my parent's Medicare coverage?",
+          "answer": "No. Reporting fraud protects your parent's Medicare benefits and can prevent future problems. Medicare wants to catch fraudulent providers—your parent won't lose coverage for reporting suspicious billing."
+        },
+        {
+          "question": "What happens after we report suspected fraud?",
+          "answer": "The counselor will file complaints with Medicare and the federal Office of Inspector General. You'll get confirmation that the complaint was filed, but investigations are confidential so you may not hear about outcomes."
+        },
+        {
+          "question": "Can they help if my parent already paid a fraudulent bill?",
+          "answer": "Yes. If fraud is confirmed, your parent may be entitled to a refund. The counselor will help navigate the process with Medicare and the provider to recover incorrect payments."
+        },
+        {
+          "question": "How long does it take to get help reviewing Medicare statements?",
+          "answer": "Immediate. There's no application process—counselors can start reviewing documents as soon as you call and arrange a meeting or phone consultation."
+        },
+        {
+          "question": "What's the difference between this and regular Medicare customer service?",
+          "answer": "Senior Medicare Patrol specializes in fraud detection and has more time to thoroughly review your parent's billing history. Medicare customer service handles general questions but won't do the detailed statement review that catches complex fraud patterns."
+        }
+      ],
+      "phone": "1-800-868-9095",
+      "sourceUrl": "https://aging.sc.gov/programs-initiatives/medicare-and-medicare-fraud",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     }
   ],
-  "stateOverview": null
+  "stateOverview": {
+    "intro": "South Carolina offers 14 programs to help your aging parent — 9 financial benefits they can qualify for and 5 free resources available to all seniors. The benefits range from $50 farmers market vouchers to home care services worth thousands per month. Resources include free Medicare counseling, legal help, and advocacy for nursing home issues. Most financial benefits have income limits between $1,800-$2,700 per month for a single person, but several programs like SNAP and Medicare Savings Programs can stack together. Start by checking the programs that offer the biggest financial impact first, then layer on the free resources your parent needs.",
+    "startHere": [
+      {
+        "name": "Community Choices Waiver",
+        "programId": "community-choices-waiver",
+        "why": "Provides daily care support to keep your parent at home instead of costly nursing home placement."
+      },
+      {
+        "name": "Medicare Savings Programs",
+        "programId": "medicare-savings-programs",
+        "why": "Reduces Medicare costs for anyone with income under $1,823/month — affects most seniors."
+      },
+      {
+        "name": "SNAP (Food Assistance)",
+        "programId": "snap",
+        "why": "Up to $546/month for groceries with simplified application process for seniors 60+."
+      },
+      {
+        "name": "SHIP / I-Care",
+        "programId": "ship-i-care",
+        "why": "Free Medicare counseling helps every senior optimize their coverage and catch billing errors."
+      }
+    ],
+    "byNeed": [
+      {
+        "need": "Help paying for home care",
+        "programs": [
+          "Community Choices Waiver"
+        ],
+        "description": "Keeps your parent at home with daily care support instead of nursing home placement."
+      },
+      {
+        "need": "Reducing healthcare costs",
+        "programs": [
+          "Medicare Savings Programs",
+          "SHIP / I-Care",
+          "Senior Medicare Patrol"
+        ],
+        "description": "Programs that lower Medicare premiums, provide free counseling, and catch billing errors."
+      },
+      {
+        "need": "Food assistance",
+        "programs": [
+          "SNAP",
+          "Elderly Simplified Application Project",
+          "Congregate Meals / Home Delivered Meals",
+          "Senior Farmers Market Nutrition Program"
+        ],
+        "description": "Monthly grocery benefits, delivered meals, and fresh produce vouchers for seniors on fixed incomes."
+      },
+      {
+        "need": "Lowering home expenses",
+        "programs": [
+          "LIHEAP",
+          "Weatherization Assistance Program",
+          "Homestead Exemption"
+        ],
+        "description": "Help with energy bills, free home improvements, and property tax savings for homeowners 65+."
+      },
+      {
+        "need": "Free advice and advocacy",
+        "programs": [
+          "Legal Assistance for Seniors",
+          "Long-Term Care Ombudsman Program",
+          "Vantage Point"
+        ],
+        "description": "Free legal help, nursing home advocacy, and connections to local services."
+      }
+    ],
+    "quickFacts": [
+      "Most financial benefits require income under $1,823-$2,667/month for a single person",
+      "Seniors 60+ get simplified applications and longer approval periods for SNAP benefits",
+      "Property owners 65+ automatically qualify for Homestead Exemption tax savings",
+      "All counseling and advocacy resources are free regardless of income"
+    ],
+    "resourcesVsBenefits": "South Carolina's benefit programs require income qualification — like Community Choices Waiver for home care or SNAP for groceries — and provide monthly payments or services. Free resources like SHIP Medicare counseling, Legal Assistance for Seniors, and Senior Medicare Patrol are available to all South Carolina seniors regardless of income, though some focus on specific age groups (usually 60+) or geographic regions like Vantage Point in the Pee Dee area."
+  }
 }

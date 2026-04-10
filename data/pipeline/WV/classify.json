@@ -1,22 +1,21 @@
 {
   "state": "WV",
   "stateName": "West Virginia",
-  "classifiedAt": "2026-04-09T09:44:37.152Z",
-  "total": 13,
+  "classifiedAt": "2026-04-09T17:29:27.728Z",
+  "total": 15,
   "typeSummary": {
-    "benefit": 8,
-    "resource": 4,
-    "employment": 1
+    "benefit": 12,
+    "resource": 3
   },
   "scopeSummary": {
     "federal": 7,
-    "state": 5,
+    "state": 7,
     "local": 1
   },
   "complexitySummary": {
     "deep": 8,
-    "simple": 4,
-    "medium": 1
+    "simple": 3,
+    "medium": 4
   },
   "programs": [
     {
@@ -27,7 +26,7 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Local DHHR field offices (locator on dhhr.wv.gov); statewide BMS oversight[2][3]",
+            "name": "Local WV DHHR field offices; central BMS in Charleston.",
             "type": "service-area"
           }
         ]
@@ -53,63 +52,39 @@
       }
     },
     {
-      "name": "West Virginia Aged and Disabled Waiver (ADW)",
+      "name": "Aged and Disabled Waiver (ADW)",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Local DHHR county offices.",
-            "type": "service-area"
-          },
-          {
-            "name": "Bureau of Senior Services (oversight).",
-            "type": "service-area"
-          },
-          {
-            "name": "KEPRO (utilization management).",
-            "type": "service-area"
-          },
-          {
-            "name": "Acentra Health (assessments/prior auth).",
-            "type": "service-area"
-          },
-          {
-            "name": "Enrolled ADW agencies (certified by OA).",
-            "type": "service-area"
-          }
-        ]
+        "stateVariation": false
       },
       "complexity": "deep",
       "recommendedSections": [
         "prose",
-        "income-table",
         "what-counts",
-        "tier-comparison",
         "documents",
         "county-directory",
         "callout"
       ],
       "signals": {
         "benefitType": "service",
-        "hasIncomeTiers": true,
+        "hasIncomeTiers": false,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": true,
-        "hasMultipleTiers": true,
+        "hasMultipleTiers": false,
         "isStatewide": true
       }
     },
     {
-      "name": "Program of All-Inclusive Care for the Elderly (PACE) - Not specifically named in WV sources",
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
       "programType": "benefit",
       "geographicScope": {
         "type": "local",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "PACE Your Life MWV (https://paceyourlifemwv.com/)",
+            "name": "PACE Your LIFE (West Virginia-specific, paceyourlifemwv.com)[3]",
             "type": "service-area"
           }
         ]
@@ -141,7 +116,7 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Local county DHHR offices statewide",
+            "name": "Local DHHR county offices statewide",
             "type": "service-area"
           }
         ]
@@ -172,7 +147,7 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "DoHS field offices (all counties), Community Action Agencies, Senior Centers",
+            "name": "Local DoHS field offices (list at dhhr.wv.gov), Community Action Agencies, Senior Centers",
             "type": "service-area"
           }
         ]
@@ -204,7 +179,7 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Local CAAs; examples: wvcad.org for statewide, casewv.org, mthtwv.com (MountainHeart), scacwv.org.[1][3][7][9]",
+            "name": "Local community action agencies throughout WV (12 agencies funded in recent grants); examples: wvcad.org for statewide info, casewv.org, mthtwv.com, scacwv.org.[1][3][6][7][8]",
             "type": "service-area"
           }
         ]
@@ -212,8 +187,72 @@
       "complexity": "deep",
       "recommendedSections": [
         "prose",
+        "income-table",
         "what-counts",
         "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "SHIP (State Health Insurance Assistance Program)",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "West Virginia Bureau of Senior Services (main office), Charleston, WV[6]",
+            "type": "service-area"
+          },
+          {
+            "name": "Multiple county senior centers throughout West Virginia[8]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service|advocacy",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Meals on Wheels (Home Delivered Meals)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local senior centers and Area Agencies on Aging (e.g., Preston County for temporarily homebound[9], Senior Monongalians Inc. for Monongalia[7])",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "medium",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
         "documents",
         "county-directory",
         "callout"
@@ -224,31 +263,30 @@
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
+        "hasMultipleTiers": false,
         "isStatewide": true
       }
     },
     {
-      "name": "State Health Insurance Assistance Program (SHIP)",
-      "programType": "resource",
+      "name": "National Family Caregiver Support Program (NFCSP)",
+      "programType": "benefit",
       "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
+        "type": "state",
+        "stateVariation": false,
         "localEntities": [
           {
-            "name": "Main office: 1900 Kanawha Blvd East, Charleston WV 25305[4][5]",
-            "type": "service-area"
-          },
-          {
-            "name": "County senior centers statewide[3][5]",
+            "name": "Local Area Agencies on Aging; contact via West Virginia Bureau for Senior Services",
             "type": "service-area"
           }
         ]
       },
-      "complexity": "simple",
+      "complexity": "medium",
       "recommendedSections": [
         "prose",
-        "county-directory"
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
       ],
       "signals": {
         "benefitType": "service",
@@ -256,68 +294,19 @@
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
+        "hasMultipleTiers": false,
         "isStatewide": true
       }
     },
     {
-      "name": "Senior Community Service Employment Program (SCSEP)",
-      "programType": "employment",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "Preston County Senior Citizens, Inc. (Boone, Clay, Doddridge, Harrison, Kanawha, Mercer, Monongalia, Preston, Putnam, Raleigh, Taylor)[1]",
-            "type": "service-area"
-          },
-          {
-            "name": "Southwestern Community Action Council (Barbour, Braxton, Cabell, Fayette, Greenbrier, Kanawha, Lincoln, Logan, McDowell, Mercer, Mingo)[6]",
-            "type": "service-area"
-          },
-          {
-            "name": "Human Resource Development Foundation (statewide vision, specific counties unclear)[2]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "documents"
-      ],
-      "signals": {
-        "benefitType": "employment",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Legal Aid for Seniors (e.g., Lighthouse Program elements)",
+      "name": "West Virginia Senior Legal Aid, Inc. (Senior Legal Services)",
       "programType": "resource",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Senior centers in every county.[5]",
-            "type": "service-area"
-          },
-          {
-            "name": "Aging & Family Services (304-788-5467).[5]",
-            "type": "service-area"
-          },
-          {
-            "name": "Nicholas Community Action Partnership (local contact).[1]",
-            "type": "service-area"
-          },
-          {
-            "name": "Raleigh Seniors (example local provider).[8]",
+            "name": "Statewide service via West Virginia Senior Legal Aid, Inc.; no specific regional offices listed[2][7]",
             "type": "service-area"
           }
         ]
@@ -329,10 +318,10 @@
       ],
       "signals": {
         "benefitType": "service",
-        "hasIncomeTiers": false,
+        "hasIncomeTiers": true,
         "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": true,
+        "hasRegionalVariation": false,
+        "hasFunctionalReq": false,
         "hasMultipleTiers": true,
         "isStatewide": true
       }
@@ -345,7 +334,7 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Legal Aid of West Virginia operates the program; regional examples: Martinsburg (301 W. Burke St., Suite B), Charleston (922 Quarrier Street, 4th Floor), Morgantown (165 Scott Ave., Ste 209), Huntington (418 8th Street, Second Floor).",
+            "name": "Legal Aid of West Virginia operates the program with 9 regional ombudsmen; examples: Martinsburg (301 W. Burke St., Suite B, Martinsburg, WV 25401), Director remote office; full list at https://legalaidwv.org/our-programs/long-term-care/[3][4][5]",
             "type": "service-area"
           }
         ]
@@ -373,7 +362,7 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Local county senior centers/programs (contact WV Bureau of Senior Services for your county)[3]",
+            "name": "Local county senior programs; WV Bureau of Senior Services for info: 1-877-987-3646[2]",
             "type": "service-area"
           }
         ]
@@ -381,32 +370,95 @@
       "complexity": "deep",
       "recommendedSections": [
         "prose",
-        "income-table",
         "what-counts",
-        "tier-comparison",
         "documents",
         "county-directory",
         "callout"
       ],
       "signals": {
         "benefitType": "service",
-        "hasIncomeTiers": true,
+        "hasIncomeTiers": false,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": true,
-        "hasMultipleTiers": true,
+        "hasMultipleTiers": false,
         "isStatewide": true
       }
     },
     {
-      "name": "FAIR (Family Alzheimer's In-Home Respite)",
+      "name": "Take Me Home Program",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Admin office: 190 N. Independence Mall West, Suite 301, Philadelphia, PA 19106 (serves WV).[5]",
+            "name": "Primary office: Bureau for Medical Services, 350 Capitol St., Room 251, Charleston, WV 25301-3702.[3]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "documents",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Visually Impaired Seniors In-Home Outreach and Networking Services (VISIONS)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "West Virginia Division of Rehabilitation Services (DRS) offices statewide",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "medium",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "WV Bureau of Senior Services Home Modification and Accessibility Grant Program (Aging Well, Safe at Home Initiative)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "WV Aging & Disability Resource Center (central contact in Charleston)",
+            "type": "service-area"
+          },
+          {
+            "name": "Local Aging Providers (locate via WV Bureau of Senior Services)",
             "type": "service-area"
           }
         ]
@@ -422,30 +474,9 @@
         "benefitType": "financial",
         "hasIncomeTiers": false,
         "hasAssetLimits": true,
-        "hasRegionalVariation": true,
+        "hasRegionalVariation": false,
         "hasFunctionalReq": false,
         "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "West Virginia Senior Legal Aid",
-      "programType": "resource",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false
-      },
-      "complexity": "simple",
-      "recommendedSections": [
-        "prose"
-      ],
-      "signals": {
-        "benefitType": "advocacy|service",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
         "isStatewide": true
       }
     }

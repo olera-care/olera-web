@@ -1,231 +1,897 @@
 {
   "state": "NC",
   "stateName": "North Carolina",
-  "diveAt": "2026-04-09T09:38:51.012Z",
-  "total": 4,
-  "parsed": 4,
+  "diveAt": "2026-04-09T15:43:08.817Z",
+  "total": 18,
+  "parsed": 15,
   "programs": [
     {
-      "name": "North Carolina Homestead Exemption",
-      "eligibility": {
-        "age": "65 years old as of January 1 of the tax year, OR totally and permanently disabled (any age)",
-        "income_limits": {
-          "description": "Annual household income cannot exceed the limit set by NC Department of Revenue on or before July 1 each year",
-          "2025_limit": "$37,900 for household",
-          "historical_reference": "$38,800 mentioned in some county materials (may reflect prior year)",
-          "note": "Income limits vary annually and are set by state; check with your county assessor for current year"
-        },
-        "asset_limits": "No asset limits specified in statute",
-        "other_requirements": [
-          "Must be a North Carolina resident",
-          "Must own and occupy the property as a permanent residence on or before January 1 of the tax year",
-          "Property must be primary residence only (not vacation homes, rental properties, or other real estate investments)",
-          "Property can be a single-family residence, manufactured home, condominium, or townhome",
-          "Property includes dwelling, dwelling site (not to exceed 1 acre), and related improvements (garage, carport, storage building)"
-        ]
-      },
-      "benefits": {
-        "type": "financial",
-        "value": "Property tax exclusion of the greater of $25,000 OR 50% of the appraised value of the residence[1][3][4]",
-        "varies_by": "fixed",
-        "additional_note": "This is a property tax exclusion, not a bankruptcy exemption. For bankruptcy protection, the homestead exemption is $35,000 for those under 65, and up to $60,000 for those 65 and older under certain conditions[2][7]"
-      },
-      "application": {
-        "methods": [
-          "In-person at county tax assessor's office (example: Iredell County Tax Department, 135 E Water St, Room 100, Statesville, NC 28677)[5]",
-          "By mail to your county tax assessor",
-          "Online through your county's website (varies by county)"
-        ],
-        "processing_time": "Not specified in search results; contact your county assessor for specific timeline",
-        "waitlist": null,
-        "forms": [
-          "County-specific homestead exclusion application form (name/number varies by county; contact your assessor)"
-        ],
-        "documents": [
-          "Proof of North Carolina residency",
-          "Proof of age (if 65+) or disability certification (if disabled)",
-          "Income documentation for prior year",
-          "Property ownership documentation",
-          "For disabled veterans: VA disability certification or evidence of benefits received for specially adapted housing under 38 USC 2101"
-        ]
-      },
-      "geography": {
-        "statewide": true,
-        "restrictions": "Available statewide in North Carolina; administered by individual county tax assessors",
-        "regional_variations": "Application procedures and deadlines may vary slightly by county; income limits are set statewide but applied at county level",
-        "offices_or_providers": "Each county has its own tax assessor's office; contact your specific county for application location and procedures"
-      },
-      "official_source": "North Carolina General Statute § 105-277.1; county tax assessor offices",
-      "gotchas": [
-        "Income limits are set annually by NC Department of Revenue (as of July 1 each year) and change year to year—verify current limits with your county[6]",
-        "This is a property tax exclusion program, NOT the same as the homestead exemption used in bankruptcy proceedings[2][7]",
-        "You cannot receive other property tax relief if you receive this exclusion[3]",
-        "Property must be occupied as primary residence; temporary absences for health reasons or nursing home confinement are permitted if spouse or dependent occupies it[3]",
-        "The exclusion is permanent once approved, but you must meet eligibility requirements each year[1]",
-        "If you recently moved assets into your home to avoid creditors, courts may disallow the exemption[2]",
-        "For those 65+, there is also a separate Tax Limitation program (different from the Elderly/Disabled Exclusion) that requires annual application by June 1 deadline and has different income tiers (4% tax on income $0-$38,800; 5% on $38,801-$55,050; does not qualify over $55,050)[1]",
-        "Disabled veterans have a separate, more generous program: $45,000 exclusion with NO age or income requirements[1][4][6]"
-      ],
-      "data_shape_notes": "This program has multiple tiers: (1) Elderly/Disabled Exclusion (one-time application, permanent benefit, income-based), (2) Elderly/Disabled Tax Limitation (annual application required, income-tiered tax rates), and (3) Disabled Veteran Exclusion (no income/age limits). The search results primarily address the Elderly/Disabled Exclusion. Income limits are set statewide but administered by county. Benefits are fixed dollar amounts or percentages, not scaled by household size. Application is decentralized to county level.",
-      "_raw": "```json\n{\n  \"name\": \"North Carolina Homestead Exemption\",\n  \"eligibility\": {\n    \"age\": \"65 years old as of January 1 of the tax year, OR totally and permanently disabled (any age)\",\n    \"income_limits\": {\n      \"description\": \"Annual household income cannot exceed the limit set by NC Department of Revenue on or before July 1 each year\",\n      \"2025_limit\": \"$37,900 for household\",\n      \"historical_reference\": \"$38,800 mentioned in some county materials (may reflect prior year)\",\n      \"note\": \"Income limits vary annually and are set by state; check with your county assessor for current year\"\n    },\n    \"asset_limits\": \"No asset limits specified in statute\",\n    \"other_requirements\": [\n      \"Must be a North Carolina resident\",\n      \"Must own and occupy the property as a permanent residence on or before January 1 of the tax year\",\n      \"Property must be primary residence only (not vacation homes, rental properties, or other real estate investments)\",\n      \"Property can be a single-family residence, manufactured home, condominium, or townhome\",\n      \"Property includes dwelling, dwelling site (not to exceed 1 acre), and related improvements (garage, carport, storage building)\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Property tax exclusion of the greater of $25,000 OR 50% of the appraised value of the residence[1][3][4]\",\n    \"varies_by\": \"fixed\",\n    \"additional_note\": \"This is a property tax exclusion, not a bankruptcy exemption. For bankruptcy protection, the homestead exemption is $35,000 for those under 65, and up to $60,000 for those 65 and older under certain conditions[2][7]\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"In-person at county tax assessor's office (example: Iredell County Tax Department, 135 E Water St, Room 100, Statesville, NC 28677)[5]\",\n      \"By mail to your county tax assessor\",\n      \"Online through your county's website (varies by county)\"\n    ],\n    \"processing_time\": \"Not specified in search results; contact your county assessor for specific timeline\",\n    \"waitlist\": null,\n    \"forms\": [\n      \"County-specific homestead exclusion application form (name/number varies by county; contact your assessor)\"\n    ],\n    \"documents\": [\n      \"Proof of North Carolina residency\",\n      \"Proof of age (if 65+) or disability certification (if disabled)\",\n      \"Income documentation for prior year\",\n      \"Property ownership documentation\",\n      \"For disabled veterans: VA disability certification or evidence of benefits received for specially adapted housing under 38 USC 2101\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Available statewide in North Carolina; administered by individual county tax assessors\",\n    \"regional_variations\": \"Application procedures and deadlines may vary slightly by county; income limits are set statewide but applied at county level\",\n    \"offices_or_providers\": \"Each county has its own tax assessor's office; contact your specific county for application location and procedures\"\n  },\n  \"official_source\": \"North Carolina General Statute § 105-277.1; county tax assessor offices\",\n  \"gotchas\": [\n    \"Income limits are set annually by NC Department of Revenue (as of July 1 each year) and change year to year—verify current limits with your county[6]\",\n    \"This is a property tax exclusion program, NOT the same as the homestead exemption used in bankruptcy proceedings[2][7]\",\n    \"You cannot receive other property tax relief if you receive this exclusion[3]\",\n    \"Property must be occupied as primary residence; temporary absences for health reasons or nursing home confinement are permitted if spouse or dependent occupies it[3]\",\n    \"The exclusion is permanent once approved, but you must meet eligibility requirements each year[1]\",\n    \"If you recently moved assets into your home to avoid creditors, courts may disallow the exemption[2]\",\n    \"For those 65+, there is also a separate Tax Limitation program (different from the Elderly/Disabled Exclusion) that requires annual application by June 1 deadline and has different income tiers (4% tax on income $0-$38,800; 5% on $38,801-$55,050; does not qualify over $55,050)[1]\",\n    \"Disabled veterans have a separate, more generous program: $45,000 exclusion with NO age or income requirements[1][4][6]\"\n  ],\n  \"data_shape_notes\": \"This program has multiple tiers: (1) Elderly/Disabled Exclusion (one-time application, permanent benefit, income-based), (2) Elderly/Disabled Tax Limitation (annual application required, income-tiered tax rates), and (3) Disabled Veteran Exclusion (no income/age limits). The search results primarily address the Elderly/Disabled Exclusion. Income limits are set statewide but administered by county. Benefits are fixed dollar amounts or percentages, not scaled by household size. Application is decentralized to county level.\"\n}\n```\n\n## Key Guidance for Families\n\n**Start here:** Contact your county tax assessor's office directly. They administer this program and can provide current income limits, application forms, and specific deadlines for your county.\n\n**Critical distinction:** The \"homestead exemption\" has two meanings in North Carolina—this property tax exclusion program is different from the homestead exemption used to protect home equity in bankruptcy[2][7].\n\n**For disabled veterans:** If your elderly loved one is an honorably discharged veteran with a service-connected disability, they may qualify for a more generous program ($45,000 exclusion with no income or age limits)[1][4].\n\n**Income verification:** Bring documentation of last year's household income. Income limits change annually, so verify the current year's limit before applying[6]."
+      "name": "NC Medicaid Long-Term Care",
+      "_parseError": true,
+      "_raw": "{\n  \"name\": \"NC Medicaid Long-Term Care\",\n  \"eligibility\": {\n    \"age\": 65,\n    \"income_limits\": \"Income must be less than the Medicaid-approved cost of care in the facility, estimated at $8,004–$11,093/month (2025) or $7,898.40–$11,217.90/month (2026); varies by facility/county cost of care, not household size. For single medically needy applicants, Medicaid covers costs exceeding countable monthly income after deductions (e.g., $70/month personal needs allowance, health premiums, spousal allowances, home maintenance if return expected within 6 months).[1][4][5]\",\n    \"asset_limits\": \"Single applicant: ≤$2,000 countable assets. Married both applying: ≤$3,000. Exempt: primary home (equity ≤$730,000 if intent to return or spouse/child under 21/disabled lives there); non-countable income deductions apply.[1][4][8][10]\",\n    \"other_requirements\": [\n      \"NC resident and US citizen/eligible immigrant.[1][6]\",\n      \"Nursing Facility Level of Care (NFLOC): need care for 30+ consecutive days; assistance with ≥3 ADLs (mobility, bathing, dressing, eating, toileting) or extensive help with ≥2 ADLs; assessment of ADLs/IADLs and cognitive/behavioral issues.[1][2][4]\",\n      \"Blind or disabled if under 65.[1][2]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Nursing home care, assisted living, adult foster care (family care homes), home/community-based services (HCBS) waivers (e.g., personal care, adult day care, home modifications), non-medical supports for frail seniors; most income paid as patient liability to facility, Medicaid covers remainder.[4][5][9]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: NC Medicaid eligibility portal (implied via ncdhhs.gov).[6]\",\n      \"Phone: Local Department of Social Services (DSS) offices (no statewide number specified; contact county DSS).[5]\",\n      \"In-person/mail: County DSS offices.[5]\"\n    ],\n    \"processing_time\": \"Not specified in sources.\",\n    \"waitlist\": \"Waitlists exist for HCBS waivers (e.g., CAP/DA); nursing home is entitlement if eligible.[2][3]\",\n    \"forms\": [\"No specific form names/numbers provided; apply via county DSS or online Medicaid application.[6]\"],\n    \"documents\": [\"Proof of residency, citizenship/immigration status, SSN, income, assets, medical/functional assessment records (ADLs).\"][1][2][6]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Financial thresholds vary by county/facility cost of care; PACE restricted to service areas.[3]\",\n    \"regional_variations\": \"Income limits tied to local nursing home costs; different providers/wait times by county/region; apply via local DSS.[2][5]\",\n    \"offices_or_providers\": [\"County Department of Social Services (DSS) offices statewide; PACE organizations in specific areas.\"][3][5]\n  },\n  \"official_source\": \"https://medicaid.ncdhhs.gov/providers/programs-and-services/long-term-care\",\n  \"gotchas\": [\n    \"Income limit is facility-specific cost of care (varies by county), not fixed amount; most income becomes 'patient liability'.[1][2][5]\",\n    \"HCBS waivers have waitlists, unlike nursing home entitlement.[2][3]\",\n    \"Spousal rules complex for married couples (community spouse protections).[1][8]\",\n    \"Must meet NFLOC; Regular Medicaid ABD covers basic care but limited LTC without full NFLOC.[2][4]\",\n    \"Home equity limit $730,000; planning required to avoid penalties.[1]\"\n  ],\n  \"data_shape_notes\": \"Multiple programs (Nursing Home Medicaid, HCBS Waivers, ABD Medicaid) with shared financial rules but varying functional thresholds and waitlists; income/assets vary by marital status, county care costs, and program type.\"\n}"
     },
     {
-      "name": "North Carolina Seniors Farmers' Market Nutrition Program",
+      "name": "NC Medicaid Home and Community-Based Services (HCBS) Waivers",
       "eligibility": {
-        "age": 60,
-        "income_limits": "Household income at or below 185% of the Federal Poverty Level. Examples: $2,322 or less per month for 1-person household; $3,152 or less per month for 2-person household (2024 figures); $2,413/$3,261 cited for 2025 in some regions[1][2][3]. Full table varies by year and household size—check current FPL guidelines via local agency.",
-        "asset_limits": "No asset limits mentioned in program details[1][2][3][4][5].",
+        "age": "Varies by waiver: CAP/DA (18+), CAP/C (0-20), TBI (18+), Innovations (all ages with I/DD)[1][2][5][8]",
+        "income_limits": "Must qualify for NC Medicaid; typically ~$1,255/month for individual (2025, subject to change); 2026 nursing home level est. $7,898-$11,218/month but waivers follow Medicaid standard ~$2,901/month individual; waiver slots use applicant income only, not family[1][2][3][4]",
+        "asset_limits": "$2,000 countable resources for individual; exempt: primary home (equity limit $752,000 in 2026 if no qualifying resident), car, personal belongings; most bank accounts, retirement, cash count[1][3][4]",
         "other_requirements": [
-          "Reside in a participating county (not statewide; available in 49-57 of 100 counties)[1][2]",
-          "Not an entitlement program—vouchers not guaranteed even if eligible due to limited funding[1]"
-        ]
-      },
-      "benefits": {
-        "type": "in_kind",
-        "value": "$50 in vouchers per eligible senior to purchase fresh fruits, vegetables, raw honey, and fresh-cut herbs at certified farmers' markets, roadside stands, or CSAs. Minimum $20, maximum $50 per federal guidelines, redeemable July 1–September 30[1][3][5].",
-        "varies_by": "fixed"
-      },
-      "application": {
-        "methods": [
-          "Fill out NC SFMNP Voucher Interest Form (pre-application to join interest list; notified in June of local agency contacts)[2]",
-          "Contact local agency in participating county for eligibility screening, application, and voucher distribution (varies by county—no central statewide phone/website listed; e.g., NC DHHS Division of Aging leads, partners with county DSS)[3]",
-          "In-person at participating farmers' markets or local agencies (e.g., Mecklenburg County DSS)[3]"
-        ],
-        "processing_time": "Interest list notifications in June; applications open around then for July start—no specific processing timeline stated[2].",
-        "waitlist": "Not guaranteed due to limited funds; interest form acts as pre-waitlist mechanism[1][2].",
-        "forms": [
-          "2025 NC SFMNP Voucher Interest Form[2]",
-          "County-specific application via local agency (no statewide form number specified)"
-        ],
-        "documents": [
-          "Proof of age (60+)",
-          "Proof of residency in participating county",
-          "Proof of household income ≤185% FPL (e.g., pay stubs, tax returns); some agencies may accept proof of enrollment in SNAP/CSFP[5]"
-        ]
-      },
-      "geography": {
-        "statewide": false,
-        "restrictions": "Limited to participating counties only (e.g., 49 in 2024, including Chatham, Mecklenburg/Triangle areas; check annual map/list via local agency or NC DHHS)[1][2].",
-        "regional_variations": "Administered by local agencies (e.g., county DSS, food councils); different participating markets (e.g., Charlotte Regional Farmers Market, Pittsboro); varying availability and partners by county[1][3].",
-        "offices_or_providers": [
-          "Local county agencies (e.g., Mecklenburg County DSS), NC DHHS Division of Aging, certified farmers' markets like Pittsboro, Charlotte Regional[1][3]"
-        ]
-      },
-      "official_source": "https://www.ncdhhs.gov (NC DHHS Division of Aging leads; specific SFMNP page referenced in sources, also check county CES or agr.gov for updates)[1][3]",
-      "gotchas": [
-        "Not available in all 100 NC counties—must confirm participating county first[1][2]",
-        "Limited funding means no guarantee even if eligible[1]",
-        "Summer-only (July 1–Sept 30); vouchers unusable outside season or at non-certified vendors[1][3][5]",
-        "Distinct from WIC FMNP (for pregnant/postpartum/children) and SNAP doubling[2][7]",
-        "Income limits based on annual FPL updates—2024/2025 figures differ slightly by source[1][2][3]"
-      ],
-      "data_shape_notes": "County-restricted (not statewide); fixed $50 voucher regardless of household size; no asset test; pre-application interest form required due to funding limits; varies by local agency administration",
-      "_raw": "{\n  \"name\": \"North Carolina Seniors Farmers' Market Nutrition Program\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"Household income at or below 185% of the Federal Poverty Level. Examples: $2,322 or less per month for 1-person household; $3,152 or less per month for 2-person household (2024 figures); $2,413/$3,261 cited for 2025 in some regions[1][2][3]. Full table varies by year and household size—check current FPL guidelines via local agency.\",\n    \"asset_limits\": \"No asset limits mentioned in program details[1][2][3][4][5].\",\n    \"other_requirements\": [\"Reside in a participating county (not statewide; available in 49-57 of 100 counties)[1][2]\", \"Not an entitlement program—vouchers not guaranteed even if eligible due to limited funding[1]\"]\n  },\n  \"benefits\": {\n    \"type\": \"in_kind\",\n    \"value\": \"$50 in vouchers per eligible senior to purchase fresh fruits, vegetables, raw honey, and fresh-cut herbs at certified farmers' markets, roadside stands, or CSAs. Minimum $20, maximum $50 per federal guidelines, redeemable July 1–September 30[1][3][5].\",\n    \"varies_by\": \"fixed\"\n  },\n  \"application\": {\n    \"methods\": [\"Fill out NC SFMNP Voucher Interest Form (pre-application to join interest list; notified in June of local agency contacts)[2]\", \"Contact local agency in participating county for eligibility screening, application, and voucher distribution (varies by county—no central statewide phone/website listed; e.g., NC DHHS Division of Aging leads, partners with county DSS)[3]\", \"In-person at participating farmers' markets or local agencies (e.g., Mecklenburg County DSS)[3]\"],\n    \"processing_time\": \"Interest list notifications in June; applications open around then for July start—no specific processing timeline stated[2].\",\n    \"waitlist\": \"Not guaranteed due to limited funds; interest form acts as pre-waitlist mechanism[1][2].\",\n    \"forms\": [\"2025 NC SFMNP Voucher Interest Form[2]\", \"County-specific application via local agency (no statewide form number specified)\"],\n    \"documents\": [\"Proof of age (60+)\", \"Proof of residency in participating county\", \"Proof of household income ≤185% FPL (e.g., pay stubs, tax returns); some agencies may accept proof of enrollment in SNAP/CSFP[5]\"]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Limited to participating counties only (e.g., 49 in 2024, including Chatham, Mecklenburg/Triangle areas; check annual map/list via local agency or NC DHHS)[1][2].\",\n    \"regional_variations\": \"Administered by local agencies (e.g., county DSS, food councils); different participating markets (e.g., Charlotte Regional Farmers Market, Pittsboro); varying availability and partners by county[1][3].\",\n    \"offices_or_providers\": [\"Local county agencies (e.g., Mecklenburg County DSS), NC DHHS Division of Aging, certified farmers' markets like Pittsboro, Charlotte Regional[1][3]\"]\n  },\n  \"official_source\": \"https://www.ncdhhs.gov (NC DHHS Division of Aging leads; specific SFMNP page referenced in sources, also check county CES or agr.gov for updates)[1][3]\",\n  \"gotchas\": [\"Not available in all 100 NC counties—must confirm participating county first[1][2]\", \"Limited funding means no guarantee even if eligible[1]\", \"Summer-only (July 1–Sept 30); vouchers unusable outside season or at non-certified vendors[1][3][5]\", \"Distinct from WIC FMNP (for pregnant/postpartum/children) and SNAP doubling[2][7]\", \"Income limits based on annual FPL updates—2024/2025 figures differ slightly by source[1][2][3]\"],\n  \"data_shape_notes\": \"County-restricted (not statewide); fixed $50 voucher regardless of household size; no asset test; pre-application interest form required due to funding limits; varies by local agency administration\"\n}"
-    },
-    {
-      "name": "Project C.A.R.E.",
-      "eligibility": {
-        "age": null,
-        "income_limits": "Targets low-income families; most recipients are just above Medicaid eligibility or on waiting lists for Medicaid/other public funds. No exact dollar amounts or household size table specified in sources.",
-        "asset_limits": null,
-        "other_requirements": [
-          "Person with dementia must have confirmed Alzheimer's disease or other types of dementia (memory loss and confusion) by caregiver, physician, or healthcare provider[2][3]",
-          "Residence of the person with dementia must be in one of the counties served by the regional host agency (e.g., 29 counties in Northeastern NC Project C.A.R.E.: Northampton, Hertford, Gates, Currituck, Camden, Pasquotank, Chowan, Washington, Tyrrell, Dare, Hyde, Halifax, Bertie, Nash, Edgecombe, Martin, Wilson, Pitt, Beaufort, Wayne, Greene, Lenoir, Craven, Pamlico, Jones, Duplin, Onslow, Carteret[2]; program serves 100 counties statewide[2])",
-          "Caregiver must be at least 18 years old[3]",
-          "Caregivers in Medicaid CAP/DA are eligible for all benefits except additional respite funding; may receive respite while on CAP/DA waitlist[2]"
+          "Nursing Facility Level of Care (NFLOC) or equivalent institutional level required across waivers[1][3][4][5][8]",
+          "Medically fragile/complex or at risk of institutionalization; functional needs assessment (ADLs, mobility, health risks)[1][2]",
+          "Able to remain safely at home with services[1]",
+          "Specific: CAP/DA (disabled adults 18-64 or 65+ physical), CAP/C (medically fragile children), TBI (traumatic brain injury 18+), Innovations (I/DD or related conditions)[2][5][6][7][8]"
         ]
       },
       "benefits": {
         "type": "service",
-        "value": "Care consultation, individualized care planning, caregiver assessment, dementia-specific education and training, information and referrals, connections to community resources (e.g., Area Agencies on Aging, Family Caregiver Support Program), limited self-directed respite care funds (vouchers for in-home respite or group settings like Adult Day Care/Health; excludes additional respite for CAP/DA enrollees)[2][3][5][6]",
+        "value": "Specific services vary by waiver; e.g., CAP/DA: personal assistance, adult day health, respite, home modifications, non-medical transport, nutritional services, PERS; CAP/C: in-home aide, respite, assistive tech, vehicle mods, nurse aide; TBI: day supports, therapies, home mods, supported living; Innovations: wide range for I/DD; no fixed $ or hours stated, cost-neutral to institutional care[1][2][4][5]",
         "varies_by": "priority_tier"
       },
       "application": {
         "methods": [
-          "Phone: Regional intake lines (e.g., Just1Call at 704-432-1111 for Mecklenburg[6]; State Director Laura Jane Strunin at 984-365-6992[3])",
-          "Contact regional host agencies: Northeastern (Albemarle/Mid-East Commission[2]), Southeastern (Cape Fear Council of Governments[5]), South Central (Mecklenburg County DSS[6]), Central (Duke Dementia Family Support Program[3][8]), Foothills (Western Piedmont Council of Government[2]), Western (Land of Sky Regional Council[2])",
-          "No statewide online application or specific form name listed; applications go through regional Family Consultants or host agencies"
+          "CAP/DA: Confirm Medicaid via NC ePASS or local DSS, then request assessment[1]",
+          "CAP/C: Local Case Management Agency (directory: CAP-C Case Management Agency Directory) or Acentra Health[2]",
+          "Innovations: Local LME/MCO (NC DHHS LME/MCO Directory)[2]",
+          "General: Local DSS for Medicaid, then waiver-specific agency[1][2]"
         ],
-        "processing_time": "Not specified",
-        "waitlist": "Funds are limited; prioritizes caregivers in crisis; may involve waitlists similar to Medicaid CAP/DA[2][5]",
-        "forms": [],
+        "processing_time": "Not specified; includes assessment after Medicaid approval[1]",
+        "waitlist": "Yes for some (e.g., Innovations 'Registry of Unmet Needs'); others limited slots, not entitlement[2][3][4]",
+        "forms": [
+          "NC ePASS for Medicaid; no specific waiver form named[1]"
+        ],
         "documents": [
-          "Confirmation of dementia diagnosis (from caregiver, physician, or healthcare provider)[2]"
+          "Income/asset proof, medical records for NFLOC assessment, ID; consult local DSS[1][3]"
         ]
       },
       "geography": {
         "statewide": true,
-        "restrictions": "Serves 100 counties through 6 regional host agencies; county coverage assigned to specific regions (e.g., 29 counties in Northeast[2])",
-        "regional_variations": "Delivered by regional host agencies (Northeastern: Albemarle Commission; Southeastern: Cape Fear; South Central: Mecklenburg DSS; Central: Duke; Foothills: Western Piedmont; Western: Land of Sky); different counties served per region, potentially varying wait times and availability due to limited funds[2][3]",
+        "restrictions": "Available in all 100 NC counties (e.g., TBI, Innovations)[2]",
+        "regional_variations": "Administered via local DSS, Case Management Agencies, LME/MCOs; wait times/providers may vary by region[2]",
         "offices_or_providers": [
-          "Northeastern: Albemarle Commission Area Agency on Aging (Hertford)[2][3]",
-          "Southeastern: Cape Fear Council of Governments (Wilmington)[3][5]",
-          "South Central: Mecklenburg County Department of Social Services (Charlotte)[2][3][6]",
-          "Central: Duke Dementia Family Support Program (Durham)[2][3][8]",
-          "Foothills: Western Piedmont Council of Government (Hickory)[2][3]",
-          "Western: Land of Sky Area Agency on Aging (Asheville)[2][3]"
+          "Local DSS, CAP/C Case Management Agencies, LME/MCO Directory[1][2]"
         ]
       },
-      "official_source": "https://www.ncdhhs.gov/divisions/aging/project-care-caregiver-alternatives-running-empty[7]",
+      "official_source": "https://medicaid.ncdhhs.gov/",
       "gotchas": [
-        "Limited funds; respite vouchers subject to availability and not additional for CAP/DA enrollees[2][5]",
-        "Must reside in specific regional counties; not all NC counties may be covered uniformly[2]",
-        "Targets low-income/rural/minority caregivers just above Medicaid; those who can pay may get consultation only[4]",
-        "Apply through regional host agency, not centralized statewide process[1][2][3]"
+        "Multiple waivers exist (not one program): CAP/DA for disabled adults, CAP/C children, TBI, Innovations I/DD—match to needs[2][5][7][8]",
+        "Not entitlement: limited slots, waitlists common[3][4]",
+        "Must qualify for Medicaid first, but waiver uses applicant-only income[1][2]",
+        "NFLOC required, assessed via functional needs—not just age/disability[1][3]",
+        "Home equity limits apply ($752K 2026)[3]",
+        "Spend-down/Miller Trusts possible if over limits[1]"
       ],
-      "data_shape_notes": "Regionally administered through 6 host agencies covering 100 counties; respite funds limited and prioritized by crisis need; no fixed income/asset tables or age minimum for care recipient",
-      "_raw": "{\n  \"name\": \"Project C.A.R.E.\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Targets low-income families; most recipients are just above Medicaid eligibility or on waiting lists for Medicaid/other public funds. No exact dollar amounts or household size table specified in sources.\",\n    \"asset_limits\": null,\n    \"other_requirements\": [\n      \"Person with dementia must have confirmed Alzheimer's disease or other types of dementia (memory loss and confusion) by caregiver, physician, or healthcare provider[2][3]\",\n      \"Residence of the person with dementia must be in one of the counties served by the regional host agency (e.g., 29 counties in Northeastern NC Project C.A.R.E.: Northampton, Hertford, Gates, Currituck, Camden, Pasquotank, Chowan, Washington, Tyrrell, Dare, Hyde, Halifax, Bertie, Nash, Edgecombe, Martin, Wilson, Pitt, Beaufort, Wayne, Greene, Lenoir, Craven, Pamlico, Jones, Duplin, Onslow, Carteret[2]; program serves 100 counties statewide[2])\",\n      \"Caregiver must be at least 18 years old[3]\",\n      \"Caregivers in Medicaid CAP/DA are eligible for all benefits except additional respite funding; may receive respite while on CAP/DA waitlist[2]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Care consultation, individualized care planning, caregiver assessment, dementia-specific education and training, information and referrals, connections to community resources (e.g., Area Agencies on Aging, Family Caregiver Support Program), limited self-directed respite care funds (vouchers for in-home respite or group settings like Adult Day Care/Health; excludes additional respite for CAP/DA enrollees)[2][3][5][6]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: Regional intake lines (e.g., Just1Call at 704-432-1111 for Mecklenburg[6]; State Director Laura Jane Strunin at 984-365-6992[3])\",\n      \"Contact regional host agencies: Northeastern (Albemarle/Mid-East Commission[2]), Southeastern (Cape Fear Council of Governments[5]), South Central (Mecklenburg County DSS[6]), Central (Duke Dementia Family Support Program[3][8]), Foothills (Western Piedmont Council of Government[2]), Western (Land of Sky Regional Council[2])\",\n      \"No statewide online application or specific form name listed; applications go through regional Family Consultants or host agencies\"\n    ],\n    \"processing_time\": \"Not specified\",\n    \"waitlist\": \"Funds are limited; prioritizes caregivers in crisis; may involve waitlists similar to Medicaid CAP/DA[2][5]\",\n    \"forms\": [],\n    \"documents\": [\n      \"Confirmation of dementia diagnosis (from caregiver, physician, or healthcare provider)[2]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Serves 100 counties through 6 regional host agencies; county coverage assigned to specific regions (e.g., 29 counties in Northeast[2])\",\n    \"regional_variations\": \"Delivered by regional host agencies (Northeastern: Albemarle Commission; Southeastern: Cape Fear; South Central: Mecklenburg DSS; Central: Duke; Foothills: Western Piedmont; Western: Land of Sky); different counties served per region, potentially varying wait times and availability due to limited funds[2][3]\",\n    \"offices_or_providers\": [\n      \"Northeastern: Albemarle Commission Area Agency on Aging (Hertford)[2][3]\",\n      \"Southeastern: Cape Fear Council of Governments (Wilmington)[3][5]\",\n      \"South Central: Mecklenburg County Department of Social Services (Charlotte)[2][3][6]\",\n      \"Central: Duke Dementia Family Support Program (Durham)[2][3][8]\",\n      \"Foothills: Western Piedmont Council of Government (Hickory)[2][3]\",\n      \"Western: Land of Sky Area Agency on Aging (Asheville)[2][3]\"\n    ]\n  },\n  \"official_source\": \"https://www.ncdhhs.gov/divisions/aging/project-care-caregiver-alternatives-running-empty[7]\",\n  \"gotchas\": [\n    \"Limited funds; respite vouchers subject to availability and not additional for CAP/DA enrollees[2][5]\",\n    \"Must reside in specific regional counties; not all NC counties may be covered uniformly[2]\",\n    \"Targets low-income/rural/minority caregivers just above Medicaid; those who can pay may get consultation only[4]\",\n    \"Apply through regional host agency, not centralized statewide process[1][2][3]\"\n  ],\n  \"data_shape_notes\": \"Regionally administered through 6 host agencies covering 100 counties; respite funds limited and prioritized by crisis need; no fixed income/asset tables or age minimum for care recipient\"\n}"
+      "data_shape_notes": "Multiple distinct waivers (CAP/DA, CAP/C, TBI, Innovations) with target populations, all statewide but local admin; benefits/service arrays waiver-specific; waitlists and NFLOC universal; applicant-only income for Medicaid qual",
+      "_raw": "{\n  \"name\": \"NC Medicaid Home and Community-Based Services (HCBS) Waivers\",\n  \"eligibility\": {\n    \"age\": \"Varies by waiver: CAP/DA (18+), CAP/C (0-20), TBI (18+), Innovations (all ages with I/DD)[1][2][5][8]\",\n    \"income_limits\": \"Must qualify for NC Medicaid; typically ~$1,255/month for individual (2025, subject to change); 2026 nursing home level est. $7,898-$11,218/month but waivers follow Medicaid standard ~$2,901/month individual; waiver slots use applicant income only, not family[1][2][3][4]\",\n    \"asset_limits\": \"$2,000 countable resources for individual; exempt: primary home (equity limit $752,000 in 2026 if no qualifying resident), car, personal belongings; most bank accounts, retirement, cash count[1][3][4]\",\n    \"other_requirements\": [\n      \"Nursing Facility Level of Care (NFLOC) or equivalent institutional level required across waivers[1][3][4][5][8]\",\n      \"Medically fragile/complex or at risk of institutionalization; functional needs assessment (ADLs, mobility, health risks)[1][2]\",\n      \"Able to remain safely at home with services[1]\",\n      \"Specific: CAP/DA (disabled adults 18-64 or 65+ physical), CAP/C (medically fragile children), TBI (traumatic brain injury 18+), Innovations (I/DD or related conditions)[2][5][6][7][8]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Specific services vary by waiver; e.g., CAP/DA: personal assistance, adult day health, respite, home modifications, non-medical transport, nutritional services, PERS; CAP/C: in-home aide, respite, assistive tech, vehicle mods, nurse aide; TBI: day supports, therapies, home mods, supported living; Innovations: wide range for I/DD; no fixed $ or hours stated, cost-neutral to institutional care[1][2][4][5]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"CAP/DA: Confirm Medicaid via NC ePASS or local DSS, then request assessment[1]\",\n      \"CAP/C: Local Case Management Agency (directory: CAP-C Case Management Agency Directory) or Acentra Health[2]\",\n      \"Innovations: Local LME/MCO (NC DHHS LME/MCO Directory)[2]\",\n      \"General: Local DSS for Medicaid, then waiver-specific agency[1][2]\"\n    ],\n    \"processing_time\": \"Not specified; includes assessment after Medicaid approval[1]\",\n    \"waitlist\": \"Yes for some (e.g., Innovations 'Registry of Unmet Needs'); others limited slots, not entitlement[2][3][4]\",\n    \"forms\": [\"NC ePASS for Medicaid; no specific waiver form named[1]\"],\n    \"documents\": [\"Income/asset proof, medical records for NFLOC assessment, ID; consult local DSS[1][3]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Available in all 100 NC counties (e.g., TBI, Innovations)[2]\",\n    \"regional_variations\": \"Administered via local DSS, Case Management Agencies, LME/MCOs; wait times/providers may vary by region[2]\",\n    \"offices_or_providers\": [\"Local DSS, CAP/C Case Management Agencies, LME/MCO Directory[1][2]\"]\n  },\n  \"official_source\": \"https://medicaid.ncdhhs.gov/\",\n  \"gotchas\": [\n    \"Multiple waivers exist (not one program): CAP/DA for disabled adults, CAP/C children, TBI, Innovations I/DD—match to needs[2][5][7][8]\",\n    \"Not entitlement: limited slots, waitlists common[3][4]\",\n    \"Must qualify for Medicaid first, but waiver uses applicant-only income[1][2]\",\n    \"NFLOC required, assessed via functional needs—not just age/disability[1][3]\",\n    \"Home equity limits apply ($752K 2026)[3]\",\n    \"Spend-down/Miller Trusts possible if over limits[1]\"\n  ],\n  \"data_shape_notes\": \"Multiple distinct waivers (CAP/DA, CAP/C, TBI, Innovations) with target populations, all statewide but local admin; benefits/service arrays waiver-specific; waitlists and NFLOC universal; applicant-only income for Medicaid qual\"\n}"
     },
     {
-      "name": "NC Lifespan Respite Program",
+      "name": "NC Program of All-Inclusive Care for the Elderly (PACE)",
       "eligibility": {
-        "age": 18,
-        "income_limits": "No specific dollar amounts or household size table stated; priority given to those with greatest economic need[1][3][5]",
-        "asset_limits": "No asset limits or exemptions mentioned[1][3][5]",
+        "age": 55,
+        "income_limits": "No income limit for eligibility. However, if you qualify for Medicaid long-term care, most states (including NC) cap income at 300% of the Federal Benefit Rate ($2,901/month as of 2025)[2]. If your income exceeds this, you may still enroll by paying a monthly Patient Monthly Liability determined by Medicaid based on your assets and income[3]. If you have only Medicare (no Medicaid), you pay a set monthly fee[3]. If you have neither Medicare nor Medicaid, you can private pay at approximately $4,000–$5,000/month[2].",
+        "asset_limits": "For Medicaid eligibility: $2,000 or less in countable assets (excluding primary home)[2]. The primary residence is exempt from asset calculations[2].",
         "other_requirements": [
-          "North Carolina resident[1][3][5]",
-          "Providing unpaid care to older adult (60+) or adult/minor of any age with disabilities requiring regular assistance with activities of daily living[1][3]",
-          "Neither caregiver nor care recipient receiving ongoing publicly-funded in-home care or respite care[1][3]",
-          "Must use voucher funds within 90 days[3]",
-          "Priority: greatest economic need, provided direct care for at least 3 months in home-like setting, no publicly-funded respite in last 3 months, emergency/extenuating circumstances[3]"
+          "Must be certified by NC Medicaid as needing nursing facility level of care (extensive assistance with Activities of Daily Living: bathing, grooming, toileting, walking, transferring, eating)[2][4]",
+          "Must reside in the service area of a PACE organization[1][6]",
+          "Must be able to live safely in the community with PACE support at time of enrollment[1][3]",
+          "Cannot be enrolled in Medicare Advantage (Part C) plan, Medicare prepayment plan, or Medicare prescription drug plan[1]",
+          "Cannot be enrolled in hospice services or certain other programs[1]",
+          "Must be a U.S. citizen or legal resident for 5 years prior to application (if Medicare-eligible)[2]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Comprehensive managed care including: primary care, specialist care, hospital care, prescription drugs, therapy services, social services, transportation, and other services needed to support community living. Participants receive no deductibles, co-pays, or co-insurance for approved services[3]. PACE becomes both insurer and provider[8].",
+        "varies_by": "funding_source — Medicare covers Medicare-eligible services; Medicaid covers Medicaid-eligible services; private pay covers all services at negotiated rates. Specific service mix is individualized based on care plan[3]."
+      },
+      "application": {
+        "methods": [
+          "Phone: Contact your local PACE Center directly[6]. NC PACE Association phone: 919-855-4340[4]",
+          "In-person: Visit your local PACE Center[6]",
+          "Self-referral or referral by family member, physician, or provider[6]",
+          "Online: Visit NC PACE Association website to locate local PACE centers[6][8]"
+        ],
+        "processing_time": "Not specified in available sources",
+        "waitlist": "Not specified in available sources",
+        "forms": "Not specified in available sources",
+        "documents": "Not specified in available sources. Contact your local PACE Center for specific documentation requirements."
+      },
+      "geography": {
+        "statewide": false,
+        "restrictions": "PACE is only available in certain areas of North Carolina where PACE organizations operate[7]. Participants must reside within the defined service area of a specific PACE organization[1][3][6].",
+        "regional_variations": "Different PACE organizations serve different regions. For example, Carolina SeniorCare serves Davidson, Rowan, Davie, and Iredell Counties[3]. Each PACE organization may have different service areas, staffing, and specific offerings.",
+        "offices_or_providers": [
+          "Carolina SeniorCare (serves Davidson, Rowan, Davie, Iredell Counties)[3]",
+          "Other NC PACE centers (specific list available at NC PACE Association website)[6][8]"
+        ]
+      },
+      "official_source": "https://medicaid.ncdhhs.gov/providers/programs-and-services/long-term-care/program-all-inclusive-care-elderly-pace and https://www.ncpace.org/",
+      "gotchas": [
+        "PACE is NOT available statewide — you must live in a service area where a PACE organization operates[7]. Check availability before assuming eligibility[8].",
+        "You cannot be enrolled in Medicare Advantage (Part C) — if you have a Medicare Advantage plan, you must disenroll before joining PACE[1].",
+        "Nursing home level of care certification is required and is determined by the state, not by the program — this is a gatekeeping requirement[1][4].",
+        "If you exceed Medicaid income limits, you don't lose eligibility; instead, you pay a Patient Monthly Liability (out-of-pocket cost) determined by Medicaid[3].",
+        "Private pay costs are substantial (~$4,000–$5,000/month) if you have neither Medicare nor Medicaid[2].",
+        "All services except emergencies must be approved in advance by your PACE organization — using out-of-network providers without approval may result in full cost to you[3].",
+        "You can disenroll at any time, but PACE becomes your sole insurer and provider — you won't have separate health insurance coverage[3][8].",
+        "The average PACE participant is 76 years old with multiple complex medical conditions — this is designed for frail seniors, not those with minimal care needs[1]."
+      ],
+      "data_shape_notes": "NC PACE is a regionally fragmented program with multiple independent PACE organizations, each serving specific counties. Eligibility is standardized statewide (age 55+, nursing home level of care, service area residency), but availability, service offerings, and costs vary by provider. Income limits apply only if seeking Medicaid coverage; otherwise, no income test exists. Asset limits ($2,000) apply only for Medicaid eligibility. The program is voluntary enrollment with no waitlist information publicly available. Processing timelines and required documentation are not standardized across providers.",
+      "_raw": "```json\n{\n  \"name\": \"NC Program of All-Inclusive Care for the Elderly (PACE)\",\n  \"eligibility\": {\n    \"age\": 55,\n    \"income_limits\": \"No income limit for eligibility. However, if you qualify for Medicaid long-term care, most states (including NC) cap income at 300% of the Federal Benefit Rate ($2,901/month as of 2025)[2]. If your income exceeds this, you may still enroll by paying a monthly Patient Monthly Liability determined by Medicaid based on your assets and income[3]. If you have only Medicare (no Medicaid), you pay a set monthly fee[3]. If you have neither Medicare nor Medicaid, you can private pay at approximately $4,000–$5,000/month[2].\",\n    \"asset_limits\": \"For Medicaid eligibility: $2,000 or less in countable assets (excluding primary home)[2]. The primary residence is exempt from asset calculations[2].\",\n    \"other_requirements\": [\n      \"Must be certified by NC Medicaid as needing nursing facility level of care (extensive assistance with Activities of Daily Living: bathing, grooming, toileting, walking, transferring, eating)[2][4]\",\n      \"Must reside in the service area of a PACE organization[1][6]\",\n      \"Must be able to live safely in the community with PACE support at time of enrollment[1][3]\",\n      \"Cannot be enrolled in Medicare Advantage (Part C) plan, Medicare prepayment plan, or Medicare prescription drug plan[1]\",\n      \"Cannot be enrolled in hospice services or certain other programs[1]\",\n      \"Must be a U.S. citizen or legal resident for 5 years prior to application (if Medicare-eligible)[2]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Comprehensive managed care including: primary care, specialist care, hospital care, prescription drugs, therapy services, social services, transportation, and other services needed to support community living. Participants receive no deductibles, co-pays, or co-insurance for approved services[3]. PACE becomes both insurer and provider[8].\",\n    \"varies_by\": \"funding_source — Medicare covers Medicare-eligible services; Medicaid covers Medicaid-eligible services; private pay covers all services at negotiated rates. Specific service mix is individualized based on care plan[3].\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: Contact your local PACE Center directly[6]. NC PACE Association phone: 919-855-4340[4]\",\n      \"In-person: Visit your local PACE Center[6]\",\n      \"Self-referral or referral by family member, physician, or provider[6]\",\n      \"Online: Visit NC PACE Association website to locate local PACE centers[6][8]\"\n    ],\n    \"processing_time\": \"Not specified in available sources\",\n    \"waitlist\": \"Not specified in available sources\",\n    \"forms\": \"Not specified in available sources\",\n    \"documents\": \"Not specified in available sources. Contact your local PACE Center for specific documentation requirements.\"\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"PACE is only available in certain areas of North Carolina where PACE organizations operate[7]. Participants must reside within the defined service area of a specific PACE organization[1][3][6].\",\n    \"regional_variations\": \"Different PACE organizations serve different regions. For example, Carolina SeniorCare serves Davidson, Rowan, Davie, and Iredell Counties[3]. Each PACE organization may have different service areas, staffing, and specific offerings.\",\n    \"offices_or_providers\": [\n      \"Carolina SeniorCare (serves Davidson, Rowan, Davie, Iredell Counties)[3]\",\n      \"Other NC PACE centers (specific list available at NC PACE Association website)[6][8]\"\n    ]\n  },\n  \"official_source\": \"https://medicaid.ncdhhs.gov/providers/programs-and-services/long-term-care/program-all-inclusive-care-elderly-pace and https://www.ncpace.org/\",\n  \"gotchas\": [\n    \"PACE is NOT available statewide — you must live in a service area where a PACE organization operates[7]. Check availability before assuming eligibility[8].\",\n    \"You cannot be enrolled in Medicare Advantage (Part C) — if you have a Medicare Advantage plan, you must disenroll before joining PACE[1].\",\n    \"Nursing home level of care certification is required and is determined by the state, not by the program — this is a gatekeeping requirement[1][4].\",\n    \"If you exceed Medicaid income limits, you don't lose eligibility; instead, you pay a Patient Monthly Liability (out-of-pocket cost) determined by Medicaid[3].\",\n    \"Private pay costs are substantial (~$4,000–$5,000/month) if you have neither Medicare nor Medicaid[2].\",\n    \"All services except emergencies must be approved in advance by your PACE organization — using out-of-network providers without approval may result in full cost to you[3].\",\n    \"You can disenroll at any time, but PACE becomes your sole insurer and provider — you won't have separate health insurance coverage[3][8].\",\n    \"The average PACE participant is 76 years old with multiple complex medical conditions — this is designed for frail seniors, not those with minimal care needs[1].\"\n  ],\n  \"data_shape_notes\": \"NC PACE is a regionally fragmented program with multiple independent PACE organizations, each serving specific counties. Eligibility is standardized statewide (age 55+, nursing home level of care, service area residency), but availability, service offerings, and costs vary by provider. Income limits apply only if seeking Medicaid coverage; otherwise, no income test exists. Asset limits ($2,000) apply only for Medicaid eligibility. The program is voluntary enrollment with no waitlist information publicly available. Processing timelines and required documentation are not standardized across providers.\"\n}\n```\n\n## Key Takeaways for Families\n\n**Before you start:** Confirm that a PACE organization operates in your county[8]. NC PACE is not available everywhere.\n\n**The core eligibility test:** Your loved one must be 55+, need nursing home-level care (certified by NC Medicaid), live in a PACE service area, and be able to live safely at home with support[4].\n\n**The financial picture:** If your loved one qualifies for Medicaid, costs are minimal or zero[3]. If they have Medicare only, there's a set monthly fee[3]. If they have neither, expect $4,000–$5,000/month[2]. Income doesn't disqualify you — it determines your out-of-pocket cost[8].\n\n**The application process:** Call your local PACE Center or the NC PACE Association (919-855-4340)[4] to start. You can refer yourself, or a family member/doctor can refer[6]. Specific forms and documentation requirements vary by provider — ask when you call.\n\n**The critical gotcha:** PACE replaces your health insurance entirely[8]. You cannot stay in a Medicare Advantage plan[1]. All services must be pre-approved[3]."
+    },
+    {
+      "name": "NC Medicare Savings Programs (QMB, SLMB, QI)",
+      "eligibility": {
+        "age": 65,
+        "income_limits": "Income limits for 2026 vary by program and household size, expressed as percentages of the Federal Poverty Level (FPL) with a $20 general income disregard. Use the most recent figures from authoritative sources: QMB (≤100% FPL): Individual $1,325-$1,350/mo, Couple $1,783-$1,824/mo; SLMB (100-120% FPL): Individual $1,585-$1,616/mo, Couple $2,135-$2,184/mo; QI (120-135% FPL): Individual $1,816/mo, Couple $2,455/mo. Older sources list lower amounts (e.g., QMB Individual $1,235), so verify current FPL-adjusted limits with NC DHHS.[1][2][4][6]",
+        "asset_limits": "Resources ≤$9,950 (individual) or $14,910 (couple) across QMB, SLMB, QI. Countable resources include bank accounts, stocks; exempt: home, one car, burial plots, life insurance (up to certain values), personal belongings. Some sources note slightly lower prior-year limits ($9,290/$14,810 or $9,090/$13,630).[1][2][3][4][6]",
+        "other_requirements": [
+          "Must be enrolled in Medicare Part A and/or B.",
+          "North Carolina resident.",
+          "U.S. citizen or qualified immigrant.",
+          "Not eligible for full Medicaid (MSPs are for Medicare beneficiaries with limited income/assets)."
         ]
       },
       "benefits": {
         "type": "financial",
-        "value": "$500 reimbursement voucher (some sources state up to $750 per calendar year); flexible for hiring agency, facility, or individual for respite care[1][5]",
+        "value": "QMB: Medicare Part A premiums (if applicable), Part B premiums ($202.90/mo in 2026), deductibles, copays, coinsurance; providers prohibited from billing beneficiary for covered costs. SLMB: Part B premium only ($202.90/mo, ~$2,435/year). QI: Part B premium only ($202.90/mo, ~$2,435/year). All auto-qualify for full Extra Help (LIS) for Part D drugs, no separate application. Annual savings $2,400-$8,000+ depending on program.[1][2][4][5]",
         "varies_by": "priority_tier"
       },
       "application": {
         "methods": [
-          "Online: www.highcountryaging.org/services/lifespan-respite-project (secure application; must be submitted by referring agency/professional, not directly by caregiver)[1][5][6]",
-          "Phone: 828-265-5434 ext. 139 (Pat Guarnieri or Tammy Nelson); email: pguarnieri@regiond.org or lifespan@hccog.org[1][4][5]"
+          "Phone: Local county Department of Social Services (DSS) office; find via NC DHHS directory.",
+          "Online: NC Medicaid ePASS portal (epass.nc.gov).",
+          "Mail/In-person: Local county DSS office.",
+          "No specific national form; use state Medicaid application (Form DMA-3000 or equivalent via DSS)."
         ],
-        "processing_time": "Takes only minutes to complete online application; further contact handled by High Country Area Agency on Aging (no specific processing timeline stated)[1][5]",
-        "waitlist": "Not mentioned",
+        "processing_time": "Typically 45 days, but varies by county; no specific statewide timeline stated.",
+        "waitlist": "QI only: first-come, first-served with limited federal funding; may run out annually (reapply each year).[1][2][8]",
         "forms": [
-          "Secure online referral application (completed by health/human service professionals on behalf of caregiver); eligibility pre-check available[5]"
+          "NC Medicaid Application (via ePASS or DMA-3000 at local DSS)"
         ],
         "documents": [
-          "Not explicitly listed; instructions and additional criteria on website[1][5]"
+          "Proof of income (SSI awards, pay stubs, pension statements for 1-2 months).",
+          "Proof of resources (bank statements, investment accounts).",
+          "Medicare card.",
+          "ID (birth certificate, Social Security card).",
+          "Proof of residency (utility bill).",
+          "Household size details."
         ]
       },
       "geography": {
         "statewide": true,
-        "restrictions": "North Carolina residents only[1][4]",
-        "regional_variations": "Administered by High Country Area Agency on Aging; may involve local referring agencies like counselors, senior centers, area agencies on aging (potential regional differences in providers or access via referrals)[1][5]",
+        "restrictions": "Available statewide to NC Medicare beneficiaries; administered locally.",
+        "regional_variations": "Processing times and support vary by county DSS office; no benefit differences.",
         "offices_or_providers": [
-          "High Country Area Agency on Aging (primary administrator)[1][5]"
+          "Local county Department of Social Services (DSS) offices across NC"
+        ]
+      },
+      "official_source": "https://medicaid.ncdhhs.gov/providers/programs-and-services/medicare-savings-programs",
+      "gotchas": [
+        "QI funding limited—first-come, first-served, may exhaust before year-end; reapply annually.[1][2][8]",
+        "Income includes $20 disregard; countable income must be under exact FPL-based limits—many miss eligibility due to unawareness.[2]",
+        "Assets include most liquid resources but exempt primary home/car; people overlook countable items like second vehicles.",
+        "Auto-triggers Extra Help for Part D, but confirm enrollment.",
+        "Providers cannot bill QMB for covered services, but some unaware—carry MSP card.",
+        "Outdated asset/income figures in older sources; always check current year.",
+        "Must have Medicare; not for full Medicaid eligibles."
+      ],
+      "data_shape_notes": "Tiered by income brackets (QMB lowest, QI highest); QI capped enrollment; asset limits fixed federally but income FPL-adjusted annually; local county administration with statewide uniformity in rules.",
+      "_raw": "{\n  \"name\": \"NC Medicare Savings Programs (QMB, SLMB, QI)\",\n  \"eligibility\": {\n    \"age\": 65,\n    \"income_limits\": \"Income limits for 2026 vary by program and household size, expressed as percentages of the Federal Poverty Level (FPL) with a $20 general income disregard. Use the most recent figures from authoritative sources: QMB (≤100% FPL): Individual $1,325-$1,350/mo, Couple $1,783-$1,824/mo; SLMB (100-120% FPL): Individual $1,585-$1,616/mo, Couple $2,135-$2,184/mo; QI (120-135% FPL): Individual $1,816/mo, Couple $2,455/mo. Older sources list lower amounts (e.g., QMB Individual $1,235), so verify current FPL-adjusted limits with NC DHHS.[1][2][4][6]\",\n    \"asset_limits\": \"Resources ≤$9,950 (individual) or $14,910 (couple) across QMB, SLMB, QI. Countable resources include bank accounts, stocks; exempt: home, one car, burial plots, life insurance (up to certain values), personal belongings. Some sources note slightly lower prior-year limits ($9,290/$14,810 or $9,090/$13,630).[1][2][3][4][6]\",\n    \"other_requirements\": [\n      \"Must be enrolled in Medicare Part A and/or B.\",\n      \"North Carolina resident.\",\n      \"U.S. citizen or qualified immigrant.\",\n      \"Not eligible for full Medicaid (MSPs are for Medicare beneficiaries with limited income/assets).\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"QMB: Medicare Part A premiums (if applicable), Part B premiums ($202.90/mo in 2026), deductibles, copays, coinsurance; providers prohibited from billing beneficiary for covered costs. SLMB: Part B premium only ($202.90/mo, ~$2,435/year). QI: Part B premium only ($202.90/mo, ~$2,435/year). All auto-qualify for full Extra Help (LIS) for Part D drugs, no separate application. Annual savings $2,400-$8,000+ depending on program.[1][2][4][5]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: Local county Department of Social Services (DSS) office; find via NC DHHS directory.\",\n      \"Online: NC Medicaid ePASS portal (epass.nc.gov).\",\n      \"Mail/In-person: Local county DSS office.\",\n      \"No specific national form; use state Medicaid application (Form DMA-3000 or equivalent via DSS).\"\n    ],\n    \"processing_time\": \"Typically 45 days, but varies by county; no specific statewide timeline stated.\",\n    \"waitlist\": \"QI only: first-come, first-served with limited federal funding; may run out annually (reapply each year).[1][2][8]\",\n    \"forms\": [\"NC Medicaid Application (via ePASS or DMA-3000 at local DSS)\"],\n    \"documents\": [\n      \"Proof of income (SSI awards, pay stubs, pension statements for 1-2 months).\",\n      \"Proof of resources (bank statements, investment accounts).\",\n      \"Medicare card.\",\n      \"ID (birth certificate, Social Security card).\",\n      \"Proof of residency (utility bill).\",\n      \"Household size details.\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Available statewide to NC Medicare beneficiaries; administered locally.\",\n    \"regional_variations\": \"Processing times and support vary by county DSS office; no benefit differences.\",\n    \"offices_or_providers\": [\"Local county Department of Social Services (DSS) offices across NC\"]\n  },\n  \"official_source\": \"https://medicaid.ncdhhs.gov/providers/programs-and-services/medicare-savings-programs\",\n  \"gotchas\": [\n    \"QI funding limited—first-come, first-served, may exhaust before year-end; reapply annually.[1][2][8]\",\n    \"Income includes $20 disregard; countable income must be under exact FPL-based limits—many miss eligibility due to unawareness.[2]\",\n    \"Assets include most liquid resources but exempt primary home/car; people overlook countable items like second vehicles.\",\n    \"Auto-triggers Extra Help for Part D, but confirm enrollment.\",\n    \"Providers cannot bill QMB for covered services, but some unaware—carry MSP card.\",\n    \"Outdated asset/income figures in older sources; always check current year.\",\n    \"Must have Medicare; not for full Medicaid eligibles.\"\n  ],\n  \"data_shape_notes\": \"Tiered by income brackets (QMB lowest, QI highest); QI capped enrollment; asset limits fixed federally but income FPL-adjusted annually; local county administration with statewide uniformity in rules.\"\n}"
+    },
+    {
+      "name": "NC Food and Nutrition Services (FNS)/SNAP",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "Households with a senior (60+) must have monthly net income at or below these thresholds after deductions (standard $193 for 1-4 members, 20% earnings deduction, medical expenses over $35/month for elderly/disabled): |Household Size|Maximum Monthly Net Income|Maximum Monthly Benefits Allotment| |1|$1,133|$281| |2|$1,526|$516| |3|$1,920|$740| |4|$2,313|$939| Thresholds increase with household size. For elderly/disabled-only households, only net income limit applies (no gross income test). Simplified SNAP variant for SSI recipients age 65+ has no specific income limit beyond SSI receipt.[1][3][5]",
+        "asset_limits": "For households with elderly (60+) or disabled members, countable resources must be $4,500 or less. Exemptions typically include primary home, one vehicle, household goods, retirement accounts, and certain life insurance; exact countable assets follow federal SNAP rules with state application.[5][6]",
+        "other_requirements": [
+          "U.S. citizen or qualified non-citizen (e.g., 5+ years residency, children under 18, disability benefits).",
+          "Reside in North Carolina.",
+          "For Simplified SNAP: Receive SSI, age 65+, purchase/prepare food separately, not in institution/ADTC, not on regular FNS elsewhere, not disqualified from FNS.[4][9]",
+          "Household includes those who buy/prepare food together.",
+          "Work requirements may apply (e.g., 80 hours/month work/volunteer/training for ages 55-64 without dependents under 2025 changes), but exemptions for elderly 60+.[5]"
+        ]
+      },
+      "benefits": {
+        "type": "in_kind",
+        "value": "EBT card for purchasing food (groceries, fresh produce, non-alcoholic beverages at authorized retailers). Maximum monthly allotments as in income table (e.g., $281 for 1-person, actual amount based on income/deductions; average $188 for seniors). Simplified SNAP certified for 3 years.[1][4][5]",
+        "varies_by": "household_size"
+      },
+      "application": {
+        "methods": [
+          "Online: NC ePASS at https://epass.nc.gov",
+          "Phone: Local county DSS office (find via https://www.ncdhhs.gov/divisions/child-and-family-well-being/food-and-nutrition-services-food-stamps)",
+          "Mail/In-person: Local Department of Social Services (DSS) office by county",
+          "Automatic for Simplified SNAP via monthly NC State Data Exchange (SDX) match if eligible."
+        ],
+        "processing_time": "30 days standard; expedited within 7 days if income < $150 and cash < $100, or income/cash < rent/utilities.[2][4]",
+        "waitlist": null,
+        "forms": [
+          "Food and Nutrition Services Application (evaluated for Simplified SNAP automatically if eligible)",
+          "SNAP application mailed automatically for potential Simplified SNAP recipients.[4]"
+        ],
+        "documents": [
+          "Proof of income (Social Security, pension statements)",
+          "Proof of expenses (medical over $35/month, rent, utilities)",
+          "ID (birth certificate, driver's license)",
+          "Proof of residency",
+          "SSI award letter (for Simplified SNAP)",
+          "Bank statements for assets if applicable."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Must reside in North Carolina; apply via local county DSS.",
+        "regional_variations": "Administered uniformly by county DSS offices; potential processing/wait time differences by county workload, but no specified benefit variations.[4][6]",
+        "offices_or_providers": [
+          "Local county Department of Social Services (DSS) offices statewide."
+        ]
+      },
+      "official_source": "https://www.ncdhhs.gov/divisions/child-and-family-well-being/food-and-nutrition-services-food-stamps",
+      "gotchas": [
+        "Elderly households skip gross income test (only net matters), but must calculate deductions accurately (medical key for seniors).[1][3]",
+        "Simplified SNAP only for SSI/65+ separate food prep; married couples count as one household.[4]",
+        "Assets $4,500 limit applies to elderly/disabled (higher than non-elderly $3,000).[5]",
+        "Post-2025 changes: Work rules for 55-64, non-citizen restrictions; expedited SNAP often missed for urgent need.[2][8]",
+        "Include all who buy/prepare food in household; students 18-51 need exemptions.[7]",
+        "Benefits loaded on EBT card; can't buy hot foods/alcohol/tobacco."
+      ],
+      "data_shape_notes": "Net income only for elderly/disabled households (no gross test); deductions heavily favor seniors (medical, standard); Simplified SNAP auto-enrollment for SSI/65+; benefits scale by household size with max allotments; county DSS processing.",
+      "_raw": "{\n  \"name\": \"NC Food and Nutrition Services (FNS)/SNAP\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"Households with a senior (60+) must have monthly net income at or below these thresholds after deductions (standard $193 for 1-4 members, 20% earnings deduction, medical expenses over $35/month for elderly/disabled): |Household Size|Maximum Monthly Net Income|Maximum Monthly Benefits Allotment| |1|$1,133|$281| |2|$1,526|$516| |3|$1,920|$740| |4|$2,313|$939| Thresholds increase with household size. For elderly/disabled-only households, only net income limit applies (no gross income test). Simplified SNAP variant for SSI recipients age 65+ has no specific income limit beyond SSI receipt.[1][3][5]\",\n    \"asset_limits\": \"For households with elderly (60+) or disabled members, countable resources must be $4,500 or less. Exemptions typically include primary home, one vehicle, household goods, retirement accounts, and certain life insurance; exact countable assets follow federal SNAP rules with state application.[5][6]\",\n    \"other_requirements\": [\n      \"U.S. citizen or qualified non-citizen (e.g., 5+ years residency, children under 18, disability benefits).\",\n      \"Reside in North Carolina.\",\n      \"For Simplified SNAP: Receive SSI, age 65+, purchase/prepare food separately, not in institution/ADTC, not on regular FNS elsewhere, not disqualified from FNS.[4][9]\",\n      \"Household includes those who buy/prepare food together.\",\n      \"Work requirements may apply (e.g., 80 hours/month work/volunteer/training for ages 55-64 without dependents under 2025 changes), but exemptions for elderly 60+.[5]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"in_kind\",\n    \"value\": \"EBT card for purchasing food (groceries, fresh produce, non-alcoholic beverages at authorized retailers). Maximum monthly allotments as in income table (e.g., $281 for 1-person, actual amount based on income/deductions; average $188 for seniors). Simplified SNAP certified for 3 years.[1][4][5]\",\n    \"varies_by\": \"household_size\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: NC ePASS at https://epass.nc.gov\",\n      \"Phone: Local county DSS office (find via https://www.ncdhhs.gov/divisions/child-and-family-well-being/food-and-nutrition-services-food-stamps)\",\n      \"Mail/In-person: Local Department of Social Services (DSS) office by county\",\n      \"Automatic for Simplified SNAP via monthly NC State Data Exchange (SDX) match if eligible.\"\n    ],\n    \"processing_time\": \"30 days standard; expedited within 7 days if income < $150 and cash < $100, or income/cash < rent/utilities.[2][4]\",\n    \"waitlist\": null,\n    \"forms\": [\"Food and Nutrition Services Application (evaluated for Simplified SNAP automatically if eligible)\", \"SNAP application mailed automatically for potential Simplified SNAP recipients.[4]\"],\n    \"documents\": [\n      \"Proof of income (Social Security, pension statements)\",\n      \"Proof of expenses (medical over $35/month, rent, utilities)\",\n      \"ID (birth certificate, driver's license)\",\n      \"Proof of residency\",\n      \"SSI award letter (for Simplified SNAP)\",\n      \"Bank statements for assets if applicable.\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Must reside in North Carolina; apply via local county DSS.\",\n    \"regional_variations\": \"Administered uniformly by county DSS offices; potential processing/wait time differences by county workload, but no specified benefit variations.[4][6]\",\n    \"offices_or_providers\": [\"Local county Department of Social Services (DSS) offices statewide.\"]\n  },\n  \"official_source\": \"https://www.ncdhhs.gov/divisions/child-and-family-well-being/food-and-nutrition-services-food-stamps\",\n  \"gotchas\": [\n    \"Elderly households skip gross income test (only net matters), but must calculate deductions accurately (medical key for seniors).[1][3]\",\n    \"Simplified SNAP only for SSI/65+ separate food prep; married couples count as one household.[4]\",\n    \"Assets $4,500 limit applies to elderly/disabled (higher than non-elderly $3,000).[5]\",\n    \"Post-2025 changes: Work rules for 55-64, non-citizen restrictions; expedited SNAP often missed for urgent need.[2][8]\",\n    \"Include all who buy/prepare food in household; students 18-51 need exemptions.[7]\",\n    \"Benefits loaded on EBT card; can't buy hot foods/alcohol/tobacco.\"\n  ],\n  \"data_shape_notes\": \"Net income only for elderly/disabled households (no gross test); deductions heavily favor seniors (medical, standard); Simplified SNAP auto-enrollment for SSI/65+; benefits scale by household size with max allotments; county DSS processing.\"\n}"
+    },
+    {
+      "name": "NC Low-Income Energy Assistance Program (LIHEAP)",
+      "eligibility": {
+        "age": "60 or older (priority tier); disabled persons receiving services through NC Division of Aging and Adult Services also qualify for priority tier",
+        "income_limits": "Priority households (age 60+ or disabled): up to 150% of Federal Poverty Level. All other households: up to 130% of Federal Poverty Level. For a household of four, the 130% threshold is $34,056 gross annual income ($2,838/month) as of the current funding cycle. Income limits vary by household size and may change year to year.[1][4]",
+        "asset_limits": "Countable resources (savings, checking accounts, cash on hand) must be at or below $2,250. One source indicates $3,000 for Union County specifically, suggesting possible regional variation.[1][6][7]",
+        "other_requirements": [
+          "At least one U.S. citizen or qualified non-citizen in the household must meet eligibility criteria[6]",
+          "Household must be responsible for paying the home heating/cooling bill[1]",
+          "Applicant must reside in the county where the application is submitted[7]",
+          "Applicant does not need to be behind on energy bills to qualify[3]"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "One-time vendor payment of $300, $400, or $500 sent directly to heating vendor. Last year (2023-2024), the program provided approximately $48 million to help more than 134,000 households.[2][3]",
+        "varies_by": "household_size and primary heating source"
+      },
+      "application": {
+        "methods": [
+          "Online: Visit NCDHHS website (specific URL not provided in search results; contact local social services department for link)",
+          "In-person: Local social services departments (funds distributed through these offices)[1]",
+          "Phone: Contact local county Department of Social Services or Division of Aging and Adult Services"
+        ],
+        "processing_time": "Not specified in search results; funds distributed on ongoing basis until exhausted",
+        "waitlist": "No formal waitlist mentioned; program operates on first-come, first-served basis until funds are exhausted[1]",
+        "forms": [
+          "Application form (specific form number not provided in search results)"
+        ],
+        "documents": [
+          "Photo ID and contact information[7]",
+          "Proof of address: lease, rental agreement, or shelter expense documentation[7]",
+          "Citizenship/alien status verification via Immigration and Naturalization Service[7]",
+          "Valid Social Security card or number[7]",
+          "Earned income documentation: wage stubs, tax forms, or employer contact[7]",
+          "Unearned income documentation: benefit award letters, retirement statements[7]",
+          "Asset/resource documentation: bank statements, ownership records, court documents[7]",
+          "Copy of heating bills[7]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Applicant must reside in the county where the application is submitted[7]",
+        "regional_variations": "Asset limits may vary by county (most sources cite $2,250; Union County cites $3,000)[7]. Income eligibility thresholds are consistent statewide at 130% FPL for general households and 150% FPL for priority households, but dollar amounts vary by household size and may change year to year.[1][4]",
+        "offices_or_providers": "Local social services departments and county Departments of Social Services administer the program; no centralized office structure described"
+      },
+      "official_source": "https://www.ncdhhs.gov/divisions/social-services/energy-assistance/low-income-energy-assistance-lieap",
+      "gotchas": [
+        "Application windows are time-limited and critical: Priority households (age 60+ or disabled) can apply December 1-31 only; all other households can apply January 1-March 31 or until funds are exhausted. Missing these windows means waiting until the next funding cycle.[1][4][6][7]",
+        "North Carolina received approximately $96.3 million in LIHEAP funding for the current cycle, but $1.8 million is reserved for Tribal communities, reducing available funds for general population.[1]",
+        "Income limits are based on gross (pre-tax) income, not net income.[1]",
+        "Households that received LIEAP in the prior year (2023-2024) and meet priority criteria may receive automatic payments without reapplying, but only if they received notice of eligibility; those who did not receive notice must apply manually.[2]",
+        "The program provides only a one-time payment per funding cycle, not ongoing assistance.[1][2]",
+        "Payment goes directly to the heating vendor, not to the household, so applicants cannot redirect funds.[2]",
+        "Disabled persons must be receiving services through the NC Division of Aging and Adult Services to qualify for priority status; simply having a disability is insufficient.[1][4]",
+        "Asset limits are strict: even modest savings can disqualify a household if they exceed the threshold.[1]"
+      ],
+      "data_shape_notes": "This program operates on a strict annual cycle with two application windows: a priority window (December 1-31) for elderly and disabled households, and a general window (January 1-March 31) for all other eligible households. Benefits are fixed at $300-$500 per household (not scaled by household size as one might expect) and vary only by primary heating source. The program is entirely dependent on annual federal appropriations and available funds; it is not an entitlement program. Income thresholds are percentage-based (130-150% of FPL) rather than fixed dollar amounts, meaning eligibility changes annually. County-level administration creates potential for minor regional variations in asset limits and processing procedures, though core eligibility criteria are statewide.",
+      "_raw": "```json\n{\n  \"name\": \"NC Low-Income Energy Assistance Program (LIHEAP)\",\n  \"eligibility\": {\n    \"age\": \"60 or older (priority tier); disabled persons receiving services through NC Division of Aging and Adult Services also qualify for priority tier\",\n    \"income_limits\": \"Priority households (age 60+ or disabled): up to 150% of Federal Poverty Level. All other households: up to 130% of Federal Poverty Level. For a household of four, the 130% threshold is $34,056 gross annual income ($2,838/month) as of the current funding cycle. Income limits vary by household size and may change year to year.[1][4]\",\n    \"asset_limits\": \"Countable resources (savings, checking accounts, cash on hand) must be at or below $2,250. One source indicates $3,000 for Union County specifically, suggesting possible regional variation.[1][6][7]\",\n    \"other_requirements\": [\n      \"At least one U.S. citizen or qualified non-citizen in the household must meet eligibility criteria[6]\",\n      \"Household must be responsible for paying the home heating/cooling bill[1]\",\n      \"Applicant must reside in the county where the application is submitted[7]\",\n      \"Applicant does not need to be behind on energy bills to qualify[3]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"One-time vendor payment of $300, $400, or $500 sent directly to heating vendor. Last year (2023-2024), the program provided approximately $48 million to help more than 134,000 households.[2][3]\",\n    \"varies_by\": \"household_size and primary heating source\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: Visit NCDHHS website (specific URL not provided in search results; contact local social services department for link)\",\n      \"In-person: Local social services departments (funds distributed through these offices)[1]\",\n      \"Phone: Contact local county Department of Social Services or Division of Aging and Adult Services\"\n    ],\n    \"processing_time\": \"Not specified in search results; funds distributed on ongoing basis until exhausted\",\n    \"waitlist\": \"No formal waitlist mentioned; program operates on first-come, first-served basis until funds are exhausted[1]\",\n    \"forms\": [\n      \"Application form (specific form number not provided in search results)\"\n    ],\n    \"documents\": [\n      \"Photo ID and contact information[7]\",\n      \"Proof of address: lease, rental agreement, or shelter expense documentation[7]\",\n      \"Citizenship/alien status verification via Immigration and Naturalization Service[7]\",\n      \"Valid Social Security card or number[7]\",\n      \"Earned income documentation: wage stubs, tax forms, or employer contact[7]\",\n      \"Unearned income documentation: benefit award letters, retirement statements[7]\",\n      \"Asset/resource documentation: bank statements, ownership records, court documents[7]\",\n      \"Copy of heating bills[7]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Applicant must reside in the county where the application is submitted[7]\",\n    \"regional_variations\": \"Asset limits may vary by county (most sources cite $2,250; Union County cites $3,000)[7]. Income eligibility thresholds are consistent statewide at 130% FPL for general households and 150% FPL for priority households, but dollar amounts vary by household size and may change year to year.[1][4]\",\n    \"offices_or_providers\": \"Local social services departments and county Departments of Social Services administer the program; no centralized office structure described\"\n  },\n  \"official_source\": \"https://www.ncdhhs.gov/divisions/social-services/energy-assistance/low-income-energy-assistance-lieap\",\n  \"gotchas\": [\n    \"Application windows are time-limited and critical: Priority households (age 60+ or disabled) can apply December 1-31 only; all other households can apply January 1-March 31 or until funds are exhausted. Missing these windows means waiting until the next funding cycle.[1][4][6][7]\",\n    \"North Carolina received approximately $96.3 million in LIHEAP funding for the current cycle, but $1.8 million is reserved for Tribal communities, reducing available funds for general population.[1]\",\n    \"Income limits are based on gross (pre-tax) income, not net income.[1]\",\n    \"Households that received LIEAP in the prior year (2023-2024) and meet priority criteria may receive automatic payments without reapplying, but only if they received notice of eligibility; those who did not receive notice must apply manually.[2]\",\n    \"The program provides only a one-time payment per funding cycle, not ongoing assistance.[1][2]\",\n    \"Payment goes directly to the heating vendor, not to the household, so applicants cannot redirect funds.[2]\",\n    \"Disabled persons must be receiving services through the NC Division of Aging and Adult Services to qualify for priority status; simply having a disability is insufficient.[1][4]\",\n    \"Asset limits are strict: even modest savings can disqualify a household if they exceed the threshold.[1]\"\n  ],\n  \"data_shape_notes\": \"This program operates on a strict annual cycle with two application windows: a priority window (December 1-31) for elderly and disabled households, and a general window (January 1-March 31) for all other eligible households. Benefits are fixed at $300-$500 per household (not scaled by household size as one might expect) and vary only by primary heating source. The program is entirely dependent on annual federal appropriations and available funds; it is not an entitlement program. Income thresholds are percentage-based (130-150% of FPL) rather than fixed dollar amounts, meaning eligibility changes annually. County-level administration creates potential for minor regional variations in asset limits and processing procedures, though core eligibility criteria are statewide.\"\n}\n```\n\n## Key Takeaways for Families\n\n**Timing is everything:** If your elderly loved one is 60 or older, you have a narrow window—**December 1-31 each year**—to apply. Miss it, and you wait until January 1 of the next year when the general application window opens (January 1-March 31).[1][4]\n\n**Income thresholds are generous for seniors:** Households with someone 60+ can earn up to **150% of the Federal Poverty Level**, compared to 130% for younger households. For a household of four, that's roughly $34,000-$39,000 annually, depending on the exact poverty threshold that year.[1][4]\n\n**The payment is modest but direct:** You'll receive a **one-time payment of $300-$500** sent straight to your heating vendor, not to you. This is not ongoing assistance—it's a single annual benefit.[3]\n\n**Funds run out:** North Carolina received $96.3 million for the current cycle, but that's distributed across the entire state. Once funds are exhausted, applications close, even if it's mid-March.[1]\n\n**Prior recipients may get automatic payments:** If your household received LIEAP last year and meets priority criteria, you may receive an automatic payment without reapplying—but only if you received official notice. If you didn't get notice, you must apply manually.[2]"
+    },
+    {
+      "name": "NC Weatherization Assistance Program",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Total household income at or below 200% of the federal poverty guidelines, or receiving Work First (TANF), Supplemental Security Income (SSI), or similar assistance. Example limits (likely 2024/2025 levels, subject to annual updates): 1 person: $31,300; 2: $42,300; 3: $53,300; 4: $64,300; 5: $75,300; 6: $86,300; 7: $97,300; 8: $108,300; add $11,000 per additional person.[2][5][6]",
+        "asset_limits": "No asset limits mentioned in program guidelines.[1][2]",
+        "other_requirements": [
+          "Household must reside in a home eligible for weatherization (not needing major repairs; single-family homes, duplexes, condos, mobile homes qualify).[2][3][4]",
+          "Homeowners or renters with written landlord permission.[1][2][4]",
+          "One service per household.[1]",
+          "Priority for elderly, disabled, or families with children when funds limited.[2][5][6]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "In-home energy assessments and installations of energy-saving measures (e.g., insulation, air sealing, heating/cooling efficiency upgrades) at little to no cost. Average cost per household ~$2,500 in materials/labor; saves ~$215-$372/year on energy bills.[1][4][5][6]",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Contact NC Energy Office at 919-713-1570 for statewide info or local provider.[2]",
+          "Regional providers: e.g., Resources for Seniors (Wake/Durham: 919-713-1570, download packet); PTRC (Piedmont Triad: 336-904-0338 mailed app); EICCA (application request); Action Pathways (southeastern NC counties).[2][4][5][6]",
+          "Mail or in-person to local provider; online forms via some providers (e.g., EICCA link).[5]",
+          "Sign Customer Program Application and Assessment Form.[1]"
+        ],
+        "processing_time": "Not specified; first-come, first-served until funds exhausted. Two-step: income/home approval, then audit.[1][3]",
+        "waitlist": "Funds limited; priority-based when funds low; no formal waitlist details.[1][2]",
+        "forms": [
+          "Customer Program Application and Assessment Form; local provider applications (e.g., Resources for Seniors packet). [1][2]"
+        ],
+        "documents": [
+          "Proof of income for all household members (12 months).",
+          "Photo ID/driver's license (address matching service location).",
+          "Proof of SSN.",
+          "12 months utility bills (electric/gas).",
+          "Property tax record (for owned homes).",
+          "Landlord permission (renters).[2][3][4][5]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Available in participating service territories (e.g., Dominion Energy NC); homes needing major repairs ineligible.[1][3]",
+        "regional_variations": "Administered by local agencies (e.g., Resources for Seniors in Wake/Durham; PTRC in Piedmont Triad; Action Pathways in 11 southeastern counties: Bladen, Brunswick, etc.; EICCA in its area). Contact info, forms, and processing vary by provider.[2][4][5][6]",
+        "offices_or_providers": [
+          "NC DEQ Energy Office (statewide contact); local subgrantees per county/region.[2][8]"
+        ]
+      },
+      "official_source": "https://www.deq.nc.gov/energy-climate/state-energy-office/weatherization-assistance-program[8]",
+      "gotchas": [
+        "Funds limited, first-come first-served; may exhaust quickly.[1]",
+        "Home must pass pre-assessment (not for major repairs/rehab).[2][3]",
+        "Renters need landlord permission; only one service per household.[1][4]",
+        "Income/SSI/TANF automatic qualifier, but priority for elderly/disabled/kids—still apply early.[2][6]",
+        "Verify current poverty guidelines (annual update); example table may be outdated.[2]"
+      ],
+      "data_shape_notes": "Decentralized by region/local providers; DOE-funded statewide but contact county-specific agency; priority tiers; no age minimum but elderly prioritized; income at 200% FPL or SSI/TANF auto-qualify.",
+      "_raw": "{\n  \"name\": \"NC Weatherization Assistance Program\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Total household income at or below 200% of the federal poverty guidelines, or receiving Work First (TANF), Supplemental Security Income (SSI), or similar assistance. Example limits (likely 2024/2025 levels, subject to annual updates): 1 person: $31,300; 2: $42,300; 3: $53,300; 4: $64,300; 5: $75,300; 6: $86,300; 7: $97,300; 8: $108,300; add $11,000 per additional person.[2][5][6]\",\n    \"asset_limits\": \"No asset limits mentioned in program guidelines.[1][2]\",\n    \"other_requirements\": [\n      \"Household must reside in a home eligible for weatherization (not needing major repairs; single-family homes, duplexes, condos, mobile homes qualify).[2][3][4]\",\n      \"Homeowners or renters with written landlord permission.[1][2][4]\",\n      \"One service per household.[1]\",\n      \"Priority for elderly, disabled, or families with children when funds limited.[2][5][6]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"In-home energy assessments and installations of energy-saving measures (e.g., insulation, air sealing, heating/cooling efficiency upgrades) at little to no cost. Average cost per household ~$2,500 in materials/labor; saves ~$215-$372/year on energy bills.[1][4][5][6]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact NC Energy Office at 919-713-1570 for statewide info or local provider.[2]\",\n      \"Regional providers: e.g., Resources for Seniors (Wake/Durham: 919-713-1570, download packet); PTRC (Piedmont Triad: 336-904-0338 mailed app); EICCA (application request); Action Pathways (southeastern NC counties).[2][4][5][6]\",\n      \"Mail or in-person to local provider; online forms via some providers (e.g., EICCA link).[5]\",\n      \"Sign Customer Program Application and Assessment Form.[1]\"\n    ],\n    \"processing_time\": \"Not specified; first-come, first-served until funds exhausted. Two-step: income/home approval, then audit.[1][3]\",\n    \"waitlist\": \"Funds limited; priority-based when funds low; no formal waitlist details.[1][2]\",\n    \"forms\": [\"Customer Program Application and Assessment Form; local provider applications (e.g., Resources for Seniors packet). [1][2]\"],\n    \"documents\": [\n      \"Proof of income for all household members (12 months).\",\n      \"Photo ID/driver's license (address matching service location).\",\n      \"Proof of SSN.\",\n      \"12 months utility bills (electric/gas).\",\n      \"Property tax record (for owned homes).\",\n      \"Landlord permission (renters).[2][3][4][5]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Available in participating service territories (e.g., Dominion Energy NC); homes needing major repairs ineligible.[1][3]\",\n    \"regional_variations\": \"Administered by local agencies (e.g., Resources for Seniors in Wake/Durham; PTRC in Piedmont Triad; Action Pathways in 11 southeastern counties: Bladen, Brunswick, etc.; EICCA in its area). Contact info, forms, and processing vary by provider.[2][4][5][6]\",\n    \"offices_or_providers\": [\"NC DEQ Energy Office (statewide contact); local subgrantees per county/region.[2][8]\"]\n  },\n  \"official_source\": \"https://www.deq.nc.gov/energy-climate/state-energy-office/weatherization-assistance-program[8]\",\n  \"gotchas\": [\n    \"Funds limited, first-come first-served; may exhaust quickly.[1]\",\n    \"Home must pass pre-assessment (not for major repairs/rehab).[2][3]\",\n    \"Renters need landlord permission; only one service per household.[1][4]\",\n    \"Income/SSI/TANF automatic qualifier, but priority for elderly/disabled/kids—still apply early.[2][6]\",\n    \"Verify current poverty guidelines (annual update); example table may be outdated.[2]\"\n  ],\n  \"data_shape_notes\": \"Decentralized by region/local providers; DOE-funded statewide but contact county-specific agency; priority tiers; no age minimum but elderly prioritized; income at 200% FPL or SSI/TANF auto-qualify.\"\n}"
+    },
+    {
+      "name": "NC Senior Health Insurance Information Program (SHIP)",
+      "_parseError": true,
+      "_raw": "{\n  \"name\": \"NC Senior Health Insurance Information Program (SHIIP)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No income or asset limits; open to all Medicare beneficiaries, their families, and caregivers. Counselors assist with eligibility screening for related programs like Extra Help and Medicare Savings Programs, which have separate income/asset tests (specific limits not detailed in SHIIP sources; contact counselor for current thresholds).[1][4][5]\",\n    \"asset_limits\": \"No asset limits for SHIIP itself. For programs like Extra Help and Medicare Savings Programs that SHIIP helps screen for, limited income/assets apply but details vary and are not specified here.[5]\",\n    \"other_requirements\": [\"Must be a Medicare beneficiary, caregiver, or family member with Medicare-related questions. Available to residents of all 100 NC counties. No requirement to be low-income.\"][1][3][4]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free, unbiased, personalized counseling on Medicare (Parts A, B, C, D), Medicare supplements, Medicare Advantage, prescription drug plans, long-term care insurance, other health insurance concerns, Medicare costs assistance programs (e.g., Extra Help, Medicare Savings Programs), fraud/waste/abuse reporting, and plan comparisons. Provided one-on-one by trained counselors (not licensed agents; do not sell or endorse plans). No fixed hours/dollars; counseling duration as needed per session.[1][3][4][5]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: Toll-free 1-855-408-1212 (Mon-Fri 8am-5pm) or local (919) 807-6900.[1][2][4][6]\", \"Website: https://www.ncdoi.gov/consumers/medicare-and-seniors-health-insurance-information-program-shiip or https://www.ncshiip.com (find counselor by county, schedule counseling).[1][2][4]\", \"Email: Melinda.Munden@ncdoi.gov or local counselor email (e.g., shiip@senior-resources-guilford.org).[1][3]\", \"In-person or local phone: Search by county on NC DOI site for regional counselors (e.g., Guilford: (336) 884-4816 or (336) 373-4816; BSRI: (910) 754-2300).[3][4][5]\"],\n    \"processing_time\": \"Immediate phone counseling available Mon-Fri 8am-5pm; appointments scheduled as needed (no formal processing).[1][6]\",\n    \"waitlist\": null,\n    \"forms\": [\"No specific application forms required; counselors guide through Medicare forms if needed (e.g., for Extra Help).\"],\n    \"documents\": [\"Medicare card, current insurance details (supplements, Advantage, Part D plans), prescription list, income/asset info if screening for savings programs. Prepare questions about specific plans.\"[3][4][5]]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; available in all 100 North Carolina counties.[4]\",\n    \"regional_variations\": \"Counseling delivered through local counselors/regional providers (e.g., Senior Resources Guilford, BSRI); different local phone numbers and offices by county, but services uniform statewide. Find by county on NC DOI site.[3][4][5]\",\n    \"offices_or_providers\": [\"Central: NC Department of Insurance, 1201 Mail Service Center, Raleigh NC 27699-1201.[1]\", \"Examples: Guilford County via senior-resources-guilford.org[3], Southeastern NC via bsrinc.org[5]; full list by county at https://www.ncdoi.gov[4]\"]\n  },\n  \"official_source\": \"https://www.ncdoi.gov/consumers/medicare-and-seniors-health-insurance-information-program-shiip[4]\",\n  \"gotchas\": [\"SHIIP counselors are not licensed agents and do not sell/endorses plans—contact your agent for plan-specific changes.[3][4]\", \"Not direct financial aid; provides counseling to help qualify for programs like Extra Help (people miss screening opportunities).[5]\", \"For plan complaints or company issues, contact insurer directly first.[4]\", \"Volunteers provide service; availability may depend on local counselor schedules.[4]\"],\n  \"data_shape_notes\": \"no income test; counseling-only service (not benefits/funds); delivered via 100-county local counselor network with uniform core services but regional contacts; helps access separate Medicare savings programs with income/asset tests\"\n}"
+    },
+    {
+      "name": "NC Home-Delivered Meals (County-Specific Programs)",
+      "program_structure": "Not a unified statewide program; operated independently by county-level agencies",
+      "eligibility": {
+        "age": "60+ years old (65+ in Brunswick County)",
+        "income_limits": "Not specified in available sources; contact county program",
+        "asset_limits": "Not specified in available sources; contact county program",
+        "other_requirements": [
+          "Homebound due to illness or incapacitating disability",
+          "Unable to obtain food or prepare meals due to physical or cognitive impairment",
+          "No responsible person able and willing to assist",
+          "County resident (program-specific)",
+          "May be unable to attend congregate nutrition sites"
+        ]
+      },
+      "benefits": {
+        "type": "in_kind",
+        "value": "Nutritious meals delivered to home; frequency and meal count not specified in sources",
+        "varies_by": "county"
+      },
+      "application": {
+        "methods": [
+          "Phone screening (varies by county)",
+          "In-person referral from medical provider, family member, or caregiver",
+          "Self-referral by phone"
+        ],
+        "processing_time": "Not specified; varies by county and waitlist status",
+        "waitlist": "Waiting lists exist in all documented programs; specific wait times not available",
+        "forms": "Not specified in available sources",
+        "documents": [
+          "Proof of age",
+          "Proof of residency",
+          "Medical information",
+          "Dietary restrictions documentation"
+        ]
+      },
+      "geography": {
+        "statewide": false,
+        "restrictions": "County-specific; documented programs in Pender, Haywood, Mecklenburg, Brunswick, Onslow, and Caldwell counties",
+        "regional_variations": "Each county operates independently with different contact procedures, eligibility assessments, and service models",
+        "offices_or_providers": [
+          "Pender Adult Services, Inc. (Pender County)",
+          "Haywood County Meals on Wheels (Haywood County)",
+          "Mecklenburg County CFAS (704-432-1111 or 704-336-3144)",
+          "Onslow County (60+ and homebound)",
+          "Blue Ridge Community Action (Caldwell County)"
+        ]
+      },
+      "official_sources": [
+        "Contact your county's Area Agency on Aging",
+        "Contact your county's Department of Social Services"
+      ],
+      "gotchas": [
+        "No unified statewide program—eligibility and application vary significantly by county",
+        "Waiting lists are standard; enrollment delays expected",
+        "County residency requirement is strict",
+        "Age requirement varies (60+ vs. 65+)",
+        "Income and asset limits not documented in available sources—must verify with county",
+        "Spouse eligibility is conditional on primary applicant's eligibility",
+        "No income test mentioned, but this should be confirmed with each county program"
+      ],
+      "data_shape_notes": "This is not a single program but a collection of county-operated programs with common eligibility principles but different administrative structures. Families must identify their county and contact that specific program for accurate, current information.",
+      "_raw": "I need to be direct with you: **the search results do not describe a single statewide \"NC Home-Delivered Meals\" program**. Instead, they reveal a fragmented system of **county-specific programs** operated by different local agencies, each with its own eligibility rules, application process, and service model.\n\nThis is the critical \"gotcha\" you need to understand before building your guide.\n\nHere's what the data actually shows:\n\n## The Reality: County-by-County, Not Statewide\n\nThe search results document home-delivered meals programs in at least six North Carolina counties—Pender, Haywood, Mecklenburg, Brunswick, Onslow, and Caldwell—each operated independently[1][2][3][4][8][9]. There is **no unified state program** with consistent eligibility, benefits, or application procedures across North Carolina.\n\n## What IS Consistent Across Counties\n\n**Eligibility (common across all documented programs):**\n- **Age:** 60+ years old (though Brunswick County requires 65+)[1][2][3][4][8][9]\n- **Homebound status:** Unable to leave home due to illness or disability[1][2][3][4][8][9]\n- **Functional inability:** Cannot shop for or prepare meals due to physical or cognitive impairment[1][2][3][8][9]\n- **No alternative support:** No family member, friend, or responsible person able and willing to help[1][3][8][9]\n- **Residency:** Must live in the specific county where the program operates[1][2][3][4][8][9]\n\n**What You Get (consistent across programs):**\n- Nutritious meals delivered to the home, typically weekly[1][2][3][8][9]\n- Short-term or long-term service options available[2]\n- Meals can accommodate dietary restrictions[2][3]\n- Spouses of eligible individuals may also qualify[2][3][9]\n\n**Application Process (common pattern):**\n- Phone screening assessment required[1]\n- Home visit may be required to complete assessment[1]\n- Referrals accepted from individuals, family members, medical providers, or caregivers[3]\n- Waiting lists are typical[1][2]\n- Periodic reassessment of continued eligibility[1]\n\n## What Varies by County\n\n| Aspect | Variation |\n|--------|-----------|\n| **Age requirement** | Most require 60+; Brunswick requires 65+[4] |\n| **Application contact** | Pender: phone screening[1]; Mecklenburg: 704-432-1111 (Just1Call) or 704-336-3144[3]; Haywood: online application[2]; Onslow: county office[8]; Caldwell: BRCA[9] |\n| **Income/asset limits** | Not specified in any search result |\n| **Cost to recipient** | Pender, Onslow, Caldwell accept voluntary contributions but don't deny service if unable to pay[1][8][9]; others not specified |\n| **Processing timeline** | Not specified in any search result |\n| **Waitlist status** | All mention waiting lists exist; specific wait times not provided[1][2] |\n\n## Critical Gaps in Available Information\n\nThe search results **do not provide**:\n- Specific income or asset limits for any county program\n- Exact processing timelines or current waitlist lengths\n- Specific meal counts, caloric content, or service frequency (beyond \"weekly\")\n- Formal application forms or form numbers\n- Complete contact information for all counties\n- Whether programs operate statewide or only in specific regions within each county\n- Pricing or subsidy structures (beyond voluntary contributions)\n\n## How to Build Your Guide\n\nYou have two options:\n\n1. **County-by-county approach:** Create separate sections for each county's program, with contact information and specific eligibility rules. You'll need to contact each county's Area Agency on Aging or social services department directly to fill the gaps.\n\n2. **General framework approach:** Provide the common eligibility criteria and application pattern, then direct families to contact their specific county's program for exact details. This is more honest given the fragmented nature of the system.\n\n## The Gotchas\n\n- **No statewide program exists:** Families cannot apply once and receive service across North Carolina.\n- **Age cutoff varies:** Brunswick County's 65+ requirement differs from the 60+ standard elsewhere.\n- **Waiting lists are universal:** Enrollment delays are expected in all documented programs.\n- **County residency is strict:** Living just outside a county boundary may disqualify someone entirely.\n- **No income test mentioned:** Unlike many social programs, these don't appear to have income limits—but this should be verified with each county.\n- **Spouse eligibility is conditional:** Spouses qualify only if the primary applicant is eligible; they don't qualify independently.\n\n## JSON Response\n\nGiven the fragmented nature of this system, a single JSON object is misleading. Here's what's accurate:\n\n```json\n{\n  \"name\": \"NC Home-Delivered Meals (County-Specific Programs)\",\n  \"program_structure\": \"Not a unified statewide program; operated independently by county-level agencies\",\n  \"eligibility\": {\n    \"age\": \"60+ years old (65+ in Brunswick County)\",\n    \"income_limits\": \"Not specified in available sources; contact county program\",\n    \"asset_limits\": \"Not specified in available sources; contact county program\",\n    \"other_requirements\": [\n      \"Homebound due to illness or incapacitating disability\",\n      \"Unable to obtain food or prepare meals due to physical or cognitive impairment\",\n      \"No responsible person able and willing to assist\",\n      \"County resident (program-specific)\",\n      \"May be unable to attend congregate nutrition sites\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"in_kind\",\n    \"value\": \"Nutritious meals delivered to home; frequency and meal count not specified in sources\",\n    \"varies_by\": \"county\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone screening (varies by county)\",\n      \"In-person referral from medical provider, family member, or caregiver\",\n      \"Self-referral by phone\"\n    ],\n    \"processing_time\": \"Not specified; varies by county and waitlist status\",\n    \"waitlist\": \"Waiting lists exist in all documented programs; specific wait times not available\",\n    \"forms\": \"Not specified in available sources\",\n    \"documents\": [\n      \"Proof of age\",\n      \"Proof of residency\",\n      \"Medical information\",\n      \"Dietary restrictions documentation\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"County-specific; documented programs in Pender, Haywood, Mecklenburg, Brunswick, Onslow, and Caldwell counties\",\n    \"regional_variations\": \"Each county operates independently with different contact procedures, eligibility assessments, and service models\",\n    \"offices_or_providers\": [\n      \"Pender Adult Services, Inc. (Pender County)\",\n      \"Haywood County Meals on Wheels (Haywood County)\",\n      \"Mecklenburg County CFAS (704-432-1111 or 704-336-3144)\",\n      \"Onslow County (60+ and homebound)\",\n      \"Blue Ridge Community Action (Caldwell County)\"\n    ]\n  },\n  \"official_sources\": [\n    \"Contact your county's Area Agency on Aging\",\n    \"Contact your county's Department of Social Services\"\n  ],\n  \"gotchas\": [\n    \"No unified statewide program—eligibility and application vary significantly by county\",\n    \"Waiting lists are standard; enrollment delays expected\",\n    \"County residency requirement is strict\",\n    \"Age requirement varies (60+ vs. 65+)\",\n    \"Income and asset limits not documented in available sources—must verify with county\",\n    \"Spouse eligibility is conditional on primary applicant's eligibility\",\n    \"No income test mentioned, but this should be confirmed with each county program\"\n  ],\n  \"data_shape_notes\": \"This is not a single program but a collection of county-operated programs with common eligibility principles but different administrative structures. Families must identify their county and contact that specific program for accurate, current information.\"\n}\n```\n\n## Recommendation\n\nTo complete this guide accurately, you'll need to contact the Area Agency on Aging or Department of Social Services in each North Carolina county to obtain:\n- Current income and asset limits\n- Exact processing timelines and current waitlist lengths\n- Specific meal counts and service frequency\n- Current contact information and application procedures\n- Any recent program changes\n\nThe search results provide the framework, but the details require direct outreach to county-level administrators."
+    },
+    {
+      "name": "NC Lifespan Respite Program / Family Caregiver Support",
+      "eligibility": {
+        "age": 18,
+        "income_limits": "No specific dollar amounts or household size table provided; priority given to caregivers with the greatest economic need.[3][5]",
+        "asset_limits": "No asset limits mentioned.[1][3][5]",
+        "other_requirements": [
+          "Caregiver must be a North Carolina resident.",
+          "Caregiver must provide unpaid care to an older adult (60+) or an adult/minor of any age with disabilities requiring regular assistance with activities of daily living.",
+          "Neither caregiver nor care recipient can be receiving ongoing, publicly-funded in-home care or respite care.",
+          "Priority to those who have provided direct care for at least 3 months in a home-like setting, have not received publicly-funded respite in the last 3 months, or are in an emergency/extenuating circumstances.",
+          "Voucher funds must be used within 90 days.",
+          "Applications must come from a referring agency/professional; direct caregiver applications not accepted.[1][3][5]"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "Up to $750 per calendar year in reimbursement vouchers for respite care services; flexible use to hire agency, facility, or individual for short-term break from caregiving.[1][5]",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Online: Submit secure application at www.highcountryaging.org/services/lifespan-respite-project (via referring agency/professional only).",
+          "Phone: Contact Pat Guarnieri at 828-265-5434 ext. 139 or Tammy Nelson at 828-265-5434 ext. 139; email lifespan@hccog.org or pguarnieri@regiond.org.[1][4][5]"
+        ],
+        "processing_time": "Application takes only minutes; further contact handled by High Country Area Agency on Aging (no specific processing timeline stated).[1]",
+        "waitlist": null,
+        "forms": [
+          "Secure online referral application (no specific form name/number; eligibility pre-check available on website)."
+        ],
+        "documents": [
+          "Not explicitly listed; prepare details on caregiver residency, care recipient needs, care duration, and referring agency info.[1][3][5]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "North Carolina residents only.",
+        "regional_variations": "Administered by High Country Area Agency on Aging; may involve local referring agencies like counselors, senior centers, area agencies on aging (potential regional differences in providers or access).[1][3][5]",
+        "offices_or_providers": [
+          "High Country Area Agency on Aging (primary administrator)."
         ]
       },
       "official_source": "www.highcountryaging.org/services/lifespan-respite-project",
       "gotchas": [
-        "Applications must come from a referring agency/professional (caregivers cannot apply directly)[1][5][7]",
-        "Not available if receiving ongoing publicly-funded in-home or respite care[1][3]",
-        "Funds must be used within 90 days[3]",
-        "Reimbursement-based voucher (pay provider first, then reimbursed)[1][4]"
+        "Must be referred by a professional agency; caregiver-direct applications rejected.",
+        "No ongoing publicly-funded respite or in-home care allowed.",
+        "Funds expire in 90 days; reimbursement-based only.",
+        "Priority-based allocation may limit access for non-priority caregivers.",
+        "Not a direct service; voucher for family-chosen respite providers.[1][3][5]"
       ],
-      "data_shape_notes": "Referral-only applications via professionals; priority-based rather than strict income/asset tests; administered regionally by High Country AAA with statewide NC resident eligibility",
-      "_raw": "{\n  \"name\": \"NC Lifespan Respite Program\",\n  \"eligibility\": {\n    \"age\": 18,\n    \"income_limits\": \"No specific dollar amounts or household size table stated; priority given to those with greatest economic need[1][3][5]\",\n    \"asset_limits\": \"No asset limits or exemptions mentioned[1][3][5]\",\n    \"other_requirements\": [\n      \"North Carolina resident[1][3][5]\",\n      \"Providing unpaid care to older adult (60+) or adult/minor of any age with disabilities requiring regular assistance with activities of daily living[1][3]\",\n      \"Neither caregiver nor care recipient receiving ongoing publicly-funded in-home care or respite care[1][3]\",\n      \"Must use voucher funds within 90 days[3]\",\n      \"Priority: greatest economic need, provided direct care for at least 3 months in home-like setting, no publicly-funded respite in last 3 months, emergency/extenuating circumstances[3]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"$500 reimbursement voucher (some sources state up to $750 per calendar year); flexible for hiring agency, facility, or individual for respite care[1][5]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: www.highcountryaging.org/services/lifespan-respite-project (secure application; must be submitted by referring agency/professional, not directly by caregiver)[1][5][6]\",\n      \"Phone: 828-265-5434 ext. 139 (Pat Guarnieri or Tammy Nelson); email: pguarnieri@regiond.org or lifespan@hccog.org[1][4][5]\"\n    ],\n    \"processing_time\": \"Takes only minutes to complete online application; further contact handled by High Country Area Agency on Aging (no specific processing timeline stated)[1][5]\",\n    \"waitlist\": \"Not mentioned\",\n    \"forms\": [\"Secure online referral application (completed by health/human service professionals on behalf of caregiver); eligibility pre-check available[5]\"],\n    \"documents\": [\"Not explicitly listed; instructions and additional criteria on website[1][5]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"North Carolina residents only[1][4]\",\n    \"regional_variations\": \"Administered by High Country Area Agency on Aging; may involve local referring agencies like counselors, senior centers, area agencies on aging (potential regional differences in providers or access via referrals)[1][5]\",\n    \"offices_or_providers\": [\"High Country Area Agency on Aging (primary administrator)[1][5]\"]\n  },\n  \"official_source\": \"www.highcountryaging.org/services/lifespan-respite-project\",\n  \"gotchas\": [\n    \"Applications must come from a referring agency/professional (caregivers cannot apply directly)[1][5][7]\",\n    \"Not available if receiving ongoing publicly-funded in-home or respite care[1][3]\",\n    \"Funds must be used within 90 days[3]\",\n    \"Reimbursement-based voucher (pay provider first, then reimbursed)[1][4]\"\n  ],\n  \"data_shape_notes\": \"Referral-only applications via professionals; priority-based rather than strict income/asset tests; administered regionally by High Country AAA with statewide NC resident eligibility\"\n}"
+      "data_shape_notes": "Referral-only via agencies; priority tiers over strict income/assets; administered by specific regional agency despite statewide scope; flexible voucher for any-age special needs.",
+      "_raw": "{\n  \"name\": \"NC Lifespan Respite Program / Family Caregiver Support\",\n  \"eligibility\": {\n    \"age\": 18,\n    \"income_limits\": \"No specific dollar amounts or household size table provided; priority given to caregivers with the greatest economic need.[3][5]\",\n    \"asset_limits\": \"No asset limits mentioned.[1][3][5]\",\n    \"other_requirements\": [\n      \"Caregiver must be a North Carolina resident.\",\n      \"Caregiver must provide unpaid care to an older adult (60+) or an adult/minor of any age with disabilities requiring regular assistance with activities of daily living.\",\n      \"Neither caregiver nor care recipient can be receiving ongoing, publicly-funded in-home care or respite care.\",\n      \"Priority to those who have provided direct care for at least 3 months in a home-like setting, have not received publicly-funded respite in the last 3 months, or are in an emergency/extenuating circumstances.\",\n      \"Voucher funds must be used within 90 days.\",\n      \"Applications must come from a referring agency/professional; direct caregiver applications not accepted.[1][3][5]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Up to $750 per calendar year in reimbursement vouchers for respite care services; flexible use to hire agency, facility, or individual for short-term break from caregiving.[1][5]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: Submit secure application at www.highcountryaging.org/services/lifespan-respite-project (via referring agency/professional only).\",\n      \"Phone: Contact Pat Guarnieri at 828-265-5434 ext. 139 or Tammy Nelson at 828-265-5434 ext. 139; email lifespan@hccog.org or pguarnieri@regiond.org.[1][4][5]\"\n    ],\n    \"processing_time\": \"Application takes only minutes; further contact handled by High Country Area Agency on Aging (no specific processing timeline stated).[1]\",\n    \"waitlist\": null,\n    \"forms\": [\"Secure online referral application (no specific form name/number; eligibility pre-check available on website).\"],\n    \"documents\": [\"Not explicitly listed; prepare details on caregiver residency, care recipient needs, care duration, and referring agency info.[1][3][5]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"North Carolina residents only.\",\n    \"regional_variations\": \"Administered by High Country Area Agency on Aging; may involve local referring agencies like counselors, senior centers, area agencies on aging (potential regional differences in providers or access).[1][3][5]\",\n    \"offices_or_providers\": [\"High Country Area Agency on Aging (primary administrator).\"]\n  },\n  \"official_source\": \"www.highcountryaging.org/services/lifespan-respite-project\",\n  \"gotchas\": [\n    \"Must be referred by a professional agency; caregiver-direct applications rejected.\",\n    \"No ongoing publicly-funded respite or in-home care allowed.\",\n    \"Funds expire in 90 days; reimbursement-based only.\",\n    \"Priority-based allocation may limit access for non-priority caregivers.\",\n    \"Not a direct service; voucher for family-chosen respite providers.[1][3][5]\"\n  ],\n  \"data_shape_notes\": \"Referral-only via agencies; priority tiers over strict income/assets; administered by specific regional agency despite statewide scope; flexible voucher for any-age special needs.\"\n}"
+    },
+    {
+      "name": "NC Senior Community Service Employment Program (SCSEP)",
+      "eligibility": {
+        "age": 55,
+        "income_limits": "Family income no more than 125% of the federal poverty level (varies by family size; exact dollar amounts change annually with federal poverty guidelines—check current HHS poverty guidelines for NC household table, e.g., for 2026, consult ASPE.hhs.gov/poverty-guidelines)",
+        "asset_limits": null,
+        "other_requirements": [
+          "Unemployed",
+          "U.S. citizen or authorized to work",
+          "Priority: veterans and qualified spouses first, then over 65, disability, low literacy/limited English proficiency, rural resident, homeless/at risk, low employment prospects, failed American Job Center services, formerly incarcerated"
+        ]
+      },
+      "benefits": {
+        "type": "employment",
+        "value": "Part-time paid community service job training (average 20 hours/week at highest of federal/state/local minimum wage); on-the-job training in roles like child care, customer service, teachers' aide, computer technician, maintenance, health care; skills training (e.g., computer); job placement assistance to unsubsidized employment; typically 6 months training",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Contact NC DHHS Division of Aging and Adult Services (specific phone/website via ncdhhs.gov/divisions/aging); local grantees like NCBA (ncbainc.org/scsep), Mid-Carolina Regional Council (mccog.org/scsep); American Job Centers; phone not specified—call NC 211 or local provider",
+          "In-person at community nonprofits/public agencies (schools, hospitals, senior centers)",
+          "Multiple routes via 19 national grantees/state agencies including NC operators"
+        ],
+        "processing_time": "Not specified; training starts after eligibility determination, typically leads to 6 months placement",
+        "waitlist": "Possible due to funding limits and transitions; varies by grantee/community availability",
+        "forms": [
+          "No specific form named; intake via grantee application"
+        ],
+        "documents": [
+          "Proof of age (ID)",
+          "Proof of income (tax returns, pay stubs)",
+          "Proof of unemployment",
+          "Veteran status if applicable",
+          "Residency proof"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None statewide; available where grantees operate",
+        "regional_variations": "Administered by local grantees (e.g., NCBA, Mid-Carolina Regional Council, CWI Works); different providers, host sites, wait times by region/community demand",
+        "offices_or_providers": [
+          "NC DHHS Division of Aging (ncdhhs.gov/divisions/aging/senior-community-services-employment-program)",
+          "NCBA (ncbainc.org/scsep)",
+          "Mid-Carolina Regional Council (mccog.org/scsep)"
+        ]
+      },
+      "official_source": "https://www.ncdhhs.gov/divisions/aging/senior-community-services-employment-program",
+      "gotchas": [
+        "Income limit strictly 125% FPL—no asset test but proof required",
+        "Temporary bridge program (avg 6 months) to unsubsidized work—not permanent job",
+        "Priority tiers limit access for non-priority applicants",
+        "Funding delays/transitions may cause waitlists or slots",
+        "Must be unemployed and seeking work—not retirement income support",
+        "Paid at minimum wage only"
+      ],
+      "data_shape_notes": "Grantee-administered with priority tiers; income scales by household size at 125% FPL; regional providers determine slots/wait times; no fixed asset limits",
+      "_raw": "{\n  \"name\": \"NC Senior Community Service Employment Program (SCSEP)\",\n  \"eligibility\": {\n    \"age\": 55,\n    \"income_limits\": \"Family income no more than 125% of the federal poverty level (varies by family size; exact dollar amounts change annually with federal poverty guidelines—check current HHS poverty guidelines for NC household table, e.g., for 2026, consult ASPE.hhs.gov/poverty-guidelines)\",\n    \"asset_limits\": null,\n    \"other_requirements\": [\"Unemployed\", \"U.S. citizen or authorized to work\", \"Priority: veterans and qualified spouses first, then over 65, disability, low literacy/limited English proficiency, rural resident, homeless/at risk, low employment prospects, failed American Job Center services, formerly incarcerated\"]\n  },\n  \"benefits\": {\n    \"type\": \"employment\",\n    \"value\": \"Part-time paid community service job training (average 20 hours/week at highest of federal/state/local minimum wage); on-the-job training in roles like child care, customer service, teachers' aide, computer technician, maintenance, health care; skills training (e.g., computer); job placement assistance to unsubsidized employment; typically 6 months training\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\"Contact NC DHHS Division of Aging and Adult Services (specific phone/website via ncdhhs.gov/divisions/aging); local grantees like NCBA (ncbainc.org/scsep), Mid-Carolina Regional Council (mccog.org/scsep); American Job Centers; phone not specified—call NC 211 or local provider\", \"In-person at community nonprofits/public agencies (schools, hospitals, senior centers)\", \"Multiple routes via 19 national grantees/state agencies including NC operators\"],\n    \"processing_time\": \"Not specified; training starts after eligibility determination, typically leads to 6 months placement\",\n    \"waitlist\": \"Possible due to funding limits and transitions; varies by grantee/community availability\",\n    \"forms\": [\"No specific form named; intake via grantee application\"],\n    \"documents\": [\"Proof of age (ID)\", \"Proof of income (tax returns, pay stubs)\", \"Proof of unemployment\", \"Veteran status if applicable\", \"Residency proof\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None statewide; available where grantees operate\",\n    \"regional_variations\": \"Administered by local grantees (e.g., NCBA, Mid-Carolina Regional Council, CWI Works); different providers, host sites, wait times by region/community demand\",\n    \"offices_or_providers\": [\"NC DHHS Division of Aging (ncdhhs.gov/divisions/aging/senior-community-services-employment-program)\", \"NCBA (ncbainc.org/scsep)\", \"Mid-Carolina Regional Council (mccog.org/scsep)\"]\n  },\n  \"official_source\": \"https://www.ncdhhs.gov/divisions/aging/senior-community-services-employment-program\",\n  \"gotchas\": [\"Income limit strictly 125% FPL—no asset test but proof required\", \"Temporary bridge program (avg 6 months) to unsubsidized work—not permanent job\", \"Priority tiers limit access for non-priority applicants\", \"Funding delays/transitions may cause waitlists or slots\", \"Must be unemployed and seeking work—not retirement income support\", \"Paid at minimum wage only\"],\n  \"data_shape_notes\": \"Grantee-administered with priority tiers; income scales by household size at 125% FPL; regional providers determine slots/wait times; no fixed asset limits\"\n}"
+    },
+    {
+      "name": "NC Legal Assistance for Older Adults",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "No income limits; clients age 60 or older are exempt from income limitations and eligible for services[1][2][3][8]",
+        "asset_limits": "No asset limits mentioned; eligibility based on age with priority for greatest economic or social need[1][2][3]",
+        "other_requirements": [
+          "Priority given to seniors with the greatest economic or social need[1][2][3][5]",
+          "Does not serve prisoners[1]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Free civil legal help including: wills and powers of attorney; public benefits (Medicaid, food stamps/SNAP, SSI, SSDI, Veteran's benefits); abuse and neglect; unemployment compensation; housing (foreclosure, eviction, subsidized housing, repairs, utilities); consumer issues; wrongful repossession. Services include answering legal questions, advice, writing letters, phone calls, document review, and referrals to local offices or pro bono attorneys[2][3][5]",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Phone: Toll-free Senior Legal Helpline 1-877-579-7562 (9:00 AM–11:00 AM & 1:00 PM–3:00 PM, Monday-Friday)[1][2][3][5][8]",
+          "Online: Apply via JusticeHub client portal at legalaidnc.org[7]",
+          "Website: legalaidnc.org/project/senior-law-project/ or www.legalaidnc.org[1][2][3]"
+        ],
+        "processing_time": "Not specified in sources",
+        "waitlist": null,
+        "forms": [
+          "No specific form name/number; apply via phone, online JusticeHub intake, or website[1][2][7]"
+        ],
+        "documents": [
+          "Not specified; prepare details on legal issue for intake[2][5]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None; available to North Carolinians statewide via toll-free helpline[1][2][3][5]",
+        "regional_variations": "Operates statewide but may refer to local Legal Aid offices; some Area Agencies on Aging (e.g., High Country) contract with the project, but core service is uniform[5]",
+        "offices_or_providers": [
+          "Legal Aid of North Carolina Senior Law Project statewide; local offices for follow-up referrals (e.g., Asheville office)[1][5]"
+        ]
+      },
+      "official_source": "https://legalaidnc.org/project/senior-law-project/[3]",
+      "gotchas": [
+        "Priority for those with greatest economic/social need may mean non-priority cases receive referrals rather than direct representation[2][3][5]",
+        "Specific intake hours (9-11 AM, 1-3 PM M-F); call during those times[2][5]",
+        "Excludes prisoners; not for those under 60 (separate line: 1-866-219-5262)[1][5]",
+        "Free but civil matters only, focused on basic needs like safety, shelter, income[2][3]"
+      ],
+      "data_shape_notes": "no income test; age 60+ exempt from financial eligibility; statewide helpline with priority tiers; services via advice, letters, referrals rather than full representation for all",
+      "_raw": "{\n  \"name\": \"NC Legal Assistance for Older Adults\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"No income limits; clients age 60 or older are exempt from income limitations and eligible for services[1][2][3][8]\",\n    \"asset_limits\": \"No asset limits mentioned; eligibility based on age with priority for greatest economic or social need[1][2][3]\",\n    \"other_requirements\": [\"Priority given to seniors with the greatest economic or social need[1][2][3][5]\", \"Does not serve prisoners[1]\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free civil legal help including: wills and powers of attorney; public benefits (Medicaid, food stamps/SNAP, SSI, SSDI, Veteran's benefits); abuse and neglect; unemployment compensation; housing (foreclosure, eviction, subsidized housing, repairs, utilities); consumer issues; wrongful repossession. Services include answering legal questions, advice, writing letters, phone calls, document review, and referrals to local offices or pro bono attorneys[2][3][5]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: Toll-free Senior Legal Helpline 1-877-579-7562 (9:00 AM–11:00 AM & 1:00 PM–3:00 PM, Monday-Friday)[1][2][3][5][8]\", \"Online: Apply via JusticeHub client portal at legalaidnc.org[7]\", \"Website: legalaidnc.org/project/senior-law-project/ or www.legalaidnc.org[1][2][3]\"],\n    \"processing_time\": \"Not specified in sources\",\n    \"waitlist\": null,\n    \"forms\": [\"No specific form name/number; apply via phone, online JusticeHub intake, or website[1][2][7]\"],\n    \"documents\": [\"Not specified; prepare details on legal issue for intake[2][5]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; available to North Carolinians statewide via toll-free helpline[1][2][3][5]\",\n    \"regional_variations\": \"Operates statewide but may refer to local Legal Aid offices; some Area Agencies on Aging (e.g., High Country) contract with the project, but core service is uniform[5]\",\n    \"offices_or_providers\": [\"Legal Aid of North Carolina Senior Law Project statewide; local offices for follow-up referrals (e.g., Asheville office)[1][5]\"]\n  },\n  \"official_source\": \"https://legalaidnc.org/project/senior-law-project/[3]\",\n  \"gotchas\": [\"Priority for those with greatest economic/social need may mean non-priority cases receive referrals rather than direct representation[2][3][5]\", \"Specific intake hours (9-11 AM, 1-3 PM M-F); call during those times[2][5]\", \"Excludes prisoners; not for those under 60 (separate line: 1-866-219-5262)[1][5]\", \"Free but civil matters only, focused on basic needs like safety, shelter, income[2][3]\"],\n  \"data_shape_notes\": \"no income test; age 60+ exempt from financial eligibility; statewide helpline with priority tiers; services via advice, letters, referrals rather than full representation for all\"\n}"
+    },
+    {
+      "name": "NC Long-Term Care Ombudsman Program",
+      "eligibility": {
+        "age": null,
+        "income_limits": "No income limits; available to all residents, families, and concerned parties regardless of financial status.",
+        "asset_limits": "No asset limits or tests apply.",
+        "other_requirements": [
+          "Resides (or loved one resides) in a qualifying long-term care facility in North Carolina, including nursing homes, adult care homes, family care homes, multiunit assisted housing with services, continuing care retirement communities (CCRCs), or independent living (rental) communities for seniors and disabled adults.",
+          "Open to current/former residents, families, individuals seeking facilities, advocacy groups, and facility staff with concerns.",
+          "No age requirement for receiving assistance; program serves adults in long-term care."
+        ]
+      },
+      "benefits": {
+        "type": "advocacy",
+        "value": "Advocacy to resolve complaints about resident rights, quality of care/life; investigation of grievances; mediation with facilities; education on rights, elder abuse prevention/detection/reporting; monitoring of federal/state/local laws; facility visits (e.g., nursing homes every 3 months, adult care homes every 3 months, family care homes annually); confidential services at no cost.",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Phone or contact local regional office via county list (specific numbers vary by county; statewide info at NCDHHS site).",
+          "In-person or visit to one of 16 regional offices housed in Area Agencies on Aging.",
+          "Provide details verbally or in writing: resident name/address, age/birthdate, caregiver name, situation explanation, mental/physical condition."
+        ],
+        "processing_time": "Initial consultation provided promptly upon contact; no formal processing time specified as it's complaint-resolution based.",
+        "waitlist": null,
+        "forms": [
+          "No specific application forms required; submit complaint details directly to ombudsman."
+        ],
+        "documents": [
+          "Resident name/address, age/birthdate, caregiver name (if any), description of situation/concern, mental/physical condition details."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Services tied to 100 counties via 16 regional offices; contact based on county of facility/residence.",
+        "regional_variations": "Administered by 16 regional offices (housed in Area Agencies on Aging) with local Community Advisory Committees (CACs) appointed by county commissioners; CACs conduct facility visits and report locally; specific contacts/offices vary by region (e.g., Albemarle Commission, Kerr Tar COG, Land of Sky, Central Pines, Piedmont Triad).",
+        "offices_or_providers": [
+          "16 Regional Long-Term Care Ombudsman Offices",
+          "Statewide Office of the State Long-Term Care Ombudsman",
+          "Local Community Advisory Committees (CACs) per county/region"
+        ]
+      },
+      "official_source": "https://www.ncdhhs.gov/divisions/aging/long-term-care-ombudsman",
+      "gotchas": [
+        "Not a financial aid, healthcare, or Medicaid program—purely advocacy/complaint resolution; no direct services like care or funding.",
+        "Abuse/neglect reports go to NC Division of Health Service Regulation or law enforcement, not solely ombudsman.",
+        "Review admission agreements carefully, especially arbitration clauses—consult attorney before signing.",
+        "Services are confidential and free, but ombudsmen cannot act if resident refuses involvement.",
+        "For Medicaid/long-term care funding, apply separately via local DSS; ombudsman can assist in facility selection but not approval.",
+        "Volunteering as CAC member has strict requirements (e.g., 18+, local residency, no conflicts of interest, 36-hour training)."
+      ],
+      "data_shape_notes": "no income/asset test; advocacy-only for long-term care facility residents/families; delivered via 16 regional offices + local CACs with county-specific appointments/visits; complaint-driven, not enrollment-based",
+      "_raw": "{\n  \"name\": \"NC Long-Term Care Ombudsman Program\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No income limits; available to all residents, families, and concerned parties regardless of financial status.\",\n    \"asset_limits\": \"No asset limits or tests apply.\",\n    \"other_requirements\": [\"Resides (or loved one resides) in a qualifying long-term care facility in North Carolina, including nursing homes, adult care homes, family care homes, multiunit assisted housing with services, continuing care retirement communities (CCRCs), or independent living (rental) communities for seniors and disabled adults.\", \"Open to current/former residents, families, individuals seeking facilities, advocacy groups, and facility staff with concerns.\", \"No age requirement for receiving assistance; program serves adults in long-term care.\"]\n  },\n  \"benefits\": {\n    \"type\": \"advocacy\",\n    \"value\": \"Advocacy to resolve complaints about resident rights, quality of care/life; investigation of grievances; mediation with facilities; education on rights, elder abuse prevention/detection/reporting; monitoring of federal/state/local laws; facility visits (e.g., nursing homes every 3 months, adult care homes every 3 months, family care homes annually); confidential services at no cost.\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone or contact local regional office via county list (specific numbers vary by county; statewide info at NCDHHS site).\", \"In-person or visit to one of 16 regional offices housed in Area Agencies on Aging.\", \"Provide details verbally or in writing: resident name/address, age/birthdate, caregiver name, situation explanation, mental/physical condition.\"],\n    \"processing_time\": \"Initial consultation provided promptly upon contact; no formal processing time specified as it's complaint-resolution based.\",\n    \"waitlist\": null,\n    \"forms\": [\"No specific application forms required; submit complaint details directly to ombudsman.\"],\n    \"documents\": [\"Resident name/address, age/birthdate, caregiver name (if any), description of situation/concern, mental/physical condition details.\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Services tied to 100 counties via 16 regional offices; contact based on county of facility/residence.\",\n    \"regional_variations\": \"Administered by 16 regional offices (housed in Area Agencies on Aging) with local Community Advisory Committees (CACs) appointed by county commissioners; CACs conduct facility visits and report locally; specific contacts/offices vary by region (e.g., Albemarle Commission, Kerr Tar COG, Land of Sky, Central Pines, Piedmont Triad).\",\n    \"offices_or_providers\": [\"16 Regional Long-Term Care Ombudsman Offices\", \"Statewide Office of the State Long-Term Care Ombudsman\", \"Local Community Advisory Committees (CACs) per county/region\"]\n  },\n  \"official_source\": \"https://www.ncdhhs.gov/divisions/aging/long-term-care-ombudsman\",\n  \"gotchas\": [\"Not a financial aid, healthcare, or Medicaid program—purely advocacy/complaint resolution; no direct services like care or funding.\", \"Abuse/neglect reports go to NC Division of Health Service Regulation or law enforcement, not solely ombudsman.\", \"Review admission agreements carefully, especially arbitration clauses—consult attorney before signing.\", \"Services are confidential and free, but ombudsmen cannot act if resident refuses involvement.\", \"For Medicaid/long-term care funding, apply separately via local DSS; ombudsman can assist in facility selection but not approval.\", \"Volunteering as CAC member has strict requirements (e.g., 18+, local residency, no conflicts of interest, 36-hour training).\"],\n  \"data_shape_notes\": \"no income/asset test; advocacy-only for long-term care facility residents/families; delivered via 16 regional offices + local CACs with county-specific appointments/visits; complaint-driven, not enrollment-based\"\n}"
+    },
+    {
+      "name": "North Carolina Homestead Exemption",
+      "eligibility": {
+        "age": 65,
+        "income_limits": "For the Elderly/Disabled Property Tax Homestead Exclusion (primary program for seniors): Income for the preceding calendar year must not exceed $38,800 (2025 figure; prior years like 2024 were $36,700). This limit applies regardless of household size and covers combined income for spouses. No variation by household size mentioned. Circuit Breaker program (separate) has tiered limits: $0-$38,800 (4% tax cap), $38,801-$55,050 (5% tax cap), over $55,050 ineligible, requires 5 years occupancy.",
+        "asset_limits": "No asset limits specified. Focus is on income and residency.",
+        "other_requirements": [
+          "North Carolina resident",
+          "Own and occupy the property as permanent residence on January 1 of the tax year",
+          "Totally and permanently disabled (alternative to age 65; requires physician or government certification)",
+          "One-time application for main exclusion (annual for Circuit Breaker)",
+          "Deadline: June 1 for applications",
+          "Temporary absence allowed for health reasons or nursing home if residence unoccupied or occupied by spouse/dependent"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "Exclusion from property taxes on the greater of $25,000 or 50% of the appraised value of the residence (home + up to 1 acre). Cannot combine with other property tax relief. Separate Disabled Veteran exclusion: first $45,000 of appraised value (no income/age limit). Circuit Breaker: caps taxes at 4-5% of income.",
+        "varies_by": "property_value"
+      },
+      "application": {
+        "methods": [
+          "Contact your county tax assessor's office (varies by county; e.g., Gaston County, Davidson County, Harnett County, Iredell County)",
+          "Download/print county-specific application forms",
+          "Mail or in-person to county tax office",
+          "No statewide online portal specified; apply locally"
+        ],
+        "processing_time": "Notification if denied; no specific statewide timeline, handled by county",
+        "waitlist": null,
+        "forms": [
+          "Elderly or Disabled Homestead Exclusion application (county-specific; e.g., NC GS 105-277.1 form)",
+          "For disability: Certificate from NC-licensed physician or government agency",
+          "For veterans: Form AV-9 for VA certification"
+        ],
+        "documents": [
+          "Proof of age (e.g., birth certificate, ID showing 65+ as of Jan 1)",
+          "Proof of income for prior year",
+          "Proof of NC residency and property ownership/occupancy",
+          "Disability certification if applicable",
+          "VA certification for veterans"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Administered by county tax offices; must apply in county of residence",
+        "regional_variations": "Income thresholds consistent statewide (e.g., $38,800 for 2025), but applications, forms, and offices are county-specific. Some counties mention Circuit Breaker with 5-year residency. No major benefit differences.",
+        "offices_or_providers": [
+          "County Tax Assessor's Office (e.g., Gaston, Davidson, Harnett, Iredell, Mecklenburg)"
+        ]
+      },
+      "official_source": "https://www.ncleg.net/enactedlegislation/statutes/html/bysection/chapter_105/gs_105-277.1.html",
+      "gotchas": [
+        "One-time application for main exclusion, but annual for Circuit Breaker—must reapply or lose benefit",
+        "Income based on prior full calendar year; exceeds limit = ineligible",
+        "Must own/occupy as of Jan 1; disqualifiers: death, property transfer, not using as permanent residence",
+        "Cannot receive other property tax relief simultaneously",
+        "Note: Separate from bankruptcy/creditor homestead exemption ($35k/$60k equity protection; automatic, no application)",
+        "Deadline June 1—miss it, miss the year",
+        "Veteran exclusion separate (no income test)"
+      ],
+      "data_shape_notes": "Statewide uniform eligibility/benefit formula, but county-administered applications; fixed income threshold (not scaled by household); one-time vs. annual application types; confusable with bankruptcy homestead protection",
+      "_raw": "{\n  \"name\": \"North Carolina Homestead Exemption\",\n  \"eligibility\": {\n    \"age\": 65,\n    \"income_limits\": \"For the Elderly/Disabled Property Tax Homestead Exclusion (primary program for seniors): Income for the preceding calendar year must not exceed $38,800 (2025 figure; prior years like 2024 were $36,700). This limit applies regardless of household size and covers combined income for spouses. No variation by household size mentioned. Circuit Breaker program (separate) has tiered limits: $0-$38,800 (4% tax cap), $38,801-$55,050 (5% tax cap), over $55,050 ineligible, requires 5 years occupancy.\",\n    \"asset_limits\": \"No asset limits specified. Focus is on income and residency.\",\n    \"other_requirements\": [\n      \"North Carolina resident\",\n      \"Own and occupy the property as permanent residence on January 1 of the tax year\",\n      \"Totally and permanently disabled (alternative to age 65; requires physician or government certification)\",\n      \"One-time application for main exclusion (annual for Circuit Breaker)\",\n      \"Deadline: June 1 for applications\",\n      \"Temporary absence allowed for health reasons or nursing home if residence unoccupied or occupied by spouse/dependent\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Exclusion from property taxes on the greater of $25,000 or 50% of the appraised value of the residence (home + up to 1 acre). Cannot combine with other property tax relief. Separate Disabled Veteran exclusion: first $45,000 of appraised value (no income/age limit). Circuit Breaker: caps taxes at 4-5% of income.\",\n    \"varies_by\": \"property_value\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact your county tax assessor's office (varies by county; e.g., Gaston County, Davidson County, Harnett County, Iredell County)\",\n      \"Download/print county-specific application forms\",\n      \"Mail or in-person to county tax office\",\n      \"No statewide online portal specified; apply locally\"\n    ],\n    \"processing_time\": \"Notification if denied; no specific statewide timeline, handled by county\",\n    \"waitlist\": null,\n    \"forms\": [\n      \"Elderly or Disabled Homestead Exclusion application (county-specific; e.g., NC GS 105-277.1 form)\",\n      \"For disability: Certificate from NC-licensed physician or government agency\",\n      \"For veterans: Form AV-9 for VA certification\"\n    ],\n    \"documents\": [\n      \"Proof of age (e.g., birth certificate, ID showing 65+ as of Jan 1)\",\n      \"Proof of income for prior year\",\n      \"Proof of NC residency and property ownership/occupancy\",\n      \"Disability certification if applicable\",\n      \"VA certification for veterans\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Administered by county tax offices; must apply in county of residence\",\n    \"regional_variations\": \"Income thresholds consistent statewide (e.g., $38,800 for 2025), but applications, forms, and offices are county-specific. Some counties mention Circuit Breaker with 5-year residency. No major benefit differences.\",\n    \"offices_or_providers\": [\"County Tax Assessor's Office (e.g., Gaston, Davidson, Harnett, Iredell, Mecklenburg)\"]\n  },\n  \"official_source\": \"https://www.ncleg.net/enactedlegislation/statutes/html/bysection/chapter_105/gs_105-277.1.html\",\n  \"gotchas\": [\n    \"One-time application for main exclusion, but annual for Circuit Breaker—must reapply or lose benefit\",\n    \"Income based on prior full calendar year; exceeds limit = ineligible\",\n    \"Must own/occupy as of Jan 1; disqualifiers: death, property transfer, not using as permanent residence\",\n    \"Cannot receive other property tax relief simultaneously\",\n    \"Note: Separate from bankruptcy/creditor homestead exemption ($35k/$60k equity protection; automatic, no application)\",\n    \"Deadline June 1—miss it, miss the year\",\n    \"Veteran exclusion separate (no income test)\"\n  ],\n  \"data_shape_notes\": \"Statewide uniform eligibility/benefit formula, but county-administered applications; fixed income threshold (not scaled by household); one-time vs. annual application types; confusable with bankruptcy homestead protection\"\n}"
+    },
+    {
+      "name": "North Carolina Long-Term Care Medicaid",
+      "eligibility": {
+        "age": 65,
+        "income_limits": "No fixed dollar limit; income must be less than the regional Medicaid nursing home pay rate (estimated $7,898–$11,218/month for singles in 2026, varying by facility/area). Nearly all income counts (IRA, pensions, Social Security, wages, etc.). Applicant pays most income toward care minus $70/month personal needs allowance, health premiums, and certain spousal allowances. For ABD Medicaid (basic coverage), single limit is $1,330/month (April 2026–March 2027). Married couples: spousal income generally not counted unless both applying; community spouse can retain up to half of joint assets up to $162,660 (2026).[1][2][3][6][7][10]",
+        "asset_limits": "Singles: $2,000 max in countable assets (cash, bank accounts, stocks, non-exempt property). Married (both needing care): $3,000. Exempt: primary home (equity up to $730,000 if intent to return, spouse/child under 21/disabled child lives there), one vehicle, personal belongings, life insurance (face value ≤$1,500), burial plots/funds.[2][3][7]",
+        "other_requirements": [
+          "NC resident and US citizen/qualified immigrant.",
+          "Nursing Facility Level of Care (NFLOC): need full-time care based on assessment of Activities of Daily Living (ADLs: mobility, bathing, dressing, eating, toileting) and Instrumental ADLs (IADLs: cleaning, cooking, shopping, managing meds/bills), plus cognitive/behavioral issues.",
+          "Need care for 30+ consecutive days."
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Coverage for nursing home care (full cost minus patient liability), assisted living, home/community-based services (HCBS) waivers (e.g., personal care, adult day health, home modifications), intermediate care facilities. Patient pays income toward facility cost (minus $70 PNA); Medicaid covers remainder. Specific HCBS varies by waiver/program (e.g., CAP/DA for disabled adults 18+, PACE for 55+ in select areas).[1][3][4][9]",
+        "varies_by": "priority_tier|region"
+      },
+      "application": {
+        "methods": [
+          "Online: epass.nc.gov (NC ePASS portal).",
+          "Phone: Local Department of Social Services (DSS) or NC Medicaid Contact Center at 1-888-245-0179.",
+          "In-person/mail: Local county DSS office (find via ncdhhs.gov/divisions/social-services/local-dss-directory).",
+          "Assisted: Through aging/cognitive supports specialists."
+        ],
+        "processing_time": "45–90 days for full determination, including NFLOC assessment.",
+        "waitlist": "Yes, for HCBS waivers (e.g., CAP/DA); nursing home Medicaid generally no waitlist but bed availability varies.",
+        "forms": [
+          "NC Medicaid Application (via ePASS or Form DSS-8209 for LTC), NFLOC assessment form (PREADMIT or PASRR)."
+        ],
+        "documents": [
+          "Proof of ID/citizenship (birth certificate, passport).",
+          "SSN.",
+          "Income proof (bank statements, pay stubs, pension/SS awards last 3–6 months).",
+          "Asset statements (bank, investment, property deeds, vehicle titles).",
+          "Medical records/physician statement.",
+          "Proof of residency (utility bill, lease).",
+          "Spousal financials if married.",
+          "Health insurance/Medicare cards."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "HCBS waivers/PACE limited to specific service areas/counties.",
+        "regional_variations": "Nursing home pay rates/income thresholds vary by facility/area cost ($8,004–$11,093/month in 2025 estimates); waitlists longer for HCBS in high-demand regions; local DSS offices handle apps with varying processing.",
+        "offices_or_providers": [
+          "Local county DSS offices; PACE organizations in select areas (e.g., Wake County LTC office)."
+        ]
+      },
+      "official_source": "https://medicaid.ncdhhs.gov/providers/programs-and-services/long-term-care",
+      "gotchas": [
+        "No single income cap—must be <facility's Medicaid rate, but all income pays toward care (only $70 PNA kept).",
+        "5-year look-back penalty for asset transfers/gifts.",
+        "HCBS waivers have waitlists; nursing home preferred for faster access.",
+        "Home equity limit $730,000; intent to return must be realistic.",
+        "Spousal impoverishment rules complex—community spouse asset allowance up to $162,660.",
+        "ABD Medicaid (65+/blind/disabled) needed first for LTC add-ons.",
+        "Medically needy spend-down via medical expenses if over limit."
+      ],
+      "data_shape_notes": "Income test is facility-specific pay rate (regional variation), not fixed amount; requires NFLOC assessment; multiple programs/waivers (nursing home vs HCBS) with tiered access/waitlists; spousal protections scale by joint assets.",
+      "_raw": "{\n  \"name\": \"North Carolina Long-Term Care Medicaid\",\n  \"eligibility\": {\n    \"age\": 65,\n    \"income_limits\": \"No fixed dollar limit; income must be less than the regional Medicaid nursing home pay rate (estimated $7,898–$11,218/month for singles in 2026, varying by facility/area). Nearly all income counts (IRA, pensions, Social Security, wages, etc.). Applicant pays most income toward care minus $70/month personal needs allowance, health premiums, and certain spousal allowances. For ABD Medicaid (basic coverage), single limit is $1,330/month (April 2026–March 2027). Married couples: spousal income generally not counted unless both applying; community spouse can retain up to half of joint assets up to $162,660 (2026).[1][2][3][6][7][10]\",\n    \"asset_limits\": \"Singles: $2,000 max in countable assets (cash, bank accounts, stocks, non-exempt property). Married (both needing care): $3,000. Exempt: primary home (equity up to $730,000 if intent to return, spouse/child under 21/disabled child lives there), one vehicle, personal belongings, life insurance (face value ≤$1,500), burial plots/funds.[2][3][7]\",\n    \"other_requirements\": [\n      \"NC resident and US citizen/qualified immigrant.\",\n      \"Nursing Facility Level of Care (NFLOC): need full-time care based on assessment of Activities of Daily Living (ADLs: mobility, bathing, dressing, eating, toileting) and Instrumental ADLs (IADLs: cleaning, cooking, shopping, managing meds/bills), plus cognitive/behavioral issues.\",\n      \"Need care for 30+ consecutive days.\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Coverage for nursing home care (full cost minus patient liability), assisted living, home/community-based services (HCBS) waivers (e.g., personal care, adult day health, home modifications), intermediate care facilities. Patient pays income toward facility cost (minus $70 PNA); Medicaid covers remainder. Specific HCBS varies by waiver/program (e.g., CAP/DA for disabled adults 18+, PACE for 55+ in select areas).[1][3][4][9]\",\n    \"varies_by\": \"priority_tier|region\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: epass.nc.gov (NC ePASS portal).\",\n      \"Phone: Local Department of Social Services (DSS) or NC Medicaid Contact Center at 1-888-245-0179.\",\n      \"In-person/mail: Local county DSS office (find via ncdhhs.gov/divisions/social-services/local-dss-directory).\",\n      \"Assisted: Through aging/cognitive supports specialists.\"\n    ],\n    \"processing_time\": \"45–90 days for full determination, including NFLOC assessment.\",\n    \"waitlist\": \"Yes, for HCBS waivers (e.g., CAP/DA); nursing home Medicaid generally no waitlist but bed availability varies.\",\n    \"forms\": [\"NC Medicaid Application (via ePASS or Form DSS-8209 for LTC), NFLOC assessment form (PREADMIT or PASRR).\"],\n    \"documents\": [\n      \"Proof of ID/citizenship (birth certificate, passport).\",\n      \"SSN.\",\n      \"Income proof (bank statements, pay stubs, pension/SS awards last 3–6 months).\",\n      \"Asset statements (bank, investment, property deeds, vehicle titles).\",\n      \"Medical records/physician statement.\",\n      \"Proof of residency (utility bill, lease).\",\n      \"Spousal financials if married.\",\n      \"Health insurance/Medicare cards.\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"HCBS waivers/PACE limited to specific service areas/counties.\",\n    \"regional_variations\": \"Nursing home pay rates/income thresholds vary by facility/area cost ($8,004–$11,093/month in 2025 estimates); waitlists longer for HCBS in high-demand regions; local DSS offices handle apps with varying processing.\",\n    \"offices_or_providers\": [\"Local county DSS offices; PACE organizations in select areas (e.g., Wake County LTC office).\"]\n  },\n  \"official_source\": \"https://medicaid.ncdhhs.gov/providers/programs-and-services/long-term-care\",\n  \"gotchas\": [\n    \"No single income cap—must be <facility's Medicaid rate, but all income pays toward care (only $70 PNA kept).\",\n    \"5-year look-back penalty for asset transfers/gifts.\",\n    \"HCBS waivers have waitlists; nursing home preferred for faster access.\",\n    \"Home equity limit $730,000; intent to return must be realistic.\",\n    \"Spousal impoverishment rules complex—community spouse asset allowance up to $162,660.\",\n    \"ABD Medicaid (65+/blind/disabled) needed first for LTC add-ons.\",\n    \"Medically needy spend-down via medical expenses if over limit.\"\n  ],\n  \"data_shape_notes\": \"Income test is facility-specific pay rate (regional variation), not fixed amount; requires NFLOC assessment; multiple programs/waivers (nursing home vs HCBS) with tiered access/waitlists; spousal protections scale by joint assets.\"\n}"
+    },
+    {
+      "name": "Project C.A.R.E. (Caregiver Alternatives to Running on Empty)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "No specific income limits. Program gives priority to low-income individuals, minorities, and those in rural areas.[2][3]",
+        "asset_limits": null,
+        "other_requirements": [
+          "Care recipient must have a diagnosis of Alzheimer's disease or related dementia (including Lewy Body Dementia, Vascular Dementia, Frontotemporal Dementia).[2]",
+          "Adult caregiver must recognize they can benefit from care consultation.[2][4]",
+          "Caregiver must be unpaid (family member or friend).[7]",
+          "Caregiver must be a North Carolina resident.[7]",
+          "Caregivers of persons currently receiving NC Medicaid CAP/DA Waiver are NOT eligible for care consultation, though they may receive dementia education, training, and referrals.[2]",
+          "Caregivers of persons on a waitlist for CAP/DA enrollment CAN be served.[2]",
+          "No age requirements for care recipients or caregivers.[2]"
+        ]
+      },
+      "benefits": {
+        "type": "service|in_kind",
+        "value": "Care consultation; dementia-specific information and training; caregiver education; funds for self-directed respite care (subject to eligibility and availability); connections to community-based services and resources; referrals to Family Caregiver Support Program and Area Agencies on Aging.[2][3][6]",
+        "varies_by": "Availability and individual need. Respite care vouchers are limited.[5] The level of assistance provided varies based on what the caregiver needs and prefers.[3]"
+      },
+      "application": {
+        "methods": [
+          "Phone: Contact your regional Area Agency on Aging or Just1Call intake line (example: 704-432-1111 for Mecklenburg County).[6]",
+          "In-person: Visit your regional Family Consultant or Area Agency on Aging office.[3]",
+          "Referral: Health and human service professionals can complete a referral application on behalf of a caregiver.[7]",
+          "Online eligibility pre-check available through some regional providers.[7]"
+        ],
+        "processing_time": "Not specified in available sources.",
+        "waitlist": "Not specified in available sources. Services can be provided while on waitlists for other programs like Medicaid CAP/DA.[3]",
+        "forms": [
+          "NC DAAS FY2025 Project C.A.R.E. Host Agency Application (for organizations applying to be host agencies, not individual caregivers).[1]",
+          "Eligibility pre-check form (varies by regional provider).[7]"
+        ],
+        "documents": [
+          "Proof of North Carolina residency.[7]",
+          "Documentation of care recipient's dementia diagnosis (specific documents not detailed in sources).",
+          "Caregiver identification and relationship to care recipient (specific documents not detailed in sources)."
+        ]
+      },
+      "geography": {
+        "statewide": false,
+        "restrictions": "Program operates through regional host agencies. Not all regions of North Carolina are currently served.[2]",
+        "regional_variations": "Services are provided through specific regional Area Agencies on Aging. Northeastern regions documented include: Region L (Edgecombe, Halifax, Nash, Northampton, Wilson); Region P (Carteret, Craven, Duplin, Greene, Jones, Lenoir, Onslow, Pamlico, Wayne); Region Q (Beaufort, Bertie, Herford, Martin, Pitt); Region R (Camden, Chowan, Currituck, Dare, Gates, Hyde, Pasquotank, Perquimans, Tyrrell, Washington).[2] Other regions have different host agencies (e.g., Land of Sky Area Agency on Aging, Cape Fear COG, Mecklenburg County).[4][5][6]",
+        "offices_or_providers": [
+          "Land of Sky Area Agency on Aging (339 New Leicester Hwy, Suite 140).[4]",
+          "Albemarle Commission Area Agency on Aging (serves Regions L, P, Q, R).[2]",
+          "Western Piedmont Council of Governments (WPCOG).[3]",
+          "Cape Fear Council of Governments.[5]",
+          "Mecklenburg County (Just1Call: 704-432-1111).[6]",
+          "High Country Aging (828-265-5434 ext. 139).[7]"
+        ]
+      },
+      "official_source": "https://www.ncdhhs.gov/divisions/aging/project-care-caregiver-alternatives-running-empty",
+      "gotchas": [
+        "Caregivers of persons CURRENTLY on Medicaid CAP/DA Waiver are ineligible for care consultation services, though they can still receive dementia education and referrals. This is a common point of confusion.[2]",
+        "There is NO income limit, but the program prioritizes low-income, minority, and rural families—meaning higher-income families may face longer waits or lower priority.[2][3]",
+        "Respite care vouchers are explicitly limited in availability.[5] Not all eligible caregivers will receive them.",
+        "The program is NOT statewide—coverage depends on which regional host agency serves your county. You must contact your specific regional provider.[2]",
+        "Processing time and waitlist status are not publicly documented, making it difficult to plan ahead.",
+        "The program began in 2001 and is described as the 'only state-funded, dementia-specific support' for caregivers in North Carolina, but availability varies significantly by region.[5]"
+      ],
+      "data_shape_notes": "Project C.A.R.E. is a regionally fragmented program with no statewide uniform application process. Benefits are service-based rather than cash-based, with respite care vouchers being the primary financial component (limited availability). Eligibility is straightforward (dementia diagnosis + caregiver recognition of need) with no income or asset tests, but priority is given to underserved populations. The program's structure relies on regional Area Agencies on Aging as host agencies, meaning application methods, contact information, and processing times vary by county/region. No public data on processing times or waitlists is available.",
+      "_raw": "```json\n{\n  \"name\": \"Project C.A.R.E. (Caregiver Alternatives to Running on Empty)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No specific income limits. Program gives priority to low-income individuals, minorities, and those in rural areas.[2][3]\",\n    \"asset_limits\": null,\n    \"other_requirements\": [\n      \"Care recipient must have a diagnosis of Alzheimer's disease or related dementia (including Lewy Body Dementia, Vascular Dementia, Frontotemporal Dementia).[2]\",\n      \"Adult caregiver must recognize they can benefit from care consultation.[2][4]\",\n      \"Caregiver must be unpaid (family member or friend).[7]\",\n      \"Caregiver must be a North Carolina resident.[7]\",\n      \"Caregivers of persons currently receiving NC Medicaid CAP/DA Waiver are NOT eligible for care consultation, though they may receive dementia education, training, and referrals.[2]\",\n      \"Caregivers of persons on a waitlist for CAP/DA enrollment CAN be served.[2]\",\n      \"No age requirements for care recipients or caregivers.[2]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service|in_kind\",\n    \"value\": \"Care consultation; dementia-specific information and training; caregiver education; funds for self-directed respite care (subject to eligibility and availability); connections to community-based services and resources; referrals to Family Caregiver Support Program and Area Agencies on Aging.[2][3][6]\",\n    \"varies_by\": \"Availability and individual need. Respite care vouchers are limited.[5] The level of assistance provided varies based on what the caregiver needs and prefers.[3]\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: Contact your regional Area Agency on Aging or Just1Call intake line (example: 704-432-1111 for Mecklenburg County).[6]\",\n      \"In-person: Visit your regional Family Consultant or Area Agency on Aging office.[3]\",\n      \"Referral: Health and human service professionals can complete a referral application on behalf of a caregiver.[7]\",\n      \"Online eligibility pre-check available through some regional providers.[7]\"\n    ],\n    \"processing_time\": \"Not specified in available sources.\",\n    \"waitlist\": \"Not specified in available sources. Services can be provided while on waitlists for other programs like Medicaid CAP/DA.[3]\",\n    \"forms\": [\n      \"NC DAAS FY2025 Project C.A.R.E. Host Agency Application (for organizations applying to be host agencies, not individual caregivers).[1]\",\n      \"Eligibility pre-check form (varies by regional provider).[7]\"\n    ],\n    \"documents\": [\n      \"Proof of North Carolina residency.[7]\",\n      \"Documentation of care recipient's dementia diagnosis (specific documents not detailed in sources).\",\n      \"Caregiver identification and relationship to care recipient (specific documents not detailed in sources).\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Program operates through regional host agencies. Not all regions of North Carolina are currently served.[2]\",\n    \"regional_variations\": \"Services are provided through specific regional Area Agencies on Aging. Northeastern regions documented include: Region L (Edgecombe, Halifax, Nash, Northampton, Wilson); Region P (Carteret, Craven, Duplin, Greene, Jones, Lenoir, Onslow, Pamlico, Wayne); Region Q (Beaufort, Bertie, Herford, Martin, Pitt); Region R (Camden, Chowan, Currituck, Dare, Gates, Hyde, Pasquotank, Perquimans, Tyrrell, Washington).[2] Other regions have different host agencies (e.g., Land of Sky Area Agency on Aging, Cape Fear COG, Mecklenburg County).[4][5][6]\",\n    \"offices_or_providers\": [\n      \"Land of Sky Area Agency on Aging (339 New Leicester Hwy, Suite 140).[4]\",\n      \"Albemarle Commission Area Agency on Aging (serves Regions L, P, Q, R).[2]\",\n      \"Western Piedmont Council of Governments (WPCOG).[3]\",\n      \"Cape Fear Council of Governments.[5]\",\n      \"Mecklenburg County (Just1Call: 704-432-1111).[6]\",\n      \"High Country Aging (828-265-5434 ext. 139).[7]\"\n    ]\n  },\n  \"official_source\": \"https://www.ncdhhs.gov/divisions/aging/project-care-caregiver-alternatives-running-empty\",\n  \"gotchas\": [\n    \"Caregivers of persons CURRENTLY on Medicaid CAP/DA Waiver are ineligible for care consultation services, though they can still receive dementia education and referrals. This is a common point of confusion.[2]\",\n    \"There is NO income limit, but the program prioritizes low-income, minority, and rural families—meaning higher-income families may face longer waits or lower priority.[2][3]\",\n    \"Respite care vouchers are explicitly limited in availability.[5] Not all eligible caregivers will receive them.\",\n    \"The program is NOT statewide—coverage depends on which regional host agency serves your county. You must contact your specific regional provider.[2]\",\n    \"Processing time and waitlist status are not publicly documented, making it difficult to plan ahead.\",\n    \"The program began in 2001 and is described as the 'only state-funded, dementia-specific support' for caregivers in North Carolina, but availability varies significantly by region.[5]\"\n  ],\n  \"data_shape_notes\": \"Project C.A.R.E. is a regionally fragmented program with no statewide uniform application process. Benefits are service-based rather than cash-based, with respite care vouchers being the primary financial component (limited availability). Eligibility is straightforward (dementia diagnosis + caregiver recognition of need) with no income or asset tests, but priority is given to underserved populations. The program's structure relies on regional Area Agencies on Aging as host agencies, meaning application methods, contact information, and processing times vary by county/region. No public data on processing times or waitlists is available.\"\n}\n```\n\n## Key Takeaways for Families\n\n**Before you apply, verify your region is served.** Project C.A.R.E. operates through regional host agencies, not uniformly statewide.[2] Contact your Area Agency on Aging to confirm coverage in your county.\n\n**The main eligibility hurdle is the Medicaid CAP/DA Waiver rule.** If your loved one is already receiving this waiver, you cannot access care consultation—though dementia education and referrals are still available.[2] If they're on the waitlist for the waiver, you can be served now.\n\n**Income doesn't disqualify you, but it affects priority.** There are no income limits, but the program prioritizes low-income, minority, and rural families.[2][3] Higher-income families may experience longer waits.\n\n**Respite care vouchers are the most valuable benefit but are limited.** While the program offers education and consultation at no apparent cost, the respite care vouchers (funds for in-home or group respite care) are explicitly limited in availability.[5]\n\n**Contact your regional provider directly.** Since there is no centralized online application portal documented in these sources, you'll need to call your regional Area Agency on Aging or use a referral from a health professional.[3][7] Processing times and current waitlist status are not publicly available."
+    },
+    {
+      "name": "North Carolina Seniors Farmers' Market Nutrition Program",
+      "_parseError": true,
+      "_raw": "{\n  \"name\": \"North Carolina Seniors Farmers' Market Nutrition Program\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"Household income at or below 185% of the Federal Poverty Level. Monthly limits: $2,413 for 1-person household; $3,261 for 2-person household. Larger household sizes follow 185% FPL scale (specific amounts for 3+ not detailed in sources).[1][2][3][5]\",\n    \"asset_limits\": \"No asset limits mentioned in program sources.[1][2][3][5]\",\n    \"other_requirements\": [\"Must live in a county with a participating local agency.\", \"Must apply through local agency serving that county.\"][2]\n  },\n  \"benefits\": {\n    \"type\": \"in_kind\",\n    \"value\": \"$50 in vouchers per eligible senior, issued as a booklet of 10 vouchers worth $5 each. Vouchers can buy fresh NC-grown fruits, vegetables, fresh-cut herbs, and raw honey only (excludes nuts, seeds, eggs, meat, cheese, jams, plants, etc.). Usable July 1–September 30 at certified farmers' markets, roadside stands, or CSAs. No change given.[1][3][5][6]\",\n    \"varies_by\": \"fixed\"\n  },\n  \"application\": {\n    \"methods\": [\"Fill out NC SFMNP Voucher Interest Form to join interest list (notified in June of local agency contacts); contact local agency for eligibility screening and voucher distribution (varies by county, e.g., Charlotte-Mecklenburg Food Policy Council in Mecklenburg at charlottefoodpolicy.com/seniorvouchers); in-person registration at some markets (e.g., July 5, 19, Aug 2, 16 at Uptown Farmers Market).[2][5]\", \"Phone/website/mail not specified centrally; use local agency contacts provided after interest form.[2]\"],\n    \"processing_time\": \"Enrollment opens July 1 (e.g., 2025); applications handled locally starting then. Interest list notifications in June.[1][2][5]\",\n    \"waitlist\": \"Possible due to limited funding/participation; not explicitly detailed but implied by county-specific enrollment events and interest list.[2][5]\",\n    \"forms\": [\"2025 NC SFMNP Voucher Interest Form (pre-application interest list). Specific application forms handled by local agencies.[2]\"],\n    \"documents\": [\"Proof of age (60+), income (showing ≤185% FPL), and county residency. Proof of enrollment in SNAP/CSFP may qualify in some cases.[2][6]\"]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Only in counties with participating local agencies (e.g., Mecklenburg in 2024/2025; not all NC counties; check map or interest form for current list).[2][3][5]\",\n    \"regional_variations\": \"Administered by local agencies (e.g., Charlotte-Mecklenburg Food Policy Council and Mecklenburg DSS in Mecklenburg County; different markets and registration dates per area). Participating markets vary (e.g., Charlotte Regional, Matthews, Uptown in Mecklenburg).[1][3][5]\",\n    \"offices_or_providers\": [\"NC DHHS Division of Aging (state lead); local examples: Charlotte-Mecklenburg Food Policy Council (Mecklenburg), Mecklenburg County DSS.[3][5]\"]\n  },\n  \"official_source\": \"No single central .gov application page identified; state lead via NC DHHS Division of Aging (implied); local info at charlottefoodpolicy.com/seniorvouchers or triangleonthecheap.com for examples. USDA overview: fns.usda.gov/sfmnp.[3][4][5]\",\n  \"gotchas\": [\"Not available in all counties—must confirm participating county via interest form.\", \"Summer-only (July 1–Sept 30); enrollment starts July 1, so act fast.\", \"Vouchers only for specific NC-grown items; no change given—spend full $5 increments.\", \"One booklet per eligible senior, not per household.\", \"Residency in participating county required, even if 60+ and income-eligible.\", \"Interest form is not the application—leads to local agency.[1][2][5]\"],\n  \"data_shape_notes\": \"County-restricted with local agency administration; fixed $50 benefit; 185% FPL income test; summer seasonal only; no asset test; varies by participating markets per region.\"\n}"
+    },
+    {
+      "name": "State-County Special Assistance - In Home",
+      "eligibility": {
+        "age": "65 or older, or 18-64 and disabled per Social Security definition, or under 18 and legally blind[1][2][3]",
+        "income_limits": "Must be below federal poverty level or meet State/County Special Assistance income requirements (exact dollar amounts not specified in sources; same as traditional Special Assistance; higher for Enhanced Rate with Alzheimer's/dementia diagnosis)[1][2][5]",
+        "asset_limits": "Must meet State/County Special Assistance resource requirements (specific limits and exemptions not detailed in sources)[2][3]",
+        "other_requirements": [
+          "U.S. citizen or qualified alien[1][2][3]",
+          "North Carolina resident[1][2][3]",
+          "Require level of care provided in licensed Adult Care Home (verified by doctor via FL-2 form) but desire to live at home[1][2][5]",
+          "Health, safety, and well-being can be maintained at home with services like in-home aide, home modifications, case management, supplies[1]",
+          "Receive SSI or financially ineligible for SSI solely due to excess income[3]",
+          "Not inmate of public institution[3]",
+          "All Medicaid and community resources considered first[1]"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "Monthly cash payments for living expenses (food, shelter, clothing, daily necessities); 2024 maximum rates: Basic $1,326/month, Enhanced $1,700/month (requires Alzheimer's/dementia diagnosis verified by FL-2); automatic Medicaid eligibility[2][5]",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Contact local county Department of Social Services (DSS)[2][5]",
+          "Wake County example: Call Catherine Goldman at 919-250-3835 for info or Tracy Gregory at 919-212-7549 to apply[1]"
+        ],
+        "processing_time": "Up to 45 days for 65+; up to 60 days for 18-64[1][2]",
+        "waitlist": "Eliminated; eligible applicants approved without delay[5]",
+        "forms": [
+          "FL-2 form completed by doctor to verify Adult Care Home level of care[2][5]"
+        ],
+        "documents": [
+          "Income and asset information",
+          "Insurance information",
+          "State-issued proof of identity",
+          "Information on life and financial situation for assessment[1][2]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Available through county DSS offices statewide[2][5]",
+        "regional_variations": "Administered by local county DSS; contacts and processes may vary (e.g., specific phone numbers in Wake County); processing times standardized but potential regional differences in wait times or providers not detailed[1][2]",
+        "offices_or_providers": [
+          "Local county Department of Social Services (DSS)"
+        ]
+      },
+      "official_source": "https://www.ncdhhs.gov/divisions/social-services/special-assistance/state-and-county-special-assistance-home-residents[7]",
+      "gotchas": [
+        "Must exhaust Medicaid/community resources first[1]",
+        "Requires doctor-verified FL-2 form for Adult Care Home level of care[2][5]",
+        "Enhanced rate only for Alzheimer's/dementia with valid FL-2[2]",
+        "Case management mandatory: monthly contact, quarterly visits, annual assessment[1]",
+        "Spouse's income/assets do not affect eligibility[5]",
+        "Eligibility case-by-case; not automatic even if criteria met[1]"
+      ],
+      "data_shape_notes": "County-administered statewide with local DSS variation; tiered benefits (Basic/Enhanced) by dementia diagnosis; no waitlist; scales by diagnosed needs rather than household size",
+      "_raw": "{\n  \"name\": \"State-County Special Assistance - In Home\",\n  \"eligibility\": {\n    \"age\": \"65 or older, or 18-64 and disabled per Social Security definition, or under 18 and legally blind[1][2][3]\",\n    \"income_limits\": \"Must be below federal poverty level or meet State/County Special Assistance income requirements (exact dollar amounts not specified in sources; same as traditional Special Assistance; higher for Enhanced Rate with Alzheimer's/dementia diagnosis)[1][2][5]\",\n    \"asset_limits\": \"Must meet State/County Special Assistance resource requirements (specific limits and exemptions not detailed in sources)[2][3]\",\n    \"other_requirements\": [\n      \"U.S. citizen or qualified alien[1][2][3]\",\n      \"North Carolina resident[1][2][3]\",\n      \"Require level of care provided in licensed Adult Care Home (verified by doctor via FL-2 form) but desire to live at home[1][2][5]\",\n      \"Health, safety, and well-being can be maintained at home with services like in-home aide, home modifications, case management, supplies[1]\",\n      \"Receive SSI or financially ineligible for SSI solely due to excess income[3]\",\n      \"Not inmate of public institution[3]\",\n      \"All Medicaid and community resources considered first[1]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Monthly cash payments for living expenses (food, shelter, clothing, daily necessities); 2024 maximum rates: Basic $1,326/month, Enhanced $1,700/month (requires Alzheimer's/dementia diagnosis verified by FL-2); automatic Medicaid eligibility[2][5]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact local county Department of Social Services (DSS)[2][5]\",\n      \"Wake County example: Call Catherine Goldman at 919-250-3835 for info or Tracy Gregory at 919-212-7549 to apply[1]\"\n    ],\n    \"processing_time\": \"Up to 45 days for 65+; up to 60 days for 18-64[1][2]\",\n    \"waitlist\": \"Eliminated; eligible applicants approved without delay[5]\",\n    \"forms\": [\"FL-2 form completed by doctor to verify Adult Care Home level of care[2][5]\"],\n    \"documents\": [\n      \"Income and asset information\",\n      \"Insurance information\",\n      \"State-issued proof of identity\",\n      \"Information on life and financial situation for assessment[1][2]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Available through county DSS offices statewide[2][5]\",\n    \"regional_variations\": \"Administered by local county DSS; contacts and processes may vary (e.g., specific phone numbers in Wake County); processing times standardized but potential regional differences in wait times or providers not detailed[1][2]\",\n    \"offices_or_providers\": [\"Local county Department of Social Services (DSS)\"]\n  },\n  \"official_source\": \"https://www.ncdhhs.gov/divisions/social-services/special-assistance/state-and-county-special-assistance-home-residents[7]\",\n  \"gotchas\": [\n    \"Must exhaust Medicaid/community resources first[1]\",\n    \"Requires doctor-verified FL-2 form for Adult Care Home level of care[2][5]\",\n    \"Enhanced rate only for Alzheimer's/dementia with valid FL-2[2]\",\n    \"Case management mandatory: monthly contact, quarterly visits, annual assessment[1]\",\n    \"Spouse's income/assets do not affect eligibility[5]\",\n    \"Eligibility case-by-case; not automatic even if criteria met[1]\"\n  ],\n  \"data_shape_notes\": \"County-administered statewide with local DSS variation; tiered benefits (Basic/Enhanced) by dementia diagnosis; no waitlist; scales by diagnosed needs rather than household size\"\n}"
     }
   ]
 }

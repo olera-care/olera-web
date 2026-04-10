@@ -1,20 +1,20 @@
 {
   "state": "IA",
   "stateName": "Iowa",
-  "classifiedAt": "2026-04-09T09:33:19.772Z",
-  "total": 13,
+  "classifiedAt": "2026-04-09T13:28:53.394Z",
+  "total": 10,
   "typeSummary": {
-    "benefit": 9,
-    "resource": 3,
-    "employment": 1
+    "benefit": 7,
+    "navigator": 1,
+    "resource": 2
   },
   "scopeSummary": {
-    "state": 6,
-    "federal": 7
+    "state": 4,
+    "local": 1,
+    "federal": 5
   },
   "complexitySummary": {
-    "deep": 8,
-    "medium": 2,
+    "deep": 7,
     "simple": 3
   },
   "programs": [
@@ -26,7 +26,15 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Local HHS offices for application and assessment; statewide providers.",
+            "name": "Home and Community Based Services Specialists (contact via HHS).",
+            "type": "service-area"
+          },
+          {
+            "name": "Iowa Medicaid Medical Services Unit.",
+            "type": "service-area"
+          },
+          {
+            "name": "Local Social Security offices for income verification.",
             "type": "service-area"
           }
         ]
@@ -52,16 +60,46 @@
       }
     },
     {
-      "name": "Iowa HCBS Elderly Waiver",
+      "name": "Home and Community-Based Services (HCBS)",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Enrolled HCBS providers statewide; must meet certification standards.[7]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "local",
         "stateVariation": false
       },
       "complexity": "deep",
       "recommendedSections": [
         "prose",
-        "income-table",
         "what-counts",
         "documents",
         "county-directory",
@@ -69,45 +107,12 @@
       ],
       "signals": {
         "benefitType": "service",
-        "hasIncomeTiers": true,
+        "hasIncomeTiers": false,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": true,
         "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "Local Iowa HHS offices; find via https://hhs.iowa.gov",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "tier-comparison",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "financial",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
-        "isStatewide": true
+        "isStatewide": false
       }
     },
     {
@@ -118,7 +123,7 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Local Department of Social Services offices across Iowa[1][7].",
+            "name": "Local Iowa Department of Social Services offices",
             "type": "service-area"
           }
         ]
@@ -149,11 +154,15 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Iowa HHS (state admin): iuc.iowa.gov or local agencies.",
+            "name": "Local community action agencies throughout Iowa (contact 211 or Iowa Department of Health & Human Services for your local office)[2][6]",
             "type": "service-area"
           },
           {
-            "name": "Examples: HACAP (hacap.org), Mid-Sioux (midsioux.org: Remsen, Cherokee, etc.), NEICAC.",
+            "name": "Northeast Iowa Community Action Corporation: 563-382-8436[4]",
+            "type": "service-area"
+          },
+          {
+            "name": "Hawkeye Area Community Action Program[5]",
             "type": "service-area"
           }
         ]
@@ -178,45 +187,30 @@
       }
     },
     {
-      "name": "Weatherization Assistance Program (WAP)",
-      "programType": "benefit",
+      "name": "Senior Health Insurance Information Program (SHIIP) — Iowa's implementation of the national SHIP program",
+      "programType": "navigator",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Local Community Action Agency per county; find via hhs.iowa.gov or call 515-281-3861[6]",
+            "name": "Spencer Municipal Hospital (Clay County)[2]",
             "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "medium",
-      "recommendedSections": [
-        "prose",
-        "what-counts",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Senior Health Insurance Program (SHIIP)",
-      "programType": "resource",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
+          },
           {
-            "name": "Local sponsor sites found via https://shiip.iowa.gov/ or 1-800-351-4664 (examples: St. Anthony Hospital, Spencer Hospital, Milestones AAA in Davenport/Ottumwa, Albia office)[2][4][5][6]",
+            "name": "St. Anthony Hospital (serves multiple counties)[3]",
+            "type": "service-area"
+          },
+          {
+            "name": "Albia office (641-932-1703)[5]",
+            "type": "service-area"
+          },
+          {
+            "name": "Davenport and Ottumwa offices (Milestones Area Agency on Aging)[6]",
+            "type": "service-area"
+          },
+          {
+            "name": "Additional sponsor locations exist but not fully enumerated in available sources",
             "type": "service-area"
           }
         ]
@@ -224,11 +218,11 @@
       "complexity": "simple",
       "recommendedSections": [
         "prose",
-        "county-directory"
+        "provider-list"
       ],
       "signals": {
-        "benefitType": "advocacy",
-        "hasIncomeTiers": true,
+        "benefitType": "service|advocacy",
+        "hasIncomeTiers": false,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
@@ -237,31 +231,39 @@
       }
     },
     {
-      "name": "Meals on Wheels (via Aging Services)",
+      "name": "Meals on Wheels",
       "programType": "benefit",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Johnson County: 2210 9th St., Coralville, IA; (319) 338-0515[4]",
+            "name": "Milestones Area Agency on Aging[8]",
             "type": "service-area"
           },
           {
-            "name": "Aging Resources of Central Iowa (Polk County)[3][8]",
+            "name": "Aging Resources of Central Iowa (Polk County)[3]",
             "type": "service-area"
           },
           {
-            "name": "WesleyLife (Central Iowa)[8]",
+            "name": "Meals on Wheels of Johnson County, 2210 9th St., Coralville, IA[4]",
             "type": "service-area"
           },
           {
-            "name": "Horizons Family Services[7]",
+            "name": "Horizons Family Services (Linn, Johnson, Washington counties)[6]",
+            "type": "service-area"
+          },
+          {
+            "name": "WesleyLife (Central Iowa)[7]",
+            "type": "service-area"
+          },
+          {
+            "name": "Fort Dodge Community Foundation[5]",
             "type": "service-area"
           }
         ]
       },
-      "complexity": "medium",
+      "complexity": "deep",
       "recommendedSections": [
         "prose",
         "what-counts",
@@ -274,78 +276,9 @@
         "hasIncomeTiers": false,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
+        "hasFunctionalReq": true,
         "hasMultipleTiers": false,
         "isStatewide": false
-      }
-    },
-    {
-      "name": "National Family Caregiver Support Program",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Area Agencies on Aging across Iowa; example: Aging Resources (regional provider)[7]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "what-counts",
-        "tier-comparison",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Senior Community Service Employment Program (SCSEP)",
-      "programType": "employment",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "IowaWORKS offices statewide",
-            "type": "service-area"
-          },
-          {
-            "name": "Area Agencies on Aging (six locations with Older Worker Employment Program specialists)",
-            "type": "service-area"
-          },
-          {
-            "name": "Contact: Bethany Ellingson at IWD",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "documents"
-      ],
-      "signals": {
-        "benefitType": "employment",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
       }
     },
     {
@@ -356,7 +289,7 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Iowa City office example: 1700 S. 1st Ave., Iowa City, IA 52240; statewide offices via https://www.iowalegalaid.org/[5][7]",
+            "name": "Iowa Legal Aid offices statewide; coordinates with Legal Services Corporation projects[1][6]",
             "type": "service-area"
           }
         ]
@@ -384,7 +317,7 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Office of the State Long-Term Care Ombudsman within Iowa Department of Health and Human Services.",
+            "name": "Local Long-Term Care Ombudsmen assigned to every nursing home, assisted living, residential care facility, elder group home in Iowa; statewide Office of the State Long-Term Care Ombudsman within Iowa Department of Health and Human Services[1][5][6]",
             "type": "service-area"
           }
         ]
@@ -416,7 +349,7 @@
             "type": "service-area"
           },
           {
-            "name": "Iowa Department of Health and Human Services local offices",
+            "name": "Iowa HHS local offices",
             "type": "service-area"
           }
         ]

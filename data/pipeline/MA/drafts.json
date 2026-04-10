@@ -1,70 +1,2642 @@
 {
   "state": "MA",
   "stateName": "Massachusetts",
-  "draftedAt": "2026-04-09T09:35:55.157Z",
-  "total": 15,
-  "successful": 0,
+  "draftedAt": "2026-04-09T14:13:06.184Z",
+  "total": 16,
+  "successful": 15,
   "programs": [
     {
-      "name": "MassHealth Medicare Savings Program (MSP) / Buy-In",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "id": "massachusetts-medicare-savings-program",
+      "name": "MassHealth Medicare Savings Program",
+      "shortName": "Medicare Savings",
+      "tagline": "Help paying Medicare premiums, deductibles, and copays if your parent's income is under $2,993/month.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true
+      },
+      "intro": "If your parent is on Medicare and has limited income, Massachusetts can pay their Medicare premiums, deductibles, and copays. The MassHealth Medicare Savings Program covers different costs depending on income level — from just the Part B premium to all Medicare out-of-pocket expenses.\n\nYour parent may qualify with income up to $2,993/month (single) or $4,058/month (married couple) as of 2026. Because Massachusetts eliminated asset limits for this program in 2024, your parent's savings, home value, or other assets won't disqualify them from basic Medicare help.\n\nThis program also automatically enrolls your parent in Medicare Part D Extra Help, which reduces prescription drug costs. The combination can save up to $3,000 per year in Medicare expenses.",
+      "savingsRange": "Up to $3,000/year",
+      "savingsSource": "Medicare premiums, deductibles, coinsurance, and copays coverage",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "On Medicare",
+          "Income under $2,993/month (single)",
+          "Massachusetts resident",
+          "No asset limits"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2993
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 4058
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Massachusetts resident",
+          "Enrolled in or eligible for Medicare Part A",
+          "Meet MassHealth immigration criteria"
+        ],
+        "povertyLevelReference": "225% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online at mass.gov or call 1-800-841-2900 — decision within 30 days.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Gather Medicare and income documents",
+            "description": "You'll need proof of Medicare enrollment, recent pay stubs or benefit statements, and proof of Massachusetts residency."
+          },
+          {
+            "step": 2,
+            "title": "Submit Medicare Savings Programs Application",
+            "description": "Apply online at mass.gov using the Medicare Savings Programs Application, or call 1-800-841-2900 to apply by phone."
+          },
+          {
+            "step": 3,
+            "title": "Wait for decision notice",
+            "description": "MassHealth will mail a decision within 30 days. If approved, your parent gets a MassHealth card to show with their Medicare card."
+          },
+          {
+            "step": 4,
+            "title": "Use both cards at appointments",
+            "description": "For full benefits like QMB, your parent must show both Medicare and MassHealth cards. Providers cannot charge copays when both cards are presented."
+          }
+        ],
+        "processingTime": "30 days",
+        "waitlist": null,
+        "tip": "Applying also screens your parent for SNAP food benefits — you can opt out if you don't want that program.",
+        "urls": [
+          {
+            "label": "Apply online",
+            "url": "https://www.mass.gov/info-details/get-help-paying-medicare-costs"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits by Household Size (2026)",
+          "rows": [
+            {
+              "householdSize": "Single person",
+              "monthlyLimit": "$2,993",
+              "yearlyLimit": "$35,916"
+            },
+            {
+              "householdSize": "Married couple",
+              "monthlyLimit": "$4,058",
+              "yearlyLimit": "$48,696"
+            }
+          ],
+          "footnote": "Limits update each March 1 based on Federal Poverty Level"
+        },
+        {
+          "type": "tier-comparison",
+          "heading": "What Each Tier Covers",
+          "tiers": [
+            {
+              "name": "QMB (Qualified Medicare Beneficiary)",
+              "description": "Full coverage tier",
+              "incomeLimit": "Up to $2,993/month (single)",
+              "coverage": "Medicare Part A & B premiums, all deductibles, coinsurance, and copays. Medicare Part D Extra Help. Health Safety Net at hospitals."
+            },
+            {
+              "name": "SLMB/QI (Specified Low-Income Medicare Beneficiary/Qualifying Individual)",
+              "description": "Premium assistance tier",
+              "incomeLimit": "Up to $2,993/month (single)",
+              "coverage": "Medicare Part B premium only. Medicare Part D Extra Help. Health Safety Net at hospitals. You still pay deductibles and copays."
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Medicare Information",
+              "items": [
+                "Medicare card or proof of enrollment",
+                "Medicare Summary Notice (if available)"
+              ]
+            },
+            {
+              "name": "Income Verification",
+              "items": [
+                "Social Security award letter",
+                "Pension statements",
+                "Pay stubs (if still working)",
+                "Bank statements showing direct deposits"
+              ]
+            },
+            {
+              "name": "Residency",
+              "items": [
+                "Massachusetts utility bill",
+                "Lease agreement or mortgage statement",
+                "Mail with Massachusetts address"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If your parent has QMB coverage, providers legally cannot charge them Medicare copays or deductibles — but your parent must show both their Medicare and MassHealth cards at every appointment."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Will my parent's house or savings disqualify them?",
+          "answer": "No. Massachusetts eliminated asset limits for the Medicare Savings Program in March 2024. Your parent's home, savings accounts, or other assets won't affect eligibility for basic Medicare help."
+        },
+        {
+          "question": "What if my parent's income is slightly over $2,993?",
+          "answer": "They may still qualify for full MassHealth coverage if their assets are under $2,000 (single) or $3,000 (married). Higher income doesn't automatically disqualify them from all MassHealth programs."
+        },
+        {
+          "question": "Can my parent keep their current Medicare plan?",
+          "answer": "Yes. This program pays Medicare costs but doesn't change your parent's Medicare coverage. They keep the same doctors and Medicare plan, just with help paying the bills."
+        },
+        {
+          "question": "What's the difference between QMB and SLMB coverage?",
+          "answer": "QMB pays all Medicare out-of-pocket costs — premiums, deductibles, copays. SLMB only pays the Part B premium (about $185/month in 2026). Your parent still pays deductibles and copays with SLMB."
+        },
+        {
+          "question": "Will this automatically sign my parent up for other programs?",
+          "answer": "The application screens for SNAP food benefits, but you can decline that program. The system automatically enrolls approved applicants in Medicare Part D Extra Help for prescription drug savings."
+        },
+        {
+          "question": "How often does my parent need to reapply?",
+          "answer": "MassHealth will send renewal forms before coverage expires, typically annually. Income limits update every March 1, so your parent may qualify for a different tier if their income changes."
+        }
+      ],
+      "phone": "1-800-841-2900",
+      "sourceUrl": "https://www.mass.gov/info-details/get-help-paying-medicare-costs",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
+      "id": "massachusetts-frail-elder-waiver",
       "name": "Frail Elder Waiver (FEW)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "shortName": "Frail Elder Waiver",
+      "tagline": "Get home care services for your parent who needs nursing home level care but wants to stay home.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local ASAPs",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs significant daily help but wants to avoid a nursing home, Massachusetts' Frail Elder Waiver can provide home care services at no cost. This program covers personal care, nursing visits, respite care, and specialized support like Alzheimer's coaching — delivered by qualified providers in your parent's own home.\n\nYour parent must qualify for the same level of care as a nursing home resident (needing daily help with bathing, dressing, medication management, or mobility). Because the waiver has strict financial limits and a clinical assessment requirement, the application process often takes 3+ months. Income must stay under approximately $2,199/month for individuals, with special protections for married couples.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+ (or 60-64 with disability)",
+          "Income under ~$2,199/month",
+          "Needs nursing home level care",
+          "Lives at home (not assisted living)"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 2000,
+          "couple": 154140,
+          "countedAssets": [
+            "Bank accounts",
+            "Investments",
+            "Life insurance policies"
+          ],
+          "exemptAssets": [
+            "Primary home (with equity limits)",
+            "One vehicle"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "Must need nursing home level care (daily help with bathing, dressing, medication management, or mobility) as determined by a registered nurse assessment",
+        "otherRequirements": [
+          "Must be enrolled in MassHealth",
+          "Cannot participate in other waiver programs, One Care, or PACE",
+          "Must live in community setting (own home, family home, or congregate housing)",
+          "Must receive at least one waiver service per month"
+        ],
+        "povertyLevelReference": "300% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact your local Aging Services Access Point (ASAP) for a clinical assessment, typically taking 3+ months to process.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact your local ASAP",
+            "description": "Call your regional Aging Services Access Point to request a Frail Elder Waiver assessment. They'll schedule a registered nurse to evaluate your parent's care needs at home."
+          },
+          {
+            "step": 2,
+            "title": "Complete clinical assessment",
+            "description": "An ASAP registered nurse will conduct a Comprehensive Data Set (CDS) assessment to determine if your parent needs nursing home level care."
+          },
+          {
+            "step": 3,
+            "title": "Submit MassHealth application",
+            "description": "Complete the Senior Affordable Care Act (SACA) MassHealth Application and Long Term Care Supplement (A) with all required financial documentation."
+          },
+          {
+            "step": 4,
+            "title": "Wait for approval",
+            "description": "Processing typically takes 3 months or more. If approved, your parent must receive at least one waiver service monthly to maintain eligibility."
+          }
+        ],
+        "processingTime": "Often 3 months or more",
+        "waitlist": null,
+        "tip": "Start the application process early — the clinical assessment and financial review can take several months, and your parent needs ongoing services to stay eligible.",
+        "urls": [
+          {
+            "label": "Official FEW Information",
+            "url": "https://www.mass.gov/info-details/frail-elder-waiver-information-for-applicants-and-participants"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and savings",
+            "Investments and stocks",
+            "Life insurance policies with cash value",
+            "Additional properties beyond primary home"
+          ],
+          "excluded": [
+            "Primary home (with certain equity limits)",
+            "One vehicle for transportation",
+            "Personal belongings and household items",
+            "Prepaid funeral arrangements"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Social Security card",
+                "Medicare card"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Bank statements (last 60 months)",
+                "Proof of all income sources",
+                "Property deeds",
+                "Life insurance policies"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Processing often takes 3+ months. Your parent must receive at least one waiver service per month to stay eligible, so plan for ongoing service coordination."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If your parent is married, spousal income and assets are protected — the working or healthier spouse can keep significant income and assets above the individual limits."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house if she qualifies for the Frail Elder Waiver?",
+          "answer": "Yes, your parent can keep their primary home. The home is typically exempt from the $2,000 asset limit, though there may be equity limits under MassHealth rules."
+        },
+        {
+          "question": "What if Dad's income is just over $2,199 per month?",
+          "answer": "He may still qualify through MassHealth's 'spend-down' process if his medical bills are high enough. The program allows people to become eligible by spending excess income on medical expenses."
+        },
+        {
+          "question": "Can Mom live in assisted living and still get waiver services?",
+          "answer": "No, the Frail Elder Waiver only covers people living in community settings like their own home, family homes, or congregate housing. Assisted living, group homes, and rest homes are not eligible."
+        },
+        {
+          "question": "What happens if Mom doesn't use services for a month?",
+          "answer": "She'll lose eligibility. Your parent must receive at least one waiver service every month to stay in the program, so consistent service coordination is essential."
+        },
+        {
+          "question": "My parents are married — will Dad's income affect Mom's eligibility?",
+          "answer": "No, spousal income is waived for Frail Elder Waiver eligibility. The healthy spouse can keep their income, and there are protections allowing them to retain up to $154,140 in assets."
+        },
+        {
+          "question": "What's the difference between regular home care and waiver services?",
+          "answer": "The Frail Elder Waiver provides more intensive services for people who need nursing home level care, including specialized services like Alzheimer's coaching and more hours of personal care than basic state home care programs."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://www.mass.gov/info-details/frail-elder-waiver-information-for-applicants-and-participants",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
+      "id": "massachusetts-pace-comprehensive-care",
       "name": "Program of All-Inclusive Care for the Elderly (PACE)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "shortName": "PACE",
+      "tagline": "All medical care, adult day programs, and home services coordinated under one team — no copays for covered services.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Summit ElderCare (Worcester area)",
+            "type": "service-area"
+          },
+          {
+            "name": "Neighborhood PACE (Greater Boston)",
+            "type": "service-area"
+          },
+          {
+            "name": "Serenity Care PACE",
+            "type": "service-area"
+          },
+          {
+            "name": "Element Care (Lynn)",
+            "type": "service-area"
+          },
+          {
+            "name": "Others via masspace.net directory",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs nursing home-level care but wants to stay in their home, PACE provides everything under one program: doctors, adult day care, home health aides, prescription drugs, transportation, and emergency services. Because one medical team coordinates all care, your parent won't juggle multiple providers or face copays for covered services.\n\nPACE serves adults 55+ who qualify for nursing home care but can live safely in the community with services. Income typically must be below $2,829/month with assets under $2,000, though MassHealth may cover premiums for qualifying families. The program operates in 271 Massachusetts cities and towns through regional providers — you must live in a participating service area.\n\nThis isn't traditional insurance. Your parent receives all care through PACE providers, and an interdisciplinary team creates an individualized care plan covering everything from routine checkups to specialized therapy.",
+      "savingsRange": "",
+      "savingsSource": "Free comprehensive medical and social services",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Income typically under $2,829/month",
+          "Assets under $2,000",
+          "Nursing home level of care needed",
+          "Must live in PACE service area"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 2000,
+          "couple": null,
+          "countedAssets": [
+            "Bank accounts",
+            "Investments"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "One vehicle",
+            "Personal belongings"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "Must meet nursing facility level of care (clinical assessment showing need for daily help with activities like bathing, dressing, medication management, or mobility)",
+        "otherRequirements": [
+          "Must be able to live safely in community with PACE services",
+          "Must reside in a PACE provider service area"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Contact your local PACE provider directly for enrollment — processing time varies by provider.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local PACE provider",
+            "description": "Use the zip code directory at masspace.net to identify which PACE organization serves your parent's address"
+          },
+          {
+            "step": 2,
+            "title": "Call the provider's enrollment specialist",
+            "description": "Each PACE organization handles its own enrollment process and will schedule an assessment"
+          },
+          {
+            "step": 3,
+            "title": "Complete clinical assessment",
+            "description": "PACE team evaluates whether your parent meets nursing home level of care while being able to live safely in the community"
+          },
+          {
+            "step": 4,
+            "title": "Financial eligibility review",
+            "description": "Provider determines premium costs based on income and MassHealth eligibility"
+          }
+        ],
+        "processingTime": null,
+        "waitlist": "Possible — varies by provider and region",
+        "tip": "Call multiple PACE providers if your parent lives near service area boundaries — availability and wait times differ between organizations.",
+        "urls": [
+          {
+            "label": "Find PACE providers by zip code",
+            "url": "http://masspace.net"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and savings",
+            "Stocks, bonds, and investments",
+            "Retirement accounts (401k, IRA)"
+          ],
+          "excluded": [
+            "Primary home (any value)",
+            "One vehicle",
+            "Personal belongings and household items",
+            "Life insurance policies"
+          ]
+        },
+        {
+          "type": "county-directory",
+          "heading": "PACE Providers by Region",
+          "offices": [
+            {
+              "name": "Summit ElderCare",
+              "type": "service-area",
+              "phone": "877-837-9009",
+              "address": "Worcester area"
+            },
+            {
+              "name": "Neighborhood PACE",
+              "type": "service-area",
+              "phone": null,
+              "address": "East Boston, Chelsea, Winthrop, Revere, Everett, Malden, Medford, Melrose, Stoneham, North End"
+            },
+            {
+              "name": "Element Care",
+              "type": "service-area",
+              "phone": null,
+              "address": "Lynn area"
+            },
+            {
+              "name": "Serenity Care PACE",
+              "type": "service-area",
+              "phone": null,
+              "address": "Service area varies"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Driver's license or state ID",
+                "Social Security card",
+                "Proof of Massachusetts residency"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Recent bank statements",
+                "Social Security award letter",
+                "Pension or retirement income statements",
+                "Investment account statements"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Recent medical records",
+                "Current medication list",
+                "Medicare and MassHealth cards (if applicable)",
+                "Documentation of care needs"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "PACE is not available statewide. Only 271 of Massachusetts' 351 cities and towns have PACE providers. Check the zip code directory before applying."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "All care must be authorized by your PACE team except emergencies. This means your parent cannot see outside specialists without approval, but the coordination prevents duplicate services and medication conflicts."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep seeing her current doctors if she enrolls in PACE?",
+          "answer": "No. PACE requires all care to come through their providers and medical team. Your mom would transition to PACE doctors, but the interdisciplinary team coordinates everything — no more managing multiple specialists separately."
+        },
+        {
+          "question": "What if Dad's income is just over the asset limit?",
+          "answer": "PACE uses MassHealth asset rules, which exempt the primary home and one vehicle. If countable assets like bank accounts exceed $2,000, he may still qualify but would pay a monthly premium based on income rather than having MassHealth cover costs."
+        },
+        {
+          "question": "How do we know if Mom needs 'nursing home level of care'?",
+          "answer": "The PACE team conducts a clinical assessment. They evaluate whether your mom needs daily assistance with activities like bathing, dressing, taking medications safely, or mobility. This is the same assessment used for nursing home placement."
+        },
+        {
+          "question": "What happens if Dad needs to go to the hospital?",
+          "answer": "PACE covers all emergency and hospital care. The PACE medical team coordinates with the hospital and handles discharge planning. Your dad won't face separate hospital bills for covered services."
+        },
+        {
+          "question": "Can Mom live in assisted living and still use PACE?",
+          "answer": "Yes, PACE serves people in various living situations including assisted living, as long as they can live safely in the community with PACE services. The key requirement is not needing 24/7 nursing home care."
+        },
+        {
+          "question": "What if there's a waiting list at our local PACE provider?",
+          "answer": "Wait times vary by provider and region. If your parent lives near multiple service areas, call each PACE organization — one may have immediate availability while another has a waitlist."
+        }
+      ],
+      "phone": "877-837-9009",
+      "sourceUrl": "https://www.mass.gov/program-of-all-inclusive-care-for-the-elderly-pace",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
       "name": "SNAP (Food Stamps)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "_error": "Claude 529: {\"type\":\"error\",\"error\":{\"type\":\"overloaded_error\",\"message\":\"Overloaded\"},\"request_id\":\"req_011CZtKquBi3LLETmNpqjE56\"}"
     },
     {
+      "id": "massachusetts-weatherization-assistance",
       "name": "Residential Conservation Service (Weatherization)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "shortName": "Weatherization Assistance",
+      "tagline": "Free home improvements that cut your parent's heating bills by 25-35% if they qualify for energy assistance.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local energy assistance agencies (full list by town on Mass.gov); e.g., ABCD, Community Teamwork, Self Help Inc.",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent qualifies for fuel assistance (LIHEAP) or receives SSI, Massachusetts will weatherize their home for free. This means professional contractors will add insulation, seal air leaks, tune up heating systems, and make other energy-saving improvements at no cost.\n\nThe average value is $4,725 per home, ranging from $200 to $7,500 depending on what your parent's home needs. Because these improvements reduce heat loss, families typically see their heating bills drop by 25-35%. Priority goes to households with elderly members, but the work can take months due to high demand.\n\nYour parent can only receive this service once, and renters need landlord permission with a promise not to raise rent for one year after the work is completed.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Qualifies for LIHEAP fuel assistance",
+          "Income below 60% of state median",
+          "Homeowner or renter with landlord permission",
+          "Never weatherized before"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must qualify for LIHEAP (fuel assistance) or receive TAFDC or SSI",
+          "Never been weatherized through this program before",
+          "Homeowners need proof of ownership; renters need written landlord permission",
+          "Landlord must agree not to raise rent for 1 year and not evict except for good cause",
+          "Property must be current on taxes and utilities",
+          "U.S. citizen or qualified immigrant",
+          "Condominiums with more than 4 units are not eligible"
+        ],
+        "povertyLevelReference": "60% of State Median Income or 200% Federal Poverty Level"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply through your local energy assistance agency between October 1 and April 30, with processing taking several months due to high demand.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local agency",
+            "description": "Look up which energy assistance agency serves your parent's town on Mass.gov's town-by-town directory."
+          },
+          {
+            "step": 2,
+            "title": "Apply for LIHEAP first",
+            "description": "Your parent must qualify for LIHEAP fuel assistance to be eligible for weatherization. Use the same application for both programs."
+          },
+          {
+            "step": 3,
+            "title": "Submit required documents",
+            "description": "Provide income proof, citizenship documents, and property ownership or landlord permission letter."
+          },
+          {
+            "step": 4,
+            "title": "Schedule energy inspection",
+            "description": "Once approved, the local agency will arrange for contractors to assess what weatherization work your parent's home needs."
+          },
+          {
+            "step": 5,
+            "title": "Complete the work",
+            "description": "Contractors perform approved weatherization at no cost, followed by a quality inspection."
+          }
+        ],
+        "processingTime": "Not specified - varies by local agency and contractor availability",
+        "waitlist": "Yes - limited funding creates effective waitlist, with priority for elderly households",
+        "tip": "Apply early in the October 1 - April 30 window since elderly households get priority but funding runs out.",
+        "urls": [
+          {
+            "label": "Find your local energy assistance agency",
+            "url": "https://www.mass.gov/info-details/weatherization-assistance-program-wap"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Status",
+              "items": [
+                "Proof of U.S. citizenship or qualified alien status for all household members",
+                "Social Security cards for all household members"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Proof of income for all household members 18 and older",
+                "Recent pay stubs, Social Security statements, or benefit letters"
+              ]
+            },
+            {
+              "name": "Property",
+              "items": [
+                "Proof of home ownership (deed or mortgage statement) if homeowner",
+                "Signed landlord permission letter if renter",
+                "Landlord agreement on no rent increase/eviction terms if renter"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Applications are only accepted October 1 through April 30 each year. Even if your parent received weatherization assistance before from utilities like MassSave, they can still qualify - but they can only get this federal program once."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If your parent is a renter, get the landlord agreement in writing before applying. The landlord must promise not to raise rent for one year after the work and can't evict except for good cause."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent already got energy improvements from MassSave?",
+          "answer": "They can still qualify. This federal weatherization program may coordinate with utility programs like MassSave but won't duplicate work that's already been done. However, if they previously received weatherization through this specific federal program, they cannot get it again."
+        },
+        {
+          "question": "Can my parent get this if they rent their home?",
+          "answer": "Yes, but only if they live in a 1-4 unit building or mobile home, pay their own heating bills, and already receive fuel assistance or utility discounts. The landlord must sign an agreement not to raise rent for one year after the work and must be current on property taxes and utilities."
+        },
+        {
+          "question": "How long does it take to get the work done?",
+          "answer": "It varies significantly by area due to high demand and limited funding. Elderly households get priority, but you should expect several months between application and completed work. Apply as early as possible in the October 1 - April 30 window."
+        },
+        {
+          "question": "What exactly will they do to my parent's house?",
+          "answer": "Contractors will do an energy audit first, then typically add insulation to attics, walls, and floors, seal air leaks, install weather-stripping, insulate pipes and ducts, and tune up or repair heating systems. They also test for carbon monoxide and other safety issues. The average value is $4,725 but can range from $200 to $7,500 depending on what's needed."
+        },
+        {
+          "question": "Does my parent have to pay anything?",
+          "answer": "No. There is no cost or contribution required from your parent. All materials, labor, and inspections are covered by the program."
+        },
+        {
+          "question": "What if my parent's income is just over the limit?",
+          "answer": "Income limits follow LIHEAP guidelines and vary by household size. If they don't qualify for LIHEAP fuel assistance directly, they cannot get weatherization through this program. However, check if they qualify for other criteria like receiving SSI, which provides automatic eligibility."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://www.mass.gov/info-details/weatherization-assistance-program-wap",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
-      "name": "SHINE (Serving the Health Insurance Needs of Everyone)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "id": "massachusetts-shine-health-insurance",
+      "name": "SHINE (Serving Health Insurance Needs of Everyone)",
+      "shortName": "SHINE",
+      "tagline": "Free counselors help your parent navigate Medicare, find savings programs, and avoid costly insurance mistakes.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local: Councils on Aging, senior centers, AgeSpan, LifePath, Access Care Partners; statewide coordination via Executive Office of Elder Affairs",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is approaching 65 or already on Medicare, SHINE provides free, unbiased counseling to help them navigate health insurance choices. Because Medicare has multiple parts (A, B, C, D), supplement options (Medigap), and cost-saving programs they may not know about, SHINE counselors prevent costly mistakes and find programs that could save hundreds monthly.\n\nSHINE counselors help with Medicare enrollment, compare Medicare Advantage vs. traditional Medicare plus Medigap, find prescription drug plans, and screen for programs like Extra Help (which can eliminate prescription copays) and Medicare Savings Programs (which pay Medicare premiums). They also assist with MassHealth applications for dual eligibles.\n\nOpen to all Massachusetts residents eligible for Medicare or their caregivers. No income limits or financial tests required for counseling.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Massachusetts resident",
+          "Medicare-eligible or approaching eligibility",
+          "Caregivers also eligible",
+          "No income limits"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Massachusetts resident",
+          "Eligible for Medicare or approaching Medicare eligibility, or serving as caregiver"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call MassOptions at 1-800-243-4636 to connect with a local SHINE counselor — appointments typically available within days outside enrollment periods.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call MassOptions",
+            "description": "Call 1-800-243-4636 and ask for a SHINE counselor in your parent's area"
+          },
+          {
+            "step": 2,
+            "title": "Schedule appointment",
+            "description": "SHINE counselor will schedule phone, video, or in-person meeting at local senior center or Council on Aging"
+          },
+          {
+            "step": 3,
+            "title": "Bring insurance information",
+            "description": "Have Medicare card, current insurance details, and income information ready (income only needed if screening for cost-saving programs)"
+          },
+          {
+            "step": 4,
+            "title": "Get personalized guidance",
+            "description": "Counselor reviews options, compares plans, and helps complete applications for any programs your parent qualifies for"
+          }
+        ],
+        "processingTime": "Immediate counseling appointment scheduling",
+        "waitlist": "High demand during Medicare Open Enrollment (October-December) may cause appointment delays",
+        "tip": "Schedule appointments early during Open Enrollment periods when wait times can extend several weeks.",
+        "urls": [
+          {
+            "label": "SHINE Program Information",
+            "url": "https://www.mass.gov/info-details/serving-the-health-insurance-needs-of-everyone-shine-program"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "During Medicare Open Enrollment (October-December), appointment wait times can extend several weeks. Cape Cod alone handled 3,600+ appointments in 2025 enrollment season."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "SHINE provides counseling only, not direct financial benefits. However, counselors help apply for programs that do provide financial assistance, like Extra Help for prescriptions and Medicare Savings Programs for premiums."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What's the difference between SHINE and Medicare customer service?",
+          "answer": "SHINE counselors are trained volunteers who work for you, not insurance companies. Because they don't sell insurance, they provide unbiased comparisons and help find cost-saving programs that Medicare's 1-800 number won't tell you about."
+        },
+        {
+          "question": "Can SHINE help if my parent already has Medicare and thinks they made the wrong choice?",
+          "answer": "Yes. SHINE counselors can review your parent's current coverage during Open Enrollment periods and help switch to better options. They can also check if your parent qualifies for programs like Extra Help or Medicare Savings Programs year-round."
+        },
+        {
+          "question": "Does my parent need to bring financial documents to the SHINE appointment?",
+          "answer": "Only if they want to be screened for cost-saving programs like Extra Help or MassHealth. For general Medicare counseling and plan comparisons, just bring their Medicare card and current insurance information."
+        },
+        {
+          "question": "Can I attend the SHINE appointment with my parent?",
+          "answer": "Yes, caregivers are welcome and encouraged to participate. SHINE counselors understand that adult children often help manage their parents' healthcare decisions."
+        },
+        {
+          "question": "What if we can't get to a senior center for the appointment?",
+          "answer": "Many SHINE counselors offer phone and video appointments. When you call MassOptions at 1-800-243-4636, ask about remote counseling options in your parent's area."
+        },
+        {
+          "question": "How long does a SHINE counseling session take?",
+          "answer": "Typically 30-60 minutes depending on your parent's situation. More complex cases involving multiple programs or plan comparisons may require longer sessions or follow-up appointments."
+        }
+      ],
+      "phone": "1-800-243-4636",
+      "sourceUrl": "https://www.mass.gov/info-details/serving-the-health-insurance-needs-of-everyone-shine-program",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
+      "id": "massachusetts-meals-on-wheels",
       "name": "Meals on Wheels",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "shortName": "Meals on Wheels",
+      "tagline": "Daily hot meals delivered to your parent's home if they're 60+ and unable to cook or shop safely.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local AAAs via https://www.massmealsonwheels.org; examples: Greater Springfield Senior Services, Meals on Wheels Boston, South Shore Elder Services",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and homebound — unable to safely shop for groceries or prepare meals — Meals on Wheels delivers a hot, nutritious lunch to their door Monday through Friday. Because the program focuses on need rather than income, most parents qualify regardless of their financial situation. The daily delivery also provides a safety check-in, giving you peace of mind that someone sees your parent every weekday.\n\nThe program serves over 30,000 meals daily across Massachusetts through local providers. Each meal meets one-third of daily nutritional requirements and accommodates special diets for diabetes or heart disease. Because this isn't a single statewide program, you'll need to contact your parent's local provider to check availability in their specific area.",
+      "savingsRange": "",
+      "savingsSource": "Free or low-cost service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Homebound and unable to cook/shop",
+          "No statewide income limits",
+          "Must live in provider's service area"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must be chronically or temporarily homebound and unable to shop, prepare, or obtain at least one nutritious meal per day",
+        "otherRequirements": [
+          "Lacks transportation to stores or senior dining sites",
+          "Physically or emotionally unable to prepare meals with inadequate family support",
+          "Spouses and dependents with disabilities may qualify regardless of age"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your local provider or the statewide helpline for a needs assessment — processing time varies by area.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local provider",
+            "description": "Use the Mass Meals on Wheels website or call 1-800-985-6000 to identify which agency serves your parent's address."
+          },
+          {
+            "step": 2,
+            "title": "Request assessment",
+            "description": "Contact the local provider to schedule a needs assessment that evaluates your parent's homebound status and meal preparation ability."
+          },
+          {
+            "step": 3,
+            "title": "Provide documentation",
+            "description": "Submit proof of age, residency, and homebound status. Some providers may request a doctor's referral or income information for fee calculation."
+          },
+          {
+            "step": 4,
+            "title": "Wait for approval",
+            "description": "Once approved, the provider will schedule regular weekday meal deliveries to your parent's home."
+          }
+        ],
+        "processingTime": "Not specified — contact local provider for assessment timeline",
+        "waitlist": "Varies by region and provider; some areas have demand exceeding capacity",
+        "tip": "If your parent is being discharged from the hospital, mention this — some providers prioritize short-term post-hospital needs.",
+        "urls": [
+          {
+            "label": "Find Local Provider",
+            "url": "https://www.massmealsonwheels.org"
+          },
+          {
+            "label": "Meals on Wheels America Finder",
+            "url": "https://www.mealsonwheelsamerica.org/find-meals-and-services/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Driver's license or state ID showing age 60+",
+                "Proof of address in the provider's service area"
+              ]
+            },
+            {
+              "name": "Medical/Functional",
+              "items": [
+                "Documentation of homebound status",
+                "Doctor's referral (if requested by provider)",
+                "List of dietary restrictions or medical conditions"
+              ]
+            },
+            {
+              "name": "Financial (if applicable)",
+              "items": [
+                "Income information for fee calculation (varies by provider)",
+                "Insurance cards if relevant to coordination of care"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "county-directory",
+          "heading": "Local Providers",
+          "offices": [
+            {
+              "name": "Greater Springfield Senior Services",
+              "type": "service-area",
+              "phone": "Contact via gsssi.org",
+              "address": "Springfield area"
+            },
+            {
+              "name": "Meals on Wheels Boston",
+              "type": "service-area",
+              "phone": "Contact via mealsonwheelsboston.org",
+              "address": "Boston city limits"
+            },
+            {
+              "name": "South Shore Elder Services",
+              "type": "service-area",
+              "phone": "Contact via sselder.org",
+              "address": "South Shore region"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "This isn't one program — each local provider has different eligibility rules, fees, and wait times. You must apply through the specific agency that serves your parent's address."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Delivery drivers cannot leave meals unattended. Your parent must be home to receive meals, or you'll need to arrange for someone else to be there during delivery windows."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent's income is too high for free meals?",
+          "answer": "Most areas serve any income level based on need. Some local providers apply means-testing for reduced fees, but income limits vary by provider — call your local agency to ask about their specific fee structure."
+        },
+        {
+          "question": "Can my parent get meals on weekends and holidays?",
+          "answer": "Most providers deliver weekday lunch only and don't deliver on weekends or holidays. Ask your local provider if they offer frozen meals for non-delivery days."
+        },
+        {
+          "question": "What if my parent lives in assisted living?",
+          "answer": "Your parent must be homebound in their own residence. Assisted living residents typically don't qualify because meals are already provided by the facility."
+        },
+        {
+          "question": "Is this the same as Mom's Meals through Medicaid?",
+          "answer": "No, this is completely separate from Medicaid meal benefits. Meals on Wheels doesn't require Medicaid enrollment and has different eligibility rules focused on homebound status rather than medical need."
+        },
+        {
+          "question": "What happens if there's a waitlist in our area?",
+          "answer": "Wait times vary dramatically by provider. Some areas have immediate availability while others have months-long waits. Ask your local provider about their current waitlist and whether priority is given for certain situations like hospital discharge."
+        },
+        {
+          "question": "Can my parent choose what meals they receive?",
+          "answer": "Most providers accommodate special diets for diabetes, heart disease, or other medical conditions, but you can't choose specific daily menus. Ask about dietary accommodations when you apply."
+        }
+      ],
+      "phone": "1-800-985-6000",
+      "sourceUrl": "https://www.massmealsonwheels.org",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
-      "name": "Family Caregiver Support Program (includes Respite)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "id": "massachusetts-alzheimers-respite-care",
+      "name": "Alzheimer's Respite Care Program",
+      "shortName": "Alzheimer's Respite",
+      "tagline": "Free respite care and support services for families caring for someone with Alzheimer's or dementia at home.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local Massachusetts Aging Service Access Points (ASAPs) – find via (800) 243-4636 or https://contactus.800ageinfo.com/FindAgency.aspx.[2]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If you're caring for a parent with Alzheimer's or dementia in Massachusetts, you can get free respite care services to give you a break. This program provides home health aides, personal care, companion services, and specialized dementia coaching — all at no cost to your family.\n\nYour parent qualifies if they're 60+ (or any age with an Alzheimer's/dementia diagnosis) and live at home. You qualify as the caregiver if you're an unpaid family member age 18+. Because there are no income limits, even middle-class families can access these services.\n\nServices include respite care (temporary relief for you), homemaker services, personal care assistance, and complex care training to help you manage challenging behaviors. The program also covers specialized Alzheimer's coaching to help you navigate the disease's progression.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Parent age 60+ or any age with Alzheimer's/dementia",
+          "Lives at home in Massachusetts",
+          "Caregiver is unpaid family member age 18+",
+          "No income limits"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Parent must need help with daily tasks like bathing, dressing, or medication management (determined through clinical assessment)",
+        "otherRequirements": [
+          "Parent must have Alzheimer's disease or related dementia diagnosis",
+          "Parent cannot live in nursing home or assisted living facility",
+          "Caregiver must be unpaid family member"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call (800) 243-4636 to connect with your local office for a clinical assessment — no income verification required.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call your local ASAP office",
+            "description": "Contact (800) 243-4636 or search at https://contactus.800ageinfo.com/FindAgency.aspx to find your local Aging Service Access Point"
+          },
+          {
+            "step": 2,
+            "title": "Request clinical assessment",
+            "description": "Tell them you need respite care for someone with Alzheimer's or dementia — they'll schedule an assessment to determine what services your parent needs"
+          },
+          {
+            "step": 3,
+            "title": "Gather required documents",
+            "description": "Prepare proof of your parent's dementia diagnosis, age verification, and Massachusetts residency before the assessment"
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Services vary by region because each local ASAP manages their own provider network — ask specifically what respite options are available in your area.",
+        "urls": [
+          {
+            "label": "Find Local ASAP Office",
+            "url": "https://contactus.800ageinfo.com/FindAgency.aspx"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Medical",
+              "items": [
+                "Alzheimer's or dementia diagnosis from doctor",
+                "List of current medications and medical conditions"
+              ]
+            },
+            {
+              "name": "Identity",
+              "items": [
+                "Birth certificate or ID showing parent is 60+ (not required if any age with dementia)",
+                "Proof of Massachusetts residence (utility bill, lease, etc.)"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "This isn't a standalone program — it's respite services delivered through the broader Family Caregiver Support Program. Different local offices may have different wait times and available providers."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Having a dementia diagnosis doesn't automatically guarantee all services. The clinical assessment determines what level of functional help your parent needs for daily activities."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent's income is too high for other programs — can they still get respite care?",
+          "answer": "Yes. This program has no income limits. Even if your parent doesn't qualify for Medicaid or other income-based programs, they can still receive these respite services for free."
+        },
+        {
+          "question": "Can my parent keep living in their own home while getting these services?",
+          "answer": "Yes, that's required. Your parent must live at home (not in a nursing home or certified assisted living) to qualify. The services are designed to help them stay home longer."
+        },
+        {
+          "question": "I'm the primary caregiver but I have siblings — can they apply too?",
+          "answer": "The program focuses on supporting the primary unpaid family caregiver. During your assessment, discuss your family's caregiving arrangement to determine the best way to structure services."
+        },
+        {
+          "question": "How many hours of respite care can we get per week?",
+          "answer": "The research doesn't specify hour limits. Your local ASAP office will determine hours based on your parent's assessed needs and available funding in your area."
+        },
+        {
+          "question": "What's the difference between this and Medicare's respite benefits?",
+          "answer": "Medicare's newer GUIDE program offers $2,500 annually in respite benefits but requires Medicare Parts A and B (not Medicare Advantage). This Massachusetts program has no dollar limits but services depend on local availability."
+        },
+        {
+          "question": "My parent was just diagnosed — do we need to wait until they get worse to apply?",
+          "answer": "No. Apply as soon as you need support. Early intervention can help you learn caregiving skills and access resources before the situation becomes more challenging."
+        }
+      ],
+      "phone": "(800) 243-4636",
+      "sourceUrl": "https://www.mass.gov/info-details/family-caregiver-support-program-eligibility",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
+      "id": "massachusetts-scsep-senior-employment",
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "shortName": "SCSEP Employment",
+      "tagline": "Part-time paid training positions for parents 55+ who need income while building job skills.",
+      "programType": "employment",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Springfield Dept of Elder Affairs (Hampden/Hampshire)[1]",
+            "type": "service-area"
+          },
+          {
+            "name": "CFC Inc (Bristol/Plymouth/Hampden, Fall River office)[2]",
+            "type": "service-area"
+          },
+          {
+            "name": "CCWORC (Worcester/Franklin, 508-860-2241)[5]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 55+ and unemployed with limited income, SCSEP provides part-time paid work at nonprofits and public agencies while they search for permanent employment. Because participants work up to 20 hours per week at minimum wage ($15/hour in Massachusetts), your parent earns income while gaining job skills at places like schools, hospitals, and senior centers.\n\nThis isn't regular employment — it's a training program that lasts up to 48 months and includes job placement assistance to help your parent find unsubsidized work. Your parent's family income must be at or below 125% of the federal poverty level, and the program prioritizes veterans, people over 65, and those with barriers to employment.",
+      "savingsRange": "",
+      "savingsSource": "Free service with paid training positions",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Currently unemployed",
+          "Family income at or below 125% of federal poverty level",
+          "U.S. citizen or authorized to work"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be actively seeking permanent employment",
+          "Cannot be currently employed",
+          "Priority given to veterans, people 65+, those with disabilities, limited English proficiency, or other employment barriers"
+        ],
+        "povertyLevelReference": "125% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact your regional provider directly — there's no single statewide application and processing time varies by location.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your regional provider",
+            "description": "Contact the SCSEP provider for your county: Springfield Dept of Elder Affairs for Hampden/Hampshire counties, CFC Inc for Bristol/Plymouth areas, or CCWORC for Worcester/Franklin counties."
+          },
+          {
+            "step": 2,
+            "title": "Gather income documentation",
+            "description": "Collect proof of your parent's income and unemployment status, plus age verification and veteran status if applicable."
+          },
+          {
+            "step": 3,
+            "title": "Submit application to local provider",
+            "description": "Each regional provider handles their own application process — call for specific requirements and current availability."
+          },
+          {
+            "step": 4,
+            "title": "Wait for priority placement",
+            "description": "Veterans and qualified spouses get first priority, followed by people 65+ and those with employment barriers."
+          }
+        ],
+        "processingTime": "Not specified — varies by regional provider",
+        "waitlist": "Likely waitlist due to priority-based enrollment system",
+        "tip": "Veterans and their spouses get first priority, so mention military service during initial contact.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Birth certificate or driver's license (proof of age)",
+                "Social Security card or work authorization documents"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Proof of current income for all household members",
+                "Documentation of unemployment status",
+                "Veteran discharge papers (DD-214) if applicable"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "This is training, not regular employment — your parent cannot collect Massachusetts Paid Family Medical Leave benefits from SCSEP wages."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "The 48-month limit is total lifetime participation, so your parent should actively pursue permanent employment during the program."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "How much will my parent earn from SCSEP?",
+          "answer": "Your parent will earn Massachusetts minimum wage ($15/hour in 2024) for up to 20 hours per week. This equals roughly $300 per week before taxes, or about $1,200-1,300 monthly."
+        },
+        {
+          "question": "What kind of work will my parent do?",
+          "answer": "Participants work at nonprofits and public agencies like schools, hospitals, senior centers, and community organizations. The work provides job training and skills development in various fields."
+        },
+        {
+          "question": "Can my parent stay in SCSEP indefinitely?",
+          "answer": "No. SCSEP has a 48-month lifetime limit and is designed to help participants find permanent, unsubsidized employment. The program includes job placement assistance to help transition to regular work."
+        },
+        {
+          "question": "What if my parent's income is slightly over the limit?",
+          "answer": "Income limits are based on current federal poverty guidelines at 125% FPL for your parent's household size. Contact your regional provider to check current dollar amounts, as these update annually."
+        },
+        {
+          "question": "Does my parent have to be completely unemployed to qualify?",
+          "answer": "Yes. SCSEP is specifically for unemployed individuals actively seeking work. Your parent cannot be currently employed in any capacity when applying."
+        },
+        {
+          "question": "Which regional provider should we contact?",
+          "answer": "It depends on your parent's county: Springfield Dept of Elder Affairs for Hampden/Hampshire counties, CFC Inc for Bristol/Plymouth areas, or CCWORC at 508-860-2241 for Worcester/Franklin counties."
+        }
+      ],
+      "phone": "508-860-2241",
+      "sourceUrl": "https://www.dol.gov/agencies/eta/seniors",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "massachusetts-senior-legal-helpline",
       "name": "Massachusetts Senior Legal Helpline",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "shortName": "Senior Legal Helpline",
+      "tagline": "Get free legal advice on Social Security, MassHealth, housing, and other issues affecting your parent.",
+      "programType": "navigator",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Volunteer Lawyers Project of Boston",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is struggling with Social Security appeals, MassHealth applications, housing problems, or other legal issues, this helpline provides free advice and referrals. Any Massachusetts resident age 60+ can call for immediate consultation with legal experts who specialize in issues affecting seniors.\n\nThe helpline covers the legal problems that hit seniors hardest: Social Security and SSI appeals, Medicare and MassHealth issues, foreclosures and evictions, utility shutoffs, consumer scams, guardianship questions, and nursing home problems. Most callers get information and referrals rather than full legal representation, but the helpline staff will help you apply for free attorney services if your parent's income qualifies.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Massachusetts resident",
+          "Civil legal issues only",
+          "No income limits for helpline"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Massachusetts resident",
+          "Civil legal matters only (excludes criminal law, medical malpractice, workers' compensation, and personal injury cases)"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call during business hours for immediate consultation—no forms or advance preparation needed.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the helpline",
+            "description": "Phone 800-342-5297 Monday through Friday between 9am and 12pm. Spanish speakers available."
+          },
+          {
+            "step": 2,
+            "title": "Describe the legal issue",
+            "description": "Explain your parent's situation. Have basic details ready: income information if seeking free attorney referral, relevant documents or notices."
+          },
+          {
+            "step": 3,
+            "title": "Get advice and referrals",
+            "description": "Receive immediate legal information. Staff will help complete applications for free attorney services if your parent's income qualifies, or provide referrals to reduced-fee or private attorneys."
+          }
+        ],
+        "processingTime": "Immediate phone consultation during business hours",
+        "waitlist": null,
+        "tip": "Call early in the 3-hour window (closer to 9am) for shorter wait times.",
+        "urls": [
+          {
+            "label": "Download helpline brochure",
+            "url": "https://www.mass.gov/doc/senior-legal-help-line/download"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Most callers receive information and referrals rather than free legal representation. Full attorney services require separate income qualification through civil legal aid programs (typically below 125% of federal poverty level)."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent's legal issue happened outside business hours—can we still get help?",
+          "answer": "The helpline only operates Monday-Friday 9am-12pm. For urgent issues outside these hours, contact the Massachusetts Elder Abuse Hotline at 800-922-2275 (24/7) or your local police for immediate safety concerns."
+        },
+        {
+          "question": "Will my parent automatically get a free lawyer through this helpline?",
+          "answer": "No. Most callers receive legal information and referrals to attorneys. Free representation requires separate qualification through Massachusetts civil legal aid programs, typically requiring income below 125% of federal poverty level (about $1,590/month for a single person in 2026)."
+        },
+        {
+          "question": "Can this helpline help with my parent's criminal case or personal injury lawsuit?",
+          "answer": "No. The helpline only handles civil legal matters like Social Security appeals, MassHealth issues, housing problems, and consumer protection. Criminal cases, medical malpractice, workers' compensation, and personal injury cases are excluded."
+        },
+        {
+          "question": "What should I have ready before calling?",
+          "answer": "Prepare details about the legal issue and any relevant documents or notices. If you're seeking a free attorney referral, have your parent's income information available—Social Security statements, pension details, or other income sources."
+        },
+        {
+          "question": "Is this the same as the Attorney General's Elder Hotline?",
+          "answer": "No. This Senior Legal Helpline (800-342-5297) provides general legal advice and referrals. The AG's Elder Hotline (888-243-5337) specifically handles elder abuse and consumer fraud cases."
+        },
+        {
+          "question": "What if my parent lives in a nursing home in Massachusetts but used to live in another state?",
+          "answer": "As long as your parent is currently a Massachusetts resident, they can use the helpline. Massachusetts residency—not previous state of residence—determines eligibility."
+        }
+      ],
+      "phone": "800-342-5297",
+      "sourceUrl": "https://www.mass.gov/doc/senior-legal-help-line/download",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
+      "id": "massachusetts-long-term-care-ombudsman",
       "name": "Long-Term Care Ombudsman Program",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "shortName": "Ombudsman Program",
+      "tagline": "Free advocate to resolve problems and protect your parent's rights in nursing homes or assisted living.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "State office: 1 Ashburton, Room 517, Boston",
+            "type": "service-area"
+          },
+          {
+            "name": "Regional examples: Old Colony Planning Council, AgeSpan, Springwell (22 towns), LifePath",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent lives in a Massachusetts nursing home, rest home, or assisted living facility and faces problems with care, safety, or their rights, the Long-Term Care Ombudsman Program provides a free advocate to investigate and resolve complaints. Because ombudsmen are independent from the facilities, they can mediate conflicts between your parent and staff, investigate abuse concerns, and help resolve issues with discharge planning, dietary needs, or autonomy.\n\nThe program operates through 17 regional offices with 41 paid staff and 199 volunteers who make regular visits to facilities across Massachusetts. No income limits or applications required — anyone can contact an ombudsman on behalf of a facility resident, and complaints can remain confidential unless abuse reporting is required.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Parent lives in nursing home, rest home, or assisted living",
+          "No income or asset limits",
+          "Free for all residents"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must reside in a nursing home, rest home, or assisted living facility in Massachusetts"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call the main line to connect with your local ombudsman — no application needed, complaints investigated promptly.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the statewide number",
+            "description": "617-222-7495 connects you to the local ombudsman assigned to your parent's facility"
+          },
+          {
+            "step": 2,
+            "title": "Explain the issue",
+            "description": "Describe the problem with care, safety, rights, or facility conditions — you can file on behalf of your parent"
+          },
+          {
+            "step": 3,
+            "title": "Ombudsman investigates",
+            "description": "Certified ombudsman visits the facility, interviews residents and staff, and works to resolve the complaint"
+          }
+        ],
+        "processingTime": "No formal application or processing; complaints investigated promptly by certified ombudsmen",
+        "waitlist": null,
+        "tip": "You can file a complaint anonymously, and family members can contact the ombudsman even if your parent hasn't asked for help.",
+        "urls": [
+          {
+            "label": "Find your regional ombudsman",
+            "url": "https://www.mass.gov/orgs/massachusetts-long-term-care-ombudsman-program"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "Regional Offices",
+          "offices": [
+            {
+              "name": "Statewide Main Line",
+              "type": "service-area",
+              "phone": "617-222-7495",
+              "address": "1 Ashburton Place, Room 517, Boston, MA"
+            },
+            {
+              "name": "LifePath (Western MA)",
+              "type": "service-area",
+              "phone": "413-829-9234",
+              "address": "Contact main line for specific address"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "The ombudsman program is not a regulatory agency and cannot enforce rules, but they advocate for residents and educate facilities on regulations. For immediate safety concerns, also contact the state health department."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can I file a complaint if my parent doesn't want me to get involved?",
+          "answer": "Yes, family members can contact the ombudsman on behalf of a resident. The ombudsman will respect your parent's wishes during the investigation, but they can still provide guidance on your parent's rights and options."
+        },
+        {
+          "question": "What if the facility retaliates against my parent for filing a complaint?",
+          "answer": "Retaliation is illegal, and ombudsmen are trained to handle these situations. They work to resolve complaints while protecting residents from retaliation, and they can advocate for systemic changes if patterns emerge."
+        },
+        {
+          "question": "Will my parent's complaint remain confidential?",
+          "answer": "Complaints can be anonymous and confidential unless consent is given or abuse cases require reporting to authorities. The ombudsman will discuss confidentiality options when you contact them."
+        },
+        {
+          "question": "Can the ombudsman help before my parent moves into a facility?",
+          "answer": "No, the program only serves residents already living in nursing homes, rest homes, or assisted living facilities in Massachusetts. They can assist with facility selection once your parent is considering specific options."
+        },
+        {
+          "question": "What types of problems can the ombudsman help resolve?",
+          "answer": "Issues with health and safety, care quality, discharge planning, dietary needs, autonomy, environmental conditions, abuse concerns, and conflicts between residents and staff. They also help establish resident and family councils."
+        },
+        {
+          "question": "How quickly will the ombudsman respond to urgent concerns?",
+          "answer": "Certified ombudsmen investigate complaints promptly, with urgent safety issues receiving priority. Because ombudsmen make regular facility visits, they often can address concerns during their next scheduled visit or arrange special visits for urgent matters."
+        }
+      ],
+      "phone": "617-222-7495",
+      "sourceUrl": "https://www.mass.gov/orgs/massachusetts-long-term-care-ombudsman-program",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
+      "id": "massachusetts-prescription-advantage",
       "name": "Prescription Advantage",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "shortName": "Prescription Advantage",
+      "tagline": "Lower prescription costs for Massachusetts residents 65+ with income up to $78,250/year.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Centralized administration through Commonwealth of Massachusetts Executive Office of Elder Affairs",
+            "type": "service-area"
+          },
+          {
+            "name": "Applications processed through central P.O. Box in Worcester, MA",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 65+ and lives in Massachusetts, Prescription Advantage can lower their prescription drug costs through premium assistance, reduced deductibles, and lower copayments. The program works as secondary coverage alongside Medicare Part D, filling in gaps based on your parent's income level.\n\nYour parent's benefits depend on their income tier. Those earning less get more help — from nearly full coverage for households under $1,761/month (single) to partial assistance for incomes up to $6,521/month (single). Because this program requires Medicare enrollment and may require applying to other programs first, the application process involves multiple steps.",
+      "savingsRange": "",
+      "savingsSource": "Income-based assistance with premiums, deductibles, and copayments",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+ (or under 65 with disability)",
+          "Massachusetts resident",
+          "Income below $78,250/year (single)",
+          "Must have Medicare coverage"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 6521
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 8813
+          }
+        ],
+        "assetLimits": {
+          "individual": 17220,
+          "couple": 34360,
+          "countedAssets": [
+            "Bank accounts",
+            "Investments",
+            "Cash"
+          ],
+          "exemptAssets": [
+            "Home",
+            "Life insurance policies",
+            "Burial plots",
+            "Personal possessions"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be eligible for Medicare",
+          "Cannot receive MassHealth prescription benefits",
+          "Must apply for Medicare Extra Help if income qualifies",
+          "Must apply for Medicare Savings Program if income qualifies"
+        ],
+        "povertyLevelReference": "500% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online, by phone, or mail — benefits begin the first day of the month after processing.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Check if you must apply elsewhere first",
+            "description": "If your parent's income qualifies for Medicare Extra Help or Medicare Savings Program, they must apply for those programs first before Prescription Advantage will accept their application."
+          },
+          {
+            "step": 2,
+            "title": "Gather required documents",
+            "description": "Collect proof of Massachusetts residency, Medicare eligibility, income documentation, and spouse information if married."
+          },
+          {
+            "step": 3,
+            "title": "Submit application",
+            "description": "Apply online at prescriptionadvantagema.org, call 1-800-243-4636, or mail to P.O. Box 15153, Worcester, MA 01615-0153."
+          },
+          {
+            "step": 4,
+            "title": "Maintain required coverage",
+            "description": "Your parent must stay enrolled in Medicare Part D or equivalent creditable coverage to receive Prescription Advantage assistance."
+          }
+        ],
+        "processingTime": "Benefits begin on the first day of the month following complete processing",
+        "waitlist": "No waitlist, but open enrollment periods apply — missing enrollment means waiting for the next period",
+        "tip": "Call first to verify which other programs your parent must apply for before submitting the Prescription Advantage application.",
+        "urls": [
+          {
+            "label": "Apply Online",
+            "url": "https://www.prescriptionadvantagema.org"
+          },
+          {
+            "label": "Program Information",
+            "url": "https://www.mass.gov/info-details/prescription-advantage"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "tier-comparison",
+          "heading": "Income Tiers and Coverage Levels",
+          "tiers": [
+            {
+              "name": "S0 (Highest Assistance)",
+              "description": "Lowest-income households get maximum help",
+              "incomeLimit": "Single: $0-$1,761/month, Married: $0-$2,379/month",
+              "coverage": "Lowest premiums, deductibles, and copayments"
+            },
+            {
+              "name": "S1",
+              "description": "Second tier of assistance",
+              "incomeLimit": "Single: $1,762-$2,641/month, Married: $2,380-$3,577/month",
+              "coverage": "Reduced premiums, deductibles, and copayments"
+            },
+            {
+              "name": "S2",
+              "description": "Middle tier assistance",
+              "incomeLimit": "Single: $2,642-$3,301/month, Married: $3,578-$4,463/month",
+              "coverage": "Moderate assistance with costs"
+            },
+            {
+              "name": "S3",
+              "description": "Higher income assistance",
+              "incomeLimit": "Single: $3,302-$3,913/month, Married: $4,464-$5,288/month",
+              "coverage": "Basic assistance with premiums and costs"
+            },
+            {
+              "name": "S5 (Lowest Assistance)",
+              "description": "Highest-income eligible households",
+              "incomeLimit": "Single: $3,914-$6,521/month, Married: $5,289-$8,813/month",
+              "coverage": "Limited assistance with premiums"
+            }
+          ]
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts (Only if applying for Extra Help/MSP)",
+          "included": [
+            "Bank accounts and cash",
+            "Investments and stocks",
+            "Second homes or rental property"
+          ],
+          "excluded": [
+            "Primary home (any value)",
+            "Life insurance policies",
+            "Burial plots",
+            "Personal possessions and household items"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Proof of Massachusetts residency",
+                "Medicare card or eligibility documentation"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Proof of gross annual household income",
+                "Spouse information if married and living together",
+                "Asset documentation (if applying for Extra Help or Medicare Savings Program)"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Disability documentation (if under age 65)"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Critical: If your parent's income qualifies them for Medicare Extra Help or the Medicare Savings Program, they MUST apply for those programs first. Prescription Advantage will reject applications from people who haven't applied for these other programs when required."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Parents who already receive MassHealth prescription benefits cannot join Prescription Advantage — the programs don't work together."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent keep their current Medicare Part D plan?",
+          "answer": "Yes, they must keep Medicare Part D or equivalent creditable coverage. Prescription Advantage works as secondary coverage, filling gaps in their primary Medicare drug plan."
+        },
+        {
+          "question": "What happens if my parent's income is just over the S5 limit?",
+          "answer": "They won't qualify for Prescription Advantage. The income limit for a single person is $6,521/month ($78,252/year). There's no assistance available above this threshold."
+        },
+        {
+          "question": "Why does the application ask about Medicare Extra Help and Medicare Savings Programs?",
+          "answer": "If your parent's income qualifies for these federal programs, Massachusetts requires them to apply there first. You cannot get Prescription Advantage until you've applied for these other programs (even if you're denied)."
+        },
+        {
+          "question": "What if we miss the open enrollment period?",
+          "answer": "Your parent must wait for the next enrollment period unless they're 66+, recently moved to Massachusetts, lost other coverage, or became ineligible for Medicaid — these situations allow special enrollment."
+        },
+        {
+          "question": "Does my parent need to sell their house to qualify?",
+          "answer": "No asset limit applies to most applicants. Asset limits only matter if your parent might qualify for Medicare Extra Help ($17,220 for singles) or Medicare Savings Programs ($18,180 for singles), and the home is always exempt."
+        },
+        {
+          "question": "How much will this actually save on prescription costs?",
+          "answer": "Savings depend on your parent's income tier and current prescription costs. Lower-income tiers (S0-S3) get more help with copayments and deductibles, while higher tiers (S5) mainly get premium assistance. The program doesn't publish specific dollar amounts."
+        }
+      ],
+      "phone": "1-800-243-4636",
+      "sourceUrl": "https://www.mass.gov/info-details/prescription-advantage",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
-      "name": "Home Care Program (HCP)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
-    },
-    {
-      "name": "Enhanced Community Options Program (ECOP)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
-    },
-    {
+      "id": "massachusetts-home-modification-loan",
       "name": "Home Modification Loan Program",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "shortName": "Home Modification Loans",
+      "tagline": "Get up to $50,000 at 0% interest to make your parent's home safer — no monthly payments until the house is sold.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Valley CDC (Hampshire/Hampden Counties)",
+            "type": "service-area"
+          },
+          {
+            "name": "Metro Housing Boston",
+            "type": "service-area"
+          },
+          {
+            "name": "SMOC",
+            "type": "service-area"
+          },
+          {
+            "name": "Way Finders",
+            "type": "service-area"
+          },
+          {
+            "name": "CEDAC (state admin, Boston office)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent owns their home and needs accessibility modifications like ramps, grab bars, or bathroom adaptations, Massachusetts offers 0% interest loans up to $50,000. Because these are deferred loans, your parent makes no monthly payments — the loan is only repaid when the house is sold, refinanced, or transferred.\n\nThis program specifically covers accessibility modifications tied to documented functional limitations. Your parent must be 60+ or have a disability, with household income up to 200% of Area Median Income and assets under $75,000. The program excludes general repairs like roofing or heating — it only funds modifications that address specific mobility or safety needs documented by a healthcare professional.\n\nBecause the program is administered by six regional agencies across Massachusetts, income limits vary by location based on local Area Median Income data.",
+      "savingsRange": "$50,000",
+      "savingsSource": "Maximum loan amount for standard homes",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+ or person with disability",
+          "Own home in Massachusetts",
+          "Income up to 200% Area Median Income",
+          "Assets under $75,000",
+          "Professional documentation of functional need"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 75000,
+          "couple": 75000,
+          "countedAssets": [
+            "Cash",
+            "Bank accounts",
+            "Stocks and bonds",
+            "Secondary properties"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "One vehicle",
+            "Household furnishings",
+            "IRA/401k retirement accounts"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "Must have functional limitations documented by a healthcare professional (doctor, occupational therapist) showing need for specific accessibility modifications",
+        "otherRequirements": [
+          "Massachusetts homeowner",
+          "Current on property taxes",
+          "Current on state income taxes",
+          "Use licensed Massachusetts contractor"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact your regional provider agency directly — processing time varies by agency workload.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact your regional provider",
+            "description": "Call the agency serving your area to discuss your parent's needs and get an application packet."
+          },
+          {
+            "step": 2,
+            "title": "Get professional documentation",
+            "description": "Have a doctor or occupational therapist document your parent's functional limitations and need for specific modifications."
+          },
+          {
+            "step": 3,
+            "title": "Obtain contractor bid",
+            "description": "Get a detailed bid and scope of work from a licensed Massachusetts contractor using the program's bid form."
+          },
+          {
+            "step": 4,
+            "title": "Submit complete application",
+            "description": "Return application with all required documents including income/asset verification, tax compliance proof, and contractor bid."
+          }
+        ],
+        "processingTime": "Not specified — varies by regional provider",
+        "waitlist": null,
+        "tip": "Start with the professional documentation early — this often takes longest to obtain from healthcare providers.",
+        "urls": [
+          {
+            "label": "Official Program Information",
+            "url": "https://www.mass.gov/home-modification-loan-program-hmlp"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts Toward $75,000",
+          "included": [
+            "Cash and checking/savings accounts",
+            "Stocks, bonds, and investment accounts",
+            "Secondary properties or rental income",
+            "Certificate of deposits"
+          ],
+          "excluded": [
+            "Primary home (where your parent lives)",
+            "One vehicle",
+            "Household furnishings and personal belongings",
+            "IRA and 401k retirement accounts"
+          ]
+        },
+        {
+          "type": "county-directory",
+          "heading": "Regional Provider Agencies",
+          "offices": [
+            {
+              "name": "Valley CDC",
+              "type": "service-area",
+              "phone": null,
+              "address": "Hampshire and Hampden Counties"
+            },
+            {
+              "name": "Metro Housing Boston",
+              "type": "service-area",
+              "phone": null,
+              "address": "Greater Boston area"
+            },
+            {
+              "name": "SMOC",
+              "type": "service-area",
+              "phone": null,
+              "address": "Central Massachusetts"
+            },
+            {
+              "name": "Way Finders",
+              "type": "service-area",
+              "phone": null,
+              "address": "Western Massachusetts"
+            },
+            {
+              "name": "CEDAC",
+              "type": "service-area",
+              "phone": null,
+              "address": "18 Tremont Street, Suite 500, Boston, MA 02108"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Property",
+              "items": [
+                "Driver's license or government ID",
+                "Property deed showing homeownership",
+                "Proof current on property taxes (city letter or escrow statement)"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Income verification for all household members",
+                "Asset verification (bank statements, investment accounts)",
+                "Massachusetts income tax return or proof paid (if owed)"
+              ]
+            },
+            {
+              "name": "Medical & Construction",
+              "items": [
+                "Professional documentation of functional limitations from doctor or therapist",
+                "Contractor bid using program's bid form",
+                "Home modification plans (if available)"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "This is not a general home repair program. The loan only covers accessibility modifications tied to documented disabilities or functional limitations — no roof repairs, windows, heating systems, or septic work."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Income limits are based on gross (pre-tax) household income and vary by region. Contact your local provider for current dollar limits in your area — they're updated annually."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep living in her house if she gets this loan?",
+          "answer": "Yes. Because this is a deferred loan with no monthly payments, your parent can stay in the home indefinitely. The loan is only repaid when the house is sold, refinanced, or transferred to new owners."
+        },
+        {
+          "question": "What if her income is just over the 200% Area Median Income limit?",
+          "answer": "Income limits are strict — even $1 over disqualifies your parent. However, limits vary by region and household size, so contact your regional provider to confirm the exact dollar amount for your parent's situation."
+        },
+        {
+          "question": "Can we use any contractor for the work?",
+          "answer": "No. You must use a licensed and insured Massachusetts contractor, and they must complete the program's specific bid form. The loan cannot be approved without a proper contractor bid using their forms."
+        },
+        {
+          "question": "What happens if Dad has $80,000 in savings?",
+          "answer": "He wouldn't qualify — the asset limit is $75,000. However, his IRA and 401k don't count toward this limit, only cash, regular investment accounts, and secondary properties."
+        },
+        {
+          "question": "Does the loan affect property taxes or inheritance?",
+          "answer": "The loan creates a lien on the property that must be paid when the house is sold or transferred. Your parent must stay current on property taxes to maintain the loan. The remaining home equity after repayment still passes to heirs."
+        },
+        {
+          "question": "Can we get a loan for a wheelchair ramp if Dad doesn't use a wheelchair yet?",
+          "answer": "Only if a healthcare professional documents that he has functional limitations requiring a ramp. The modification must address current documented needs, not potential future needs."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://www.mass.gov/home-modification-loan-program-hmlp",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
-      "name": "Commonwealth Coordinated Care (CCC)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "id": "massachusetts-home-care-program",
+      "name": "Home Care Program (HCP)",
+      "shortName": "Home Care Program",
+      "tagline": "Get help with personal care, meal prep, and daily tasks so your parent can stay safely at home.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "MassAbility Home Care Program (statewide coordination via 617 area code contacts)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs help with bathing, dressing, or managing medications but wants to stay at home, Massachusetts' Home Care Program provides in-home assistance based on their specific needs. The program helps with personal care, homemaking, and other daily activities that keep your parent safe and independent at home.\n\nYour parent must be 60+ (or have early-onset Alzheimer's) and meet both income limits and functional requirements. Because eligibility requires a comprehensive assessment of daily living needs, not everyone who applies will qualify — the program serves those who need significant help with basic activities. Services aren't free; co-payments range from $10-$199/month based on income.\n\nBecause processing takes 3-4 months and waitlists are common, apply as soon as you notice your parent struggling with daily tasks. The earlier you start, the better chance you have of getting services when they're needed most.",
+      "savingsRange": "",
+      "savingsSource": "In-home assistance service with co-payments based on income",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+ (or early-onset Alzheimer's)",
+          "Income below $2,982/month for individuals",
+          "Need help with daily activities",
+          "Massachusetts resident living at home",
+          "MassHealth enrollment preferred"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2982
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 4315
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": "Must need assistance with activities of daily living like bathing, dressing, meal preparation, or medication management, determined through a comprehensive functional assessment",
+        "otherRequirements": [
+          "Massachusetts resident",
+          "Living at home (not in assisted living or nursing facility)",
+          "MassHealth enrollment required for easiest access"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call 617-204-3853 to start your application; processing takes 3-4 months with possible waitlist.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call for initial screening",
+            "description": "Contact MassAbility Home Care Program at 617-204-3853 or start online referral at Mass.gov"
+          },
+          {
+            "step": 2,
+            "title": "Complete financial documentation",
+            "description": "Provide income documents, signed release forms, and medical documentation to case manager"
+          },
+          {
+            "step": 3,
+            "title": "Schedule home assessment",
+            "description": "Case manager arranges in-person functional assessment to determine what help your parent needs"
+          },
+          {
+            "step": 4,
+            "title": "Receive eligibility decision",
+            "description": "Program determines services and co-payment amount based on income and assessed needs"
+          }
+        ],
+        "processingTime": "Up to 3-4 months to process application, determine eligibility, and arrange services",
+        "waitlist": "May have waitlist depending on funding or open enrollment periods for new referrals",
+        "tip": "If your parent has MassHealth, mention this first — it makes financial eligibility much easier.",
+        "urls": [
+          {
+            "label": "Start online referral",
+            "url": "https://www.mass.gov/info-details/home-care-program"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits and Co-Payments (2026)",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": "$2,982",
+              "copayRange": "$10-$141/month for incomes $16,292-$36,598/year"
+            },
+            {
+              "householdSize": 2,
+              "monthlyLimit": "$4,315",
+              "copayRange": "$14-$199/month for incomes $21,940-$51,785/year"
+            }
+          ],
+          "footnote": "MassHealth members automatically meet financial eligibility without additional income test"
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Financial",
+              "items": [
+                "Social Security award letters",
+                "Pension statements",
+                "Bank statements (recent 3 months)",
+                "MassHealth card if enrolled"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "List of current medications",
+                "Recent medical records",
+                "Doctor's notes about functional limitations"
+              ]
+            },
+            {
+              "name": "Legal",
+              "items": [
+                "Signed release forms (provided by case manager)",
+                "Power of attorney documents if applicable"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Processing takes 3-4 months and waitlists are common. Apply as soon as you notice your parent needs help with daily activities — don't wait for a crisis."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Many people exceed income limits despite functional need. If your parent has MassHealth, they automatically meet financial requirements — this is often the easiest path to qualify."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent's income is just over the limit?",
+          "answer": "If your parent has MassHealth, they automatically qualify financially regardless of the income limits. Otherwise, even $1 over the limit disqualifies them from the program."
+        },
+        {
+          "question": "Can my parent live in assisted living and still get these services?",
+          "answer": "No. The program only serves people living in their own homes. Once your parent moves to assisted living or a nursing facility, they're no longer eligible."
+        },
+        {
+          "question": "How many hours of care will my parent get?",
+          "answer": "Hours depend entirely on the functional assessment. The case manager evaluates what specific tasks your parent needs help with, then determines appropriate service hours. There's no standard amount."
+        },
+        {
+          "question": "What happens if there's a waitlist?",
+          "answer": "Your parent stays on the waitlist until funding becomes available. There's no timeline for how long this takes — it depends on the program's budget and how many people are ahead of you."
+        },
+        {
+          "question": "Does my parent need to pay anything upfront?",
+          "answer": "No upfront costs, but your parent will have monthly co-payments ranging from $10-$199 based on income. MassHealth members typically have lower or no co-payments."
+        },
+        {
+          "question": "Can I apply for my parent if they have dementia?",
+          "answer": "Yes, especially if they have early-onset Alzheimer's (this allows people under 60 to qualify). You'll need power of attorney or guardianship documents to act on their behalf during the application process."
+        }
+      ],
+      "phone": "617-204-3853",
+      "sourceUrl": "https://www.mass.gov/info-details/home-care-program",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "massachusetts-ecop-community-options",
+      "name": "Enhanced Community Options Program (ECOP)",
+      "shortName": "ECOP",
+      "tagline": "Up to 7.5 hours weekly of in-home care for parents who need nursing home-level help but don't qualify for MassHealth.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local Aging Services Access Points (ASAPs) such as Springwell, Mystic Valley Elder Services",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs daily help with bathing, dressing, or medication management but has too much income or assets for MassHealth, ECOP provides up to 7.5 hours weekly of in-home care services. The program covers personal care, homemaking, meal delivery, transportation, and adult day care — designed specifically for families spending down assets while waiting to qualify for other programs.\n\nECOP serves as a bridge program for frail elders age 60+ who clinically qualify for nursing home-level care but want to remain at home. Because the program has less restrictive income and asset limits than MassHealth programs, it helps families during the transition period when assets are too high for other waivers but care needs are immediate.\n\nWarning: Massachusetts caps enrollment at 7,322 people statewide. Once the cap is reached, new applicants join a waitlist that can last months.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Income at or below ASAP guidelines",
+          "Clinically qualifies for nursing home care",
+          "Lives in ASAP service area"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must clinically qualify for MassHealth-funded nursing home level of care (requires daily assistance with activities like bathing, dressing, eating, or medication management)",
+        "otherRequirements": [
+          "Cannot be eligible for MassHealth Standard",
+          "Must live in area served by local ASAP",
+          "Must be frail elder needing services to avoid nursing home placement"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "in-person",
+        "summary": "Contact your local ASAP office for an in-home assessment by a care manager and nurse.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local ASAP office",
+            "description": "Contact the Aging Services Access Point that serves your parent's address. Each region has a different ASAP office."
+          },
+          {
+            "step": 2,
+            "title": "Request ECOP assessment",
+            "description": "Tell them your parent needs evaluation for the Enhanced Community Options Program specifically."
+          },
+          {
+            "step": 3,
+            "title": "Schedule in-home visit",
+            "description": "A care manager and nurse will conduct a comprehensive assessment at your parent's home to determine clinical and financial eligibility."
+          },
+          {
+            "step": 4,
+            "title": "Provide documentation",
+            "description": "Have income verification, medical records, and residency proof ready for the assessment visit."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": "Statewide enrollment is capped at 7,322 slots. New applicants are waitlisted once the cap is reached, leading to months-long delays.",
+        "tip": "Apply as soon as care needs become apparent — the waitlist can be long and your parent's condition may worsen while waiting.",
+        "urls": [
+          {
+            "label": "Springwell ECOP Information",
+            "url": "https://springwell.com/service/subsidized-home-care/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Massachusetts limits ECOP to 7,322 people statewide. New applicants join a waitlist that can last months. Apply immediately when care needs develop — waiting could mean nursing home placement while on the list."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "ECOP is designed for families spending down assets to qualify for MassHealth. If your parent has too much money for regular MassHealth but needs immediate care, this program bridges that gap with less restrictive financial requirements."
+        },
+        {
+          "type": "county-directory",
+          "heading": "Local ASAP Offices",
+          "offices": [
+            {
+              "name": "Springwell",
+              "type": "service-area",
+              "phone": null,
+              "address": "Contact via springwell.com/service/subsidized-home-care/"
+            },
+            {
+              "name": "Mystic Valley Elder Services",
+              "type": "service-area",
+              "phone": null,
+              "address": "Contact your local ASAP office for your specific area"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Financial",
+              "items": [
+                "Income verification documents",
+                "Asset statements (less restrictive than MassHealth requirements)"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Medical records showing need for daily assistance",
+                "Current medication list",
+                "Documentation of functional limitations"
+              ]
+            },
+            {
+              "name": "Residency",
+              "items": [
+                "Proof of Massachusetts residency",
+                "Address verification within ASAP service area"
+              ]
+            }
+          ]
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What's the difference between ECOP and regular MassHealth for home care?",
+          "answer": "ECOP has less restrictive income and asset limits than MassHealth programs, making it accessible during the spend-down period. However, it's limited to 7.5 hours of care per week maximum, while MassHealth waivers can provide more intensive services."
+        },
+        {
+          "question": "Can my parent keep their house and still qualify for ECOP?",
+          "answer": "Yes, ECOP has less restrictive asset requirements than MassHealth-funded nursing home care. However, exact asset limits aren't publicly specified — the assessment will determine eligibility based on your parent's total financial situation."
+        },
+        {
+          "question": "What happens if Mom needs more than 7.5 hours of care per week?",
+          "answer": "ECOP caps services at 7.5 hours weekly. If your parent needs more intensive care, the program may help transition them to MassHealth waivers like Frail Elder Waiver once their assets qualify, or direct them to other home care options."
+        },
+        {
+          "question": "How long is the waitlist and what do we do while waiting?",
+          "answer": "Waitlist length varies by region and isn't publicly reported, but can last months due to the statewide cap of 7,322 people. While waiting, contact your ASAP office about other available services or consider private-pay home care to prevent nursing home placement."
+        },
+        {
+          "question": "If Dad's income is too high for MassHealth but too low for private care, could ECOP help?",
+          "answer": "Possibly — ECOP is designed exactly for this situation. The program serves people who don't qualify for MassHealth Standard but need nursing home-level care. Your local ASAP will assess whether his income falls within their guidelines."
+        },
+        {
+          "question": "What specific services does ECOP actually provide?",
+          "answer": "ECOP covers personal care (bathing, dressing), homemaking, chore services, laundry, home health aide visits, companion services, adult day care, home-delivered meals, grocery shopping, transportation, and personal emergency response systems — up to 7.5 hours total per week."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://www.mass.gov",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "massachusetts-senior-care-options-sco",
+      "name": "Senior Care Options (SCO)",
+      "shortName": "SCO",
+      "tagline": "Combines your parent's Medicare and MassHealth into one plan with no copays and coordinated care.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Commonwealth Care Alliance",
+            "type": "service-area"
+          },
+          {
+            "name": "Navicare",
+            "type": "service-area"
+          },
+          {
+            "name": "Senior Whole Health",
+            "type": "service-area"
+          },
+          {
+            "name": "United Health Care",
+            "type": "service-area"
+          },
+          {
+            "name": "UnitedHealthcare (serves 10 counties)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent has both Medicare and MassHealth, Senior Care Options (SCO) combines them into one plan with no copays, one care team, and coordinated services. Instead of juggling separate Medicare, MassHealth, and Part D cards, your parent gets one health plan card and one team managing all their medical care, prescriptions, mental health services, and transportation to appointments.\n\nYour parent must be 65+, qualify for MassHealth Standard (Massachusetts Medicaid), and have Medicare Parts A and B. Asset limit: $2,000 maximum (excluding home, car, and personal belongings). For married couples, the at-home spouse can keep up to $109,560 in assets and $2,739 monthly income.\n\nCritical limitation: SCO is not available statewide. Dukes and Nantucket Counties have no coverage, and parts of Hampshire County are excluded. Most other counties are served by multiple SCO providers, but you must verify coverage in your parent's specific town before applying.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+",
+          "Must have Medicare Parts A & B",
+          "Must qualify for MassHealth Standard",
+          "Assets under $2,000 (excluding home/car)"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 2000,
+          "couple": 109560,
+          "countedAssets": [
+            "Bank accounts",
+            "Stocks and bonds",
+            "Cash value of life insurance over $1,500"
+          ],
+          "exemptAssets": [
+            "Primary residence",
+            "One vehicle",
+            "Personal belongings",
+            "Burial funds up to $1,500"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "For long-term care access via Frail Elder Waiver: must need help with at least one Activity of Daily Living (bathing, dressing, eating, toileting, transferring, or mobility)",
+        "otherRequirements": [
+          "Must live in SCO service area",
+          "Cannot have end-stage renal disease",
+          "Cannot have other comprehensive health insurance",
+          "Cannot be in chronic/rehabilitation hospital"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact your local Aging Service Access Point (ASAP) or call MassHealth directly—processing time varies by provider.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Verify coverage in your area",
+            "description": "Call (800) 841-2900 to confirm SCO is available in your parent's town. Dukes, Nantucket, and parts of Hampshire County have no coverage."
+          },
+          {
+            "step": 2,
+            "title": "Confirm Medicare and MassHealth eligibility",
+            "description": "Your parent must already have Medicare Parts A and B and qualify for MassHealth Standard. If not enrolled in either, apply for those first."
+          },
+          {
+            "step": 3,
+            "title": "Choose application method",
+            "description": "Mail enrollment form to MassHealth, call your local ASAP, or contact an SCO provider directly. Multiple SCO options may be available in your area."
+          },
+          {
+            "step": 4,
+            "title": "Submit required documents",
+            "description": "Provide Medicare card, proof of MassHealth eligibility, and asset documentation showing compliance with $2,000 limit."
+          }
+        ],
+        "processingTime": "Contact SCO or ASAP for current processing timeline",
+        "waitlist": null,
+        "tip": "If your parent needs long-term care services, request a functional assessment through your ASAP—this determines eligibility for additional home care benefits.",
+        "urls": [
+          {
+            "label": "Official SCO Information",
+            "url": "https://www.mass.gov/senior-care-options"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and savings",
+            "Stocks, bonds, and investments",
+            "Cash value of life insurance over $1,500",
+            "Real estate other than primary home",
+            "Vehicles beyond one per household"
+          ],
+          "excluded": [
+            "Primary residence (any value)",
+            "One vehicle per household",
+            "Personal belongings and household goods",
+            "Burial funds up to $1,500",
+            "Life insurance with face value under $1,500"
+          ]
+        },
+        {
+          "type": "county-directory",
+          "heading": "SCO Providers by Service Area",
+          "offices": [
+            {
+              "name": "Commonwealth Care Alliance",
+              "type": "service-area",
+              "phone": "(855) 213-0015",
+              "address": "Multiple counties - call for specific coverage"
+            },
+            {
+              "name": "Navicare",
+              "type": "service-area",
+              "phone": "(855) 628-4227",
+              "address": "Multiple counties - call for specific coverage"
+            },
+            {
+              "name": "Senior Whole Health",
+              "type": "service-area",
+              "phone": "(888) 566-3831",
+              "address": "Multiple counties - call for specific coverage"
+            },
+            {
+              "name": "United Health Care SCO",
+              "type": "service-area",
+              "phone": "(844) 222-1230",
+              "address": "10 Massachusetts counties"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Insurance",
+              "items": [
+                "Medicare card showing Parts A and B",
+                "MassHealth card or approval letter",
+                "Current prescription drug coverage information"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Bank statements (last 3 months)",
+                "Investment account statements",
+                "Life insurance policies with cash value",
+                "Property deeds for non-primary residences"
+              ]
+            },
+            {
+              "name": "For Long-Term Care",
+              "items": [
+                "Functional needs assessment from ASAP",
+                "Medical records documenting need for daily assistance",
+                "Documentation of Activities of Daily Living limitations"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Geographic coverage is NOT statewide. Dukes and Nantucket Counties and parts of Hampshire County have no SCO coverage. Verify your parent's specific town is served before applying."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If your parent's assets are over $2,000, consult an elder law attorney about legal spend-down strategies. The Medicaid look-back period reviews 60 months of financial history for some applicants."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house if she qualifies for SCO?",
+          "answer": "Yes. The primary residence is completely exempt from the $2,000 asset limit, regardless of value. She can keep her home and still qualify for SCO."
+        },
+        {
+          "question": "What happens to Dad's current Medicare Supplement plan if he enrolls in SCO?",
+          "answer": "He must cancel it. SCO enrollment is exclusive—you cannot have other comprehensive health insurance. SCO replaces Medicare, MassHealth, and any supplement plans with one integrated plan."
+        },
+        {
+          "question": "My parent has $3,000 in savings. Can she still apply?",
+          "answer": "Not immediately. She must reduce countable assets to $2,000 or below. She can spend money on exempt items like home improvements, prepaid burial plans, or medical expenses. Consider consulting an elder law attorney for legal spend-down strategies."
+        },
+        {
+          "question": "If we move to a different county in Massachusetts, will SCO coverage continue?",
+          "answer": "It depends. Different SCO providers serve different counties, and some areas have no coverage at all. If you move to an area not served by your current SCO, you'll need to switch providers or may lose coverage entirely."
+        },
+        {
+          "question": "Does dementia automatically qualify Mom for long-term care services through SCO?",
+          "answer": "No. A dementia diagnosis alone doesn't automatically qualify for long-term care benefits. She needs a functional assessment showing she requires help with at least one Activity of Daily Living (bathing, dressing, eating, toileting, transferring, or mobility)."
+        },
+        {
+          "question": "Can my parent leave SCO if they don't like it?",
+          "answer": "Yes. Enrollment is voluntary and your parent can disenroll at any time. They would return to regular Medicare and MassHealth coverage, but would need to re-enroll in Medicare Part D separately."
+        }
+      ],
+      "phone": "(800) 841-2900",
+      "sourceUrl": "https://www.mass.gov/senior-care-options",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     }
   ],
-  "stateOverview": null
+  "stateOverview": {
+    "intro": "Massachusetts offers 15 programs to help your aging parent — from covering Medicare premiums to coordinating all medical care under one team. You'll find 11 direct benefit programs (money, services, or care) plus 4 free resources that don't require income qualifications. Benefits range from $100-300/month for groceries to comprehensive healthcare with no copays, plus practical help like free home weatherization that cuts heating bills by 25-35%. Most income-based programs set limits around $2,000-3,000/month for single people, though some like Prescription Advantage go much higher.\n\nStart with the programs below — they offer the biggest impact and help you understand what else your parent might qualify for. Call the numbers provided or visit SHINE counselors for free help navigating all options.",
+    "startHere": [
+      {
+        "name": "MassHealth Medicare Savings Program",
+        "programId": "masshealth-medicare-savings",
+        "why": "Covers Medicare premiums, deductibles, and copays if your parent's income is under $2,993/month — can save thousands yearly."
+      },
+      {
+        "name": "SHINE (Serving Health Insurance Needs of Everyone)",
+        "programId": "shine-massachusetts",
+        "why": "Free counselors help navigate Medicare and find all available savings programs — no income limits."
+      },
+      {
+        "name": "Home Care Program (HCP)",
+        "programId": "massachusetts-home-care-program",
+        "why": "Provides personal care and daily task help so your parent can stay home safely — the foundation for aging in place."
+      },
+      {
+        "name": "Prescription Advantage",
+        "programId": "prescription-advantage-massachusetts",
+        "why": "Reduces prescription costs for income up to $78,250/year — much higher than most program limits."
+      }
+    ],
+    "byNeed": [
+      {
+        "need": "Help paying Medicare costs",
+        "programs": [
+          "MassHealth Medicare Savings Program",
+          "Senior Care Options (SCO)"
+        ],
+        "description": "Programs that reduce or eliminate Medicare premiums, deductibles, and copays."
+      },
+      {
+        "need": "Home care and safety",
+        "programs": [
+          "Home Care Program (HCP)",
+          "Enhanced Community Options Program (ECOP)",
+          "Frail Elder Waiver (FEW)",
+          "Home Modification Loan Program"
+        ],
+        "description": "Services to help your parent stay safely at home instead of moving to a facility."
+      },
+      {
+        "need": "Comprehensive medical care coordination",
+        "programs": [
+          "Program of All-Inclusive Care for the Elderly (PACE)",
+          "Senior Care Options (SCO)"
+        ],
+        "description": "Programs that coordinate all medical care under one team with little to no copays."
+      },
+      {
+        "need": "Food and daily necessities",
+        "programs": [
+          "Meals on Wheels"
+        ],
+        "description": "Daily hot meals delivered to your parent's home if they can't cook or shop safely."
+      },
+      {
+        "need": "Free advice and advocacy",
+        "programs": [
+          "SHINE (Serving Health Insurance Needs of Everyone)",
+          "Massachusetts Senior Legal Helpline",
+          "Long-Term Care Ombudsman Program"
+        ],
+        "description": "Free counselors and advocates to navigate programs, resolve problems, and protect your parent's rights."
+      },
+      {
+        "need": "Special family support",
+        "programs": [
+          "Alzheimer's Respite Care Program",
+          "Residential Conservation Service (Weatherization)"
+        ],
+        "description": "Targeted help for dementia caregivers and energy cost reduction for qualifying families."
+      }
+    ],
+    "quickFacts": [
+      "Most income-based programs require income under $2,000-3,000/month, but Prescription Advantage covers up to $78,250/year",
+      "SHINE counselors provide free help at local senior centers — no appointment needed for basic questions",
+      "MassHealth coordinates with Medicare through several programs, so your parent may qualify for multiple benefits simultaneously"
+    ],
+    "resourcesVsBenefits": "Massachusetts separates programs into benefits (which require income or care level qualifications) and free resources (available to everyone). Benefits like MassHealth Medicare Savings Program or Home Care Program require applications and eligibility review. Free resources like SHINE counseling, the Senior Legal Helpline, and Long-Term Care Ombudsman are available to any Massachusetts family regardless of income — use these first to understand your parent's options and get help applying for qualified benefits."
+  }
 }

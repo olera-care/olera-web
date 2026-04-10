@@ -4,32 +4,75 @@
   "state": "LA",
   "stateName": "Louisiana",
   "isRegion": false,
-  "exploredAt": "2026-04-09T09:34:05.537Z",
-  "programCount": 3,
+  "exploredAt": "2026-04-09T13:44:00.888Z",
+  "programCount": 9,
   "programs": [
     {
-      "name": "Community Choices Waiver",
-      "what_it_does": "The Community Choices Waiver enables Louisiana seniors requiring nursing home level care to live safely in their own home or assisted living community. It covers services like case management, personal assistance, adult day health care, therapy, meal delivery, and nursing.[2]",
-      "who_its_for": "Seniors aged 55+ certified as needing nursing home level care, financially eligible for Medicaid Long-Term Care Services, and living in waiver service areas.[2]",
-      "whats_unique": "This is a Louisiana-specific Medicaid Home and Community-Based Services (HCBS) waiver program tailored to state needs, not available nationwide as a standard federal program.[2]",
-      "official_url": "https://ldh.la.gov/office-of-aging-and-adult-services",
-      "benefit_value": "Covers some or all costs of approved long-term care services to prevent nursing home placement.[2]"
+      "name": "Medicaid Long-Term Care Services Program",
+      "what_it_does": "Helps seniors pay for long-term care services including nursing facility care, intermediate care facilities, and home and community-based services. Covers some or all costs for eligible individuals.",
+      "who_its_for": "Seniors aged 55+ certified as requiring nursing home level of care and financially eligible for Medicaid",
+      "official_url": "Not provided in search results",
+      "benefit_value": "Covers long-term care costs for eligible beneficiaries"
     },
     {
-      "name": "Louisiana Long Term–Personal Care Services (LT-PCS) Program",
-      "what_it_does": "LT-PCS provides in-home assistance with Activities of Daily Living (ADLs) like bathing, dressing, and medication reminders, and Instrumental ADLs (IADLs) like meal prep, laundry, and housecleaning. It aims to prevent or delay nursing home admissions or support transitions home from facilities.[3]",
-      "who_its_for": "Louisiana residents aged 65+ (elderly) or 21+ (disabled) who reside in a nursing home and can relocate with aid, are anticipated to need nursing home care within 120 days, or have a primary caregiver aged 70+ or disabled; must self-direct care.[3]",
-      "whats_unique": "Offered as a state plan Medicaid benefit through Healthy Louisiana managed care, it's Louisiana-specific for preventing institutionalization without support coordination.[3]",
-      "official_url": "https://www.medicaidplanningassistance.org/louisiana-long-term-personal-care/",
-      "benefit_value": "In-home personal care services to maintain independence; can combine with waivers like Adult Day Health Care Waiver.[3]"
+      "name": "Community Choices Waiver (CCW)",
+      "what_it_does": "Provides long-term care benefits to seniors requiring a nursing facility level of care, allowing them to live in their own home, a loved one's home, assisted living, or adult foster care home without covering room and board. Offers home and community-based services like personal assistance and adult day health care to avoid institutionalization.[1][4][6]",
+      "who_its_for": "Louisiana seniors needing nursing home level of care, eligible for Medicaid, living in community settings.[1]",
+      "whats_unique": "Louisiana's specific Medicaid HCBS waiver tailored for seniors to receive nursing facility-equivalent care at home or in assisted living, distinct from standard federal Medicaid by state-specific implementation and service combinations.[1][6]",
+      "official_url": "https://ldh.la.gov/office-of-aging-and-adult-services/home-and-community-based-services",
+      "benefit_value": "Varies by individual plan; covers personal care, adult day health, and other HCBS services at no cost to eligible Medicaid recipients beyond standard coverage.[1]"
     },
     {
-      "name": "Program of All-Inclusive Care for the Elderly (PACE) - Louisiana",
-      "what_it_does": "Louisiana PACE delivers comprehensive health, primary, long-term, and acute care to help seniors aged 55+ live healthily in the community. It covers all Medicaid and Medicare services, including nutritional counseling, prescription drugs, and adult day care.[2]",
-      "who_its_for": "Aged 55+, certified needing nursing home level care, Medicaid Long-Term Care eligible, living in PACE areas: Baton Rouge, Greater New Orleans, or Lafayette.[2]",
-      "whats_unique": "State-implemented with specific provider service areas in Louisiana; while PACE exists federally, local rollout and eligibility are Louisiana-tailored.[2]",
-      "official_url": "https://ldh.la.gov/office-of-aging-and-adult-services",
-      "benefit_value": "Full coverage of Medicare/Medicaid services including prescriptions and day care for community living.[2]"
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "what_it_does": "Provides comprehensive care coordination and services for seniors meeting nursing home level of care requirements. Available in specific service areas.",
+      "who_its_for": "Seniors aged 55+ certified as requiring nursing home level of care, financially eligible for Medicaid, living in Baton Rouge, Greater New Orleans, or Lafayette service areas",
+      "official_url": "Not provided in search results",
+      "benefit_value": "Comprehensive care services for eligible seniors"
+    },
+    {
+      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "what_it_does": "State programs that help pay Medicare Part A and Part B premiums for eligible low-income beneficiaries. QMB covers Part A and B premiums; SLMB covers Part B premiums; QI also covers Part B premiums with higher income limits.",
+      "who_its_for": "Low-income Medicare beneficiaries meeting specific income thresholds",
+      "official_url": "Not provided in search results",
+      "benefit_value": "Covers Medicare premiums for eligible beneficiaries"
+    },
+    {
+      "name": "Supplemental Nutrition Assistance Program (SNAP)",
+      "what_it_does": "Provides monthly benefits to low-income households to purchase food needed for good health. Benefits account for part of household food budgets.",
+      "who_its_for": "Low-income households meeting income and resource requirements",
+      "official_url": "Not provided in search results",
+      "benefit_value": "Monthly food assistance benefits (amount varies by household size)"
+    },
+    {
+      "name": "Commodity Supplemental Food Program (CSFP) - Senior Box Program",
+      "what_it_does": "Provides boxes of nutritious food each month to low-income seniors to improve diet and health. More than 30,000 seniors receive boxes monthly at sites throughout Louisiana.",
+      "who_its_for": "Seniors aged 60+ with income at or below 150% of Federal Poverty Guidelines",
+      "official_url": "https://www.feedinglouisiana.org/csfp",
+      "benefit_value": "Monthly food box provided at no cost"
+    },
+    {
+      "name": "State Personal Assistance Services (SPAS) Program",
+      "what_it_does": "Delivers personal assistance services to adults with significant disabilities to enable community living and prevent institutional care. Funded and administered directly by the Louisiana Department of Health Office of Aging and Adult Services.[4][6]",
+      "who_its_for": "Louisiana residents aged 65+ or disabled adults 21+, including those in nursing homes transitioning to community, those at risk of nursing home admission within 120 days, or with a primary caregiver aged 70+ or disabled.[4]",
+      "whats_unique": "State-funded (non-Medicaid waiver) program unique to Louisiana providing personal care services under state plan authority, allowing dual eligibility with certain waivers like Adult Day Health Care.[4][6]",
+      "official_url": "https://ldh.la.gov/office-of-aging-and-adult-services/home-and-community-based-services",
+      "benefit_value": "Personal assistance hours based on assessed needs; no cost for eligible participants.[6]"
+    },
+    {
+      "name": "Adult Day Health Care Waiver",
+      "what_it_does": "Provides adult day health care services to support seniors in community settings, preventing or delaying nursing home placement. Can be used alongside LT-PCS for comprehensive non-institutional care.[1][4]",
+      "who_its_for": "Louisiana seniors eligible for Medicaid long-term care services requiring nursing facility level of care.[1][4]",
+      "whats_unique": "Louisiana-specific Medicaid HCBS waiver offering adult day health care as a core service, distinct in its state-tailored eligibility and integration with other LA programs.[1][9]",
+      "official_url": "https://www.medicaidlongtermcare.org/eligibility/louisiana/",
+      "benefit_value": "Adult day health care services covered; value depends on care plan, no participant cost for eligibles.[1]"
+    },
+    {
+      "name": "Caregiver Voucher Program",
+      "what_it_does": "Supplies vouchers for services to family caregivers or providers caring for elderly individuals with Alzheimer's or related conditions at home. Helps caregivers deliver optimal homecare through varied support options.[2]",
+      "who_its_for": "Eligible clients or participants aged 60+ in St. James Parish, LA, with family caregivers addressing Alzheimer's care needs.[2]",
+      "whats_unique": "Parish-level (St. James) state and local government-funded voucher program specifically for Alzheimer's caregivers, not a standard federal offering and varying by LA locality.[2]",
+      "official_url": "https://www.stjamesla.com/213/Elderly-Program",
+      "benefit_value": "Vouchers for caregiver services; amount based on assessed needs, funded by GOEA and local government.[2]"
     }
   ]
 }

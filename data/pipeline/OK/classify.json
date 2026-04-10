@@ -1,32 +1,32 @@
 {
   "state": "OK",
   "stateName": "Oklahoma",
-  "classifiedAt": "2026-04-09T09:39:48.383Z",
-  "total": 12,
+  "classifiedAt": "2026-04-09T16:00:19.786Z",
+  "total": 13,
   "typeSummary": {
-    "benefit": 9,
+    "benefit": 11,
     "employment": 1,
-    "resource": 2
+    "resource": 1
   },
   "scopeSummary": {
-    "state": 4,
+    "state": 6,
     "local": 2,
-    "federal": 6
+    "federal": 5
   },
   "complexitySummary": {
-    "deep": 10,
+    "deep": 11,
     "simple": 2
   },
   "programs": [
     {
-      "name": "ADvantage Waiver Program",
+      "name": "Oklahoma Medicaid SoonerCare",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Local county OKDHS offices for applications and assessments; case managers arrange services via regional providers",
+            "name": "Local Oklahoma DHS offices; managed care: Aetna Better Health, SoonerSelect plans",
             "type": "service-area"
           }
         ]
@@ -52,180 +52,14 @@
       }
     },
     {
-      "name": "PACE (Program of All-Inclusive Care for the Elderly)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "local",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Valir PACE: Oklahoma City Adult Day Center, Shawnee Adult Day Center, Seminole County.",
-            "type": "service-area"
-          },
-          {
-            "name": "LIFE PACE: Defined service area (details on lifepace.org).",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "tier-comparison",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": true,
-        "hasMultipleTiers": true,
-        "isStatewide": false
-      }
-    },
-    {
-      "name": "Medicare Savings Program",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "Local OKDHS Human Services Centers statewide.",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "tier-comparison",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "financial",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "SNAP",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "Local Human Services Centers (find via OKDHS)",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "documents",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "financial",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "LIHEAP",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "Oklahoma DHS statewide; tribal nations for eligible households.[2][3]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "financial",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Weatherization Assistance Program (WAP)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "Local Community Action Agencies (contact 405-949-1495 for yours); examples: LIFT Community Action Agency, NEOCAA (NE Oklahoma + Muskogee), Titan ES (PSO).[2][4][5][6]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "tier-comparison",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Home Delivered Meals (under Title III)",
+      "name": "Home and Community-Based Services (HCBS) Waivers (ADvantage Waiver)",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Area Agencies on Aging statewide; examples: Meals on Wheels Oklahoma City, Southwest Oklahoma Community Action Group (SOCAG), SWODA-funded providers.[4][9]",
+            "name": "Local county OKDHS offices; example provider contact: 918-477-9080 (regional)[4]",
             "type": "service-area"
           }
         ]
@@ -244,20 +78,56 @@
         "hasIncomeTiers": false,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
+        "hasFunctionalReq": true,
         "hasMultipleTiers": true,
         "isStatewide": true
       }
     },
     {
-      "name": "Respite Voucher Program",
+      "name": "Programs of All-Inclusive Care for the Elderly (PACE)",
       "programType": "benefit",
       "geographicScope": {
-        "type": "state",
+        "type": "local",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Operated by OKDHS Developmental Disabilities Services (DDSD); Sooner SUCCESS for Lifespan variant; Area Agencies on Aging for some.[1][5][7]",
+            "name": "Valir PACE: Oklahoma City Adult Day Center, Shawnee Adult Day Center[4]",
+            "type": "service-area"
+          },
+          {
+            "name": "LIFE PACE: Defined service area (specific counties not listed)[2]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": false,
+        "isStatewide": false
+      }
+    },
+    {
+      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local OKDHS Human Services Centers (statewide network)[4].",
             "type": "service-area"
           }
         ]
@@ -282,6 +152,131 @@
       }
     },
     {
+      "name": "Supplemental Nutrition Assistance Program (SNAP)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local Oklahoma Department of Human Services (OKDHS) offices statewide",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "in_kind",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Oklahoma Human Services (OKDHS) statewide; tribal programs for eligible members (e.g., Wichita Tribe (405) 247-2425)[2][3].",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Home-Delivered Meals (Meals on Wheels)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Area Agencies on Aging statewide",
+            "type": "service-area"
+          },
+          {
+            "name": "Meals on Wheels Oklahoma City (Oklahoma County)",
+            "type": "service-area"
+          },
+          {
+            "name": "SWODA/SOCAG (southwest OK)",
+            "type": "service-area"
+          },
+          {
+            "name": "Local DHS for ADvantage",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Respite Voucher Programs in Oklahoma",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose"
+      ],
+      "signals": {
+        "benefitType": "unknown",
+        "hasAssetLimits": false,
+        "hasRegionalVariation": false,
+        "hasMultipleTiers": false
+      }
+    },
+    {
       "name": "Senior Community Service Employment Program (SCSEP)",
       "programType": "employment",
       "geographicScope": {
@@ -289,19 +284,19 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Oklahoma DHS Aging Services (statewide admin, 405-521-2281)",
+            "name": "Oklahoma Department of Human Services – Aging Services (primary administrator)[1][2]",
             "type": "service-area"
           },
           {
-            "name": "ASCOG (south central counties)",
+            "name": "ASCOG (Association of South Central Oklahoma Governments) - sub-contractor[1]",
             "type": "service-area"
           },
           {
-            "name": "OEDA (Enid office, 2901 N Van Buren St, Enid OK 73703 for northwest counties)",
+            "name": "OEDA (Oklahoma Economic Development Authority) - coordinates services in 13-county region[3]",
             "type": "service-area"
           },
           {
-            "name": "Other national grantees for remaining counties[1][2][3]",
+            "name": "National SCSEP Grantees cover remaining counties[2]",
             "type": "service-area"
           }
         ]
@@ -318,27 +313,19 @@
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
-        "isStatewide": false
+        "hasMultipleTiers": false,
+        "isStatewide": true
       }
     },
     {
-      "name": "Legal Aid for Seniors in Oklahoma",
+      "name": "Legal Assistance for Seniors (Legal Aid Services of Oklahoma)",
       "programType": "resource",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "OK-SPLASH (statewide helpline)",
-            "type": "service-area"
-          },
-          {
-            "name": "Tulsa office: 918-308-5295",
-            "type": "service-area"
-          },
-          {
-            "name": "Area Agencies on Aging (AAA) coordinate local services[2]",
+            "name": "18 offices statewide, e.g., Hugo Law Office (fax 580-326-9658), Oklahoma City Law Office, Administration at 3800 N. Classen Blvd, Suite 230, Oklahoma City, OK 73118",
             "type": "service-area"
           }
         ]
@@ -354,55 +341,19 @@
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
+        "hasMultipleTiers": true,
         "isStatewide": true
       }
     },
     {
-      "name": "Long-term care ombudsman",
-      "programType": "resource",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "State Office: Oklahoma Attorney General's Office, contact via 1-800-211-2116; Local: Area Agencies on Aging (e.g., INCOG Agency on Aging in Tulsa area)",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "simple",
-      "recommendedSections": [
-        "prose",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "advocacy",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": true,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Senior Farmers' Market Nutrition Program (SFMNP)",
+      "name": "ADvantage Waiver Program",
       "programType": "benefit",
       "geographicScope": {
-        "type": "local",
+        "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Choctaw Nation Community Centers (applications available starting Feb. 1)[1]",
-            "type": "service-area"
-          },
-          {
-            "name": "Chickasaw Nation: Five nutrition centers including Ada and Ardmore[3]",
-            "type": "service-area"
-          },
-          {
-            "name": "Oklahoma Human Services (statewide administration)[4]",
+            "name": "Local county OKDHS offices; Aging Services Division[4][5]",
             "type": "service-area"
           }
         ]
@@ -412,6 +363,80 @@
         "prose",
         "income-table",
         "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Oklahoma Chore Services (Older Americans Act Title III)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Network of 11 AAAs; contact local AAA via oklahoma.gov/okdhs/services/cap/older-americans-act.html[1][2][3]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Senior Farmers’ Market Nutrition Program (SFMNP)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Oklahoma Human Services (statewide admin).",
+            "type": "service-area"
+          },
+          {
+            "name": "Choctaw Nation Community Centers.",
+            "type": "service-area"
+          },
+          {
+            "name": "Chickasaw Nutrition Centers (Ada, Ardmore, Duncan, Tishomingo, Purcell).",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
         "documents",
         "county-directory",
         "callout"
@@ -422,7 +447,7 @@
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
+        "hasMultipleTiers": true,
         "isStatewide": false
       }
     }

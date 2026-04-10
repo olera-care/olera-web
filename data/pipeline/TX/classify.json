@@ -1,32 +1,32 @@
 {
   "state": "TX",
   "stateName": "Texas",
-  "classifiedAt": "2026-04-09T09:42:08.881Z",
-  "total": 11,
+  "classifiedAt": "2026-04-09T16:37:51.859Z",
+  "total": 12,
   "typeSummary": {
     "benefit": 9,
-    "resource": 2
+    "resource": 3
   },
   "scopeSummary": {
+    "federal": 7,
     "state": 4,
-    "local": 1,
-    "federal": 6
+    "local": 1
   },
   "complexitySummary": {
-    "deep": 8,
-    "simple": 2,
-    "medium": 1
+    "deep": 6,
+    "medium": 3,
+    "simple": 3
   },
   "programs": [
     {
-      "name": "Medicaid for Seniors/Disabled",
+      "name": "Medicaid Buy-In for Children (MBIC) / Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), Qualifying Individual (QI)",
       "programType": "benefit",
       "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
+        "type": "federal",
+        "stateVariation": true,
         "localEntities": [
           {
-            "name": "Local Texas Health and Human Services offices (find via 2-1-1)",
+            "name": "Local HHSC offices statewide; call 2-1-1 for nearest",
             "type": "service-area"
           }
         ]
@@ -46,39 +46,7 @@
         "hasIncomeTiers": true,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
-        "hasFunctionalReq": true,
-        "hasMultipleTiers": true,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Community Based Alternatives (CBA) Waiver",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Local HHSC offices; STAR+PLUS MCOs for HCBS",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "what-counts",
-        "tier-comparison",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": true,
+        "hasFunctionalReq": false,
         "hasMultipleTiers": true,
         "isStatewide": true
       }
@@ -91,82 +59,7 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Managed care orgs: Community First Health Plans, Molina Healthcare, Superior HealthPlan, Wellpoint (Anthem); local HHS offices via 2-1-1",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "what-counts",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": true,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "PACE (Program of All-Inclusive Care for the Elderly)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "local",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Bienvivir (El Paso: bienvivir.org).[5]",
-            "type": "service-area"
-          },
-          {
-            "name": "MetroCare PACE (Dallas area).",
-            "type": "service-area"
-          },
-          {
-            "name": "Institute of Community Health (San Antonio).",
-            "type": "service-area"
-          },
-          {
-            "name": "Full list: npaonline.org/find-pace or texaspaceproviders.org.",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": true,
-        "hasMultipleTiers": false,
-        "isStatewide": false
-      }
-    },
-    {
-      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "Local HHSC eligibility offices (locate via 211texas.org)",
+            "name": "MCOs: Community First Health Plans, Molina Healthcare, Superior HealthPlan, Wellpoint/Anthem; local HHS offices via 211",
             "type": "service-area"
           }
         ]
@@ -182,12 +75,74 @@
         "callout"
       ],
       "signals": {
-        "benefitType": "financial",
+        "benefitType": "service",
         "hasIncomeTiers": true,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
+        "hasFunctionalReq": true,
         "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Bienvivir (El Paso, TX service area)[1]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": true,
+        "isStatewide": false
+      }
+    },
+    {
+      "name": "Supplemental Nutrition Assistance Program (SNAP)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local HHSC offices (locate via 211 or YourTexasBenefits.com)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "medium",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "documents",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "in_kind",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
         "isStatewide": true
       }
     },
@@ -199,7 +154,7 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Contact via 211Texas.org or (877) 399-8939 for local subrecipient.",
+            "name": "Local CAAs via 211Texas.org or (877) 399-8939; full subrecipient list on TDHCA site.[4][6]",
             "type": "service-area"
           }
         ]
@@ -231,7 +186,11 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Full list of subrecipients: TDHCA PDF[5]. Examples: Travis County, South Plains Community Action, CACOST, CCSCT (Dimmit/Edwards/etc.), Dallas County HHS, Austin Energy.",
+            "name": "TDHCA subrecipients statewide (PDF list)[6].",
+            "type": "service-area"
+          },
+          {
+            "name": "Examples: TCOG (Sherman), SPCAA (South Plains), ATCog, Dallas County HHS, Austin Energy, CCSCT (Uvalde region counties), Oncor low-income weatherization[9].",
             "type": "service-area"
           }
         ]
@@ -256,14 +215,14 @@
       }
     },
     {
-      "name": "State Health Insurance Assistance Program (SHIP)",
+      "name": "Texas State Health Insurance Assistance Program (SHIP)",
       "programType": "resource",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Local sites via Texas Health Information, Counseling, and Advocacy Program (HICAP); find via 1-800-252-9240 or shiphelp.org[8]",
+            "name": "Local SHIP sites via statewide network; contact 1-800-252-9240 for nearest[1][2][7]",
             "type": "service-area"
           }
         ]
@@ -291,23 +250,23 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Meals on Wheels Central Texas (Austin)[2]",
+            "name": "Meals on Wheels Central Texas (Austin),[2]",
             "type": "service-area"
           },
           {
-            "name": "Meals on Wheels North Central Texas (Johnson/Ellis/Navarro)[3]",
+            "name": "Meals on Wheels North Central Texas (Johnson/Ellis/Navarro),[3]",
             "type": "service-area"
           },
           {
-            "name": "Meals on Wheels of Tarrant County[4]",
+            "name": "Meals on Wheels of Tarrant County,[4]",
             "type": "service-area"
           },
           {
-            "name": "Meals on Wheels East Texas[5]",
+            "name": "Meals on Wheels East Texas,[5]",
             "type": "service-area"
           },
           {
-            "name": "Meals on Wheels Senior Services of Rockwall County[6]",
+            "name": "Meals on Wheels Senior Services of Rockwall County,[6]",
             "type": "service-area"
           }
         ]
@@ -331,6 +290,47 @@
       }
     },
     {
+      "name": "Community Based Alternatives (CBA) Waiver",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local HHSC offices",
+            "type": "service-area"
+          },
+          {
+            "name": "STAR+PLUS MCOs (e.g., Superior HealthPlan, Molina)",
+            "type": "service-area"
+          },
+          {
+            "name": "Providers like Good Samaritan",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
       "name": "Community Caregiver Support Program",
       "programType": "benefit",
       "geographicScope": {
@@ -338,12 +338,12 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Local Aging and Disability Resource Centers (ADRCs)[3]",
+            "name": "Local Aging and Disability Resource Centers (ADRCs)[2]",
             "type": "service-area"
           }
         ]
       },
-      "complexity": "deep",
+      "complexity": "medium",
       "recommendedSections": [
         "prose",
         "what-counts",
@@ -355,8 +355,36 @@
         "hasIncomeTiers": false,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
-        "hasFunctionalReq": true,
+        "hasFunctionalReq": false,
         "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Legal Aid for Seniors through AAAs",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "28 AAAs including Concho Valley AAA (San Angelo), West Central Texas AAA (Abilene), Capital Area AAA (Austin area), Area Agency on Aging of Central Texas (Belton)[3][5]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
         "isStatewide": true
       }
     },
@@ -368,7 +396,7 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Local programs via https://ltco.texas.gov (find by area).",
+            "name": "Local programs via ltco.texas.gov 'Find an LTC Ombudsman' tool; examples: Cizik School of Nursing (Harris County)[3], Texoma COG[4]",
             "type": "service-area"
           }
         ]

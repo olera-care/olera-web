@@ -1,7 +1,7 @@
 # New Mexico Benefits Exploration Report
 
 > Generated 2026-04-09 by benefits-pipeline.js
-> Cost: $0.035 (7 calls, 26s)
+> Cost: $0.010 (2 calls, 4.1m)
 
 ---
 
@@ -9,7 +9,7 @@
 
 | Metric | Value |
 |--------|-------|
-| Programs discovered | 5 |
+| Programs discovered | ? |
 | Programs deep-dived | 5 |
 | New (not in our data) | 4 |
 | Data discrepancies | 1 |
@@ -264,8 +264,13 @@ Our data differs from what official sources say:
 
 ## Content Drafts
 
-Generated 0 page drafts. Review in admin dashboard or `data/pipeline/NM/drafts.json`.
+Generated 5 page drafts. Review in admin dashboard or `data/pipeline/NM/drafts.json`.
 
+- **Centennial Care Community Benefit Program** (benefit) — 2 content sections, 6 FAQs
+- **Program of All-Inclusive Care for the Elderly (PACE)** (benefit) — 3 content sections, 6 FAQs
+- **Community Benefit Program** (benefit) — 6 content sections, 6 FAQs
+- **New Mexico Senior Farmers' Market Nutrition Program (SFMNP)** (benefit) — 3 content sections, 6 FAQs
+- **Senior Community Service Employment Program (SCSEP)** (employment) — 3 content sections, 6 FAQs
 
 ## What We Learned
 

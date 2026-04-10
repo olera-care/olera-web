@@ -1,51 +1,54 @@
 {
   "state": "VT",
   "stateName": "Vermont",
-  "comparedAt": "2026-04-09T09:43:08.983Z",
-  "total": 14,
+  "comparedAt": "2026-04-09T16:53:51.926Z",
+  "total": 15,
   "newPrograms": 11,
-  "withDiffs": 3,
-  "withNovelFields": 3,
+  "withDiffs": 4,
+  "withNovelFields": 4,
   "benefitTypes": {
     "service": 8,
-    "unknown": 1,
     "financial": 3,
+    "in_kind": 1,
     "employment": 1,
-    "advocacy": 1
+    "advocacy": 2
   },
   "variationPatterns": {
-    "priority_tier": 3,
+    "priority_tier": 4,
     "region": 2,
-    "program_tier (QMB provides most comprehensive coverage; SLMB and QI-1 cover Part B premiums only)": 1,
     "household_size": 2,
-    "priority_tier|region": 1,
-    "not_applicable": 2,
-    "fixed": 2,
-    "not_applicable — service is uniform statewide": 1
+    "not_applicable": 5,
+    "region (provider-dependent)": 1,
+    "fixed": 1
   },
   "novelFieldSummary": {
     "asset_limits": {
-      "count": 2,
+      "count": 4,
       "programs": [
-        "Medicaid for the Aged, Blind and Disabled (ABD)",
-        "Fuel Assistance Program"
+        "Medicaid for Aged, Blind, and Disabled (ABD)",
+        "Fuel Assistance Program",
+        "Caregiver Support Program",
+        "Long-Term Care Ombudsman"
       ],
       "note": "Our model has no asset limit fields"
     },
     "regional_variations": {
-      "count": 2,
+      "count": 4,
       "programs": [
-        "Medicaid for the Aged, Blind and Disabled (ABD)",
-        "Fuel Assistance Program"
+        "Medicaid for Aged, Blind, and Disabled (ABD)",
+        "Fuel Assistance Program",
+        "Caregiver Support Program",
+        "Long-Term Care Ombudsman"
       ],
       "note": "Program varies by region — our model doesn't capture this"
     },
     "documents_required": {
-      "count": 3,
+      "count": 4,
       "programs": [
-        "Medicaid for the Aged, Blind and Disabled (ABD)",
+        "Medicaid for Aged, Blind, and Disabled (ABD)",
         "Fuel Assistance Program",
-        "Vermont Long-Term Care Ombudsman Project"
+        "Caregiver Support Program",
+        "Long-Term Care Ombudsman"
       ],
       "note": "Has document checklist — our model doesn't store per-program documents"
     },
@@ -55,6 +58,13 @@
         "Fuel Assistance Program"
       ],
       "note": "Benefits/eligibility vary by household size — we store a single number"
+    },
+    "waitlist": {
+      "count": 1,
+      "programs": [
+        "Caregiver Support Program"
+      ],
+      "note": "Has waitlist info — our model has no wait time field"
     }
   },
   "comparisons": [
@@ -66,22 +76,20 @@
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "CFC is a tiered program with three need-based groups (highest, high, moderate) with different service guarantees. Only the highest need group has entitlement; others depend on state resource availability. Income limits are tied to SSI levels (300%), which change annually but specific 2026 amounts are not available in sources. Asset limits vary by household composition and living situation ($2,000 standard, $10,000 for certain single homeowners). The program requires both financial and clinical eligibility determination through separate state agencies (DCF and DAIL). Specific service types, hours, and dollar amounts are not detailed in available sources.",
+      "dataShapeNotes": "Tiered by need level (Highest/High/Moderate) with entitlement only for Highest; income up to 300% SSI with spend-down; $10k asset allowance for community-living high/highest need singles; 60-month look-back applies[1][2][3][5]",
       "gotchas": [
-        "Only 'highest need' group has guaranteed access; other groups receive services only as state resources permit[3]",
-        "Dementia diagnosis alone does not qualify someone; functional assessment is required[1]",
-        "60-month Look-Back Rule: any assets given away or sold below fair market value within 5 years before application triggers Medicaid ineligibility penalty[1]",
-        "Home equity limit of $730,000 (2025) applies only if applicant lives in home or has intent to return[1]",
-        "Spouse's income is not counted, but applicant's income must support spouse up to $2,644-$3,948/month[6]",
-        "Program is subject to state resource caps and global spending limits; not all eligible applicants may be served immediately[3]",
-        "In-person nursing assessment required; clinical eligibility is not automatic based on diagnosis[1]"
+        "60-month look-back penalizes asset transfers[1]",
+        "Only Highest Needs guaranteed; High/Moderate depend on resources[2][3]",
+        "Spouse income/assets handled specifically (not counted for applicant, but shelter allowances apply)[6]",
+        "Dementia diagnosis alone insufficient; requires NFLOC assessment[1]",
+        "Must meet both financial and clinical criteria[4]"
       ],
       "benefitType": "service",
       "benefitVariesBy": "priority_tier",
-      "officialSource": "Vermont Department of Aging and Independent Living (DAIL) and Department for Children and Families (DCF); specific URLs not provided in available sources"
+      "officialSource": "https://www.medicaid.gov/Medicaid-CHIP-Program-Information/By-Topics/Waivers/1115/downloads/vt/vt-choices-for-care-ca.pdf[5]"
     },
     {
-      "name": "Medicaid for the Aged, Blind and Disabled (ABD)",
+      "name": "Medicaid for Aged, Blind, and Disabled (ABD)",
       "isNew": false,
       "existingId": "medicaid-for-the-aged-blind-and-disabled-mabd",
       "existingVerified": null,
@@ -91,71 +99,74 @@
           "field": "income_limit",
           "ours": "$1333",
           "found": "$1,375",
-          "source": "https://gmcboard.vermont.gov/ (Green Mountain Care; referenced via [3])"
+          "source": "https://mabdapply.vermont.gov/"
         },
         {
           "field": "benefit_value",
           "ours": "$5,000 – $20,000/year",
-          "found": "Healthcare coverage and long-term care services/supports including nursing home care, home and community-based services (via Choices for Care), assistance with ADLs/IADLs. Specifics determined by functional assessment; no fixed dollar amounts or hours stated.[2][4]",
-          "source": "https://gmcboard.vermont.gov/ (Green Mountain Care; referenced via [3])"
+          "found": "Comprehensive health care coverage including doctor visits, hospital care, prescription drugs, dental/vision (limited), and long-term services/supports for those needing ADL help (e.g., home health, personal care). For LTC via Choices for Care: nursing home or HCBS. No specific dollar amounts or hours stated; covers costs based on assessed needs.[1][3][5]",
+          "source": "https://mabdapply.vermont.gov/"
         },
         {
           "field": "source_url",
           "ours": "MISSING",
-          "found": "https://gmcboard.vermont.gov/ (Green Mountain Care; referenced via [3])"
+          "found": "https://mabdapply.vermont.gov/"
         }
       ],
       "novelFields": [
         {
           "field": "asset_limits",
-          "value": "Countable assets must be $2,000 or less for a single applicant. Resources are evaluated per financial responsibility group (M230-M239). Exemptions not detailed in sources, but standard Medicaid rules apply (e.g., primary home often exempt). Higher limits like $3,000 for certain ADL help categories outside Chittenden County.[2][4][5]",
+          "value": "Single applicant: $2,000 in countable assets. Countable assets include most savings, investments, and property (excluding primary home in some cases, one vehicle, personal belongings, burial plots). Exempt assets: primary residence (if intent to return), household goods, one vehicle. Varies by marital status; spousal protections apply. Standard Medicaid resource rules.[1][3]",
           "note": "Our model has no asset limit fields"
         },
         {
           "field": "regional_variations",
-          "value": "Income eligibility thresholds differ inside/outside Chittenden County; potential variations in asset limits or processing.[4][5][7]",
+          "value": "Income eligibility thresholds differ by Chittenden County residence; no info on providers, offices, or wait times by region.[3][6][7]",
           "note": "Program varies by region — our model doesn't capture this"
         },
         {
           "field": "documents_required",
           "value": [
-            "Proof of income, assets/resources, age, blindness/disability status, residency, functional assessments for long-term care.[2][4]"
+            "Proof of income (pay stubs, SSI awards, pension statements).[3]",
+            "Proof of assets (bank statements, property deeds).[3]",
+            "Proof of age/disability (birth certificate, doctor's note, SSDI award).[1]",
+            "Proof of residency (utility bill, lease).[1]",
+            "Medical records for functional assessment if seeking LTC[1][3]"
           ],
           "note": "Has document checklist — our model doesn't store per-program documents"
         }
       ],
-      "dataShapeNotes": "Income/asset limits vary by Chittenden County; SSI-related financial group vs. Medicaid group; functional ADL/IADL assessment for benefits; tied to long-term care programs like Choices for Care.",
+      "dataShapeNotes": "Income limits vary by Chittenden County residence and marital status; functional needs assessed for LTC add-ons; separate track from general Medicaid with specific ABD application portal.",
       "gotchas": [
-        "Not the same as general Green Mountain Care or Regular Medicaid; specific to aged/blind/disabled with SSI-related financial tests.[1][2]",
-        "Chittenden County has different income limits—many miss this regional variation.[4][5][7]",
-        "Functional assessment required for long-term care benefits, not just financial eligibility.[2][4]",
-        "Must apply specifically for MABD or via Choices for Care for long-term services; denial if not financially eligible.[2]",
-        "Blind/disabled children under 18 (or 22 if students) may qualify separately.[1]"
+        "Separate application process from general Medicaid/Vermont Health Connect—must use MABD-specific form or site.[5]",
+        "Income/asset limits vary by Chittenden County, marital status, and LTC program (e.g., nursing home higher).[1][3][7]",
+        "Functional assessment required for LTC benefits, even if basic coverage approved.[1][3]",
+        "Applying without meeting financial criteria leads to denial; spousal impoverishment rules apply.[1]",
+        "Distinguish from Choices for Care (HCBS/nursing) or MWD (working disabled, higher limits).[1][5]"
       ],
       "benefitType": "service",
       "benefitVariesBy": "priority_tier",
-      "officialSource": "https://gmcboard.vermont.gov/ (Green Mountain Care; referenced via [3])"
+      "officialSource": "https://mabdapply.vermont.gov/"
     },
     {
-      "name": "PACE (Program of All-Inclusive Care for the Elderly)",
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
       "isNew": true,
       "existingId": null,
       "existingVerified": null,
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "No income/asset test for enrollment but required for free Medicaid-funded coverage; service-area restricted with limited centers; nursing home level of care certification by state; not statewide.",
+      "dataShapeNotes": "Only available at limited centers in select Vermont regions; no fixed income/asset tables (Medicaid-based); heavy waitlists and service area restrictions; dual-eligible focus with private pay option",
       "gotchas": [
-        "Availability limited to specific service areas near PACE centers; not statewide in Vermont.",
-        "Must live safely in community at enrollment; not for those already in nursing homes.",
-        "Cannot be in Medicare Advantage, hospice, or certain other plans.",
-        "Waitlists common due to funding caps.",
-        "Private pay option exists ($7,000+/month) if not Medicaid-eligible, but most use Medicare/Medicaid.",
-        "Note: Search results mix healthcare PACE with unrelated Vermont energy financing PACE [4]; focus on healthcare program."
+        "Geographically limited—not available everywhere in Vermont; biggest barrier is no local program or waitlist[1][2]",
+        "Becomes sole source of Medicare/Medicaid services—cannot use Medicare Advantage, HCBS waivers, other Part D plans, or hospice simultaneously[2]",
+        "Must use only PACE-selected providers; free to leave anytime but denial requires written reason[1][2][3]",
+        "Non-Medicaid enrollees pay high premiums if needing long-term care later ($4,000-$5,000/month avg.)[1]",
+        "Nursing home eligibility required despite community living goal[1][4][7]"
       ],
       "benefitType": "service",
       "benefitVariesBy": "region",
-      "officialSource": "https://www.medicaid.gov/medicaid/long-term-services-supports/program-of-all-inclusive-care-for-elderly (federal); Vermont-specific via https://www.medicaidplanningassistance.org/medicaid-eligibility-vermont/ or state AHS site."
+      "officialSource": "https://www.cms.gov/medicare/medicaid-coordination/about/pace (federal); Vermont Medicaid: https://dail.vermont.gov/ (state); NPA: https://www.npaonline.org/find-a-pace-program[6][8]"
     },
     {
       "name": "Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), Qualified Individual (QI)",
@@ -165,41 +176,38 @@
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "This program consists of three tiered programs (QMB, SLMB, QI-1) based on income level. Benefits scale by program tier: QMB provides comprehensive coverage (premiums + cost-sharing), while SLMB and QI-1 cover Part B premiums only. Income limits are based on Federal Poverty Level and change annually. Vermont-specific application procedures, processing times, and office locations are not detailed in available search results; families must contact Vermont Department of Human Services for complete application information. Asset limits follow federal guidelines unless Vermont has waived them (not specified in search results).",
+      "dataShapeNotes": "No asset test in Vermont (state waiver); tiered by income brackets (QMB<100%FPL, SLMB 100-120%, QI 120-135%); benefits degrade by tier (full cost-sharing to Part B only); auto Extra Help; household size limited to Medicare unit (individual/couple)",
       "gotchas": [
-        "Income limits change annually (new limits released each January); 2026 limits not yet published as of April 2026",
-        "Even if your income appears to exceed the limit, you should apply — certain income and assets may not be counted toward limits, and you may still qualify for one of the three programs",
-        "QMB, SLMB, and QI-1 are tiered programs: if you don't qualify for QMB, Vermont will check if you qualify for SLMB; if not, then QI-1. You cannot choose which program to apply for; eligibility determines placement",
-        "SLMB and QI-1 cover Part B premiums only — they do NOT cover deductibles, coinsurance, or copayments. Only QMB covers those costs",
-        "Federal law prohibits providers from billing QMB enrollees for cost-sharing, but a 2015 CMS study found that wrongful billing and confusion around billing rules continues; families should be prepared to advocate if billed incorrectly",
-        "Qualifying for QI automatically qualifies you for Extra Help prescription drug program — mention this benefit when applying",
-        "Income calculation rules are complex: earned income is treated differently from unearned income (Social Security, unemployment). Verify calculations with Vermont Department of Human Services",
-        "Search results do not provide Vermont-specific phone numbers, website URLs, or office locations; families must contact Vermont Department of Human Services directly for application details"
+        "Vermont waives asset test (unlike federal defaults ~$9,950 single[2][7]); many miss this and self-deny.",
+        "Income disregards ($20 general, $65+50% on earned) can qualify borderline cases—always apply[5].",
+        "QI ineligible if on full Medicaid; state auto-assigns highest program[3][5].",
+        "Limits updated yearly (Jan); 2025 figures used, check current via DVHA.",
+        "QMB doesn't cover non-Medicare services (key vs. full dual Medicaid)[3].",
+        "Providers can't balance bill QMB for covered services, but confirm with provider[2][4]."
       ],
-      "benefitType": "unknown",
-      "benefitVariesBy": "program_tier (QMB provides most comprehensive coverage; SLMB and QI-1 cover Part B premiums only)",
-      "officialSource": "https://vtlawhelp.org/medicare-savings-buy-programs (Vermont-specific guide); https://www.cms.gov/medicare/medicaid-coordination/about/qualified-medicare-beneficiary-program (federal CMS program information)"
+      "benefitType": "financial",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://dvha.vermont.gov/ (Vermont Dept. of Vermont Health Access); supplemental https://vtlawhelp.org/medicare-savings-buy-programs[5]"
     },
     {
-      "name": "3SquaresVT",
+      "name": "3SquaresVT for Older Vermonters",
       "isNew": true,
       "existingId": null,
       "existingVerified": null,
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "Elderly/disabled special rules: no gross income test, conditional asset test, cash option for 65+ households, medical deductions boost benefits, simplified application",
+      "dataShapeNotes": "Simplified application and 3-year certification only for households all 60+/disabled with no earned income; asset test only for elderly/disabled over 185% FPL; cash benefits option for 65+/SSI.",
       "gotchas": [
-        "Asset test only triggers if income >185% FPL for elderly/disabled (missed by many)[1][6]",
-        "Cash benefits only if all household 65+[1]",
-        "Work requirements expanded in 2025 to age 64 (exemptions available via 210A form)[2]",
-        "Medical expenses can increase benefits[1]",
-        "Certification up to 3 years for 65+/disabled[1]",
-        "No resource limit for most, even with savings/home/car[1][5]"
+        "Must have no earned income from job/self-employment for simplified '3SquaresVT in a SNAP' process.[1]",
+        "Asset limits ($3,500-$4,250) only apply if income over 185% FPL for elderly/disabled; many miss exemptions for home/vehicle/retirement accounts.[2][3]",
+        "65+ or SSI households get cash benefits option, not just EBT food-only.[3]",
+        "5-year wait for some noncitizens, with exceptions.[3]",
+        "Traditional applications can lapse benefits; simplified version prevents this for qualifiers.[4]"
       ],
       "benefitType": "financial",
       "benefitVariesBy": "household_size",
-      "officialSource": "https://mybenefits.vermont.gov/"
+      "officialSource": "dcf.vermont.gov/benefits/3SquaresVT/SNAP"
     },
     {
       "name": "Fuel Assistance Program",
@@ -211,13 +219,13 @@
         {
           "field": "benefit_value",
           "ours": "$3,000 – $10,000/year",
-          "found": "Yearly one-time payment to certified fuel suppliers or utilities to cover heating costs (fuels include oil, propane, kerosene, wood, pellets, electricity, natural gas, or rent including heat); exact amount varies by household income, size, fuel type/cost, and season—not specified as fixed dollar figure; up to 17% may apply to fuel balance with permission; funds usable only Nov 1-Apr 30 for fuel delivery, not repairs/services[2][3].",
-          "source": "https://dcf.vermont.gov/benefits/fuel (inferred primary DCF site from context; sources reference DCF Energy Assistance Office)"
+          "found": "Yearly one-time benefit payment paid directly to fuel provider; amount based on income and average annual heating costs. May increase 3SquaresVT benefits if eligible. Covers kerosene, oil, propane, electricity, wood, pellets, or combination.",
+          "source": "https://dcf.vermont.gov/ (implied via DCF Economic Services Division; specific fuel page not directly linked in results)"
         },
         {
           "field": "source_url",
           "ours": "MISSING",
-          "found": "https://dcf.vermont.gov/benefits/fuel (inferred primary DCF site from context; sources reference DCF Energy Assistance Office)"
+          "found": "https://dcf.vermont.gov/ (implied via DCF Economic Services Division; specific fuel page not directly linked in results)"
         }
       ],
       "novelFields": [
@@ -228,34 +236,33 @@
         },
         {
           "field": "household_size_table",
-          "value": "Gross household income at or below 185% of the federal poverty level (FPL) based on household size for standard Seasonal Fuel Assistance; 200% of FPL for Crisis Fuel Assistance. Exact dollar amounts vary annually with FPL updates and are not specified in sources for current year—families must check with DCF for table by household size[1][2][3].",
+          "value": "Income at or below 200% of the Federal Poverty Level (FPL) for main Fuel Assistance and Crisis Fuel; 185% of FPL for Seasonal Fuel Assistance and VGS Assistance. Exact dollar amounts vary by household size and year; families must check current FPL guidelines via DCF as specific tables not listed in sources. Applies to households heating with oil, propane, kerosene, electricity, wood, pellets, or paying landlord for heat.",
           "note": "Benefits/eligibility vary by household size — we store a single number"
         },
         {
           "field": "regional_variations",
-          "value": "Administered locally by Community Action Agencies with potential differences in providers, offices, and Crisis processing (in-person preferred, call first); certified fuel dealers vary by area[1][2]",
+          "value": "Administered locally by Community Action Agencies (e.g., Capstone Community Action for Crisis statewide and weatherization in Central VT; different phone numbers for Lamoille County). Apply in person at local agency.",
           "note": "Program varies by region — our model doesn't capture this"
         },
         {
           "field": "documents_required",
           "value": [
-            "Proof of income; fuel/oil tank inspection for first fills (no winter exemption); documentation of fuel crisis for Crisis program (call agency for specifics)[1][2]"
+            "Documentation of income, fuel usage, and heating costs (call agency for specifics, especially for Crisis)."
           ],
           "note": "Has document checklist — our model doesn't store per-program documents"
         }
       ],
-      "dataShapeNotes": "Income at 185% FPL (200% for Crisis); one-time seasonal payment scaled by household size, fuel costs, and timing; local agency delivery with certified vendors only; no asset test",
+      "dataShapeNotes": "Multiple sub-programs (Seasonal, Crisis, VGS Assistance) with slightly different income thresholds (185-200% FPL) and providers; regional Community Action Agencies handle delivery; no fixed benefit amounts listed, scales by income/household/heating costs.",
       "gotchas": [
-        "Apply before end of November for largest benefit[3]",
-        "Fuel suppliers must be Vermont-certified to receive funds[2]",
-        "Crisis requires in-person at Community Action (phone if elderly/disabled)[1]",
-        "15-cent discount rules apply to deliveries; no funds for repairs/services/special charges[2]",
-        "Separate from utility discounts (e.g., VGS 20% off gas at 185% FPL)—can stack[1][4]",
-        "Tank inspection required for first fills, even in winter[2]"
+        "Apply before end of November for largest benefit.",
+        "Crisis Fuel requires in-person application at local agency (phone option if elderly/disabled); available only Nov-April.",
+        "Separate from utility discounts (e.g., Green Mountain Power, Vermont Gas); eligible for both.",
+        "Eligibility may boost 3SquaresVT benefits.",
+        "Fuel Buying Program via EastRise Credit Union is separate low-interest option."
       ],
       "benefitType": "financial",
       "benefitVariesBy": "household_size",
-      "officialSource": "https://dcf.vermont.gov/benefits/fuel (inferred primary DCF site from context; sources reference DCF Energy Assistance Office)"
+      "officialSource": "https://dcf.vermont.gov/ (implied via DCF Economic Services Division; specific fuel page not directly linked in results)"
     },
     {
       "name": "Weatherization Assistance Program",
@@ -265,12 +272,16 @@
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "Income limits county-specific table; free services via 5 regional agencies; WRAP financing utility-specific with repayment on bill, no credit check, moderate-income focus.",
+      "dataShapeNotes": "County-grouped income limits that vary by household size; delivered regionally via 5 community action agencies; property-level 15-year limit; dual tenant/landlord consent for rentals",
       "gotchas": [
-        "Two main tracks: Free service via community agencies (strict low-income) vs WRAP financing (moderate-income, utility-tied repayment stays with meter even if renter moves/sells). WRAP requires ≥10% savings projection and good utility history, not credit. Not all utilities participate. Renters eligible but benefits meter-tied.[1][3][4][5]"
+        "Properties limited to weatherization once every 15 years.[1]",
+        "Primarily targets rentals; both tenant and landlord must agree.[1]",
+        "Income based on prior 12 months gross; categorical eligibility (SSI, Reach Up, fuel assistance) also qualifies.[1][2]",
+        "Not automatic; must apply via local agency.[1]",
+        "Child-only Reach Up does not qualify.[1]"
       ],
       "benefitType": "service",
-      "benefitVariesBy": "priority_tier|region",
+      "benefitVariesBy": "region",
       "officialSource": "https://outside.vermont.gov/dept/DCF/Shared%20Documents/Benefits/Weatherization-Income-Guidelines.pdf"
     },
     {
@@ -281,55 +292,94 @@
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "no income or asset test; counseling-only service delivered via statewide network with local affiliates; open to all Medicare beneficiaries and families",
+      "dataShapeNotes": "No income/asset tests; counseling-only service via statewide network of local Area Agencies on Aging; appointment-based with regional providers",
       "gotchas": [
-        "Not a healthcare or financial benefit program—provides only free counseling, not direct payments or medical services[4][6]",
-        "People often confuse it with Medicare Savings Programs; SHIP helps apply for those but is not one itself[6]",
-        "Services are free with no income test, but targeted outreach prioritizes underserved populations[4]",
-        "Relies on trained staff/volunteers; availability may depend on local affiliate capacity[4]"
+        "Not a financial aid or healthcare provider program—only free counseling and education, no direct payments or medical services[1][5]",
+        "Requires contacting specific phone/email or local affiliate to schedule; no online self-service application[1][2]",
+        "Prioritizes limited-income, disabled under 65, dually eligible—but open to all; people may assume strict eligibility and not call[3]",
+        "Services via trained volunteers/staff at local sites; availability may depend on regional affiliate capacity[3][5]"
       ],
       "benefitType": "service",
       "benefitVariesBy": "not_applicable",
-      "officialSource": "https://www.vermont4a.org/"
+      "officialSource": "http://www.vermont4a.org/[2]"
     },
     {
-      "name": "Meals on Wheels",
+      "name": "Meals on Wheels (Vermont)",
       "isNew": true,
       "existingId": null,
       "existingVerified": null,
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "Decentralized by local providers/regions with varying coverage, donation amounts, and contact points; no income/asset test; separate VCIL track for under 60 disabled with meal quantity tiers.",
+      "dataShapeNotes": "Vermont Meals on Wheels is a multi-provider system with no statewide unified eligibility or application process. Age Well is the largest provider but does not serve all counties. VCIL operates a separate program for under-60 individuals. Eligibility is primarily age-based (60+) with no income or asset limits, making it unusual among means-tested programs. Benefits are fixed (meals delivered 5 days/week) rather than scaled. Regional variation is significant: different providers, different counties, different donation amounts, different processing times. Families must first identify their local provider, then contact that provider directly.",
       "gotchas": [
-        "Not statewide single program; must contact specific regional provider[2][3].",
-        "Suggested donation expected but voluntary; encourage private contribution[1][2][3].",
-        "For under 60, separate VCIL program with tiers (emergency up to 60 meals, short-term 90/year, long-term 5/week)[5].",
-        "Requires inability to prepare/obtain meals due to condition; not just age[2][3].",
-        "Volunteers needed daily; program relies on them[2]."
+        "No income test means program is available to all eligible seniors regardless of wealth, but this also means no subsidies based on income—everyone pays the same suggested donation.[2]",
+        "Under-60 eligibility is highly restricted and requires either disability + residence with eligible senior, disability + senior housing, or referral through VCIL. Simply being disabled under 60 does not automatically qualify.[1][5]",
+        "Service is NOT statewide—availability depends entirely on which provider serves your county. Must contact local provider to determine if service is available in your specific town.[2][3][6]",
+        "Frozen meals for weekends/holidays are provided, but hot meal delivery is Monday–Friday only in most areas.[2][3]",
+        "Program is volunteer-dependent; service capacity may be limited by volunteer availability in your region.[2]",
+        "Meals on Wheels is distinct from congregate meal programs (community meal centers). This program delivers to your home.[2]",
+        "VCIL's under-60 program has strict eligibility: those with access to assistive technology, personal assistance, or other supports for meal preparation are NOT eligible.[5]",
+        "Suggested donation is just that—suggested. However, all participants are encouraged to contribute what they can afford.[2][3]"
       ],
-      "benefitType": "service",
-      "benefitVariesBy": "region",
-      "officialSource": "https://www.agewellvt.org/services/food-meal-delivery/meals-on-wheels/"
+      "benefitType": "in_kind",
+      "benefitVariesBy": "region (provider-dependent)",
+      "officialSource": null
     },
     {
-      "name": "Caregiver Respite Support",
-      "isNew": true,
-      "existingId": null,
+      "name": "Caregiver Support Program",
+      "isNew": false,
+      "existingId": "family-caregiver-support-program",
       "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "Targeted at families with children/youth (up to 19) with special needs or disabilities; no financial eligibility tests; voucher-based reimbursement model with flexible caregiver-determined hours/rates; excludes current recipients of other respite programs",
-      "gotchas": [
-        "Exclusively for caregivers of children/youth up to age 19, not elderly adults",
-        "Ineligible if already receiving any other respite funding sources",
-        "Respite providers cannot be parents, direct caregivers, or live-in relatives",
-        "Program administered by Vermont Family Network, distinct from Medicaid Choices for Care or other state programs for seniors"
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$2,000 – $8,000/year",
+          "found": "VA CSP: Personal care services, training, stipends (amounts not specified); ASP: Self-directed attendant services (hours based on need, entitlement no waitlist); Dementia Respite: Respite care (details limited); Paid family caregiving up to $1700/month tax-free via Medicaid programs[1][2][3][4]",
+          "source": "No single official .gov for 'Caregiver Support Program'; see dvha.vermont.gov for Medicaid/Global Commitment[2][3], asd.vermont.gov for Choices[3]"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "No single official .gov for 'Caregiver Support Program'; see dvha.vermont.gov for Medicaid/Global Commitment[2][3], asd.vermont.gov for Choices[3]"
+        }
       ],
-      "benefitType": "financial",
-      "benefitVariesBy": "not_applicable",
-      "officialSource": "https://www.vermontfamilynetwork.org/wp-content/uploads/2022/11/Vermont-Respite-Support-Program-Flyer.pdf"
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No specific asset limits or exemptions detailed; Medicaid programs referenced require standard Medicaid asset tests[2].",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Programs administered regionally (e.g., CVCOA service area); Choices for Care via area agencies[3][5]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "None for ASP (entitlement); waivers may have waitlists unlike state plan HCBS[2]",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Medicaid eligibility proof (income/assets), functional need assessment for ADLs; apply only if likely eligible to avoid denial[2]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Fragmented across Medicaid waivers/state plan (ASP entitlement), regional dementia respite, VA federal; no unified statewide caregiver support program with fixed income/assets; varies by care recipient condition (dementia, ADLs, Veteran status)",
+      "gotchas": [
+        "No exact 'Caregiver Support Program' in VT; may confuse with VA federal program (Veterans only)[1]",
+        "Many are Medicaid-tied with financial eligibility tests[2]",
+        "Regional limits (e.g., CVCOA not statewide)[5]",
+        "Spouses excluded in some caregiver eligibility, allowed in others like Global Commitment[3]",
+        "Must self-direct in ASP; not for residential settings[2]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "No single official .gov for 'Caregiver Support Program'; see dvha.vermont.gov for Medicaid/Global Commitment[2][3], asd.vermont.gov for Choices[3]"
     },
     {
       "name": "Senior Community Service Employment Program (SCSEP)",
@@ -339,38 +389,39 @@
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "National program with state/regional administration. Income limits are tied to federal poverty guidelines (125% threshold) and updated annually. Benefits are fixed at minimum wage for 20 hours/week. Vermont-specific implementation details (providers, offices, processing times, regional variations) are not available in current search results and require direct contact with Vermont's SCSEP administrator.",
+      "dataShapeNotes": "Vermont-specific via A4TD grantee; national SCSEP rules apply with income at 125% FPL (annual update); no asset limits or fixed dollar tables in sources - requires local verification; statewide but community-host dependent",
       "gotchas": [
-        "This is a training program, not permanent employment[1][4]. Positions are temporary and transitional[1].",
-        "SCSEP participants are NOT eligible for unemployment benefits or retirement benefits based on training wages earned[4]. Participants should contact their state Unemployment office to understand how SCSEP wages may affect existing Unemployment Insurance benefits[4].",
-        "No benefits typically associated with employment are provided: no bonuses, pension benefits, annual leave, accumulated sick leave, or retirement contributions[4].",
-        "The program is experiencing 'a period of transition due to changes and delays in federal funding,' though it remains available in many communities[3].",
-        "There is no cost to host organizations, but participants work at non-profits or public agencies, not private employers[1]."
+        "Transitional training only - positions temporary, not permanent employment",
+        "Income eligibility strictly ≤125% FPL; check current HHS guidelines as they update yearly",
+        "Training wages may impact unemployment or retirement benefits - consult unemployment office",
+        "Priority enrollment tiers may delay non-priority applicants",
+        "No asset test, but must be unemployed and job-seeking"
       ],
       "benefitType": "employment",
-      "benefitVariesBy": "fixed",
-      "officialSource": "https://www.dol.gov/agencies/eta/seniors (U.S. Department of Labor)"
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://a4td.org/scs-employment-program/"
     },
     {
-      "name": "Vermont Legal Aid Elder Law Project",
+      "name": "Legal Assistance for Seniors (Vermont Legal Aid Elder Law Project)",
       "isNew": true,
       "existingId": null,
       "existingVerified": null,
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "No income/asset test for seniors 60+; priority-based case acceptance; statewide with regional offices but unified intake; distinct from income-tested general legal aid[1][2]",
+      "dataShapeNotes": "No fixed income/asset tables; eligibility via low-income screening and civil legal need priority; statewide centralized intake with pro bono network",
       "gotchas": [
-        "Not restricted by income/assets unlike general VLA (200% FPL) or other projects; focuses on civil matters only (no criminal, traffic); priority on specific senior issues—may not take all cases; separate from Medicare Advocacy Project but includes Medicare appeals[1][2][4]",
-        "Must specify elder law/seniors in intake for specialist routing[7]",
-        "Overlaps with Disability Law Project if disability-related[1]"
+        "Must be low-income to qualify for free services; not guaranteed representation—intake screens priority",
+        "Focuses on civil matters only, not criminal",
+        "Medicare Advocacy limited to dual Medicare/Medicaid recipients",
+        "Use Seniors category in Legal Help Tool for elder specialists[2][5][8]"
       ],
-      "benefitType": "service",
-      "benefitVariesBy": "priority_tier",
-      "officialSource": "https://www.vtlegalaid.org[6]"
+      "benefitType": "advocacy",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://www.vtlegalaid.org/legal-projects/elder-law-medicare-advocacy"
     },
     {
-      "name": "Vermont Long-Term Care Ombudsman Project",
+      "name": "Long-Term Care Ombudsman",
       "isNew": false,
       "existingId": "long-term-care-ombudsman-program",
       "existingVerified": null,
@@ -379,34 +430,44 @@
         {
           "field": "benefit_value",
           "ours": "$10,000 – $30,000/year",
-          "found": "Investigation of complaints, resident advocacy, facility monitoring, education about resident rights, assistance with care decisions, help navigating Choices for Care",
-          "source": "https://www.vtlawhelp.org/long-term-care-help and https://www.vtlegalaid.org/legal-projects/long-term-care-ombudsman"
+          "found": "Investigate complaints and concerns; assist with decisions on long-term care; monitor facilities via visits; educate staff on rights; advocate for system changes; provide information on services; help with denials, quality issues, discharges, privacy, care, food, finances, transfers, roommates for facility residents or Choices for Care participants[1][2][4]",
+          "source": "https://vtlawhelp.org/long-term-care-help"
         },
         {
           "field": "source_url",
           "ours": "MISSING",
-          "found": "https://www.vtlawhelp.org/long-term-care-help and https://www.vtlegalaid.org/legal-projects/long-term-care-ombudsman"
+          "found": "https://vtlawhelp.org/long-term-care-help"
         }
       ],
       "novelFields": [
         {
+          "field": "asset_limits",
+          "value": "No asset limits or tests; no assets count or are exempt as there is no financial eligibility requirement[2][4][5]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Volunteers sought/recruited in specific counties (Chittenden, Franklin, Essex, Caledonia, Orleans, Addison), but services available statewide with no differences in provision noted[1]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
           "field": "documents_required",
-          "value": "Not specified in search results — appears to be intake-based rather than document-dependent",
+          "value": [
+            "No specific documents required; describe the concern or situation verbally or via form[2][4]"
+          ],
           "note": "Has document checklist — our model doesn't store per-program documents"
         }
       ],
-      "dataShapeNotes": "This program is fundamentally different from typical benefits programs — it is a complaint resolution and advocacy service with no eligibility barriers (other than already receiving long-term care). There are no income limits, asset limits, or age requirements because the service is not means-tested. The 'application' is actually a complaint intake process. Families should contact this service when they have concerns about a loved one's care, not to determine if their relative 'qualifies' for the program itself.",
+      "dataShapeNotes": "no income test; advocacy only, not financial or direct services; covers facilities and Choices for Care community program; volunteer-based with statewide reach but targeted recruitment",
       "gotchas": [
-        "This is NOT an eligibility program — families cannot 'apply' for their elderly relative to receive benefits. Instead, they contact the ombudsman when problems arise with existing long-term care.",
-        "The ombudsman advocates FOR residents; it does not provide direct care, medical services, or financial assistance.",
-        "The service is free, but only available to people already in long-term care facilities or Choices for Care community programs.",
-        "Volunteer recruitment is currently limited to Washington and Bennington counties, but the ombudsman service itself covers all of Vermont.",
-        "Response time is 'best effort' within three business days — not guaranteed.",
-        "The ombudsman works under supervision of paid staff and has specific authority limited to long-term care advocacy."
+        "Not a paid service provider or financial aid program—purely advocacy and complaint resolution, not direct care or funding[2][4][5]",
+        "Separate from Vermont's Health Care Ombudsman for certain home care (though closely related)[3]",
+        "For community services, help is limited to Choices for Care participants with specific issues like denials or quality[2]",
+        "Free service, but relies on volunteers who need certification and commitment[1][5]"
       ],
       "benefitType": "advocacy",
-      "benefitVariesBy": "not_applicable — service is uniform statewide",
-      "officialSource": "https://www.vtlawhelp.org/long-term-care-help and https://www.vtlegalaid.org/legal-projects/long-term-care-ombudsman"
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://vtlawhelp.org/long-term-care-help"
     },
     {
       "name": "Vermont Senior Companion Program",
@@ -416,17 +477,36 @@
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "Volunteer companion program (AmeriCorps Seniors), not direct aid to elderly; eligibility/income for volunteers only; statewide via 4 regional agencies; income at 200% poverty level (varies yearly, examples by household size provided); no client-side eligibility detailed.",
+      "dataShapeNotes": "Volunteer stipend program (AmeriCorps Seniors) matching low-income 55+ volunteers to provide companionship/services to homebound elders; income-tested for volunteers (200% poverty, varies by household size/year); statewide via 4 regional agencies; no client eligibility test mentioned.",
       "gotchas": [
-        "This is a **volunteer program** for low-income seniors (55+) to provide companionship services to other elderly; families do not 'apply' to receive services directly—instead, request companions through agencies. Not a direct benefit for the elderly loved one.",
-        "Income eligibility for companions only; clients (elderly receiving help) have no stated eligibility requirements in sources.",
-        "Income guidelines outdated in sources (2022 or earlier); verify current federal poverty levels x200% with agency.",
-        "Stipend is non-taxable and does not affect recipient's benefits, but for companions only.",
-        "No info on processing times, waitlists, or client application process."
+        "This is a volunteer program for low-income seniors (55+) to help other elderly, not direct benefits for families seeking care for loved ones—families request companions for their elderly relative via agencies.",
+        "Income eligibility for volunteers only; clients (those receiving help) have no stated eligibility (focus on those needing help with daily tasks to stay independent).",
+        "Stipend is non-taxable and does not affect recipient's public benefits.",
+        "Income limits outdated in sources (2022 or earlier); verify current with agency.",
+        "Not a paid job; flexible volunteer opportunity with stipend."
       ],
       "benefitType": "service",
       "benefitVariesBy": "fixed",
-      "officialSource": "No single primary .gov URL; program administered via https://vermontmaturity.com (state-affiliated) and 4 Area Agencies on Aging websites."
+      "officialSource": "No single primary .gov URL; program via AmeriCorps Seniors, administered by Vermont Area Agencies on Aging (e.g., www.agewellvt.org)"
+    },
+    {
+      "name": "Senior Solutions Vet-to-Vet Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Volunteer matching service only, no income/asset test, region-restricted to 46 towns with Brattleboro partnership, no quantified benefits like hours or dollars",
+      "gotchas": [
+        "Not a financial, medical, or home care program—purely volunteer companionship matching; distinct from Veteran Directed Care Program (which is VA-funded case-managed home care)[6]",
+        "Limited to Senior Solutions' 46 towns, not statewide[3]",
+        "No formal application process detailed; simple phone call to volunteer coordinator[6]",
+        "People may confuse with pet assistance or other Senior Solutions veteran services[3][6]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://www.seniorsolutionsvt.org/services/veterans/"
     }
   ]
 }

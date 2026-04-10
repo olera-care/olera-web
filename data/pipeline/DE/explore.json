@@ -4,155 +4,99 @@
   "state": "DE",
   "stateName": "Delaware",
   "isRegion": false,
-  "exploredAt": "2026-04-09T09:29:27.830Z",
-  "programCount": 20,
+  "exploredAt": "2026-04-09T12:39:04.186Z",
+  "programCount": 13,
   "programs": [
     {
-      "name": "Delaware Medicaid for the Elderly",
-      "what_it_does": "Provides medical assistance to eligible low-income seniors and disabled individuals, covering services like doctor visits, hospital care, and long-term care. In Delaware, it is administered through the Division of Medicaid and Medical Assistance for those meeting income and asset limits.[3]",
-      "who_its_for": "Low-income seniors aged 65+ or disabled individuals in Delaware.",
-      "official_url": "https://dhss.delaware.gov/dhss/dmma/",
-      "benefit_value": "Varies by eligibility; covers health services up to full Medicaid benefits for qualified applicants.[3]"
+      "name": "Diamond State Health Plan",
+      "what_it_does": "Provides Medicaid coverage for healthcare services to eligible seniors. Includes personal care services and assistance with activities of daily living for those meeting medical requirements.[1]",
+      "who_its_for": "Seniors aged 65 or over who are U.S. citizens, reside in Delaware, and meet medical and financial eligibility criteria.[1]",
+      "official_url": "https://assets.ctfassets.net/61iwodu7d9u0/2SwumJUR8Rm2DF2jakVCWA/be2ca7721af8cf7b9262f5e1f9111a41/MC-3398245-state-resource-pages--delaware.pdf",
+      "benefit_value": "Varies by income and medical needs; covers part or all of care costs including personal care services.[1]"
     },
     {
-      "name": "Diamond State HCBS Waiver",
-      "what_it_does": "Offers home and community-based services to allow seniors and disabled individuals to live at home instead of institutions. Services include personal care, homemaker assistance, and adult day care, administered by DSAAPD.[3]",
-      "who_its_for": "Medicaid-eligible seniors 65+ or adults 21+ with disabilities at risk of nursing home placement.",
-      "official_url": "https://dhss.delaware.gov/dhss/dsaapd/",
-      "benefit_value": "Personalized services based on assessed needs, no fixed dollar amount.[3]"
+      "name": "Division of Services for Aging and Adults with Physical Disabilities (DSAAPD) Waivers",
+      "what_it_does": "Offers home and community-based services waivers to provide long-term care alternatives to nursing homes. Includes case management and support services through Area Agencies on Aging.[2][5]",
+      "who_its_for": "Seniors aged 60+ and adults with physical disabilities who are at risk of nursing home placement and meet income/asset limits.[2][5]",
+      "official_url": "https://delaware.gov/guides/seniors/",
+      "benefit_value": "Personal care, home modifications, and community services; value varies based on assessed needs.[2]"
     },
     {
-      "name": "Delaware PACE",
-      "what_it_does": "Program of All-Inclusive Care for the Elderly coordinates comprehensive medical and social services for frail seniors. It enables participants to live safely in the community with wraparound care including transportation and therapy.[3]",
-      "who_its_for": "Seniors 55+ certified as nursing facility eligible and living in PACE service areas.",
-      "official_url": "https://dhss.delaware.gov/dhss/dsaapd/",
-      "benefit_value": "Full capitation coverage for all Medicare and Medicaid services plus extras.[3]"
+      "name": "Program of All-Inclusive Care for the Elderly (PACE) - Delaware PACE",
+      "what_it_does": "Delivers comprehensive medical and social services to frail seniors in community settings. Coordinates all Medicare and Medicaid benefits including adult day health care.",
+      "who_its_for": "Seniors aged 55+ certified as nursing facility eligible, able to live safely in the community, and enrolled in Medicare/Medicaid.",
+      "official_url": "https://delawareadrc.com/resources/",
+      "benefit_value": "Full capitation coverage of all approved services; no additional copays for participants."
     },
     {
-      "name": "Delaware Medicare Savings Programs (QMB, SLMB, QI)",
-      "what_it_does": "These programs help pay Medicare premiums, deductibles, and copayments for low-income beneficiaries. QMB covers Part A/B premiums and more; SLMB covers Part B; QI covers Part B for slightly higher incomes, administered via Medicaid.[3]",
-      "who_its_for": "Seniors 65+ with Medicare and incomes/assets below specified limits (e.g., QMB up to 100% FPL).",
-      "official_url": "https://dhss.delaware.gov/dhss/dmma/",
-      "benefit_value": "Premium payments: Part B ~$185/month (2026 est.); full cost-sharing for QMB.[3]"
+      "name": "Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB)",
+      "what_it_does": "QMB pays Medicare Part A/B premiums, deductibles, and coinsurance. SLMB covers Medicare Part B premiums for eligible low-income seniors.[1]",
+      "who_its_for": "Medicare beneficiaries residing in Delaware who are U.S. citizens meeting specific income and asset limits (varies by program).[1]",
+      "official_url": "https://assets.ctfassets.net/61iwodu7d9u0/2SwumJUR8Rm2DF2jakVCWA/be2ca7721af8cf7b9262f5e1f9111a41/MC-3398245-state-resource-pages--delaware.pdf",
+      "benefit_value": "QMB: Full Part A/B cost-sharing; SLMB: Part B premium (amount varies by income).[1]"
     },
     {
-      "name": "Delaware Food First/SNAP",
-      "what_it_does": "Provides monthly benefits via EBT card to buy food for low-income households. Delaware administers federally funded SNAP with state supplements for seniors.[3]",
-      "who_its_for": "Seniors 60+ with income below 200% FPL, higher asset limits for elderly.",
-      "official_url": "https://dhss.delaware.gov/dhss/dss/",
-      "benefit_value": "Average $200-300/month per eligible senior household.[3]"
+      "name": "Food Stamp Program (SNAP)",
+      "what_it_does": "Provides monthly benefits to purchase nutritious food. Administered statewide for low-income Delaware residents including seniors.[6]",
+      "who_its_for": "Low-income seniors aged 60+ meeting federal income and asset guidelines.",
+      "official_url": "https://delawareadrc.com/resources/",
+      "benefit_value": "Average $200+ monthly per household; varies by income and household size."
     },
     {
-      "name": "Delaware LIHEAP",
-      "what_it_does": "Low-Income Home Energy Assistance Program offers help with heating/cooling bills and crisis aid. Annual grants and emergency fuel payments administered statewide.[3]",
-      "who_its_for": "Low-income households including seniors 60+ at or below 150-200% FPL.",
-      "official_url": "https://dhss.delaware.gov/dhss/des/",
-      "benefit_value": "$200-$1,000 per household annually depending on need.[3]"
+      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "what_it_does": "Assists with heating and cooling bills and crisis fuel assistance. Helps prevent utility shutoffs for eligible households.[6]",
+      "who_its_for": "Low-income Delaware households including seniors aged 60+ based on income thresholds.",
+      "official_url": "https://delawareadrc.com/resources/",
+      "benefit_value": "One-time grants averaging $400-$800 for heating assistance."
     },
     {
-      "name": "Delaware Weatherization Assistance Program",
-      "what_it_does": "Improves energy efficiency in low-income homes through insulation, sealing, and furnace repairs. Reduces utility costs and health risks for seniors.[3]",
-      "who_its_for": "Low-income homeowners/renters including seniors at or below 200% FPL.",
-      "official_url": "https://destatehousing.com/weatherization/",
-      "benefit_value": "Free services valued at $5,000-$10,000 per home.[3]"
+      "name": "Weatherization Assistance Program",
+      "what_it_does": "Provides home energy efficiency improvements like insulation and sealing. Reduces energy costs and improves health/safety for low-income homes.[6]",
+      "who_its_for": "Low-income Delaware households including seniors; priority for 60+ and disabled.",
+      "official_url": "https://delawareadrc.com/resources/",
+      "benefit_value": "Free home improvements valued at $5,000-$8,000 per household."
     },
     {
       "name": "Delaware Senior Medicare Patrol (SMP/SHIP)",
-      "what_it_does": "Offers free counseling on Medicare options, billing issues, and fraud prevention. SHIP counselors assist with enrollment and appeals.[3]",
-      "who_its_for": "All Delaware Medicare beneficiaries, especially seniors 65+.",
-      "official_url": "https://dhss.delaware.gov/dhss/dsnh/",
-      "benefit_value": "Free one-on-one counseling and education sessions.[3]"
+      "what_it_does": "Offers free counseling on Medicare, supplements, and low-income assistance programs. Helps detect and prevent Medicare fraud through Area Agencies on Aging.[2]",
+      "who_its_for": "Delaware Medicare beneficiaries aged 65+ and pre-retirees seeking insurance guidance.[2]",
+      "official_url": "https://delaware.gov/guides/seniors/",
+      "benefit_value": "Free one-on-one counseling and educational presentations."
     },
     {
-      "name": "Delaware Meals on Wheels",
-      "what_it_does": "Delivers nutritious meals to homebound seniors through Area Agencies on Aging. Promotes nutrition and reduces isolation via volunteer visits.[3]",
-      "who_its_for": "Homebound seniors 60+ who are unable to prepare meals.",
-      "official_url": "https://www.dhss.delaware.gov/dsadd/senior_centers.html",
-      "benefit_value": "5-14 meals/week at low or no cost (suggested donation).[3]"
+      "name": "Home Delivered Meals (Meals on Wheels)",
+      "what_it_does": "Delivers nutritious meals to homebound seniors. Provided through Area Agencies on Aging and nutrition programs.[2][4]",
+      "who_its_for": "Homebound seniors aged 60+ unable to prepare meals, with priority for lowest income.",
+      "official_url": "https://www.caregiverlist.com/delaware/departmentonaging.aspx",
+      "benefit_value": "5-14 meals per week; suggested contribution $2-3/meal or free for low-income."
     },
     {
-      "name": "Delaware Family Caregiver Support Program",
-      "what_it_does": "Provides respite care, training, and counseling to support family caregivers of seniors. Includes financial assistance for relief services.[3]",
-      "who_its_for": "Unpaid family caregivers of adults 60+ or 18+ with disabilities.",
-      "official_url": "https://dhss.delaware.gov/dhss/dsadd/",
-      "benefit_value": "Respite grants up to $1,000/year per caregiver.[3]"
+      "name": "Caregiver Support Program",
+      "what_it_does": "Provides support services including respite care, training, and counseling for family caregivers. Funded through the National Family Caregiver Support Program via AAAs.[2][3]",
+      "who_its_for": "Unpaid family caregivers of seniors aged 60+ or grandparents raising children.",
+      "official_url": "https://www.caregiverlist.com/delaware/departmentonaging.aspx",
+      "benefit_value": "Respite grants up to $500/year; training and support groups."
     },
     {
-      "name": "Delaware Senior Community Service Employment Program (SCSEP)",
-      "what_it_does": "Offers part-time paid work training at community sites for unemployed low-income seniors. Includes job placement support and benefits.[3]",
-      "who_its_for": "Unemployed individuals 55+ with income ≤125% FPL.",
-      "official_url": "https://dhss.delaware.gov/dhss/dsadd/",
-      "benefit_value": "Minimum wage pay for 20 hours/week (~$7,500/year subsidized).[2][3]"
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "what_it_does": "Provides part-time paid work experience and training at community sites. Helps eligible seniors transition to unsubsidized employment.[5]",
+      "who_its_for": "Unemployed low-income seniors aged 55+ residing in Delaware.",
+      "official_url": "https://delaware.gov/guides/seniors/",
+      "benefit_value": "Minimum wage part-time work (20 hrs/week) plus supportive services."
     },
     {
-      "name": "Delaware Legal Aid for Seniors",
-      "what_it_does": "Provides free legal services for issues like benefits, housing, and abuse via Delaware Legal Help Link and AAAs. Represents low-income seniors in court if needed.[3]",
-      "who_its_for": "Low-income seniors 60+ facing civil legal problems.",
-      "official_url": "https://www.legalaidde.org/",
-      "benefit_value": "Free legal advice and representation (value $200+/hour).[3]"
+      "name": "Legal Aid for Seniors",
+      "what_it_does": "Offers free legal assistance for issues like housing, benefits, and consumer problems. Available through Area Agencies on Aging and legal services programs.[2][4]",
+      "who_its_for": "Low-income seniors aged 60+ in Delaware.",
+      "official_url": "https://delawareadrc.com/resources/",
+      "benefit_value": "Free legal consultation and representation."
     },
     {
-      "name": "Delaware Long-Term Care Ombudsman Program",
-      "what_it_does": "Advocates for residents in nursing homes, assisted living, and similar facilities. Investigates complaints and ensures quality care rights.[3]",
+      "name": "Long-Term Care Ombudsman Program",
+      "what_it_does": "Advocates for residents in nursing homes, assisted living, and other long-term care facilities. Investigates complaints and ensures quality of care.[2]",
       "who_its_for": "Residents of long-term care facilities in Delaware and their families.",
-      "official_url": "https://ombudsman.delaware.gov/",
-      "benefit_value": "Free advocacy and complaint resolution services.[3]"
-    },
-    {
-      "name": "Delaware Prescription Assistance Program (DPAP)",
-      "what_it_does": "DPAP provides a prescription benefit of up to $3,000 per year for eligible seniors or disabled individuals with low income. Qualified individuals pay a minimum co-payment of $5 or 25% of the cost, whichever is greater, and must have Medicare Part D.",
-      "who_its_for": "Delaware residents who are seniors or disabled with low income and enrolled in Medicare Part D.",
-      "whats_unique": "State-funded pharmaceutical assistance program specific to Delaware, offering up to $3,000 annual prescription coverage beyond federal Medicare benefits.[3]",
-      "official_url": "https://www.senior65.com/medicare/article/delaware-medicare-savings-easy-guide",
-      "benefit_value": "Up to $3,000 per year in prescription benefits."
-    },
-    {
-      "name": "Nursing Home Transition Program",
-      "what_it_does": "This state-funded program identifies, informs, and assists nursing home residents who want to move to community-based settings. It offers individualized case management to support the transition.[4]",
-      "who_its_for": "Medicaid-eligible nursing home residents in Delaware, particularly seniors and adults with physical disabilities.",
-      "whats_unique": "Delaware-specific state-funded initiative led by DSAAPD to transition individuals from nursing homes to community living, not a standard federal program.[4]",
-      "official_url": "https://delaware.gov/guides/seniors/",
-      "benefit_value": "Individualized case management and transition support services."
-    },
-    {
-      "name": "Wilmington Senior Tax Assistance Program",
-      "what_it_does": "This program assists homeowners facing imminent foreclosure due to delinquent property taxes, sewer, or water bills. It provides grants to help seniors maintain their homes.[4]",
-      "who_its_for": "Homeowners in Wilmington, Delaware, aged 62 or older.",
-      "whats_unique": "Localized to Wilmington in Delaware, offering targeted property tax relief grants up to $3,000, distinct from statewide or federal programs.[4]",
-      "official_url": "https://delaware.gov/guides/seniors/",
-      "benefit_value": "Grants up to $3,000."
-    },
-    {
-      "name": "SCAT – Senior Citizens Affordable Taxi",
-      "what_it_does": "SCAT provides a 50% discount on taxi fares for eligible participants. It helps seniors access transportation affordably.[4]",
-      "who_its_for": "Senior citizens and persons with disabilities in Delaware.",
-      "whats_unique": "Delaware state program offering subsidized taxi discounts specifically for seniors and disabled individuals.[4]",
-      "official_url": "https://delaware.gov/guides/seniors/",
-      "benefit_value": "50% discount on taxi fares."
-    },
-    {
-      "name": "Over-60 Tuition Benefit",
-      "what_it_does": "This program allows eligible Delaware residents to complete undergraduate or graduate degrees tuition-free at the University of Delaware. It supports part-time or full-time enrollment for lifelong learning.[7]",
-      "who_its_for": "Delaware residents aged 60 or older admitted to UD degree programs.",
-      "whats_unique": "Unique to University of Delaware for state residents 60+, providing free tuition for degree programs, not available nationwide.[7]",
-      "official_url": "https://www.continuingstudies.udel.edu/60-tuition-free-degree/",
-      "benefit_value": "Free tuition for undergraduate or graduate degree programs."
-    },
-    {
-      "name": "Assistive Devices Program",
-      "what_it_does": "This DSAAPD program provides equipment like kitchen aids, bathroom devices, mobility tools, or communication aids to promote independence. Benefits must directly support independent action or communication.[1]",
-      "who_its_for": "Adult Delawareans with disabilities, including seniors, meeting financial and medical eligibility.",
-      "whats_unique": "State-funded through DSAAPD, offering targeted assistive devices for independence, specific to Delaware residents.[1]",
-      "official_url": "http://www.dati.org/newsletter/issues/2009n2/services.html",
-      "benefit_value": "Wide range of assistive equipment (value varies by need)."
-    },
-    {
-      "name": "Home Modification Program",
-      "what_it_does": "DSAAPD funds modifications to permanent residences, such as wheelchair ramps, for adults with long-term disabilities. It supports safe and independent community living.[1]",
-      "who_its_for": "Delaware residents 18+ with long-term physical disabilities, including seniors, meeting financial/medical criteria.",
-      "whats_unique": "Delaware state-funded program via DSAAPD for home adaptations, beyond federal offerings.[1]",
-      "official_url": "http://www.dati.org/newsletter/issues/2009n2/services.html",
-      "benefit_value": "Funding for home modifications (e.g., ramps; value per project)."
+      "official_url": "https://www.caregiverlist.com/delaware/departmentonaging.aspx",
+      "benefit_value": "Free advocacy and complaint resolution services."
     }
   ]
 }

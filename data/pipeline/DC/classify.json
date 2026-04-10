@@ -1,21 +1,18 @@
 {
   "state": "DC",
   "stateName": "District of Columbia",
-  "classifiedAt": "2026-04-09T09:44:49.710Z",
-  "total": 6,
+  "classifiedAt": "2026-04-09T17:43:15.161Z",
+  "total": 4,
   "typeSummary": {
-    "benefit": 4,
-    "resource": 2
+    "benefit": 3,
+    "resource": 1
   },
   "scopeSummary": {
-    "state": 3,
-    "federal": 2,
-    "local": 1
+    "state": 4
   },
   "complexitySummary": {
-    "deep": 1,
-    "medium": 3,
-    "simple": 2
+    "deep": 3,
+    "simple": 1
   },
   "programs": [
     {
@@ -26,19 +23,11 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Aging and Disability Resource Center (ADRC)",
+            "name": "Liberty Healthcare (assessments)[1][2]",
             "type": "service-area"
           },
           {
-            "name": "Liberty Healthcare (assessments)",
-            "type": "service-area"
-          },
-          {
-            "name": "Economic Security Administration (ESA) for eligibility",
-            "type": "service-area"
-          },
-          {
-            "name": "DACL Medicaid Enrollment Services Unit (MES)",
+            "name": "DACL Medicaid Services Enrollment Unit (MES)[1][6]",
             "type": "service-area"
           }
         ]
@@ -64,108 +53,103 @@
       }
     },
     {
-      "name": "Qualified Medicare Beneficiaries (QMB) Program",
+      "name": "Safe at Home Program",
       "programType": "benefit",
       "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "Administered uniformly by DC Department of Health Care Finance (DHCF) across District",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "medium",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "documents",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "financial",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": false,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "DC State Health Insurance Assistance Program (SHIP)",
-      "programType": "resource",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "Primary office: DC Dept. of Aging and Community Living (DACL), 250 E Street SW, Washington DC 20024; delivered statewide via partnerships with local agencies[1][2]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "simple",
-      "recommendedSections": [
-        "prose",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": false,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "DACL Senior Wellness Centers",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "local",
+        "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Ward 1: Bernice Fonteneau Senior Wellness Center, 3531 Georgia Ave NW, (202) 727-0338; Ward 5: Model Cities Senior Wellness Center, 1901 Evarts St NE, (202) 635-1900, www.seaburyresources.org/model-cities-senior-wellness-center; Ward 6: Hayes Senior Wellness Center, 500 K St NE, (202) 727-0358, www.hayesswc.com; Ward 7: Washington Seniors Wellness Center; Ward 8: Congress Heights Senior Wellness Center, 3500 MLK Jr Ave SE, (202) 563-7225[5]",
+            "name": "Administered by Department of Aging and Community Living (DACL)",
+            "type": "service-area"
+          },
+          {
+            "name": "Historically administered through Home Care Partners (DCOA grantee) in partnership with District of Columbia Office on Aging and Department of Housing and Community Development[5]",
             "type": "service-area"
           }
         ]
       },
-      "complexity": "medium",
+      "complexity": "deep",
       "recommendedSections": [
         "prose",
+        "income-table",
         "what-counts",
         "documents",
         "county-directory",
         "callout"
       ],
       "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": false,
+        "benefitType": "in_kind",
+        "hasIncomeTiers": true,
         "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
+        "hasRegionalVariation": false,
+        "hasFunctionalReq": true,
         "hasMultipleTiers": false,
-        "isStatewide": false
+        "isStatewide": true
       }
     },
     {
-      "name": "Legal Services for Seniors",
+      "name": "DACL Benefits Assistance",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "DACL Medicaid Enrollment Services (MES)",
+            "type": "service-area"
+          },
+          {
+            "name": "Aging and Disability Resource Center (ADRC)",
+            "type": "service-area"
+          },
+          {
+            "name": "Liberty Healthcare for assessments",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": false,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "DC Senior Centers",
       "programType": "resource",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "AARP Legal Counsel for the Elderly: 601 E Street, NW, Room A-4, Washington, DC 20049[1]",
+            "name": "SOME Senior Services (1395 Aspen St. NW)",
             "type": "service-area"
           },
           {
-            "name": "DC Office on Aging Notary: 500 K Street, NE, Washington, DC 20002[1]",
+            "name": "Vida Senior Centers (multiple sites for Hispanic seniors)",
+            "type": "service-area"
+          },
+          {
+            "name": "D.C. Office on Aging ADRC",
+            "type": "service-area"
+          },
+          {
+            "name": "Various community centers across DC",
             "type": "service-area"
           }
         ]
@@ -177,32 +161,10 @@
       ],
       "signals": {
         "benefitType": "service",
-        "hasIncomeTiers": false,
+        "hasIncomeTiers": true,
         "hasAssetLimits": true,
-        "hasRegionalVariation": false,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Community Transition Program",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false
-      },
-      "complexity": "medium",
-      "recommendedSections": [
-        "prose",
-        "what-counts"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": false,
-        "hasFunctionalReq": false,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
         "hasMultipleTiers": false,
         "isStatewide": true
       }

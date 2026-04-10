@@ -4,132 +4,132 @@
   "state": "MA",
   "stateName": "Massachusetts",
   "isRegion": false,
-  "exploredAt": "2026-04-09T09:34:41.347Z",
+  "exploredAt": "2026-04-09T14:03:30.376Z",
   "programCount": 17,
   "programs": [
     {
-      "name": "MassHealth Medicare Savings Program (Buy-In)",
-      "what_it_does": "Pays Medicare Part A/B premiums, deductibles, copays for low-income seniors (covers QMB, SLMB, QI equivalents). Ensures affordable access to Medicare-covered services.[7]",
-      "who_its_for": "Seniors 65+ on Medicare with income ≤135% FPL (QMB), ≤120% (SLMB), assets ≤$2,000 individual.[7]",
+      "name": "MassHealth Medicare Savings Program",
+      "what_it_does": "This program (formerly MassHealth Senior Buy-In) helps pay Medicare Part A/B premiums, deductibles, and co-insurance for low-income seniors. It includes QMB, SLMB, and QI equivalents to reduce out-of-pocket Medicare costs.[5]",
+      "who_its_for": "Low-income Medicare beneficiaries aged 65+ or disabled, Massachusetts residents meeting specific income limits (varies by type).[5]",
       "official_url": "https://www.mass.gov/info-details/masshealth-coverage-types-for-seniors-and-people-who-need-long-term-care-services",
-      "benefit_value": "Saves $2,000-$5,000/year in premiums/cost-sharing depending on level (full for QMB).[7]"
+      "benefit_value": "Pays Medicare premiums (e.g., Part B $174.70/month in 2026) and cost-sharing; exact value based on income bracket.[5]"
     },
     {
       "name": "Frail Elder Waiver (FEW)",
-      "what_it_does": "Provides home and community-based services as an alternative to nursing homes for frail elders. Includes personal care, homemaker services, home modifications, meal delivery, and emergency response systems.[1]",
-      "who_its_for": "Nursing home-qualified seniors 65+ with income ≤$2,829/month and assets ≤$2,000, including those with Alzheimer's/dementia.[1][2]",
+      "what_it_does": "The Frail Elder Home & Community-Based Services Waiver provides supports at home, adult foster care, or congregate housing for nursing home-qualified seniors. Services include personal care, homemaker help, home modifications, meal delivery, and emergency response systems.[1]",
+      "who_its_for": "Nursing home-qualified frail elders aged 65+, including those with Alzheimer's or related dementias, meeting MassHealth income/asset eligibility.[1]",
       "official_url": "https://www.medicaidplanningassistance.org/medicaid-eligibility-massachusetts/",
-      "benefit_value": "Waiver services valued equivalent to institutional care; no copays for most, covers costs up to nursing home rates.[1]"
+      "benefit_value": "Varies by need; covers cost of home-based alternatives to institutional care, potentially saving thousands in nursing home expenses.[1]"
     },
     {
       "name": "Program of All-Inclusive Care for the Elderly (PACE)",
-      "what_it_does": "Integrates Medicare and Medicaid benefits into one comprehensive program for long-term care. Offers medical care, LTC, dental, eye care, and adult day health to enable community living.[1]",
-      "who_its_for": "Dual-eligible (Medicare + MassHealth) seniors 55+ certified as nursing facility level of care, living in PACE service area.[1]",
-      "official_url": "https://www.mass.gov/senior-care-options",
-      "benefit_value": "All-inclusive capitation covers unlimited LTC, extras like dental; no/low premiums/copays.[1][6]"
+      "what_it_does": "PACE combines Medicaid and Medicare benefits into one program offering comprehensive care, including long-term services and additional benefits like dental and eye care. It enables frail seniors to live in the community with coordinated medical and social supports.[1]",
+      "who_its_for": "Dual-eligible (Medicare and Medicaid) frail seniors aged 55+ certified as nursing facility level of care, residing in a PACE service area.[1]",
+      "official_url": "https://www.medicaidplanningassistance.org/medicaid-eligibility-massachusetts/",
+      "benefit_value": "Full integration of Medicare/Medicaid benefits plus extras like dental/eye care; no additional premiums for enrollees.[1]"
     },
     {
       "name": "SNAP (Food Stamps)",
-      "what_it_does": "Provides monthly EBT card for groceries to low-income seniors. Administered by MA DTA with senior-specific deductions.[4]",
-      "who_its_for": "Seniors 60+ with income ≤200% FPL (~$30,000/year couple); higher asset limits.[4]",
-      "official_url": "https://www.mass.gov/snap-food-benefits",
-      "benefit_value": "Average $200-$300/month per senior household on EBT.[4]"
+      "what_it_does": "Provides monthly benefits via EBT card to buy food for eligible low-income households. In Massachusetts, administered as part of DTA benefits for seniors.[3]",
+      "who_its_for": "Low-income seniors 60+ with income up to 200% FPL (higher disregard for elderly); Massachusetts residents.[6]",
+      "official_url": "https://www.mass.gov/info-details/apply-for-snap-food-benefits",
+      "benefit_value": "Average $200-300/month per senior household; max benefit scales with household size and income."
     },
     {
       "name": "Fuel Assistance (LIHEAP)",
-      "what_it_does": "Helps pay heating costs during winter for low-income households. Provides direct payments to fuel vendors.[4]",
-      "who_its_for": "Seniors 60+ with income ≤60% state median (~$40,000/year household).[4]",
-      "official_url": "https://www.mass.gov/fuel-assistance",
-      "benefit_value": "$200-$1,500 per heating season based on household size/income.[4]"
+      "what_it_does": "Helps low-income households with heating costs through cash grants or vendor payments during heating season. Administered by Mass DTA and local agencies.[3]",
+      "who_its_for": "Households with income up to 60% state median (about $45,000 for one in 2026); prioritizes seniors 60+ and disabled.[6]",
+      "official_url": "https://www.mass.gov/fuelassistance",
+      "benefit_value": "Average grant $600-1,000 per heating season (Oct-Apr); up to $2,000 max based on fuel type and need."
     },
     {
       "name": "Residential Conservation Service (Weatherization)",
-      "what_it_does": "Free home energy efficiency upgrades like insulation, sealing, furnace tune-ups via DOE/LEAP programs. Reduces energy bills long-term.[4]",
-      "who_its_for": "Low-income seniors 60+ (≤200% FPL) or via MassHealth referral.[4]",
-      "official_url": "https://www.masscec.com/programs/weatherization",
-      "benefit_value": "$4,000-$8,000 in free upgrades per home; 20-30% energy savings.[4]"
+      "what_it_does": "Provides free home energy efficiency improvements like insulation, sealing, and furnace repairs to reduce energy costs. Part of federal Weatherization Assistance Program via MassSave.[3]",
+      "who_its_for": "Low-income households (up to 200% FPL), prioritizing seniors, disabled, and families with children; MA residents.[6]",
+      "official_url": "https://www.masssave.com/weatherization",
+      "benefit_value": "Free services worth $5,000-10,000 per home; lifetime energy savings of 20-30% on bills."
     },
     {
       "name": "SHINE (Serving Health Information Needs of Elders)",
-      "what_it_does": "Free Medicare counseling and enrollment assistance by trained volunteers. Helps compare plans, appeal denials.[4]",
-      "who_its_for": "All MA Medicare beneficiaries 65+, caregivers, no income limits.[4]",
+      "what_it_does": "Free counseling on Medicare, MassHealth, and prescription drug plans by trained volunteers. Helps seniors choose and enroll in optimal coverage.[3]",
+      "who_its_for": "All Massachusetts Medicare beneficiaries 65+, caregivers, and families seeking health insurance guidance.[5]",
       "official_url": "https://www.mass.gov/shine",
-      "benefit_value": "Saves avg $1,500/year via optimal plan selection; unlimited phone/in-person help.[4]"
+      "benefit_value": "Free personalized counseling; potential savings of hundreds to thousands annually on premiums/drugs."
     },
     {
       "name": "Meals on Wheels",
-      "what_it_does": "Delivers nutritious hot meals to homebound seniors 5-7 days/week. Includes safety check-ins by deliverers.[4]",
-      "who_its_for": "Homebound 60+ unable to prepare meals; free/low-cost based on income.[4]",
-      "official_url": "https://www.mealsonwheelsma.org/",
-      "benefit_value": "1-2 meals/day; serves 70,000+ MA seniors, free for most qualifying.[4]"
+      "what_it_does": "Delivers nutritious meals to homebound seniors to promote health and independence. Coordinated through Councils on Aging and Nutrition Project.[3]",
+      "who_its_for": "Homebound seniors 60+ unable to prepare meals, often low-income or with mobility issues.[1]",
+      "official_url": "https://www.mealsonwheelsmass.org/",
+      "benefit_value": "1-2 meals/day, 5 days/week; value ~$10/meal or $2,500/year."
     },
     {
-      "name": "Caregiver Respite Program",
-      "what_it_does": "Funds temporary relief for family caregivers via PCA or adult day. Prevents caregiver burnout.[4]",
-      "who_its_for": "Family caregivers of 60+ frail elders via Councils on Aging/Area Agencies.[4]",
-      "official_url": "https://www.mass.gov/caregiver-respite",
-      "benefit_value": "Up to $1,600/year vouchers for respite services.[4]"
+      "name": "Alzheimer’s Respite Care Program",
+      "what_it_does": "Offers respite services like in-home aid or adult day care to relieve family caregivers of Alzheimer’s/dementia patients. Part of MassHealth home care supports.[1]",
+      "who_its_for": "Family caregivers of MA seniors with Alzheimer’s or related dementias meeting MassHealth eligibility.[1]",
+      "official_url": "https://www.mass.gov/alzheimers-respite-care",
+      "benefit_value": "Up to $2,000/year per caregiver in services; varies by assessed need."
     },
     {
-      "name": "SCSEP (Senior Community Service Employment Program)",
-      "what_it_does": "Part-time paid community service jobs with training for employment. Minimum wage, 20 hrs/week.[4]",
-      "who_its_for": "Unemployed 55+ with income ≤125% FPL seeking work.[4]",
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "what_it_does": "Provides part-time paid community service work training for low-income seniors to gain skills and transition to unsubsidized employment. Administered by MA agencies.[3]",
+      "who_its_for": "Unemployed low-income individuals 55+ (income ≤125% FPL) in MA; priority for veterans, disabled.[6]",
       "official_url": "https://www.mass.gov/scsep",
-      "benefit_value": "$10-$15/hr wage + benefits counseling; year-round placements.[4]"
+      "benefit_value": "Minimum wage part-time work (20 hrs/wk, ~$10,000/year); plus training and job placement."
     },
     {
       "name": "Massachusetts Senior Legal Helpline",
-      "what_it_does": "Free legal advice hotlines for housing, benefits, abuse issues. Referrals to pro bono attorneys.[4]",
-      "who_its_for": "Low-income 60+ MA residents; priority for benefits/consumer issues.[4]",
+      "what_it_does": "Free legal advice and representation for income-eligible seniors on issues like housing, benefits, abuse, and consumer problems. Operated by Greater Boston Legal Services.[3]",
+      "who_its_for": "MA residents 60+ with income ≤125% FPL (~$18,000 individual); 200% for housing cases.[5]",
       "official_url": "https://www.massseniorlegalhelpline.org/",
-      "benefit_value": "Unlimited advice calls; recovers $millions in benefits annually.[4]"
+      "benefit_value": "Free legal services worth thousands; prevents evictions, secures benefits."
     },
     {
       "name": "Long-Term Care Ombudsman Program",
-      "what_it_does": "Advocates for residents in nursing homes/assisted living resolving complaints. Protects rights confidentially.[4]",
-      "who_its_for": "All LTC facility residents/families in MA; no eligibility requirements.[4]",
+      "what_it_dos": "Advocates for residents in nursing homes, assisted living, and other long-term care facilities to resolve complaints and protect rights. Statewide network investigates issues and mediates.[3]",
+      "who_its_for": "Residents, families, and staff in MA long-term care facilities; open to public inquiries.[4]",
       "official_url": "https://www.mass.gov/long-term-care-ombudsman",
-      "benefit_value": "Resolves 85% complaints without litigation; statewide 24/7 access.[4]"
+      "benefit_value": "Free advocacy resolving ~80% complaints without litigation; protects rights and improves care quality."
     },
     {
       "name": "Prescription Advantage",
       "what_it_does": "Provides prescription drug coverage to eligible Massachusetts residents. It helps cover costs for medications not fully paid by Medicare or other insurance.",
-      "who_its_for": "Massachusetts residents age 65 and older, or younger individuals with disabilities who meet income and employment guidelines.",
+      "who_its_for": "Massachusetts residents age 65 and older, and younger individuals with disabilities who meet income and employment guidelines.",
       "whats_unique": "State-funded pharmaceutical assistance program specific to Massachusetts, supplementing federal Medicare coverage for low-income seniors.",
       "official_url": "http://www.mass.gov/elders/healthcare/prescription-advantage/",
-      "benefit_value": "Varies by income and drug costs; covers copays and premiums beyond federal programs."
-    },
-    {
-      "name": "Home Care Program (HCP)",
-      "what_it_does": "Delivers in-home care management, personal care, homemaker services, and support to enable aging in place. Services include transportation, meals, laundry, grocery shopping, and companionship through Aging Services Access Points (ASAPs).",
-      "who_its_for": "Massachusetts seniors age 60+, people with disabilities, and those with early-stage dementia able to complete some activities of daily living (ADLs).",
-      "whats_unique": "State-administered through 27 nonprofit ASAPs with comprehensive interdisciplinary assessments; uses sliding scale copays, distinct from federal HCBS waivers.",
-      "official_url": "https://www.mass.gov/info-details/home-care-program",
-      "benefit_value": "Customized care plans; services valued at thousands annually based on needs, with copays on sliding scale."
-    },
-    {
-      "name": "Enhanced Community Options Program (ECOP)",
-      "what_it_does": "Provides intensive in-home care and non-medical assistance for those needing higher levels of support to avoid nursing home placement. Includes care planning by social workers and family caregiver support.",
-      "who_its_for": "Massachusetts seniors requiring greater degree of care than standard home care, often at risk of institutionalization.",
-      "whats_unique": "Massachusetts-specific program reserved for higher-needs elders; complements HCP with more intensive services and sliding scale fees.",
-      "official_url": "https://www.mass.gov/info-details/enhanced-community-options-ecop",
-      "benefit_value": "Expanded in-home services preventing nursing home costs (avg. $100K+/year); copays on sliding scale."
+      "benefit_value": "Reduces out-of-pocket prescription costs based on income; exact amounts vary by eligibility and drug costs."
     },
     {
       "name": "Home Modification and Loan Program",
-      "what_it_does": "Offers low-interest loans for home adaptations to support aging in place. Covers ramps, stair lifts, kitchen/bathroom modifications, and security features.",
-      "who_its_for": "Massachusetts homeowners, primarily seniors and people with disabilities needing accessibility improvements.",
-      "whats_unique": "State-specific 0%-3% interest loans up to $30,000 administered by Massachusetts Rehabilitation Commission, beyond federal options.",
+      "what_it_does": "Offers low-interest loans for home modifications to support aging in place. Covers installations like ramps, stair lifts, and bathroom adaptations.",
+      "who_its_for": "Massachusetts homeowners needing accessibility modifications, typically seniors or people with disabilities.",
+      "whats_unique": "State-specific 0% to 3% interest loans up to $30,000 administered by the Massachusetts Rehabilitation Commission, beyond standard federal programs.",
       "official_url": "http://www.mass.gov/eohhs/consumer/disability-services/housing-disability/home-mod-loan/",
-      "benefit_value": "Loans up to $30,000 at 0%-3% interest, enabling modifications costing $5,000-$25,000+."
+      "benefit_value": "Loans up to $30,000 at 0%-3% interest."
     },
     {
-      "name": "Commonwealth Coordinated Care (CCC)",
-      "what_it_does": "Integrates health, long-term care, and community social services through participating health plans. Coordinates care to support aging in place.",
-      "who_its_for": "Massachusetts seniors age 65+ eligible for MassHealth (Medicaid).",
-      "whats_unique": "Massachusetts state program linking MassHealth with elder services via Department of Senior Services, beyond standard Medicaid managed care.",
-      "official_url": "https://www.mass.gov/info-details/commonwealth-care-alliance",
-      "benefit_value": "Comprehensive coordinated services valued at $20,000+ annually in long-term care support."
+      "name": "Home Care Program (HCP)",
+      "what_it_does": "Delivers in-home care management and support services to facilitate aging in place. Includes homemaker services, personal care, and meals.",
+      "who_its_for": "Massachusetts seniors, people with disabilities, and those with early-stage dementia able to complete some ADLs, determined by age, residence, and needs.",
+      "whats_unique": "State-funded through Aging Services Access Points (ASAPs) with comprehensive interdisciplinary assessments, distinct from federal HCBS waivers.",
+      "official_url": "https://www.mass.gov/info-details/home-care-program",
+      "benefit_value": "Varies by needs assessment; services like personal care, transportation, meals on sliding-scale co-pays."
+    },
+    {
+      "name": "Enhanced Community Options Program (ECOP)",
+      "what_it_does": "Provides enhanced in-home and non-medical assistance for those needing more intensive care than HCP. Develops care plans with social workers for family caregivers.",
+      "who_its_for": "Massachusetts seniors requiring greater degree of care than standard home care, assessed via ADLs.",
+      "whats_unique": "Massachusetts-specific program for higher-needs elders, administered through ASAPs with sliding-scale fees, not available nationwide.",
+      "official_url": "https://www.mass.gov/info-details/enhanced-community-options-program-ecop",
+      "benefit_value": "Expanded services including higher-level personal care and support; co-pays on sliding scale."
+    },
+    {
+      "name": "Senior Care Options (SCO)",
+      "what_it_does": "Integrates Medicare and MassHealth benefits into one health plan with added support services. Includes care coordination for health and social needs.",
+      "who_its_for": "Dual-eligible seniors age 65+ enrolled in both Medicare and MassHealth Standard, in select MA counties.",
+      "whats_unique": "Massachusetts-specific integrated care model for dual-eligibles, offering extras like one care coordinator beyond standard federal dual plans.",
+      "official_url": "https://www.mass.gov/info-details/senior-care-options-sco",
+      "benefit_value": "All Medicare/MassHealth benefits at no cost plus extras like expanded support services."
     }
   ]
 }

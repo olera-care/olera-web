@@ -1,30 +1,2678 @@
 {
   "state": "CA",
   "stateName": "California",
-  "draftedAt": "2026-04-09T09:28:59.234Z",
-  "total": 5,
-  "successful": 0,
+  "draftedAt": "2026-04-09T12:24:42.096Z",
+  "total": 16,
+  "successful": 16,
   "programs": [
     {
+      "id": "california-medicare-savings-programs-qmb-slmb-qi",
+      "name": "Medi-Cal Medicare Savings Programs (QMB, SLMB, QI)",
+      "shortName": "Medicare Savings Programs",
+      "tagline": "If your parent has Medicare and limited income, they could get help paying Part B premiums, deductibles, and copays — saving $1,800+ per year.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local county social services/Medi-Cal offices (find via dhcs.ca.gov county locator).",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent has Medicare and struggles with the monthly premiums, deductibles, and copays, California's Medicare Savings Programs can help. These programs — QMB, SLMB, and QI — pay for different parts of Medicare costs based on your parent's income level.\n\nThe most comprehensive program (QMB) covers Medicare Part B premiums ($185/month in 2025), annual deductibles, and all copays for Medicare-covered services. Even the most limited program (QI) saves $2,220 per year by covering just the Part B premium. Because these programs have different income limits — from $1,305/month for QMB up to $1,762/month for QI — your parent may qualify even if their income seems too high for other assistance programs.\n\nApply through your county's Medi-Cal office. Processing takes up to 45 days, and QI has limited federal funding, so earlier applications have better chances of approval.",
+      "savingsRange": "$2,220 – $4,000+/year in 2025",
+      "savingsSource": "Medicare Part B premiums, deductibles, and copayments covered",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Has Medicare Parts A and B",
+          "Income below $1,762/month (single)",
+          "Assets under $130,000 (single)",
+          "California resident"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1305
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 1763
+          }
+        ],
+        "assetLimits": {
+          "individual": 130000,
+          "couple": 195000,
+          "countedAssets": [
+            "Bank accounts",
+            "Investments",
+            "Certificates of deposit"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "One vehicle",
+            "Personal belongings",
+            "Life insurance up to certain values",
+            "Burial plots and funds"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be enrolled in Medicare Part A and Part B",
+          "U.S. citizen or qualified non-citizen",
+          "California resident"
+        ],
+        "povertyLevelReference": "100-135% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply through your county Medi-Cal office by mail, phone, or in-person — processing takes up to 45 days.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your county office",
+            "description": "Use the dhcs.ca.gov county locator to find your local Medi-Cal office contact information."
+          },
+          {
+            "step": 2,
+            "title": "Complete form MC 14A",
+            "description": "Fill out the QMB/SLMB/QI application form and MC 13 (Rights and Responsibilities form)."
+          },
+          {
+            "step": 3,
+            "title": "Gather required documents",
+            "description": "Collect proof of income, Medicare cards, bank statements, and identification documents."
+          },
+          {
+            "step": 4,
+            "title": "Submit application",
+            "description": "Mail, deliver in-person, or submit by phone to your county office. QI has limited funding, so apply early in the year."
+          }
+        ],
+        "processingTime": "Up to 45 days",
+        "waitlist": "QI program often has waitlist due to federal funding caps — first-come, first-served",
+        "tip": "Apply for QI early in the calendar year when federal funding is most available.",
+        "urls": [
+          {
+            "label": "Find County Office",
+            "url": "https://www.dhcs.ca.gov/individuals/Pages/Medicare-Savings-Programs-in-California.aspx"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "tier-comparison",
+          "heading": "Three Program Levels",
+          "tiers": [
+            {
+              "name": "QMB (Qualified Medicare Beneficiary)",
+              "description": "Most comprehensive coverage",
+              "incomeLimit": "$1,305/month single, $1,763/month couple",
+              "coverage": "Part B premiums, deductibles, and all copays for Medicare services"
+            },
+            {
+              "name": "SLMB (Specified Low-Income Medicare Beneficiary)",
+              "description": "Premium assistance only",
+              "incomeLimit": "$1,566/month single, $2,116/month couple",
+              "coverage": "Part B premiums only ($185/month in 2025)"
+            },
+            {
+              "name": "QI (Qualifying Individual)",
+              "description": "Limited funding, apply early",
+              "incomeLimit": "$1,762/month single, $2,381/month couple",
+              "coverage": "Part B premiums only ($185/month in 2025)"
+            }
+          ]
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and savings",
+            "Certificates of deposit",
+            "Stocks, bonds, and investments"
+          ],
+          "excluded": [
+            "Primary home (any value)",
+            "One vehicle",
+            "Personal belongings and household items",
+            "Life insurance (up to certain values)",
+            "Burial plots and burial funds"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Birth certificate or state ID",
+                "Utility bill or lease showing California address",
+                "Citizenship or immigration documents"
+              ]
+            },
+            {
+              "name": "Medicare Information",
+              "items": [
+                "Medicare Part A card",
+                "Medicare Part B card",
+                "Proof of Medicare enrollment"
+              ]
+            },
+            {
+              "name": "Financial Documents",
+              "items": [
+                "Social Security benefit letters",
+                "Pension or retirement income statements",
+                "Bank statements for all accounts",
+                "Investment account statements"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "QI program has federal funding caps and often has waitlists. Apply early in the calendar year when funding is most available. QMB and SLMB have no waitlists."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Your parent must be enrolled in Medicare Part B before applying — not just Part A. If they declined Part B originally, they may need to enroll during open enrollment first."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent's income is just over the QI limit of $1,762/month?",
+          "answer": "They may still qualify for Medi-Cal with a share-of-cost, which can help with Medicare expenses. Income limits also change every April based on federal poverty levels, so they might qualify later in the year."
+        },
+        {
+          "question": "Can my parent keep their house if they qualify?",
+          "answer": "Yes. The primary home doesn't count toward the $130,000 asset limit, regardless of its value. They can also keep one vehicle and personal belongings."
+        },
+        {
+          "question": "My parent has Part A but declined Part B years ago. Can they still apply?",
+          "answer": "They must enroll in Medicare Part B first. They can enroll during the annual open enrollment period (October 15 - December 7) or may qualify for a Special Enrollment Period if they had other qualifying coverage."
+        },
+        {
+          "question": "How much will this actually save on medical bills?",
+          "answer": "QMB saves the most — Part B premium ($185/month), annual deductible ($240 in 2025), plus all copays and coinsurance. That's at least $2,460/year, often much more depending on medical use. SLMB and QI save $2,220/year in premiums."
+        },
+        {
+          "question": "What happens if my parent's income changes after approval?",
+          "answer": "They must report income changes within 10 days or risk losing benefits. If income increases, they might move to a different program tier or lose coverage. If it decreases, they might qualify for more comprehensive coverage."
+        },
+        {
+          "question": "Why does QI have a waitlist but the others don't?",
+          "answer": "QI receives limited federal funding each year and operates on first-come, first-served basis. QMB and SLMB are entitlement programs with no funding caps, so there are no waitlists."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://www.dhcs.ca.gov/individuals/Pages/Medicare-Savings-Programs-in-California.aspx",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "california-mssp-waiver",
+      "name": "Multipurpose Senior Services Program (MSSP) Waiver",
+      "shortName": "MSSP Waiver",
+      "tagline": "If your parent needs nursing home level care but wants to stay home, this program provides care coordination and home services through Medi-Cal.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local CDA-contracted agencies",
+            "type": "service-area"
+          },
+          {
+            "name": "Local DHCS county offices",
+            "type": "service-area"
+          },
+          {
+            "name": "Area Agencies on Aging (AAA)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent qualifies for nursing home care but wants to remain at home, the MSSP Waiver provides comprehensive home and community services through Medi-Cal. This program assigns a care team (nurses and social workers) who coordinate all services — from personal care and adult day programs to home-delivered meals and emergency response systems.\n\nYour parent must be 60+, eligible for Medi-Cal, and need nursing facility level care (meaning they require daily help with activities like bathing, dressing, or medication management). Because this isn't an entitlement program, there are limited slots — 11,940 statewide for 2024-2029 — which means waitlists exist even if your parent qualifies.\n\nUnlike some programs that let you hire family members, MSSP requires using licensed agencies. The program covers the full cost of an individualized service plan designed to keep your parent safely at home.",
+      "savingsRange": "",
+      "savingsSource": "Free service through Medi-Cal",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Must have Medi-Cal",
+          "Need nursing facility level care",
+          "Live in participating county",
+          "Limited slots available"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must require nursing facility level care (a clinical assessment showing your parent needs daily help with activities like bathing, dressing, medication management, or meals due to functional impairments or medical conditions)",
+        "otherRequirements": [
+          "Must be eligible for Medi-Cal",
+          "Must live in a county with MSSP providers",
+          "Cannot be enrolled in another Home and Community-Based Services waiver program"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your local Area Agency on Aging or the state hotline at 1-800-510-2020 — processing time varies and waitlists are common.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact your local provider",
+            "description": "Call 1-800-510-2020 to find MSSP providers in your county, or contact your Area Agency on Aging directly"
+          },
+          {
+            "step": 2,
+            "title": "Complete health assessment",
+            "description": "A nurse or social worker will assess whether your parent meets nursing facility level of care requirements"
+          },
+          {
+            "step": 3,
+            "title": "Verify Medi-Cal eligibility",
+            "description": "Provide documentation showing current Medi-Cal coverage (must be eligible with no share of cost in some regions)"
+          },
+          {
+            "step": 4,
+            "title": "Join waitlist if needed",
+            "description": "If no slots are available, your parent will be placed on a waitlist and contacted when services become available"
+          }
+        ],
+        "processingTime": "Not specified — varies by county and slot availability",
+        "waitlist": "Yes — limited to 11,940 slots statewide. Waitlists form when program is full in your area.",
+        "tip": "Apply even if there's a waitlist. Your parent's needs may change, and slots do open up as circumstances change.",
+        "urls": [
+          {
+            "label": "Official MSSP Information",
+            "url": "https://www.dhcs.ca.gov/services/medi-cal/Pages/MSSPMedi-CalWaiver.aspx"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Birth certificate or ID showing age 60+",
+                "Proof of California residency in participating county"
+              ]
+            },
+            {
+              "name": "Medical & Functional",
+              "items": [
+                "Current Medi-Cal card and eligibility verification",
+                "Medical records showing functional impairments or conditions",
+                "Documentation of daily care needs (bathing, dressing, medications, meals)"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "This program has limited slots (11,940 statewide) and waitlists are common. Apply early even if your parent's needs aren't urgent — the assessment process takes time and slots may not be immediately available."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "You cannot hire family members or friends as caregivers through MSSP. All services must come from licensed agencies contracted with the program."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house if she qualifies for MSSP?",
+          "answer": "Yes. MSSP follows Medi-Cal asset rules, which typically exempt the primary home. The program is specifically designed to help people stay in their own homes instead of moving to nursing facilities."
+        },
+        {
+          "question": "What if there's a waitlist in our county?",
+          "answer": "Apply anyway and get on the waitlist. Slots open up as circumstances change, and your parent's condition may worsen while waiting, potentially moving them up in priority. The assessment process also takes time."
+        },
+        {
+          "question": "Can I hire my sister to provide care through this program?",
+          "answer": "No. MSSP requires using licensed agencies contracted with the program. You cannot hire family members, friends, or choose your own independent caregivers like some other programs allow."
+        },
+        {
+          "question": "What's the difference between MSSP and In-Home Supportive Services (IHSS)?",
+          "answer": "MSSP provides comprehensive care coordination through a team approach and requires nursing home level care needs. IHSS allows hiring family members and focuses on basic personal care. You can only be enrolled in one program at a time."
+        },
+        {
+          "question": "What if Dad has a share of cost for his Medi-Cal?",
+          "answer": "MSSP requirements vary by region, but some areas require Medi-Cal with no share of cost. Contact your local MSSP provider to determine if your father's specific Medi-Cal coverage qualifies."
+        },
+        {
+          "question": "Is this program available in all California counties?",
+          "answer": "No. MSSP was previously available in 48 of 58 counties. While the 2024 waiver authorizes statewide expansion, it's not fully implemented yet. Call 1-800-510-2020 to check availability in your county."
+        }
+      ],
+      "phone": "1-800-510-2020",
+      "sourceUrl": "https://www.dhcs.ca.gov/services/medi-cal/Pages/MSSPMedi-CalWaiver.aspx",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "california-pace-elderly-care",
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "shortName": "PACE",
+      "tagline": "Complete medical and social care for your parent who needs nursing home-level help but wants to stay home.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Over 40 programs in 28 counties; contact DHCS or local PACE for list (e.g., West PACE San Marcos, CA)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 55+ and has been told they need nursing home-level care, PACE lets them stay home while getting everything they need under one program. Your parent receives all medical care, prescriptions, meals, transportation, and personal care with one team coordinating everything — no juggling multiple doctors, insurance approvals, or copays.\n\nBecause PACE covers all services through one program, your parent won't need Medicare Advantage, prescription drug plans, or separate specialist referrals. The catch: your parent must live in a PACE service area (available in 28 of California's 58 counties) and be certified as needing nursing home-level care while still being able to live safely at home.\n\nOver 28,000 California seniors use PACE through 117 centers statewide. If your parent has both Medicare and Medi-Cal, all services are free. If they only have Medicare, they pay a monthly premium for the Medicaid portion of services.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Needs nursing home-level care",
+          "Can live safely at home",
+          "Lives in PACE service area",
+          "Not in Medicare Advantage"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": null,
+          "couple": null,
+          "countedAssets": [
+            "Bank accounts",
+            "Non-exempt property",
+            "Investments"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "One car",
+            "Personal belongings"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "Must be certified as needing nursing home-level care (requires daily help with bathing, dressing, medication management, or similar care) but able to live safely in the community with PACE support.",
+        "otherRequirements": [
+          "Live in a PACE service area (specific counties/zip codes)",
+          "Cannot be enrolled in Medicare Advantage, Medicare prescription drug plan, or hospice"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact your local PACE center directly for an assessment — they'll schedule your evaluation and handle all paperwork.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local PACE provider",
+            "description": "Call DHCS at (916) 713-8444 to confirm there's a PACE program serving your parent's address."
+          },
+          {
+            "step": 2,
+            "title": "Contact the PACE center",
+            "description": "Call your local PACE provider directly to schedule an interdisciplinary team assessment."
+          },
+          {
+            "step": 3,
+            "title": "Complete the assessment",
+            "description": "PACE staff will evaluate your parent's medical needs and determine if they meet nursing home-level care requirements."
+          },
+          {
+            "step": 4,
+            "title": "Get state certification",
+            "description": "California DHCS must certify your parent needs nursing home-level care based on the PACE assessment."
+          },
+          {
+            "step": 5,
+            "title": "Disenroll from conflicting programs",
+            "description": "Your parent must leave Medicare Advantage, prescription drug plans, or hospice before PACE enrollment."
+          }
+        ],
+        "processingTime": "Assessment scheduled shortly after inquiry; plan of care created after assessment completion",
+        "waitlist": "Possible waitlists vary by PACE provider and region",
+        "tip": "PACE staff will help determine Medi-Cal eligibility and guide document preparation — you don't need to figure out financial requirements alone.",
+        "urls": [
+          {
+            "label": "California DHCS PACE Information",
+            "url": "https://www.dhcs.ca.gov/provgovpart/Pages/PACE.aspx"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts for Medi-Cal Portion",
+          "included": [
+            "Bank accounts and savings",
+            "Stocks, bonds, and investments",
+            "Non-exempt real estate",
+            "Second vehicles"
+          ],
+          "excluded": [
+            "Primary home (where your parent lives)",
+            "One car",
+            "Personal belongings and household items",
+            "Burial funds up to certain limits"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity and Residence",
+              "items": [
+                "Photo ID or driver's license",
+                "Proof of address (utility bill, lease)"
+              ]
+            },
+            {
+              "name": "Medical Records",
+              "items": [
+                "Recent medical records showing care needs",
+                "Current medication list",
+                "Medicare and Medi-Cal cards (if applicable)"
+              ]
+            },
+            {
+              "name": "Financial (if applying for Medi-Cal coverage)",
+              "items": [
+                "Bank statements",
+                "Social Security award letter",
+                "Property deeds"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "PACE is only available in 28 of California's 58 counties. Your parent must live in the exact service area of a PACE provider — even within covered counties, not all zip codes are served."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Your parent cannot be enrolled in Medicare Advantage and PACE at the same time. PACE staff will help you disenroll from Medicare Advantage before starting PACE services."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house if she qualifies for PACE?",
+          "answer": "Yes. Your parent's primary home doesn't count toward asset limits for the Medi-Cal portion of PACE. The goal is keeping people in their homes with comprehensive support."
+        },
+        {
+          "question": "What if Dad only has Medicare but not Medi-Cal?",
+          "answer": "He can still use PACE but will pay a monthly premium for the Medicaid portion of services. PACE staff will help determine the cost and whether he might qualify for Medi-Cal to eliminate the premium."
+        },
+        {
+          "question": "Does PACE replace Mom's regular doctor?",
+          "answer": "Yes. PACE provides all primary care through their medical team at PACE centers. Your parent will get a new primary care doctor who works with the PACE interdisciplinary team."
+        },
+        {
+          "question": "Can Dad leave PACE if he doesn't like it?",
+          "answer": "Yes, PACE participation is voluntary. Your parent can disenroll at any time and return to regular Medicare coverage, though they'll need to find new providers and may have gaps in services."
+        },
+        {
+          "question": "What if there's a waitlist at our local PACE center?",
+          "answer": "Waitlists vary by provider and region. Contact your local PACE center to ask about current wait times and whether you can be placed on a waiting list while maintaining current care."
+        },
+        {
+          "question": "Will PACE cover Dad's expensive heart medication?",
+          "answer": "Yes. PACE covers all prescriptions with no restrictions or formulary limits, unlike Medicare Part D plans. The PACE team manages all medications as part of your parent's care plan."
+        }
+      ],
+      "phone": "(916) 713-8444",
+      "sourceUrl": "https://www.dhcs.ca.gov/provgovpart/Pages/PACE.aspx",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "california-calfresh-food-benefits",
+      "name": "CalFresh",
+      "shortName": "CalFresh",
+      "tagline": "Monthly food benefits on an EBT card — including prepared meals at restaurants for California seniors 60+.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "County Social Services Agencies (e.g., Alameda SSA, LA DPSS, Riverside DPSS)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and struggling with grocery costs, CalFresh provides monthly food benefits on an EBT card. Because your parent is a senior, they get special advantages: no asset limits (they can keep their home, car, and retirement savings), extra deductions for medical expenses over $35/month including Medicare premiums, and the ability to buy prepared meals at participating restaurants statewide.\n\nBenefits start at $15/month for eligible seniors and scale up based on household size and expenses. Your parent can apply as a separate household even if living with family, and the income test is more generous for seniors — it's based on net income after deductions, not gross income.",
+      "savingsRange": "",
+      "savingsSource": "Monthly food benefit amount varies by household size and expenses",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "California resident",
+          "Low income after deductions",
+          "No asset limits for seniors"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": null,
+          "couple": null,
+          "countedAssets": [],
+          "exemptAssets": [
+            "Home",
+            "Household goods",
+            "Cars (any value)",
+            "Retirement accounts (IRAs, pensions)",
+            "Personal items",
+            "Burial plots"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must buy or prepare meals as separate household or with qualifying family members"
+        ],
+        "povertyLevelReference": "200% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online through your county's website, by phone, or in person — processing time varies by county.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your county social services agency",
+            "description": "Each California county processes CalFresh applications — look up your specific county's website or call their office directly."
+          },
+          {
+            "step": 2,
+            "title": "Complete Form CF 285",
+            "description": "Fill out the CalFresh application online, request it by mail, or complete it in person at your county office."
+          },
+          {
+            "step": 3,
+            "title": "Gather medical expense documentation",
+            "description": "Collect Medicare premium statements, prescription receipts, and medical bills over $35/month — these deductions can significantly increase your parent's benefits."
+          },
+          {
+            "step": 4,
+            "title": "Submit income and housing cost proof",
+            "description": "Provide SSI/SSDI award letters, rent or mortgage statements, and utility bills to calculate net income after deductions."
+          }
+        ],
+        "processingTime": "Varies by county",
+        "waitlist": null,
+        "tip": "SSI and SSDI recipients are eligible despite common myths — and seniors get longer certification periods up to 24 months.",
+        "urls": [
+          {
+            "label": "Official CalFresh Information",
+            "url": "https://www.cdss.ca.gov/calfresh"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [],
+          "excluded": [
+            "Your parent's home (any value)",
+            "Cars and vehicles (any value)",
+            "Retirement accounts (IRAs, pensions, 401k)",
+            "Household goods and personal items",
+            "Burial plots",
+            "Federal tax refunds and EITC payments"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "California ID or driver's license",
+                "Proof of California residency"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "SSI/SSDI award letters or pay stubs",
+                "Rent or mortgage statements",
+                "Utility bills",
+                "Medicare premium statements",
+                "Medical bills and prescription receipts over $35/month",
+                "Transportation costs for medical appointments"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Seniors 60+ get no asset limits and can deduct medical expenses over $35/month — including Medicare premiums, prescriptions, and medical transportation — which often increases benefits significantly."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my mom keep her house and still qualify for CalFresh?",
+          "answer": "Yes. Seniors 60+ have no asset limits for CalFresh. Your mom can own her home, car, and keep all retirement savings and still qualify based only on her monthly income after deductions."
+        },
+        {
+          "question": "My dad gets SSI — is he automatically eligible?",
+          "answer": "Not automatically, but SSI recipients are often eligible and get special advantages. The SSI income counts, but he can deduct medical expenses over $35/month and housing costs to lower his countable income."
+        },
+        {
+          "question": "Can Mom buy prepared meals with CalFresh?",
+          "answer": "Yes. California has a statewide Restaurant Meals Program for seniors 60+. Your mom can use her EBT card at participating restaurants and grocery stores that sell prepared meals — not just groceries."
+        },
+        {
+          "question": "What if my parent lives with family but buys their own food?",
+          "answer": "Seniors 60+ can apply as a separate household even when living with others, as long as they buy and prepare meals separately. This often results in higher benefits than applying as part of a larger household."
+        },
+        {
+          "question": "How much will my parent receive in CalFresh benefits?",
+          "answer": "Benefits start at $15/month minimum for eligible seniors and increase based on household size and allowable deductions. Medical expenses over $35/month (including Medicare premiums) and housing costs reduce countable income, increasing benefits."
+        },
+        {
+          "question": "Does my parent need to visit a county office to apply?",
+          "answer": "No. Seniors can apply online, by phone, or by mail through their county social services agency. In-person visits are optional, and many counties offer phone interviews for the application process."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://www.cdss.ca.gov/calfresh",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "california-liheap-energy-assistance",
+      "name": "LIHEAP",
+      "shortName": "Energy Help",
+      "tagline": "Your parent could get help paying electricity and gas bills if their household income is under $3,332/month.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local energy agencies via csd.ca.gov; PG&E: 1-866-675-6623; Benefits Enrollment Centers",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent struggles with high electricity or gas bills, LIHEAP (Low Income Home Energy Assistance Program) provides direct payments to utility companies or your parent. The program covers electricity, propane, fuel oil, wood pellets, and emergency repairs for water heaters, furnaces, or air conditioners.\n\nPriority goes to households with someone 60 or older, anyone with disabilities, families with young children, or those facing utility shutoffs. Because funding is limited each year, eligible families may still be denied if money runs out — so applying early when the program opens is critical.\n\nThe amount varies based on your parent's income, household size, and energy costs. Payments go directly to the utility company or as a warrant to your parent.",
+      "savingsRange": "",
+      "savingsSource": "Varies by household income and energy need",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "California resident paying heating/cooling bills",
+          "Household income under limits (see table)",
+          "U.S. citizen or legal resident",
+          "Priority for age 60+ or disabilities"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 3332
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 4357
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 5382
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 6407
+          },
+          {
+            "householdSize": 5,
+            "monthlyLimit": 7432
+          },
+          {
+            "householdSize": 6,
+            "monthlyLimit": 8457
+          },
+          {
+            "householdSize": 7,
+            "monthlyLimit": 8650
+          },
+          {
+            "householdSize": 8,
+            "monthlyLimit": 8842
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Cannot live in nursing home, board-and-care, or jail",
+          "Must be responsible for home heating/cooling bills",
+          "Automatic eligibility if receiving SNAP, SSI, TANF, or certain veterans' benefits"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact your local energy assistance agency for an application — no statewide online option, processing takes several weeks.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local agency",
+            "description": "Visit csd.ca.gov to find your local energy assistance provider, or call PG&E at 1-866-675-6623 for referrals."
+          },
+          {
+            "step": 2,
+            "title": "Request application",
+            "description": "Call your local agency to have application mailed, pick up in person, or check if they offer online applications."
+          },
+          {
+            "step": 3,
+            "title": "Gather required documents",
+            "description": "Collect recent energy bills, income proof for all household members, photo ID, Social Security cards, and citizenship documentation."
+          },
+          {
+            "step": 4,
+            "title": "Submit complete application",
+            "description": "Return all forms and documents to your local agency. Missing items will delay processing."
+          },
+          {
+            "step": 5,
+            "title": "Continue paying bills",
+            "description": "Keep paying utility bills during processing. Ask your utility company about payment plans if needed."
+          }
+        ],
+        "processingTime": "Several weeks",
+        "waitlist": null,
+        "tip": "Apply as soon as the program opens each year — funding is limited and eligible families can be denied once money runs out.",
+        "urls": [
+          {
+            "label": "Find Local Agency",
+            "url": "https://www.csd.ca.gov/pages/liheapprogram.aspx"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "2026 Income Limits by Household Size",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 3332
+            },
+            {
+              "householdSize": 2,
+              "monthlyLimit": 4357
+            },
+            {
+              "householdSize": 3,
+              "monthlyLimit": 5382
+            },
+            {
+              "householdSize": 4,
+              "monthlyLimit": 6407
+            },
+            {
+              "householdSize": 5,
+              "monthlyLimit": 7432
+            },
+            {
+              "householdSize": 6,
+              "monthlyLimit": 8457
+            },
+            {
+              "householdSize": 7,
+              "monthlyLimit": 8650
+            },
+            {
+              "householdSize": 8,
+              "monthlyLimit": 8842
+            }
+          ],
+          "footnote": "For households larger than 8, add $192.21 per additional person. Gross monthly income for all household members."
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Photo ID for applicant",
+                "Social Security cards or numbers for all household members",
+                "Proof of U.S. citizenship or legal status (birth certificate, green card)",
+                "Birth certificates for children 0-5 or adults 60+"
+              ]
+            },
+            {
+              "name": "Energy Bills",
+              "items": [
+                "Most recent home energy bill (electricity, gas, propane, etc.)",
+                "Past due or termination notice if applicable",
+                "Account holder authorization if bills aren't in your parent's name"
+              ]
+            },
+            {
+              "name": "Income Documentation",
+              "items": [
+                "Pay stubs for all working household members",
+                "Social Security award letters",
+                "Unemployment benefits statements",
+                "Self-employment records or cash job documentation",
+                "Child support payments",
+                "Certification of Income and Expenses form if anyone has zero income"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "LIHEAP has limited funding each year. Even if your parent qualifies, they may be denied if money runs out. Priority goes to elderly, disabled, families with young children, or those facing shutoffs. Apply early when the program opens."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "There's no single statewide application. You must work with your local energy assistance agency, and each county may have different providers and processing times."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if Mom's income is just over the limit?",
+          "answer": "If she receives SNAP, SSI, TANF, or certain veterans' benefits, she automatically qualifies regardless of the income limits. Otherwise, she must be under the household income limit to qualify."
+        },
+        {
+          "question": "Can Dad apply if he lives in assisted living?",
+          "answer": "It depends on the type. He cannot apply if he lives in a nursing home, convalescent home, or board-and-care facility. But if he lives in senior apartments or assisted living where he pays his own utility bills, he may qualify."
+        },
+        {
+          "question": "How much money will my parent actually receive?",
+          "answer": "The amount varies based on income, household size, and energy costs. There's no set benefit amount — it's calculated individually. The program aims to help households earning up to 60% of state median income."
+        },
+        {
+          "question": "What if the utility company is threatening to shut off service?",
+          "answer": "Households facing disconnection get priority in the application process. Include the disconnection notice with your application. Meanwhile, contact the utility company about payment plans to avoid shutoff during processing."
+        },
+        {
+          "question": "Does my parent have to pay this money back?",
+          "answer": "No, LIHEAP benefits are not loans. The payments to utility companies or direct payments to your parent do not need to be repaid."
+        },
+        {
+          "question": "Can my parent apply every year?",
+          "answer": "Yes, if they continue to meet eligibility requirements. However, they must reapply each program year — benefits don't automatically renew. Apply early each year when funding becomes available."
+        }
+      ],
+      "phone": "1-866-675-6623",
+      "sourceUrl": "https://www.csd.ca.gov/pages/liheapprogram.aspx",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "california-weatherization-assistance-program",
+      "name": "Weatherization Assistance Program (WAP)",
+      "shortName": "Weatherization Assistance",
+      "tagline": "Free home energy improvements that can lower your parent's utility bills by hundreds of dollars yearly.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "CSD local service providers statewide",
+            "type": "service-area"
+          },
+          {
+            "name": "San Joaquin County Human Services Agency",
+            "type": "service-area"
+          },
+          {
+            "name": "CSET (Tulare/Kings)",
+            "type": "service-area"
+          },
+          {
+            "name": "211 LA providers",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent's income is low and their home feels drafty or has high energy bills, they may qualify for free weatherization services. California's Weatherization Assistance Program installs free insulation, repairs or replaces heating and air conditioning systems, upgrades water heaters, and replaces inefficient appliances like refrigerators and stoves.\n\nBecause the program covers a whole-home energy assessment and all approved improvements at no cost, your parent won't pay anything upfront or receive bills later. Priority goes to households with elderly residents, people with disabilities, or families with young children, but any qualifying household can apply.\n\nIncome limits are typically set at 200% of the federal poverty level, but exact dollar amounts vary by household size and local provider. The program is administered county by county, so you'll need to contact your parent's local provider for specific eligibility requirements and to schedule the initial assessment.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Income at 200% federal poverty level or lower",
+          "California resident",
+          "Homeowner or renter",
+          "Priority for elderly households"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Legal resident of California",
+          "Named on energy bill (some regions)",
+          "Landlord approval required for renters"
+        ],
+        "povertyLevelReference": "200% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact your local weatherization provider by phone — processing times vary by region and funding availability.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local provider",
+            "description": "Visit the California Community Services Department website or call 1-844-224-1316 to find your county's weatherization provider."
+          },
+          {
+            "step": 2,
+            "title": "Call to check eligibility",
+            "description": "Contact your local provider with household income information to confirm eligibility before applying."
+          },
+          {
+            "step": 3,
+            "title": "Submit application",
+            "description": "Complete the intake application with required income documentation and utility bills."
+          },
+          {
+            "step": 4,
+            "title": "Schedule home assessment",
+            "description": "If approved, a technician will visit to assess your parent's home and determine which improvements qualify."
+          }
+        ],
+        "processingTime": "Varies by region and funding availability",
+        "waitlist": "Possible due to prioritization and funding availability",
+        "tip": "If your parent received a utility shutoff notice, mention this when calling — some regions offer emergency appointments within 1-2 days.",
+        "urls": [
+          {
+            "label": "Find Local Provider",
+            "url": "https://www.csd.ca.gov/Pages/Residential-Energy-Efficiency.aspx"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Proof of legal residency or California ID",
+                "Social Security cards for all household members"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Last 4 weeks of pay stubs for all working household members",
+                "Benefit letters (Social Security, disability, pension)",
+                "Most recent electric, gas, and propane bills",
+                "Utility bills or receipts for all energy sources used in the home"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Renters need landlord approval before weatherization work can begin. Get written permission before applying to avoid delays."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Each household can typically receive weatherization services once per eligibility period. The program prioritizes elderly residents, so mention your parent's age when calling."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent rents their home?",
+          "answer": "Renters can qualify, but you'll need written approval from the landlord before any work begins. The improvements benefit the property, so many landlords agree, but get this permission early to avoid application delays."
+        },
+        {
+          "question": "How much can my parent earn and still qualify?",
+          "answer": "Income limits are typically 200% of the federal poverty level, but exact dollar amounts vary by household size and local provider. Call your parent's local weatherization office with their specific income information to confirm eligibility."
+        },
+        {
+          "question": "Will this help with my parent's high utility bills?",
+          "answer": "Yes, but weatherization focuses on long-term energy efficiency improvements, not emergency bill payment. The insulation, heating system repairs, and appliance replacements should lower future bills, but won't pay past-due amounts."
+        },
+        {
+          "question": "What if my parent's income is just over the limit?",
+          "answer": "Income limits vary by household size and income sources, not just total dollars. Call your local provider to verify — they may count income differently than you expect, or your parent may qualify for related programs."
+        },
+        {
+          "question": "How long does it take to get the work done?",
+          "answer": "Processing times vary significantly by region and funding availability. Some areas have waiting lists due to high demand. If your parent received a utility disconnect notice, mention this when applying — some regions offer faster processing for emergencies."
+        },
+        {
+          "question": "Can my parent get weatherization services more than once?",
+          "answer": "Typically, households can receive services once per eligibility period. Contact your local provider to ask about timing if your parent received weatherization services in the past."
+        }
+      ],
+      "phone": "1-844-224-1316",
+      "sourceUrl": "https://www.csd.ca.gov/Pages/Residential-Energy-Efficiency.aspx",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "california-hicap-medicare-counseling",
+      "name": "Health Insurance Counseling & Advocacy Program (HICAP)",
+      "shortName": "HICAP",
+      "tagline": "Free one-on-one help navigating Medicare choices, appeals, and billing problems for your parent.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "California Department of Aging (state oversight)",
+            "type": "service-area"
+          },
+          {
+            "name": "Local examples: Council on Aging (Orange et al.), Sourcewise (Santa Clara), Kern County Aging and Adult Services, Ventura County AAA",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is on Medicare or about to be, HICAP provides free, unbiased counseling to help them navigate their options. Because Medicare can be overwhelming — with Parts A, B, C, D, Medigap, and Medicare Advantage plans — HICAP counselors sit down with your parent one-on-one to compare plans, resolve billing issues, and help with appeals.\n\nHICAP serves all Medicare beneficiaries regardless of income, including those 65+ and younger people with disabilities who qualify for Medicare. The program also helps family members who are advocating for their parents. Counselors don't sell insurance — they provide education and advocacy to help your parent make informed decisions about their Medicare coverage.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Medicare eligible or soon-to-be eligible",
+          "Any income level",
+          "Family members can also get help"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be eligible for Medicare (age 65+ or younger with disability)",
+          "Soon-to-be Medicare eligible also qualify",
+          "Family members and representatives of Medicare beneficiaries can receive help"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call your local HICAP office to schedule a free counseling appointment — most respond quickly to phone calls.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call your local HICAP office",
+            "description": "Use 800-434-0222 for statewide service or call your county-specific number for faster local connection."
+          },
+          {
+            "step": 2,
+            "title": "Schedule your counseling session",
+            "description": "Most offices offer phone appointments, in-person meetings, or home visits depending on your parent's needs."
+          },
+          {
+            "step": 3,
+            "title": "Bring Medicare information",
+            "description": "Have your parent's Medicare card, current insurance details, and any bills or problems they need help resolving."
+          }
+        ],
+        "processingTime": "Most offices respond to schedule appointments quickly via phone",
+        "waitlist": null,
+        "tip": "Call your county-specific number rather than the statewide line for faster connection to local counselors who know your area's providers.",
+        "urls": [
+          {
+            "label": "California HICAP Main Page",
+            "url": "https://www.aging.ca.gov/hicap/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "Local HICAP Offices",
+          "offices": [
+            {
+              "name": "Statewide Line",
+              "type": "service-area",
+              "phone": "800-434-0222",
+              "address": "Available statewide"
+            },
+            {
+              "name": "Orange County",
+              "type": "county",
+              "phone": "714-560-0424",
+              "address": "Council on Aging"
+            },
+            {
+              "name": "Riverside, San Bernardino, Inyo, Mono Counties",
+              "type": "service-area",
+              "phone": "909-256-8369",
+              "address": "Council on Aging"
+            },
+            {
+              "name": "Kern County",
+              "type": "county",
+              "phone": "661-868-1000",
+              "address": "5357 Truxtun Ave., Bakersfield"
+            },
+            {
+              "name": "Santa Clara County",
+              "type": "county",
+              "phone": "408-350-3245",
+              "address": "Sourcewise"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "HICAP counselors cannot sell insurance or recommend specific companies. They provide unbiased education only, which means you can trust their advice isn't influenced by sales commissions."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can HICAP help if my parent already has Medicare and is having problems?",
+          "answer": "Yes. HICAP helps with billing issues, claim denials, appeals, and complaints about existing Medicare coverage. They can also help your parent compare their current plan to other options during open enrollment."
+        },
+        {
+          "question": "Will HICAP try to sell my parent insurance?",
+          "answer": "No. HICAP counselors are prohibited from selling insurance or being licensed agents. They provide education and advocacy only, with no financial incentive to push specific plans."
+        },
+        {
+          "question": "Can I get help for my parent if I live in a different county?",
+          "answer": "Yes. You can call any HICAP office to get help for your parent, or call the statewide line at 800-434-0222. Family members and representatives are specifically eligible for HICAP services."
+        },
+        {
+          "question": "What if my parent isn't on Medicare yet but will be soon?",
+          "answer": "HICAP helps people who are approaching Medicare eligibility. This is actually the best time to get counseling — before your parent has to make decisions about Medicare plans during their initial enrollment period."
+        },
+        {
+          "question": "Does my parent need to bring anything to the appointment?",
+          "answer": "For basic Medicare education, nothing is required. But if your parent has specific billing problems or wants to compare plans, bring their Medicare card, current insurance information, and any bills or Explanation of Benefits (EOB) statements they're questioning."
+        },
+        {
+          "question": "Can HICAP help with Medicare Savings Programs?",
+          "answer": "Yes. HICAP counselors can explain Medicare Savings Programs (which help pay Medicare premiums and costs) and assist with applications. These programs have income limits, unlike HICAP itself."
+        }
+      ],
+      "phone": "800-434-0222",
+      "sourceUrl": "https://www.aging.ca.gov/hicap/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "california-meals-on-wheels-aaa",
+      "name": "Meals on Wheels (via AAAs)",
+      "shortName": "Meals on Wheels",
+      "tagline": "Free home-delivered meals for parents who are 60+ and can't safely prepare food themselves.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local AAAs; find via aging.ca.gov or county AAA office; examples: Contra Costa providers",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and struggles to prepare meals because of illness, disability, or mobility issues, they may qualify for free home-delivered meals through their local Area Agency on Aging. This isn't about income — it's about whether your parent can safely shop for and cook nutritious food on their own.\n\nThe program typically delivers 5 meals per week (fresh or frozen) that meet one-third of daily nutritional needs. Because each of California's 33 Area Agencies on Aging runs their own program, you'll need to contact your parent's local AAA directly — there's no statewide application.\n\nMany areas have waitlists due to high demand, so apply as soon as your parent meets the homebound criteria. Spouses of any age can also receive meals if it helps the eligible 60+ participant.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Homebound due to illness/disability",
+          "Cannot prepare meals independently",
+          "No income limits"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must be homebound by reason of illness, disability, or isolation and unable to prepare meals without assistance from family or caregivers",
+        "otherRequirements": [
+          "Must live in the service area of local AAA",
+          "Spouses of any age may qualify if beneficial to the 60+ participant"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your local Area Agency on Aging for intake assessment — processing varies from within a week to several weeks if there's a waitlist.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local AAA",
+            "description": "Use aging.ca.gov to locate the Area Agency on Aging serving your parent's county or call the county directly."
+          },
+          {
+            "step": 2,
+            "title": "Call for intake assessment",
+            "description": "The local provider will assess your parent's homebound status and meal preparation needs over the phone or in person."
+          },
+          {
+            "step": 3,
+            "title": "Provide documentation",
+            "description": "Have your parent's ID, proof of residence, and any medical information about mobility or dietary needs ready."
+          },
+          {
+            "step": 4,
+            "title": "Wait for approval",
+            "description": "If approved, meals typically start within a week unless there's a local waitlist."
+          }
+        ],
+        "processingTime": "Varies by area — some within a week, longer if waitlist exists",
+        "waitlist": "Common in high-demand areas; processing and start times vary by local program",
+        "tip": "Apply early if your parent's condition is declining — waitlists are common and it's easier to get approved before a crisis.",
+        "urls": [
+          {
+            "label": "Find Local AAA",
+            "url": "https://aging.ca.gov"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residence",
+              "items": [
+                "Driver's license or state ID showing age 60+",
+                "Proof of residence in the AAA service area (utility bill, lease)"
+              ]
+            },
+            {
+              "name": "Health Information",
+              "items": [
+                "Details about mobility limitations or disabilities",
+                "List of dietary restrictions or medical nutrition needs",
+                "Information about current family/caregiver assistance with meals"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "High demand leads to waitlists in many California counties. Apply as soon as your parent qualifies rather than waiting for their condition to worsen."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "\"Homebound\" doesn't mean bedridden — it means your parent can't safely shop for groceries or prepare nutritious meals independently. Having a car doesn't automatically disqualify them if they have mobility or cognitive issues."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Will having a car or occasional family help disqualify my parent?",
+          "answer": "Maybe. Each local AAA assesses homebound status individually. Having a car doesn't automatically disqualify, but regular family assistance with meal preparation might. The key question is whether your parent can safely and independently shop for groceries and prepare nutritious meals."
+        },
+        {
+          "question": "Can my dad get meals if mom is the one who qualifies?",
+          "answer": "Yes, if your mom is 60+ and qualifies, your dad can receive meals regardless of his age if it's beneficial to your mom's care. The local AAA will determine this during the assessment."
+        },
+        {
+          "question": "How is this different from the Mom's Meals program through Medi-Cal?",
+          "answer": "This is a separate free program through Area Agencies on Aging with no income requirements. Mom's Meals is paid through Medi-Cal for specific medical conditions. Your parent might qualify for both, but they're different programs with different applications."
+        },
+        {
+          "question": "What if there's a waitlist in our area?",
+          "answer": "Ask the local AAA about their prioritization criteria — some areas prioritize by medical need or isolation level. Also ask about backup options like senior center meals or local food banks while waiting."
+        },
+        {
+          "question": "Can they accommodate special diets for diabetes or heart conditions?",
+          "answer": "Most programs can accommodate common dietary restrictions, but options vary by local provider. Ask specifically about diabetic, low-sodium, or other medically necessary diet modifications during the intake call."
+        },
+        {
+          "question": "What happens if my parent's condition improves and they can cook again?",
+          "answer": "They can discontinue the service at any time. The local AAA may also reassess eligibility periodically. It's better to apply when needed rather than worry about future changes in condition."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://aging.ca.gov/Providers_and_Partners/Home-Delivered_Nutrition/Program_Narrative_and_Fact_Sheets/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "california-family-caregiver-support-program",
+      "name": "Family Caregiver Support Program",
+      "shortName": "Caregiver Support",
+      "tagline": "Free respite care, training, and support services if you're caring for an aging parent or family member with Alzheimer's.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local Area Agencies on Aging (AAAs) statewide; some contract with CCRCs",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If you're caring for a parent 60+ or a family member with Alzheimer's, California provides free support services to help you manage caregiving stress and responsibilities. The program offers respite care (temporary relief so you can take a break), caregiver training, support groups, counseling, and help with home modifications or assistive devices.\n\nBecause this program has no income or asset limits, any unpaid family caregiver can qualify regardless of financial situation. Services are provided through your local Area Agency on Aging, though what's available depends on funding in your county — some areas may have waitlists or service limits.\n\nThis is not a paid caregiver program that provides wages or stipends. Instead, it connects you with practical support services to help you continue caring for your family member at home.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Unpaid family caregiver",
+          "Care recipient age 60+ or has Alzheimer's",
+          "No income limits",
+          "California resident"
+        ],
+        "ageRequirement": "18+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be unpaid/informal caregiver",
+          "Care recipient must be 60+ or have Alzheimer's/related disorders",
+          "Older relative caregivers (55+) can care for children under 18 or adults 18-59 with disabilities"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call 1-800-510-2020 to connect with your local provider for intake and assessment.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call statewide line",
+            "description": "Call 1-800-510-2020 to reach your local Area Agency on Aging or California Caregiver Resource Center"
+          },
+          {
+            "step": 2,
+            "title": "Complete intake assessment",
+            "description": "Discuss your caregiving situation and needs with assigned provider over phone or in-person"
+          },
+          {
+            "step": 3,
+            "title": "Provide verification",
+            "description": "Submit documents proving your age, residency, relationship to care recipient, and their age/condition"
+          },
+          {
+            "step": 4,
+            "title": "Receive support plan",
+            "description": "Provider creates personalized plan based on your needs and available services in your county"
+          }
+        ],
+        "processingTime": "Not specified statewide; varies by local provider",
+        "waitlist": "Services based on available funding; potential limits in some counties",
+        "tip": "Services vary significantly by county, so ask specifically what's available in your area when you call.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Caregiver Identity",
+              "items": [
+                "Proof of your age (18+ required)",
+                "Proof of California residency"
+              ]
+            },
+            {
+              "name": "Care Recipient Information",
+              "items": [
+                "Proof of care recipient's age (60+ required) or Alzheimer's diagnosis",
+                "Documentation of your relationship to care recipient",
+                "Consent forms if services involve medical information"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "This program provides support services to unpaid caregivers — it does not pay you wages or provide cash assistance for caregiving."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Each county administers this program differently. Ask your local provider exactly what services are available and if there are any waitlists when you call."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What exactly is respite care and how much can I get?",
+          "answer": "Respite care is temporary care for your parent so you can take a break — it could be a few hours or overnight. The amount depends on your county's funding and your needs assessment. Some counties may limit hours per month, so ask your local provider what's available."
+        },
+        {
+          "question": "Can I get help if my parent doesn't have Alzheimer's but needs daily care?",
+          "answer": "Yes, if your parent is 60 or older, they qualify regardless of their specific condition. The Alzheimer's requirement only applies to care recipients under 60."
+        },
+        {
+          "question": "I live in one county but my parent lives in another — where do I apply?",
+          "answer": "Apply in the county where your parent lives, since that's where services will be provided. Each county has its own Area Agency on Aging that administers the program."
+        },
+        {
+          "question": "Will this affect my parent's other benefits like Social Security or Medicare?",
+          "answer": "No, this program won't affect your parent's other benefits. It's a support program for caregivers, not a financial benefit for care recipients."
+        },
+        {
+          "question": "What if I work part-time but also care for my parent — do I still qualify?",
+          "answer": "Yes, you can work and still qualify as long as you're providing unpaid care to your parent. The program is for informal family caregivers, not professional paid caregivers."
+        },
+        {
+          "question": "How often do I need to requalify for services?",
+          "answer": "Reassessments happen annually or as needed when your caregiving situation changes. You'll work with your assigned provider to update your support plan."
+        }
+      ],
+      "phone": "1-800-510-2020",
+      "sourceUrl": "https://www.aging.ca.gov/Providers_and_Partners/Area_Agencies_on_Aging/Family_Caregiver_Support/Program_Narrative_and_Fact_Sheets/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "california-scsep-employment-program",
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "shortName": "SCSEP Employment",
+      "tagline": "If your parent is 55+ and unemployed with low income, they can get a paid part-time job with training to help them find permanent work.",
+      "programType": "employment",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Orange County: Orange County Department of Aging (OC focus, homeless priority)[1]",
+            "type": "service-area"
+          },
+          {
+            "name": "Los Angeles County (excl. City of LA): LA County AD (phone/contact via ad.lacounty.gov)[2]",
+            "type": "service-area"
+          },
+          {
+            "name": "Northern CA: NEW Solutions (newsolutions.org)[6]",
+            "type": "service-area"
+          },
+          {
+            "name": "Bay Area (SF, Marin, San Mateo, etc.): Felton Institute, 415-982-7007 ext 334, scsep@felton.org[5]",
+            "type": "service-area"
+          },
+          {
+            "name": "State oversight: CA Dept of Aging (aging.ca.gov), find local via grantees[4][9]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 55+ and struggling to find work, SCSEP provides a paid part-time job (typically 20 hours per week) while they learn new skills and search for permanent employment. Your parent will work at nonprofits, schools, or senior centers, earning minimum wage while getting job counseling and placement assistance.\n\nTo qualify, your parent must be unemployed with family income at or below 125% of poverty level ($19,563 for one person, $26,439 for two people in 2025). The program is not available statewide — you must contact the specific provider in your parent's area. Veterans and people 65+ get priority for limited spots.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Unemployed at enrollment",
+          "Income at 125% of poverty level",
+          "Must live in service area"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1630
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2203
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be unemployed throughout participation",
+          "Must reside in local provider's service area",
+          "U.S. resident"
+        ],
+        "povertyLevelReference": "125% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact your regional provider directly by phone or email — there's no statewide application.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your regional provider",
+            "description": "Look up which organization serves your parent's county from the provider list below. Each area has different contact methods."
+          },
+          {
+            "step": 2,
+            "title": "Contact provider directly",
+            "description": "Call, email, or visit their office. Some accept resumes by email, others require phone intake."
+          },
+          {
+            "step": 3,
+            "title": "Attend orientation",
+            "description": "Complete intake assessment with required documents to verify age, income, and unemployment status."
+          },
+          {
+            "step": 4,
+            "title": "Wait for placement",
+            "description": "If accepted, you'll be placed on a waitlist until a funded slot opens up."
+          }
+        ],
+        "processingTime": "Varies by provider and funding availability",
+        "waitlist": "Likely waitlist due to funding limits — veterans and people 65+ get priority",
+        "tip": "Call your regional provider first to ask about current waitlist times before gathering documents.",
+        "urls": [
+          {
+            "label": "Bay Area (Felton Institute)",
+            "url": "mailto:scsep@felton.org"
+          },
+          {
+            "label": "Northern California (NEW Solutions)",
+            "url": "https://newsolutions.org"
+          },
+          {
+            "label": "Find California providers",
+            "url": "https://aging.ca.gov/Programs_and_Services/Senior_Employment_and_Training/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits by Household Size (125% of Poverty Level)",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 1630
+            },
+            {
+              "householdSize": 2,
+              "monthlyLimit": 2203
+            }
+          ],
+          "footnote": "2025 estimates — exact amounts updated annually by HHS"
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Driver's license or state ID",
+                "Social Security card"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Tax returns from last year",
+                "Recent pay stubs if any",
+                "Benefit statements (Social Security, unemployment, etc.)",
+                "Proof of unemployment status"
+              ]
+            },
+            {
+              "name": "Residence",
+              "items": [
+                "Utility bill or lease showing address in service area"
+              ]
+            },
+            {
+              "name": "Priority Status (if applicable)",
+              "items": [
+                "Veteran DD-214 form",
+                "Disability documentation"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "This program has limited funding and waitlists are common. Veterans, people 65+, and those with disabilities get priority placement."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Your parent must remain unemployed throughout the program — no side jobs allowed. The goal is to transition to permanent unsubsidized work."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent lives in LA but I can't find the right provider?",
+          "answer": "LA County is served by the county's Area Agency on Aging, but the City of LA is excluded from this program. Contact LA County directly through ad.lacounty.gov to confirm if your parent's address qualifies."
+        },
+        {
+          "question": "Can my parent work other jobs while in SCSEP?",
+          "answer": "No. Your parent must remain unemployed throughout participation in SCSEP. Taking any other paid work would disqualify them from the program."
+        },
+        {
+          "question": "How long can my parent stay in the program?",
+          "answer": "This is temporary job training, not permanent employment. The goal is to help your parent find unsubsidized work. The exact time limit varies by provider and funding."
+        },
+        {
+          "question": "What if my parent's income is just over the limit?",
+          "answer": "The income limit is firm at 125% of poverty level. If your parent's income drops due to job loss or other changes, they can reapply when they meet the requirement."
+        },
+        {
+          "question": "Does my parent's Social Security count as income?",
+          "answer": "Yes, Social Security benefits count toward the family income limit. Bring recent benefit statements to show the monthly amount."
+        },
+        {
+          "question": "What kind of work will my parent do?",
+          "answer": "SCSEP places participants at nonprofits, schools, hospitals, and senior centers. The work provides job training and experience while your parent searches for permanent employment with program support."
+        }
+      ],
+      "phone": "415-982-7007",
+      "sourceUrl": "https://www.dol.gov/agencies/eta/seniors",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "california-legal-services-seniors",
+      "name": "Legal Services for Seniors (via AAAs)",
+      "shortName": "Senior Legal Services",
+      "tagline": "Free legal help for aging parents — from Medicare appeals to elder abuse protection.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local AAAs; find by county at aging.ca.gov",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs legal help but can't afford an attorney, California's Senior Legal Services provides free consultations and representation through local Area Agencies on Aging. Your parent gets access to attorneys who specialize in issues affecting older adults — Medicare appeals, Social Security disputes, elder abuse, housing problems, consumer fraud, and simple wills.\n\nThe program serves California residents age 60 and older regardless of income, though services are prioritized for those with the greatest economic or social needs. Because each county runs its own version through local AAAs, the specific services and contact methods vary by location — but all provide at least free 30-minute attorney consultations, with many offering full representation for qualifying cases.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "California resident",
+          "No income limits",
+          "Prioritized for greatest need"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "California resident"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact your county's Area Agency on Aging by phone — most provide initial intake over the phone and schedule appointments as needed.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your county's AAA",
+            "description": "Go to aging.ca.gov/Programs_and_Services/Find_Services_in_My_County/ to find your local Area Agency on Aging contact information."
+          },
+          {
+            "step": 2,
+            "title": "Call for intake",
+            "description": "Call your local AAA and explain your parent's legal issue. They'll connect you with the Senior Legal Services program in your area."
+          },
+          {
+            "step": 3,
+            "title": "Prepare case details",
+            "description": "Have ready: proof of your parent's age and California residency, plus all documents related to the legal issue (notices, letters, contracts, etc.)."
+          },
+          {
+            "step": 4,
+            "title": "Schedule consultation",
+            "description": "Most programs offer free 30-minute attorney consultations by phone or in-person. For homebound seniors, some providers offer in-home visits."
+          }
+        ],
+        "processingTime": "Initial intake often handled immediately by phone; attorney appointments scheduled based on availability",
+        "waitlist": null,
+        "tip": "High-demand areas may have wait times, so call as soon as you identify a legal issue rather than waiting for it to escalate.",
+        "urls": [
+          {
+            "label": "Find Your County's AAA",
+            "url": "https://aging.ca.gov/Programs_and_Services/Find_Services_in_My_County/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "This isn't one centralized program — each county runs its own version through local providers. Services and wait times vary significantly by location, so the experience in San Francisco will differ from rural counties."
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "These services cover civil legal matters only — not criminal defense. If your parent faces criminal charges, you'll need to find separate representation."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What kinds of legal issues can they help with?",
+          "answer": "Housing disputes, Medicare and Medi-Cal appeals, Social Security problems, elder abuse cases, consumer fraud, age discrimination, pension issues, nursing home concerns, debt collection defense, simple wills, healthcare directives, and conservatorship matters. They focus on civil legal issues that commonly affect older adults."
+        },
+        {
+          "question": "Does my parent's income matter for getting help?",
+          "answer": "No strict income limits apply — the program is available regardless of income level. However, services are prioritized for seniors with the greatest economic, social, or legal needs, so lower-income parents typically get served first in high-demand areas."
+        },
+        {
+          "question": "How much legal help will they actually provide?",
+          "answer": "It varies by county and case complexity. All programs provide at least free 30-minute attorney consultations. For qualifying cases, many offer full representation, advocacy, and even in-home visits for homebound seniors. The attorney will explain what level of help they can provide during your initial consultation."
+        },
+        {
+          "question": "What if Mom can't leave the house to meet with an attorney?",
+          "answer": "Many Senior Legal Services providers offer in-home appointments for homebound seniors. When you call your local AAA, specifically mention that your parent cannot travel — they'll connect you with services that can come to her."
+        },
+        {
+          "question": "How quickly can we get help for an urgent legal issue?",
+          "answer": "Initial phone intake often happens immediately, but attorney appointments depend on local availability and demand. For urgent matters like eviction notices or benefit terminations with deadlines, explain the time-sensitive nature when you call — they may be able to expedite or provide emergency guidance."
+        },
+        {
+          "question": "What should we bring to the legal consultation?",
+          "answer": "Bring proof of your parent's age and California residency, plus all documents related to the legal issue — letters, notices, contracts, court papers, benefit statements, or anything else relevant. The more complete information you provide, the better help the attorney can offer."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://aging.ca.gov/Providers_and_Partners/Legal_Services/Legal_Services_Overview/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "california-long-term-care-ombudsman",
+      "name": "Long-Term Care Ombudsman Program",
+      "shortName": "Ombudsman Program",
+      "tagline": "Free advocacy when your parent faces problems in their nursing home or assisted living facility.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true
+      },
+      "intro": "If your parent lives in a nursing home, assisted living, or residential care facility and faces problems with their care, treatment, or rights, they can get free help from a Long-Term Care Ombudsman. These trained advocates investigate complaints, resolve conflicts with facility staff, and protect residents' rights — at no cost to you or your parent.\n\nOmbudsmen handle everything from poor meal quality and medication errors to financial abuse and improper discharge threats. Because they're independent from the facilities, they can advocate solely for your parent's interests. The program operates through 35 local offices statewide, with ombudsmen making regular unannounced visits to facilities.\n\nThis isn't something you apply for — it's a service your parent can access immediately by contacting their local ombudsman office or calling the statewide crisis line at 1-800-231-4024.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Must live in a long-term care facility",
+          "All ages eligible",
+          "No income limits",
+          "Available statewide"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be a resident of a nursing home, assisted living, or residential care facility"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your facility's posted ombudsman number or the statewide crisis line — no application needed.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your ombudsman contact",
+            "description": "Check the facility's posted ombudsman information (required to be displayed) or call 1-800-231-4024 for the statewide crisis line"
+          },
+          {
+            "step": 2,
+            "title": "Describe the problem",
+            "description": "Explain the care issue, rights violation, or safety concern — the ombudsman will determine next steps"
+          },
+          {
+            "step": 3,
+            "title": "Let the ombudsman investigate",
+            "description": "They'll visit the facility, interview staff, and work to resolve the issue following your parent's wishes"
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Your parent can request that you be involved in meetings, but the ombudsman must follow your parent's wishes, not yours.",
+        "urls": [
+          {
+            "label": "California Department of Aging Ombudsman Program",
+            "url": "https://aging.ca.gov/Programs_and_Services/Long-Term_Care_Ombudsman/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "The ombudsman advocates for your parent's expressed wishes, which may differ from what you as the family member want. They cannot override your parent's decisions."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Nearly 80% of ombudsman representatives are trained volunteers, but they have legal authority to investigate facilities and access resident records."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my mom doesn't want to 'make trouble' by calling the ombudsman?",
+          "answer": "Ombudsmen are trained to handle complaints discreetly and protect residents from retaliation. Facilities cannot legally retaliate against residents who file complaints, and ombudsmen know how to address concerns without escalating tensions."
+        },
+        {
+          "question": "Can I call the ombudsman myself if I'm worried about my dad's care?",
+          "answer": "Yes, family members can contact the ombudsman about concerns. However, the ombudsman must get your father's permission before investigating, and they'll follow his wishes about how to proceed, not necessarily yours."
+        },
+        {
+          "question": "What kinds of problems can the ombudsman actually solve?",
+          "answer": "They investigate care quality issues (medication errors, poor hygiene assistance), rights violations (access to personal belongings, visitor restrictions), financial concerns (missing money, improper charges), and safety problems (understaffing, equipment failures)."
+        },
+        {
+          "question": "How quickly will the ombudsman respond to a serious problem?",
+          "answer": "For urgent safety concerns or abuse allegations, ombudsmen prioritize immediate response. For less critical issues, response time varies by local office workload, but they're required to make regular facility visits."
+        },
+        {
+          "question": "What if the facility threatens to discharge my parent after we file a complaint?",
+          "answer": "Retaliation is illegal, and improper discharge threats are exactly what ombudsmen address. They can investigate the discharge threat and ensure any transfer follows proper procedures and legal requirements."
+        },
+        {
+          "question": "Will using the ombudsman hurt my relationship with the facility staff?",
+          "answer": "Professional facilities understand ombudsmen are part of the care system. Ombudsmen work to resolve issues collaboratively when possible, and good facilities welcome oversight that helps them improve care quality."
+        }
+      ],
+      "phone": "1-800-231-4024",
+      "sourceUrl": "https://aging.ca.gov/Programs_and_Services/Long-Term_Care_Ombudsman/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "california-state-supplementary-payment",
       "name": "State Supplementary Payment (SSP)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "shortName": "California SSP",
+      "tagline": "If your parent receives federal SSI in California, they automatically get an extra $240–608/month from the state.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Administered statewide by SSA; local SSA offices for in-person",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent already receives federal Supplemental Security Income (SSI) due to disability or blindness, California automatically adds extra money through the State Supplementary Payment (SSP). Because SSP is tied directly to federal SSI, your parent doesn't need a separate application — they get both payments if they qualify for SSI.\n\nSSP adds up to $239.94/month for individuals or $607.83/month for couples to their federal SSI check. Combined with federal SSI, your parent could receive up to $1,233.94/month as an individual or $2,098.83/month as a couple in 2026.\n\nThe catch: your parent must qualify for federal SSI first, which requires being 65+ or disabled/blind, having very limited income and assets, and being a California resident. If they don't qualify for SSI, they can't receive SSP.",
+      "savingsRange": "$2,879 – $7,294/year in 2026",
+      "savingsSource": "Maximum SSP benefit amounts: $239.94/month individual, $607.83/month couple",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Must receive federal SSI",
+          "Age 65+ or disabled/blind",
+          "Income below $1,234/month (individual)",
+          "Assets under $2,000 (individual)"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1234
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2099
+          }
+        ],
+        "assetLimits": {
+          "individual": 2000,
+          "couple": 3000,
+          "countedAssets": [
+            "Bank accounts",
+            "Stocks and bonds",
+            "Most personal property"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "One vehicle (often exempt)"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "Must be blind or disabled per Social Security definition: severe impairment preventing substantial work activity for 12+ months",
+        "otherRequirements": [
+          "California resident",
+          "U.S. citizen or qualified non-citizen",
+          "Must qualify for and receive federal SSI"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply for SSI through Social Security Administration online, by phone, or in-person — SSP is automatically included.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Apply for federal SSI",
+            "description": "Since SSP is automatic with SSI, apply for SSI through the Social Security Administration online at ssa.gov, call 1-800-772-1213, or visit your local SSA office."
+          },
+          {
+            "step": 2,
+            "title": "Provide required documents",
+            "description": "SSA will verify your parent's age, income, resources, disability status, identity, residency, and citizenship during the application review."
+          },
+          {
+            "step": 3,
+            "title": "Receive decision",
+            "description": "If approved for SSI, your parent automatically receives SSP — no separate application needed. Both payments come on one check."
+          }
+        ],
+        "processingTime": "SSA reviews and makes decision; specific timeline not provided",
+        "waitlist": null,
+        "tip": "Apply for other benefits like CalFresh if your parent is eligible — SSI/SSP recipients are often required to apply for additional assistance programs.",
+        "urls": [
+          {
+            "label": "Apply for SSI online",
+            "url": "https://www.ssa.gov"
+          },
+          {
+            "label": "Find local SSA office",
+            "url": "https://www.ssa.gov/locator"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and cash",
+            "Stocks, bonds, and investments",
+            "Most personal property and belongings"
+          ],
+          "excluded": [
+            "Primary home where your parent lives",
+            "One vehicle (often exempt under federal SSI rules)"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity and Residency",
+              "items": [
+                "Birth certificate or proof of age",
+                "Social Security card",
+                "Proof of California residency",
+                "Citizenship or immigration documents"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Bank statements",
+                "Income records (Social Security, pensions, wages)",
+                "Property deeds or rental agreements",
+                "Investment account statements"
+              ]
+            },
+            {
+              "name": "Medical (if applying based on disability)",
+              "items": [
+                "Medical records documenting disability",
+                "Doctor reports and treatment history",
+                "Hospital records"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "SSP hasn't received a cost-of-living adjustment since 2009-2011, so the benefit amount stays fixed even as living costs rise."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent get SSP without receiving federal SSI?",
+          "answer": "No. SSP is only available to people who already qualify for and receive federal SSI. You cannot get SSP as a standalone benefit."
+        },
+        {
+          "question": "Will SSP affect my parent's other benefits like CalFresh or Medi-Cal?",
+          "answer": "SSP is counted as income for other programs, but SSI/SSP recipients often qualify for expedited CalFresh processing and automatic Medi-Cal eligibility. You may be required to apply for other benefits if eligible."
+        },
+        {
+          "question": "What if my parent's income is slightly over the SSI limit?",
+          "answer": "If your parent doesn't qualify for federal SSI due to income, they cannot receive SSP. The combined SSI/SSP limit is $1,233.94/month for individuals and $2,098.83/month for couples in 2026."
+        },
+        {
+          "question": "Does living in a care facility affect SSP eligibility?",
+          "answer": "Unlike some other states, California doesn't appear to restrict SSP based on living arrangements. If your parent qualifies for SSI, they should receive SSP regardless of where they live."
+        },
+        {
+          "question": "How often does SSP increase with cost of living?",
+          "answer": "SSP amounts have been frozen since cuts in 2009-2011 and don't receive annual cost-of-living adjustments like federal SSI does."
+        },
+        {
+          "question": "If my parent moves to California from another state, can they get SSP?",
+          "answer": "Yes, as long as they establish California residency and continue to qualify for federal SSI. SSP eligibility is automatic for California residents receiving SSI."
+        }
+      ],
+      "phone": "1-800-772-1213",
+      "sourceUrl": "https://www.cdss.ca.gov/inforesources/cdss-programs/ssi-ssp/ssi-ssp-eligibility-summary",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
+      "id": "california-property-tax-postponement",
       "name": "Property Tax Postponement Program",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "shortName": "Tax Postponement",
+      "tagline": "Your parent can defer property taxes and stay in their home — you'll owe 7% interest when the house is sold.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "State Controller's Office",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 62+ and struggling with property tax bills, California will let them defer payment until they sell the house or pass away. The state pays the county directly, then places a lien on the property at 7% annual interest.\n\nThis only works if your parent has significant equity — at least 40% ownership after all mortgages and liens. Income must be $55,181 or less per year for the entire household (2025 limit). The program only covers current-year taxes, not back taxes already owed.\n\nFunding is limited and distributed first-come, first-served. Applications typically open October 1st each year.",
+      "savingsRange": "",
+      "savingsSource": "Tax deferral service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 62+, or blind/disabled any age",
+          "Household income $55,181 or less",
+          "Own and live in the home",
+          "At least 40% equity in property",
+          "No reverse mortgage"
+        ],
+        "ageRequirement": "62+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": null,
+          "couple": null,
+          "countedAssets": [],
+          "exemptAssets": [],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must own and occupy the property as primary residence",
+          "Property equity must be at least 40% (total liens and mortgages cannot exceed 60% of fair market value)",
+          "Cannot have a reverse mortgage on the property",
+          "All co-owners except spouse, domestic partner, or direct relatives must also meet age/disability requirements"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online at the State Controller's website — funding is limited so apply early when applications open in October.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Check your equity",
+            "description": "Calculate if your parent owns at least 40% of the home's value after all mortgages and liens. Unpaid back taxes count against this equity."
+          },
+          {
+            "step": 2,
+            "title": "Gather household income documents",
+            "description": "Collect prior year income records for everyone living in the home, excluding minors under 18, full-time students, and renters."
+          },
+          {
+            "step": 3,
+            "title": "Submit application online",
+            "description": "Complete the form at ptp.sco.ca.gov with current property tax bill and required documentation."
+          },
+          {
+            "step": 4,
+            "title": "Wait for approval",
+            "description": "If approved, the state pays your county directly. You must reapply every year to continue the deferral."
+          }
+        ],
+        "processingTime": "Not specified",
+        "waitlist": null,
+        "tip": "Apply as early as possible when the application period opens — funds run out and applications are processed first-come, first-served.",
+        "urls": [
+          {
+            "label": "Apply online",
+            "url": "https://ptp.sco.ca.gov"
+          },
+          {
+            "label": "Program information",
+            "url": "https://www.sco.ca.gov/ardtax_prop_tax_postponement.html"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Property",
+              "items": [
+                "Current year property tax bill (online copy acceptable)",
+                "Proof of ownership and primary residence",
+                "Documentation of all liens, mortgages, and encumbrances"
+              ]
+            },
+            {
+              "name": "Personal",
+              "items": [
+                "Proof of age (62+), or blindness/disability documentation",
+                "Prior year income records for all household members (excluding minors under 18, full-time students, renters)"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Funding is limited and distributed first-come, first-served. Applications typically open October 1st and close February 10th, but money can run out earlier."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "You must reapply every single year to continue the deferral. Missing a year means you lose the benefit and must pay that year's taxes in full."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What happens to the deferred taxes when my parent dies?",
+          "answer": "The accumulated taxes plus 7% annual interest become due immediately. This debt must be paid before the estate can be settled, typically from the proceeds of selling the house."
+        },
+        {
+          "question": "Can my parent still get this if they have a mortgage?",
+          "answer": "Yes, but only if they own at least 40% equity after the mortgage. For example, if the house is worth $500,000 and they owe $250,000 on the mortgage, they have 50% equity and would qualify."
+        },
+        {
+          "question": "What if my parent owes back property taxes from previous years?",
+          "answer": "This program only covers current-year taxes. Your parent remains responsible for any delinquent taxes, and those back taxes count against the 40% equity requirement."
+        },
+        {
+          "question": "Does my income count if I live with my parent?",
+          "answer": "Yes. The program counts income from all adults living in the home, except minors under 18, full-time students, and renters. Only spouses, domestic partners, and direct relatives (children, parents, grandchildren) are exempt from the age requirement."
+        },
+        {
+          "question": "What if my parent's income is just over $55,181?",
+          "answer": "They won't qualify. The income limit is firm and includes all household income from the prior year. However, this limit adjusts annually, so they might qualify in future years."
+        },
+        {
+          "question": "Can my parent refinance their mortgage while in this program?",
+          "answer": "No. Refinancing triggers repayment of all deferred taxes plus interest immediately. The same happens if they sell, transfer ownership, or move out of the home."
+        }
+      ],
+      "phone": "(800) 952-5661",
+      "sourceUrl": "https://www.sco.ca.gov/ardtax_prop_tax_postponement.html",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
+      "id": "california-ihss-home-care",
       "name": "In-Home Supportive Services (IHSS)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "shortName": "IHSS",
+      "tagline": "Get paid help for your parent's bathing, meal prep, and housework to keep them safely at home.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "County IHSS offices (contact local social services)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 65+ and struggles with daily tasks like bathing, dressing, or preparing meals, IHSS can provide a paid caregiver to help them stay in their own home. This California program covers personal care, housework, meal preparation, and transportation to medical appointments — up to 283 hours per month depending on your parent's needs.\n\nYour parent must already qualify for Medi-Cal to be eligible. The program is free for those receiving SSI, but others may pay a share of cost based on income. A county social worker will visit your parent's home to assess exactly what help they need and authorize specific hours of care.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+ (or blind/disabled)",
+          "Must qualify for Medi-Cal",
+          "Lives in own home",
+          "Needs help with daily activities"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1801
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2433
+          }
+        ],
+        "assetLimits": {
+          "individual": 2000,
+          "couple": 3000,
+          "countedAssets": [
+            "Bank accounts",
+            "Investments",
+            "Second vehicles"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "One vehicle",
+            "Personal belongings"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "Must need assistance with activities of daily living (bathing, dressing, meal preparation, housework) to avoid moving to a nursing home",
+        "otherRequirements": [
+          "California resident",
+          "Cannot live in nursing home or assisted living",
+          "Must have Health Care Certification (SOC 873) from doctor"
+        ],
+        "povertyLevelReference": "138% FPL"
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your county IHSS office to schedule a home interview — processing time varies by county.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Apply for Medi-Cal first",
+            "description": "IHSS requires active Medi-Cal eligibility. Apply at your county social services office if your parent doesn't already have it."
+          },
+          {
+            "step": 2,
+            "title": "Get doctor's certification",
+            "description": "Have your parent's doctor complete Health Care Certification form SOC 873 documenting their need for daily assistance."
+          },
+          {
+            "step": 3,
+            "title": "Call county IHSS office",
+            "description": "Contact your local county office to request an application and schedule the required home assessment interview."
+          },
+          {
+            "step": 4,
+            "title": "Complete home assessment",
+            "description": "A county social worker will visit your parent's home to evaluate their functional needs and determine authorized hours of care."
+          }
+        ],
+        "processingTime": "Not specified — varies by county",
+        "waitlist": null,
+        "tip": "SSI recipients automatically qualify for Medi-Cal, which speeds up the IHSS application process.",
+        "urls": [
+          {
+            "label": "Find your county IHSS office",
+            "url": "https://www.cdss.ca.gov/in-home-supportive-services"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits (Medi-Cal Eligibility Required)",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 1801,
+              "annualLimit": 21612
+            },
+            {
+              "householdSize": 2,
+              "monthlyLimit": 2433,
+              "annualLimit": 29196
+            }
+          ],
+          "footnote": "Effective April 1, 2025. SSI/SSP recipients automatically qualify."
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and savings",
+            "Investments and stocks",
+            "Second vehicles",
+            "Real estate other than primary home"
+          ],
+          "excluded": [
+            "Primary home (no equity limit for IHSS)",
+            "One vehicle",
+            "Personal belongings and household items",
+            "Burial funds up to certain limits"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Medical",
+              "items": [
+                "Health Care Certification (SOC 873) from doctor",
+                "Medical records showing diagnosis",
+                "List of current medications"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Medi-Cal card or application",
+                "Social Security award letter",
+                "Bank statements (recent 3 months)",
+                "Proof of any other income"
+              ]
+            },
+            {
+              "name": "Identity",
+              "items": [
+                "California ID or driver's license",
+                "Proof of California residency",
+                "Social Security card"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Your parent cannot live in a nursing home, assisted living facility, or licensed care home to qualify for IHSS. The program is specifically for people living in their own homes."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Each county runs its own IHSS program with different wait times and processes. Always contact your local county office — don't apply through another county even if it seems faster."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent choose me as their IHSS caregiver?",
+          "answer": "Yes, your parent can hire you or another family member as their IHSS provider in most cases. You'll be paid by the county for the authorized hours of care. Spouses and parents of minor children have some restrictions."
+        },
+        {
+          "question": "What if my parent's income is slightly over the Medi-Cal limit?",
+          "answer": "They may still qualify for Medi-Cal with a 'share of cost' — like a monthly deductible they pay before Medi-Cal coverage begins. This would make them eligible for IHSS, though they'd pay the share of cost amount."
+        },
+        {
+          "question": "How many hours of care can my parent get?",
+          "answer": "Up to 283 hours per month maximum, but most people get far less. The county social worker assesses your parent's specific needs and authorizes only the hours required for tasks they cannot safely do alone."
+        },
+        {
+          "question": "What happens if my parent lives with me — can they still get IHSS?",
+          "answer": "Yes, as long as it's their residence too and they're not living in a licensed care facility. Living with family doesn't disqualify them from IHSS services."
+        },
+        {
+          "question": "Does my parent need to be at nursing home level of care to qualify?",
+          "answer": "No, they don't need to meet nursing home level criteria. They just need to be at risk of institutionalization and require help with daily activities like bathing, dressing, or meal preparation."
+        },
+        {
+          "question": "How long does the application process take?",
+          "answer": "Processing time varies significantly by county — some may take weeks, others several months. The home assessment interview is required and often causes delays due to social worker availability."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://www.cdss.ca.gov/in-home-supportive-services",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
+      "id": "california-caregiver-resource-centers",
       "name": "Caregiver Resource Centers (CRC)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
-    },
-    {
-      "name": "Multipurpose Senior Services Program (MSSP)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "shortName": "CRC",
+      "tagline": "Free counseling, respite care funding, and support groups if you're caring for a parent with dementia, stroke, or similar conditions.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "11 nonprofit centers covering all counties, e.g., Inland Caregiver Resource Center (Inyo, Mono, Riverside, San Bernardino), Los Angeles CRC, others via www.caregivercalifornia.org",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If you're caring for a parent with dementia, Alzheimer's, stroke, Parkinson's, or similar chronic conditions, California's Caregiver Resource Centers provide free support services specifically for families like yours. Because these centers understand the unique challenges of cognitive and debilitating disorders, they offer targeted help including respite care funding, family counseling, legal consultation, and support groups.\n\nUnlike programs with strict income limits, CRCs are open to all California families caring for adults with qualifying conditions — no financial tests required. The 11 regional centers serve every county in California and provide immediate access to trained staff who understand what you're going through.\n\nServices include financial assistance for respite care (in-home support, adult day care, weekend care), short-term individual and family counseling, support groups, and legal consultation for Powers of Attorney and estate planning. Each center tailors support to your specific situation through personalized family consultation.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Caring for adult with dementia, stroke, or similar condition",
+          "No income limits",
+          "California residents",
+          "Unpaid family caregivers"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Parent must have chronic, debilitating condition: dementia, Alzheimer's, stroke, Parkinson's, Huntington's, multiple sclerosis, traumatic brain injury, or similar cognitive/disabling disorder",
+          "Must be unpaid family caregiver (not paid professional caregiver)"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call your local CRC directly — services like consultation and referrals are available immediately.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local center",
+            "description": "Visit www.caregivercalifornia.org to find which of the 11 centers serves your county, or call a center directly."
+          },
+          {
+            "step": 2,
+            "title": "Contact center by phone or online",
+            "description": "Call your local center's phone number or visit their website. No forms required initially — trained staff will do intake consultation."
+          },
+          {
+            "step": 3,
+            "title": "Complete family consultation",
+            "description": "Staff will assess your needs and your parent's condition to determine which services would help most."
+          },
+          {
+            "step": 4,
+            "title": "Begin services",
+            "description": "Access respite funding, counseling, support groups, or other services based on your consultation."
+          }
+        ],
+        "processingTime": "Services available immediately upon contact",
+        "waitlist": null,
+        "tip": "Start with a phone call — the intake process is designed to get you help quickly without paperwork delays.",
+        "urls": [
+          {
+            "label": "Find your local center",
+            "url": "http://www.caregivercalifornia.org"
+          },
+          {
+            "label": "Inland CRC (Riverside, San Bernardino, Inyo, Mono counties)",
+            "url": "http://www.inlandcaregivers.org"
+          },
+          {
+            "label": "Los Angeles CRC",
+            "url": "https://losangelescrc.usc.edu"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "Local Centers",
+          "offices": [
+            {
+              "name": "Inland Caregiver Resource Center",
+              "type": "service-area",
+              "phone": "(909) 514-1404 or (800) 675-6694",
+              "address": "Serves Inyo, Mono, Riverside, San Bernardino counties"
+            },
+            {
+              "name": "Statewide Directory",
+              "type": "service-area",
+              "phone": "Find local numbers at www.caregivercalifornia.org",
+              "address": "All 58 California counties covered by 11 regional centers"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "CRCs provide support services for unpaid family caregivers, not wages for caregiving work. If you need paid caregiver support, also look into IHSS (In-Home Supportive Services) through Medi-Cal."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent's condition isn't dementia — do other conditions qualify?",
+          "answer": "Yes. CRCs serve families dealing with stroke, Parkinson's, Huntington's disease, multiple sclerosis, traumatic brain injury, and other chronic conditions that cause cognitive or physical disability. Call your local center to confirm your parent's condition qualifies."
+        },
+        {
+          "question": "How much respite care funding can we get?",
+          "answer": "Respite assistance amounts aren't fixed — each case is assessed individually based on your family's needs. The funding can help pay for in-home support, adult day care, short-term care, or transportation, but specific dollar amounts depend on your situation and local center resources."
+        },
+        {
+          "question": "Can we use CRC services if we already have other support programs?",
+          "answer": "Yes. CRC services complement other programs like Medi-Cal or IHSS. Because CRCs focus on family support and education rather than direct care, you can receive CRC counseling, support groups, and consultations alongside other benefits."
+        },
+        {
+          "question": "What's the difference between CRC counseling and regular therapy?",
+          "answer": "CRC counseling is specifically designed for caregiving stress and provided by counselors who understand the challenges of caring for someone with cognitive disorders. It's short-term, focused on caregiving situations, and includes family members — not general mental health therapy."
+        },
+        {
+          "question": "Do we have to prove financial need for services?",
+          "answer": "No. Unlike many programs, CRCs have no income limits, asset tests, or financial eligibility requirements. Services are available to all families caring for adults with qualifying conditions, regardless of financial status."
+        },
+        {
+          "question": "What if there's no CRC office near us?",
+          "answer": "Every California county is covered by one of the 11 regional centers, though your assigned center may not be in your immediate area. Many services like support groups and consultations are available by phone or online, and staff can connect you with local resources in your specific area."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://www.aging.ca.gov/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     }
   ],
-  "stateOverview": null
+  "stateOverview": {
+    "intro": "California offers 16 programs that can help your aging parent — from monthly food benefits and utility bill assistance to free home care coordination and respite support for you as their caregiver. These range from automatic extra payments (like an additional $240–608/month if your parent gets federal SSI) to comprehensive medical care that eliminates the need to juggle multiple doctors and insurance plans.\n\nMost financial benefits require income limits around $2,000–3,000/month for a single person, while free resources like Medicare counseling and legal help are available regardless of income. Start by checking the highest-impact programs first — healthcare cost relief, food assistance, and home care support — since these can save thousands per year.",
+    "startHere": [
+      {
+        "name": "Medi-Cal Medicare Savings Programs (QMB, SLMB, QI)",
+        "programId": "medi-cal-medicare-savings-programs",
+        "why": "Can save $1,800+ per year on Medicare premiums, deductibles, and copays."
+      },
+      {
+        "name": "CalFresh",
+        "programId": "calfresh",
+        "why": "Monthly food benefits including prepared restaurant meals for California seniors 60+."
+      },
+      {
+        "name": "In-Home Supportive Services (IHSS)",
+        "programId": "ihss",
+        "why": "Get paid help for your parent's bathing, meal prep, and housework to keep them safely at home."
+      },
+      {
+        "name": "Health Insurance Counseling & Advocacy Program (HICAP)",
+        "programId": "hicap",
+        "why": "Free expert help navigating Medicare choices and billing problems — available to everyone."
+      }
+    ],
+    "byNeed": [
+      {
+        "need": "Help paying medical costs",
+        "programs": [
+          "Medi-Cal Medicare Savings Programs (QMB, SLMB, QI)",
+          "Program of All-Inclusive Care for the Elderly (PACE)"
+        ],
+        "description": "Programs that reduce Medicare expenses or provide complete medical care under one coordinated plan."
+      },
+      {
+        "need": "Home care and staying independent",
+        "programs": [
+          "In-Home Supportive Services (IHSS)",
+          "Multipurpose Senior Services Program (MSSP) Waiver",
+          "Program of All-Inclusive Care for the Elderly (PACE)"
+        ],
+        "description": "Services that help your parent stay safely at home instead of moving to a nursing facility."
+      },
+      {
+        "need": "Food assistance",
+        "programs": [
+          "CalFresh",
+          "Meals on Wheels (via AAAs)"
+        ],
+        "description": "Monthly grocery benefits or home-delivered meals for seniors who can't safely prepare food."
+      },
+      {
+        "need": "Utility and housing costs",
+        "programs": [
+          "LIHEAP",
+          "Weatherization Assistance Program (WAP)",
+          "Property Tax Postponement Program"
+        ],
+        "description": "Help paying energy bills, free home improvements, or deferring property taxes to stay in their home."
+      },
+      {
+        "need": "Support for you as caregiver",
+        "programs": [
+          "Family Caregiver Support Program",
+          "Caregiver Resource Centers (CRC)"
+        ],
+        "description": "Free respite care, training, and counseling specifically for family members caring for aging parents."
+      },
+      {
+        "need": "Free advice and advocacy",
+        "programs": [
+          "Health Insurance Counseling & Advocacy Program (HICAP)",
+          "Legal Services for Seniors (via AAAs)",
+          "Long-Term Care Ombudsman Program"
+        ],
+        "description": "Expert help with Medicare, legal issues, or problems in care facilities — no income limits required."
+      }
+    ],
+    "quickFacts": [
+      "California seniors 60+ can use CalFresh benefits to buy prepared meals at participating restaurants — unique among states.",
+      "If your parent gets federal SSI in California, they automatically receive an extra $240–608/month from the state.",
+      "Most income-based programs require household income under $2,000–3,000/month for a single person.",
+      "Area Agencies on Aging coordinate multiple programs including Meals on Wheels and legal services — find yours through the state directory."
+    ],
+    "resourcesVsBenefits": "Some programs require qualifying based on income and need — like CalFresh food benefits (income limits apply) or IHSS home care services (must need help with daily tasks). Others are free resources available to any California senior regardless of income, like HICAP Medicare counseling, legal services through Area Agencies on Aging, and ombudsman help with care facility problems."
+  }
 }

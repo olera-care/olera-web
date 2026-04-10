@@ -1,31 +1,38 @@
 {
   "state": "MS",
   "stateName": "Mississippi",
-  "classifiedAt": "2026-04-09T09:36:11.072Z",
-  "total": 5,
+  "classifiedAt": "2026-04-09T14:25:49.775Z",
+  "total": 14,
   "typeSummary": {
-    "benefit": 2,
-    "resource": 2,
-    "employment": 1
+    "benefit": 9,
+    "resource": 3,
+    "employment": 1,
+    "navigator": 1
   },
   "scopeSummary": {
-    "state": 2,
-    "federal": 3
+    "state": 4,
+    "federal": 8,
+    "local": 2
   },
   "complexitySummary": {
-    "deep": 3,
-    "simple": 2
+    "deep": 7,
+    "medium": 3,
+    "simple": 4
   },
   "programs": [
     {
-      "name": "Mississippi Medicaid Elderly and Disabled Waiver",
+      "name": "Mississippi Medicaid (Elderly and Disabled)",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Administered by Mississippi Division of Medicaid; providers statewide per CMS-approved waiver[2]",
+            "name": "Local Division of Medicaid offices",
+            "type": "service-area"
+          },
+          {
+            "name": "Regional entities like CMPDD, SMPDD",
             "type": "service-area"
           }
         ]
@@ -50,6 +57,157 @@
       }
     },
     {
+      "name": "Mississippi Elderly and Disabled (E&D) Waiver",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Office of Long Term Care (administers); Planning and Development Districts (case management, e.g., SMPDD, NCPDD, etc.)[2][4][7]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Medicare Savings Programs",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local Mississippi DHS Medicaid offices statewide (locations at medicaid.ms.gov)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "SNAP (Supplemental Nutrition Assistance Program) in Mississippi",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true
+      },
+      "complexity": "medium",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "in_kind",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": false,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local Community Action Agencies (CAAs) in each county; find via MDHS site.[1]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "in_kind",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
       "name": "Mississippi State Health Insurance Assistance Program (SHIP)",
       "programType": "resource",
       "geographicScope": {
@@ -57,7 +215,7 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Mississippi Department of Human Services, 750 North State Street, Jackson MS 39202 (central office); local sites via community providers[2][5]",
+            "name": "Administered by Mississippi Department of Human Services (MDHS), Division of Aging and Adult Services, 750 North State Street, Jackson MS 39202[2][5]",
             "type": "service-area"
           }
         ]
@@ -78,6 +236,149 @@
       }
     },
     {
+      "name": "Home Delivered Meals (Meals on Wheels)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local Area Agency on Aging (contact for specific county)",
+            "type": "service-area"
+          },
+          {
+            "name": "Examples: Union Nutrition Site (age 60+)[7]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "medium",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": false
+      }
+    },
+    {
+      "name": "National Family Caregiver Support Program (Mississippi)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "10 Area Agencies on Aging (AAA); contact via MAC Center at 844-822-4622[4][5]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "programType": "employment",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "City of Jackson Senior Services (Hinds, Rankin, Scott, Warren): (601) 960-0419, kimberlym@city.jackson.ms.us[6]",
+            "type": "service-area"
+          },
+          {
+            "name": "Copiah-Lincoln Community College (Adams, Amite, Claiborne, Copiah, Franklin, Jefferson, Lawrence, Lincoln, Pike, Simpson, Smith, Walthall, Wilkinson): (601) 643-8671, brenda.orr@colin.edu[6]",
+            "type": "service-area"
+          },
+          {
+            "name": "East Central Planning and Development District (Clarke, Jasper, Kemper, Lauderdale, Neshoba): (601) 683-2007, rjcoleman@ecpdd.org[6]",
+            "type": "service-area"
+          },
+          {
+            "name": "Southern Mississippi Planning and Development District (Forrest, George, Greene, Hancock, Harrison, Jackson, Jones, Lamar, Marion, Pearl River, Perry, Stone, Wayne): (228) 314-1433, jhale@smpdd.com[6]",
+            "type": "service-area"
+          },
+          {
+            "name": "Southern Foundation for Homeless Children (Pearl River, Jones, Harrison, Jefferson Davis, Forrest, Covington): via southernfoundationfhc.com[1]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "documents"
+      ],
+      "signals": {
+        "benefitType": "employment",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": false
+      }
+    },
+    {
+      "name": "Mississippi Legal Services / Senior Legal Aid",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "North Mississippi Rural Legal Services (NMRLS): nmrls.com.",
+            "type": "service-area"
+          },
+          {
+            "name": "Mississippi Center for Legal Services (MCLSC): mscenterforlegalservices.org, 43 counties central/southern.",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": false
+      }
+    },
+    {
       "name": "State Long Term Care Ombudsman Program",
       "programType": "resource",
       "geographicScope": {
@@ -85,7 +386,7 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Operated by Mississippi Department of Human Services, Division of Aging & Adult Services (DAAS) via AAAs across the state; main office in Jackson.",
+            "name": "State office: 200 South Lamar St., Jackson, MS 39201; 19 local ombudsmen (contact state for assignments); example: Golden Triangle Planning and Development District at 662-498-1170.",
             "type": "service-area"
           }
         ]
@@ -106,79 +407,60 @@
       }
     },
     {
-      "name": "Mississippi Access to Care (MAC) Network",
+      "name": "Mississippi Respite Voucher Program",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Local Aging and Disability Resource Centers via mississippiaccesstocare.org[9]",
+            "name": "Local offices accessible via Mississippi Access to Care (MAC) Center[2][3]",
             "type": "service-area"
           }
         ]
       },
-      "complexity": "deep",
+      "complexity": "medium",
       "recommendedSections": [
         "prose",
-        "income-table",
         "what-counts",
         "documents",
-        "county-directory",
-        "callout"
+        "county-directory"
       ],
       "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": true,
+        "benefitType": "financial",
+        "hasIncomeTiers": false,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
-        "hasFunctionalReq": true,
+        "hasFunctionalReq": false,
         "hasMultipleTiers": false,
         "isStatewide": true
       }
     },
     {
-      "name": "Senior Community Service Employment Program (SCSEP)",
-      "programType": "employment",
+      "name": "Central Mississippi Area Agency on Aging Reassurance Program",
+      "programType": "navigator",
       "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
+        "type": "local",
+        "stateVariation": false,
         "localEntities": [
           {
-            "name": "City of Jackson Senior Services Division (Hinds, Rankin, Scott, Warren Counties): Kimberly Moore, (601) 960-0419, kimberlym@city.jackson.ms.us",
-            "type": "service-area"
-          },
-          {
-            "name": "Copiah-Lincoln Community College (Adams, Amite, Claiborne, Copiah, Franklin, Jefferson, Lawrence, Lincoln, Pike, Simpson, Smith, Walthall, Wilkinson Counties): Brenda Orr, (601) 643-8671, brenda.orr@colin.edu",
-            "type": "service-area"
-          },
-          {
-            "name": "East Central Planning and Development District (Clarke, Jasper, Kemper, Lauderdale, Neshoba Counties): Rosie Coleman, (601) 683-2007, rjcoleman@ecpdd.org",
-            "type": "service-area"
-          },
-          {
-            "name": "Southern Mississippi Planning and Development District (Forrest, George, Greene, Hancock, Harrison, Jackson, Jones, Lamar, Marion, Pearl River, Perry, Stone, Wayne Counties): Jan Hale, (228) 314-1433, jhale@smpdd.com",
-            "type": "service-area"
-          },
-          {
-            "name": "Southern Foundation for Homeless Children, Inc. (Pearl River, Jones, Harrison, Jefferson Davis, Forrest, Covington Counties)",
+            "name": "Central MS Area Agency on Aging, 1170 Lakeland Drive, Jackson, MS 39296-4935[6]",
             "type": "service-area"
           }
         ]
       },
-      "complexity": "deep",
+      "complexity": "simple",
       "recommendedSections": [
         "prose",
-        "income-table",
-        "documents"
+        "provider-list"
       ],
       "signals": {
-        "benefitType": "employment",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": false,
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
+        "hasMultipleTiers": false,
         "isStatewide": false
       }
     }

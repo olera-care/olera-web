@@ -1,70 +1,72 @@
 {
   "state": "CO",
   "stateName": "Colorado",
-  "comparedAt": "2026-04-09T09:29:17.466Z",
-  "total": 14,
-  "newPrograms": 10,
-  "withDiffs": 4,
-  "withNovelFields": 4,
+  "comparedAt": "2026-04-09T12:25:44.030Z",
+  "total": 13,
+  "newPrograms": 8,
+  "withDiffs": 5,
+  "withNovelFields": 5,
   "benefitTypes": {
-    "financial": 6,
-    "service": 5,
-    "not_applicable": 1,
+    "financial": 5,
+    "service": 6,
     "employment": 1,
-    "service|advocacy": 1
+    "advocacy": 1
   },
   "variationPatterns": {
-    "priority_tier": 6,
-    "Individual care plan developed by IDT based on participant needs and goals[4]": 1,
+    "priority_tier": 4,
+    "Individual need assessment; services are tailored to the person's functional requirements": 1,
+    "Individual need (customized care plan); does not vary by tier or priority level": 1,
     "household_size": 2,
-    "not_applicable": 2,
-    "region": 2,
-    "region|case_type": 1
+    "region": 1,
+    "not_applicable": 3,
+    "priority_tier (Tier 1, 2, or 3 based on functional assessment scores[1])": 1
   },
   "novelFieldSummary": {
     "asset_limits": {
-      "count": 4,
+      "count": 5,
       "programs": [
         "Health First Colorado Buy-In (QMB, SLMB, QI)",
-        "Colorado PACE",
-        "SNAP (Supplemental Nutrition Assistance Program)",
-        "Colorado Legal Services (Senior Legal Hotline)"
+        "Supplemental Nutrition Assistance Program (SNAP)",
+        "State Health Insurance Assistance Program (SHIP)",
+        "Colorado Legal Services (Legal Aid for Seniors)",
+        "Long-Term Care Ombudsman Program"
       ],
       "note": "Our model has no asset limit fields"
     },
     "regional_variations": {
-      "count": 4,
+      "count": 5,
       "programs": [
         "Health First Colorado Buy-In (QMB, SLMB, QI)",
-        "Colorado PACE",
-        "SNAP (Supplemental Nutrition Assistance Program)",
-        "Colorado Legal Services (Senior Legal Hotline)"
+        "Supplemental Nutrition Assistance Program (SNAP)",
+        "State Health Insurance Assistance Program (SHIP)",
+        "Colorado Legal Services (Legal Aid for Seniors)",
+        "Long-Term Care Ombudsman Program"
       ],
       "note": "Program varies by region — our model doesn't capture this"
     },
     "waitlist": {
-      "count": 3,
+      "count": 2,
       "programs": [
         "Health First Colorado Buy-In (QMB, SLMB, QI)",
-        "Colorado PACE",
-        "Colorado Legal Services (Senior Legal Hotline)"
+        "Colorado Legal Services (Legal Aid for Seniors)"
       ],
       "note": "Has waitlist info — our model has no wait time field"
     },
     "documents_required": {
-      "count": 4,
+      "count": 5,
       "programs": [
         "Health First Colorado Buy-In (QMB, SLMB, QI)",
-        "Colorado PACE",
-        "SNAP (Supplemental Nutrition Assistance Program)",
-        "Colorado Legal Services (Senior Legal Hotline)"
+        "Supplemental Nutrition Assistance Program (SNAP)",
+        "State Health Insurance Assistance Program (SHIP)",
+        "Colorado Legal Services (Legal Aid for Seniors)",
+        "Long-Term Care Ombudsman Program"
       ],
       "note": "Has document checklist — our model doesn't store per-program documents"
     },
     "household_size_table": {
       "count": 1,
       "programs": [
-        "SNAP (Supplemental Nutrition Assistance Program)"
+        "Supplemental Nutrition Assistance Program (SNAP)"
       ],
       "note": "Benefits/eligibility vary by household size — we store a single number"
     }
@@ -80,138 +82,102 @@
         {
           "field": "income_limit",
           "ours": "$994",
-          "found": "$1,735",
-          "source": "https://hcpf.colorado.gov (search Medicare Savings Programs or contact for MSP details); apply at https://www.healthfirstcolorado.com/apply-now/[1][2]"
+          "found": "$1,255",
+          "source": "https://hcpf.colorado.gov/medicaid-buy-program (related buy-in); for MSPs: https://www.healthfirstcolorado.com/ [1][2][4]"
         },
         {
           "field": "benefit_value",
           "ours": "$5,000 – $20,000/year",
-          "found": "**QMB:** Pays Medicare Part B monthly premium, deductibles, copays, coinsurance (covers the 20% Medicare does not, providing full coverage). **SLMB & QI-1:** Pays Part B monthly premium only; responsible for deductibles, copays, coinsurance (supplemental plans may fill gaps)[1].",
-          "source": "https://hcpf.colorado.gov (search Medicare Savings Programs or contact for MSP details); apply at https://www.healthfirstcolorado.com/apply-now/[1][2]"
+          "found": "**QMB:** Pays Medicare Part B monthly premium, deductibles, copays, coinsurance (covers the 20% Medicare does not, providing full coverage). **SLMB & QI-1:** Pays Part B monthly premium only; responsible for deductibles, copays, coinsurance (supplemental plans may fill gaps).[1]",
+          "source": "https://hcpf.colorado.gov/medicaid-buy-program (related buy-in); for MSPs: https://www.healthfirstcolorado.com/ [1][2][4]"
         },
         {
           "field": "source_url",
           "ours": "MISSING",
-          "found": "https://hcpf.colorado.gov (search Medicare Savings Programs or contact for MSP details); apply at https://www.healthfirstcolorado.com/apply-now/[1][2]"
+          "found": "https://hcpf.colorado.gov/medicaid-buy-program (related buy-in); for MSPs: https://www.healthfirstcolorado.com/ [1][2][4]"
         }
       ],
       "novelFields": [
         {
           "field": "asset_limits",
-          "value": "There are three levels of MSP depending on income and asset limits; specific 2026 asset thresholds (often ~$9,090 individual/$13,630 couple, excluding home, car, etc.) not detailed in results. What counts: countable assets like bank accounts; exempt: primary home, one vehicle, personal belongings[1].",
+          "value": "There are three levels of MSP depending on income and asset limits. Specific 2026 asset limits (typically $9,660 individual/$14,490 couple, excluding home, car, etc.) not detailed; what counts includes bank accounts, stocks; exempts primary home, one vehicle, personal items. Confirm with local office.[1]",
           "note": "Our model has no asset limit fields"
         },
         {
           "field": "regional_variations",
-          "value": "Administered by county Human Services offices; potential processing differences by county but program uniform[1]",
+          "value": "Administered by county human services offices; processing times may vary by county, but no specific differences noted.[1][4]",
           "note": "Program varies by region — our model doesn't capture this"
         },
         {
           "field": "waitlist",
-          "value": "QI often has federal funding caps and waitlists; others generally no waitlist[1]",
+          "value": "QI often has federal funding caps and waitlists; others generally no waitlist.[1]",
           "note": "Has waitlist info — our model has no wait time field"
         },
         {
           "field": "documents_required",
           "value": [
-            "Proof of income",
-            "Proof of assets",
-            "Medicare enrollment proof (Part A/B cards)",
-            "ID, residency proof",
-            "Social Security number"
+            "Proof of income (pay stubs, tax returns), assets (bank statements), Medicare card, ID (birth certificate, Social Security card), proof of residency, disability if applicable.[1]"
           ],
           "note": "Has document checklist — our model doesn't store per-program documents"
         }
       ],
-      "dataShapeNotes": "Tiered by QMB/SLMB/QI with escalating income limits and decreasing benefit levels; asset-tested unlike some Medicaid; funding-capped for QI; separate from disability Buy-In programs which offer full Health First Colorado services for premium",
+      "dataShapeNotes": "Tiered by QMB/SLMB/QI with differing income/asset limits and benefit levels; financial assistance tied to Medicare premiums/coinsurance; asset exclusions standard but tested; funding caps for QI.",
       "gotchas": [
-        "Not full Medicaid—only Medicare cost-sharing assistance; does not cover long-term care or services beyond Medicare gaps",
-        "QI has limited federal slots and potential waitlist",
-        "Must already have Medicare; auto-enrollment not guaranteed",
-        "Asset test applies (often overlooked vs. income-only programs)",
-        "Three distinct tiers with different income/asset cutoffs—check exact level",
-        "If in Working Adults with Disabilities Buy-In, different rules (premiums $0-$200 based on income, full Medicaid services)[2]"
+        "Must already have Medicare enrollment; QMB provides fuller coverage than SLMB/QI (people miss that SLMB/QI leave you paying deductibles/copays).[1]",
+        "Asset test applies (unlike standard Medicaid in some cases); QI has limited slots.[1][3]",
+        "Not the disability 'Buy-In for Working Adults'—that's separate with premiums based on income.[2]",
+        "Work requirements starting 2027 exempt buy-in/disability programs but confirm MSP status.[5][6]"
       ],
       "benefitType": "financial",
       "benefitVariesBy": "priority_tier",
-      "officialSource": "https://hcpf.colorado.gov (search Medicare Savings Programs or contact for MSP details); apply at https://www.healthfirstcolorado.com/apply-now/[1][2]"
+      "officialSource": "https://hcpf.colorado.gov/medicaid-buy-program (related buy-in); for MSPs: https://www.healthfirstcolorado.com/ [1][2][4]"
     },
     {
-      "name": "Colorado Medicaid HCBS Waivers (e.g., Home Care Allowance)",
+      "name": "Home and Community-Based Services (HCBS) Waivers in Colorado",
       "isNew": true,
       "existingId": null,
       "existingVerified": null,
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "Multiple waivers (e.g., EBD for elderly); eligibility via dual county (financial) + regional agency (functional) assessments; benefits individualized by service plan, not fixed $; waitlists and regional case managers create variability; SSI-multiple for income",
+      "dataShapeNotes": "Colorado's HCBS waivers are population-specific (elderly, developmental disabilities, traumatic brain injury, mental health, etc.). The EBD Waiver is the primary option for elderly individuals. Income limits are fixed statewide at 300% SSI. Asset limits vary by household composition (single vs. couple). Benefits are individualized based on functional need assessment rather than tiered or fixed amounts. Application involves both functional eligibility (LOC determination) and financial/disability verification by multiple state agencies[3][6].",
       "gotchas": [
-        "Only one waiver at a time; waitlists common—non-entitlement unlike regular Medicaid[1][4]",
-        "Must meet NFLOC (≥2 ADLs) via specific assessment; not automatic for elderly[3]",
-        "60-month Look-Back for assets; home equity cap $1,130,000[3]",
-        "Income thresholds SSI-based, update annually—verify current via county[2][3]",
-        "Home Care Allowance likely under EBD or similar; confirm specific waiver as 'Home Care Allowance' not explicitly named (may refer to consumer-directed/personal care allowances)[3][5]",
-        "Spousal impoverishment protections have min/max income allowances[3]"
+        "Income test uses individual income only, not household income—this can make elderly individuals with limited personal income eligible even if their household has higher income[7]",
+        "The 60-month Look-Back Rule applies: assets given away or sold below fair market value within 60 months of applying for long-term care Medicaid result in a Penalty Period of ineligibility[2]",
+        "Home equity interest is capped at $1,130,000 (as of 2026)—homes exceeding this value may disqualify applicants[2]",
+        "Must meet NFLOC (nursing facility level of care) requirement—this is a medical/functional threshold, not just age-based; a case manager assessment is required[1][2]",
+        "Waiver is the only way some people qualify for Health First Colorado; eligibility is not automatic[3]",
+        "Services must be provided by certified Health First Colorado providers[3]",
+        "Multiple HCBS waivers exist in Colorado (SLS, DD, EBD, etc.); families must apply for the correct waiver matching their loved one's condition[1][5]"
       ],
       "benefitType": "service",
-      "benefitVariesBy": "priority_tier",
-      "officialSource": "https://hcpf.colorado.gov/hcbs-waivers (Colorado Dept. of Health Care Policy & Financing); https://www.medicaid.gov/medicaid/section-1115-demo/demonstration-and-waiver-list/Waiver-Descript-Factsheet/CO[5]"
+      "benefitVariesBy": "Individual need assessment; services are tailored to the person's functional requirements",
+      "officialSource": "Colorado Department of Health Care Policy and Financing (HCPF); Health First Colorado (Colorado Medicaid) program"
     },
     {
-      "name": "Colorado PACE",
-      "isNew": false,
-      "existingId": "colorado-pace-program",
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "isNew": true,
+      "existingId": null,
       "existingVerified": null,
-      "diffsFound": 2,
-      "diffs": [
-        {
-          "field": "benefit_value",
-          "ours": "$15,000 – $35,000/year",
-          "found": "Comprehensive healthcare and supportive services including: primary care, specialty physician services, registered nursing, social work, physical therapy, occupational therapy, recreational therapy, dietitian services, home care coordination, personal care assistance, transportation, medication management, and social engagement[4][6]",
-          "source": "coloradopace.org"
-        },
-        {
-          "field": "source_url",
-          "ours": "MISSING",
-          "found": "coloradopace.org"
-        }
-      ],
-      "novelFields": [
-        {
-          "field": "asset_limits",
-          "value": "Not specified in available sources. Medicaid asset limits would apply for those seeking Medicaid coverage, but specific thresholds are not detailed.",
-          "note": "Our model has no asset limit fields"
-        },
-        {
-          "field": "regional_variations",
-          "value": "Rocky Mountain PACE operates as a separate provider in Colorado (phone: 719-314-2327) with its own service areas[6]. Search results suggest multiple PACE providers operate in Colorado, but specific regional differences in services, wait times, or eligibility are not detailed.",
-          "note": "Program varies by region — our model doesn't capture this"
-        },
-        {
-          "field": "waitlist",
-          "value": "Not specified in available sources",
-          "note": "Has waitlist info — our model has no wait time field"
-        },
-        {
-          "field": "documents_required",
-          "value": "Not specified in available sources. However, the functional assessment process gathers information on functional status, nutrition risks, physical/mental health, and living arrangements[4]",
-          "note": "Has document checklist — our model doesn't store per-program documents"
-        }
-      ],
-      "dataShapeNotes": "Colorado PACE is a service-based program (not a cash benefit). Eligibility hinges on nursing home level of care certification, not income. The program operates through multiple regional providers (at least Colorado PACE and Rocky Mountain PACE identified). Income limits are tied to Medicaid/Medicare eligibility, not program-specific thresholds. Specific dollar amounts for income/asset limits, detailed benefit schedules, application forms, required documents, and regional wait times are not available in the provided search results.",
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "PACE eligibility and benefits are highly individualized based on medical and functional assessment rather than categorical tiers. The program is dual-eligible focused (Medicare + Medicaid), but single-eligible participants (Medicare-only) are also accepted. Financial eligibility is Medicaid-dependent and varies by household composition and state rules. Service areas are geographically restricted, requiring verification before application. The program structure is unique in that it becomes the sole source of benefits, creating a significant commitment for participants.",
       "gotchas": [
-        "Participants must receive ALL healthcare services from Colorado PACE contracted providers (except emergency services). You cannot keep your own doctor outside the PACE network.[2][4]",
-        "Participants may be fully liable for costs of unauthorized or out-of-PACE services.[6]",
-        "Private pay participants who don't qualify for Medicaid are responsible for the portion of the monthly premium that Medicaid would have covered.[2]",
-        "Nursing home level of care is a strict requirement—not everyone over 55 qualifies. This is determined through formal assessment, not self-reported need.[3]",
-        "Service area is limited by county and zip code—geographic eligibility must be verified before applying.[1][2]"
+        "PACE becomes the sole source of Medicare and Medicaid benefits for participants—you cannot use other Medicare or Medicaid providers simultaneously.[2]",
+        "Nursing home level of care requirement is state-determined and varies by state; Colorado's specific definition of what qualifies is not detailed in available sources and requires direct verification with HCPF.[1][3]",
+        "Not meeting standard Medicaid financial criteria ($2,901/month income, $2,000 assets) does not automatically disqualify applicants; Medicaid offers multiple pathways to eligibility through planning strategies.[3]",
+        "Service area coverage is limited—applicants must verify they live in a covered area before applying.[1]",
+        "Participants can leave the program at any time for any reason, but re-enrollment may have different requirements.[2]",
+        "Comprehensive assessment is multi-disciplinary and includes evaluation of safety to live in community; applicants must demonstrate ability to safely remain at home with PACE support.[1]",
+        "Income and asset limits apply only to Medicaid-eligible participants; Medicare-only participants have no financial restrictions but must still meet age/disability and nursing home level of care criteria.[3]"
       ],
       "benefitType": "service",
-      "benefitVariesBy": "Individual care plan developed by IDT based on participant needs and goals[4]",
-      "officialSource": "coloradopace.org"
+      "benefitVariesBy": "Individual need (customized care plan); does not vary by tier or priority level",
+      "officialSource": "https://www.medicaid.gov/medicaid/long-term-services-supports/program-of-all-inclusive-care-for-elderly and Colorado Department of Health Care Policy and Financing (HCPF)"
     },
     {
-      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "name": "Supplemental Nutrition Assistance Program (SNAP)",
       "isNew": false,
       "existingId": "colorado-snap-supplemental-nutrition-assistance-program",
       "existingVerified": null,
@@ -221,85 +187,66 @@
           "field": "min_age",
           "ours": "65",
           "found": "60",
-          "source": "https://www.colorado.gov/PEAK"
+          "source": "https://www.colorado.gov/PEAK (primary application portal); https://cdhs.colorado.gov/snaps (Colorado Dept of Human Services)"
         },
         {
           "field": "income_limit",
           "ours": "$1980",
           "found": "$2608",
-          "source": "https://www.colorado.gov/PEAK"
+          "source": "https://www.colorado.gov/PEAK (primary application portal); https://cdhs.colorado.gov/snaps (Colorado Dept of Human Services)"
         },
         {
           "field": "benefit_value",
           "ours": "$1,500 – $3,600/year",
-          "found": "Monthly EBT card for food purchases; amount based on net income ($100 more net income = ~$30 less benefits); minimum/maximum vary by household size; medical deduction if out-of-pocket >$35/mo ($165+); shelter deduction cap for some.[1][2]",
-          "source": "https://www.colorado.gov/PEAK"
+          "found": "Monthly EBT card for food purchases; amount based on net income (max allotment minus 30% net income, e.g., $546 max for 2-person elderly/disabled household yields $415 after calc). Minimum/maximum allotments apply; scales with household size, deductions for shelter, medical (elderly/disabled), utilities.[1][2][6]",
+          "source": "https://www.colorado.gov/PEAK (primary application portal); https://cdhs.colorado.gov/snaps (Colorado Dept of Human Services)"
         },
         {
           "field": "source_url",
           "ours": "MISSING",
-          "found": "https://www.colorado.gov/PEAK"
+          "found": "https://www.colorado.gov/PEAK (primary application portal); https://cdhs.colorado.gov/snaps (Colorado Dept of Human Services)"
         }
       ],
       "novelFields": [
         {
           "field": "asset_limits",
-          "value": "No asset limit in Colorado for standard eligibility (home/vehicles exempt). If gross income exceeds limit and household has 60+ or disabled member, federal rules apply: $4500 asset limit (countable: bank accounts; exempt: home, vehicles, retirement savings).[1][4]",
+          "value": "No asset limit in Colorado for most households due to broad-based categorical eligibility. Households with a member 60+ or disabled exceeding gross income follow federal rules with $4,500 asset limit. Exempt: home, vehicles. Countable: bank accounts, cash value of life insurance, retirement savings (some states vary).[1][3]",
           "note": "Our model has no asset limit fields"
         },
         {
           "field": "household_size_table",
-          "value": "For households with a member 60+ or disabled (Oct 1, 2025 - Sept 30, 2026): Gross income limit at 200% FPL - 1: $2608/mo, 2: $3526, 3: $4442, 4: $5358, 5: $6276, 6: $7192, 7: $8108, +$916 each additional. If over gross, qualify via net income (100% FPL) and asset test. Most households must pass gross (200% FPL), net, and asset tests; elderly/disabled exempt from gross if meeting others.[1][2][4]",
+          "value": "For Oct. 1, 2025 through Sept. 30, 2026, most households must meet a gross income limit of 200% of the federal poverty level: 1 person $2608/month, 2 people $3526/month, 3 people $4442/month, 4 people $5358/month, 5 people $6276/month, 6 people $7192/month, 7 people $8108/month, each additional +$916/month. Households with a member 60+ or disabled who exceed gross income can qualify via net income test (100% FPL) and asset test if applicable. All households must meet net income limits; benefits calculated as max allotment minus 30% of net income.[1][2][4]",
           "note": "Benefits/eligibility vary by household size — we store a single number"
         },
         {
           "field": "regional_variations",
-          "value": "Administered by county human services offices; work requirements may have local enforcement (e.g., Boulder County specifics on ABAWDs); processing times may vary by county[2][5]",
+          "value": "Uniform statewide rules, but apply via local county offices; processing may vary slightly by county; work requirements emphasized in some areas like Boulder County[5]",
           "note": "Program varies by region — our model doesn't capture this"
         },
         {
           "field": "documents_required",
           "value": [
-            "Name, DOB, SSN",
-            "Monthly income proof",
-            "Household/utility expenses (rent/mortgage, electricity, water, trash)",
-            "Proof of identity",
-            "Medical expenses if >$35/mo (for deduction)"
+            "Name, date of birth, Social Security number",
+            "Monthly income proof (Social Security, pensions, etc.)",
+            "Household size and utility expenses (rent/mortgage, electricity, water, trash)",
+            "Medical expenses >$35/month (for elderly/disabled deduction)",
+            "Proof of identity, residency, citizenship/immigration status"
           ],
           "note": "Has document checklist — our model doesn't store per-program documents"
         }
       ],
-      "dataShapeNotes": "Eligibility expands for 60+/disabled (no gross test if net/assets met, no standard asset limit); benefits scale by household size/net income; county-administered with work rule variations",
+      "dataShapeNotes": "Benefits scale by household size and net income; elderly/disabled have relaxed gross income test + medical/shelter deductions; no standard asset limit due to state BBCE expansion; county-administered with uniform rules",
       "gotchas": [
-        "Elderly/disabled over gross income limit can still qualify via net income + $4500 asset test—many miss this[1]",
-        "Redetermination every 6-12 months; submit periodic change report if certified >1 year to avoid lapse[2]",
-        "Medical deduction only if unreimbursed >$35/mo[2][6]",
-        "Work requirements expanded (e.g., parents with kids 14+, some visas ineligible per 2025 Act)[5][6]",
-        "Household must include food-sharing members; Social Security/SSI/pensions count as income[2][3]"
+        "Elderly/disabled over gross limit can still qualify via net income/asset test—many miss this[1]",
+        "No asset limit usually, but federal $4,500 applies if using elderly/disabled alternate path[1]",
+        "Medical deduction only if >$35/month out-of-pocket—track expenses[2]",
+        "Redetermination every 6-12 months + annual change report required to avoid lapse[2]",
+        "Work requirements for under-65 ABAWDs/parents with kids 14+ (80 hrs/month), recently expanded[5]",
+        "Include all who buy/prepare food together in household[3]"
       ],
       "benefitType": "financial",
       "benefitVariesBy": "household_size",
-      "officialSource": "https://www.colorado.gov/PEAK"
-    },
-    {
-      "name": "LEAP (Low-income Energy Assistance Program)",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "Income limits at 60% state median, updated annually by Nov 1 and vary by household size; priority-based benefits with add-ons like weatherization; county-administered with statewide uniformity but local application points",
-      "gotchas": [
-        "Assistance covers only part of heating bill—continue paying utility/rent[1][5]",
-        "Household size for income eligibility counts only income-earning members[4]",
-        "At least one household member must be U.S. citizen/legal resident; non-documented can apply under conditions[4]",
-        "Program runs Nov 1-Apr 30; funding may run out before end[1][2][5]",
-        "Must provide income proof from last month, including all sources[3][4]"
-      ],
-      "benefitType": "financial",
-      "benefitVariesBy": "priority_tier",
-      "officialSource": "https://cdhs.colorado.gov/leap (referenced across county sites)[2]"
+      "officialSource": "https://www.colorado.gov/PEAK (primary application portal); https://cdhs.colorado.gov/snaps (Colorado Dept of Human Services)"
     },
     {
       "name": "Weatherization Assistance Program (WAP)",
@@ -309,67 +256,88 @@
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "Income eligibility hybrid: auto-qualify via listed assistance programs or tiered limits (60% SMI for 1-7, 200% FPL for 8+, 80% AMI for select utilities), fully county/provider-specific charts required; local sub-grantees handle apps with varying forms/contacts/waitlists",
+      "dataShapeNotes": "Administered regionally with income varying by county/AMI/SMI/FPL and utility; no fixed statewide table; local providers handle apps with potential waitlists; prioritizes vulnerable households implicitly via public assistance auto-qualify.",
       "gotchas": [
-        "Auto-qualification via public assistance requires current approval letter; income verification still possible[1][2]",
-        "Meeting income limits does not guarantee services—depends on funding, prior weatherization (none in 15 years), utility, demand[2][6]",
-        "Regional/provider variations in income max (AMI/SMI/FPL), waitlists, availability[2]",
-        "Program year July-June; apply via specific local provider, not centrally[3]",
-        "Xcel/others auto-qualify LEAP/SSI/TANF/COAP recipients[4]"
+        "Income limits vary by county, household size, and utility (not fixed statewide; check local provider).",
+        "Automatic qualification via benefits still requires approval letter and ID.",
+        "Home must not have been weatherized in last 15 years; prior service disqualifies.",
+        "Renters need landlord permission; no services if denied.",
+        "Waitlists common due to funding limits; priority may go to elderly, disabled, large families (implied but not explicit).",
+        "Meeting income does not guarantee services; depends on funding/utility."
       ],
       "benefitType": "service",
-      "benefitVariesBy": "priority_tier",
+      "benefitVariesBy": "region",
       "officialSource": "https://socgov02.my.site.com/ceoweatherization/s/"
     },
     {
-      "name": "Colorado SHIP (State Health Insurance Assistance Program)",
-      "isNew": true,
-      "existingId": null,
+      "name": "State Health Insurance Assistance Program (SHIP)",
+      "isNew": false,
+      "existingId": "colorado-state-health-insurance-assistance-program-ship",
       "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "no income/asset test; open to Medicare-eligible and families statewide; service-based counseling via phone statewide with local delivery network; no formal application or waitlist",
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$3,000 – $10,000/year",
+          "found": "Free one-on-one personalized counseling and assistance on Medicare options (Parts A, B, C, D, Medigap), enrollment, appeals, prescription drug costs, coordinating benefits, applying for low-income programs (Medicaid, Medicare Savings Program, Extra Help), managing bills; public education, outreach presentations, enrollment events; unbiased advice (counselors not licensed to sell insurance); some programs offer study guides, legal referrals[1][2][3][4][6].",
+          "source": "https://doi.colorado.gov/insurance-products/health-insurance/senior-health-care"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://doi.colorado.gov/insurance-products/health-insurance/senior-health-care"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits or tests apply[1][2].",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Delivered through state Department of Regulatory Agencies in partnership with local area agencies on aging and community partners (e.g., DRCOG serves Arapahoe, Douglas, Jefferson counties); no differences in services, eligibility, or wait times noted[3][6][8]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Medicare card, current insurance details, prescription drug list, medical bills/statements (recommended for personalized help, but not mandatory to start)[4]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "no income or asset test; eligibility tied solely to Medicare status; statewide with local delivery partners; service-based (counseling hours unlimited, no caps); unbiased non-sales focus unique to SHIP vs. private advisors",
       "gotchas": [
-        "Counselors do not sell insurance and provide unbiased advice only—not agents; contact 3 months before Medicare starts for best help; not a direct financial benefit but assistance accessing other programs; training ensures expertise but services are advisory, not healthcare provision[1][3]"
+        "Not insurance agents; cannot sell plans or recommend specific products—only provide unbiased information[1]",
+        "Intensive training (8-10 hours) ensures expertise, but services are counseling only, not direct financial aid or healthcare[1][2]",
+        "Often confused with Medicare itself; it's free help navigating Medicare, not a health plan[4]",
+        "Contact early (3 months before Medicare starts) to avoid enrollment penalties[1]",
+        "May refer to Senior Medicare Patrol (SMP) for fraud issues, which some SHIPs provide alongside[2][8]"
       ],
       "benefitType": "service",
       "benefitVariesBy": "not_applicable",
       "officialSource": "https://doi.colorado.gov/insurance-products/health-insurance/senior-health-care"
     },
     {
-      "name": "Meals on Wheels Colorado",
+      "name": "Community Access Services (CAS) and Respite Care",
       "isNew": true,
       "existingId": null,
       "existingVerified": null,
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "Decentralized by county/provider with no uniform eligibility/fees; regionally fragmented providers, no income test but sliding donations; homebound focus with exceptions for disability/referral",
+      "dataShapeNotes": "Tied to multiple HCBS waivers with county-level financial tests and functional assessments; provider/agency-specific (e.g., PASAs, CMAs); varies heavily by region and disability type—no fixed statewide income table or service hours in sources",
       "gotchas": [
-        "Not a single unified program—must contact specific county/provider; no one denied for inability to pay but contributions requested; varies by exact location (e.g., age 60 vs 62, homebound assessment required); waitlists in high-demand areas; changes/cancellations need 24hr notice; caregivers may qualify if co-residing in some areas"
+        "Not all services available in rural areas[2]",
+        "Must meet both financial (county-determined) and functional eligibility; diagnosis-specific[2][5]",
+        "Funding hierarchy applies before waiver services (e.g., natural supports first)[4]",
+        "CAS/Respite often tied to specific HCBS waivers like Developmental Disabilities, Supported Living Services—not standalone[1]",
+        "Family Support Services exempt from income test, but others are not[2]"
       ],
       "benefitType": "service",
-      "benefitVariesBy": "region",
-      "officialSource": "No single statewide .gov site; primary network via mealsonwheelsamerica.org/find-meals-and-services/"
-    },
-    {
-      "name": "Community Access Services (CAS)",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "No data on elderly program; results show CAS as statewide counselor certification with tiered education/experience (CAT/CAS/LAC), no income/asset tests, not client services.",
-      "gotchas": [
-        "CAS likely refers to Certified Addiction Specialist, a professional license, not a community service for elderly—common mismatch in query.[1][4][6]",
-        "No evidence of 'Community Access Services (CAS)' for Colorado elderly; may confuse with HCBS waivers or ACC program.[2][5]",
-        "Search results lack any elderly-focused CAS program details."
-      ],
-      "benefitType": "not_applicable",
-      "benefitVariesBy": "not_applicable",
-      "officialSource": "No primary .gov URL for elderly CAS program identified; closest is https://dpo.colorado.gov/AddictionCounselor for counselor certification.[4]"
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "No primary .gov URL identified in results; start with county Department of Human Services or https://hcpf.colorado.gov (implied from context)[2][4]"
     },
     {
       "name": "Senior Community Service Employment Program (SCSEP)",
@@ -379,21 +347,21 @@
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "Federally uniform but locally administered by grantees like SER National in CO; income scales by household size at 125% FPL (annual updates); priority tiers affect access; county-restricted by provider coverage; waitlists common",
+      "dataShapeNotes": "Grantee-operated with regional service areas only (not full statewide); priority tiers heavily influence enrollment; income at exactly 125% federal poverty (varies by household size, annual update); no fixed asset test",
       "gotchas": [
-        "Income calculated for full family household at 125% FPL (contact provider to confirm exact amount and what counts)",
-        "Priority enrollment tiers may delay non-priority applicants (veterans first, then 65+, disabled, rural, etc.)",
-        "Temporary training program (avg. 6 months) aimed at unsubsidized job placement, not permanent employment",
-        "Must be unemployed and seeking training to bridge to work; not general welfare",
-        "Availability and waitlists vary by county/provider—check local office",
-        "Residency restricted to provider's service counties"
+        "Not first-come, first-served—Project Director decides based on suitability and priority",
+        "Must reside in specifically served area (not statewide)",
+        "Requires bank account for direct deposit and State Workforce registration",
+        "Willful income misrepresentation disqualifies permanently",
+        "Limited duration (avg. 6 months) as bridge to unsubsidized work; must commit to 20 hours/week and professional conduct",
+        "No asset limits specified, but all income counted"
       ],
       "benefitType": "employment",
       "benefitVariesBy": "priority_tier",
       "officialSource": "https://www.dol.gov/agencies/eta/seniors"
     },
     {
-      "name": "Colorado Legal Services (Senior Legal Hotline)",
+      "name": "Colorado Legal Services (Legal Aid for Seniors)",
       "isNew": false,
       "existingId": "colorado-legal-services-for-seniors",
       "existingVerified": null,
@@ -402,7 +370,7 @@
         {
           "field": "benefit_value",
           "ours": "$500 – $3,000/year",
-          "found": "Free civil legal services including: attorney advice, assistance filing cases, full court representation. Specific practice areas include estate planning, wills, trusts, power of attorney, guardianship/conservatorship, advanced directives, liens, consumer issues, landlord/tenant disputes, Medicaid/Medicare issues, Social Security/SSI problems, living wills, medical durable powers of attorney[1][3][4]. Some offices provide social workers for emotional support and resource identification[4].",
+          "found": "Free civil legal services including attorney advice, assistance filing cases, full court representation; covers housing/evictions, public benefits (Social Security, Medicare, Medicaid, SSI), advance directives (living wills, powers of attorney), economic justice (debt, etc.), elder abuse/neglect prevention; social worker support in some areas (Denver, Colorado Springs)[1][2][3][4].",
           "source": "https://www.coloradolegalservices.org"
         },
         {
@@ -414,38 +382,88 @@
       "novelFields": [
         {
           "field": "asset_limits",
-          "value": "Not specified in available sources. Income-based qualification appears primary[2].",
+          "value": "No asset limits for seniors (60+) in senior-specific programs[2].",
           "note": "Our model has no asset limit fields"
         },
         {
           "field": "regional_variations",
-          "value": "Larimer County office has no income/asset limits for seniors 60+, unlike statewide income-based guidelines[3]. Some offices prioritize certain case types based on resources[3]. Denver and Colorado Springs offices have integrated social workers[4].",
+          "value": "13 offices with varying case types accepted due to resources; different AAAs contract local providers for elders; wait times/resources vary (e.g., housing priority statewide)[3][4].",
           "note": "Program varies by region — our model doesn't capture this"
         },
         {
           "field": "waitlist",
-          "value": "Not specified in available sources.",
+          "value": "Limited resources mean unable to serve all (e.g., 323 elders turned away in 2021); some cases opened monthly (900+ in Aug)[1][4].",
           "note": "Has waitlist info — our model has no wait time field"
         },
         {
           "field": "documents_required",
-          "value": "Not specified in available sources. Applicants should be prepared to discuss income, assets, and legal issue during intake[2].",
+          "value": [
+            "Not explicitly listed; prepare ID, proof of income/residency if needed, details of legal issue; multilingual intake support available[1][6]"
+          ],
           "note": "Has document checklist — our model doesn't store per-program documents"
         }
       ],
-      "dataShapeNotes": "Program eligibility is primarily income-based with age preference (60+), but varies significantly by county and office. No statewide asset limits specified. Benefits are service-based (legal representation/advice) rather than financial. Application requires intake screening; no quick-access hotline model. Regional variations in income thresholds and case type acceptance create complexity for families determining eligibility.",
+      "dataShapeNotes": "Seniors 60+ often no income/asset test but prioritized by need via AAAs/private providers; 13 CLS offices + regional variations; resource-limited with case prioritization",
       "gotchas": [
-        "NOT a hotline for quick guidance — requires full intake screening before any assistance[3]",
-        "Some offices do not handle all case types; must contact local office to confirm they accept your issue[3]",
-        "New applicants have limited hours (typically 8:30am-3pm, not all weekdays)[6]",
-        "Income limits vary by region and household size; must apply to learn exact eligibility[2]",
-        "Preference given to low-income seniors, but seniors above poverty threshold may still qualify[1]",
-        "All services are civil legal only — does not handle criminal matters[2][4]",
-        "Seniors 50-59 may qualify in some service areas under different income thresholds (125% poverty)[5]"
+        "Not a hotline—intake screening required first[2]",
+        "Can't take every case due to resources; turn away eligible applicants[1][4][5]",
+        "Some offices limit case types[2]",
+        "Seniors may bypass income test but still prioritized by need[1][2][4]",
+        "Separate from state-funded elder program via Disability Law Colorado/AAAs[4]"
       ],
-      "benefitType": "service|advocacy",
-      "benefitVariesBy": "region|case_type",
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
       "officialSource": "https://www.coloradolegalservices.org"
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "isNew": false,
+      "existingId": "long-term-care-ombudsman-program",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$10,000 – $30,000/year",
+          "found": "Advocacy services including receiving and resolving complaints on quality of care, use of restraints, transfers/discharges, abuse, privacy/dignity issues, medications, hygiene, staff attitudes, and resident rights violations. Services are confidential, resident-directed, and free. Ombudsmen visit facilities regularly (e.g., nursing homes weekly, assisted living bi-monthly in some areas).",
+          "source": "https://www.coombudsman.org"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.coombudsman.org"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits or tests; no financial eligibility requirements.",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Managed by a network of local offices with different providers (e.g., Boulder County Community Services, Pueblo SRDA). Visit frequency may vary (e.g., Boulder: nursing homes weekly, assisted living twice monthly). Different contact points and staff per region.",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "No documents required; provide details of the complaint or concern verbally or via phone/email."
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "no income/asset test; advocacy-only with statewide network of local offices; facility-residency required; free/confidential/resident-directed; regional providers handle delivery with visit frequency variations",
+      "gotchas": [
+        "Not a healthcare or financial aid program—purely advocacy for rights and complaint resolution, not direct care or funding.",
+        "Services are resident-directed and confidential; family cannot override resident's wishes.",
+        "Only covers licensed skilled nursing homes and assisted living—not home care, adult day care, or unlicensed facilities.",
+        "Anyone can contact (residents, families, staff, public), but intervention requires resident direction.",
+        "Volunteering requires separate 36-hour training and commitment, often confused with receiving services."
+      ],
+      "benefitType": "advocacy",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://www.coombudsman.org"
     },
     {
       "name": "Old Age Pension (OAP)",
@@ -455,18 +473,18 @@
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "County-administered with varying reported income/benefit caps; cash benefit scales inversely with countable income (dollar-for-dollar reduction); tied to pursuing other benefits; medical benefits via separate programs (OAP Health Care or Medicaid)",
+      "dataShapeNotes": "County-administered with varying grant maximums; multiple tiers (A/B/C) by age/disability; requires proof of pursuing federal benefits; assets have detailed countable/exempt rules",
       "gotchas": [
-        "Must exhaust/apply for all other benefits first (e.g., Social Security, SSI) and provide proof; failure disqualifies[1]",
-        "Spouse's income fully countable[3]",
-        "Annual redetermination required, including re-applying for new benefits (e.g., Medicare at 65)[1]",
-        "Benefit reduced dollar-for-dollar by other income; not supplemental to high earners[1]",
-        "County variations in amounts/thresholds; check local county dept[1][3][5][6]",
-        "OAP-B (60-64) and OAP-C have specific disability/employment history rules[2]"
+        "Must pursue/verify other benefits first (SSI, Social Security, SSDI); failure discontinues OAP[1][2]",
+        "Spouse income fully countable; benefits reduced dollar-for-dollar[3]",
+        "Asset limits strict; many items countable (life insurance, secondary vehicles/property)[3][6]",
+        "Separate tiers (OAP-A/B/C) with nuanced age/disability rules; OAP-B/C for 60-64 often requires disability proof[1]",
+        "Health care via HCP only if Medicaid-ineligible (e.g., excess resources, short U.S. residency)[5]",
+        "Annual redetermination; must reapply for new benefits like Social Security at 62 or Medicare at 65[2]"
       ],
       "benefitType": "financial",
-      "benefitVariesBy": "region",
-      "officialSource": "https://www.sos.state.co.us/CCR/GenerateRulePdf.do?ruleVersionId=5243&fileName=9+CCR+2503-3 (Colorado Code of Regulations 9 CCR 2503-3)[2]"
+      "benefitVariesBy": "household_size",
+      "officialSource": "https://www.sos.state.co.us/CCR/GenerateRulePdf.do?ruleVersionId=5243&fileName=9+CCR+2503-3 (Code of Colorado Regulations 9 CCR 2503-3)[1]"
     },
     {
       "name": "Home Care Allowance (HCA)",
@@ -476,18 +494,20 @@
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "Tiered by functional assessment scores (Capacity ≥21, Need 1-51); financial tied to SSI/AND-SO/OAP (no fixed $ table); county-administered with local variations; cash to client for provider choice, no direct services",
+      "dataShapeNotes": "HCA eligibility is uniquely structured around two independent scoring systems: (1) Capacity Score (threshold: 21+) and (2) Need for Paid Care Score (varies by tier: 1-23, 24-37, or 38-51). Both must be met. The program is county-administered but statewide, creating regional variation in application processes. Maximum benefit ($1,500/month) is fixed, not means-tested. The program explicitly excludes individuals receiving HCBS, making it a lower-intensity alternative to Medicaid waiver services. Income and asset limits are strict and do not scale by household size for the primary applicant, though married couples must apply individually.",
       "gotchas": [
-        "Must be denied HCBS/Medicaid first; cannot receive both[1][2].",
-        "Skilled personal care not covered (only unskilled ADL)[1].",
-        "Functional assessment required via case manager; high thresholds (Capacity ≥21)[1][2].",
-        "County-administered: methods/documents vary; bring all docs or delayed[2][3].",
-        "Married apply separately; continuous OAP/HCA grandfathered only if pre-2014[2].",
-        "Not for highest needs (HCBS priority); designed for lowest functional abilities needing paid unskilled care[1][2]."
+        "HCA and Home and Community Based Services (HCBS) are mutually exclusive — you cannot receive both simultaneously[2]. Clients must be evaluated for HCBS first before HCA can be considered[1]",
+        "Skilled personal care is explicitly NOT covered by HCA[1] — only unskilled care services qualify",
+        "Asset limit of $2,000 is strict; exceeding this disqualifies applicants[4]",
+        "Income limits are based on 300% of Federal Benefit Rate, which can change annually — verify current dollar amounts with your county office",
+        "Both financial AND functional requirements must be met; meeting only one does not qualify you[2]",
+        "If married, each spouse must apply separately[2]",
+        "Processing takes up to 90 days; plan accordingly[3]",
+        "The program is designed for individuals with the lowest functional abilities and greatest need for paid care — moderate functional needs may not qualify[2]"
       ],
       "benefitType": "financial",
-      "benefitVariesBy": "priority_tier",
-      "officialSource": "https://www.law.cornell.edu/regulations/colorado/9-CCR-2503-5-3.570 (primary regs); county sites like https://www.douglas.co.us/human-services/assistance/financial-assistance/home-care-allowance/[1][2]"
+      "benefitVariesBy": "priority_tier (Tier 1, 2, or 3 based on functional assessment scores[1])",
+      "officialSource": "Colorado Department of Human Services; Colorado PEAK (https://www.colorado.gov/peak); County-specific human services offices"
     },
     {
       "name": "Older Coloradans Cash Fund",
@@ -497,13 +517,13 @@
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "One-time grant model distinct from monthly OAP payments; ties into broader elder care assessments like ACAT; income at 200% FPL threshold higher than some programs",
+      "dataShapeNotes": "One-time grant program distinct from monthly cash like OAP; income at 200% FPL; administered statewide via counties",
       "gotchas": [
-        "One-time grants only, not ongoing; must coordinate with other benefits like OAP or Health First Colorado; income includes all sources like Social Security; tax filing required for some rebates; often confused with Old Age Pension (OAP) cash assistance program"
+        "One-time grants only (not ongoing); must be low-income including all sources like Social Security; often confused with OAP or Home Care Allowance which have different benefits and limits; pursue other benefits first"
       ],
       "benefitType": "financial",
-      "benefitVariesBy": "household_size",
-      "officialSource": "https://www.colorado.gov/pga/office-aging (inferred from administration by Colorado’s Office on Aging; primary rules in CDHS sites)"
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://cdhs.colorado.gov/ (Office on Aging section; exact program page not in results)"
     }
   ]
 }

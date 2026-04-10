@@ -1,30 +1,2257 @@
 {
   "state": "NV",
   "stateName": "Nevada",
-  "draftedAt": "2026-04-09T09:37:38.733Z",
-  "total": 5,
-  "successful": 0,
+  "draftedAt": "2026-04-09T15:10:56.685Z",
+  "total": 18,
+  "successful": 13,
   "programs": [
     {
-      "name": "Nevada's Senior Rx Program",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "name": "Nevada Medicaid",
+      "_error": "Claude 529: {\"type\":\"error\",\"error\":{\"type\":\"overloaded_error\",\"message\":\"Overloaded\"},\"request_id\":\"req_011CZtQAv1KLa7v1B44mM6re\"}"
     },
     {
+      "name": "Home and Community-Based Services (HCBS) Waiver",
+      "_error": "Claude 529: {\"type\":\"error\",\"error\":{\"type\":\"overloaded_error\",\"message\":\"Overloaded\"},\"request_id\":\"req_011CZtQBWCsAC9A9frSxaYFD\"}"
+    },
+    {
+      "name": "Nevada Program of All-Inclusive Care for the Elderly (PACE)",
+      "_error": "Claude 529: {\"type\":\"error\",\"error\":{\"type\":\"overloaded_error\",\"message\":\"Overloaded\"},\"request_id\":\"req_011CZtQC6NBvTA7JiAZQ2qoV\"}"
+    },
+    {
+      "id": "nevada-medicare-savings-programs",
+      "name": "Nevada Medicare Savings Programs (QMB, SLMB, QI)",
+      "shortName": "Medicare Savings Programs",
+      "tagline": "Get help paying Medicare premiums, deductibles, and copays if your parent's income is under $1,660/month.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local DWSS Welfare District Offices statewide.",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent struggles to pay Medicare premiums and out-of-pocket costs, Nevada's Medicare Savings Programs can help. These three programs — QMB, SLMB, and QI — pay different portions of Medicare costs based on your parent's income level. The most comprehensive program (QMB) covers Medicare Part B premiums, deductibles, and all copays for doctor visits and medical services.\n\nYour parent must be enrolled in Medicare Parts A and B, have income below specific limits (roughly $1,235-$1,660/month for a single person), and have assets under $9,090 as an individual. Because these are federal programs with limited funding, especially for QI, applying early in the year increases approval chances.",
+      "savingsRange": "$1,800 – $3,600/year in 2026",
+      "savingsSource": "Medicare Part B premiums plus deductibles and copays",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+ or disabled",
+          "Medicare Parts A & B enrolled",
+          "Income below $1,660/month (single)",
+          "Assets under $9,090 (single)"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 9090,
+          "couple": 13630,
+          "countedAssets": [
+            "Bank accounts",
+            "Stocks",
+            "Bonds"
+          ],
+          "exemptAssets": [
+            "Home",
+            "One car",
+            "Personal belongings",
+            "Burial plots",
+            "Life insurance up to $1,500 face value"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Nevada resident",
+          "U.S. citizen or qualified immigrant",
+          "Not eligible for full Medicaid"
+        ],
+        "povertyLevelReference": "100-135% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply through Nevada's DWSS office by phone at 800-992-0900 or online — processing takes about one month.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Gather required documents",
+            "description": "Collect Medicare card, recent bank statements, Social Security award letter, and proof of Nevada residency."
+          },
+          {
+            "step": 2,
+            "title": "Contact DWSS",
+            "description": "Call 800-992-0900 or visit dwsd.nv.gov to start your Medicaid application (Medicare Savings Programs use the same application)."
+          },
+          {
+            "step": 3,
+            "title": "Complete interview",
+            "description": "DWSS will schedule a phone or in-person interview to review your parent's income and assets."
+          },
+          {
+            "step": 4,
+            "title": "Submit documentation",
+            "description": "Provide requested documents within 30 days to avoid delays."
+          }
+        ],
+        "processingTime": "QMB starts the month following approval; SLMB/QI can be retroactive to application month plus 3 prior months",
+        "waitlist": "QI may have a waitlist if federal funding is exhausted",
+        "tip": "Apply for QI early in the fiscal year — funding is limited and processed first-come, first-served.",
+        "urls": [
+          {
+            "label": "Access Nevada Portal",
+            "url": "https://dwsd.nv.gov"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "tier-comparison",
+          "heading": "Three Program Options",
+          "tiers": [
+            {
+              "name": "QMB (Qualified Medicare Beneficiary)",
+              "description": "Most comprehensive coverage",
+              "incomeLimit": "Up to 100% FPL (~$1,235/month single)",
+              "coverage": "Pays Medicare Part A premiums, Part B premiums, deductibles, and all copays. Providers cannot bill you for covered services."
+            },
+            {
+              "name": "SLMB (Specified Low-Income Beneficiary)",
+              "description": "Moderate coverage",
+              "incomeLimit": "100-120% FPL (~$1,235-$1,478/month single)",
+              "coverage": "Pays Medicare Part B premiums only. Automatic qualification for Extra Help with prescription drug costs."
+            },
+            {
+              "name": "QI (Qualifying Individual)",
+              "description": "Basic premium assistance",
+              "incomeLimit": "120-135% FPL (~$1,478-$1,660/month single)",
+              "coverage": "Pays Medicare Part B premiums only. Includes Extra Help for Part D prescription costs (≤$12.65 per drug in 2026)."
+            }
+          ]
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts (checking, savings)",
+            "Stocks and bonds",
+            "Certificates of deposit",
+            "Cash on hand"
+          ],
+          "excluded": [
+            "Your parent's home (no equity limit)",
+            "One car of any value",
+            "Personal belongings and household items",
+            "Burial plots and funeral contracts",
+            "Life insurance with face value up to $1,500"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Medicare",
+              "items": [
+                "Medicare card showing Parts A and B",
+                "Birth certificate or Social Security card",
+                "Proof of Nevada residency (utility bill, lease)"
+              ]
+            },
+            {
+              "name": "Financial Records",
+              "items": [
+                "Social Security award letter or pension statements",
+                "Bank statements for all accounts (last 3 months)",
+                "Pay stubs if still working"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "QI funding is limited and may end if Nevada's federal allocation is used up. Apply early in the fiscal year for the best chance of approval."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Income limits change every April 1st based on federal poverty levels. If your parent was denied previously, they may qualify now with updated limits."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house and still qualify?",
+          "answer": "Yes. The home where your parent lives is completely exempt from asset limits, regardless of value. Only liquid assets like bank accounts and investments count toward the $9,090 limit."
+        },
+        {
+          "question": "What if her income is just over the QMB limit?",
+          "answer": "She may qualify for SLMB (income up to ~$1,478/month) or QI (up to ~$1,660/month). While these don't cover deductibles and copays like QMB, they still pay the Part B premium and provide automatic Extra Help for prescription costs."
+        },
+        {
+          "question": "Will doctors still bill her if she gets QMB?",
+          "answer": "No. If your parent has QMB, providers cannot bill her for any Medicare-covered services — no copays, no deductibles. However, small Medicaid copays (typically $1-3) may apply for some services."
+        },
+        {
+          "question": "How is this different from regular Medicaid?",
+          "answer": "Medicare Savings Programs are specifically for people who have Medicare but need help with the costs. Your parent keeps their Medicare coverage and doctors — the program just helps pay the bills."
+        },
+        {
+          "question": "What happens if she's on a waiting list for QI?",
+          "answer": "QI has limited federal funding, so there may be a waitlist if funds run out. QMB and SLMB don't have waiting lists. If QI funds are exhausted, apply again at the start of the next fiscal year."
+        },
+        {
+          "question": "Does this automatically help with prescription drug costs?",
+          "answer": "Yes. All three programs provide automatic qualification for Extra Help, which reduces Part D prescription costs to $12.65 or less per drug. You don't need to apply separately — it happens automatically once approved."
+        }
+      ],
+      "phone": "800-992-0900",
+      "sourceUrl": "https://www.dss.nv.gov/programs/medical/general-medical-information/2-general-information-4mb/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "_error": "Claude 529: {\"type\":\"error\",\"error\":{\"type\":\"overloaded_error\",\"message\":\"Overloaded\"},\"request_id\":\"req_011CZtQFhrDENMu4ZAgeifwC\"}"
+    },
+    {
+      "name": "Nevada Energy Assistance Program (EAP) / LIHEAP",
+      "_error": "Claude 529: {\"type\":\"error\",\"error\":{\"type\":\"overloaded_error\",\"message\":\"Overloaded\"},\"request_id\":\"req_011CZtQGHrcDXrAtrrns7f4z\"}"
+    },
+    {
+      "id": "nevada-weatherization-assistance",
+      "name": "Weatherization Assistance Program",
+      "shortName": "Weatherization Assistance",
+      "tagline": "Free home energy upgrades including insulation, windows, and HVAC repairs if your parent's income is below $2,152/month.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Nevada Housing Division (state overseer), HELP of Southern Nevada, Nevada Rural Housing, CSA Reno (Washoe County), RND Council NV",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent struggles with high utility bills, Nevada's Weatherization Assistance Program provides free home energy upgrades worth thousands of dollars. The program covers insulation, window replacement, duct sealing, and even HVAC system repairs or replacement — all at no cost to qualifying homeowners and renters.\n\nYour parent qualifies if their household income is at or below 200% of the federal poverty level ($2,550/month for a single person in 2026). Because the program prioritizes elderly residents, disabled individuals, and households receiving energy assistance, your parent may move ahead of younger applicants. All upgrades must be approved through an energy audit to ensure cost-effectiveness.\n\nRenters can qualify, but the landlord must approve the work and may need to pay 50% of major capital improvements like HVAC replacement. Once approved, a licensed contractor performs all work at no charge to your parent.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Income below $2,550/month (single person)",
+          "Nevada resident",
+          "Own home or have landlord approval",
+          "Home must pass energy audit"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2550
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 3450
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 4350
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 5250
+          },
+          {
+            "householdSize": 5,
+            "monthlyLimit": 6150
+          },
+          {
+            "householdSize": 6,
+            "monthlyLimit": 7050
+          },
+          {
+            "householdSize": 7,
+            "monthlyLimit": 7950
+          },
+          {
+            "householdSize": 8,
+            "monthlyLimit": 8850
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must own home or have landlord approval for rental",
+          "Home must pass cost-effectiveness energy audit",
+          "Priority given to elderly, disabled, or households with young children"
+        ],
+        "povertyLevelReference": "200% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact your regional provider by phone or online — applications are processed in order received after income verification.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact your regional provider",
+            "description": "Find your area's weatherization provider (Southern Nevada: HELP, Northern Nevada: CSA Reno, Rural areas: Nevada Rural Housing)."
+          },
+          {
+            "step": 2,
+            "title": "Submit income documentation",
+            "description": "Provide 4 recent pay stubs, Social Security statements, and utility bills for all household members."
+          },
+          {
+            "step": 3,
+            "title": "Schedule home energy audit",
+            "description": "If income-qualified, an auditor evaluates your parent's home for cost-effective improvements."
+          },
+          {
+            "step": 4,
+            "title": "Approve work plan",
+            "description": "Review recommended upgrades (insulation, windows, HVAC) and schedule installation with licensed contractor."
+          }
+        ],
+        "processingTime": "Applications reviewed in order received; eligible contacted for energy audit. Timeline varies by provider.",
+        "waitlist": null,
+        "tip": "Elderly and disabled applicants get priority, so mention your parent's age or health conditions when applying.",
+        "urls": [
+          {
+            "label": "Nevada Housing Division",
+            "url": "https://housing.nv.gov/programs/weatherization/"
+          },
+          {
+            "label": "CSA Reno Application",
+            "url": "https://csareno.org/weatherization"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits by Household Size (200% Federal Poverty Level)",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 2550
+            },
+            {
+              "householdSize": 2,
+              "monthlyLimit": 3450
+            },
+            {
+              "householdSize": 3,
+              "monthlyLimit": 4350
+            },
+            {
+              "householdSize": 4,
+              "monthlyLimit": 5250
+            },
+            {
+              "householdSize": 5,
+              "monthlyLimit": 6150
+            },
+            {
+              "householdSize": 6,
+              "monthlyLimit": 7050
+            },
+            {
+              "householdSize": 7,
+              "monthlyLimit": 7950
+            },
+            {
+              "householdSize": 8,
+              "monthlyLimit": 8850
+            }
+          ],
+          "footnote": "2026 federal poverty guidelines. Some providers use 150% FPL."
+        },
+        {
+          "type": "county-directory",
+          "heading": "Regional Providers by Area",
+          "offices": [
+            {
+              "name": "HELP of Southern Nevada",
+              "type": "service-area",
+              "phone": "(702) 486-4311",
+              "address": "Southern Nevada (Las Vegas area)"
+            },
+            {
+              "name": "CSA Reno",
+              "type": "service-area",
+              "phone": "(775) 786-6023",
+              "address": "1090 E. 8th St., Reno (Washoe County)"
+            },
+            {
+              "name": "Nevada Rural Housing",
+              "type": "service-area",
+              "phone": "(702) 486-4311",
+              "address": "Rural Nevada counties"
+            },
+            {
+              "name": "RND Council",
+              "type": "service-area",
+              "phone": "(702) 486-4311",
+              "address": "Northern Nevada rural areas"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "Required Documents",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Valid photo ID for all adults 18+",
+                "Social Security cards for all household members"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "4 most recent pay stubs for all working adults",
+                "Social Security or pension benefit statements",
+                "Self-employed: tax returns or bank statements",
+                "2 current months of bank statements",
+                "Last 12 months of utility bills (gas and electric, all pages)",
+                "Zero income form (notarized) if no income"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Renters need landlord approval before applying. Landlords may be required to pay 50% of major improvements like HVAC replacement or water heater installation."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Priority goes to households with elderly or disabled members. Make sure to mention your parent's age or any disabilities when applying to move ahead in line."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if Mom rents her apartment — can she still get weatherization help?",
+          "answer": "Yes, but her landlord must approve the work in writing before she can apply. The landlord may also need to pay 50% of major capital improvements like HVAC systems or water heaters."
+        },
+        {
+          "question": "Will this program put a lien on Dad's house?",
+          "answer": "No liens are placed on owner-occupied homes. The weatherization work is completely free for qualifying homeowners."
+        },
+        {
+          "question": "What if the energy audit shows my parent's home doesn't qualify for improvements?",
+          "answer": "All recommended work must meet federal cost-effectiveness standards. If the audit shows improvements wouldn't save enough energy to justify the cost, your parent won't qualify for services."
+        },
+        {
+          "question": "How much will this actually save on Mom's utility bills?",
+          "answer": "Savings depend on the specific improvements made and your parent's current energy usage. The energy audit will provide an estimate of expected savings before any work begins."
+        },
+        {
+          "question": "Can my parent choose which improvements to make?",
+          "answer": "No, all improvements are determined by the energy audit and must meet federal guidelines. Your parent can't pick and choose — it's a package of the most cost-effective upgrades for their specific home."
+        },
+        {
+          "question": "What if Dad's income is just over the limit?",
+          "answer": "Some providers use 150% of the federal poverty level instead of 200%, so he might still qualify depending on the area. Contact your regional provider to check — income limits can vary slightly by county."
+        }
+      ],
+      "phone": "(702) 486-4311",
+      "sourceUrl": "https://housing.nv.gov/programs/weatherization/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "nevada-ship-medicare-assistance",
+      "name": "Nevada State Health Insurance Assistance Program (SHIP)",
+      "shortName": "Nevada SHIP",
+      "tagline": "Free one-on-one Medicare counseling to help your parent choose the right coverage and solve billing problems.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Reno office: 4055 S Virginia St. Reno, NV 89502",
+            "type": "service-area"
+          },
+          {
+            "name": "Las Vegas contact: 702-486-3478",
+            "type": "service-area"
+          },
+          {
+            "name": "Counseling available at Senior Centers throughout Nevada",
+            "type": "service-area"
+          },
+          {
+            "name": "Network of approximately 2,000 local affiliates nationwide, including health systems, senior centers, and Area Agencies on Aging",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is struggling to understand Medicare options or dealing with confusing medical bills, Nevada SHIP provides free, unbiased counseling to help them navigate their coverage. Trained counselors will work one-on-one with your parent to compare Medicare plans, help with enrollment, and resolve billing problems — all at no cost.\n\nUnlike insurance agents who sell specific products, SHIP counselors are completely independent and won't pressure your parent into any particular plan. They provide personalized assistance through phone, video calls, or in-person meetings at senior centers throughout Nevada. The program serves all Medicare beneficiaries and their families, regardless of income or assets.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Medicare beneficiaries of any age",
+          "Family members and caregivers welcome",
+          "No income or asset limits",
+          "Available statewide"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must have questions about Medicare coverage or need assistance with Medicare-related issues"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call 1-800-307-4444 to schedule free counseling — no application needed.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the helpline",
+            "description": "Call 1-800-307-4444 (statewide) or 702-486-3478 (Las Vegas area) to request counseling"
+          },
+          {
+            "step": 2,
+            "title": "Schedule your session",
+            "description": "Choose phone, video, or in-person counseling at a senior center near you"
+          },
+          {
+            "step": 3,
+            "title": "Gather Medicare materials",
+            "description": "Have your parent's Medicare card, current plan information, and any billing questions ready"
+          },
+          {
+            "step": 4,
+            "title": "Meet with counselor",
+            "description": "Discuss your parent's needs and get personalized recommendations for Medicare coverage"
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "You can attend counseling sessions with your parent to help them understand their options.",
+        "urls": [
+          {
+            "label": "Nevada SHIP website",
+            "url": "https://adsd.nv.gov/Programs/Seniors/Medicare_Assistance_Program_(MAP)/MAP_Prog/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "Local Contacts",
+          "offices": [
+            {
+              "name": "Reno Area",
+              "type": "service-area",
+              "phone": "1-800-307-4444",
+              "address": "4055 S Virginia St, Reno, NV 89502"
+            },
+            {
+              "name": "Las Vegas Area",
+              "type": "service-area",
+              "phone": "702-486-3478",
+              "address": "Contact by phone for local senior center locations"
+            },
+            {
+              "name": "Statewide Helpline",
+              "type": "service-area",
+              "phone": "1-800-307-4444",
+              "address": "Serves all Nevada counties"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "SHIP counselors will never sell insurance or pressure your parent into a specific plan. If someone claims to be from SHIP and tries to sell you something, hang up and report it to 1-800-307-4444."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can I sit in on the counseling session with my parent?",
+          "answer": "Yes, family members and caregivers are welcome to participate in counseling sessions. This can help you both understand your parent's Medicare options and assist with future healthcare decisions."
+        },
+        {
+          "question": "Will the counselor try to sell my parent insurance?",
+          "answer": "No. SHIP counselors are completely independent and do not sell insurance products. They provide unbiased information to help your parent choose the best Medicare coverage for their specific needs and budget."
+        },
+        {
+          "question": "Can SHIP help if my parent is having problems with medical bills?",
+          "answer": "Yes, SHIP counselors can help resolve Medicare claims and billing problems. They can explain what should be covered, help appeal denied claims, and assist with Medicare billing disputes."
+        },
+        {
+          "question": "Does my parent need to be a certain age to get help from SHIP?",
+          "answer": "No age requirement. SHIP serves all Medicare beneficiaries, including those under 65 who qualify for Medicare due to disability, as well as their families and caregivers."
+        },
+        {
+          "question": "How much does SHIP counseling cost?",
+          "answer": "All SHIP services are completely free. There are no fees, co-pays, or charges of any kind for Medicare counseling and assistance."
+        },
+        {
+          "question": "Can SHIP help during Medicare Open Enrollment?",
+          "answer": "Yes, SHIP counselors are especially busy during Open Enrollment (October 15 - December 7) helping people compare and switch Medicare plans. Call early in the enrollment period to schedule your appointment."
+        }
+      ],
+      "phone": "1-800-307-4444",
+      "sourceUrl": "https://adsd.nv.gov/Programs/Seniors/Medicare_Assistance_Program_(MAP)/MAP_Prog/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "nevada-home-delivered-meals",
+      "name": "Home Delivered Meals",
+      "shortName": "Delivered Meals",
+      "tagline": "Free home-delivered meals for homebound seniors 60+ who can't get to community meal sites",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Washoe County Senior Services, 1155 E. 9th St., Reno, NV 89512 (775-328-2575)",
+            "type": "service-area"
+          },
+          {
+            "name": "Catholic Charities of Southern Nevada (Las Vegas area)",
+            "type": "service-area"
+          },
+          {
+            "name": "Mom's Meals for Medicaid waiver participants via case manager",
+            "type": "service-area"
+          },
+          {
+            "name": "Nevada Medicaid for waiver enrollment",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and homebound due to illness, disability, or isolation, they may qualify for free home-delivered meals. The program typically provides 7 meals per week: one hot meal plus up to 6 frozen meals per delivery. All meals meet federal nutrition guidelines and provide at least one-third of daily recommended nutrients.\n\nThis isn't a single statewide program—you must apply through your local Area Agency on Aging or specific providers like Catholic Charities in Las Vegas or Washoe County Senior Services in Reno. Most programs require an in-home assessment to confirm your parent truly cannot attend community meal sites. If your parent is on certain Medicaid waivers (Frail Elderly, Physical Disabilities), they may access additional meal delivery through their case manager.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Homebound due to illness, disability, or isolation",
+          "Unable to attend community meal sites",
+          "Live within local service delivery area"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must be homebound due to illness, disability, or geographic isolation and unable to attend congregate meal sites (confirmed through in-home assessment)",
+        "otherRequirements": [
+          "Must live within local provider's service delivery area",
+          "For Medicaid waiver meals: Must be enrolled in Frail Elderly, Physical Disabilities, or IDD waiver"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your local Area Agency on Aging—most require an in-home visit to confirm eligibility within 1-2 weeks.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local provider",
+            "description": "Washoe County residents call 775-328-2575. Las Vegas area residents contact Catholic Charities. Other areas call Nevada 211 for referrals."
+          },
+          {
+            "step": 2,
+            "title": "Schedule assessment",
+            "description": "Provider will schedule an in-home visit to assess your parent's homebound status and meal delivery needs."
+          },
+          {
+            "step": 3,
+            "title": "Complete eligibility review",
+            "description": "Staff will confirm age, homebound condition, and inability to attend community meal sites during the home visit."
+          },
+          {
+            "step": 4,
+            "title": "Start meal delivery",
+            "description": "If eligible, meals typically begin within one week of approval. Recertification required periodically."
+          }
+        ],
+        "processingTime": "In-home assessment scheduled within 1-2 weeks of initial contact",
+        "waitlist": null,
+        "tip": "Have documentation of your parent's medical condition or disability that prevents them from leaving home ready for the assessment visit.",
+        "urls": [
+          {
+            "label": "Washoe County Senior Services",
+            "url": "https://www.washoecounty.gov/seniorsrv/nutrition/home_delivered_meals.php"
+          },
+          {
+            "label": "Nevada 211 Referrals",
+            "url": "https://nevada211.org"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "Local Providers",
+          "offices": [
+            {
+              "name": "Washoe County Senior Services",
+              "type": "service-area",
+              "phone": "775-328-2575",
+              "address": "1155 E. 9th St., Reno, NV 89512"
+            },
+            {
+              "name": "Catholic Charities of Southern Nevada",
+              "type": "service-area",
+              "phone": "Contact for eligibility assessment",
+              "address": "Las Vegas and North Las Vegas area"
+            },
+            {
+              "name": "Nevada 211",
+              "type": "referral service",
+              "phone": "2-1-1",
+              "address": "Statewide referral service for other areas"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Have Ready",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Driver's license or state ID",
+                "Proof of age (birth certificate if needed)"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Documentation of illness or disability preventing travel",
+                "Doctor's note explaining homebound status",
+                "List of current medications if relevant"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "This is not a single statewide program. You must apply through your local Area Agency on Aging or specific providers. Service areas vary—what's available in Reno may not exist in rural counties."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If your parent is on a Medicaid waiver, ask their case manager about additional meal delivery options through Mom's Meals or other waiver providers—they may qualify for more than the standard 7 meals per week."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent can leave the house occasionally but has trouble getting to meal sites?",
+          "answer": "They may still qualify. The program is for those unable to attend congregate meal sites due to illness, disability, or geographic isolation. The in-home assessment will determine if occasional outings still qualify as functionally homebound for meal purposes."
+        },
+        {
+          "question": "Can my parent choose what meals they receive?",
+          "answer": "Meal options are limited. The program provides nutritionally balanced meals that meet federal dietary guidelines, typically one hot meal and up to 6 frozen meals per week. Specific dietary restrictions may be accommodated based on medical needs."
+        },
+        {
+          "question": "What if we live in a rural area without local Area Agency services?",
+          "answer": "Call Nevada 211 for referrals to available providers in your area. Some rural areas may have limited or no service—the program isn't available statewide through every county."
+        },
+        {
+          "question": "How often does my parent need to be recertified?",
+          "answer": "Recertification requirements vary by provider. Washoe County, for example, requires periodic recertification to confirm ongoing homebound status. Your local provider will inform you of their specific timeline."
+        },
+        {
+          "question": "Can my parent get meals if they're already on Medicaid?",
+          "answer": "Yes, and they may qualify for additional meals. If your parent is on certain Medicaid waivers (Frail Elderly, Physical Disabilities), contact their case manager about waiver meal benefits through providers like Mom's Meals—this could mean more than the standard 7 meals per week."
+        },
+        {
+          "question": "What happens if my parent's condition improves and they can attend community meals?",
+          "answer": "They would no longer qualify for home delivery since the program requires being unable to attend congregate meal sites. However, they could transition to community meal programs, which often provide more social interaction along with nutrition."
+        }
+      ],
+      "phone": "775-328-2575",
+      "sourceUrl": "https://adsd.nv.gov",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "nevada-senior-respite-care-vouchers",
+      "name": "Senior Respite Care and Respite Care Vouchers",
+      "shortName": "Respite Vouchers",
+      "tagline": "Get $1,000/year to hire temporary caregivers so you can take a break from caring for your parent.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Seniors in Service: 1380 Greg Street #231, Sparks, NV 89431",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If you live with and care for a parent who needs help with daily activities like bathing or dressing, Nevada's Senior Respite Care Vouchers provide $1,000 per year to hire temporary caregivers. This gives you time to run errands, attend appointments, or simply rest while knowing your parent is safely cared for.\n\nThe program is designed for family caregivers who live in the same home as their parent and provide unpaid care. Your parent must be 60+ and need supervision or hands-on help with most daily activities due to safety concerns. Priority goes to families with lower incomes (under 300% of federal poverty guidelines), but higher-income families can also qualify if funds are available.\n\nThis program only serves 14 counties in Northern Nevada, from Washoe County down to Nye County. If your parent lives in assisted living or a nursing home, they don't qualify — this is specifically for people living independently in the community.",
+      "savingsRange": "$1,000/year in 2026",
+      "savingsSource": "Annual voucher amount for respite care services",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Lives in community (not facilities)",
+          "Needs help with daily activities",
+          "Live-in family caregiver required",
+          "14 Northern Nevada counties only"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Your parent must have functional impairment requiring supervision or hands-on assistance with most activities of daily living, with safety/well-being risk if left alone",
+        "otherRequirements": [
+          "You must live in the same residence as your parent",
+          "Your parent cannot live in assisted living, care facility, or nursing home",
+          "Available only in Carson City, Churchill, Douglas, Elko, Eureka, Humboldt, Lander, Lyon, Mineral, Nye, Pershing, Storey, Washoe, and White Pine counties",
+          "Dementia/Alzheimer's cases referred to Alzheimer's Association instead"
+        ],
+        "povertyLevelReference": "300% FPL"
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call (775) 358-2768 to check qualifications — no formal application form required.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call for initial screening",
+            "description": "Call Seniors in Service at (775) 358-2768 to discuss your situation and check if you qualify for the program."
+          },
+          {
+            "step": 2,
+            "title": "Schedule assessment",
+            "description": "If you meet basic requirements, they'll schedule a time to assess your parent's functional needs and your caregiving situation."
+          },
+          {
+            "step": 3,
+            "title": "Provide identification",
+            "description": "Have photo ID ready for your parent during the assessment process."
+          },
+          {
+            "step": 4,
+            "title": "Get voucher approval",
+            "description": "If approved, you'll receive information on how to use your $1,000 annual voucher for respite care services."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": "Program depends on fund availability — access may be limited",
+        "tip": "Call early in the fiscal year when funds are most likely to be available",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "Service Area",
+          "offices": [
+            {
+              "name": "Seniors in Service",
+              "type": "service-area",
+              "phone": "(775) 358-2768",
+              "address": "1380 Greg Street #231, Sparks, NV 89431"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Photo ID for your parent"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "This program has limited funding and may not be available year-round. Call as early as possible to check current availability."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "You must live in the same home as your parent to qualify. This program won't work if you're caring for a parent who lives separately, even if you visit daily."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can I use this if my parent has dementia?",
+          "answer": "No, the program refers dementia and Alzheimer's cases to the Alzheimer's Association instead. Call them directly for dementia-specific respite resources."
+        },
+        {
+          "question": "What if my income is higher than 300% of federal poverty level?",
+          "answer": "You can still qualify if funds are available. The program prioritizes lower-income families first, but doesn't automatically exclude higher-income caregivers."
+        },
+        {
+          "question": "Can I hire my other family members to provide the respite care?",
+          "answer": "Generally no — legally responsible relatives or guardians cannot provide paid respite services through similar Medicaid programs. Check with Seniors in Service about specific restrictions for this voucher program."
+        },
+        {
+          "question": "What if my parent lives in assisted living part-time?",
+          "answer": "Your parent must live in the community full-time to qualify. If they're in assisted living, care facilities, or nursing homes, even temporarily, they don't qualify for this program."
+        },
+        {
+          "question": "How do I actually use the $1,000 voucher?",
+          "answer": "Seniors in Service will explain the specific process once you're approved, including which respite care providers accept the vouchers and how to arrange services."
+        },
+        {
+          "question": "What counties are covered?",
+          "answer": "Carson City, Churchill, Douglas, Elko, Eureka, Humboldt, Lander, Lyon, Mineral, Nye, Pershing, Storey, Washoe, and White Pine counties. If you're in Clark County (Las Vegas) or other areas, this program isn't available."
+        }
+      ],
+      "phone": "(775) 358-2768",
+      "sourceUrl": "https://seniorsinservicenevada.org/respite-voucher-program/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "nevada-scsep-employment",
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "shortName": "SCSEP Employment",
+      "tagline": "If your parent is 55+ and unemployed, they can earn $290-580/week in part-time community service jobs while building skills for permanent employment.",
+      "programType": "employment",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "AARP SCSEP: 1135 Terminal Way Suite 102, Reno, NV 89502[4]",
+            "type": "service-area"
+          },
+          {
+            "name": "Nevada ADSD (state plan/monitor): adsd.nv.gov[1][5]",
+            "type": "service-area"
+          },
+          {
+            "name": "NAPCA SCSEP (serves NV seniors)[6]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your unemployed parent is 55+ and struggling financially, SCSEP provides immediate paid work while helping them find permanent employment. Your parent works about 20 hours per week at local nonprofits, schools, or senior centers — earning Nevada's minimum wage while receiving job training and placement assistance.\n\nBecause SCSEP combines immediate income with career support, your parent gets both financial relief now and help finding long-term employment. The program typically lasts about 6 months and includes supportive services like transportation assistance. Priority goes to veterans, those over 65, and parents in rural areas or with barriers to employment.\n\nIncome must be at or below 125% of the federal poverty level, but there are no asset limits. Availability varies by county — northern Nevada is served by AARP Foundation, while other areas have different providers.",
+      "savingsRange": "$3,016 – $6,032/year in 2026",
+      "savingsSource": "20 hours/week at Nevada minimum wage ($14.50/hour estimated)",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Unemployed",
+          "Income at or below 125% federal poverty level",
+          "Must live in participating county"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be unemployed",
+          "Must reside in county served by local SCSEP provider"
+        ],
+        "povertyLevelReference": "125% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact your local SCSEP office by phone or visit in person — if eligible and no waitlist, enrollment can start promptly.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local provider",
+            "description": "Northern Nevada residents call AARP at 775-323-2243. Other areas use the online locator at my.aarpfoundation.org/locator/scsep/ or contact Nevada ADSD."
+          },
+          {
+            "step": 2,
+            "title": "Complete intake interview",
+            "description": "Provide proof of age, income, unemployment status, and residency. Staff will verify eligibility and explain priority placement."
+          },
+          {
+            "step": 3,
+            "title": "Get job assignment",
+            "description": "If accepted, you'll be matched with a community service position based on your skills and local availability."
+          }
+        ],
+        "processingTime": "Not specified — depends on local capacity",
+        "waitlist": "Possible waitlist depending on local capacity",
+        "tip": "Veterans and their spouses get priority placement, so mention military service during intake.",
+        "urls": [
+          {
+            "label": "Find Local SCSEP Office",
+            "url": "https://my.aarpfoundation.org/locator/scsep/"
+          },
+          {
+            "label": "Nevada ADSD Program Info",
+            "url": "https://adsd.nv.gov"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "SCSEP has limited slots and waitlists are common. Contact your local office early to check availability in your county."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "This is a temporary bridge program (average 6 months) designed to help your parent find unsubsidized employment — not permanent work. Use the job training and placement services to prepare for the next step."
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Age",
+              "items": [
+                "Birth certificate or driver's license showing age 55+",
+                "Social Security card"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Recent tax return or income statement",
+                "Unemployment documentation or proof of job loss",
+                "Bank statements (if requested)"
+              ]
+            },
+            {
+              "name": "Residency",
+              "items": [
+                "Utility bill or lease showing county residence",
+                "Proof of address in provider's service area"
+              ]
+            }
+          ]
+        }
+      ],
+      "faqs": [
+        {
+          "question": "My mom is 67 and hasn't worked in years — does she still qualify?",
+          "answer": "Yes, if she's unemployed and meets the income limit. Being over 65 actually gives her priority placement, along with veterans and people with disabilities."
+        },
+        {
+          "question": "What if my dad's Social Security puts him just over the income limit?",
+          "answer": "Income limits are strict at 125% of federal poverty level and update yearly. Contact your local SCSEP office with his exact monthly income — they'll verify against current guidelines."
+        },
+        {
+          "question": "Can my parent choose where they work, or do they get assigned anywhere?",
+          "answer": "SCSEP matches participants with community service positions at nonprofits, schools, hospitals, or senior centers based on their skills and what's available locally. You can discuss preferences during placement."
+        },
+        {
+          "question": "What happens after the 6 months is up?",
+          "answer": "The goal is to help your parent find permanent, unsubsidized employment. Job placement assistance continues throughout the program, and many participants transition to regular jobs before the program ends."
+        },
+        {
+          "question": "My parent doesn't drive — will transportation be a problem?",
+          "answer": "SCSEP provides supportive services including transportation assistance. Discuss transportation needs during intake so they can help arrange solutions."
+        },
+        {
+          "question": "We live in Las Vegas — is AARP the right contact?",
+          "answer": "No, AARP serves northern Nevada counties. Use the online locator at my.aarpfoundation.org/locator/scsep/ to find the provider for your specific area, or contact Nevada ADSD for guidance."
+        }
+      ],
+      "phone": "775-323-2243",
+      "sourceUrl": "https://adsd.nv.gov/About/Reports/SrCommSvcEmplyProg/Home/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "nevada-advocates-for-seniors",
+      "name": "Nevada Advocates for Seniors",
+      "shortName": "Nevada Advocates",
+      "tagline": "Professional care coordinators ensure your parent gets quality in-home care and a safer living environment.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false
+      },
+      "intro": "If your parent wants to stay in their own home but needs help coordinating care or making their house safer, Nevada Advocates for Seniors provides professional oversight and home assessments. Their Registered Nurse Advocates perform both scheduled and surprise visits to ensure in-home caregivers are following care plans and providing quality service.\n\nThe program focuses on helping seniors remain independent at home through home safety assessments, coordinating necessary repairs and modifications, and vetting in-home care providers. This is a private service provider, not a free government program, so families typically pay for these care management services.",
+      "savingsRange": "",
+      "savingsSource": "Private service provider",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Nevada resident",
+          "Seniors wanting to age in place",
+          "No income limits specified"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be a Nevada resident",
+          "Focus on seniors seeking to remain independent at home"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "online",
+        "summary": "Contact through their website to discuss your parent's care coordination needs.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Visit their services page",
+            "description": "Go to nvapros.com/our-services/ to learn about specific offerings"
+          },
+          {
+            "step": 2,
+            "title": "Submit inquiry",
+            "description": "Contact them through the website to discuss your parent's situation"
+          },
+          {
+            "step": 3,
+            "title": "Discuss services and costs",
+            "description": "Work with them to determine which services your parent needs and associated fees"
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Because this is a private service, ask about specific costs upfront and what services are included in their care coordination.",
+        "urls": [
+          {
+            "label": "Nevada Advocates Services",
+            "url": "https://nvapros.com/our-services/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "This is a private care management service, not a free government program. Ask about costs and payment options when you contact them."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "How much does Nevada Advocates for Seniors cost?",
+          "answer": "Costs are not specified on their website. Because this is a private service provider rather than a free government program, you'll need to contact them directly to discuss pricing for the specific services your parent needs."
+        },
+        {
+          "question": "What's the difference between this and free senior services?",
+          "answer": "Nevada Advocates for Seniors is a private company that provides care coordination and oversight services. This is different from free government programs like Nevada Legal Services Senior Law Project or Area Agency on Aging services, which don't charge fees."
+        },
+        {
+          "question": "Do they actually provide the in-home care or just supervise it?",
+          "answer": "They coordinate and supervise care rather than providing direct caregiving. Their Registered Nurse Advocates vet care providers, create care plans, and conduct announced and unannounced visits to ensure quality, but your parent would still need separate in-home caregivers."
+        },
+        {
+          "question": "What kind of home modifications can they help coordinate?",
+          "answer": "They perform home safety assessments and coordinate necessary repairs and modifications to help your parent age in place safely, but specific types of modifications aren't detailed in available information. You'll need to ask them directly about what they can help arrange."
+        },
+        {
+          "question": "Does insurance cover any of their services?",
+          "answer": "Insurance coverage isn't specified in available information. Because this appears to be care management rather than direct medical care, coverage may be limited, but you should check with both Nevada Advocates and your parent's insurance provider."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://nvapros.com/our-services/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "nevada-long-term-care-ombudsman-program",
+      "name": "Nevada Long-Term Care Ombudsman Program",
+      "shortName": "Nevada Ombudsman",
+      "tagline": "Free advocates help resolve problems in your parent's nursing home or assisted living facility.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Carson City: 3461 Goni Rd. Suite D-132, Carson City, NV 89706",
+            "type": "service-area"
+          },
+          {
+            "name": "Las Vegas Regional Office",
+            "type": "service-area"
+          },
+          {
+            "name": "Elko: 1010 Ruby Vista Drive, Suite 104, Elko, NV 89801",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent lives in a Nevada nursing home, assisted living, or residential care facility and has concerns about their treatment, certified advocates through the Long-Term Care Ombudsman Program can investigate and resolve complaints at no cost. These ombudsmen handle issues ranging from dignity and respect concerns to problems with care quality, dietary issues, privacy violations, and wrongful discharge attempts.\n\nThe program serves all facility residents age 60+ regardless of income or assets. Because ombudsmen are independent advocates trained in residents' rights, they can address problems directly with facility staff and administration when families feel unheard. The service is completely confidential and requires only the resident's consent (or a responsible party's approval if the resident cannot consent).",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Lives in long-term care facility",
+          "No income or asset limits",
+          "Resident consent required"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must reside in a Nevada long-term care facility (nursing home, assisted living, or residential care)",
+          "Requires consent from resident or responsible party"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call the helpline at 1-888-282-1155 or file an online complaint form — no paperwork required and anyone can file on behalf of a resident.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact the ombudsman office",
+            "description": "Call 1-888-282-1155 or visit the website to file an online complaint form. You can file a complaint on behalf of your parent."
+          },
+          {
+            "step": 2,
+            "title": "Provide basic information",
+            "description": "Share your parent's facility name, the nature of the problem, and confirm you have their consent to file the complaint."
+          },
+          {
+            "step": 3,
+            "title": "Ombudsman investigates",
+            "description": "A certified advocate will visit the facility, investigate the complaint, and work directly with staff to resolve the issue while maintaining confidentiality."
+          }
+        ],
+        "processingTime": "Not specified",
+        "waitlist": null,
+        "tip": "You don't need to wait for your parent's permission to call and ask questions — ombudsmen can explain options and rights before you decide whether to file a formal complaint.",
+        "urls": [
+          {
+            "label": "File online complaint",
+            "url": "https://adsd.nv.gov/Programs/Seniors/LTCOmbudsman/LTCOmbudsProg/"
+          },
+          {
+            "label": "Program information",
+            "url": "https://adsd.nv.gov/Programs/Seniors/LTCOmbudsman/LTCOmbudsProg/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "Regional Offices",
+          "offices": [
+            {
+              "name": "Carson City Administrative Office",
+              "type": "service-area",
+              "phone": "775-687-4210",
+              "address": "3461 Goni Rd. Suite D-132, Carson City, NV 89706"
+            },
+            {
+              "name": "Las Vegas Regional Office",
+              "type": "service-area",
+              "phone": "702-486-3572",
+              "address": "ltc.ombudsman@adsd.nv.gov"
+            },
+            {
+              "name": "Elko Regional Office",
+              "type": "service-area",
+              "phone": "775-738-1966",
+              "address": "1010 Ruby Vista Drive, Suite 104, Elko, NV 89801"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "This program only helps residents in facilities like nursing homes or assisted living. If your parent lives at home, contact the Community Ombudsman Program instead for community-dwelling elders 60+."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can I file a complaint if my parent has dementia and can't give consent?",
+          "answer": "Yes. If your parent cannot consent due to cognitive issues, the ombudsman can work with a responsible party (like a family member or guardian) or act in the resident's best interest if no responsible party is available."
+        },
+        {
+          "question": "Will the facility know I complained and retaliate against my parent?",
+          "answer": "Ombudsmen maintain strict confidentiality and are trained to handle complaints without revealing who filed them unless necessary for the investigation. Retaliation against residents for complaints is illegal and ombudsmen will address any retaliatory behavior."
+        },
+        {
+          "question": "What types of problems can the ombudsman actually fix?",
+          "answer": "Ombudsmen investigate and resolve complaints about dignity and respect issues, quality of care problems, dietary concerns, privacy violations, environmental issues, wrongful discharge attempts, and problems with activities or services. They work directly with facility administration to implement solutions."
+        },
+        {
+          "question": "How is this different from calling the state health department about a facility?",
+          "answer": "Ombudsmen are resident advocates who work to resolve problems through education and mediation, while health departments conduct regulatory inspections and issue citations. Ombudsmen often resolve issues faster and with less disruption to your parent's daily life."
+        },
+        {
+          "question": "Does my parent have to pay anything for this service?",
+          "answer": "No. The Long-Term Care Ombudsman Program is completely free regardless of your parent's income, assets, or insurance coverage. There are no fees for investigations, visits, or advocacy services."
+        },
+        {
+          "question": "What if my parent is under 60 but lives in a care facility?",
+          "answer": "The program is specifically for residents 60 and older. However, you can still call the helpline at 1-888-282-1155 to discuss your situation and get referrals to other advocacy resources that might help younger residents."
+        }
+      ],
+      "phone": "1-888-282-1155",
+      "sourceUrl": "https://adsd.nv.gov/Programs/Seniors/LTCOmbudsman/LTCOmbudsProg/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "nevada-senior-rx-prescription-help",
+      "name": "Nevada Senior Rx Program",
+      "shortName": "Nevada Senior Rx",
+      "tagline": "This prescription cost assistance program ended December 31, 2023 — but Nevada still has help for medication costs.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Nevada Department of Health and Human Services (DHHS) Director's Office, 4126 Technology Way, Suite 101, Carson City, NV 89706-2009",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "The Nevada Senior Rx Program ended on December 31, 2023, and is no longer accepting new applications. This state program previously helped Nevada residents age 62+ with prescription medication costs if their income was below $33,152 for singles or $44,193 for couples (2022 limits).\n\nIf your parent needs prescription cost assistance now, Nevada's Medicare Assistance Program (MAP) can connect you with current alternatives including Extra Help (federal Medicare Part D assistance) and other medication cost programs. Unlike the ended Senior Rx program, these current programs may have different eligibility rules and benefit amounts.",
+      "savingsRange": "",
+      "savingsSource": "Program ended - current alternatives vary",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Program ended December 31, 2023",
+          "Was for age 62+",
+          "Income limits were $33,152 singles/$44,193 couples (2022)",
+          "Required 12 months Nevada residency"
+        ],
+        "ageRequirement": "62+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2763
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 3683
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Continuous Nevada residency for 12 consecutive months",
+          "Must be enrolled in Medicare Part D",
+          "Must apply for Extra Help if eligible"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Program ended December 31, 2023 - contact Nevada Medicare Assistance Program at 800-307-4444 for current prescription help options.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call Nevada MAP",
+            "description": "Contact 800-307-4444 to discuss current prescription assistance programs available to your parent."
+          },
+          {
+            "step": 2,
+            "title": "Check Extra Help eligibility",
+            "description": "Ask about federal Extra Help program which may provide more comprehensive Medicare Part D cost assistance."
+          },
+          {
+            "step": 3,
+            "title": "Review other options",
+            "description": "MAP counselors can identify other medication cost programs your parent may qualify for."
+          }
+        ],
+        "processingTime": "Program no longer accepting applications",
+        "waitlist": null,
+        "tip": "If your parent was previously enrolled in Nevada Senior Rx, their benefits ended December 31, 2023, but they may qualify for federal programs with similar or better coverage.",
+        "urls": [
+          {
+            "label": "Nevada Medicare Assistance Program",
+            "url": "https://www.nevadacareconnection.org"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits (Program Ended)",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 2763,
+              "yearlyLimit": 33152
+            },
+            {
+              "householdSize": 2,
+              "monthlyLimit": 3683,
+              "yearlyLimit": 44193
+            }
+          ],
+          "footnote": "2022 limits (last known before program ended)"
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Nevada Senior Rx ended December 31, 2023. If your parent needs prescription help now, call Nevada Medicare Assistance Program at 800-307-4444 — they know what programs are currently available and may find better options than the old Senior Rx program."
+        },
+        {
+          "type": "county-directory",
+          "heading": "Current Prescription Help Contact",
+          "offices": [
+            {
+              "name": "Nevada Medicare Assistance Program (MAP)",
+              "type": "statewide",
+              "phone": "800-307-4444",
+              "address": "Email: NevadaMAP@adsd.nv.gov"
+            }
+          ]
+        }
+      ],
+      "faqs": [
+        {
+          "question": "My parent was getting Nevada Senior Rx benefits — what happened to them?",
+          "answer": "All Nevada Senior Rx benefits ended December 31, 2023. Your parent will need to apply for other prescription assistance programs. Call Nevada MAP at 800-307-4444 to find current options that may provide equal or better coverage."
+        },
+        {
+          "question": "What programs can help with prescription costs now that Senior Rx ended?",
+          "answer": "Extra Help (federal Medicare Part D assistance) is the main alternative, plus pharmaceutical company patient assistance programs and other state resources. Nevada MAP counselors at 800-307-4444 can check what your parent qualifies for based on their specific income and medications."
+        },
+        {
+          "question": "Will the new programs have the same income limits as Senior Rx?",
+          "answer": "No — each program has different rules. Extra Help has higher income limits than Senior Rx did ($2,178/month for singles, $2,940 for couples in 2024), so your parent might qualify for more help than they got before."
+        },
+        {
+          "question": "My parent's income was just over the Senior Rx limit — should I still call about alternatives?",
+          "answer": "Yes. Current programs have different (often higher) income limits and some pharmaceutical companies offer assistance regardless of income. Nevada MAP can check all options at once rather than you researching each program separately."
+        },
+        {
+          "question": "How quickly can my parent get help with medication costs?",
+          "answer": "Extra Help can start within 2-4 weeks of approval. Some pharmaceutical patient assistance programs work faster. Nevada MAP counselors can prioritize the quickest options based on your parent's most expensive medications."
+        }
+      ],
+      "phone": "800-307-4444",
+      "sourceUrl": "https://adsd.nv.gov/programs/seniors/seniorrx/srrxprog/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "nevada-hcbw-frail-elderly",
       "name": "Home and Community-Based Waiver for the Frail Elderly (HCBW-FE)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "shortName": "Nevada Frail Elderly Waiver",
+      "tagline": "If your parent is 65+ and needs daily help at home, Nevada may pay for homemaker services, meal delivery, and other support to avoid nursing home placement.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Office of Community Living (OCL), Aging and Disability Services Division (ADSD)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 65+ and struggling with daily tasks like bathing, dressing, or managing medications, Nevada's Frail Elderly Waiver can pay for home care services to help them stay out of a nursing home. The program covers homemaker services, meal delivery, adult day care, personal emergency response systems, and respite care for family caregivers.\n\nYour parent must meet strict functional requirements — they need help with at least 3 daily activities and be at risk of nursing home placement within 30 days without these services. Income limits are $2,901/month for individuals and asset limits are $2,000, though the family home doesn't count if your parent lives there.\n\nBecause this waiver has limited slots, there's likely a waitlist. Apply as early as possible if your parent needs increasing help at home.",
+      "savingsRange": "",
+      "savingsSource": "Free services",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+",
+          "Income below $2,901/month",
+          "Assets under $2,000",
+          "Need help with 3+ daily activities",
+          "At risk of nursing home placement"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2901
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 5802
+          }
+        ],
+        "assetLimits": {
+          "individual": 2000,
+          "couple": 3000,
+          "countedAssets": [
+            "Bank accounts",
+            "Savings",
+            "Investments",
+            "Second vehicles"
+          ],
+          "exemptAssets": [
+            "Primary home (if parent lives there)",
+            "Household furnishings",
+            "One vehicle",
+            "Personal belongings"
+          ],
+          "homeEquityCap": 752000
+        },
+        "functionalRequirement": "Must need help with at least 3 activities like bathing, dressing, medication management, meal preparation, or require supervision due to safety concerns. Must be at risk of nursing home placement within 30 days without waiver services.",
+        "otherRequirements": [
+          "Nevada resident",
+          "Must use at least one waiver service monthly"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply through Nevada's Office of Community Living with processing time not specified.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Complete OCL intake application",
+            "description": "Fill out the Home and Community Based application through the Office of Community Living."
+          },
+          {
+            "step": 2,
+            "title": "Schedule functional assessment",
+            "description": "A caseworker will assess your parent's need for help with daily activities to determine if they meet Nursing Facility Level of Care requirements."
+          },
+          {
+            "step": 3,
+            "title": "Submit financial documentation",
+            "description": "Provide income statements, bank records, and asset documentation to verify eligibility."
+          },
+          {
+            "step": 4,
+            "title": "Wait for approval and slot availability",
+            "description": "Due to waiver caps, approval doesn't guarantee immediate services — you may be placed on a waitlist."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": "Likely exists due to waiver caps",
+        "tip": "Apply early if your parent's functional needs are increasing — waitlists are common and urgent cases get priority.",
+        "urls": [
+          {
+            "label": "Nevada ADSD",
+            "url": "https://adsd.nv.gov"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and savings",
+            "Investments and retirement accounts",
+            "Second vehicles",
+            "Property other than primary residence"
+          ],
+          "excluded": [
+            "Primary home (if parent lives there and equity under $752,000 in 2026)",
+            "Household furnishings and personal belongings",
+            "One vehicle",
+            "Home if spouse, dependent child under 21, or blind/disabled child lives there"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Driver's license or state ID",
+                "Proof of Nevada residency"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "3 months of bank statements",
+                "Social Security award letters",
+                "Pension or retirement income statements",
+                "Property deeds if home equity exceeds limits"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Recent medical records showing functional decline",
+                "Medication lists",
+                "Documentation of help needed with daily activities"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "This waiver has limited slots statewide. Getting approved doesn't guarantee immediate services — you may wait months for an opening."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If your parent is married and only one spouse applies, both spouses' assets still count toward the $2,000 individual limit. Consider spend-down strategies before applying."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house if she qualifies for the waiver?",
+          "answer": "Yes, the family home doesn't count toward asset limits if your parent lives there and the home equity is under $752,000 in 2026. However, Nevada may try to recover costs from the home after your parent passes away unless you do estate planning."
+        },
+        {
+          "question": "My father has dementia — does that automatically qualify him?",
+          "answer": "No, having dementia doesn't automatically qualify your father. He must score deficits in at least 3 areas on Nevada's functional assessment, covering things like bathing, dressing, medication management, or needing supervision for safety."
+        },
+        {
+          "question": "What if Dad's Social Security is $3,000/month — just over the $2,901 limit?",
+          "answer": "Your dad wouldn't qualify with income over $2,901/month. However, if he has high medical expenses, those might be deducted from his income for eligibility purposes. Contact Nevada's Office of Community Living to discuss his specific situation."
+        },
+        {
+          "question": "How long will we wait for services after approval?",
+          "answer": "The processing time isn't specified, but this waiver has limited slots so there's likely a waitlist even after approval. Urgent cases — those at immediate risk of nursing home placement — get priority."
+        },
+        {
+          "question": "If my parents are married but only Mom needs help, how do the asset limits work?",
+          "answer": "If only one spouse applies, both spouses' assets are counted together and must be under the individual limit of $2,000. This is stricter than if both applied (which allows $3,000 total)."
+        },
+        {
+          "question": "What services will Mom actually get through this waiver?",
+          "answer": "Services include homemaker help, meal delivery, adult day care, personal care attendants, emergency response systems, respite care for family caregivers, and chore services. The exact services depend on your mom's assessed needs and must be used at least monthly."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://adsd.nv.gov",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
+      "id": "nevada-personal-care-services",
+      "name": "Nevada Personal Care Services Program (PCS)",
+      "shortName": "Nevada PCS",
+      "tagline": "Get paid caregivers to help your parent with daily tasks like bathing, dressing, and meal prep at home.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local ADSD regional offices; providers like FreedomCare, Personal Care Nevada",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs help with daily activities like bathing, dressing, or preparing meals, Nevada's Personal Care Services can provide in-home caregivers at no cost. Because this program covers assistance with Activities of Daily Living (ADLs) and household tasks, your parent can stay in their own home instead of moving to a nursing facility.\n\nYour parent must already be enrolled in Nevada Medicaid and need help with at least two daily activities — or one daily activity plus one household task like light cleaning or meal preparation. A state assessor will evaluate your parent's needs and create a personalized care plan. The amount of care varies based on this assessment, with no fixed hour limits.\n\nHome equity limit: $730,000 for seniors 65+ (2025). Your parent cannot have a spouse or adult child available to provide the same level of care.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 18+",
+          "Nevada Medicaid enrolled",
+          "Needs help with 2+ daily activities",
+          "Home equity under $730,000 (65+)"
+        ],
+        "ageRequirement": "18+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": null,
+          "couple": null,
+          "countedAssets": [
+            "Bank accounts",
+            "Property deeds",
+            "Life insurance policies"
+          ],
+          "exemptAssets": [
+            "Home (if spouse, dependent under 21, or blind/disabled child lives there)",
+            "Pre-need burial contracts"
+          ],
+          "homeEquityCap": 730000
+        },
+        "functionalRequirement": "Must need assistance with at least two Activities of Daily Living (bathing, dressing, eating, mobility, toileting) or one ADL plus one household task (meal prep, light housekeeping). Determined by state assessor.",
+        "otherRequirements": [
+          "Nevada resident",
+          "Live at home (not in nursing facility)",
+          "No available spouse or parent to provide care",
+          "Can self-direct care or appoint representative"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your local ADSD office to request an assessment — no application needed until after Medicaid enrollment.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Enroll in Nevada Medicaid first",
+            "description": "Apply at accessnevada.dwss.nv.gov if your parent isn't already enrolled. PCS requires active Medicaid enrollment."
+          },
+          {
+            "step": 2,
+            "title": "Call for PCS assessment",
+            "description": "Contact your local Aging and Disability Services Division office or call 1-800-525-2395 to request a Personal Care Services evaluation."
+          },
+          {
+            "step": 3,
+            "title": "Complete medical diagnosis form",
+            "description": "Submit CBC-423 Medical Diagnosis form — your application is incomplete without this required form."
+          },
+          {
+            "step": 4,
+            "title": "Schedule functional assessment",
+            "description": "A state-approved assessor (physical or occupational therapist) will evaluate your parent's needs and create a care plan."
+          }
+        ],
+        "processingTime": "Intake case manager contacts after complete application; assessment scheduled; no specific timeline provided",
+        "waitlist": null,
+        "tip": "Having all medical documentation ready (diagnoses, medications, recent hospitalizations) speeds up the assessment process.",
+        "urls": [
+          {
+            "label": "Nevada Medicaid Application",
+            "url": "https://accessnevada.dwss.nv.gov"
+          },
+          {
+            "label": "ADSD Personal Care Services",
+            "url": "https://adsd.nv.gov/programs/seniors/persasstsvcs/pas_prog/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and savings",
+            "Property deeds (beyond home equity limit)",
+            "Life insurance policies",
+            "Investment accounts"
+          ],
+          "excluded": [
+            "Primary home (if spouse, dependent under 21, or blind/disabled child lives there)",
+            "Pre-need burial contracts",
+            "Home equity up to $730,000 (2025)"
+          ]
+        },
+        {
+          "type": "tier-comparison",
+          "heading": "Care Levels",
+          "tiers": [
+            {
+              "name": "Basic ADL Support",
+              "description": "Help with 2+ daily activities",
+              "incomeLimit": "Nevada Medicaid guidelines",
+              "coverage": "Bathing, dressing, eating assistance; light housekeeping"
+            },
+            {
+              "name": "Enhanced Care (Waiver)",
+              "description": "Physical Disability or Frail Elderly Waiver enrollment",
+              "incomeLimit": "Medicaid + nursing home eligibility level",
+              "coverage": "All ADL support plus case management and specialized services"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Insurance",
+              "items": [
+                "Social Security card",
+                "Medicare card",
+                "Proof of Medicaid enrollment"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Bank statements",
+                "Property deeds",
+                "Life insurance policies",
+                "Proof of income"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "CBC-423 Medical Diagnosis form (required)",
+                "List of current medications",
+                "Recent hospitalizations or surgeries",
+                "Medical devices or equipment used"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Your parent must already be enrolled in Nevada Medicaid before applying for PCS. Having Medicaid does not automatically provide personal care services — a separate assessment is required."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If your parent can provide some care but needs additional help, they may still qualify. The assessment looks at what tasks require assistance, not whether they can do everything independently."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house if she qualifies for personal care services?",
+          "answer": "Yes, if her home equity is under $730,000 (2025 limit for seniors 65+). The home is protected as long as she lives there or intends to return, or if a spouse, dependent under 21, or blind/disabled adult child lives in the home."
+        },
+        {
+          "question": "What if Dad can do some things himself but needs help with bathing and cooking?",
+          "answer": "He may still qualify. The assessment looks at specific tasks where he needs assistance. If he needs help with bathing (one ADL) plus cooking (one household task), that meets the minimum requirement of two areas needing support."
+        },
+        {
+          "question": "Can I provide some care and still get PCS services for my parent?",
+          "answer": "No. If you or a spouse are available and able to provide the needed care, your parent won't qualify. The program requires that no spouse or adult child is available to provide the necessary assistance."
+        },
+        {
+          "question": "How many hours of care will Mom receive?",
+          "answer": "There's no fixed number of hours. A state assessor creates a Functional Assessment Service Plan (FASP) based on your mom's specific needs. The care plan is tailored to what she requires for daily activities and household tasks."
+        },
+        {
+          "question": "What if Mom's income is just over the Medicaid limit?",
+          "answer": "Call your local ADSD office for current income guidelines, as Nevada Medicaid has different pathways for seniors. Some programs have higher income limits or allow certain medical expenses to be deducted from income calculations."
+        },
+        {
+          "question": "Can Dad choose his own caregiver?",
+          "answer": "If he's capable of self-directing care (or you can serve as his representative), he may have options to choose caregivers. The program offers both self-directed and agency-directed models — discuss this during the assessment process."
+        }
+      ],
+      "phone": "1-800-525-2395",
+      "sourceUrl": "https://adsd.nv.gov/programs/seniors/persasstsvcs/pas_prog/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "nevada-cope-elderly-care",
       "name": "Community Options Program for the Elderly (COPE)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "shortName": "COPE",
+      "tagline": "Free in-home care services to help your parent avoid nursing home placement if they're 65+ and at risk of institutionalization.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Regional ADSD offices (full list on https://adsd.nv.gov/Programs/Seniors/COPE/COPE_Prog/); Carson City Administrative: 1550 College Parkway, Carson City, NV 89706; Las Vegas: 2460 Professional Court, Suite 110; Henderson: 2831 St. Rose Parkway, Suite 200",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 65+ and struggling to stay safely at home, Nevada's COPE program provides free personal care, homemaker services, adult day care, and respite care. Because COPE is designed for seniors at risk of nursing home placement, your parent must meet Nursing Facility Level of Care (a clinical assessment showing they need daily help with bathing, dressing, medication management, or similar tasks).\n\nCOPE is not a Medicaid program — it serves as a bridge for seniors who don't yet qualify for Medicaid or are on Medicaid's waitlist. Services include personal care assistance, companion care, emergency response systems, and respite care to give family caregivers a break. The program operates statewide through regional offices, though waitlists are possible depending on your area.\n\nIncome and asset limits apply, but Nevada doesn't publish specific dollar amounts online. You must call your regional ADSD office for current eligibility guidelines.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+",
+          "At risk of nursing home placement",
+          "Nevada resident",
+          "Income and asset limits apply"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must meet Nursing Facility Level of Care (clinical assessment showing need for daily assistance with activities like bathing, dressing, toileting, or medication management)",
+        "otherRequirements": [
+          "Nevada resident",
+          "U.S. citizen or legal permanent resident",
+          "Provide Social Security number"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call your regional ADSD office to start — they'll determine current income limits and schedule an assessment if you're not waitlisted.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call your regional ADSD office",
+            "description": "Get current income/asset guidelines and request an application. Central number: (775) 687-4210."
+          },
+          {
+            "step": 2,
+            "title": "Complete OCL Program Application",
+            "description": "Download from Nevada ADSD website or request by mail. Spanish versions available."
+          },
+          {
+            "step": 3,
+            "title": "Gather financial documentation",
+            "description": "Proof of income, assets, identity, residency, citizenship status, and Social Security number."
+          },
+          {
+            "step": 4,
+            "title": "Submit application",
+            "description": "Mail or bring to your nearest ADSD office. Case manager will contact you after receipt."
+          },
+          {
+            "step": 5,
+            "title": "Complete assessment interview",
+            "description": "Face-to-face interview to determine Nursing Facility Level of Care and appropriate services."
+          }
+        ],
+        "processingTime": "Case manager contacts after application receipt; assessment scheduled if no waitlist (exact timeline varies by region)",
+        "waitlist": "Possible waitlist depending on region — you'll be screened for appropriateness if waitlisted",
+        "tip": "Call first to get current income limits before spending time on the application — Nevada doesn't publish these figures online.",
+        "urls": [
+          {
+            "label": "Download COPE application forms",
+            "url": "https://adsd.nv.gov/Programs/Seniors/COPE/COPE_Prog/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "Regional ADSD Offices",
+          "offices": [
+            {
+              "name": "Carson City Administrative Office",
+              "type": "service-area",
+              "phone": "(775) 687-4210",
+              "address": "1550 College Parkway, Carson City, NV 89706"
+            },
+            {
+              "name": "Las Vegas Office",
+              "type": "service-area",
+              "phone": "(775) 687-4210",
+              "address": "2460 Professional Court, Suite 110, Las Vegas, NV"
+            },
+            {
+              "name": "Henderson Office",
+              "type": "service-area",
+              "phone": "(775) 687-4210",
+              "address": "2831 St. Rose Parkway, Suite 200, Henderson, NV"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Government-issued photo ID",
+                "Proof of Nevada residency",
+                "Social Security card or verification",
+                "Citizenship or legal permanent resident documentation"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Bank statements",
+                "Social Security award letters",
+                "Pension or retirement income statements",
+                "Investment account statements",
+                "Property ownership documents"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Regional offices may have waitlists. If waitlisted, you'll be screened for program appropriateness but may wait months for services to begin."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "COPE can pay certain family members (excluding spouses and guardians) to provide care services. Ask your case manager about caregiver payment rules during your assessment."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What's the difference between COPE and Medicaid home care services?",
+          "answer": "COPE is not a Medicaid program — it serves as a bridge for seniors who don't yet qualify for Medicaid or are on Medicaid's home and community-based services waitlist. Once your parent qualifies for Medicaid, they would typically transition to programs like Nevada's HCBS Frail Elderly Waiver."
+        },
+        {
+          "question": "Can my parent keep their house if they qualify for COPE?",
+          "answer": "Yes. COPE is designed to help seniors remain in their own homes and avoid nursing home placement. Services are only provided while your parent lives at home in Nevada."
+        },
+        {
+          "question": "How many hours of care will my parent receive?",
+          "answer": "Nevada doesn't specify hour limits online. Your case manager will determine service levels based on your parent's assessed needs and the program's goal of preventing institutionalization."
+        },
+        {
+          "question": "What if my parent's income is slightly over the limit?",
+          "answer": "Since Nevada doesn't publish exact income limits, call your regional ADSD office to discuss your parent's specific situation. Guidelines vary by household size and may be more flexible than you expect."
+        },
+        {
+          "question": "Can I get respite care through COPE to take a break from caregiving?",
+          "answer": "Yes. COPE specifically includes respite care services to provide short-term relief for family caregivers. Your case manager will include this in your parent's care plan if appropriate."
+        },
+        {
+          "question": "What happens if we move to a different county in Nevada?",
+          "answer": "Your parent can continue receiving COPE services, but you'll need to transfer to the new region's ADSD office. Services may vary slightly depending on local providers in the new area."
+        }
+      ],
+      "phone": "(775) 687-4210",
+      "sourceUrl": "https://adsd.nv.gov/Programs/Seniors/COPE/COPE_Prog/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
-      "name": "Social Security Domiciliary Rate",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
-    },
-    {
+      "id": "nevada-taxi-assistance-program",
       "name": "Taxi Assistance Program (TAP)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "shortName": "TAP",
+      "tagline": "Get taxi rides for half price if your parent is 60+ and lives in Clark County.",
+      "programType": "benefit",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Aging and Disability Services Division - Las Vegas Regional Office, 7150 Pollock Drive, Las Vegas, NV 89119",
+            "type": "service-area"
+          },
+          {
+            "name": "1860 E Sahara Ave, Las Vegas, NV 89104",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and lives in Clark County, Nevada, they may qualify for half-price taxi rides through coupon books. The program sells $20 worth of taxi coupons for just $10 — a 50% discount on all rides with any licensed taxicab company in the county.\n\nYour parent must have monthly income below 125% of Federal Poverty Guidelines and be a Nevada resident. The program is currently at funding capacity, so new applications are being accepted but there's likely a waitlist.\n\nBecause all Clark County taxi companies accept these coupons, your parent has transportation options throughout Las Vegas and surrounding areas without needing to qualify for multiple programs.",
+      "savingsRange": "$120 – $360/year in 2026",
+      "savingsSource": "Based on purchasing 12-36 coupon books annually at 50% discount",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+ (or permanently disabled)",
+          "Nevada resident living in Clark County",
+          "Income below 125% of Federal Poverty Guidelines"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be Nevada resident",
+          "Must live full-time in Clark County",
+          "Must provide Nevada photo ID or driver's license"
+        ],
+        "povertyLevelReference": "125% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call (702) 486-3581 to apply by phone, or schedule an appointment for in-person application.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Gather required documents",
+            "description": "You'll need Nevada ID, proof of income (tax return or bank statements), and Social Security award letter."
+          },
+          {
+            "step": 2,
+            "title": "Choose application method",
+            "description": "Call (702) 486-3581 during business hours, mail completed form to Las Vegas Regional Office, or schedule required in-person appointment."
+          },
+          {
+            "step": 3,
+            "title": "Wait for processing",
+            "description": "Due to funding capacity limits, approved applicants may be placed on a waitlist until funding becomes available."
+          },
+          {
+            "step": 4,
+            "title": "Purchase coupon books",
+            "description": "Once approved and funding available, buy coupon books with cash, personal check, or money order (no cards accepted)."
+          }
+        ],
+        "processingTime": "Not specified",
+        "waitlist": "Program is at funding capacity with no additional funding available for new applicants. New applications are still accepted and reviewed.",
+        "tip": "Call first — the program has limited funding and appointments are required for in-person visits.",
+        "urls": [
+          {
+            "label": "Official TAP Program Page",
+            "url": "https://adsd.nv.gov/programs/seniors/tap/tap_prog/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "Clark County Office",
+          "offices": [
+            {
+              "name": "Aging and Disability Services Division - Las Vegas Regional Office",
+              "type": "service-area",
+              "phone": "(702) 486-3581",
+              "address": "7150 Pollock Drive, Las Vegas, NV 89119"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Nevada photo ID or driver's license"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Previous year's federal tax return or IRS tax transcript",
+                "Most recent bank statement (all pages, showing deposit transactions)",
+                "Current Social Security award letter OR SNAP award letter"
+              ]
+            },
+            {
+              "name": "Disability (if applicable)",
+              "items": [
+                "Letter from physician confirming permanent disability OR Social Security disability award letter"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Program is currently at funding capacity. New applications are being accepted but you may be placed on a waitlist until funding becomes available."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "You can only pay for coupon books with cash (in-person only), personal checks, or money orders. Credit and debit cards are not accepted."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent's income is just over the 125% poverty limit?",
+          "answer": "They won't qualify for TAP. The income limit is strict and includes all income sources for your parent and their spouse if married. You'll need to look for other transportation options or see if their income might decrease due to changing circumstances."
+        },
+        {
+          "question": "Can my parent use these coupons with Uber or Lyft?",
+          "answer": "No. TAP coupons only work with licensed taxicab companies in Clark County, not rideshare services like Uber or Lyft. All taxi companies in the county are required to accept the coupons."
+        },
+        {
+          "question": "How long do the taxi coupons last before they expire?",
+          "answer": "The coupons have expiration dates, but the specific timeframe isn't detailed in available information. When your parent gets approved, ask about expiration dates to make sure they use the coupons in time."
+        },
+        {
+          "question": "What happens if my parent moves from Clark County to another part of Nevada?",
+          "answer": "They'll lose eligibility for TAP since it only serves Clark County residents. They would need to find transportation programs in their new county, as this program doesn't operate statewide."
+        },
+        {
+          "question": "Can I apply for my parent if they can't do it themselves?",
+          "answer": "The program requires appointments and specific documentation, but doesn't specify if family members can apply on behalf of someone else. Call (702) 486-3581 to ask about applying as a caregiver or if you have power of attorney."
+        },
+        {
+          "question": "Is there a limit to how many coupon books my parent can buy?",
+          "answer": "The research doesn't specify purchase limits per person. When you apply or call, ask about any restrictions on how many coupon books can be purchased at once or over time."
+        }
+      ],
+      "phone": "(702) 486-3581",
+      "sourceUrl": "https://adsd.nv.gov/programs/seniors/tap/tap_prog/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     }
   ],
-  "stateOverview": null
+  "stateOverview": {
+    "intro": "Nevada offers 13 programs to help seniors and their families — from $100-300/month for groceries to free home-delivered meals to $1,000/year for respite care. Most benefits have income limits around $1,660-2,152/month for a single person, but several resources like Medicare counseling and nursing home advocacy are free regardless of income. Nevada also pays family caregivers through multiple programs and offers unique help like half-price taxi rides in Las Vegas.\n\nStart with the programs below based on your parent's most urgent need. Many seniors qualify for multiple benefits, and applying for one often helps you learn about others.",
+    "startHere": [
+      {
+        "name": "Nevada Medicare Savings Programs (QMB, SLMB, QI)",
+        "programId": "nevada-medicare-savings-programs",
+        "why": "Most seniors have Medicare, and this can eliminate monthly premiums and copays if income is under $1,660/month."
+      },
+      {
+        "name": "Home and Community-Based Waiver for the Frail Elderly (HCBW-FE)",
+        "programId": "nevada-hcbw-frail-elderly",
+        "why": "Nevada will pay for homemaker services and meal delivery to keep your parent out of a nursing home."
+      },
+      {
+        "name": "Nevada State Health Insurance Assistance Program (SHIP)",
+        "programId": "nevada-ship",
+        "why": "Free Medicare help is available to everyone — no income limits, and they solve billing problems."
+      }
+    ],
+    "byNeed": [
+      {
+        "need": "Help paying for home care",
+        "programs": [
+          "Home and Community-Based Waiver for the Frail Elderly (HCBW-FE)",
+          "Nevada Personal Care Services Program (PCS)",
+          "Community Options Program for the Elderly (COPE)",
+          "Senior Respite Care and Respite Care Vouchers"
+        ],
+        "description": "Nevada has multiple programs that pay for caregivers to help your parent stay home instead of moving to a facility."
+      },
+      {
+        "need": "Food and meals",
+        "programs": [
+          "Home Delivered Meals"
+        ],
+        "description": "Free meal delivery for homebound seniors 60+ who can't get to community dining sites."
+      },
+      {
+        "need": "Healthcare and Medicare costs",
+        "programs": [
+          "Nevada Medicare Savings Programs (QMB, SLMB, QI)",
+          "Nevada State Health Insurance Assistance Program (SHIP)",
+          "Nevada Senior Rx Program"
+        ],
+        "description": "Get help paying Medicare premiums and copays, plus free counseling to choose the right coverage."
+      },
+      {
+        "need": "Home repairs and utilities",
+        "programs": [
+          "Weatherization Assistance Program"
+        ],
+        "description": "Free energy upgrades including insulation, windows, and HVAC repairs for low-income seniors."
+      },
+      {
+        "need": "Free advice and advocacy",
+        "programs": [
+          "Nevada Advocates for Seniors",
+          "Nevada Long-Term Care Ombudsman Program"
+        ],
+        "description": "Professional advocates help with care coordination and resolve problems in facilities."
+      },
+      {
+        "need": "Transportation and employment",
+        "programs": [
+          "Taxi Assistance Program (TAP)",
+          "Senior Community Service Employment Program (SCSEP)"
+        ],
+        "description": "Half-price taxi rides in Clark County and paid part-time jobs for unemployed seniors 55+."
+      }
+    ],
+    "quickFacts": [
+      "Most Nevada senior benefits require income below $1,660-2,152/month for a single person",
+      "Clark County (Las Vegas area) has additional programs like half-price taxi rides not available statewide",
+      "Nevada's Senior Rx prescription program ended in 2023, but Medicare and Medicaid still cover medication costs",
+      "Multiple programs will pay family members or hire outside caregivers to help seniors stay home"
+    ],
+    "resourcesVsBenefits": "Nevada offers both income-based benefits and free resources. Benefits like Medicare Savings Programs and home care waivers require your parent to meet income limits (usually $1,660-2,152/month), but resources like SHIP Medicare counseling, nursing home advocacy, and care coordination through Nevada Advocates for Seniors are available regardless of income or assets."
+  }
 }

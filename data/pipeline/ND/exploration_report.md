@@ -1,7 +1,7 @@
 # North Dakota Benefits Exploration Report
 
 > Generated 2026-04-09 by benefits-pipeline.js
-> Cost: $0.030 (6 calls, 46s)
+> Cost: $0.030 (6 calls, 1.9m)
 
 ---
 
@@ -10,161 +10,135 @@
 | Metric | Value |
 |--------|-------|
 | Programs discovered | 4 |
-| Programs deep-dived | 4 |
-| New (not in our data) | 4 |
+| Programs deep-dived | 3 |
+| New (not in our data) | 3 |
 | Data discrepancies | 0 |
 | Fields our model can't capture | 0 |
 
 ## Program Types
 
-- **service**: 2 programs
-- **in_kind**: 1 programs
 - **financial**: 1 programs
+- **service**: 1 programs
+- **in_kind**: 1 programs
 
 ## New Programs (Not in Our Data)
 
-- **North Dakota Aging in Community (AIC) Project** — service ([source](https://www.ndsu.edu/agriculture/extension/programs/aging-community-program[7]))
-  - Shape notes: Project-based initiative in only 2 rural communities developing local aging-in-place models; no individual income/asset tests, fixed benefits, or standard application; community-tailored via NDSU Extension partnerships
-- **Senior Safety Program (ND Assistive)** — in_kind ([source](https://ndassistive.org/our-programs/[1]))
-  - Shape notes: No income or asset tests; fixed free devices for home safety only; statewide with minimal eligibility barriers beyond age, residency, and not in nursing facility
-- **Basic Care Assistance Program (BCAP)** — financial ([source](https://www.nd.gov/dhs/policymanuals/40029/))
-  - Shape notes: Restricted to basic care facility residents; functional eligibility varies by level (A/B/C) with ADL/IADL criteria and NFLOC for B/C; administered locally via Human Service Zones
-- **North Dakota State Health Insurance Assistance Program (ND SHIP)** — service ([source](https://www.insurance.nd.gov/consumers/medicare/ship-counselors))
-  - Shape notes: no income/asset test for core counseling; volunteer-delivered statewide; assists with tiered savings programs (e.g., Extra Help has limits) but SHIP access is universal for Medicare beneficiaries
+- **North Dakota Basic Care Assistance Program (BCAP)** — financial ([source](https://www.hhs.nd.gov/adults-and-aging/services/basic-care-assistance-program-bcap))
+  - Shape notes: Tied directly to Medicaid eligibility (income/assets not restated in BCAP docs); requires licensed facility residence and functional ADL assessment; financial aid scales inversely with income after personal allowance
+- **North Dakota Aging in Community (AIC) Project** — service ([source](https://www.ndsu.edu/agriculture/extension/programs/aging-community-program))
+  - Shape notes: Community-based pilot in select rural counties only; no formal income/asset tests or fixed benefits; volunteer-driven model to fill service gaps, not a traditional entitlement program
+- **ND Assistive Senior Safety Program** — in_kind ([source](https://ndassistive.org/senior-safety-program/asdds-application/))
+  - Shape notes: Statewide but administered from Fargo office; prioritizes home safety for aging in place; income-tested with guidelines in forms; device requests ranked by applicant
 
 ## Program Details
+
+### North Dakota Basic Care Assistance Program (BCAP)
+
+> **NEW** — not currently in our data
+
+**Eligibility:**
+- Age: 65 or older OR 18 or older and blind or disabled+
+- Income: Determined by North Dakota Medicaid eligibility requirements (no specific dollar amounts or household size table provided in program sources; for context, related long-term care Medicaid has asset limit of $3,000 for singles and income mostly paid toward care minus $150 personal needs allowance)
+- Assets: Determined by North Dakota Medicaid eligibility requirements (no specific details on what counts or exemptions in BCAP sources; Medicaid long-term care context limits assets to $3,000 for singles)
+- North Dakota resident
+- Qualify for North Dakota Medicaid
+- Functional assessment showing need for assistance with activities of daily living (ADLs) such as bathing, dressing, eating, toileting
+- Reside in a licensed basic care facility
+- For some cases: resided in nursing facility at least 6 months and meet additional criteria like subsequent denial of nursing facility level of care
+
+**Benefits:** Pays portion of costs for care in licensed basic care facility; recipient keeps $150/month personal needs allowance, other income applied to facility/health costs, BCAP covers remainder directly to facility
+- Varies by: income
+
+**How to apply:**
+- Online: Apply for Assistance (via Customer Support Center)
+- Phone: (866) 614-6005
+- Email: applyforhelp@nd.gov
+- Fax: (701) 328-1006
+- Mail: Customer Support Center, P.O. Box 5562, Bismarck, ND 58506
+- In-person/alternative: Contact Aging and Disability Resource Link (ADRL), submit Basic Care application or Medicaid Application for the Elderly and Disabled (SFN 958) to eligibility unit, email agingbcreferrals@nd.gov
+
+**Timeline:** Date of eligibility is date of application if qualified (no specific processing timeline stated)
+
+**Watch out for:**
+- Must first qualify for ND Medicaid (separate income/asset test, not detailed in BCAP pages)
+- Requires living in a licensed basic care facility (not home care or assisted living)
+- Income beyond $150 personal needs goes to facility/medical costs
+- Functional assessment required for ADLs; may not cover if only personal care assessment fails
+- If already on Medicaid, uses redetermination
+
+**Data shape:** Tied directly to Medicaid eligibility (income/assets not restated in BCAP docs); requires licensed facility residence and functional ADL assessment; financial aid scales inversely with income after personal allowance
+
+**Source:** https://www.hhs.nd.gov/adults-and-aging/services/basic-care-assistance-program-bcap
+
+---
 
 ### North Dakota Aging in Community (AIC) Project
 
 > **NEW** — not currently in our data
 
 **Eligibility:**
-- Income: No specific income limits defined for AIC; general ND aging programs like SPED use limits varying by household size (exact amounts not specified in sources) and sliding scale based on countable income and family size[1][5].
-- Assets: No specific asset limits for AIC; related SPED program has liquid assets under $50,000 (home value exempt)[5].
+- Income: No specific income limits stated; focuses on older adults in rural areas without financial thresholds detailed in available sources.
+- Assets: No asset limits specified for AIC.
 - North Dakota resident
-- Older adults (likely 65+) wishing to age in rural homes/communities
-- Reside in one of two targeted rural communities
-- Commitment to community-focused solutions and engagement[2][4][7]
+- Older adult (typically 60+ implied) living in targeted rural communities
+- Desire to age in place in rural home
+- Residency in implementation areas such as Lisbon and western Morton Counties
 
-**Benefits:** Community-based models and interventions including personal finance, connection and growth, transportation, health and wellness, housing; tailored solutions via local partnerships, assessments, and stakeholder feedback to support aging in place[2][7]. No fixed dollar amounts or hours specified.
+**Benefits:** Community-based supports including volunteer assistance for transportation, food and nutrition classes, fall prevention education, technology assistance; fosters connections to local resources to enhance quality of life, safety, and independence.
 - Varies by: region
 
 **How to apply:**
-- Contact NDSU Extension (no specific phone/URL listed for applications; visit https://www.ndsu.edu/agriculture/extension/programs/aging-community-program for program details[7]
-- Community engagement through local stakeholders in two rural communities[2]
+- Contact NDSU Extension (specific phone/website not listed; start via NDSU Agriculture Extension at ndsu.edu/agriculture/extension)
+- Community-based model; engage local AIC project coordinators in targeted rural areas
 
 **Timeline:** Not specified
 
 **Watch out for:**
-- Not a direct service entitlement program like SPED or Medicaid HCBS; it's a project developing community models, not individual applications for benefits[2][7]
-- Limited to specific rural communities, not statewide[2]
-- No clear individual eligibility/application process; emphasizes community partnerships over personal enrollment[7]
-- People may confuse with SPED (which has payments/respite) or other HCBS programs[1][5]
+- Not a statewide entitlement program—limited to specific rural pilot areas, not available everywhere in ND
+- Not a direct financial aid or formal healthcare service like Medicaid/SPED; relies on volunteer and community connections
+- People may confuse with state programs like SPED (which has income/asset limits and payments) or Medicaid waivers
+- Focuses on prevention and connections rather than intensive medical care
+- Success measured in connections and confidence, not guaranteed services or hours
 
-**Data shape:** Project-based initiative in only 2 rural communities developing local aging-in-place models; no individual income/asset tests, fixed benefits, or standard application; community-tailored via NDSU Extension partnerships
+**Data shape:** Community-based pilot in select rural counties only; no formal income/asset tests or fixed benefits; volunteer-driven model to fill service gaps, not a traditional entitlement program
 
-**Source:** https://www.ndsu.edu/agriculture/extension/programs/aging-community-program[7]
+**Source:** https://www.ndsu.edu/agriculture/extension/programs/aging-community-program
 
 ---
 
-### Senior Safety Program (ND Assistive)
+### ND Assistive Senior Safety Program
 
 > **NEW** — not currently in our data
 
 **Eligibility:**
 - Age: 60+
-- Income: No income limits mentioned; program appears open to all qualifying applicants regardless of income.
-- Assets: No asset limits mentioned; no information on what counts or exemptions.
+- Income: Income guidelines apply (specific dollar amounts and household size variations detailed in the application form; e.g., 2024 and 2025 application PDFs reference guidelines but do not list exact figures in available excerpts)
 - North Dakota resident
-- Not living in a basic or skilled nursing facility
+- Need for assistive safety devices to remain safely in home
+- Does not qualify for devices through insurance, Medicare, Medicaid, or other programs (similar to related Possibilities Grant criteria)
 
-**Benefits:** Free assistive safety devices including: Alerting Devices for Hearing Loss, Anti-Elopement Devices, and other home safety devices with professional setup assistance to promote independence and safety at home[1][3][4].
-- Varies by: fixed
-
-**How to apply:**
-- Online: https://ndassistive.org/senior-safety-program/asdds-application/[5]
-- Download PDF form: https://ndassistive.org/wp-content/uploads/2025/03/2025-Senior-Safety-Application-Standard-Print.pdf[2] or https://ndassistive.org/wp-content/uploads/2024/03/2024-Senior-Safety-Large-Print-Application.pdf[4] (for mail or print)
-- Email: seniorsafety@ndassistive.org[4]
-
-**Timeline:** Not specified in available sources.
-
-**Watch out for:**
-- Must not be living in a basic or skilled nursing facility—program is for those remaining at home[3]
-- Qualification beyond age and residency not fully detailed; contact program for specifics[6]
-- Devices are specific to safety (e.g., alerting, anti-elopement); not general healthcare or broad assistive tech[4]
-
-**Data shape:** No income or asset tests; fixed free devices for home safety only; statewide with minimal eligibility barriers beyond age, residency, and not in nursing facility
-
-**Source:** https://ndassistive.org/our-programs/[1]
-
----
-
-### Basic Care Assistance Program (BCAP)
-
-> **NEW** — not currently in our data
-
-**Eligibility:**
-- Age: 65 or older, or 18 or older and disabled or blind[2][3]+
-- Income: Financial eligibility determined via Medicaid redetermination if already on Medicaid; specific dollar amounts or household size tables not detailed in sources[2][3]
-- Assets: Not explicitly detailed; must provide financial eligibility information; home ownership often exempt under related ND Medicaid rules but program-specific asset details unavailable[1][2][3]
-- North Dakota resident[2][3]
-- Resident of a licensed Basic Care Facility[4]
-- Meet functional assessment criteria per NDAC 75-02-10-10[2]
-- Provide SSN, proof of age, identity, residence, disability, functional limitation, financial eligibility[2][3]
-- Apply for and receive Medicare benefits if eligible[3]
-
-**Benefits:** Payment for room and board costs in a licensed Basic Care Facility; personal care services assessment required[2][4]
-- Varies by: functional_level
+**Benefits:** Free assistive safety devices including: Alerting Devices for Hearing Loss, Anti-Elopement Devices, and other home safety equipment; professional setup assistance provided
+- Varies by: priority_tier
 
 **How to apply:**
-- Online or contact local Human Service Zone office (specific URL/phone not listed; use ND DHS site)[1][4]
-- Paper: Application for Assistance SFN 405 (sections 1,3,4,6,8 for BCAP)[4]
-- In-person or mail via county social worker/Human Service Zone[2]
+- Online: https://ndassistive.org/senior-safety-program/asdds-application/
+- Download PDF form: https://ndassistive.org/wp-content/uploads/2025/03/2025-Senior-Safety-Application-Standard-Print.pdf or https://ndassistive.org/wp-content/uploads/2024/03/2024-Senior-Safety-Large-Print-Application.pdf
+- Mail: ND Assistive/ Senior Safety, 3240 15th St. S, Suite B, Fargo, ND 58104
+- Fax: 701-365-6242 Attn.: Senior Safety
+- Phone for questions: 800-735-5400 (from related 2025 form)
 
-**Timeline:** Not specified in sources
-
-**Watch out for:**
-- Only for residents of licensed Basic Care Facilities—not home care or independent living[4]
-- Requires functional assessment and potential Nursing Facility Level of Care for higher tiers (Levels B/C)[1]
-- Tied to Medicaid eligibility processes; must meet state residency and provide extensive verification[2][3]
-- Not traditional Medicaid; for those in basic care facilities who may not qualify for full Medicaid[5][6]
-
-**Data shape:** Restricted to basic care facility residents; functional eligibility varies by level (A/B/C) with ADL/IADL criteria and NFLOC for B/C; administered locally via Human Service Zones
-
-**Source:** https://www.nd.gov/dhs/policymanuals/40029/
-
----
-
-### North Dakota State Health Insurance Assistance Program (ND SHIP)
-
-> **NEW** — not currently in our data
-
-**Eligibility:**
-- Income: No income or asset limits; open to all Medicare beneficiaries (typically age 65+ or under 65 with disabilities), their families, and caregivers. Supports people with limited incomes but does not impose specific dollar thresholds for SHIP services themselves[4][5].
-- Assets: No asset limits for SHIP counseling services[4][5].
-- Medicare beneficiary (Parts A/B eligible), family member, or caregiver
-- North Dakota resident (services statewide)
-- US citizen or qualified noncitizen not required for counseling, but may apply for related programs like Extra Help[1][2][5]
-
-**Benefits:** Free, personalized one-on-one counseling and education on Medicare options (Original Medicare Parts A/B, Medicare Advantage Part C, Part D prescription drugs, Medigap); assistance applying for savings programs (Medicare Savings Program, Extra Help/Low-Income Subsidy, Medicaid); help comparing plans, understanding eligibility/enrollment, coverage coordination, appeals of denied claims, managing bills; outreach via presentations, health fairs; no sales of insurance products[2][4][5][8].
-
-**How to apply:**
-- Phone: 1-888-575-6611
-- TTY: 1-800-366-6888
-- Website: North Dakota Insurance Department SHIP page (https://www.insurance.nd.gov/consumers/medicare/ship-counselors)
-- In-person or local: Contact via phone for volunteer counselor appointment (approx. 45 volunteers statewide)[2][6]
-
-**Timeline:** Immediate phone counseling available; in-person appointments scheduled based on counselor availability, no formal processing[5][6].
+**Timeline:** Typically 3-4 weeks (based on similar program review process)
 
 **Watch out for:**
-- Not a financial aid or healthcare provider program—offers free counseling only, not direct payments or medical services; counselors have no conflicts of interest and do not sell plans[2][5]
-- Confused with ND State Health Improvement Plan (different SHIP acronym for public health strategy)[7]
-- Must be Medicare-related issue; for pure Medicaid, contact HHS separately[1]
-- Volunteers may have scheduling limits in rural areas[2]
+- Must exhaust other funding sources first (insurance, Medicare, Medicaid, etc.) — program is last resort
+- List devices in order of importance on application; only one per line
+- Income guidelines in application — review current year form (e.g., 2025) as they may update annually
+- Available to those in assisted living if applicable
+- Email for questions: seniorsafety@ndassistive.org
 
-**Data shape:** no income/asset test for core counseling; volunteer-delivered statewide; assists with tiered savings programs (e.g., Extra Help has limits) but SHIP access is universal for Medicare beneficiaries
+**Data shape:** Statewide but administered from Fargo office; prioritizes home safety for aging in place; income-tested with guidelines in forms; device requests ranked by applicant
 
-**Source:** https://www.insurance.nd.gov/consumers/medicare/ship-counselors
+**Source:** https://ndassistive.org/senior-safety-program/asdds-application/
 
 ---
 
@@ -172,41 +146,38 @@
 
 | Program | Type | Scope | Complexity |
 |---------|------|-------|------------|
-| North Dakota Aging in Community (AIC) Pr | benefit | local | deep |
-| Senior Safety Program (ND Assistive) | resource | state | simple |
-| Basic Care Assistance Program (BCAP) | benefit | state | deep |
-| North Dakota State Health Insurance Assi | navigator | federal | simple |
+| North Dakota Basic Care Assistance Progr | benefit | state | deep |
+| North Dakota Aging in Community (AIC) Pr | benefit | local | medium |
+| ND Assistive Senior Safety Program | resource | state | simple |
 
-**Types:** {"benefit":2,"resource":1,"navigator":1}
-**Scopes:** {"local":1,"state":2,"federal":1}
-**Complexity:** {"deep":2,"simple":2}
+**Types:** {"benefit":2,"resource":1}
+**Scopes:** {"state":2,"local":1}
+**Complexity:** {"deep":1,"medium":1,"simple":1}
 
 ## Content Drafts
 
 Generated 3 page drafts. Review in admin dashboard or `data/pipeline/ND/drafts.json`.
 
+- **North Dakota Basic Care Assistance Program (BCAP)** (benefit) — 2 content sections, 6 FAQs
 - **North Dakota Aging in Community (AIC) Project** (benefit) — 1 content sections, 6 FAQs
-- **Senior Safety Program (ND Assistive)** (resource) — 1 content sections, 6 FAQs
-- **Basic Care Assistance Program (BCAP)** (benefit) — 2 content sections, 6 FAQs
+- **ND Assistive Senior Safety Program** (resource) — 2 content sections, 6 FAQs
 
 ## What We Learned
 
 ### Patterns Observed
 
 How benefits vary across these programs:
+- **income**: 1 programs
 - **region**: 1 programs
-- **fixed**: 1 programs
-- **functional_level**: 1 programs
-- **not_applicable**: 1 programs
+- **priority_tier**: 1 programs
 
 ### Data Shape Notes
 
 Unique structural observations from each program:
 
-- **North Dakota Aging in Community (AIC) Project**: Project-based initiative in only 2 rural communities developing local aging-in-place models; no individual income/asset tests, fixed benefits, or standard application; community-tailored via NDSU Extension partnerships
-- **Senior Safety Program (ND Assistive)**: No income or asset tests; fixed free devices for home safety only; statewide with minimal eligibility barriers beyond age, residency, and not in nursing facility
-- **Basic Care Assistance Program (BCAP)**: Restricted to basic care facility residents; functional eligibility varies by level (A/B/C) with ADL/IADL criteria and NFLOC for B/C; administered locally via Human Service Zones
-- **North Dakota State Health Insurance Assistance Program (ND SHIP)**: no income/asset test for core counseling; volunteer-delivered statewide; assists with tiered savings programs (e.g., Extra Help has limits) but SHIP access is universal for Medicare beneficiaries
+- **North Dakota Basic Care Assistance Program (BCAP)**: Tied directly to Medicaid eligibility (income/assets not restated in BCAP docs); requires licensed facility residence and functional ADL assessment; financial aid scales inversely with income after personal allowance
+- **North Dakota Aging in Community (AIC) Project**: Community-based pilot in select rural counties only; no formal income/asset tests or fixed benefits; volunteer-driven model to fill service gaps, not a traditional entitlement program
+- **ND Assistive Senior Safety Program**: Statewide but administered from Fargo office; prioritizes home safety for aging in place; income-tested with guidelines in forms; device requests ranked by applicant
 
 ### Questions for Chantel's Review
 

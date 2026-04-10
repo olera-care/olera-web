@@ -4,91 +4,72 @@
   "state": "NJ",
   "stateName": "New Jersey",
   "isRegion": false,
-  "exploredAt": "2026-04-09T09:37:56.590Z",
-  "programCount": 11,
+  "exploredAt": "2026-04-09T15:21:32.227Z",
+  "programCount": 8,
   "programs": [
     {
-      "name": "NJ FamilyCare Aged, Blind, Disabled (ABD) Medicaid Programs",
-      "what_it_does": "Provides publicly funded health care coverage to seniors and disabled individuals. Covers health care services including nursing home services and home and community-based services.[2]",
-      "who_its_for": "People age 65 and older, people determined blind or disabled by the Social Security Administration or the state, people in long-term care, or adults ages 19-64 who may also have Medicare coverage.[2]",
-      "official_url": "https://njfamilycare.dhs.state.nj.us/",
-      "benefit_value": "Varies by program; covers medical services, nursing home care, and home and community-based services.[2]"
-    },
-    {
-      "name": "Managed Long Term Services and Supports (MLTSS)",
-      "what_it_does": "Delivers long-term services and supports through NJ FamilyCare's managed care program. Designed to expand home and community-based services, promote community inclusion, and ensure quality and efficiency.[3]",
-      "who_its_for": "Individuals 21 and older who meet Medicaid financial requirements and are either 65 years or older, or under 65 and determined to be blind or disabled by the Social Security Administration or the State of New Jersey.[3]",
-      "official_url": "https://www.nj.gov/humanservices/dmahs/home/mltss.html",
-      "benefit_value": "Covers long-term custodial care in nursing facilities or community-based settings.[3]"
-    },
-    {
-      "name": "Pharmaceutical Assistance to the Aged and Disabled (PAAD)",
-      "what_it_does": "Provides assistance with prescription drug costs for eligible seniors and disabled individuals. Reduces medication copays to $5 for generic drugs and $7 for brand-name drugs.[1][4]",
-      "who_its_for": "People 65 years of age or older or disabled individuals who meet income guidelines.[1]",
-      "official_url": "Contact: 1-800-792-9745",
-      "benefit_value": "$5 copay for generic drugs and $7 copay for brand-name drugs.[4]"
-    },
-    {
-      "name": "Specified Low-Income Medicare Beneficiary (SLMB and SLMB Q1-1)",
-      "what_it_does": "Pays partial or full Medicare Part B premiums for eligible low-income New Jersey residents. Assists those not financially eligible for the Qualified Medicare Beneficiary (QMB) program.[1]",
-      "who_its_for": "Low-income NJ residents enrolled in Medicare who do not qualify for QMB.[1]",
-      "official_url": "Contact: 1-800-792-9745",
-      "benefit_value": "Partial or full Medicare Part B premium coverage.[1]"
-    },
-    {
-      "name": "Lifeline Credit",
-      "what_it_does": "Lifeline provides an annual credit to help low-income households offset utility bills for electricity, gas, and other services. It eases financial stress from energy costs alongside programs like the Universal Service Fund.[1]",
-      "who_its_for": "Low-income senior citizens and disabled residents in New Jersey meeting specific income thresholds.[1]",
-      "whats_unique": "NJ-specific $225 annual utility credit program integrated with state energy assistance, more targeted for seniors than federal LIHEAP alone.[1]",
-      "official_url": "https://www.nj.gov/bpu/assistance/lifeline/",
-      "benefit_value": "$225 annual credit.[1]"
-    },
-    {
-      "name": "State Health Insurance Assistance Program (SHIP)",
-      "what_it_does": "Provides counseling and assistance for Medicare recipients. Helps seniors understand Medicare coverage options and benefits.[6]",
-      "who_its_for": "Medicare recipients in New Jersey.[6]",
-      "official_url": "Contact: 1-800-792-8820",
-      "benefit_value": "Free Medicare counseling and assistance.[6]"
-    },
-    {
       "name": "Stay NJ",
-      "what_it_does": "Stay NJ provides a property tax credit reimbursing up to 50% of property tax bills for eligible senior homeowners, capped at $6,500 annually, paid in quarterly installments. It is designed to encourage seniors to remain in New Jersey during retirement by coordinating with existing ANCHOR and Senior Freeze programs.[2][3][7]",
-      "who_its_for": "Homeowners aged 65 and older with a primary residence in New Jersey and annual income up to $500,000.[2][5]",
-      "whats_unique": "This is a new state-specific program signed into law in 2024 and effective in 2026, offering higher income limits than other NJ property tax relief programs and targeting 'snowbirds' to stay in-state with generous reimbursement caps not commonly found elsewhere.[2][3][5]",
-      "official_url": "https://www.nj.gov/treasury/taxation/relief.shtml",
-      "benefit_value": "Up to 50% of property taxes, maximum $6,500 per year.[2][3][6]"
+      "what_it_does": "Stay NJ provides a property tax credit of up to 50% on property taxes, capped at $6,500, to encourage seniors to remain in New Jersey during retirement. It coordinates with existing programs like ANCHOR and Senior Freeze for additional relief.[2][7]",
+      "who_its_for": "Homeowners aged 65 and older with income up to $500,000, who reside in New Jersey full-time.[2][6]",
+      "whats_unique": "New program signed into law in 2024, effective 2026, specifically designed to retain seniors in NJ by countering high property taxes and 'snowbird' migration to lower-tax states.[2][6]",
+      "official_url": "https://mullooly.net/5-things-about-the-stay-nj-program/",
+      "benefit_value": "Up to 50% property tax credit, capped at $6,500 annually.[2][7]"
     },
     {
       "name": "Senior Freeze (Property Tax Reimbursement)",
-      "what_it_does": "The program reimburses eligible seniors and disabled persons for increases in property taxes or mobile home site fees on their principal residence above a base year amount. It protects homeowners from future tax hikes once established.[1][2][3]",
-      "who_its_for": "Homeowners aged 65+ or those receiving Social Security disability benefits, who have lived full-time in their NJ home for 3 years, with income not exceeding about $168,268 (adjusted annually).[1][2]",
-      "whats_unique": "NJ's version freezes taxes at a base amount with reimbursement for increases, a more protective mechanism than standard federal or common state deductions; applies via unified PAS-1 form with ANCHOR and Stay NJ.[1][3]",
-      "official_url": "https://www.nj.gov/treasury/taxation/relief.shtml",
-      "benefit_value": "Reimbursement for property tax increases above base year; varies by tax hike amount.[1][3]"
+      "what_it_does": "This program reimburses eligible seniors for property tax increases on their principal residence above a base year amount. It protects homeowners from rising taxes as they age in place.[1][2][5]",
+      "who_its_for": "Seniors 65+ or those receiving Social Security disability, living full-time in their NJ home for 3 years, with income not exceeding $168,268 (adjusted annually).[2][5]",
+      "whats_unique": "NJ-specific freeze on tax increases via reimbursement, distinct from standard federal programs or common exemptions; coordinates with Stay NJ and ANCHOR.[1][2]",
+      "official_url": "https://lifespancm.com/benefits-for-senior-citizens-and-long-term-care-in-new-jersey/",
+      "benefit_value": "Reimbursement for property tax increases over base year amount.[1][5]"
     },
     {
-      "name": "PAAD (Pharmaceutical Assistance to the Aged and Disabled)",
-      "what_it_does": "PAAD is a state-funded program that helps cover prescription drug costs by providing discounts and payments at participating pharmacies. It reduces out-of-pocket expenses for medications beyond federal programs like Medicare Part D.[4]",
-      "who_its_for": "Seniors aged 65+ and adults aged 18-64 with disabilities who meet income eligibility and reside in New Jersey.[4]",
-      "whats_unique": "Fully state-funded pharmaceutical aid tailored for NJ seniors and disabled, supplementing federal coverage with direct pharmacy payments—a model not universally replicated across states.[4]",
-      "official_url": "https://www.nj.gov/treasury/taxation/paad/index.shtml",
-      "benefit_value": "Significant savings on prescription costs; covers most co-pays and deductibles after Medicare.[4]"
+      "name": "Jersey Assistance for Community Caregiving (JACC)",
+      "what_it_does": "JACC offers cost-shared in-home services, meal delivery, and caregiver respite to help seniors avoid nursing homes. It supports community-based care for those not qualifying for Medicaid.[1][3]",
+      "who_its_for": "Seniors nursing home eligible but not Medicaid-eligible, typically low-income needing home-based support.[1][3]",
+      "whats_unique": "State-funded, non-Medicaid program unique to NJ for in-home services and respite, administered by Division of Aging Services.[1][3]",
+      "official_url": "https://www.nj.gov/humanservices/doas/",
+      "benefit_value": "Cost-shared home care services, meals, respite (value varies by need).[1][3]"
     },
     {
-      "name": "JACC (Jersey Assistance for Community Care)",
-      "what_it_does": "JACC delivers in-home services, meal delivery, and caregiver respite to help seniors remain safely in their communities. It supports non-Medicaid eligible individuals through the Division of Aging Services.[1]",
-      "who_its_for": "Seniors needing home-based care who do not qualify for Medicaid, typically aged 60+ residing in NJ.[1]",
-      "whats_unique": "State-funded home care program unique to NJ for non-Medicaid seniors, emphasizing community living over institutional care via coordinated services.[1]",
-      "official_url": "https://www.nj.gov/humanservices/doas/services/jacc/",
-      "benefit_value": "In-home services, meals, respite care; value varies by need (no fixed dollar amount).[1]"
+      "name": "Pharmaceutical Assistance to the Aged & Disabled (PAAD)",
+      "what_it_does": "PAAD helps eligible seniors and disabled individuals save on prescription drug costs through a state-funded subsidy. It covers copays and premiums beyond federal programs.[5]",
+      "who_its_for": "NJ seniors 65+ and disabled persons meeting state income eligibility.[5]",
+      "whats_unique": "Purely state-funded NJ program providing direct prescription assistance, separate from federal Medicare Part D.[5]",
+      "official_url": "https://libguides.njstatelib.org/get_help/seniors",
+      "benefit_value": "Significant savings on prescription drugs (exact amount varies by medications and copays).[5]"
     },
     {
-      "name": "Statewide Respite Care Program",
-      "what_it_does": "This program offers short-term or periodic relief for family caregivers through temporary care services for seniors. It prevents caregiver burnout while supporting the care recipient's home-based needs.[1][8]",
-      "who_its_for": "Family caregivers of seniors in New Jersey, coordinated through county Offices on Aging.[1][8]",
-      "whats_unique": "NJ statewide initiative providing structured respite beyond federal options, accessible via 21 county offices for localized support.[1][8]",
+      "name": "Lifeline Credit",
+      "what_it_does": "Lifeline provides an annual credit to reduce gas and electric utility bills for low-income seniors. It eases energy cost burdens alongside programs like Universal Services Fund.[1][3]",
+      "who_its_for": "Low-income seniors who are PAAD or Medicaid beneficiaries.[1][3]",
+      "whats_unique": "NJ state program offering fixed annual utility credit, targeted at seniors beyond federal LIHEAP.[1][3]",
+      "official_url": "https://ahs.atlantichealth.org/conditions-treatments/senior-services/federal-state-social-service-programs.html",
+      "benefit_value": "$225 annual utility credit.[1]"
+    },
+    {
+      "name": "New Jersey Statewide Respite Care Program",
+      "what_it_does": "This program offers short-term or periodic breaks for family caregivers of frail elderly or impaired persons. It provides temporary relief to prevent caregiver burnout.[1][8]",
+      "who_its_for": "Family caregivers of functionally impaired seniors in NJ.[8]",
+      "whats_unique": "Statewide NJ-funded respite specifically for elderly caregivers, coordinated through Division of Aging Services.[1][8]",
       "official_url": "https://njaaw.org/services-resources/",
-      "benefit_value": "Temporary care services; hours/sessions based on assessed need (no fixed monetary value).[1][8]"
+      "benefit_value": "Temporary caregiver respite services (duration and cost coverage varies).[1][8]"
+    },
+    {
+      "name": "Alzheimer’s Adult Day Services Program",
+      "what_it_does": "This program subsidizes out-of-pocket costs for adult day care services for those with Alzheimer’s or related dementia. It supports participants at approved providers.[3]",
+      "who_its_for": "NJ residents with Alzheimer’s/dementia meeting eligibility, using participating adult day providers.[3]",
+      "whats_unique": "NJ-specific state subsidy for dementia adult day care, not a standard federal offering.[3]",
+      "official_url": "https://ahs.atlantichealth.org/conditions-treatments/senior-services/federal-state-social-service-programs.html",
+      "benefit_value": "Partial subsidy on adult day care costs (amount varies).[3]"
+    },
+    {
+      "name": "Senior Citizen E-ZPass Discount",
+      "what_it_does": "Offers a discount on tolls for seniors using E-ZPass on NJ Turnpike and Garden State Parkway during off-peak times. It reduces transportation costs for older drivers.[3]",
+      "who_its_for": "NJ residents aged 65+ with E-ZPass.[3]",
+      "whats_unique": "NJ-only toll discount program tailored for seniors on state highways.[3]",
+      "official_url": "https://ahs.atlantichealth.org/conditions-treatments/senior-services/federal-state-social-service-programs.html",
+      "benefit_value": "10% discount on tolls during weekday off-peak and weekends.[3]"
     }
   ]
 }

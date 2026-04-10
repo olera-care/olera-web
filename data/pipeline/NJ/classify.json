@@ -1,210 +1,34 @@
 {
   "state": "NJ",
   "stateName": "New Jersey",
-  "classifiedAt": "2026-04-09T09:38:26.673Z",
-  "total": 11,
+  "classifiedAt": "2026-04-09T15:21:59.935Z",
+  "total": 8,
   "typeSummary": {
-    "benefit": 8,
-    "resource": 3
+    "benefit": 7,
+    "resource": 1
   },
   "scopeSummary": {
-    "state": 9,
-    "federal": 2
+    "state": 8
   },
   "complexitySummary": {
-    "deep": 6,
-    "medium": 2,
-    "simple": 3
+    "medium": 1,
+    "simple": 1,
+    "deep": 6
   },
   "programs": [
     {
-      "name": "NJ FamilyCare Aged, Blind, Disabled (ABD) Medicaid Programs",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "County Boards of Social Services",
-            "type": "service-area"
-          },
-          {
-            "name": "ADRC for LTSS clinical eval[1][4]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "tier-comparison",
-        "documents",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": true,
-        "hasMultipleTiers": true,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Managed Long Term Services and Supports (MLTSS)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": true,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Pharmaceutical Assistance to the Aged and Disabled (PAAD)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Central processing: P.O. Box 360, Trenton, NJ 08625-0360",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "medium",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "documents",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "financial",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": false,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Specified Low-Income Medicare Beneficiary (SLMB and SLMB QI-1)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true
-      },
-      "complexity": "medium",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "unknown",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": false,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Lifeline Credit",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Local electric/gas utilities; NJ Department of Human Services for eligibility schedule.[1]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "documents",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "financial",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "State Health Insurance Assistance Program (SHIP)",
-      "programType": "resource",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "County-specific offices listed at nj.gov/humanservices/doas/assistance/medicare/offices.shtml, e.g., Middlesex: 732-745-3295 or Jewish Family Services 732-777-1940[2][7]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "simple",
-      "recommendedSections": [
-        "prose",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
       "name": "Stay NJ",
-      "programType": "resource",
+      "programType": "benefit",
       "geographicScope": {
         "type": "state",
         "stateVariation": false
       },
-      "complexity": "simple",
+      "complexity": "medium",
       "recommendedSections": [
-        "prose"
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents"
       ],
       "signals": {
         "benefitType": "financial",
@@ -224,7 +48,7 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "NJ Division of Taxation (statewide hotline and online)",
+            "name": "NJ Division of Taxation (statewide)",
             "type": "service-area"
           }
         ]
@@ -245,7 +69,75 @@
       }
     },
     {
-      "name": "PAAD (Pharmaceutical Assistance to the Aged and Disabled)",
+      "name": "Jersey Assistance for Community Caregiving (JACC)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "County Aging and Disability Resource Connections via 1-877-222-3737",
+            "type": "service-area"
+          },
+          {
+            "name": "Examples: Hunterdon Human Services (908-788-1361), Warren Division of Aging (908-475-6591), FCS Monmouth/Mercer/Ocean[2][3][7]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Pharmaceutical Assistance to the Aged & Disabled (PAAD)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Central processing in Trenton; pharmacies statewide accept PAAD",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Lifeline Credit",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
@@ -269,14 +161,39 @@
       }
     },
     {
-      "name": "JACC (Jersey Assistance for Community Caregiving)",
+      "name": "New Jersey Statewide Respite Care Program",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Alzheimer’s Adult Day Services Program",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Local County Aging and Disability Resource Connection (ADRC); examples: Hunterdon County (908-788-1361), statewide entry via 1-877-222-3737[1][3][5]",
+            "name": "Participating centers found at https://www.nj.gov/humanservices/[4]",
             "type": "service-area"
           }
         ]
@@ -286,10 +203,8 @@
         "prose",
         "income-table",
         "what-counts",
-        "tier-comparison",
         "documents",
-        "county-directory",
-        "callout"
+        "county-directory"
       ],
       "signals": {
         "benefitType": "service",
@@ -297,19 +212,23 @@
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": true,
-        "hasMultipleTiers": true,
+        "hasMultipleTiers": false,
         "isStatewide": true
       }
     },
     {
-      "name": "Statewide Respite Care Program",
+      "name": "Senior Citizen E-ZPass Discount",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "County sponsor agencies via ADRC 1-877-222-3737 (e.g., Hunterdon, Warren, Bergen Counties).",
+            "name": "NJ Turnpike Authority (NJTA) for Turnpike/GSP.",
+            "type": "service-area"
+          },
+          {
+            "name": "Delaware River Port Authority (DRPA) for bridges.",
             "type": "service-area"
           }
         ]
@@ -317,18 +236,18 @@
       "complexity": "deep",
       "recommendedSections": [
         "prose",
+        "income-table",
         "what-counts",
-        "tier-comparison",
         "documents",
         "county-directory"
       ],
       "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": false,
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
-        "hasFunctionalReq": true,
-        "hasMultipleTiers": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
         "isStatewide": true
       }
     }

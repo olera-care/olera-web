@@ -1,65 +1,33 @@
 {
   "state": "OR",
   "stateName": "Oregon",
-  "classifiedAt": "2026-04-09T09:40:02.190Z",
+  "classifiedAt": "2026-04-09T16:03:19.780Z",
   "total": 15,
   "typeSummary": {
-    "benefit": 12,
-    "resource": 2,
+    "benefit": 11,
+    "resource": 3,
     "employment": 1
   },
   "scopeSummary": {
-    "state": 6,
+    "state": 7,
     "local": 1,
-    "federal": 8
+    "federal": 7
   },
   "complexitySummary": {
     "deep": 10,
-    "simple": 2,
-    "medium": 3
+    "simple": 3,
+    "medium": 2
   },
   "programs": [
     {
-      "name": "Oregon Health Plan (OHP)",
+      "name": "OPI-M (Medicaid-funded)",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Local ODHS offices; ADRC centers; CareOregon as coordinated care organization in some regions",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "tier-comparison",
-        "documents",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "APD Medicaid Long Term Services and Supports",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Local APD offices and Aging & Disability Resource Connections (ADRCs) statewide via oregon.gov/odhs.",
+            "name": "Local Aging and Disability Resource Connections (ADRCs), Elderly and Disabled Care Managers (ECMs).",
             "type": "service-area"
           }
         ]
@@ -92,11 +60,11 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Providence ElderPlace (Multnomah, Clackamas, Washington, Clatsop counties)",
+            "name": "Providence ElderPlace (Portland area: Multnomah, Clackamas, Washington, Clatsop, Tillamook counties).",
             "type": "service-area"
           },
           {
-            "name": "Other PACE organizations in Oregon (exact list not in sources; contact ODHS or local AAA)",
+            "name": "Other DHS-approved PACE organizations via local AAA/ADRC.",
             "type": "service-area"
           }
         ]
@@ -120,14 +88,22 @@
       }
     },
     {
-      "name": "Medicare Savings Programs (MSP) via OHP",
+      "name": "Medicare Savings Programs (MSP)",
       "programType": "benefit",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Aging and Disability Offices (specific locations not detailed in search results)[3]",
+            "name": "Administered through local state Aging and People with Disabilities offices throughout Oregon",
+            "type": "service-area"
+          },
+          {
+            "name": "Multnomah County has a specific program called 'Oregon Medicare Savings Connect' with same eligibility criteria",
+            "type": "service-area"
+          },
+          {
+            "name": "Contact 1-800-282-8096 to locate your local office",
             "type": "service-area"
           }
         ]
@@ -153,7 +129,7 @@
       }
     },
     {
-      "name": "SNAP Food Benefits",
+      "name": "SNAP Food Benefits (Oregon)",
       "programType": "benefit",
       "geographicScope": {
         "type": "federal",
@@ -186,7 +162,7 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Local Community Action Agencies across Oregon (contact via 800-453-5511 opt 2 to locate by county)[1][2][5]",
+            "name": "Local Community Action Agencies across Oregon (contact via 1-800-453-5511 opt 2)",
             "type": "service-area"
           }
         ]
@@ -211,18 +187,142 @@
       }
     },
     {
-      "name": "Weatherization Assistance Program (WAP)",
+      "name": "Low Income Weatherization Assistance Program (WAP)",
       "programType": "benefit",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Local Community Action Agencies by county",
+            "name": "Local Community Action Agencies (CAAs)[1]",
             "type": "service-area"
           },
           {
-            "name": "Oregon Housing and Community Services (OHCS) oversees",
+            "name": "Senior centers[1]",
+            "type": "service-area"
+          },
+          {
+            "name": "Housing authorities[1]",
+            "type": "service-area"
+          },
+          {
+            "name": "Homes for Good (Lane County)[7]",
+            "type": "service-area"
+          },
+          {
+            "name": "Mid-Willamette Valley Community Action[8]",
+            "type": "service-area"
+          },
+          {
+            "name": "Community Energy Project (Portland)[5]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "in_kind",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Senior Health Insurance Benefits Assistance (SHIBA)",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Statewide network via https://shiba.oregon.gov/get-help/pages/helpnearyou.aspx; Department of Consumer and Business Services, 350 Winter Street NE Room 330, Salem OR 97309-0405",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Meals on Wheels",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Council on Aging (Central Oregon)[1]",
+            "type": "service-area"
+          },
+          {
+            "name": "Marion Polk Food Share (Salem/Keizer)[5]",
+            "type": "service-area"
+          },
+          {
+            "name": "Northwest Senior and Disability Services[5]",
+            "type": "service-area"
+          },
+          {
+            "name": "Lane Council of Governments[6]",
+            "type": "service-area"
+          },
+          {
+            "name": "Mom's Meals (Medicaid partners)[2]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "medium",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": false
+      }
+    },
+    {
+      "name": "Family Caregiver Assistance Program (FCAP) / Family Caregiver Support Program (FCSP)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local Aging and Disability Resource Connection (ADRC) offices; Multnomah County FCSP as example.[3][7]",
             "type": "service-area"
           }
         ]
@@ -248,108 +348,6 @@
       }
     },
     {
-      "name": "Senior Health Insurance Benefits Assistance (SHIBA)",
-      "programType": "resource",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Statewide office: Department of Consumer and Business Services, 350 Winter Street NE Room 330, Salem OR 97309-0405",
-            "type": "service-area"
-          },
-          {
-            "name": "Local sites searchable by zip code at https://shiba.oregon.gov/get-help/pages/helpnearyou.aspx",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "simple",
-      "recommendedSections": [
-        "prose",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Meals on Wheels (via Area Agencies on Aging)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "Local Area Agency on Aging (find via ADRC or ODHS)[2][3]",
-            "type": "service-area"
-          },
-          {
-            "name": "Council on Aging (Central Oregon)[1]",
-            "type": "service-area"
-          },
-          {
-            "name": "Meals on Wheels People (Multnomah/Washington/Clark Counties: 503.953.8111 or 866.788.6325)[5]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "medium",
-      "recommendedSections": [
-        "prose",
-        "what-counts",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": false
-      }
-    },
-    {
-      "name": "National Family Caregiver Support Program (NFCSP)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "ADRC statewide: 1-855-673-2372; Multnomah County ADRC; Central Oregon Council on Aging[2][3][9].",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "medium",
-      "recommendedSections": [
-        "prose",
-        "what-counts",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
       "name": "Senior Community Service Employment Program (SCSEP)",
       "programType": "employment",
       "geographicScope": {
@@ -357,11 +355,15 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Easter Seals Oregon (statewide provider) — 503-228-5100",
+            "name": "Easter Seals Oregon (statewide administrator)[1][5]",
             "type": "service-area"
           },
           {
-            "name": "Easter Seals Oregon Eugene office — 541-687-7393, 2510 Oakmont Way, Eugene, OR 97401",
+            "name": "Eugene location: 2510 Oakmont Way, Eugene, OR 97401[2]",
+            "type": "service-area"
+          },
+          {
+            "name": "Program partners with community-based non-profit organizations and government agencies as host agencies[2][3]",
             "type": "service-area"
           }
         ]
@@ -383,83 +385,83 @@
       }
     },
     {
-      "name": "Long-Term Care Ombudsman Program",
+      "name": "Legal Aid Services of Oregon (LASO)",
       "programType": "resource",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true
-      },
-      "complexity": "simple",
-      "recommendedSections": [
-        "prose"
-      ],
-      "signals": {
-        "benefitType": "advocacy",
-        "hasIncomeTiers": null,
-        "hasAssetLimits": false,
-        "hasRegionalVariation": true,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Senior Guardianship Assistance Program (Senior GAP)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "Impact NW (Washington/Multnomah Counties): (503) 294-7445[7].",
-            "type": "service-area"
-          },
-          {
-            "name": "Clackamas County Aging & Disability Resource Connection: (503) 657-1366, Oregon City[9].",
-            "type": "service-area"
-          },
-          {
-            "name": "Oregon Public Guardian Program (statewide for highest needs): oltco.org[1].",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "medium",
-      "recommendedSections": [
-        "prose",
-        "what-counts",
-        "documents",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": false
-      }
-    },
-    {
-      "name": "Oregon Senior Tuition Waiver (OSU/UO Audit Program)",
-      "programType": "benefit",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "University of Oregon Registrar",
+            "name": "Portland Regional Office - Senior Law Project (Multnomah County senior centers)[1]",
             "type": "service-area"
           },
           {
-            "name": "Oregon State University (contact registrar)",
+            "name": "Albany Regional Office (Benton/Linn Counties)[2]",
             "type": "service-area"
           },
           {
-            "name": "Community college registrars (e.g., Oregon Coast CC Registrar@OregonCoast.edu)",
+            "name": "Central Oregon Regional Office (Bend)[3]",
             "type": "service-area"
           }
         ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Long-term Care Ombudsman",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "State Office of the Long-Term Care Ombudsman (under Oregon Secretary of State).",
+            "type": "service-area"
+          },
+          {
+            "name": "Local designees and volunteers statewide.",
+            "type": "service-area"
+          },
+          {
+            "name": "Regional contacts via Area Agencies on Aging.",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "advocacy",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Elderly Rental Assistance Program (ERA)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false
       },
       "complexity": "deep",
       "recommendedSections": [
@@ -471,8 +473,43 @@
         "callout"
       ],
       "signals": {
-        "benefitType": "in_kind",
+        "benefitType": "financial",
         "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Oregon Senior Free Tuition Audit Program",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Community colleges (e.g., Oregon Coast CC, Clatsop CC, Portland CC)",
+            "type": "service-area"
+          },
+          {
+            "name": "Public universities (e.g., Oregon State University, University of Oregon)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "medium",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "in_kind",
+        "hasIncomeTiers": false,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
@@ -481,22 +518,14 @@
       }
     },
     {
-      "name": "Health Related Social Needs Benefits (HSRSN)",
+      "name": "Health Related Social Needs Benefits (HSRN)",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Regional CCOs",
-            "type": "service-area"
-          },
-          {
-            "name": "Local OHP community partners",
-            "type": "service-area"
-          },
-          {
-            "name": "211info for some CCOs",
+            "name": "Regional CCOs (e.g., PacificSource, Health Share of Oregon, AllCare Health, Advanced Health, IHN-CCO); local OHP partners; 211info for some; Community Action Agencies for emergencies.[1][4]",
             "type": "service-area"
           }
         ]

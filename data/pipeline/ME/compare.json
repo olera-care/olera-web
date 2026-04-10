@@ -1,28 +1,27 @@
 {
   "state": "ME",
   "stateName": "Maine",
-  "comparedAt": "2026-04-09T09:34:46.940Z",
-  "total": 8,
-  "newPrograms": 6,
+  "comparedAt": "2026-04-09T13:50:39.481Z",
+  "total": 7,
+  "newPrograms": 5,
   "withDiffs": 2,
   "withNovelFields": 2,
   "benefitTypes": {
-    "service": 7,
-    "financial": 1
+    "service": 5,
+    "financial": 2
   },
   "variationPatterns": {
-    "not_applicable": 3,
-    "program_section_and_individual_plan": 1,
+    "priority_tier": 4,
     "household_size": 1,
-    "region": 2,
-    "priority_tier": 1
+    "household_size|priority_tier": 1,
+    "not_applicable": 1
   },
   "novelFieldSummary": {
     "asset_limits": {
       "count": 2,
       "programs": [
         "SNAP (Supplemental Nutrition Assistance Program)",
-        "Legal Services for Maine Elders (LSE)"
+        "State Health Insurance Assistance Program (SHIP) - Maine Senior Health Insurance Assistance Program"
       ],
       "note": "Our model has no asset limit fields"
     },
@@ -37,7 +36,7 @@
       "count": 2,
       "programs": [
         "SNAP (Supplemental Nutrition Assistance Program)",
-        "Legal Services for Maine Elders (LSE)"
+        "State Health Insurance Assistance Program (SHIP) - Maine Senior Health Insurance Assistance Program"
       ],
       "note": "Program varies by region — our model doesn't capture this"
     },
@@ -45,69 +44,45 @@
       "count": 2,
       "programs": [
         "SNAP (Supplemental Nutrition Assistance Program)",
-        "Legal Services for Maine Elders (LSE)"
+        "State Health Insurance Assistance Program (SHIP) - Maine Senior Health Insurance Assistance Program"
       ],
       "note": "Has document checklist — our model doesn't store per-program documents"
-    },
-    "waitlist": {
-      "count": 1,
-      "programs": [
-        "Legal Services for Maine Elders (LSE)"
-      ],
-      "note": "Has waitlist info — our model has no wait time field"
     }
   },
   "comparisons": [
     {
-      "name": "Program of All-Inclusive Care for the Elderly (PACE) - Maine PACE",
+      "name": "Home and Community-Based Services (HCBS) Waivers",
       "isNew": true,
       "existingId": null,
       "existingVerified": null,
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "No operational programs in Maine; eligibility mirrors national PACE but no service areas or providers; not available statewide or regionally",
+      "dataShapeNotes": "Multiple waivers under HCBS umbrella with target populations (e.g., elderly/disabled vs. intellectual disabilities); eligibility ties to MaineCare + NFLOC; services person-centered with funding caps creating waitlists; no fixed hours/dollars, varies by plan and availability",
       "gotchas": [
-        "Maine does not currently have any operational PACE programs or providers[2][3][9]",
-        "State certification for nursing home level of care required, but no programs available to enroll in[1][3]",
-        "While no programs exist now, past RFI indicates potential future development; check Maine DHHS for updates[9]",
-        "Private pay possible if programs launch, but Medicaid covers fully for eligible; Medicare-only pay Medicaid portion[3]",
-        "Confused with other Maine programs like Elderly and Adults with Disabilities Waiver, which has financial limits and different criteria[4]"
+        "Multiple distinct HCBS waivers exist (e.g., Elderly/Adults with Disabilities - ME 0276/Section 19; Intellectual Disabilities/Autism - Section 21/29; Brain Injury - ME 1082); can only enroll in one at a time",
+        "Must first qualify for MaineCare; waiver adds services but requires NFLOC",
+        "Limited funded slots create waitlists; not guaranteed access",
+        "Home equity limit is $1,130,000 (2026); exceeds may disqualify unless exemptions apply",
+        "Relatives/spouses can provide services but must complete training/certification by deadline"
       ],
       "benefitType": "service",
-      "benefitVariesBy": "not_applicable",
-      "officialSource": "No official Maine PACE program website; general info at https://www.npaonline.org/ or https://www.cms.gov/medicare/medicaid-coordination/about/pace[1][8]"
-    },
-    {
-      "name": "Home and Community-Based Services Waiver Programs (MaineCare Sections 21 and 29)",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "This program has two distinct sections (21 and 29) with different eligibility criteria and service focuses. Section 21 targets individuals with ID/ASD who would otherwise need institutional care; Section 29 serves adults with developmental disabilities more broadly. Both are capped programs with waitlists. Income and asset limits are standardized statewide but may vary by household composition. The program is transitioning to a new 'Lifespan Waiver' structure as of 2026, which may consolidate or restructure current Section 21 and 29 services. Case Managers play a critical role in application and service planning. Financial eligibility is determined by the Office for Family Independence, while medical eligibility is determined separately.",
-      "gotchas": [
-        "Only one waiver enrollment at a time — applicants must choose between Section 21 and Section 29[3]",
-        "Funded openings are limited and capped; availability is not guaranteed even if medically and financially eligible[1][3]",
-        "MaineCare enrollment is a prerequisite; applicants must qualify for MaineCare before accessing waiver services[3]",
-        "60-month financial lookback applies to Long Term Care MaineCare applications, which can disqualify applicants who transferred assets within the past 5 years[2]",
-        "Income spend-down may be required; applicants with income above the limit must reduce income to the MaineCare standard to qualify[2]",
-        "Section 21 is specifically for individuals with ID or ASD; other developmental disabilities may fall under Section 29 or other waivers[1]",
-        "Personal Needs Allowance ($2,430 for waiver recipients) is separate from service benefits and represents the amount individuals can retain for personal expenses[2]",
-        "Two-thirds of Section 21 waitlist members already receive Section 29 services, suggesting some waitlist placements may be precautionary rather than reflecting immediate need[7]"
-      ],
-      "benefitType": "service",
-      "benefitVariesBy": "program_section_and_individual_plan",
-      "officialSource": "https://www.maine.gov/dhhs/oads/get-support/adults-intellectual-disability-and-autism/waiver-services"
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.maine.gov/dhhs/oads/about-us/initiatives/hcbs"
     },
     {
       "name": "SNAP (Supplemental Nutrition Assistance Program)",
       "isNew": false,
       "existingId": "maine-snap",
       "existingVerified": null,
-      "diffsFound": 3,
+      "diffsFound": 4,
       "diffs": [
+        {
+          "field": "min_age",
+          "ours": "65",
+          "found": "60",
+          "source": "https://www.maine.gov/dhhs/ofi/programs-services/food-supplement[4]"
+        },
         {
           "field": "income_limit",
           "ours": "$1924",
@@ -117,7 +92,7 @@
         {
           "field": "benefit_value",
           "ours": "$1,500 – $3,600/year",
-          "found": "Monthly EBT card benefits for food purchases (groceries, not hot food/alcohol/tobacco). Maximum monthly amounts (Oct. 1, 2025-Sept. 30, 2026): 1: $298; 2: $546; 3: $785; 4: $994; 5: $1,183; 6: $1,421; 7: $1,571; 8: $1,789; each additional: +$218. Actual amount based on income, expenses (e.g., higher for medical costs in elderly/disabled households).[4]",
+          "found": "Monthly EBT card for food purchases; max amounts by household size (e.g., 1-person: $298/mo, scales up; actual amount based on income/expenses like medical >$35/mo for 60+).[4]",
           "source": "https://www.maine.gov/dhhs/ofi/programs-services/food-supplement[4]"
         },
         {
@@ -129,83 +104,131 @@
       "novelFields": [
         {
           "field": "asset_limits",
-          "value": "No asset limit in Maine for most households (broad-based categorical eligibility). For households with member 60+ or disabled over gross income limit, federal asset limit of $4,500 applies if qualifying under net income test. Exempt: primary home, one household vehicle (plus income-producing vehicles), vehicles valued under $4,650. Countable: bank accounts, other resources.[1][8]",
+          "value": "No asset limit in Maine due to state-funded expansion; home, one vehicle (plus income-producing vehicles), and vehicles under $4,650 value exempt. Federal rules ($4,500 limit) may apply alternatively for 60+/disabled over gross income.[1][2]",
           "note": "Our model has no asset limit fields"
         },
         {
           "field": "household_size_table",
-          "value": "Maine uses a gross income limit of 200% of the Federal Poverty Level (FPL) for Oct. 1, 2025 through Sept. 30, 2026. Households with a member 60+ or disabled can qualify by meeting net income (100% FPL) and asset tests if over gross limit. Gross monthly income limits by household size: 1: $2,608-$2,609; 2: $3,526-$3,525; 3: $4,442; 4: $5,358-$5,359; 5: $6,276-$6,275; 6: $7,192; 7: $8,108-$8,109; 8: $9,025; each additional: +$916-$917.[1][4][5]",
+          "value": "For households with a member 60+ or disabled, only net income test (100% FPL) applies if over gross limit; gross income limit (200% FPL, Oct 1, 2025–Sept 30, 2026): 1: $2,608/mo, 2: $3,526/mo, 3: $4,442/mo, 4: $5,358/mo, 5: $6,276/mo, 6: $7,192/mo, 7: $8,108/mo (+$916/additional). Maximum monthly SNAP amounts: 1: $298, 2: $546, 3: $785, 4: $994, 5: $1,183, 6: $1,421, 7: $1,571, 8: $1,789 (+$218/additional).[1][4]",
           "note": "Benefits/eligibility vary by household size — we store a single number"
         },
         {
           "field": "regional_variations",
-          "value": "ABAWD work requirement waivers in some territories/towns/cities through Sept. 30, 2024; processing may vary slightly by local DHHS office.[2]",
+          "value": "ABAWD work rule waived in certain territories/towns/cities thru Sept 30, 2024; processing may vary by local office[2]",
           "note": "Program varies by region — our model doesn't capture this"
         },
         {
           "field": "documents_required",
           "value": [
-            "Proof of income (pay stubs, Social Security statements).",
-            "Proof of expenses (rent/mortgage, utilities, medical bills over $35/month for 60+/disabled).",
-            "ID (driver's license, birth certificate).",
-            "Social Security numbers for household.",
-            "Proof of residency (utility bill).",
-            "Disability verification if applicable."
+            "Proof of income (pay stubs, Social Security awards)",
+            "Proof of expenses (rent/mortgage, utilities, medical bills >$35/mo for 60+)",
+            "ID, SSN, proof of residency",
+            "Disability verification if applicable"
           ],
           "note": "Has document checklist — our model doesn't store per-program documents"
         }
       ],
-      "dataShapeNotes": "Elderly/disabled special rules: optional net income path bypassing gross limit; no asset limit except federal fallback; benefits enhanced by medical deductions; scales by household size; statewide with minor regional ABAWD waivers.",
+      "dataShapeNotes": "Elderly/disabled special rules (no gross income test, net only at 100% FPL); benefits scale by household size; no asset limit due to state expansion; ABAWD waivers in select areas",
       "gotchas": [
-        "Elderly/disabled households over gross limit can still qualify via net income test (100% FPL) + federal asset limit ($4,500); many miss this.[1][5]",
-        "Report out-of-pocket medical expenses >$35/month to boost benefits for 60+/disabled.[5][8]",
-        "Household defined by who buys/prepares food together, not just who lives together.[3]",
-        "No asset test for most, but federal rules apply if bypassing gross income.[1]",
-        "ABAWD limits for 18-54 unless exempt/waived; check local waivers.[2]",
-        "Maine expanded beyond federal rules (200% FPL gross vs. stricter elsewhere).[1]"
+        "Elderly/disabled households skip gross income test, only need net income; report medical expenses >$35/mo to maximize benefits[1][5]",
+        "Maine's state-funded expansion eliminates effective asset limit[2]",
+        "Household defined by food purchase/preparation, not just cohabitation[3]",
+        "ABAWD exemptions expanded (e.g., veterans, homeless); check local waivers[2]",
+        "Same benefits whether federal or Maine-funded[2]"
       ],
       "benefitType": "financial",
       "benefitVariesBy": "household_size",
       "officialSource": "https://www.maine.gov/dhhs/ofi/programs-services/food-supplement[4]"
     },
     {
-      "name": "Community Aging in Place Grant Program",
+      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
       "isNew": true,
       "existingId": null,
       "existingVerified": null,
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "Administered regionally by partner non-profits with varying service areas; AMI-based income (varies by location/household); two variants (State/Federal) with age/income differences; no central application—partner dependent",
+      "dataShapeNotes": "Income table by time period (1/3/12 months) and household size; medical deductions and TANF auto-qualify; CAA-administered statewide with local contacts; benefits by size/income/fuel.",
       "gotchas": [
-        "Not directly available statewide—must contact specific partner agency for service area",
-        "Distinguish State CAIP (age 55+, 100% AMI) from Federal variant (62+, 80% AMI, stricter owner rules)",
-        "Funds only for homes with confirmed health/safety hazards",
-        "Administered via local partners, not central MaineHousing intake",
-        "Income based on AMI, which varies by county/household size—no fixed dollar table in sources[1][2][4][5]"
+        "Funding first-come first-served; apply ASAP, especially fall/winter for heating (not year-round; no cooling).",
+        "Respond immediately to document requests or app incomplete.",
+        "Income gross before taxes; includes all at address on utility bill.",
+        "Medical deductions or TANF can qualify over limits—apply anyway.",
+        "Crisis only for emergencies.",
+        "Immigration status: eligible members only in mixed households."
       ],
-      "benefitType": "service",
-      "benefitVariesBy": "region",
-      "officialSource": "https://mainehousing.org/docs/default-source/ehs-partners-library/elderly-home-modification-programs/program-guidance-brochures/program-guidance/community-aging-in-place-programs-guidance-01012023.pdf?sfvrsn=742d8115_2"
+      "benefitType": "financial",
+      "benefitVariesBy": "household_size|priority_tier",
+      "officialSource": "https://www.mainehousing.org/programs-services/energy/energydetails/liheap"
     },
     {
-      "name": "State Health Insurance Assistance Program (SHIP) - Maine SHIP",
+      "name": "Weatherization Assistance Program (WAP)",
       "isNew": true,
       "existingId": null,
       "existingVerified": null,
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "no income/asset test for counseling; free service for all Medicare-eligible; delivered via network of 5 Area Agencies on Aging; distinguishes from financial programs like MSP by providing enrollment assistance only",
+      "dataShapeNotes": "Administered regionally via local Community Action Agencies/subgrantees under MaineHousing; eligibility tied to HEAP or 200% FPL with annual updates; priority tiers favor vulnerable households (elderly, disabled, young children); no fixed dollar benefits—in-kind services only.",
       "gotchas": [
-        "Counselors do not sell insurance or recommend specific policies—purely informational and unbiased[4][8]",
-        "Not a financial aid program itself; helps enroll in Medicare Savings Programs (MSP) or MaineCare which have income/asset limits (e.g., MSP: $1,183/month single, $10,000 assets; varies and separate application)[3][9]",
-        "People may confuse with Medicaid/MaineCare or MSP—SHIP is counseling only, not direct benefits[4][6]",
-        "For Medicare Savings Programs it assists with, eligibility finalized by DHHS with asset limits and no estate recovery[9]"
+        "Must not have received prior WAP or MaineHousing weatherization in the past 15 years; home cannot be seasonal/vacation property.[6][7]",
+        "Renters need landlord approval; structural issues disqualify home.[2][3]",
+        "Priority for elderly (60+), young children, disabled—others may face longer waits.[7]",
+        "Income thresholds change annually; HEAP participation simplifies but not required if under 200% FPL.[1][3]",
+        "Not a loan/rebate—services only if eligible; previously weatherized homes ineligible for some related programs.[1][6]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.mainehousing.org/programs-services/HomeImprovement/homeimprovementdetail/weatherization[2]"
+    },
+    {
+      "name": "State Health Insurance Assistance Program (SHIP) - Maine Senior Health Insurance Assistance Program",
+      "isNew": false,
+      "existingId": "maine-senior-health-insurance-assistance-program-ship",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$3,000 – $10,000/year",
+          "found": "Free, confidential one-on-one counseling including: information on Medicare (Parts A, B, C, D), Medicare Advantage, Medigap, MaineCare, prescription drug coverage/options, preventive benefits, medical bills/claims/appeals, comparison of supplemental policies/plans, enrollment in Medicare Savings Programs, referrals to agencies (e.g., CMS, SSA, DHHS), and programs to reduce out-of-pocket costs like prescription discounts. Provided by trained counselors who do not sell insurance.[2][5]",
+          "source": "https://www.maine.gov/dhhs/oads/get-support/older-adults-disabilities/older-adult-services/ship-medicare-assistance[2]"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.maine.gov/dhhs/oads/get-support/older-adults-disabilities/older-adult-services/ship-medicare-assistance[2]"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits or tests apply.[2]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Delivered through a network of five Area Agencies on Aging and local affiliates (e.g., Southern Maine Agency on Aging), with locally focused counseling reflecting regional Medicare options, providers, and resources; appointment availability may vary by local office.[2][7][8]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "No documents needed to start; bring Medicare cards, bills, notices, or insurance details if addressing specific issues.[2]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "no income/asset test; counseling-only service via statewide network of Area Agencies on Aging with local delivery variations; open to Medicare beneficiaries/families regardless of income",
+      "gotchas": [
+        "Not an insurance or financial aid program—provides counseling only, no direct payments or coverage;[2]",
+        "Counselors do not sell or recommend specific policies, only objective info—people miss this and expect sales;[2]",
+        "Confused with MaineCare (which has income limits); SHIP helps navigate Medicare/MaineCare but has open eligibility;[1][2]",
+        "Services via local agencies, not centralized—must contact regional provider for appointment.[7][8]"
       ],
       "benefitType": "service",
       "benefitVariesBy": "not_applicable",
-      "officialSource": "https://www.maine.gov/dhhs/oads/get-support/older-adults-disabilities/older-adult-services/ship-medicare-assistance[4]"
+      "officialSource": "https://www.maine.gov/dhhs/oads/get-support/older-adults-disabilities/older-adult-services/ship-medicare-assistance[2]"
     },
     {
       "name": "Home Delivered Meals",
@@ -215,17 +238,16 @@
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "Delivered via 5 regional Area Agencies on Aging with provider variations; no strict income/asset tests but functional eligibility via assessment; some paid tiers alongside subsidized options; county restrictions in private variants.",
+      "dataShapeNotes": "Administered regionally through 5 Area Agencies on Aging with local providers; no income/asset tables or fixed dollar values; eligibility via functional assessment, not financial test; short/long-term flexibility",
       "gotchas": [
-        "Not free for all; some regional programs like Simply Delivered for ME charge $9-11/meal (accepts SNAP), while state AAA programs may be low/no cost based on need but require assessment.",
-        "Must be home for delivery; no one else can accept in some cases.",
-        "Short- or long-term only if truly unable to prepare meals—no casual use.",
-        "Private options like Mom's Meals require health plan coverage or out-of-pocket purchase, not state-funded.",
-        "Prioritization for low-income/rural/vulnerable; waitlists possible in high-demand areas.",
-        "Confused with free Meals on Wheels—state program is via AAAs with specific homebound criteria."
+        "Not a direct state application; must go through local AAA/ADRC for assessment—no central phone/website for statewide apply",
+        "Requires in-person eligibility assessment by provider, not self-determined",
+        "Priority for low-income/rural/vulnerable, but no strict income test—others may be waitlisted",
+        "Separate from private options like Mom's Meals ($9.49/meal if not through health plan)",
+        "Also available to spouses/caregivers/disabled under 60 in some cases, but primary for 60+ homebound"
       ],
       "benefitType": "service",
-      "benefitVariesBy": "region",
+      "benefitVariesBy": "priority_tier",
       "officialSource": "https://www.maine.gov/dhhs/oads/get-support/older-adults-disabilities/older-adult-services/food-and-nutrition"
     },
     {
@@ -236,71 +258,16 @@
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "No strict income/asset tables or fixed benefits; eligibility based on age 60+, residency, economic/social need, and priority legal issues affecting basic needs; services tiered by case urgency with statewide helpline access but representation varies by office availability",
+      "dataShapeNotes": "No fixed income/asset tables; eligibility case-by-case for low-income seniors with priority on human needs crises; statewide with local offices; distinguishes from general legal aid by elder-specific focus and free helpline advice",
       "gotchas": [
-        "Not a general entitlement; services for when 'basic human needs are at stake' with priority triage—may get advice/referral only, not full representation[2][4]",
-        "Avoid pre-printed powers of attorney forms from stores/internet as they may not be legal in Maine; consult LSE attorney instead[2]",
-        "If ineligible, referrals to private attorneys at reduced fees[4]",
-        "Focuses on non-criminal matters; not for all legal needs"
+        "Services are priority-based for basic human needs at stake, not all cases accepted; may refer to private attorneys if unable to help[5]",
+        "Do not use generic pre-printed legal forms (e.g., powers of attorney) as they may be invalid in Maine—consult LSE attorney[2]",
+        "Not a general legal aid; focused on seniors 60+ with specific elder issues, not criminal matters[2][5]",
+        "Nursing homes may push MaineCare applications without asset protection advice—seek LSE for related issues[3]"
       ],
       "benefitType": "service",
       "benefitVariesBy": "priority_tier",
-      "officialSource": "https://mainelse.org[8]"
-    },
-    {
-      "name": "Legal Services for Maine Elders (LSE)",
-      "isNew": false,
-      "existingId": "legal-services-for-maine-s-elders",
-      "existingVerified": null,
-      "diffsFound": 2,
-      "diffs": [
-        {
-          "field": "benefit_value",
-          "ours": "$500 – $3,000/year",
-          "found": "Free legal advice and representation on: Medicare/MaineCare, health care coverage disputes, elder abuse and protection orders, housing issues (eviction, foreclosure), consumer debt, public assistance benefits, guardianship, discharges, powers of attorney, health care advance directives. Specialized Medicare Part D unit for prescription drug assistance.[2][3]",
-          "source": "https://www.maine.gov/dhhs/oads/get-support/older-adults-disabilities/older-adult-services/legal-assistance"
-        },
-        {
-          "field": "source_url",
-          "ours": "MISSING",
-          "found": "https://www.maine.gov/dhhs/oads/get-support/older-adults-disabilities/older-adult-services/legal-assistance"
-        }
-      ],
-      "novelFields": [
-        {
-          "field": "asset_limits",
-          "value": "Not specified in available sources.",
-          "note": "Our model has no asset limit fields"
-        },
-        {
-          "field": "regional_variations",
-          "value": "LSE has 'attorneys located in offices across the state'[3] in partnership with five Area Agencies on Aging[2], but specific regional variations in services or wait times are not detailed in available sources.",
-          "note": "Program varies by region — our model doesn't capture this"
-        },
-        {
-          "field": "waitlist",
-          "value": "Not specified in available sources. Search results note that 'because of limited resources, none of these agencies is able to meet the demand for services'[4], suggesting potential delays.",
-          "note": "Has waitlist info — our model has no wait time field"
-        },
-        {
-          "field": "documents_required",
-          "value": "Not specified in available sources.",
-          "note": "Has document checklist — our model doesn't store per-program documents"
-        }
-      ],
-      "dataShapeNotes": "LSE's eligibility criteria emphasize 'socially and/or economically needy' status rather than specific income/asset thresholds, requiring direct contact for determination. The program is statewide with regional offices but specific locations and regional service variations are not documented in available sources. Benefits are service-based (legal advice and representation) rather than financial. The program has documented resource constraints affecting availability.",
-      "gotchas": [
-        "Income and asset limits are not publicly specified in available sources—families must call to determine eligibility[2][3]",
-        "Limited resources mean the agency cannot meet all demand for services[4]",
-        "LSE provides legal advice and representation 'in some situations'[3]—not all cases qualify for full representation",
-        "If LSE cannot help, they offer referrals to private attorneys, potentially at reduced fees[3]",
-        "Hours of operation are limited: 9am-12pm and 1pm-4pm[3]",
-        "Medicare Part D assistance has a separate phone line (1-877-774-7772) with the same limited hours[3]",
-        "This is a legal services program, not a financial assistance program—it provides advice and representation, not direct payment for services"
-      ],
-      "benefitType": "service",
-      "benefitVariesBy": "not_applicable",
-      "officialSource": "https://www.maine.gov/dhhs/oads/get-support/older-adults-disabilities/older-adult-services/legal-assistance"
+      "officialSource": "https://mainelse.org[9]"
     }
   ]
 }

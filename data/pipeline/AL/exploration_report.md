@@ -1,7 +1,7 @@
 # Alabama Benefits Exploration Report
 
 > Generated 2026-04-09 by benefits-pipeline.js
-> Cost: $0.090 (18 calls, 8.9m)
+> Cost: $0.000 (0 calls, 0s)
 
 ---
 

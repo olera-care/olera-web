@@ -1,26 +1,26 @@
 {
   "state": "MA",
   "stateName": "Massachusetts",
-  "classifiedAt": "2026-04-09T09:35:52.947Z",
-  "total": 15,
+  "classifiedAt": "2026-04-09T14:04:19.764Z",
+  "total": 16,
   "typeSummary": {
     "benefit": 12,
-    "navigator": 2,
-    "resource": 1
+    "resource": 2,
+    "employment": 1,
+    "navigator": 1
   },
   "scopeSummary": {
-    "federal": 5,
+    "federal": 6,
     "state": 8,
     "local": 2
   },
   "complexitySummary": {
-    "deep": 9,
-    "medium": 3,
+    "deep": 13,
     "simple": 3
   },
   "programs": [
     {
-      "name": "MassHealth Medicare Savings Program (MSP) / Buy-In",
+      "name": "MassHealth Medicare Savings Program",
       "programType": "benefit",
       "geographicScope": {
         "type": "federal",
@@ -32,8 +32,7 @@
         "income-table",
         "what-counts",
         "tier-comparison",
-        "documents",
-        "county-directory"
+        "documents"
       ],
       "signals": {
         "benefitType": "financial",
@@ -53,7 +52,7 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Local ASAPs (e.g., AgeSpan, ESWA, ASNCM)[3][4][6]",
+            "name": "Local ASAPs (e.g., AgeSpan, ESWA, Aging Services of North Central Massachusetts)[1][3][4][6]",
             "type": "service-area"
           }
         ]
@@ -86,7 +85,11 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "MassPace providers across Massachusetts (masspace.net)",
+            "name": "Summit ElderCare (Worcester area)",
+            "type": "service-area"
+          },
+          {
+            "name": "Neighborhood PACE (Greater Boston)",
             "type": "service-area"
           },
           {
@@ -94,11 +97,11 @@
             "type": "service-area"
           },
           {
-            "name": "Neighborhood PACE (Greater Boston area)",
+            "name": "Element Care (Lynn)",
             "type": "service-area"
           },
           {
-            "name": "Other sites spanning most of Massachusetts",
+            "name": "Others via masspace.net directory[4][5][6][8][9]",
             "type": "service-area"
           }
         ]
@@ -126,9 +129,15 @@
       "programType": "benefit",
       "geographicScope": {
         "type": "federal",
-        "stateVariation": true
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local DTA offices, councils on aging, senior centers for outreach/application help.",
+            "type": "service-area"
+          }
+        ]
       },
-      "complexity": "medium",
+      "complexity": "deep",
       "recommendedSections": [
         "prose",
         "income-table",
@@ -140,7 +149,7 @@
         "benefitType": "financial",
         "hasIncomeTiers": true,
         "hasAssetLimits": true,
-        "hasRegionalVariation": false,
+        "hasRegionalVariation": true,
         "hasFunctionalReq": false,
         "hasMultipleTiers": false,
         "isStatewide": true
@@ -154,23 +163,7 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "SSCAC (Southeastern: (508) 747-7575 x6240)",
-            "type": "service-area"
-          },
-          {
-            "name": "Community Teamwork (Middlesex North: energyprograms@commteam.org)",
-            "type": "service-area"
-          },
-          {
-            "name": "ABCD (Boston area: serves Boston, Brookline, Newton, Mystic Valley towns)",
-            "type": "service-area"
-          },
-          {
-            "name": "Springfield Partners (Western MA)",
-            "type": "service-area"
-          },
-          {
-            "name": "Self Help, Inc. (Southeastern MA)",
+            "name": "Local energy assistance agencies (full list by town on Mass.gov); e.g., ABCD, Community Teamwork, Self Help Inc.",
             "type": "service-area"
           }
         ]
@@ -180,7 +173,6 @@
         "prose",
         "income-table",
         "what-counts",
-        "tier-comparison",
         "documents",
         "county-directory",
         "callout"
@@ -191,51 +183,19 @@
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
+        "hasMultipleTiers": false,
         "isStatewide": true
       }
     },
     {
-      "name": "SHINE (Serving the Health Insurance Needs of Everyone)",
-      "programType": "navigator",
+      "name": "SHINE (Serving Health Insurance Needs of Everyone)",
+      "programType": "resource",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Senior centers (statewide)[9]",
-            "type": "service-area"
-          },
-          {
-            "name": "Regional Aging Services Access Points[9]",
-            "type": "service-area"
-          },
-          {
-            "name": "Councils on Aging (local)[4]",
-            "type": "service-area"
-          },
-          {
-            "name": "Elder service agencies (regional)[3]",
-            "type": "service-area"
-          },
-          {
-            "name": "Community-based organizations (regional)[3]",
-            "type": "service-area"
-          },
-          {
-            "name": "Ethos (Boston area)[3]",
-            "type": "service-area"
-          },
-          {
-            "name": "Barnstable County Department of Human Services (Cape and Islands)[2]",
-            "type": "service-area"
-          },
-          {
-            "name": "Mystic Valley Elder Services (North Shore/Boston area)[7]",
-            "type": "service-area"
-          },
-          {
-            "name": "Access Care Partners[5]",
+            "name": "Local: Councils on Aging, senior centers, AgeSpan, LifePath, Access Care Partners; statewide coordination via Executive Office of Elder Affairs[2][4][8][9]",
             "type": "service-area"
           }
         ]
@@ -243,7 +203,7 @@
       "complexity": "simple",
       "recommendedSections": [
         "prose",
-        "provider-list"
+        "county-directory"
       ],
       "signals": {
         "benefitType": "service",
@@ -263,15 +223,7 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Greater Springfield Senior Services (western MA): https://www.gsssi.org/meals-on-wheels[1]",
-            "type": "service-area"
-          },
-          {
-            "name": "Meals on Wheels Boston (Boston): https://www.mealsonwheelsboston.org[7]",
-            "type": "service-area"
-          },
-          {
-            "name": "Statewide finder: https://www.massmealsonwheels.org[8]",
+            "name": "Local AAAs via https://www.massmealsonwheels.org; examples: Greater Springfield Senior Services, Meals on Wheels Boston, South Shore Elder Services[1][6][7][8]",
             "type": "service-area"
           }
         ]
@@ -292,25 +244,26 @@
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
         "hasMultipleTiers": false,
-        "isStatewide": false
+        "isStatewide": true
       }
     },
     {
-      "name": "Family Caregiver Support Program (includes Respite)",
+      "name": "Alzheimer’s Respite Care Program",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Local ASAPs; find via (800) 243-4636 or https://contactus.800ageinfo.com/FindAgency.aspx[5]",
+            "name": "Local Massachusetts Aging Service Access Points (ASAPs) – find via (800) 243-4636 or https://contactus.800ageinfo.com/FindAgency.aspx.[2]",
             "type": "service-area"
           }
         ]
       },
-      "complexity": "medium",
+      "complexity": "deep",
       "recommendedSections": [
         "prose",
+        "income-table",
         "what-counts",
         "documents",
         "county-directory",
@@ -318,11 +271,48 @@
       ],
       "signals": {
         "benefitType": "service",
-        "hasIncomeTiers": false,
+        "hasIncomeTiers": true,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
         "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "programType": "employment",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Springfield Dept of Elder Affairs (Hampden/Hampshire)[1]",
+            "type": "service-area"
+          },
+          {
+            "name": "CFC Inc (Bristol/Plymouth/Hampden, Fall River office)[2]",
+            "type": "service-area"
+          },
+          {
+            "name": "CCWORC (Worcester/Franklin, 508-860-2241)[5]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "documents"
+      ],
+      "signals": {
+        "benefitType": "employment",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
         "isStatewide": true
       }
     },
@@ -362,11 +352,11 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "17 regional host sites across Massachusetts",
+            "name": "State office: 1 Ashburton, Room 517, Boston[2]",
             "type": "service-area"
           },
           {
-            "name": "Regional providers include organizations such as Bay Path Elder Services, Springwell (22-town service area), LifePath, and Old Colony Planning",
+            "name": "Regional examples: Old Colony Planning Council[1], AgeSpan[2], Springwell (22 towns)[8], LifePath (e.g., 413-829-9234)[9]",
             "type": "service-area"
           }
         ]
@@ -394,64 +384,11 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Administered by Executive Office of Elder Affairs; contact central Customer Service",
+            "name": "Centralized administration through Commonwealth of Massachusetts Executive Office of Elder Affairs[1]",
             "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "medium",
-      "recommendedSections": [
-        "prose",
-        "what-counts",
-        "tier-comparison",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "financial",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": false,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Home Care Program (HCP)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "what-counts",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": true,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Enhanced Community Options Program (ECOP)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
+          },
           {
-            "name": "Local Aging Services Access Points (ASAPs), such as Springwell, Mass Aging Access, Mystic Valley Elder Services.",
+            "name": "Applications processed through central P.O. Box in Worcester, MA[1]",
             "type": "service-area"
           }
         ]
@@ -467,10 +404,10 @@
         "callout"
       ],
       "signals": {
-        "benefitType": "service",
+        "benefitType": "financial",
         "hasIncomeTiers": true,
         "hasAssetLimits": true,
-        "hasRegionalVariation": true,
+        "hasRegionalVariation": false,
         "hasFunctionalReq": false,
         "hasMultipleTiers": true,
         "isStatewide": true
@@ -484,7 +421,23 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Six regional Provider Agencies (contact via local search or sites like valleycdc.org, metrohousingboston.org, wayfinders.org)",
+            "name": "Valley CDC (Hampshire/Hampden Counties)[1]",
+            "type": "service-area"
+          },
+          {
+            "name": "Metro Housing Boston[3]",
+            "type": "service-area"
+          },
+          {
+            "name": "SMOC[6]",
+            "type": "service-area"
+          },
+          {
+            "name": "Way Finders[7]",
+            "type": "service-area"
+          },
+          {
+            "name": "CEDAC (state admin, Boston office)[2][8]",
             "type": "service-area"
           }
         ]
@@ -495,7 +448,8 @@
         "income-table",
         "what-counts",
         "documents",
-        "county-directory"
+        "county-directory",
+        "callout"
       ],
       "signals": {
         "benefitType": "financial",
@@ -508,14 +462,47 @@
       }
     },
     {
-      "name": "Commonwealth Coordinated Care (CCC)",
+      "name": "Home Care Program (HCP)",
       "programType": "benefit",
       "geographicScope": {
-        "type": "local",
+        "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Commonwealth Care Alliance (for SCO/One Care plans); MassHealth regional offices.",
+            "name": "MassAbility Home Care Program (statewide coordination via 617 area code contacts)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Enhanced Community Options Program (ECOP)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local Aging Services Access Points (ASAPs) such as Springwell, Mystic Valley Elder Services",
             "type": "service-area"
           }
         ]
@@ -524,6 +511,7 @@
       "recommendedSections": [
         "prose",
         "what-counts",
+        "tier-comparison",
         "documents",
         "county-directory",
         "callout"
@@ -531,6 +519,58 @@
       "signals": {
         "benefitType": "service",
         "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Senior Care Options (SCO)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Commonwealth Care Alliance[5]",
+            "type": "service-area"
+          },
+          {
+            "name": "Navicare[5]",
+            "type": "service-area"
+          },
+          {
+            "name": "Senior Whole Health[5]",
+            "type": "service-area"
+          },
+          {
+            "name": "United Health Care[5]",
+            "type": "service-area"
+          },
+          {
+            "name": "UnitedHealthcare (serves 10 counties)[6]",
+            "type": "service-area"
+          },
+          {
+            "name": "Contact local Aging Service Access Points (ASAPs) for referrals[5]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": true,

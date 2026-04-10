@@ -1,33 +1,56 @@
 {
   "state": "ID",
   "stateName": "Idaho",
-  "classifiedAt": "2026-04-09T09:32:07.005Z",
-  "total": 14,
+  "classifiedAt": "2026-04-09T13:06:19.939Z",
+  "total": 13,
   "typeSummary": {
-    "benefit": 9,
-    "resource": 4,
+    "benefit": 10,
+    "resource": 2,
     "employment": 1
   },
   "scopeSummary": {
-    "state": 7,
+    "state": 6,
     "local": 1,
     "federal": 6
   },
   "complexitySummary": {
-    "deep": 9,
-    "medium": 1,
-    "simple": 4
+    "deep": 11,
+    "simple": 2
   },
   "programs": [
     {
-      "name": "Idaho Medicaid Aged and Disabled Waiver",
+      "name": "Idaho Medicaid Aged, Blind, and Disabled (ABD) Program",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Idaho Aged and Disabled Waiver",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Statewide via Idaho Department of Health and Welfare[3][4]",
+            "name": "Idaho Department of Health and Welfare (DHW) or contractors",
             "type": "service-area"
           }
         ]
@@ -35,7 +58,6 @@
       "complexity": "deep",
       "recommendedSections": [
         "prose",
-        "income-table",
         "what-counts",
         "tier-comparison",
         "documents",
@@ -44,7 +66,7 @@
       ],
       "signals": {
         "benefitType": "service",
-        "hasIncomeTiers": true,
+        "hasIncomeTiers": false,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": true,
@@ -53,14 +75,14 @@
       }
     },
     {
-      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "name": "Program of All-Inclusive Care for the Elderly (PACE) - Idaho PACE",
       "programType": "benefit",
       "geographicScope": {
         "type": "local",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Limited to PACE organizations in Idaho service areas; no specific providers listed",
+            "name": "Specific Idaho PACE centers not listed; check state resources for locations",
             "type": "service-area"
           }
         ]
@@ -84,14 +106,14 @@
       }
     },
     {
-      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "name": "Medicare Savings Programs (Qualified Medicare Beneficiary - QMB, Specified Low-Income Medicare Beneficiary - SLMB, Qualifying Individual - QI)",
       "programType": "benefit",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Local Idaho Department of Health and Welfare offices (statewide)",
+            "name": "Idaho Dept. of Health & Welfare regional offices (e.g., Boise, regional hubs via healthandwelfare.idaho.gov/locations)",
             "type": "service-area"
           }
         ]
@@ -124,305 +146,7 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Idaho Department of Health and Welfare (primary administrator)",
-            "type": "service-area"
-          },
-          {
-            "name": "Idaho Hunger Relief Task Force (provides enrollment support for seniors): info@idahohunger.org, 208-639-0030",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "medium",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "in_kind",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": false,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Idaho Energy Assistance (LIHEAP)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "financial + in_kind",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Weatherization Assistance Program",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "Local Community Action Agencies (contact via healthandwelfare.idaho.gov)",
-            "type": "service-area"
-          },
-          {
-            "name": "SEICAA (Southeastern Idaho)",
-            "type": "service-area"
-          },
-          {
-            "name": "EICAP (Eastern Idaho)",
-            "type": "service-area"
-          },
-          {
-            "name": "CAP4Action",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "what-counts",
-        "tier-comparison",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Senior Health Insurance Benefits Advisors (SHIBA)",
-      "programType": "resource",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Primary office: Idaho Department of Insurance, 700 West State St., 3rd Floor, Boise ID 83720[2]",
-            "type": "service-area"
-          },
-          {
-            "name": "Counselors available statewide through county-based network[3]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "simple",
-      "recommendedSections": [
-        "prose",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Home-Delivered Meals (Title III-C-2)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Southwest Idaho Area Agency on Aging (example for southwest region); contact Idaho Commission on Aging for full AAA list[1][7]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "what-counts",
-        "tier-comparison",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "National Family Caregiver Support Program (NFCSP)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Local Area Agencies on Aging; contact via 211 or aging.idaho.gov[5][8]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "what-counts",
-        "tier-comparison",
-        "documents",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Senior Community Service Employment Program (SCSEP)",
-      "programType": "employment",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "Easterseals-Goodwill Northern Rocky Mountain (primary provider for Idaho)",
-            "type": "service-area"
-          },
-          {
-            "name": "Local Area Agencies on Aging (six areas via ICOA)",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "documents"
-      ],
-      "signals": {
-        "benefitType": "employment",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": false,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Idaho Legal Aid Services",
-      "programType": "resource",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Network of local offices statewide; partners with Area Agencies on Aging and CSI Office on Aging (208-736-2122 for Area IV)[4][7][8]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "simple",
-      "recommendedSections": [
-        "prose",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Long-Term Care Ombudsman Program",
-      "programType": "resource",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "Idaho Commission on Aging (State office)",
-            "type": "service-area"
-          },
-          {
-            "name": "Multiple Area Agencies on Aging (regional offices)",
-            "type": "service-area"
-          },
-          {
-            "name": "Example: Area Agency on Aging of North Idaho",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "simple",
-      "recommendedSections": [
-        "prose",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "advocacy",
-        "hasIncomeTiers": null,
-        "hasAssetLimits": false,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Idaho Senior Property Tax Reduction Program",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "County assessor's offices statewide (e.g., Fremont, Bonneville, Kootenai, Ada, Jefferson, Lincoln counties).",
+            "name": "Local Idaho DHW offices; support via Idaho Hunger Relief Task Force (info@idahohunger.org)[3][7].",
             "type": "service-area"
           }
         ]
@@ -446,22 +170,93 @@
       }
     },
     {
-      "name": "LEARN Idaho Senior Education Programs",
+      "name": "Idaho Energy Assistance (LIHEAP)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Idaho Department of Health and Welfare (state administrator)[1][3]",
+            "type": "service-area"
+          },
+          {
+            "name": "Local Community Action Agencies (regional administrators)",
+            "type": "service-area"
+          },
+          {
+            "name": "Idaho Power (for electrically-heated homes in service territory)[2]",
+            "type": "service-area"
+          },
+          {
+            "name": "SEICAA (Southeastern Idaho)[5]",
+            "type": "service-area"
+          },
+          {
+            "name": "EICAP (Eastern Idaho)[6]",
+            "type": "service-area"
+          },
+          {
+            "name": "Community Action Partnership (multiple regions)[4]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "in_kind",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Senior Health Insurance Benefits Advisors (SHIBA)",
       "programType": "resource",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "LEARN Idaho (learnidaho.org)[2][5]",
-            "type": "service-area"
-          },
-          {
-            "name": "Boise State University[3]",
-            "type": "service-area"
-          },
-          {
-            "name": "Idaho Commission on Aging (aging.idaho.gov)[5]",
+            "name": "Primary office: Idaho Department of Insurance, 700 West State St., 3rd Floor, Boise ID 83720; local counselors in every county[2][3]",
             "type": "service-area"
           }
         ]
@@ -477,7 +272,163 @@
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Home-Delivered Meals (Title III-C-2)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Southwest Idaho Area Agency on Aging (example); contact Idaho Commission on Aging for full AAA list",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "National Family Caregiver Support Program (NFCSP, Title III-E)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local Area Agencies on Aging; Idaho Commission on Aging",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "programType": "employment",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Easterseals-Goodwill (primary Idaho provider)",
+            "type": "service-area"
+          },
+          {
+            "name": "Contact via (208) 454-8555 or www.esgw.org/scsep for local offices",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "documents"
+      ],
+      "signals": {
+        "benefitType": "employment",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": false,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program (Title III-B & VII)",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "State Ombudsman: Idaho Commission on Aging.",
+            "type": "service-area"
+          },
+          {
+            "name": "Regional: Area Agencies on Aging (e.g., South Central Idaho at College of Southern Idaho).",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "advocacy",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
         "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Idaho Home Choice",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": true,
         "isStatewide": true
       }
     }

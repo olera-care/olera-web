@@ -4,116 +4,116 @@
   "state": "CO",
   "stateName": "Colorado",
   "isRegion": false,
-  "exploredAt": "2026-04-09T09:28:41.442Z",
+  "exploredAt": "2026-04-09T12:24:59.626Z",
   "programCount": 15,
   "programs": [
     {
       "name": "Health First Colorado Buy-In (QMB, SLMB, QI)",
-      "what_it_does": "These Medicare Savings Programs pay Medicare premiums, deductibles, and co-pays for low-income seniors. QMB covers Part A/B premiums and more; SLMB/QI cover Part B premiums.",
-      "who_its_for": "Seniors 65+ on Medicare with low income/assets (QMB: 100% FPL, $2,000 assets; SLMB: 120% FPL; QI: 135% FPL).",
-      "official_url": "https://www.healthfirstcolorado.com/medicare-savings-programs/",
-      "benefit_value": "QMB: Full Medicare cost-sharing ($0 premiums/copays); SLMB: Part B premium (~$174.70/month); QI: partial premium."
+      "what_it_does": "These Medicare Savings Programs help pay Medicare Part A/B premiums, deductibles, and copays for low-income seniors. In Colorado, administered as Health First Colorado Buy-In programs.",
+      "who_its_for": "Seniors 65+ with Medicare; QMB (income ≤100% FPL), SLMB (≤120% FPL), QI (≤135% FPL); asset limits apply.",
+      "official_url": "https://www.healthfirstcolorado.com/buy-in/",
+      "benefit_value": "QMB: Full premiums/cost-sharing ($0 copays); SLMB: Part B premium (~$174.70/month); QI: Partial premium assistance."
     },
     {
-      "name": "Colorado Medicaid HCBS Waivers (e.g., Home Care Allowance)",
-      "what_it_does": "These waivers provide home and community-based services to help seniors avoid nursing homes. The Home Care Allowance pays for personal care, respite, home modifications, and supplies up to $1,500/month.",
-      "who_its_for": "Seniors aged 65+ with income ≤300% Federal Benefit Rate (~$3,200/month individual), assets ≤$2,000, needing nursing home level care.",
-      "official_url": "https://www.colorado.gov/hcpf/long-term-services-supports",
+      "name": "Home and Community-Based Services (HCBS) Waivers (e.g., Home Care Allowance)",
+      "what_it_does": "These waivers provide home-based services like personal care, respite, home modifications, and adult day care to help seniors avoid institutionalization. The Home Care Allowance (HCA) specifically pays for personal care, respite, and supplies.",
+      "who_its_for": "Seniors aged 65+ with income ≤ 300% Federal Benefit Rate (~$3,200/month individual), assets ≤ $2,000.",
+      "official_url": "https://www.colorado.gov/hcpf/health-first-colorado-waivers",
       "benefit_value": "Up to $1,500/month for HCA; other waivers vary by services approved."
     },
     {
-      "name": "Colorado PACE",
-      "what_it_does": "Program of All-Inclusive Care for the Elderly (PACE) offers comprehensive medical and social services in community settings. It includes adult day health, transportation, home care, and covers all Medicare/Medicaid services.",
-      "who_its_for": "Seniors 55+ certified for nursing home level care, able to live safely in community, enrolled in Medicare/Medicaid.",
-      "official_url": "https://www.colorado.gov/hcpf/pace",
-      "benefit_value": "Full coverage of approved services at no additional cost beyond premiums."
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "what_it_does": "PACE provides comprehensive medical and social services to frail seniors in community settings, including adult day health, transportation, and home care to prevent nursing home placement. In Colorado, it's administered through select providers.",
+      "who_its_for": "Seniors aged 55+ certified for nursing home level care, able to live safely in community, enrolled in Medicare/Medicaid.",
+      "official_url": "https://www.colorado.gov/pacific/hcpf/pace",
+      "benefit_value": "Full capitation coverage of all Medicare/Medicaid services plus extras; no additional premiums for dual eligibles."
     },
     {
-      "name": "SNAP (Supplemental Nutrition Assistance Program)",
-      "what_it_does": "SNAP provides monthly benefits via EBT card for purchasing groceries. It frees up income for other senior care needs.",
-      "who_its_for": "Seniors 60+ with gross income ≤130% FPL (~$1,730/individual), net income test, assets ≤$3,750.",
+      "name": "Supplemental Nutrition Assistance Program (SNAP)",
+      "what_it_does": "SNAP provides monthly benefits via EBT card for purchasing groceries to improve food security. It frees up income for other senior needs like care costs.",
+      "who_its_for": "Seniors 60+ with gross income ≤130% FPL (~$1,730/individual), net income test, assets ≤$3,750 (non-vehicle).",
       "official_url": "https://cdhs.colorado.gov/snap",
-      "benefit_value": "Average $200-300/month per person; max ~$291/individual (2025 rates)."
+      "benefit_value": "Average $200-300/month per eligible senior household (varies by income/size)."
     },
     {
-      "name": "LEAP (Low-energy Assistance Program)",
-      "what_it_does": "LEAP provides one-time annual payments to help with home heating costs during winter. It covers a portion of energy bills for eligible households.",
-      "who_its_for": "Seniors 60+ with income ≤60% state median (~$3,448/individual), facing heating crisis.",
+      "name": "Low-Income Energy Assistance Program (LEAP)",
+      "what_it_does": "LEAP provides grants to help low-income households pay winter heating bills. It covers a portion of energy costs from November to April.",
+      "who_its_for": "Seniors 60+ in households with income ≤60% state median (~$3,200/year individual), receiving energy bills.",
       "official_url": "https://cdhs.colorado.gov/leap",
-      "benefit_value": "Average $500-1,000 per household; up to $1,200 max."
+      "benefit_value": "Average grant $500-1,000 per heating season."
     },
     {
       "name": "Weatherization Assistance Program (WAP)",
-      "what_it_does": "WAP funds energy efficiency upgrades like insulation, sealing, and furnace repairs to reduce utility bills. Services are provided at no cost to eligible homes.",
-      "who_its_for": "Low-income seniors 60+ (household income ≤200% FPL), often prioritized via senior centers or energy assistance referrals.",
-      "official_url": "https://www.energy.gov/eere/wap/weatherization-assistance-program",
-      "benefit_value": "$4,000-7,000 average per home in improvements; lifetime energy savings ~$4,400."
+      "what_it_does": "WAP funds home energy efficiency improvements like insulation, sealing, and furnace repairs to reduce utility bills. Services include professional assessments and installations.",
+      "who_its_for": "Low-income households (≤200% FPL) including seniors, priority for elderly/disabled/veterans.",
+      "official_url": "https://cdhs.colorado.gov/weatherization",
+      "benefit_value": "Free services; average savings $300+/year on energy bills."
     },
     {
-      "name": "Colorado SHIP (State Health Insurance Assistance Program)",
-      "what_it_does": "SHIP offers free, unbiased counseling on Medicare options, appeals, and extra help. Counselors help select plans and understand costs.",
-      "who_its_for": "All Medicare beneficiaries 65+, caregivers, and family; no income limits.",
-      "official_url": "https://senioranswers.org/medicare-counseling/",
-      "benefit_value": "Free one-on-one counseling; potential savings of thousands via optimal plan selection."
+      "name": "State Health Insurance Assistance Program (SHIP)",
+      "what_it_does": "SHIP offers free, unbiased counseling on Medicare options, including Parts A/B/D, Medicare Advantage, and cost-saving programs. In Colorado, it's called Health Insurance Counseling and Advocacy Program.",
+      "who_its_for": "All Medicare beneficiaries, caregivers, and family members aged 65+.",
+      "official_url": "https://senioranswers.org/programs-services/medicare-counseling/",
+      "benefit_value": "Free one-on-one counseling; helps save average $1,000+/year on premiums/coverage."
     },
     {
       "name": "Meals on Wheels Colorado",
-      "what_it_does": "Delivers nutritious meals to homebound seniors to promote health and independence. Includes safety checks during delivery.",
-      "who_its_for": "Homebound seniors 60+ unable to prepare meals, often low-income or isolated.",
+      "what_it_does": "Delivers nutritious meals to homebound seniors to promote health and independence. Provides hot meals weekdays plus frozen weekend meals.",
+      "who_its_for": "Homebound seniors 60+ unable to prepare meals, often low-income or with mobility issues.",
       "official_url": "https://www.mealsonwheelscolorado.org/",
-      "benefit_value": "5-14 meals/week at suggested $4-7/donation; free/subsidized for low-income."
+      "benefit_value": "5 meals/week at suggested $3-5/donation (often free/subsidized for low-income); nutrition value ~$10/meal."
     },
     {
-      "name": "Community Access Services (CAS)",
-      "what_it_does": "CAS provides one-time grants for home repairs, utility aid, and adaptive equipment. It supports aging in place for low-income seniors.",
-      "who_its_for": "Seniors 60+ with household income ≤200% FPL.",
-      "official_url": "https://www.colorado.gov/cdhs/community-access-services",
-      "benefit_value": "Up to $1,200/year per household."
+      "name": "Community Access Services (CAS) and Respite Care",
+      "what_it_does": "CAS offers one-time grants for home repairs, utilities, and adaptive equipment; respite provides temporary relief for caregivers. Supports aging in place.",
+      "who_its_for": "Seniors 60+ with income ≤200% FPL; family caregivers of seniors/disabled.",
+      "official_url": "https://www.colorado.gov/hcpf/community-access-services",
+      "benefit_value": "Up to $1,200/year grants; respite hours vary (paid ~$15-20/hour)."
     },
     {
       "name": "Senior Community Service Employment Program (SCSEP)",
-      "what_it_does": "SCSEP offers part-time paid training jobs in community service to build skills. Leads to unsubsidized employment for older workers.",
-      "who_its_for": "Unemployed low-income seniors 55+ (income ≤125% FPL), priority to hardest-to-serve.",
+      "what_it_does": "SCSEP provides part-time paid training jobs in community organizations to help unemployed low-income seniors gain skills and transition to unsubsidized employment. Includes support services.",
+      "who_its_for": "Unemployed seniors 55+ with income ≤125% FPL, priority for hardest-to-serve.",
       "official_url": "https://www.dol.gov/agencies/eta/seniors",
-      "benefit_value": "Minimum wage pay (~$15-20/hour in CO), 20 hours/week training."
+      "benefit_value": "Minimum wage part-time work (20 hrs/week, ~$8,000/year); training leading to full-time jobs."
     },
     {
-      "name": "Colorado Legal Services (Senior Legal Hotline)",
-      "what_it_does": "Provides free legal advice and representation for civil issues like housing, benefits, and abuse. Senior-specific hotline for quick assistance.",
-      "who_its_for": "Low-income seniors 60+ (≤125% FPL), Colorado residents.",
-      "official_url": "https://www.coloradolegalservices.org/seniors",
-      "benefit_value": "Free legal services; resolves issues worth thousands in benefits/housing."
+      "name": "Colorado Legal Services (Legal Aid for Seniors)",
+      "what_it_does": "Provides free civil legal assistance for issues like housing, benefits, abuse, and consumer problems. Includes advice, representation, and senior-specific clinics.",
+      "who_its_for": "Low-income seniors 60+ (income ≤125-200% FPL depending on case), priority for vulnerable.",
+      "official_url": "https://www.coloradolegalservices.org/",
+      "benefit_value": "Free legal services; resolves issues preserving ~$5,000+ in benefits/housing annually per client."
     },
     {
       "name": "Long-Term Care Ombudsman Program",
-      "what_it_does": "Advocates for residents in nursing homes, assisted living, and similar facilities. Investigates complaints and ensures quality care.",
-      "who_its_for": "Seniors in long-term care facilities, families, and staff seeking resolution.",
-      "official_url": "https://www.colorado.gov/cdhs/ltc-ombudsman",
-      "benefit_value": "Free advocacy; resolves 80%+ complaints without formal action."
+      "what_it_does": "Advocates for residents in long-term care facilities, investigating complaints and ensuring quality care and rights protection. Provides education and support.",
+      "who_its_for": "Residents/potential residents of nursing homes, assisted living, and similar facilities; families.",
+      "official_url": "https://www.colorado.gov/ltcog",
+      "benefit_value": "Free advocacy resolving 80%+ complaints; improves care quality and resident satisfaction."
     },
     {
       "name": "Old Age Pension (OAP)",
-      "what_it_does": "The Colorado Old Age Pension (OAP) is a state-funded cash assistance program that provides monthly payments up to a maximum of $952 (as of 2023) to ensure a minimum income level for eligible seniors, reduced dollar-for-dollar by other income sources. It also offers limited medical benefits for those not qualifying for other coverage.[1][2]",
-      "who_its_for": "Colorado residents aged 60 or older with income below the maximum benefit level and resources under $2,000 for individuals ($3,000 for couples), who have pursued all other benefits first.[2]",
-      "whats_unique": "Enshrined in the Colorado Constitution since 1937, OAP is a state-funded safety-net program predating federal SSI and providing cash benefits specifically to seniors 60+, which is not a standard federal program available nationwide.[1][2]",
+      "what_it_does": "The Colorado Old Age Pension (OAP) is a state-funded cash assistance program providing up to $952 per month (as of 2023) to ensure a minimum income level for eligible seniors, reduced dollar-for-dollar by other income sources. It also offers limited medical benefits for those not qualifying for other coverage.",
+      "who_its_for": "Colorado residents aged 60+, with income below the maximum benefit, resources under $2,000 (individual) or $3,000 (couple), who have pursued all other benefits like Social Security or SSI.",
+      "whats_unique": "OAP is enshrined in the Colorado Constitution since 1937, predating federal SSI, making it a unique state-funded safety-net cash program not replicated in most states.",
       "official_url": "https://www.senioranswers.org/financial-resources/oap/",
-      "benefit_value": "Up to $952 per month (effective 1/1/2023), plus limited medical benefits.[2]"
+      "benefit_value": "Up to $952/month cash (2023); varies by income."
     },
     {
       "name": "Home Care Allowance (HCA)",
-      "what_it_does": "Part of Colorado's Medicaid HCBS waivers under Health First Colorado, HCA pays for personal care, respite care, home modifications, and supplies to help seniors remain at home. It provides flexible funding for non-medical in-home supports.[1]",
-      "who_its_for": "Individuals aged 65+ with income ≤300% of Federal Benefit Rate (~$3,200/month for individuals) and assets ≤$2,000, requiring nursing facility level of care.[1]",
-      "whats_unique": "This state-administered Medicaid waiver program offers a cash-like allowance specifically for home care services, which is a Colorado-specific implementation not identically replicated in every state.[1]",
+      "what_it_does": "Part of Colorado's Medicaid HCBS waivers, HCA pays for personal care, respite, home modifications, and supplies to support aging in place. It enables seniors to receive home-based services instead of institutional care.",
+      "who_its_for": "Age 65+, income ≤300% Federal Benefit Rate (~$3,200/month individual), assets ≤$2,000.",
+      "whats_unique": "State-specific Medicaid waiver program under Health First Colorado, with defined payment caps tailored to Colorado's elder care needs, beyond standard federal Medicaid.",
       "official_url": "https://carepatrol.com/south-metro-denver/understanding-colorados-elder-care-financial-assistance-programs-2025-guide/",
-      "benefit_value": "Up to $1,500 per month.[1]"
+      "benefit_value": "Up to $1,500/month."
     },
     {
       "name": "Older Coloradans Cash Fund",
-      "what_it_does": "Provides one-time grants to low-income seniors for essential needs such as home repairs (e.g., ramps, grab bars), utility assistance, and minor adaptive equipment like walkers or shower chairs. It targets immediate safety and accessibility improvements for aging in place.[1]",
-      "who_its_for": "Colorado residents aged 60+ with household income ≤200% of Federal Poverty Level.[1]",
-      "whats_unique": "This is a Colorado-specific state fund offering targeted one-time grants for senior home adaptations and utilities, distinct from standard federal programs like LIHEAP or Medicaid waivers.[1]",
+      "what_it_does": "Provides one-time grants to low-income seniors for home repairs like ramps and grab bars, utility assistance, and minor adaptive equipment such as walkers or shower chairs. It addresses immediate safety and accessibility needs in the home.",
+      "who_its_for": "Age 60+, household income ≤200% Federal Poverty Level.",
+      "whats_unique": "Colorado-specific fund offering targeted one-time grants for elder home adaptations, not a standard federal program and unique to the state's elder support structure.",
       "official_url": "https://carepatrol.com/south-metro-denver/understanding-colorados-elder-care-financial-assistance-programs-2025-guide/",
-      "benefit_value": "Up to $1,200 per year.[1]"
+      "benefit_value": "Up to $1,200/year."
     }
   ]
 }

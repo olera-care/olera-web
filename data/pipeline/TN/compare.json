@@ -1,52 +1,561 @@
 {
   "state": "TN",
   "stateName": "Tennessee",
-  "comparedAt": "2026-04-09T09:42:20.544Z",
-  "total": 5,
+  "comparedAt": "2026-04-09T16:32:49.430Z",
+  "total": 12,
   "newPrograms": 4,
-  "withDiffs": 1,
-  "withNovelFields": 1,
+  "withDiffs": 8,
+  "withNovelFields": 8,
   "benefitTypes": {
-    "advocacy": 1,
-    "service": 4
+    "financial": 3,
+    "service|advocacy": 2,
+    "service": 4,
+    "employment": 1,
+    "advocacy": 2
   },
   "variationPatterns": {
-    "region": 1,
-    "not_applicable": 1,
-    "location_of_care (nursing home vs. assisted living vs. home-based)": 1,
-    "priority_tier": 2
+    "program_tier": 1,
+    "household_size": 1,
+    "household_size|priority_tier|region": 1,
+    "not_applicable — counseling is free regardless of income or household size, though eligibility for programs SHIP helps with (like Medicare Savings Plans) may vary": 1,
+    "region": 3,
+    "priority_tier": 1,
+    "not_applicable — all services provided at no cost to qualifying seniors[3]": 1,
+    "not_applicable": 2,
+    "physical_need|income_for_cost_share": 1
   },
   "novelFieldSummary": {
     "asset_limits": {
-      "count": 1,
+      "count": 7,
       "programs": [
-        "TennCare CHOICES"
+        "TennCare Medicare Savings Programs (QMB, SLMB, QI)",
+        "Tennessee SNAP",
+        "Tennessee LIHEAP",
+        "Tennessee State Health Insurance Assistance Program (TN SHIP)",
+        "Tennessee Senior Law Alliance (TSLA) / Tennessee Senior Legal Helpline",
+        "Tennessee Long-Term Care Ombudsman Program",
+        "Tennessee State Health Insurance Assistance Program (TN SHIP) and Senior Medicare Patrol (SMP)"
       ],
       "note": "Our model has no asset limit fields"
     },
-    "regional_variations": {
-      "count": 1,
-      "programs": [
-        "TennCare CHOICES"
-      ],
-      "note": "Program varies by region — our model doesn't capture this"
-    },
     "waitlist": {
-      "count": 1,
+      "count": 5,
       "programs": [
-        "TennCare CHOICES"
+        "TennCare Medicare Savings Programs (QMB, SLMB, QI)",
+        "Tennessee LIHEAP",
+        "Tennessee State Health Insurance Assistance Program (TN SHIP)",
+        "National Family Caregiver Support Program (NFCSP)",
+        "Tennessee Senior Law Alliance (TSLA) / Tennessee Senior Legal Helpline"
       ],
       "note": "Has waitlist info — our model has no wait time field"
     },
     "documents_required": {
-      "count": 1,
+      "count": 8,
       "programs": [
-        "TennCare CHOICES"
+        "TennCare Medicare Savings Programs (QMB, SLMB, QI)",
+        "Tennessee SNAP",
+        "Tennessee LIHEAP",
+        "Tennessee State Health Insurance Assistance Program (TN SHIP)",
+        "National Family Caregiver Support Program (NFCSP)",
+        "Tennessee Senior Law Alliance (TSLA) / Tennessee Senior Legal Helpline",
+        "Tennessee Long-Term Care Ombudsman Program",
+        "Tennessee State Health Insurance Assistance Program (TN SHIP) and Senior Medicare Patrol (SMP)"
       ],
       "note": "Has document checklist — our model doesn't store per-program documents"
+    },
+    "household_size_table": {
+      "count": 1,
+      "programs": [
+        "Tennessee SNAP"
+      ],
+      "note": "Benefits/eligibility vary by household size — we store a single number"
+    },
+    "regional_variations": {
+      "count": 7,
+      "programs": [
+        "Tennessee SNAP",
+        "Tennessee LIHEAP",
+        "Tennessee State Health Insurance Assistance Program (TN SHIP)",
+        "National Family Caregiver Support Program (NFCSP)",
+        "Tennessee Senior Law Alliance (TSLA) / Tennessee Senior Legal Helpline",
+        "Tennessee Long-Term Care Ombudsman Program",
+        "Tennessee State Health Insurance Assistance Program (TN SHIP) and Senior Medicare Patrol (SMP)"
+      ],
+      "note": "Program varies by region — our model doesn't capture this"
     }
   },
   "comparisons": [
+    {
+      "name": "TennCare Medicare Savings Programs (QMB, SLMB, QI)",
+      "isNew": false,
+      "existingId": "tenncare-medicare-savings-programs",
+      "existingVerified": null,
+      "diffsFound": 1,
+      "diffs": [
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.tn.gov/tenncare/members-applicants/eligibility/categories.html and https://www.tn.gov/content/dam/tn/tenncare/documents/QualifiedMedicareBeneficiary.pdf"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": {
+            "description": "Resource limits for 2026:",
+            "QMB": {
+              "individual": "$9,950",
+              "couple": "$14,910"
+            },
+            "SLMB": {
+              "individual": "Not specified in search results",
+              "couple": "Not specified in search results"
+            },
+            "QI_1": {
+              "individual": "$9,430",
+              "couple": "$14,130"
+            },
+            "what_counts": "Money in bank accounts, stocks, and bonds",
+            "what_does_not_count": "Primary residence, one car, burial plot, up to $1,500 in burial expenses, furniture, household items, and personal items"
+          },
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "waitlist",
+          "value": "QI-1 program operates on first-come, first-served basis until funds run out; priority given to prior-year recipients. No waitlist information provided for QMB or SLMB.",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Social Security Number (used to verify Medicare Part A entitlement with Social Security Administration)",
+            "Proof of Medicare Part A and/or Part B enrollment",
+            "Income documentation (specific types not detailed in search results)",
+            "Asset documentation (specific types not detailed in search results)"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "This program consists of three distinct tiers (QMB, SLMB, QI-1) with progressively higher income thresholds but decreasing benefit comprehensiveness. QMB is mandatory for states; SLMB and QI-1 are optional but Tennessee offers them. QI-1 has unique constraints: first-come, first-served funding model, annual reapplication requirement, and exclusion for CHOICES recipients and those already on TennCare Medicaid. Income and asset limits are indexed to Federal Poverty Level and change annually. Specific application procedures, processing timelines, required forms, and regional office locations are not detailed in available search results and require direct contact with TennCare.",
+      "gotchas": [
+        "QI-1 is NOT available to CHOICES recipients[5]",
+        "QI-1 operates on first-come, first-served basis with limited funding; applications may be denied once funds are exhausted for the year[3][4]",
+        "QI-1 requires annual reapplication; benefits are not automatic renewal[4]",
+        "If eligible for Medicaid, you cannot use QI but may qualify for QMB or SLMB instead[7]",
+        "Cannot be enrolled in TennCare Medicaid or TennCare Standard to qualify for QI-1[1]",
+        "QMB eligibility automatically establishes Medicare Part B effective the month after approval, even if the individual previously refused Part B coverage[2]",
+        "TennCare will automatically establish Part A or B coverage with Social Security Administration—applicants do not need to contact SSA separately[2]",
+        "Income and asset limits change annually (new limits released each January); families must verify current-year thresholds[7]",
+        "These programs provide cost-sharing assistance only and do not provide full Medicaid benefits[1]",
+        "QI-1 for individuals under 65 who lost Medicare Part A due to returning to work is a distinct category with different rules than standard QI-1[1]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "program_tier",
+      "officialSource": "https://www.tn.gov/tenncare/members-applicants/eligibility/categories.html and https://www.tn.gov/content/dam/tn/tenncare/documents/QualifiedMedicareBeneficiary.pdf"
+    },
+    {
+      "name": "Tennessee SNAP",
+      "isNew": false,
+      "existingId": "tennessee-snap-supplemental-nutrition-assistance-program",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$1984",
+          "found": "$209",
+          "source": "https://www.tn.gov/humanservices/for-families/supplemental-nutrition-assistance-program-snap.html[10]"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$1,500 – $3,600/year",
+          "found": "Monthly EBT card for food purchases (amount based on net income, household size, deductions; e.g., example 2-person elderly household: $415/month after 30% net income subtraction from max allotment of $546). Excludes sugary foods in TN[2]. Max allotments vary (e.g., Table 1 federal for Oct 2025-26 not fully detailed here)[7].",
+          "source": "https://www.tn.gov/humanservices/for-families/supplemental-nutrition-assistance-program-snap.html[10]"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.tn.gov/humanservices/for-families/supplemental-nutrition-assistance-program-snap.html[10]"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Households with member 60+ or disabled are exempt from asset test. General households subject to asset test (limits not specified in sources; most retirement accounts like 401Ks exempt, home and one car typically exempt)[1][8].",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "household_size_table",
+          "value": "For households with any member 60 or older or disabled: no gross income limit, but must meet net income test (net income calculated as gross minus deductions like 20% earned income deduction, standard deduction ($209 for 1-3 people), shelter/utility up to $744, medical over $35 for elderly/disabled). General households: gross income ≤130% FPL (e.g., Oct 2025-2026: ~$15,060/year or $1,255/month for 1 person; $20,440/year or $1,703/month for 2 people; exact table varies by size—use official calculator). Seniors 60+ exempt from gross income test[1][3][6][7].",
+          "note": "Benefits/eligibility vary by household size — we store a single number"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered uniformly by TDHS via local county offices; no major differences noted, but apply via local office; some food banks offer volunteer ops for ABAWD[5].",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of income (Social Security, pension, pay stubs—all count)[3][7].",
+            "ID/residency proof.",
+            "Medical expenses over $35/month for 60+/disabled.",
+            "Rent/mortgage, utility bills for deductions.",
+            "Proof of disability if claiming."
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Elderly/disabled households exempt from gross income and asset tests, net only; benefits calculated via 30% net income rule from max allotment; scales by household size; statewide with local offices.",
+      "gotchas": [
+        "Seniors 60+ have no gross income limit but must pass net income test—many miss deductions like medical >$35, shelter up to $744, boosting eligibility[1][6][7].",
+        "All income counts (SS, VA, pensions); household includes food-sharers[3][6].",
+        "Recent 2025 ABAWD changes extend work rules to under 65 (exempts 65+ and caregivers)[2][5][9].",
+        "No asset test for elderly/disabled, but verify exemptions (home/car ok)[8].",
+        "Utility allowances inflation-adjusted; check current[1]."
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "household_size",
+      "officialSource": "https://www.tn.gov/humanservices/for-families/supplemental-nutrition-assistance-program-snap.html[10]"
+    },
+    {
+      "name": "Tennessee LIHEAP",
+      "isNew": false,
+      "existingId": "tennessee-liheap-low-income-home-energy-assistance-program",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$3092",
+          "found": "$17,505",
+          "source": "https://thda.org/help-for-homeowners/low-income-home-energy-assistance-program-liheap/"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$500 – $2,000/year",
+          "found": "One-time payment to utility company for heating/cooling: Regular $174-$750 (varies by energy burden); max heating/cooling $1,000, min $600; crisis max $1,000; older summer cooling max $325, heating/emergency $250. Available once per year from up to two of three programs (regular, crisis, summer).[1][4][5]",
+          "source": "https://thda.org/help-for-homeowners/low-income-home-energy-assistance-program-liheap/"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://thda.org/help-for-homeowners/low-income-home-energy-assistance-program-liheap/"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limit applies.[1]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered by local agencies (e.g., ETHRA for Anderson, Campbell, Claiborne, Morgan, Scott, Union counties); applications, wait times, assistance vary by agency and funding; contact local provider.[3][4][5]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Yes, eligible applicants waitlisted until federal funds released (e.g., 2026 funding pending); crisis prioritized.[3]",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of income, household size, utility bills/shut-off notices (check local agency for full list).[4]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Administered statewide via 19 regional agencies with varying providers, waitlists, and benefit calculations by energy burden/household; priority points system beyond income; federal funding delays common; income at 60% SMI or 150% FPG per source.",
+      "gotchas": [
+        "Funding not guaranteed (e.g., federal delays cause waitlists/no awards); must meet both income AND priority points; benefits one-time only; older vs. current income limits conflict (verify with local agency); crisis prioritized over regular; applies Nov-May typically.[1][2][3][4]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "household_size|priority_tier|region",
+      "officialSource": "https://thda.org/help-for-homeowners/low-income-home-energy-assistance-program-liheap/"
+    },
+    {
+      "name": "Tennessee State Health Insurance Assistance Program (TN SHIP)",
+      "isNew": false,
+      "existingId": "tennessee-state-health-insurance-assistance-program-ship",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "min_age",
+          "ours": "65",
+          "found": "65 or older, OR any age if on Medicare due to disability[6]",
+          "source": "https://www.tn.gov/disability-and-aging/disability-aging-programs/tn-ship.html[4]"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$3,000 – $10,000/year",
+          "found": "Free, unbiased one-on-one counseling and education; no direct financial payments from this program, though counselors help beneficiaries apply for programs that DO pay (Medicare Savings Plans, Extra Help/Low Income Subsidy, Medicaid)[2][4]",
+          "source": "https://www.tn.gov/disability-and-aging/disability-aging-programs/tn-ship.html[4]"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.tn.gov/disability-and-aging/disability-aging-programs/tn-ship.html[4]"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Not specified in available sources.",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Yes — different regional offices serve different counties. Examples: Aging Commission of the Mid-South serves Shelby, Fayette, Lauderdale, and Tipton counties[3]; Upper Cumberland SHIP serves 14-county Upper Cumberland region[7]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Not mentioned in available sources.",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": "Not specified in available sources. No documentation requirements listed.",
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "TN SHIP is a counseling and advocacy program, not a financial assistance program. It operates through nine regional offices with local phone numbers but a unified statewide toll-free line. The program's primary value is helping beneficiaries navigate complex Medicare options and apply for separate income-based programs (Medicare Savings Plans, Extra Help). No income limits, asset limits, or processing times are publicly specified. Eligibility is straightforward: Medicare-eligible individuals age 65+ or any age if on Medicare due to disability. The program is federally funded but administered by the Tennessee Commission on Aging and Disability.",
+      "gotchas": [
+        "This is NOT a financial assistance program — it provides counseling only. Families expecting direct payment for premiums should know SHIP helps you APPLY for programs that pay (Medicare Savings Plans, Extra Help), but SHIP itself doesn't pay[2][4]",
+        "SHIP does not sell insurance or endorse any insurance company — it is unbiased, which is valuable but means it won't recommend a specific plan[9]",
+        "If someone is on an ACA Marketplace plan when they become Medicare-eligible, they MUST disenroll from the Marketplace plan or face penalties — SHIP can help with this transition[4]",
+        "Medicare Open Enrollment Period ends December 7th annually — timing matters for plan changes[4]",
+        "Translation services are available in multiple languages at some regional offices[7]",
+        "The program also offers Senior Medicare Patrol (SMP) services to help detect and report Medicare fraud — this is a separate but related service[2][9]",
+        "Volunteer opportunities exist if families want to help others while learning the program[4][6]",
+        "No income or asset limits are specified in public materials — eligibility appears to be based solely on Medicare status and age/disability, not means-testing"
+      ],
+      "benefitType": "service|advocacy",
+      "benefitVariesBy": "not_applicable — counseling is free regardless of income or household size, though eligibility for programs SHIP helps with (like Medicare Savings Plans) may vary",
+      "officialSource": "https://www.tn.gov/disability-and-aging/disability-aging-programs/tn-ship.html[4]"
+    },
+    {
+      "name": "Tennessee Meals on Wheels",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Decentralized by 95 counties via local AAADs with regional providers; no income/asset test statewide; assessment-based eligibility varies slightly by region (e.g., younger disabled in some areas)[1][2][6]",
+      "gotchas": [
+        "Not a single centralized 'Tennessee Meals on Wheels'—decentralized by local AAAD/provider; must contact local office for exact rules[1][2][6]",
+        "Requires AAAD assessment for home delivery; not automatic[1][6]",
+        "Meals often by suggested donation (free for most but confirm locally); paid options like Knox MAMS exist[3][6][8]",
+        "Congregate vs. home-delivered have different criteria[2][6]",
+        "Spouses under 60 ok for congregate but home delivery typically 60+[2][6]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "region",
+      "officialSource": "https://www.tn.gov/disability-and-aging/disability-aging-programs/aging-nutrition-program.html[6]"
+    },
+    {
+      "name": "National Family Caregiver Support Program (NFCSP)",
+      "isNew": false,
+      "existingId": "tennessee-family-caregiver-support-program",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "min_age",
+          "ours": "60",
+          "found": "Caregiver must be 55+ (with exceptions); Care Recipient varies by category",
+          "source": "https://www.tn.gov/disability-and-aging/disability-aging-programs/caregiving.html"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$2,000 – $8,000/year",
+          "found": "Up to 6 hours per week in-home respite care; other services availability varies by service area",
+          "source": "https://www.tn.gov/disability-and-aging/disability-aging-programs/caregiving.html"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.tn.gov/disability-and-aging/disability-aging-programs/caregiving.html"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "regional_variations",
+          "value": "Availability of specific services varies by service area; wait times and service offerings may differ by region",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Slots may not be available; preference given to persons with greatest economic and social needs as defined by Older Americans Act",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": "Not specified in search results",
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "NFCSP is a service-based program, not a cash assistance program. Eligibility is determined by care recipient's functional limitations and age/condition, not caregiver income. Services are means-tested for contributions only if care recipient income exceeds 185% FPG. Regional variation is significant — service availability depends on local AAAD resources and priorities. No specific processing timeline provided; waitlist depends on local slot availability and priority scoring. This is distinct from other Tennessee programs like CHOICES Waiver (Medicaid) or Family Support Program, which have different eligibility and funding structures.",
+      "gotchas": [
+        "This is the NATIONAL program, not a Tennessee-specific program — it's administered through Tennessee's Area Agencies on Aging and Disability but follows federal Older Americans Act guidelines",
+        "Availability of services varies significantly by region — respite care is guaranteed up to 6 hours/week, but other services (counseling, training, daycare) depend on local resources",
+        "Income-based sliding scale: If care recipient income exceeds 185% of Federal Poverty Guidelines, families will be asked to contribute; no income exemption for low-income families",
+        "Waitlist exists: Even if eligible, services may not be available immediately; preference goes to those with greatest economic and social needs",
+        "Caregiver must be family member or informal caregiver — paid professional caregivers do not qualify",
+        "For child caregiving: Grandparents/relatives (not parents) age 55+ can access services for minor children; parents caring for children do not qualify under this program",
+        "For adult disability caregiving: Only relatives age 55+ caring for adults 18-59 with disabilities qualify; younger caregivers do not qualify",
+        "The care recipient's functional status is what matters: Must have ADL limitations or cognitive impairment requiring supervision; diagnosis alone is insufficient",
+        "This program provides support services, not direct financial payments to caregivers — it's not a paid caregiver employment program"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "region",
+      "officialSource": "https://www.tn.gov/disability-and-aging/disability-aging-programs/caregiving.html"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Regionally administered by multiple local workforce/human resource agencies with county-specific coverage and contacts; priority tiers affect access; income test at 125% FPL without published dollar table in sources (requires provider verification); part-time hours/wage fixed federally but local minimum wage applies.",
+      "gotchas": [
+        "Not available statewide—must confirm county coverage with local provider; many areas have limited openings.",
+        "Priority enrollment for veterans/qualified spouses, those 65+, low literacy, homelessness risk, low employment prospects, or prior incarceration—others may face waitlists.[2]",
+        "Temporary (typically 6 months) part-time subsidized work aimed at unsubsidized job placement, not long-term employment or full benefits.",
+        "Income limit is strict at 125% FPL for total family income; no asset test but full verification required.",
+        "Must be unemployed at enrollment; focuses on skill-building in community service roles, not guaranteed preferred job type."
+      ],
+      "benefitType": "employment",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.tn.gov/workforce/jobs-and-education/services-by-group/services-by-group-redirect/senior-work-experience-program.html"
+    },
+    {
+      "name": "Tennessee Senior Law Alliance (TSLA) / Tennessee Senior Legal Helpline",
+      "isNew": false,
+      "existingId": "tennessee-senior-legal-services",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$500 – $3,000/year",
+          "found": "Free legal services including: referrals, brief legal advice, full legal representation, estate planning, document drafting (wills, advance directives, powers of attorney), assistance with wrongfully reduced/denied benefits and healthcare access, housing issues, abuse and exploitation cases, consumer problems[1][3][7]",
+          "source": "https://www.tals.org/page/453/free-senior-legal-helpline and https://las.org/tennessee-senior-law-alliance/"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.tals.org/page/453/free-senior-legal-helpline and https://las.org/tennessee-senior-law-alliance/"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Not specified in available sources — described as available 'regardless of your income or assets'[7]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Program is delivered through four regional legal aid providers: Legal Aid Society of Middle TN and The Cumberlands, Legal Aid of East Tennessee, West Tennessee Legal Services, and Tennessee Alliance for Legal Services[1]. East Tennessee has a dedicated Legal Assistance for the Elderly Program with specific contact information[3]. Middle Tennessee services available through GNRC with bilingual staff[2].",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Not specified in available sources",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": "Not specified in available sources",
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "This is a coordinated statewide network (TSLA) rather than a single program with uniform rules. It operates through four regional legal aid providers, each with separate contact information. The statewide helpline (844-HELP4TN) serves as the primary entry point. No income or asset limits are applied, making this unusual among legal aid programs. Services are entirely free with no cost to clients, though donations are accepted. The program is funded by a specific court settlement, which creates potential sustainability questions.",
+      "gotchas": [
+        "No income or asset test is applied — eligibility is based solely on age (60+) and residency, making this unusually accessible[7]",
+        "The program is delivered through multiple providers with different contact numbers by region — calling the statewide helpline (844-HELP4TN) is the simplest entry point[1][7]",
+        "For East Tennessee's Legal Assistance for the Elderly Program, seniors must personally contact the office to request help before in-person appointments are scheduled[3]",
+        "Program funding comes from a court settlement providing $5.5 million over three years — long-term sustainability beyond this period is not addressed in available sources",
+        "Specific processing times, waitlists, and required documentation are not disclosed in available sources — families should ask when they call"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "not_applicable — all services provided at no cost to qualifying seniors[3]",
+      "officialSource": "https://www.tals.org/page/453/free-senior-legal-helpline and https://las.org/tennessee-senior-law-alliance/"
+    },
+    {
+      "name": "Tennessee Long-Term Care Ombudsman Program",
+      "isNew": false,
+      "existingId": "tennessee-long-term-care-ombudsman-program",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$10,000 – $30,000/year",
+          "found": "Advocacy to identify, investigate, and resolve complaints; provide information on rights, admission processes, long-term services; ensure access to care quality improvements; represent interests before agencies; educate on resident rights including courtesy, private visits, no wrongful transfer/discharge, freedom from abuse[1][3][4][5][6][7]",
+          "source": "https://www.tn.gov/disability-and-aging/disability-aging-programs/long-term-care-ombudsman.html[4]"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.tn.gov/disability-and-aging/disability-aging-programs/long-term-care-ombudsman.html[4]"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits apply",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered by regional/district ombudsman offices with specific counties served (e.g., ETHRA District 2: Anderson, Blount, etc.; FTAAAD District 1: Carter, Greene, etc.); different contacts and providers per district[1][3][5][8]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "No documents required; contact directly with concerns[3][4]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "no income/asset test; district-based with county-specific offices; advocacy-only, not benefits/services program",
+      "gotchas": [
+        "Not a direct service provider (e.g., no healthcare or financial aid)—purely advocacy and complaint resolution[1][4][5][7]",
+        "Must contact specific district ombudsman for your county, not statewide directly (use toll-free or district finder)[1][3][4][8]",
+        "Families can contact on behalf of residents, but services are facility-resident focused[3][4][7]",
+        "Volunteers extend reach but core staff are limited (17.5 FTE across state)[5]"
+      ],
+      "benefitType": "advocacy",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://www.tn.gov/disability-and-aging/disability-aging-programs/long-term-care-ombudsman.html[4]"
+    },
+    {
+      "name": "OPTIONS for Community Living",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Regional AAAD administration with county-specific providers; no income/asset test but cost-share over FPG; waitlist prioritization by need; distinct from Medicaid CHOICES program.",
+      "gotchas": [
+        "Not Medicaid/TennCare CHOICES (which has strict income/asset limits, NFLOC requirement); OPTIONS is state-funded via AAADs with no income cap but cost-share over poverty level.[2][4]",
+        "Waitlists common; prioritized by need/income, so eligible applicants may wait despite qualifying.[2]",
+        "Must contact specific AAAD for region; not uniform statewide access.[4]",
+        "Needs at least 3 ADLs/IADLs; recent health decline/hospitalization may qualify for re-screening.[2]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "physical_need|income_for_cost_share",
+      "officialSource": "https://www.ftaaad.org/options-subpage (FTAAAD, Tennessee Commission on Aging and Disability-funded)[2]"
+    },
     {
       "name": "Senior Advocate Program",
       "isNew": true,
@@ -55,145 +564,67 @@
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "Highly regional via 9 AAADs and local senior centers; no uniform eligibility/income test; only 3 dedicated programs in state; grassroots focus on assistance gaps rather than fixed benefits",
+      "dataShapeNotes": "Local/grassroots model via senior centers and AAADs, not statewide uniform; only 3 dedicated in TN with regional providers; no fixed income/asset tests, focuses on service gaps and capacity limits",
       "gotchas": [
-        "Not a formal statewide program with uniform rules—mostly local senior center or AAAD initiatives; people may miss that it's one of only 3 dedicated programs in TN; capacity limits lead to waitlists; must personally request services[3][5]",
-        "Confused with professional senior advocate careers or other programs like CHOICES/TennCare which have strict income/asset limits ($2,901/mo individual in 2025, $2,000 assets)[2]",
-        "Priority for emergencies; non-urgent on waitlist[3]"
+        "Not a formal statewide program with uniform rules; highly local and capacity-limited, leading to waitlists[3][5]",
+        "Only 3 dedicated programs in TN, may not be available everywhere[5]",
+        "Targets gaps in other services—won't duplicate existing aid; applicants often don't qualify elsewhere first[5]",
+        "Legal programs require personal contact before harm occurs; donations expected but not mandatory[3]",
+        "Confused with general senior legal aid or TennCare CHOICES (which has strict income/asset limits)[2]"
       ],
       "benefitType": "advocacy",
       "benefitVariesBy": "region",
-      "officialSource": "No single primary .gov URL identified; related info at tn.gov/disability-and-aging[7]"
+      "officialSource": "No single primary .gov URL identified; related info at tn.gov/disability-and-aging[7]; ETHRA program page: www.ethra.org/programs/21/legal-assistance-for-the-elderly[3]"
     },
     {
-      "name": "OPTIONS Program",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "No income/asset test but ADL-based functional need and cost-share fees; slot-limited with regional agency administration; often paired/confused with Title III-B[3][6]",
-      "gotchas": [
-        "No income limit but sliding fee/cost share if over Federal Poverty Guidelines—many assume it's free[3][6]",
-        "Requires at least 3 ADLs/IADLs deficits; functional assessment determines eligibility[6][8]",
-        "Slot availability limits access; waitlists or denials common if full[6]",
-        "Separate from Medicaid-funded CHOICES program (which has strict income/asset limits and nursing home level of care)[1][2]",
-        "State-funded (Options) vs. federally funded Title III-B (similar services, slightly different eligibility)[3]"
-      ],
-      "benefitType": "service",
-      "benefitVariesBy": "not_applicable",
-      "officialSource": "https://www.ftaaad.org/options (FTAAAD) or regional AAA sites; statewide intake via 1-866-836-6678[3][6]"
-    },
-    {
-      "name": "TennCare CHOICES",
+      "name": "Tennessee State Health Insurance Assistance Program (TN SHIP) and Senior Medicare Patrol (SMP)",
       "isNew": false,
-      "existingId": "tenncare-choices-in-long-term-services-and-supports",
+      "existingId": "tennessee-state-health-insurance-assistance-program-ship",
       "existingVerified": null,
-      "diffsFound": 3,
+      "diffsFound": 2,
       "diffs": [
         {
-          "field": "min_age",
-          "ours": "65",
-          "found": "65+ OR 21+ with physical disability",
-          "source": "TennCare official website (specific URL not provided in search results; contact through local Area Agency on Aging and Disability or nursing facility)"
-        },
-        {
           "field": "benefit_value",
-          "ours": "$10,000 – $30,000/year",
-          "found": "Program covers long-term services and supports in nursing home, assisted living facility, or in-home care[2]. Specific service hours, dollar amounts, or benefit tiers are not detailed in available sources.",
-          "source": "TennCare official website (specific URL not provided in search results; contact through local Area Agency on Aging and Disability or nursing facility)"
+          "ours": "$3,000 – $10,000/year",
+          "found": "Free one-on-one counseling on Medicare enrollment, Part D/Advantage comparisons, eligibility, coverage, rights, appeals; assistance with Medicare Savings Programs/Extra Help applications; fraud prevention/education/reporting via SMP; group presentations, health fairs[2][3][4][5][6]",
+          "source": "https://www.tn.gov/disability-and-aging/disability-aging-programs/tn-ship.html"
         },
         {
           "field": "source_url",
           "ours": "MISSING",
-          "found": "TennCare official website (specific URL not provided in search results; contact through local Area Agency on Aging and Disability or nursing facility)"
+          "found": "https://www.tn.gov/disability-and-aging/disability-aging-programs/tn-ship.html"
         }
       ],
       "novelFields": [
         {
           "field": "asset_limits",
-          "value": {
-            "countable_assets": "For married couples: assets must be between $31,584.00 and $157,920.00 as of January 1, 2025[3]. If total assets are $22,000 or less, applicant is under the floor and spend-down may not be required[3].",
-            "home_exemption": "Home is exempt (non-countable) if: (1) applicant lives in home or has intent to return AND home equity interest does not exceed $730,000 in 2025[1]; (2) applicant's spouse lives in home[1]; (3) applicant has child under 21 living in home[1]; or (4) applicant has blind or disabled child of any age living in home[1]. Home equity = current home value minus outstanding mortgage[1]."
-          },
+          "value": "No asset limits mentioned; assistance available for low-income programs like Extra Help without SHIP eligibility barriers[3][5]",
           "note": "Our model has no asset limit fields"
         },
         {
           "field": "regional_variations",
-          "value": "PAE conducted by either nursing facility (if applicant in facility) or local Area Agency on Aging and Disability (if applicant in community)[2]. No specific regional variation in eligibility, benefits, or processing times documented.",
+          "value": "Delivered through 9 regional AAADs with local counselors/volunteers/phone numbers; same core services but local contacts vary[4][5][7]",
           "note": "Program varies by region — our model doesn't capture this"
-        },
-        {
-          "field": "waitlist",
-          "value": "Employment and Community First CHOICES (separate I/DD program) has limited annual funding with referral list; not everyone who applies can enroll immediately[6]. No waitlist information provided for standard CHOICES program.",
-          "note": "Has waitlist info — our model has no wait time field"
         },
         {
           "field": "documents_required",
           "value": [
-            "Proof of income (gross income documentation)[3]",
-            "Asset documentation (for spend-down determination)[1]",
-            "Home ownership documentation (if claiming home exemption)[1]",
-            "Medical records supporting functional need for ADL assistance[1]",
-            "Proof of Tennessee residency[4]"
+            "Medicare card, current plan details, income info for low-income apps (e.g., Extra Help), but not required for initial counseling[3][5]"
           ],
           "note": "Has document checklist — our model doesn't store per-program documents"
         }
       ],
-      "dataShapeNotes": "TennCare CHOICES has three distinct groups with different care settings and requirements (nursing facility vs. home/community). Income and asset limits are fixed statewide as of specific effective dates (January 1, 2025 for income/assets; July 1, 2025 for minimum income allowance). Medical eligibility (PAE score) is the primary gating factor. Home exemption has specific equity thresholds. Processing involves both medical evaluation (PAE) and financial review (spend-down). Application routes vary by current location (facility vs. community). No specific dollar amounts for benefits provided in available sources—program appears to cover costs of services rather than providing direct payments.",
+      "dataShapeNotes": "No income/asset test for core counseling; delivered via 9 regional AAADs with local access points; pairs SHIP counseling with SMP fraud focus; open to all Medicare-related questions",
       "gotchas": [
-        "PAE score is the most critical factor—if applicant does not meet minimum 9 out of 26 points, income and asset totals do not matter[3]",
-        "Qualified Income Trust (QIT) must be established within the month of application if gross income exceeds $2,901/month; missing this deadline can jeopardize eligibility[3]",
-        "Home equity limit is $730,000 (as of 2025); homes exceeding this value may not qualify for exemption[1]",
-        "Spend-down process requires spending excess resources to qualify; case workers may request detailed documentation and clarification[2]",
-        "Short response timelines from TennCare for additional information requests; delays in responding can slow processing[2]",
-        "CHOICES Group 3 (home/community care) requires SSI payments—not all disabled individuals qualify[5]",
-        "Employment and Community First CHOICES (for I/DD) is a separate program with limited funding and referral list; standard CHOICES is for elderly and physically disabled[6]"
+        "Not a healthcare provider—only counseling/education, no direct financial aid or medical services[2][6]",
+        "Must disenroll from ACA Marketplace upon Medicare eligibility to avoid penalties[6]",
+        "During Open Enrollment (Oct 15-Dec 7), high demand may delay plan comparisons—call Medicare 1-800-MEDICARE for immediate needs[6]",
+        "SMP focuses on fraud prevention/reporting, separate but complementary to SHIP[1][4][7]",
+        "Volunteers provide much service; training available but not required to receive help[3][6]"
       ],
-      "benefitType": "service",
-      "benefitVariesBy": "location_of_care (nursing home vs. assisted living vs. home-based)",
-      "officialSource": "TennCare official website (specific URL not provided in search results; contact through local Area Agency on Aging and Disability or nursing facility)"
-    },
-    {
-      "name": "Single Point of Entry (SPOE)",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "Regional AAADs as SPOE providers; eligibility tied to CHOICES tiers (Groups 1/2/3) with NF LOC and Medicaid financial test; no fixed income/asset dollar tables in sources (linked to SSI-FBR/institutional Medicaid)",
-      "gotchas": [
-        "SPOE is entry point to CHOICES LTSS, not direct benefits; requires separate Medicaid financial approval and PAE.",
-        "Must meet NF level of care; Group 3 limited to SSI 'at risk' individuals.",
-        "Not for intellectual/developmental disabilities (separate processes); PASRR required for certain conditions.",
-        "Enrollment caps may cause waitlists; SSI recipients handled differently.",
-        "NF services don't always require SPOE if not seeking Medicaid HCBS."
-      ],
-      "benefitType": "service",
-      "benefitVariesBy": "priority_tier",
-      "officialSource": "https://www.tn.gov/tenncare.html (TennCare LTSS/CHOICES); regional AAAD sites"
-    },
-    {
-      "name": "Aging Nutrition Program",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "Statewide via 13 regional AAADs with local intake/assessment; no fixed income test, priority-based for home delivery; contributions voluntary for congregate",
-      "gotchas": [
-        "Not an entitlement; home-delivered requires case manager assessment and may have priority for highest need (e.g., homebound/greatest need)[6][9]",
-        "Congregate often free/suggested donation only, but not guaranteed daily[5][8]",
-        "Confused with county-limited CSFP (food boxes, 150% FPL, only Davidson/Dyer/Shelby)[2][4]",
-        "SNAP outreach offered but separate application[6]",
-        "Meals weekdays only, holidays excluded; advance reservations needed[5][8]"
-      ],
-      "benefitType": "service",
-      "benefitVariesBy": "priority_tier",
-      "officialSource": "https://www.tn.gov/disability-and-aging/disability-aging-programs/aging-nutrition-program.html[6]"
+      "benefitType": "service|advocacy",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://www.tn.gov/disability-and-aging/disability-aging-programs/tn-ship.html"
     }
   ]
 }

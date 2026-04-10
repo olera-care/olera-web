@@ -1,243 +1,959 @@
 {
   "state": "MO",
   "stateName": "Missouri",
-  "diveAt": "2026-04-09T09:36:30.743Z",
-  "total": 4,
-  "parsed": 4,
+  "diveAt": "2026-04-09T14:34:00.063Z",
+  "total": 17,
+  "parsed": 17,
   "programs": [
     {
-      "name": "Missouri Rx Program (MoRx)",
+      "name": "MO HealthNet (Medicaid)",
       "eligibility": {
-        "age": null,
-        "income_limits": "Eligibility tied to MO HealthNet (Medicaid) programs, not standalone Medicare Part D. Individuals: yearly income less than $15,315; married couple: less than $20,535. Older sources mention single $20,800-$21,660 or married $28,000-$29,140, but post-2017 changes restrict to MO HealthNet enrollment (full benefits, spenddown met at least once, Medicare Savings Programs like QMB/SLMB, or specific waivers). No table by household size beyond individual/couple; based on MO HealthNet rules which vary.[2][1][3]",
-        "asset_limits": "Individuals: total resources less than $11,710; married couple: less than $23,410 (older figures: single $11,990, couple $23,970). Liquid assets (savings, investments, real estate) counted; primary home, vehicles, burial plots, personal possessions exempt. Required for some eligibility checks but program primarily MO HealthNet-linked.[2][3]",
+        "age": 65,
+        "income_limits": "For elderly/disabled (MHABD Non-Spend down): Single - $860/month (elderly/disabled) or $1,012/month (blind); Couple - $1,166/month (elderly/disabled) or $1,372/month (blind). Spend-down option available where medical expenses reduce income to these limits. Limits based on 2026 figures; general adult expansion up to 138% FPL, but seniors use categorical programs with asset tests.[4][5]",
+        "asset_limits": "Single: $3,000 (elderly/disabled or blind); Couple: $6,000 (elderly/disabled or blind). Countable assets include savings and other resources; exemptions apply (e.g., primary home often exempt up to certain equity limits, one vehicle, personal belongings). Resource criteria apply primarily to aged, blind, disabled.[2][4][5]",
         "other_requirements": [
           "Missouri resident",
-          "Enrolled in Medicare Part D plan (required for coordination)",
-          "Enrolled in or eligible for MO HealthNet (Medicaid): full benefits, spenddown (met at least once per year), Medicare Savings Programs (QMB, SLMB1, SLMB2), Ticket to Work (paying premium), Home and Community Based Services, or receive MO HealthNet-related supplemental payments/checks",
-          "Not eligible if only Medicare Part D without MO HealthNet (change effective July 1, 2017)",
-          "HIV program requires verified HIV+ status (separate but mentioned)"
+          "U.S. citizen or qualified non-citizen",
+          "Meet level of care for long-term care if applicable (e.g., nursing facility level)",
+          "Not eligible for Medicare in some categories, or qualify for Medicare Savings Programs",
+          "For long-term care: may need to spend down assets/income"
         ]
       },
       "benefits": {
-        "type": "financial",
-        "value": "Pays 50% of out-of-pocket costs (deductible, co-pays, coverage gap) on medications covered by Medicare Part D plan after Part D pays. Covers Medicare-excluded drugs (specific OTC drugs, vitamins, minerals, limited cough/cold) if meeting MO HealthNet eligibility. Participant pays remaining 50% co-pay (pharmacy may refuse if unpaid). No co-pay after first full month in long-term care facilities (SNF, ICF, psych hospital). For dual eligibles, co-pays capped (e.g., 2021: $3.30 generic, $9.20 brand).[4][5]",
+        "type": "service",
+        "value": "Doctor visits including yearly check-ups, hospital stays, prescription medicines, mental health services, long-term care (nursing home, home and community-based services via waivers), dental/vision in some cases. Specific programs like MHABD cover aged/blind/disabled needs; Medicare Savings Programs (QMB, SLMB, QI) pay Medicare premiums/cost-sharing up to specified limits.[5][7]",
         "varies_by": "priority_tier"
       },
       "application": {
         "methods": [
-          "Automatically enrolled if receiving MO HealthNet benefits (full, spenddown, Medicare premiums only)",
-          "Phone: Family Support Division at 1-855-373-4636 (for MO HealthNet eligibility check)",
-          "Website: mydss.mo.gov (MO HealthNet application integrates with MoRx)",
-          "Older form: MoRx Enrollment Form (requires Medicare Part D enrollment first; do not send if in MO HealthNet or employer plan)[3]"
+          "Online: https://mydss.mo.gov/healthcare/apply or HealthCare.gov",
+          "Phone: 855-373-9994 or 800-318-2596",
+          "Mail: Download form from myDSS and send to local Family Support Division (FSD) Resource Center",
+          "In-person: 144 FSD Resource Centers throughout Missouri"
         ],
-        "processing_time": "Not specified; automatic for MO HealthNet enrollees. Spenddown must be met once per year for benefits to activate.[4]",
-        "waitlist": null,
+        "processing_time": "Typically 45 days for aged/blind/disabled; 90 days if disability determination needed; varies by complexity.[2]",
+        "waitlist": "Possible for Home and Community Based Waivers due to limited slots; no general waitlist for basic MO HealthNet.[4]",
         "forms": [
-          "MoRx Enrollment Form (legacy, pre-2017 changes)",
-          "MO HealthNet application (primary route)"
+          "MO HealthNet Application (online via myDSS or downloadable PDF)"
         ],
         "documents": [
-          "Proof of income",
-          "Proof of assets/resources",
-          "Proof of MO HealthNet eligibility or spenddown",
-          "Medicare Part D plan details",
-          "Missouri residency proof",
-          "Personal info (race/ethnicity optional on old form)"
+          "Proof of income (pay stubs, SSI/SSDI awards)",
+          "Proof of assets/resources (bank statements)",
+          "ID (birth certificate, Social Security card)",
+          "Proof of residency",
+          "Medicare card if applicable",
+          "Medical records for disability/level of care"
         ]
       },
       "geography": {
         "statewide": true,
-        "restrictions": "Missouri residents only",
+        "restrictions": "None; available statewide to residents",
+        "regional_variations": "Administered via 144 local FSD Resource Centers; potential differences in processing times or waiver availability by region, but core eligibility/benefits uniform.[2]",
+        "offices_or_providers": [
+          "144 Family Support Division (FSD) Resource Centers throughout Missouri"
+        ]
+      },
+      "official_source": "https://mydss.mo.gov/healthcare/apply",
+      "gotchas": [
+        "Asset limits apply strictly to seniors/aged/blind/disabled (not families/children); many miss exemptions like home equity limits.",
+        "Spend-down required if over income limits; medical bills count toward it.",
+        "Different programs (e.g., MHABD vs. expansion); seniors often need categorical eligibility, not just 138% FPL.",
+        "Waivers for home care have waitlists; nursing home care may require level-of-care determination.",
+        "Medicare Savings Programs have higher asset limits ($7,560 single) but separate apps.",
+        "5% income disregard built into some limits.[1][2][4][5]"
+      ],
+      "data_shape_notes": "Elderly use categorical ABD programs with fixed low income/asset caps ($860-$1,372 income, $3k/$6k assets) and spend-down; varies by blind vs non-blind and marital status; waivers have separate higher income ($1,311) but asset tests; 144 local offices handle apps; waitlists on HCBS.",
+      "_raw": "{\n  \"name\": \"MO HealthNet (Medicaid)\",\n  \"eligibility\": {\n    \"age\": 65,\n    \"income_limits\": \"For elderly/disabled (MHABD Non-Spend down): Single - $860/month (elderly/disabled) or $1,012/month (blind); Couple - $1,166/month (elderly/disabled) or $1,372/month (blind). Spend-down option available where medical expenses reduce income to these limits. Limits based on 2026 figures; general adult expansion up to 138% FPL, but seniors use categorical programs with asset tests.[4][5]\",\n    \"asset_limits\": \"Single: $3,000 (elderly/disabled or blind); Couple: $6,000 (elderly/disabled or blind). Countable assets include savings and other resources; exemptions apply (e.g., primary home often exempt up to certain equity limits, one vehicle, personal belongings). Resource criteria apply primarily to aged, blind, disabled.[2][4][5]\",\n    \"other_requirements\": [\n      \"Missouri resident\",\n      \"U.S. citizen or qualified non-citizen\",\n      \"Meet level of care for long-term care if applicable (e.g., nursing facility level)\",\n      \"Not eligible for Medicare in some categories, or qualify for Medicare Savings Programs\",\n      \"For long-term care: may need to spend down assets/income\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Doctor visits including yearly check-ups, hospital stays, prescription medicines, mental health services, long-term care (nursing home, home and community-based services via waivers), dental/vision in some cases. Specific programs like MHABD cover aged/blind/disabled needs; Medicare Savings Programs (QMB, SLMB, QI) pay Medicare premiums/cost-sharing up to specified limits.[5][7]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: https://mydss.mo.gov/healthcare/apply or HealthCare.gov\",\n      \"Phone: 855-373-9994 or 800-318-2596\",\n      \"Mail: Download form from myDSS and send to local Family Support Division (FSD) Resource Center\",\n      \"In-person: 144 FSD Resource Centers throughout Missouri\"\n    ],\n    \"processing_time\": \"Typically 45 days for aged/blind/disabled; 90 days if disability determination needed; varies by complexity.[2]\",\n    \"waitlist\": \"Possible for Home and Community Based Waivers due to limited slots; no general waitlist for basic MO HealthNet.[4]\",\n    \"forms\": [\"MO HealthNet Application (online via myDSS or downloadable PDF)\"],\n    \"documents\": [\n      \"Proof of income (pay stubs, SSI/SSDI awards)\",\n      \"Proof of assets/resources (bank statements)\",\n      \"ID (birth certificate, Social Security card)\",\n      \"Proof of residency\",\n      \"Medicare card if applicable\",\n      \"Medical records for disability/level of care\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; available statewide to residents\",\n    \"regional_variations\": \"Administered via 144 local FSD Resource Centers; potential differences in processing times or waiver availability by region, but core eligibility/benefits uniform.[2]\",\n    \"offices_or_providers\": [\"144 Family Support Division (FSD) Resource Centers throughout Missouri\"]\n  },\n  \"official_source\": \"https://mydss.mo.gov/healthcare/apply\",\n  \"gotchas\": [\n    \"Asset limits apply strictly to seniors/aged/blind/disabled (not families/children); many miss exemptions like home equity limits.\",\n    \"Spend-down required if over income limits; medical bills count toward it.\",\n    \"Different programs (e.g., MHABD vs. expansion); seniors often need categorical eligibility, not just 138% FPL.\",\n    \"Waivers for home care have waitlists; nursing home care may require level-of-care determination.\",\n    \"Medicare Savings Programs have higher asset limits ($7,560 single) but separate apps.\",\n    \"5% income disregard built into some limits.[1][2][4][5]\"\n  ],\n  \"data_shape_notes\": \"Elderly use categorical ABD programs with fixed low income/asset caps ($860-$1,372 income, $3k/$6k assets) and spend-down; varies by blind vs non-blind and marital status; waivers have separate higher income ($1,311) but asset tests; 144 local offices handle apps; waitlists on HCBS.\"\n}"
+    },
+    {
+      "name": "Structured Family Caregiving Waiver",
+      "eligibility": {
+        "age": 21,
+        "income_limits": "Up to approximately $1,109 per month for a single applicant (2025 figures); standard Medicaid income limits apply via MO HealthNet enrollment. No full household size table specified in sources, but follows MO HealthNet rules which may adjust for household composition. Participants receiving Medicaid via Blind Pension (BP) are ineligible.[1][3]",
+        "asset_limits": "Up to $6,068.80 for a single applicant (2025 figures). For seniors 65+, additional Medicaid asset rules: home equity interest no greater than $730,000 (2025) if living in the home or intending to return; exempt if spouse, minor child under 21, or blind/permanently disabled adult child (21+) lives in the home.[1][2]",
+        "other_requirements": [
+          "Diagnosed with Alzheimer's disease or related dementia disorder as defined by state statute 172.800 RSMo by a licensed healthcare professional.[3][4]",
+          "Reside full-time in the same household as the primary caregiver (can be family, spouse, legal guardian, or non-family).[1][3][4]",
+          "Meet Nursing Facility Level of Care (NFLOC), assessed via InterRAI HC tool covering ADLs, cognition, etc.[1][2][3]",
+          "Enrolled in Missouri Medicaid (MO HealthNet) with appropriate eligibility code and active status.[1][3]",
+          "Have an established backup plan with a qualified substitute caregiver (chosen by participant/guardian, employed by provider) available when primary is unavailable.[3]",
+          "Not reside in any facility, group home, boarding home, hospital, nursing facility, or ICF/MR.[2][3]",
+          "Not enrolled in any other Missouri HCBS state plan or waiver services.[1][3]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Homemaker and attendant care services per approved plan of care, including ADLs (e.g., mobility, eating, toileting, bathing, dressing/grooming), medication oversight, escorting to therapeutic doctor/community appointments, supportive health-related services substituting for physical/cognitive impairments. Includes qualified substitute caregiver for primary caregiver absences. No fixed dollar amount or hours specified; tailored to plan of care (e.g., need 5+ hours of care noted in some descriptions).[3][4][6]",
+        "varies_by": "plan_of_care"
+      },
+      "application": {
+        "methods": [
+          "Contact Missouri Department of Health and Senior Services (DHSS), Division of Senior and Disability Services for assessment (administers program).[8]",
+          "Reach out to local providers like UCP Heartland, Emerest, Circle of Care St. Louis, or others for services post-eligibility.[1][4][6]",
+          "Online: mydss.mo.gov/mhd/waiver/structured-family-caregiving (waiver info and public notices).[8]",
+          "No specific phone, mail, or in-person details listed; start with Medicaid eligibility screening via MO HealthNet, then DHSS/provider assessment."
+        ],
+        "processing_time": "Not specified in sources.",
+        "waitlist": "Not mentioned; potential due to waiver caps, but no details.",
+        "forms": [
+          "Structured Family Caregiving Waiver documents available via DHSS site; InterRAI HC assessment for NFLOC.[2][8]"
+        ],
+        "documents": [
+          "Proof of Alzheimer's/related dementia diagnosis by licensed professional.",
+          "MO HealthNet/Medicaid enrollment proof.",
+          "Documentation of NFLOC via assessment.",
+          "Proof of shared household residence.",
+          "Backup plan details (substitute caregiver info).",
+          "Income/asset verification for Medicaid eligibility.",
+          "Healthcare professional assessment of needs."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None specified; available statewide for eligible Missouri residents.[4][8]",
+        "regional_variations": "Administered by DHSS statewide, but services delivered via regional providers (e.g., Circle of Care in St. Louis, Emerest, UCP Heartland); potential differences in provider availability, wait times not detailed.[1][4][6]",
+        "offices_or_providers": [
+          "DHSS Division of Senior and Disability Services (statewide admin); local providers like UCP Heartland, Emerest, Circle of Care St. Louis."
+        ]
+      },
+      "official_source": "https://mydss.mo.gov/mhd/waiver/structured-family-caregiving",
+      "gotchas": [
+        "Must already live with primary caregiver full-time; program pays existing live-in caregiver via provider, doesn't create new arrangements.[1][2][4]",
+        "Cannot use with any other HCBS waiver or state plan services.[1][3]",
+        "Dementia diagnosis alone doesn't qualify; must pass NFLOC assessment (e.g., via InterRAI HC scoring ADLs/cognition).[2]",
+        "Blind Pension Medicaid recipients ineligible.[3]",
+        "Requires provider-employed substitute caregiver backup plan.[3]",
+        "Services only via approved structured family caregiving agency/provider.[4][7]"
+      ],
+      "data_shape_notes": "Strictly limited to Alzheimer's/related dementias age 21+; requires live-in primary caregiver (paid via provider) with mandatory substitute; no fixed service hours/dollars—instead plan-of-care based; statewide but provider-dependent; excludes other waivers/facility residents.",
+      "_raw": "{\n  \"name\": \"Structured Family Caregiving Waiver\",\n  \"eligibility\": {\n    \"age\": 21,\n    \"income_limits\": \"Up to approximately $1,109 per month for a single applicant (2025 figures); standard Medicaid income limits apply via MO HealthNet enrollment. No full household size table specified in sources, but follows MO HealthNet rules which may adjust for household composition. Participants receiving Medicaid via Blind Pension (BP) are ineligible.[1][3]\",\n    \"asset_limits\": \"Up to $6,068.80 for a single applicant (2025 figures). For seniors 65+, additional Medicaid asset rules: home equity interest no greater than $730,000 (2025) if living in the home or intending to return; exempt if spouse, minor child under 21, or blind/permanently disabled adult child (21+) lives in the home.[1][2]\",\n    \"other_requirements\": [\n      \"Diagnosed with Alzheimer's disease or related dementia disorder as defined by state statute 172.800 RSMo by a licensed healthcare professional.[3][4]\",\n      \"Reside full-time in the same household as the primary caregiver (can be family, spouse, legal guardian, or non-family).[1][3][4]\",\n      \"Meet Nursing Facility Level of Care (NFLOC), assessed via InterRAI HC tool covering ADLs, cognition, etc.[1][2][3]\",\n      \"Enrolled in Missouri Medicaid (MO HealthNet) with appropriate eligibility code and active status.[1][3]\",\n      \"Have an established backup plan with a qualified substitute caregiver (chosen by participant/guardian, employed by provider) available when primary is unavailable.[3]\",\n      \"Not reside in any facility, group home, boarding home, hospital, nursing facility, or ICF/MR.[2][3]\",\n      \"Not enrolled in any other Missouri HCBS state plan or waiver services.[1][3]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Homemaker and attendant care services per approved plan of care, including ADLs (e.g., mobility, eating, toileting, bathing, dressing/grooming), medication oversight, escorting to therapeutic doctor/community appointments, supportive health-related services substituting for physical/cognitive impairments. Includes qualified substitute caregiver for primary caregiver absences. No fixed dollar amount or hours specified; tailored to plan of care (e.g., need 5+ hours of care noted in some descriptions).[3][4][6]\",\n    \"varies_by\": \"plan_of_care\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact Missouri Department of Health and Senior Services (DHSS), Division of Senior and Disability Services for assessment (administers program).[8]\",\n      \"Reach out to local providers like UCP Heartland, Emerest, Circle of Care St. Louis, or others for services post-eligibility.[1][4][6]\",\n      \"Online: mydss.mo.gov/mhd/waiver/structured-family-caregiving (waiver info and public notices).[8]\",\n      \"No specific phone, mail, or in-person details listed; start with Medicaid eligibility screening via MO HealthNet, then DHSS/provider assessment.\"\n    ],\n    \"processing_time\": \"Not specified in sources.\",\n    \"waitlist\": \"Not mentioned; potential due to waiver caps, but no details.\",\n    \"forms\": [\"Structured Family Caregiving Waiver documents available via DHSS site; InterRAI HC assessment for NFLOC.[2][8]\"],\n    \"documents\": [\n      \"Proof of Alzheimer's/related dementia diagnosis by licensed professional.\",\n      \"MO HealthNet/Medicaid enrollment proof.\",\n      \"Documentation of NFLOC via assessment.\",\n      \"Proof of shared household residence.\",\n      \"Backup plan details (substitute caregiver info).\",\n      \"Income/asset verification for Medicaid eligibility.\",\n      \"Healthcare professional assessment of needs.\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None specified; available statewide for eligible Missouri residents.[4][8]\",\n    \"regional_variations\": \"Administered by DHSS statewide, but services delivered via regional providers (e.g., Circle of Care in St. Louis, Emerest, UCP Heartland); potential differences in provider availability, wait times not detailed.[1][4][6]\",\n    \"offices_or_providers\": [\"DHSS Division of Senior and Disability Services (statewide admin); local providers like UCP Heartland, Emerest, Circle of Care St. Louis.\"]\n  },\n  \"official_source\": \"https://mydss.mo.gov/mhd/waiver/structured-family-caregiving\",\n  \"gotchas\": [\n    \"Must already live with primary caregiver full-time; program pays existing live-in caregiver via provider, doesn't create new arrangements.[1][2][4]\",\n    \"Cannot use with any other HCBS waiver or state plan services.[1][3]\",\n    \"Dementia diagnosis alone doesn't qualify; must pass NFLOC assessment (e.g., via InterRAI HC scoring ADLs/cognition).[2]\",\n    \"Blind Pension Medicaid recipients ineligible.[3]\",\n    \"Requires provider-employed substitute caregiver backup plan.[3]\",\n    \"Services only via approved structured family caregiving agency/provider.[4][7]\"\n  ],\n  \"data_shape_notes\": \"Strictly limited to Alzheimer's/related dementias age 21+; requires live-in primary caregiver (paid via provider) with mandatory substitute; no fixed service hours/dollars—instead plan-of-care based; statewide but provider-dependent; excludes other waivers/facility residents.\"\n}"
+    },
+    {
+      "name": "Missouri PACE (Program of All-Inclusive Care for the Elderly)",
+      "eligibility": {
+        "age": 55,
+        "income_limits": "No specific income limits for PACE enrollment itself; however, for full Medicaid coverage (no private pay required), Missouri long-term care Medicaid typically requires income under $2,901/month (300% of Federal Benefit Rate for 2025) and assets $2,000 or less (excluding primary home) for a single person. Dual Medicare/Medicaid eligibility covers ~90-99% of participants, but private pay is an option if over limits[1][2][3][6]. Limits may vary by household size per state Medicaid rules; consult MO HealthNet for table.",
+        "asset_limits": "No asset limits for PACE enrollment; for Medicaid eligibility, assets $2,000 or less excluding primary home and one vehicle. Medicaid planning can help qualify[1].",
+        "other_requirements": [
+          "Live in the service area of a Missouri PACE organization",
+          "Certified by Missouri (MO HealthNet/Medicaid) as needing nursing home level of care",
+          "Able to live safely in the community with PACE support",
+          "Not enrolled in Medicare Advantage, Medicare prepayment plan, Medicare Rx plan, or hospice"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Comprehensive health care, social, recreational, and wellness services including primary care, hospital/institutional care when needed, prescription drugs, medical equipment, therapies, personal care, adult day health care, home care, respite care—all to enable living at home instead of nursing facilities. No specific dollar amounts or hours stated; individualized based on needs[2][3][8].",
+        "varies_by": "region"
+      },
+      "application": {
+        "methods": [
+          "Contact specific PACE organization: PACE KC (Jackson County/Kansas City) via enrollment specialist[3]",
+          "Jordan Valley Senior Care (Southwest Missouri)[8]",
+          "EverTrue PACE (St. Louis)[8]",
+          "Email MO HealthNet for questions: MHD.PACE@dss.mo.gov[8]",
+          "Phone/website not listed in results; contact local PACE provider directly"
+        ],
+        "processing_time": "Not specified in available data",
+        "waitlist": "Not specified; may vary by provider/region",
+        "forms": [
+          "Program of All-Inclusive Care for the Elderly (PACE) Level of Care Assessment – fillable (available on mydss.mo.gov)[8]"
+        ],
+        "documents": [
+          "Proof of age/residency in service area",
+          "Medical records for nursing home level of care certification",
+          "Medicare/Medicaid info if applicable",
+          "Financial docs if seeking Medicaid eligibility"
+        ]
+      },
+      "geography": {
+        "statewide": false,
+        "restrictions": "Limited to service areas of approved PACE organizations only",
+        "regional_variations": "Operated by specific providers with geographic limits: PACE KC (Jackson County/Kansas City), EverTrue PACE (St. Louis), Jordan Valley Senior Care (Southwest Missouri). Private pay available at PACE KC. Wait times/providers differ by region[3][8].",
+        "offices_or_providers": [
+          "PACE KC: Kansas City/Jackson County",
+          "EverTrue PACE: St. Louis",
+          "Jordan Valley Senior Care: Southwest Missouri"
+        ]
+      },
+      "official_source": "https://mydss.mo.gov/mhd/pace",
+      "gotchas": [
+        "Not statewide—must live in one of 3 limited service areas; check specific provider",
+        "No financial criteria for enrollment, but Medicaid needed for free services (private pay ~$7,000+/month otherwise)",
+        "Cannot be in Medicare Advantage or hospice",
+        "Note: Separate 'Missouri PACE' for property/energy financing exists but unrelated to elderly care[5][7]",
+        "Functional assessment required; must be able to live safely at home with support"
+      ],
+      "data_shape_notes": "Limited to 3 regional PACE centers; no income/asset test for enrollment but Medicaid determines cost share; nursing home level of care certification by MO HealthNet required",
+      "_raw": "{\n  \"name\": \"Missouri PACE (Program of All-Inclusive Care for the Elderly)\",\n  \"eligibility\": {\n    \"age\": 55,\n    \"income_limits\": \"No specific income limits for PACE enrollment itself; however, for full Medicaid coverage (no private pay required), Missouri long-term care Medicaid typically requires income under $2,901/month (300% of Federal Benefit Rate for 2025) and assets $2,000 or less (excluding primary home) for a single person. Dual Medicare/Medicaid eligibility covers ~90-99% of participants, but private pay is an option if over limits[1][2][3][6]. Limits may vary by household size per state Medicaid rules; consult MO HealthNet for table.\",\n    \"asset_limits\": \"No asset limits for PACE enrollment; for Medicaid eligibility, assets $2,000 or less excluding primary home and one vehicle. Medicaid planning can help qualify[1].\",\n    \"other_requirements\": [\n      \"Live in the service area of a Missouri PACE organization\",\n      \"Certified by Missouri (MO HealthNet/Medicaid) as needing nursing home level of care\",\n      \"Able to live safely in the community with PACE support\",\n      \"Not enrolled in Medicare Advantage, Medicare prepayment plan, Medicare Rx plan, or hospice\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Comprehensive health care, social, recreational, and wellness services including primary care, hospital/institutional care when needed, prescription drugs, medical equipment, therapies, personal care, adult day health care, home care, respite care—all to enable living at home instead of nursing facilities. No specific dollar amounts or hours stated; individualized based on needs[2][3][8].\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact specific PACE organization: PACE KC (Jackson County/Kansas City) via enrollment specialist[3]\",\n      \"Jordan Valley Senior Care (Southwest Missouri)[8]\",\n      \"EverTrue PACE (St. Louis)[8]\",\n      \"Email MO HealthNet for questions: MHD.PACE@dss.mo.gov[8]\",\n      \"Phone/website not listed in results; contact local PACE provider directly\"\n    ],\n    \"processing_time\": \"Not specified in available data\",\n    \"waitlist\": \"Not specified; may vary by provider/region\",\n    \"forms\": [\n      \"Program of All-Inclusive Care for the Elderly (PACE) Level of Care Assessment – fillable (available on mydss.mo.gov)[8]\"\n    ],\n    \"documents\": [\n      \"Proof of age/residency in service area\",\n      \"Medical records for nursing home level of care certification\",\n      \"Medicare/Medicaid info if applicable\",\n      \"Financial docs if seeking Medicaid eligibility\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Limited to service areas of approved PACE organizations only\",\n    \"regional_variations\": \"Operated by specific providers with geographic limits: PACE KC (Jackson County/Kansas City), EverTrue PACE (St. Louis), Jordan Valley Senior Care (Southwest Missouri). Private pay available at PACE KC. Wait times/providers differ by region[3][8].\",\n    \"offices_or_providers\": [\n      \"PACE KC: Kansas City/Jackson County\",\n      \"EverTrue PACE: St. Louis\",\n      \"Jordan Valley Senior Care: Southwest Missouri\"\n    ]\n  },\n  \"official_source\": \"https://mydss.mo.gov/mhd/pace\",\n  \"gotchas\": [\n    \"Not statewide—must live in one of 3 limited service areas; check specific provider\",\n    \"No financial criteria for enrollment, but Medicaid needed for free services (private pay ~$7,000+/month otherwise)\",\n    \"Cannot be in Medicare Advantage or hospice\",\n    \"Note: Separate 'Missouri PACE' for property/energy financing exists but unrelated to elderly care[5][7]\",\n    \"Functional assessment required; must be able to live safely at home with support\"\n  ],\n  \"data_shape_notes\": \"Limited to 3 regional PACE centers; no income/asset test for enrollment but Medicaid determines cost share; nursing home level of care certification by MO HealthNet required\"\n}"
+    },
+    {
+      "name": "Medicare Savings Program (MSP)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Missouri MSP has three tiers with income limits based on Federal Poverty Level (FPL), announced annually in April[2][3]. As of 2026: QMB: $1,325/month single, $1,783/month married (100% FPL)[3]. SLMB1 (Group 1): $1,585/month single, $2,135/month married (100-120% FPL)[3]. SLMB2 (Group 2): up to 130% FPL[2]. QI (Qualifying Individual): $1,781/month single, $2,400/month married (120-135% FPL)[3]. Note: Income limits include a $20 general income disregard[7]. For applicants still working, less than half of employment income is counted, potentially allowing higher total income[3].",
+        "asset_limits": "Federal asset limits apply: $9,660 if single, $14,470 if married for QMB, SLMB, and QI[3][7]. Missouri may have more generous standards than federal minimums[8].",
+        "other_requirements": [
+          "Must be a Missouri resident and plan to stay[1]",
+          "Must be enrolled in Medicare Part A (Hospital Insurance)[2]",
+          "Must have healthcare coverage through Medicare or MO HealthNet (Missouri Medicaid)[1]"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "QMB: Pays Medicare Part A premiums (if applicable), Part B premiums ($202.90/month in 2026[7]), and cost-sharing (deductibles, copayments, coinsurance) for Parts A and B[2][3]. SLMB1 and SLMB2: Pay Part B premiums only ($202.90/month in 2026[7]). QI: Pays Part B premiums only ($202.90/month in 2026[7]). Potential monthly savings: $202.90 or more depending on tier[6].",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Online: Apply at myDSS.mo.gov or download PDF application at tinyurl.com/MSP-apply[1]",
+          "Phone: Call FSD Information Center at 1-855-373-4636 to request application by mail[5]",
+          "In-person: Visit local Family Support Division (FSD) Resource Center[1]",
+          "Mail: Request application by phone and return by mail"
+        ],
+        "processing_time": "Not specified in available sources",
+        "waitlist": "QI program is limited and available on first-come, first-served basis[7]; other tiers have no waitlist mentioned",
+        "forms": [
+          "IM-1 MSP Application for Medicare Savings Programs (when applying for QMB/SLMB only)[2]",
+          "Standard MO HealthNet application (if applying for both MO HealthNet and QMB/SLMB)[2]"
+        ],
+        "documents": [
+          "Verification of resources owned[1]",
+          "Verification of monthly income[1]",
+          "Medicare enrollment documentation",
+          "Proof of Missouri residency"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Must be Missouri resident[1]",
+        "regional_variations": null,
+        "offices_or_providers": "Local FSD Resource Centers throughout Missouri; specific locations not listed in available sources"
+      },
+      "official_source": "https://mydss.mo.gov/medicare-cost-savings-programs",
+      "gotchas": [
+        "SLMB2 (Group 2) cannot be active at the same time as MO HealthNet insurance, unlike QMB and SLMB1[2]",
+        "QI program is first-come, first-served with limited funding[7]",
+        "Income limits change annually each April when federal poverty level is announced[4]",
+        "You must be eligible for Medicare Part A to qualify, but do not need to be currently enrolled[4]",
+        "Some states have more generous income/asset disregards than federal standards; verify Missouri's specific disregards[8][9]",
+        "If approved, you must verify that your chosen healthcare provider accepts your MSP coverage and offers Medicare services[1]",
+        "Employment income is treated more favorably (less than half counted), which may allow working individuals with disabilities to qualify despite higher total income[3]"
+      ],
+      "data_shape_notes": "MSP is structured as three distinct tiers (QMB, SLMB1/2, QI) with progressively higher income limits but decreasing benefit scope. Income limits are pegged to annual Federal Poverty Level announcements, making them variable year-to-year. QI differs from other tiers by being first-come, first-served. SLMB2 has a unique restriction preventing simultaneous MO HealthNet enrollment. Application can be combined with MO HealthNet or standalone. Processing timeline and regional office locations are not publicly detailed in available sources.",
+      "_raw": "```json\n{\n  \"name\": \"Medicare Savings Program (MSP)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Missouri MSP has three tiers with income limits based on Federal Poverty Level (FPL), announced annually in April[2][3]. As of 2026: QMB: $1,325/month single, $1,783/month married (100% FPL)[3]. SLMB1 (Group 1): $1,585/month single, $2,135/month married (100-120% FPL)[3]. SLMB2 (Group 2): up to 130% FPL[2]. QI (Qualifying Individual): $1,781/month single, $2,400/month married (120-135% FPL)[3]. Note: Income limits include a $20 general income disregard[7]. For applicants still working, less than half of employment income is counted, potentially allowing higher total income[3].\",\n    \"asset_limits\": \"Federal asset limits apply: $9,660 if single, $14,470 if married for QMB, SLMB, and QI[3][7]. Missouri may have more generous standards than federal minimums[8].\",\n    \"other_requirements\": [\n      \"Must be a Missouri resident and plan to stay[1]\",\n      \"Must be enrolled in Medicare Part A (Hospital Insurance)[2]\",\n      \"Must have healthcare coverage through Medicare or MO HealthNet (Missouri Medicaid)[1]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"QMB: Pays Medicare Part A premiums (if applicable), Part B premiums ($202.90/month in 2026[7]), and cost-sharing (deductibles, copayments, coinsurance) for Parts A and B[2][3]. SLMB1 and SLMB2: Pay Part B premiums only ($202.90/month in 2026[7]). QI: Pays Part B premiums only ($202.90/month in 2026[7]). Potential monthly savings: $202.90 or more depending on tier[6].\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: Apply at myDSS.mo.gov or download PDF application at tinyurl.com/MSP-apply[1]\",\n      \"Phone: Call FSD Information Center at 1-855-373-4636 to request application by mail[5]\",\n      \"In-person: Visit local Family Support Division (FSD) Resource Center[1]\",\n      \"Mail: Request application by phone and return by mail\"\n    ],\n    \"processing_time\": \"Not specified in available sources\",\n    \"waitlist\": \"QI program is limited and available on first-come, first-served basis[7]; other tiers have no waitlist mentioned\",\n    \"forms\": [\n      \"IM-1 MSP Application for Medicare Savings Programs (when applying for QMB/SLMB only)[2]\",\n      \"Standard MO HealthNet application (if applying for both MO HealthNet and QMB/SLMB)[2]\"\n    ],\n    \"documents\": [\n      \"Verification of resources owned[1]\",\n      \"Verification of monthly income[1]\",\n      \"Medicare enrollment documentation\",\n      \"Proof of Missouri residency\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Must be Missouri resident[1]\",\n    \"regional_variations\": null,\n    \"offices_or_providers\": \"Local FSD Resource Centers throughout Missouri; specific locations not listed in available sources\"\n  },\n  \"official_source\": \"https://mydss.mo.gov/medicare-cost-savings-programs\",\n  \"gotchas\": [\n    \"SLMB2 (Group 2) cannot be active at the same time as MO HealthNet insurance, unlike QMB and SLMB1[2]\",\n    \"QI program is first-come, first-served with limited funding[7]\",\n    \"Income limits change annually each April when federal poverty level is announced[4]\",\n    \"You must be eligible for Medicare Part A to qualify, but do not need to be currently enrolled[4]\",\n    \"Some states have more generous income/asset disregards than federal standards; verify Missouri's specific disregards[8][9]\",\n    \"If approved, you must verify that your chosen healthcare provider accepts your MSP coverage and offers Medicare services[1]\",\n    \"Employment income is treated more favorably (less than half counted), which may allow working individuals with disabilities to qualify despite higher total income[3]\"\n  ],\n  \"data_shape_notes\": \"MSP is structured as three distinct tiers (QMB, SLMB1/2, QI) with progressively higher income limits but decreasing benefit scope. Income limits are pegged to annual Federal Poverty Level announcements, making them variable year-to-year. QI differs from other tiers by being first-come, first-served. SLMB2 has a unique restriction preventing simultaneous MO HealthNet enrollment. Application can be combined with MO HealthNet or standalone. Processing timeline and regional office locations are not publicly detailed in available sources.\"\n}\n```\n\n## Key Takeaways for Families\n\n**Start here:** Your elderly loved one qualifies if they're enrolled in Medicare Part A, live in Missouri, and have income below the tier-specific limits (ranging from $1,325–$1,781/month for single individuals depending on which program)[3]. Asset limits are $9,660 (single) or $14,470 (married)[3].\n\n**The three tiers explained:** QMB is the most generous—it covers Part A and B premiums plus all cost-sharing—but has the lowest income limit (100% FPL)[2]. SLMB and QI cover only Part B premiums but allow higher incomes (up to 135% FPL for QI)[3]. If your loved one's income is between 100–120% FPL, they qualify for SLMB1, which can stack with MO HealthNet[2].\n\n**Apply immediately:** Use myDSS.mo.gov or call 1-855-373-4636[5]. The QI program fills on a first-come, first-served basis, so don't delay[7]. You'll need income and asset verification documents[1].\n\n**Critical caveat:** SLMB2 (for income 120–130% FPL) cannot coexist with MO HealthNet coverage—a significant limitation if your loved one relies on Medicaid[2]. Verify this doesn't affect your situation before applying."
+    },
+    {
+      "name": "Supplemental Nutrition Assistance Program (SNAP)",
+      "eligibility": {
+        "age": "No minimum age requirement for the household, but special rules apply if any household member is 60 or older",
+        "income_limits": {
+          "general_households": "Maximum gross income of 130% of Federal Poverty Level (FPL); must also meet net income test[6]",
+          "households_with_elderly_or_disabled": "No gross income limit; must meet net income limit of 100% FPL only[6]. For 2025-2026, net income limits are: 1 person: $1,415/month, 2 people: $1,903/month, 3 people: $2,391/month, 4 people: $2,879/month, with $488 added per additional member[5]",
+          "note": "Net income is calculated by subtracting allowable deductions from gross income[1]"
+        },
+        "asset_limits": {
+          "households_with_member_60_or_older_or_disabled": "$4,500[4]",
+          "all_other_households": "$3,000[4]",
+          "what_counts": "Money in bank accounts and liquid resources[3]",
+          "what_is_exempt": "Home, vehicle(s), life insurance, burial plots, prepaid burials, personal property that does not generate income, savings and pension plans, Indian and Alaskan Native payments, and resources you do not have access to[4]"
+        },
+        "other_requirements": [
+          "Must live in Missouri[4]",
+          "All household members must have (or agree to apply for) a Social Security Number[4]",
+          "Household must include everyone who lives with you and buys and prepares food with you[2]",
+          "Adults age 55–64 without dependents may need to work or join a SNAP job program under new rules[6]"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "Monthly food assistance benefits; amount varies by household income and size. Example: 2-person elderly/disabled household with $1,200 gross income receives $415/month[5]",
+        "varies_by": "household_size and income"
+      },
+      "application": {
+        "methods": [
+          "Online: mydss.mo.gov (Missouri Department of Social Services)[4]",
+          "In-person: Local Missouri Department of Social Services office",
+          "Phone: Contact your local DSS office (specific phone numbers not provided in search results)",
+          "Mail: Contact local DSS office for mailing address"
+        ],
+        "processing_time": "Not specified in search results",
+        "waitlist": "Not mentioned in search results",
+        "forms": [
+          "SNAP application form (specific form number not provided in search results)"
+        ],
+        "documents": [
+          "Social Security Number for all household members[4]",
+          "Proof of income (Social Security statements, pension statements, employment records)[5]",
+          "Proof of residency in Missouri[7]",
+          "Proof of identity[7]",
+          "Shelter expense documentation[7]",
+          "Medical expense documentation if claiming medical deductions (for elderly or disabled households)[3]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Must live in Missouri[4]",
+        "regional_variations": null,
+        "offices_or_providers": "Local Missouri Department of Social Services offices (specific locations not detailed in search results)"
+      },
+      "official_source": "mydss.mo.gov/food-assistance/apply-for-snap and fns.usda.gov/snap/eligibility/elderly-disabled-special-rules",
+      "gotchas": [
+        "Only about half of eligible seniors apply for SNAP despite being eligible; many don't realize they qualify[2]",
+        "Households with elderly or disabled members do NOT need to meet a gross income test—only net income—making qualification easier[1][6]",
+        "Social Security, veterans' benefits, and disability payments all count toward income limits[2]",
+        "Retirement savings generally do NOT count as assets, but liquid savings in bank accounts do[3]",
+        "Elderly households (60+) have a higher asset limit ($4,500 vs. $3,000) and may not need to recertify as often; some states offer 24-month certification periods[3]",
+        "Households with elderly or disabled members can claim an excess medical deduction to reduce countable income[3]",
+        "You may qualify for SNAP even if you own your home, have retirement savings, or receive Social Security[2]",
+        "The One Big Beautiful Bill Act of 2025 changed certain SNAP eligibility factors including work requirements and non-citizen eligibility; verify current rules[5]",
+        "Net income calculation is complex and involves multiple deductions; using an online SNAP calculator is recommended[1]"
+      ],
+      "data_shape_notes": "SNAP in Missouri has fundamentally different eligibility rules for households with members 60+ or disabled: they bypass the gross income test entirely and only need to meet a net income limit (100% FPL), have higher asset limits ($4,500 vs. $3,000), and may qualify for longer certification periods (up to 24 months). Benefits are calculated individually based on household size and net income, not fixed tiers. The program is statewide with no regional variations in eligibility or benefits.",
+      "_raw": "```json\n{\n  \"name\": \"Supplemental Nutrition Assistance Program (SNAP)\",\n  \"eligibility\": {\n    \"age\": \"No minimum age requirement for the household, but special rules apply if any household member is 60 or older\",\n    \"income_limits\": {\n      \"general_households\": \"Maximum gross income of 130% of Federal Poverty Level (FPL); must also meet net income test[6]\",\n      \"households_with_elderly_or_disabled\": \"No gross income limit; must meet net income limit of 100% FPL only[6]. For 2025-2026, net income limits are: 1 person: $1,415/month, 2 people: $1,903/month, 3 people: $2,391/month, 4 people: $2,879/month, with $488 added per additional member[5]\",\n      \"note\": \"Net income is calculated by subtracting allowable deductions from gross income[1]\"\n    },\n    \"asset_limits\": {\n      \"households_with_member_60_or_older_or_disabled\": \"$4,500[4]\",\n      \"all_other_households\": \"$3,000[4]\",\n      \"what_counts\": \"Money in bank accounts and liquid resources[3]\",\n      \"what_is_exempt\": \"Home, vehicle(s), life insurance, burial plots, prepaid burials, personal property that does not generate income, savings and pension plans, Indian and Alaskan Native payments, and resources you do not have access to[4]\"\n    },\n    \"other_requirements\": [\n      \"Must live in Missouri[4]\",\n      \"All household members must have (or agree to apply for) a Social Security Number[4]\",\n      \"Household must include everyone who lives with you and buys and prepares food with you[2]\",\n      \"Adults age 55–64 without dependents may need to work or join a SNAP job program under new rules[6]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Monthly food assistance benefits; amount varies by household income and size. Example: 2-person elderly/disabled household with $1,200 gross income receives $415/month[5]\",\n    \"varies_by\": \"household_size and income\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: mydss.mo.gov (Missouri Department of Social Services)[4]\",\n      \"In-person: Local Missouri Department of Social Services office\",\n      \"Phone: Contact your local DSS office (specific phone numbers not provided in search results)\",\n      \"Mail: Contact local DSS office for mailing address\"\n    ],\n    \"processing_time\": \"Not specified in search results\",\n    \"waitlist\": \"Not mentioned in search results\",\n    \"forms\": [\n      \"SNAP application form (specific form number not provided in search results)\"\n    ],\n    \"documents\": [\n      \"Social Security Number for all household members[4]\",\n      \"Proof of income (Social Security statements, pension statements, employment records)[5]\",\n      \"Proof of residency in Missouri[7]\",\n      \"Proof of identity[7]\",\n      \"Shelter expense documentation[7]\",\n      \"Medical expense documentation if claiming medical deductions (for elderly or disabled households)[3]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Must live in Missouri[4]\",\n    \"regional_variations\": null,\n    \"offices_or_providers\": \"Local Missouri Department of Social Services offices (specific locations not detailed in search results)\"\n  },\n  \"official_source\": \"mydss.mo.gov/food-assistance/apply-for-snap and fns.usda.gov/snap/eligibility/elderly-disabled-special-rules\",\n  \"gotchas\": [\n    \"Only about half of eligible seniors apply for SNAP despite being eligible; many don't realize they qualify[2]\",\n    \"Households with elderly or disabled members do NOT need to meet a gross income test—only net income—making qualification easier[1][6]\",\n    \"Social Security, veterans' benefits, and disability payments all count toward income limits[2]\",\n    \"Retirement savings generally do NOT count as assets, but liquid savings in bank accounts do[3]\",\n    \"Elderly households (60+) have a higher asset limit ($4,500 vs. $3,000) and may not need to recertify as often; some states offer 24-month certification periods[3]\",\n    \"Households with elderly or disabled members can claim an excess medical deduction to reduce countable income[3]\",\n    \"You may qualify for SNAP even if you own your home, have retirement savings, or receive Social Security[2]\",\n    \"The One Big Beautiful Bill Act of 2025 changed certain SNAP eligibility factors including work requirements and non-citizen eligibility; verify current rules[5]\",\n    \"Net income calculation is complex and involves multiple deductions; using an online SNAP calculator is recommended[1]\"\n  ],\n  \"data_shape_notes\": \"SNAP in Missouri has fundamentally different eligibility rules for households with members 60+ or disabled: they bypass the gross income test entirely and only need to meet a net income limit (100% FPL), have higher asset limits ($4,500 vs. $3,000), and may qualify for longer certification periods (up to 24 months). Benefits are calculated individually based on household size and net income, not fixed tiers. The program is statewide with no regional variations in eligibility or benefits.\"\n}\n```\n\n## Key Takeaways for Families\n\n**The biggest advantage for elderly applicants:** If your loved one is 60 or older, they likely qualify even if their gross income seems too high. Missouri only requires them to meet the **net income limit of 100% FPL** ($1,415/month for one person in 2025-2026), not the 130% gross income limit that applies to other households[6]. This means deductions for medical expenses, shelter costs, and other allowable expenses can significantly reduce their countable income[3].\n\n**What counts as income:** Social Security, pensions, veterans' benefits, and disability payments all count[2]. However, retirement savings in pension plans do not count as assets[3].\n\n**The application process:** Apply through Missouri's myDSS website or contact your local Department of Social Services office[4]. The search results do not provide specific phone numbers or processing timelines, so you'll need to contact your local office directly for those details.\n\n**Recertification advantage:** Households with elderly members may only need to recertify every 24 months instead of annually, reducing paperwork burden[3]."
+    },
+    {
+      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Gross monthly income limits (2025): 1 person $2,839; 2 people $3,713; 3 people $4,587; 4 people $5,461; 5 people $6,335; 6 people $7,209. Limits vary by household size and are at or below 60% of state median income. Income based on month prior to application (e.g., September for elderly/disabled applying in October).[2][4]",
+        "asset_limits": "Households must have $3,000 or less in bank accounts, investments, or retirement accounts. Specific exemptions not detailed in sources.[1][5]",
+        "other_requirements": [
+          "Missouri resident",
+          "U.S. citizen or legally admitted for permanent residence",
+          "Live in the household and be responsible for paying the utility bill (must be over 18 and included on application)",
+          "Provide Social Security numbers for all household members"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "Heating assistance: $153 minimum to $495 maximum. Winter Crisis: up to $800. Summer Crisis: up to $300. Payments made directly to energy suppliers. Varies by income, household size, fuel type, and crisis status. No routine cooling assistance.[2]",
+        "varies_by": "household_size|priority_tier|region"
+      },
+      "application": {
+        "methods": [
+          "Contact local contracted agency (use agency finder tools from providers like Ameren or CMCA)",
+          "Phone: Energy Assistance Line (573) 200-6655 option 1 for status, option 2 for crisis[5]",
+          "In-person or mail via local agencies (e.g., CMCA or Ameren participating agencies)",
+          "No statewide online application specified; agency-specific processes"
+        ],
+        "processing_time": "Eligibility notifications and payments after program start dates (e.g., post-October 1 for elderly/disabled). Exact processing varies by agency and intake month[4][5]",
+        "waitlist": "Funds limited; priority for elderly (60+), disabled, families with children, multi-person households. Applications processed first-come basis within priority periods; may exhaust funding[3][4]",
+        "forms": [
+          "LIHEAP Worksheet (E1LW) screen for eligibility determination",
+          "Standard LIHEAP application (includes Part 2 for SSNs and page 5 document list)"
+        ],
+        "documents": [
+          "Proof of income (e.g., pay stubs from prior month)",
+          "Utility bills",
+          "Social Security numbers for all household members (written on application)",
+          "Proof of residency and citizenship/immigration status",
+          "SNAP recipients still need utility bills and SSNs[5]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Available statewide via local contracted agencies; no specific county restrictions noted",
+        "regional_variations": "Administered by local agencies (e.g., CMCA in some areas, Ameren partners); application dates, processing, and wait times vary by agency and region. Use agency finder for local provider[1][5]",
+        "offices_or_providers": [
+          "Local contracted agencies; examples: CMCA (cmca.us), Ameren participating agencies"
+        ]
+      },
+      "official_source": "https://dss.mo.gov/fsd/energy-assistance (inferred from policy manual); agency-specific sites like https://www.ameren.com/bill/assistance/liheap",
+      "gotchas": [
+        "Priority application windows: Elderly/disabled from Oct 1/Nov 1, others Dec 1; funds may run out[2][4][5]",
+        "Must reapply every year; changes require new application[5]",
+        "Asset limit of $3,000 strictly applies to countable resources[1]",
+        "Everyone on utility bill counts as household, unlike SNAP[2]",
+        "No cooling assistance except summer crisis[2]"
+      ],
+      "data_shape_notes": "Priority tiers for elderly (60+) and disabled with earlier access; two components (regular Energy Assistance + Crisis); local agency administration leads to regional processing variations; annual reapplication required",
+      "_raw": "{\n  \"name\": \"Low-Income Home Energy Assistance Program (LIHEAP)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Gross monthly income limits (2025): 1 person $2,839; 2 people $3,713; 3 people $4,587; 4 people $5,461; 5 people $6,335; 6 people $7,209. Limits vary by household size and are at or below 60% of state median income. Income based on month prior to application (e.g., September for elderly/disabled applying in October).[2][4]\",\n    \"asset_limits\": \"Households must have $3,000 or less in bank accounts, investments, or retirement accounts. Specific exemptions not detailed in sources.[1][5]\",\n    \"other_requirements\": [\n      \"Missouri resident\",\n      \"U.S. citizen or legally admitted for permanent residence\",\n      \"Live in the household and be responsible for paying the utility bill (must be over 18 and included on application)\",\n      \"Provide Social Security numbers for all household members\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Heating assistance: $153 minimum to $495 maximum. Winter Crisis: up to $800. Summer Crisis: up to $300. Payments made directly to energy suppliers. Varies by income, household size, fuel type, and crisis status. No routine cooling assistance.[2]\",\n    \"varies_by\": \"household_size|priority_tier|region\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact local contracted agency (use agency finder tools from providers like Ameren or CMCA)\",\n      \"Phone: Energy Assistance Line (573) 200-6655 option 1 for status, option 2 for crisis[5]\",\n      \"In-person or mail via local agencies (e.g., CMCA or Ameren participating agencies)\",\n      \"No statewide online application specified; agency-specific processes\"\n    ],\n    \"processing_time\": \"Eligibility notifications and payments after program start dates (e.g., post-October 1 for elderly/disabled). Exact processing varies by agency and intake month[4][5]\",\n    \"waitlist\": \"Funds limited; priority for elderly (60+), disabled, families with children, multi-person households. Applications processed first-come basis within priority periods; may exhaust funding[3][4]\",\n    \"forms\": [\"LIHEAP Worksheet (E1LW) screen for eligibility determination\", \"Standard LIHEAP application (includes Part 2 for SSNs and page 5 document list)\"],\n    \"documents\": [\n      \"Proof of income (e.g., pay stubs from prior month)\",\n      \"Utility bills\",\n      \"Social Security numbers for all household members (written on application)\",\n      \"Proof of residency and citizenship/immigration status\",\n      \"SNAP recipients still need utility bills and SSNs[5]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Available statewide via local contracted agencies; no specific county restrictions noted\",\n    \"regional_variations\": \"Administered by local agencies (e.g., CMCA in some areas, Ameren partners); application dates, processing, and wait times vary by agency and region. Use agency finder for local provider[1][5]\",\n    \"offices_or_providers\": [\"Local contracted agencies; examples: CMCA (cmca.us), Ameren participating agencies\"]\n  },\n  \"official_source\": \"https://dss.mo.gov/fsd/energy-assistance (inferred from policy manual); agency-specific sites like https://www.ameren.com/bill/assistance/liheap\",\n  \"gotchas\": [\n    \"Priority application windows: Elderly/disabled from Oct 1/Nov 1, others Dec 1; funds may run out[2][4][5]\",\n    \"Must reapply every year; changes require new application[5]\",\n    \"Asset limit of $3,000 strictly applies to countable resources[1]\",\n    \"Everyone on utility bill counts as household, unlike SNAP[2]\",\n    \"No cooling assistance except summer crisis[2]\"\n  ],\n  \"data_shape_notes\": \"Priority tiers for elderly (60+) and disabled with earlier access; two components (regular Energy Assistance + Crisis); local agency administration leads to regional processing variations; annual reapplication required\"\n}"
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Household income at or below 200% of the Federal Poverty Level (FPL). Exact table not in sources; for households over 8 members, add $10,760 per additional member. Automatic eligibility if receiving SSI or TANF. Priority for elderly (over 60), families with children, or disabilities.[1][2][3][4]",
+        "asset_limits": "No asset limits mentioned in sources.",
+        "other_requirements": [
+          "Missouri resident.",
+          "Homeowners or renters (renters need written landlord permission).",
+          "Single-family homes, multi-family up to 4 units, or mobile homes.",
+          "Home not previously weatherized."
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Free energy-efficient home improvements including: reducing air infiltration (weather-stripping, caulking), increasing insulation (attics, walls, floors, foundations, pipes, ducts), HVAC repair/replacement, water heater blankets, LED lighting installation. Focus on health/safety. Average savings $370/year per home.[2][3][4][6][7]",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Contact local weatherization agency (18 statewide; find via dnr.mo.gov/energy/weatherization).[4]",
+          "Phone varies by agency (e.g., check agency sites like cmca.us, jfcac.org).",
+          "In-person or mail application to local agency.",
+          "Forms include Missouri Low Income Weatherization Assistance Program Application and agency-specific instructions.[5]"
+        ],
+        "processing_time": "Not specified; involves eligibility check, waitlist, energy audit, contractor work, final inspection.[2][4]",
+        "waitlist": "Eligible applicants placed on waiting list.[2]",
+        "forms": [
+          "Missouri Low Income Weatherization Assistance Program Application.",
+          "Weatherization Certification of Household Claiming Zero Income (notarized, if applicable).",
+          "Weatherization Certification of Individual Adult (over 19) Claiming Zero Income (if applicable).[5]"
+        ],
+        "documents": [
+          "Proof of household income for previous 3 months (pay stubs, SS award letters, pensions, unemployment, etc. for all members).",
+          "Utility bills (gas and electric).",
+          "Social Security card(s).",
+          "Homeowner: proof of ownership.",
+          "Renter: landlord name, address, phone; written permission.",
+          "Zero income forms if applicable (notarized).[2][5]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None; covers all Missouri via 18 local agencies allocated by low-income household percentage per area.[4]",
+        "regional_variations": "Administered by 18 local weatherization agencies; contact local agency for services, potential differences in wait times or providers.[4]",
+        "offices_or_providers": [
+          "18 local agencies (e.g., CMCA, Jefferson Franklin CAC, CAASTLC, East Missouri Action Agency); find via dnr.mo.gov.[2][3][4][5][6]"
+        ]
+      },
+      "official_source": "https://dnr.mo.gov/energy/weatherization[4][7]",
+      "gotchas": [
+        "Renters need landlord permission; multi-unit owners may share costs.[6]",
+        "Home cannot be weatherized more than once.[6]",
+        "Priority groups (elderly, disabled, children) get preference, but all eligible apply.[1][3]",
+        "Must submit application even if auto-eligible via SSI/TANF.[3]",
+        "Provide 3 months income proof for all household members; zero-income forms required and notarized.[2][5]"
+      ],
+      "data_shape_notes": "Administered statewide by 18 local agencies with priority tiers; income at 200% FPL; services determined by energy audit per home.",
+      "_raw": "{\n  \"name\": \"Weatherization Assistance Program (WAP)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Household income at or below 200% of the Federal Poverty Level (FPL). Exact table not in sources; for households over 8 members, add $10,760 per additional member. Automatic eligibility if receiving SSI or TANF. Priority for elderly (over 60), families with children, or disabilities.[1][2][3][4]\",\n    \"asset_limits\": \"No asset limits mentioned in sources.\",\n    \"other_requirements\": [\n      \"Missouri resident.\",\n      \"Homeowners or renters (renters need written landlord permission).\",\n      \"Single-family homes, multi-family up to 4 units, or mobile homes.\",\n      \"Home not previously weatherized.\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free energy-efficient home improvements including: reducing air infiltration (weather-stripping, caulking), increasing insulation (attics, walls, floors, foundations, pipes, ducts), HVAC repair/replacement, water heater blankets, LED lighting installation. Focus on health/safety. Average savings $370/year per home.[2][3][4][6][7]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact local weatherization agency (18 statewide; find via dnr.mo.gov/energy/weatherization).[4]\",\n      \"Phone varies by agency (e.g., check agency sites like cmca.us, jfcac.org).\",\n      \"In-person or mail application to local agency.\",\n      \"Forms include Missouri Low Income Weatherization Assistance Program Application and agency-specific instructions.[5]\"\n    ],\n    \"processing_time\": \"Not specified; involves eligibility check, waitlist, energy audit, contractor work, final inspection.[2][4]\",\n    \"waitlist\": \"Eligible applicants placed on waiting list.[2]\",\n    \"forms\": [\n      \"Missouri Low Income Weatherization Assistance Program Application.\",\n      \"Weatherization Certification of Household Claiming Zero Income (notarized, if applicable).\",\n      \"Weatherization Certification of Individual Adult (over 19) Claiming Zero Income (if applicable).[5]\"\n    ],\n    \"documents\": [\n      \"Proof of household income for previous 3 months (pay stubs, SS award letters, pensions, unemployment, etc. for all members).\",\n      \"Utility bills (gas and electric).\",\n      \"Social Security card(s).\",\n      \"Homeowner: proof of ownership.\",\n      \"Renter: landlord name, address, phone; written permission.\",\n      \"Zero income forms if applicable (notarized).[2][5]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; covers all Missouri via 18 local agencies allocated by low-income household percentage per area.[4]\",\n    \"regional_variations\": \"Administered by 18 local weatherization agencies; contact local agency for services, potential differences in wait times or providers.[4]\",\n    \"offices_or_providers\": [\n      \"18 local agencies (e.g., CMCA, Jefferson Franklin CAC, CAASTLC, East Missouri Action Agency); find via dnr.mo.gov.[2][3][4][5][6]\"\n    ]\n  },\n  \"official_source\": \"https://dnr.mo.gov/energy/weatherization[4][7]\",\n  \"gotchas\": [\n    \"Renters need landlord permission; multi-unit owners may share costs.[6]\",\n    \"Home cannot be weatherized more than once.[6]\",\n    \"Priority groups (elderly, disabled, children) get preference, but all eligible apply.[1][3]\",\n    \"Must submit application even if auto-eligible via SSI/TANF.[3]\",\n    \"Provide 3 months income proof for all household members; zero-income forms required and notarized.[2][5]\"\n  ],\n  \"data_shape_notes\": \"Administered statewide by 18 local agencies with priority tiers; income at 200% FPL; services determined by energy audit per home.\"\n}"
+    },
+    {
+      "name": "Missouri State Health Insurance Assistance Program (Missouri SHIP)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Not specified in available sources. SHIP serves 'people with limited incomes' but no dollar thresholds are provided.",
+        "asset_limits": null,
+        "other_requirements": [
+          "Must be eligible for Medicare (age 65+, OR under 65 with disability or end-stage renal disease)",
+          "U.S. citizen or legal resident who has lived in the U.S. for at least 5 years",
+          "Service also available to Medicare beneficiaries' families and caregivers"
+        ]
+      },
+      "benefits": {
+        "type": "service|advocacy",
+        "value": "Free, one-on-one counseling and education. Specific services include: answering questions about Medicare eligibility and benefits; helping compare Medicare plans for prescription drug coverage (Part D); assisting with Medicare enrollment; checking for savings programs; answering questions about Medicare and Medicaid eligibility, benefits, and claims; helping apply for Medicaid, Medicare Savings Program, and Extra Help/Low Income Subsidy programs.",
+        "varies_by": "not_applicable — services are standardized, though delivery is localized"
+      },
+      "application": {
+        "methods": [
+          "Phone: 1-800-390-3330",
+          "Website: missouriship.org (specific online application method not detailed in sources)",
+          "In-person: Through local community partners and Area Agencies on Aging throughout Missouri (specific office locations not provided in sources)"
+        ],
+        "processing_time": "Not specified in available sources",
+        "waitlist": null,
+        "forms": "No specific form names or numbers provided in sources",
+        "documents": "Not specified in available sources"
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": null,
+        "regional_variations": "Missouri SHIP operates through a network of volunteer counselors and Community Partners throughout Missouri, suggesting localized service delivery, but specific regional variations are not detailed in sources.",
+        "offices_or_providers": [
+          "Atchison County Health Department (mentioned as offering Missouri SHIP services)",
+          "Approximately 2,200 local sites nationally (Missouri's portion not specified)",
+          "Local area agencies on aging and community-based partners (specific locations not listed)"
+        ]
+      },
+      "official_source": "missouriship.org",
+      "gotchas": [
+        "SHIP is NOT an insurance company and does NOT sell insurance — it provides free counseling only.",
+        "SHIP is a Medicare-focused program, not a general health insurance program. It helps people understand and enroll in Medicare, not obtain Medicare itself.",
+        "In 2023, Missouri CLAIM changed its name to Missouri SHIP — older resources may reference the former name.",
+        "SHIP is distinct from Medicaid (MO HealthNet) — it counsels about both programs but is not a Medicaid application service.",
+        "Services are provided by trained, certified volunteers and staff — availability may depend on local volunteer capacity."
+      ],
+      "data_shape_notes": "Missouri SHIP is a counseling and education service, not a financial assistance or insurance program. It has no income limits, asset limits, or application process in the traditional sense — it's a free resource anyone Medicare-eligible can access by calling or visiting a local partner. The program's 'benefit' is information and guidance, not direct financial aid or coverage. This is fundamentally different from needs-based programs like Medicaid.",
+      "_raw": "I need to be direct with you: the search results provided don't contain the specific, detailed information your guide requires. Missouri SHIP is fundamentally different from the needs-based programs (like Medicaid) your JSON structure assumes, and the search results reflect this difference—but incompletely for your purposes.\n\nHere's what I can provide based on the search results, followed by what's missing:\n\n```json\n{\n  \"name\": \"Missouri State Health Insurance Assistance Program (Missouri SHIP)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Not specified in available sources. SHIP serves 'people with limited incomes' but no dollar thresholds are provided.\",\n    \"asset_limits\": null,\n    \"other_requirements\": [\n      \"Must be eligible for Medicare (age 65+, OR under 65 with disability or end-stage renal disease)\",\n      \"U.S. citizen or legal resident who has lived in the U.S. for at least 5 years\",\n      \"Service also available to Medicare beneficiaries' families and caregivers\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service|advocacy\",\n    \"value\": \"Free, one-on-one counseling and education. Specific services include: answering questions about Medicare eligibility and benefits; helping compare Medicare plans for prescription drug coverage (Part D); assisting with Medicare enrollment; checking for savings programs; answering questions about Medicare and Medicaid eligibility, benefits, and claims; helping apply for Medicaid, Medicare Savings Program, and Extra Help/Low Income Subsidy programs.\",\n    \"varies_by\": \"not_applicable — services are standardized, though delivery is localized\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: 1-800-390-3330\",\n      \"Website: missouriship.org (specific online application method not detailed in sources)\",\n      \"In-person: Through local community partners and Area Agencies on Aging throughout Missouri (specific office locations not provided in sources)\"\n    ],\n    \"processing_time\": \"Not specified in available sources\",\n    \"waitlist\": null,\n    \"forms\": \"No specific form names or numbers provided in sources\",\n    \"documents\": \"Not specified in available sources\"\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": null,\n    \"regional_variations\": \"Missouri SHIP operates through a network of volunteer counselors and Community Partners throughout Missouri, suggesting localized service delivery, but specific regional variations are not detailed in sources.\",\n    \"offices_or_providers\": [\n      \"Atchison County Health Department (mentioned as offering Missouri SHIP services)\",\n      \"Approximately 2,200 local sites nationally (Missouri's portion not specified)\",\n      \"Local area agencies on aging and community-based partners (specific locations not listed)\"\n    ]\n  },\n  \"official_source\": \"missouriship.org\",\n  \"gotchas\": [\n    \"SHIP is NOT an insurance company and does NOT sell insurance — it provides free counseling only.\",\n    \"SHIP is a Medicare-focused program, not a general health insurance program. It helps people understand and enroll in Medicare, not obtain Medicare itself.\",\n    \"In 2023, Missouri CLAIM changed its name to Missouri SHIP — older resources may reference the former name.\",\n    \"SHIP is distinct from Medicaid (MO HealthNet) — it counsels about both programs but is not a Medicaid application service.\",\n    \"Services are provided by trained, certified volunteers and staff — availability may depend on local volunteer capacity.\"\n  ],\n  \"data_shape_notes\": \"Missouri SHIP is a counseling and education service, not a financial assistance or insurance program. It has no income limits, asset limits, or application process in the traditional sense — it's a free resource anyone Medicare-eligible can access by calling or visiting a local partner. The program's 'benefit' is information and guidance, not direct financial aid or coverage. This is fundamentally different from needs-based programs like Medicaid.\"\n}\n```\n\n## Critical Gaps in Available Information\n\nThe search results do not contain:\n\n1. **Income limits**: Sources state SHIP serves \"people with limited incomes\" but provide no dollar thresholds[4].\n\n2. **Processing time**: No timeline is specified for any service[1][3][5][6][7][10].\n\n3. **Specific forms**: No form names, numbers, or links are provided[1][3][5][6][7][10].\n\n4. **Documents needed**: No documentation requirements are listed[1][3][5][6][7][10].\n\n5. **Regional variations**: While sources mention local delivery through community partners, they don't specify how services differ by county or region[4][8].\n\n6. **Specific office locations**: Only Atchison County Health Department is named; a comprehensive list of Missouri offices is not provided[3].\n\n7. **Online application details**: The website is mentioned but no specific online application process is described[6][7].\n\n## What You Should Do\n\nTo complete your guide, you'll need to:\n\n- **Call 1-800-390-3330** directly and ask about income thresholds, processing timelines, required documents, and regional variations[7].\n- **Visit missouriship.org** to find the specific online application process and downloadable forms[6].\n- **Contact your local Area Agency on Aging** to identify regional offices and any county-specific variations[4][8].\n\nThe search results confirm Missouri SHIP is **statewide, free, and focused on Medicare counseling**—but the operational details your guide needs aren't in these sources[6]."
+    },
+    {
+      "name": "Commodity Supplemental Food Program (CSFP)",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "Income at or below 150% of Federal Poverty Guidelines (effective March 7, 2025): Family Size 1: Annual $23,475 / Monthly $1,957 / Weekly $452; 2: $31,725 / $2,644 / $611; 3: $39,975 / $3,332 / $769; 4: $48,225 / $4,019 / $928; 5: $56,475 / $4,707 / $1,087; 6: $64,725 / $5,394 / $1,245; 7: $72,975 / $6,082 / $1,404; 8: $81,225 / $6,769 / $1,563; each additional: +$8,250 annual / +$688 monthly / +$159 weekly. Note: Some sources cite 130%, but Missouri official site specifies 150%.[1][2][4]",
+        "asset_limits": "No asset limits mentioned in Missouri-specific sources.[1][2]",
+        "other_requirements": [
+          "Missouri resident.",
+          "Verification: Age (e.g., birth certificate, driver's license, ID); Income (self-declaration); Residency (e.g., utility bill, driver's license, SSA document).[1][2]"
+        ]
+      },
+      "benefits": {
+        "type": "in_kind",
+        "value": "Monthly food package of nutritious USDA commodity foods (canned fruits/vegetables/meat, cheese, cereal/grain products, milk products), worth approximately $50.[2][4]",
+        "varies_by": "fixed"
+      },
+      "application": {
+        "methods": [
+          "Phone: 800-733-6251 (statewide locator for local sites).",
+          "Website: https://health.mo.gov/living/wellness/nutrition/foodprograms/csfp/ (find site near you).",
+          "In-person: Local distribution sites (contact via phone/website for locations, e.g., Platte County: 816-270-4100).[1][4][6]"
+        ],
+        "processing_time": "Not specified in sources.",
+        "waitlist": "Program limited by funding; may have waitlists at local sites as it serves only as many as funding allows.[7]",
+        "forms": [
+          "No specific form name/number listed; certification at local site.[1][2]"
+        ],
+        "documents": [
+          "Proof of age (birth certificate, driver's license, state ID, etc.).",
+          "Proof of residency (utility bill, driver's license with address, SSA document, etc.).",
+          "Income self-declaration (no proof required).[1][2][4]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Available statewide in Missouri, but only at designated local sites/providers.[1][2][9]",
+        "regional_variations": "Distributed through local agencies/food banks (e.g., Southeast Missouri Food Bank, Platte Seniors); availability, wait times, and home delivery may vary by site; use locator for specifics.[3][6][7]",
+        "offices_or_providers": [
+          "Local sites found via 800-733-6251 or https://health.mo.gov/csfp; examples: Platte County (816-270-4100).[4][6][9]"
+        ]
+      },
+      "official_source": "https://health.mo.gov/living/wellness/nutrition/foodprograms/csfp/[2]",
+      "gotchas": [
+        "Cannot participate in both CSFP and WIC simultaneously.[2][5]",
+        "Limited by funding, so not all eligible seniors can be served; check local availability/waitlist.[7]",
+        "Only for those 60+; women/infants/children grandfathered pre-2014, no new certifications.[2][5]",
+        "Income is 150% FPL per MO DHSS (conflicts with some generic 130% sources).[1][4]",
+        "Must pick up monthly or arrange local home delivery; mobility-limited should confirm with site.[7]"
+      ],
+      "data_shape_notes": "Statewide but site-specific distribution; income at 150% FPL (higher than federal max 130%); fixed monthly food package; funding caps create local waitlists; self-declared income with age/residency proof only.",
+      "_raw": "{\n  \"name\": \"Commodity Supplemental Food Program (CSFP)\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"Income at or below 150% of Federal Poverty Guidelines (effective March 7, 2025): Family Size 1: Annual $23,475 / Monthly $1,957 / Weekly $452; 2: $31,725 / $2,644 / $611; 3: $39,975 / $3,332 / $769; 4: $48,225 / $4,019 / $928; 5: $56,475 / $4,707 / $1,087; 6: $64,725 / $5,394 / $1,245; 7: $72,975 / $6,082 / $1,404; 8: $81,225 / $6,769 / $1,563; each additional: +$8,250 annual / +$688 monthly / +$159 weekly. Note: Some sources cite 130%, but Missouri official site specifies 150%.[1][2][4]\",\n    \"asset_limits\": \"No asset limits mentioned in Missouri-specific sources.[1][2]\",\n    \"other_requirements\": [\"Missouri resident.\", \"Verification: Age (e.g., birth certificate, driver's license, ID); Income (self-declaration); Residency (e.g., utility bill, driver's license, SSA document).[1][2]\"]\n  },\n  \"benefits\": {\n    \"type\": \"in_kind\",\n    \"value\": \"Monthly food package of nutritious USDA commodity foods (canned fruits/vegetables/meat, cheese, cereal/grain products, milk products), worth approximately $50.[2][4]\",\n    \"varies_by\": \"fixed\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: 800-733-6251 (statewide locator for local sites).\", \"Website: https://health.mo.gov/living/wellness/nutrition/foodprograms/csfp/ (find site near you).\", \"In-person: Local distribution sites (contact via phone/website for locations, e.g., Platte County: 816-270-4100).[1][4][6]\"],\n    \"processing_time\": \"Not specified in sources.\",\n    \"waitlist\": \"Program limited by funding; may have waitlists at local sites as it serves only as many as funding allows.[7]\",\n    \"forms\": [\"No specific form name/number listed; certification at local site.[1][2]\"],\n    \"documents\": [\"Proof of age (birth certificate, driver's license, state ID, etc.).\", \"Proof of residency (utility bill, driver's license with address, SSA document, etc.).\", \"Income self-declaration (no proof required).[1][2][4]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Available statewide in Missouri, but only at designated local sites/providers.[1][2][9]\",\n    \"regional_variations\": \"Distributed through local agencies/food banks (e.g., Southeast Missouri Food Bank, Platte Seniors); availability, wait times, and home delivery may vary by site; use locator for specifics.[3][6][7]\",\n    \"offices_or_providers\": [\"Local sites found via 800-733-6251 or https://health.mo.gov/csfp; examples: Platte County (816-270-4100).[4][6][9]\"]\n  },\n  \"official_source\": \"https://health.mo.gov/living/wellness/nutrition/foodprograms/csfp/[2]\",\n  \"gotchas\": [\"Cannot participate in both CSFP and WIC simultaneously.[2][5]\", \"Limited by funding, so not all eligible seniors can be served; check local availability/waitlist.[7]\", \"Only for those 60+; women/infants/children grandfathered pre-2014, no new certifications.[2][5]\", \"Income is 150% FPL per MO DHSS (conflicts with some generic 130% sources).[1][4]\", \"Must pick up monthly or arrange local home delivery; mobility-limited should confirm with site.[7]\"],\n  \"data_shape_notes\": \"Statewide but site-specific distribution; income at 150% FPL (higher than federal max 130%); fixed monthly food package; funding caps create local waitlists; self-declared income with age/residency proof only.\"\n}"
+    },
+    {
+      "name": "Alzheimer’s Association Caregiver Resource Program",
+      "eligibility": {
+        "age": null,
+        "income_limits": "No income limits; program is free of charge to all eligible caregivers[2][4].",
+        "asset_limits": "No asset limits mentioned[2][4].",
+        "other_requirements": [
+          "Care recipient must reside in Missouri and live at home (not in long-term care facilities)[1][2][4].",
+          "Caregiver must live in the same home as the care recipient[1][2][4].",
+          "Care recipient must have a probable diagnosis of Alzheimer's disease or related dementia[2][4].",
+          "Enrollment contingent on funding availability, first-come first-served[2]."
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Track Two (Caregiver Relief via Alzheimer’s Association): Reimbursement up to $700 for respite services including assessment/care coordination, adult day care, in-home care, nutritional supplements, safety/supportive programs, education/counseling[1][2]. Other tracks (via partners): Track One - in-home assessment, customized caregiver training/education[1][4]; Track Three - assistive technology[4]. Also includes home safety improvements, respite, training[5].",
+        "varies_by": "fixed"
+      },
+      "application": {
+        "methods": [
+          "Phone: Call Alzheimer’s Association 24/7 Helpline at 800.272.3900 to set up free care consultation and enroll[7].",
+          "Website: https://health.mo.gov/seniors/dementia-caregiving/ for Missouri Caregiver Program information[2]."
+        ],
+        "processing_time": "Funds must be used within 45 days of enrollment (noted in prior year; current timelines not specified)[1].",
+        "waitlist": "First-come, first-served based on funding availability; no formal waitlist details[2].",
+        "forms": [
+          "No specific form names/numbers identified; enrollment via helpline consultation[7]."
+        ],
+        "documents": [
+          "Probable diagnosis of Alzheimer's or related dementia (not explicitly listed but implied for eligibility); prepare proof of residency and cohabitation[2]."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Care recipient must reside in Missouri; statewide via partnerships[1][2][4].",
+        "regional_variations": "Uniform statewide access through central helpline and partners like Alzheimer’s Association Greater Missouri Chapter; no regional differences noted[4].",
+        "offices_or_providers": [
+          "Alzheimer’s Association (statewide), Memory Care Home Solutions, Missouri Rural Health Association, Community Asset Builders[1][4]."
+        ]
+      },
+      "official_source": "https://health.mo.gov/seniors/dementia-caregiving/",
+      "gotchas": [
+        "Limited to those living at home; ineligible if in long-term care[1][2].",
+        "Funding capped and first-come first-served; may run out[2].",
+        "Must use funds quickly (e.g., within 45 days in past cycles)[1].",
+        "Specific to Alzheimer's/related dementias; not general caregiving[2].",
+        "Reimbursement-based for qualified expenses, not direct payment[1][2]."
+      ],
+      "data_shape_notes": "Part of Missouri Caregiver Program with tracks by provider (Alzheimer’s Association handles Track Two relief/reimbursement); no income/asset tests; statewide but funding-limited; partners deliver services.",
+      "_raw": "{\n  \"name\": \"Alzheimer’s Association Caregiver Resource Program\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No income limits; program is free of charge to all eligible caregivers[2][4].\",\n    \"asset_limits\": \"No asset limits mentioned[2][4].\",\n    \"other_requirements\": [\n      \"Care recipient must reside in Missouri and live at home (not in long-term care facilities)[1][2][4].\",\n      \"Caregiver must live in the same home as the care recipient[1][2][4].\",\n      \"Care recipient must have a probable diagnosis of Alzheimer's disease or related dementia[2][4].\",\n      \"Enrollment contingent on funding availability, first-come first-served[2].\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Track Two (Caregiver Relief via Alzheimer’s Association): Reimbursement up to $700 for respite services including assessment/care coordination, adult day care, in-home care, nutritional supplements, safety/supportive programs, education/counseling[1][2]. Other tracks (via partners): Track One - in-home assessment, customized caregiver training/education[1][4]; Track Three - assistive technology[4]. Also includes home safety improvements, respite, training[5].\",\n    \"varies_by\": \"fixed\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: Call Alzheimer’s Association 24/7 Helpline at 800.272.3900 to set up free care consultation and enroll[7].\",\n      \"Website: https://health.mo.gov/seniors/dementia-caregiving/ for Missouri Caregiver Program information[2].\"\n    ],\n    \"processing_time\": \"Funds must be used within 45 days of enrollment (noted in prior year; current timelines not specified)[1].\",\n    \"waitlist\": \"First-come, first-served based on funding availability; no formal waitlist details[2].\",\n    \"forms\": [\"No specific form names/numbers identified; enrollment via helpline consultation[7].\"],\n    \"documents\": [\"Probable diagnosis of Alzheimer's or related dementia (not explicitly listed but implied for eligibility); prepare proof of residency and cohabitation[2].\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Care recipient must reside in Missouri; statewide via partnerships[1][2][4].\",\n    \"regional_variations\": \"Uniform statewide access through central helpline and partners like Alzheimer’s Association Greater Missouri Chapter; no regional differences noted[4].\",\n    \"offices_or_providers\": [\"Alzheimer’s Association (statewide), Memory Care Home Solutions, Missouri Rural Health Association, Community Asset Builders[1][4].\"]\n  },\n  \"official_source\": \"https://health.mo.gov/seniors/dementia-caregiving/\",\n  \"gotchas\": [\n    \"Limited to those living at home; ineligible if in long-term care[1][2].\",\n    \"Funding capped and first-come first-served; may run out[2].\",\n    \"Must use funds quickly (e.g., within 45 days in past cycles)[1].\",\n    \"Specific to Alzheimer's/related dementias; not general caregiving[2].\",\n    \"Reimbursement-based for qualified expenses, not direct payment[1][2].\"\n  ],\n  \"data_shape_notes\": \"Part of Missouri Caregiver Program with tracks by provider (Alzheimer’s Association handles Track Two relief/reimbursement); no income/asset tests; statewide but funding-limited; partners deliver services.\"\n}"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "eligibility": {
+        "age": 55,
+        "income_limits": "Household income must not exceed 125% of the federal poverty level. Specific dollar amounts vary annually and by household size; families must check current federal poverty guidelines (e.g., via HHS.gov) as exact 2026 figures not in sources. Excluded income includes: Social Security Disability Income, 25% of Social Security Income, unemployment benefits, SNAP benefits, housing benefits, and certain veterans' payments[1].",
+        "asset_limits": "No asset limits mentioned in sources[1][2].",
+        "other_requirements": [
+          "Unemployed at time of application[1][2]",
+          "U.S. citizen or eligible non-citizen (inferred from federal program standards)",
+          "Priority for veterans/qualified spouses, individuals over 65, those with disabilities, low literacy/limited English proficiency, rural residents, homeless/at risk, low employment prospects, or prior American Job Center users[2]"
+        ]
+      },
+      "benefits": {
+        "type": "employment",
+        "value": "Part-time community service work-based job training (average 20 hours/week) at nonprofits/public agencies (e.g., schools, hospitals, senior centers); paid at highest of federal/state/local minimum wage; Individual Employment Plan (IEP) with skills training, job search assistance (resumes, interviews), annual health screening, supportive services (benefit applications, local resources); goal of transition to unsubsidized employment[1][2][3].",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Phone: 573-526-4542 (Missouri Department of Health & Senior Services)[1]",
+          "Contact MERS Goodwill for eastern/central/southeast Missouri (application request link noted, specific URL not provided)[4]",
+          "Through local grantees like state agencies or nonprofits (national info via DOL or AARP Foundation, but MO-specific via state)[1][2][5]"
+        ],
+        "processing_time": "Not specified in sources",
+        "waitlist": "Not specified; availability varies by county[1]",
+        "forms": [
+          "Individual Employment Plan (IEP) developed after enrollment; no specific pre-application form named[1][3]"
+        ],
+        "documents": [
+          "Proof of age, income (pay stubs, benefit statements noting exclusions), unemployment status; exact list not detailed—prepare standard ID and financial docs[1]"
+        ]
+      },
+      "geography": {
+        "statewide": false,
+        "restrictions": "Available in many counties throughout Missouri, not all[1]",
+        "regional_variations": "Administered by different grantees/providers (e.g., Missouri Dept. of Health & Senior Services statewide contact; MERS Goodwill in eastern, central, southeast Missouri and southern Illinois)[1][4]",
+        "offices_or_providers": [
+          "Missouri Dept. of Health & Senior Services (statewide inquiries: 573-526-4542)[1]",
+          "MERS Goodwill (eastern/central/southeast MO)[4]"
+        ]
+      },
+      "official_source": "https://health.mo.gov/seniors/senioremployment/[1]",
+      "gotchas": [
+        "Income exclusions are specific (e.g., only 25% of SS income excluded)—calculate carefully using current 125% FPL[1]",
+        "Must be unemployed at application; program is temporary training bridge to unsubsidized jobs, not permanent[1][2]",
+        "Availability limited to certain counties; contact state for local provider[1]",
+        "Priority tiers may delay non-priority applicants[2]",
+        "Host agencies are nonprofits/government only—no private sector placements[1][2]"
+      ],
+      "data_shape_notes": "Grantee-administered with regional providers; income test at 125% FPL with specific exclusions; county-restricted availability; priority-based enrollment",
+      "_raw": "{\n  \"name\": \"Senior Community Service Employment Program (SCSEP)\",\n  \"eligibility\": {\n    \"age\": 55,\n    \"income_limits\": \"Household income must not exceed 125% of the federal poverty level. Specific dollar amounts vary annually and by household size; families must check current federal poverty guidelines (e.g., via HHS.gov) as exact 2026 figures not in sources. Excluded income includes: Social Security Disability Income, 25% of Social Security Income, unemployment benefits, SNAP benefits, housing benefits, and certain veterans' payments[1].\",\n    \"asset_limits\": \"No asset limits mentioned in sources[1][2].\",\n    \"other_requirements\": [\"Unemployed at time of application[1][2]\", \"U.S. citizen or eligible non-citizen (inferred from federal program standards)\", \"Priority for veterans/qualified spouses, individuals over 65, those with disabilities, low literacy/limited English proficiency, rural residents, homeless/at risk, low employment prospects, or prior American Job Center users[2]\"]\n  },\n  \"benefits\": {\n    \"type\": \"employment\",\n    \"value\": \"Part-time community service work-based job training (average 20 hours/week) at nonprofits/public agencies (e.g., schools, hospitals, senior centers); paid at highest of federal/state/local minimum wage; Individual Employment Plan (IEP) with skills training, job search assistance (resumes, interviews), annual health screening, supportive services (benefit applications, local resources); goal of transition to unsubsidized employment[1][2][3].\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: 573-526-4542 (Missouri Department of Health & Senior Services)[1]\", \"Contact MERS Goodwill for eastern/central/southeast Missouri (application request link noted, specific URL not provided)[4]\", \"Through local grantees like state agencies or nonprofits (national info via DOL or AARP Foundation, but MO-specific via state)[1][2][5]\"],\n    \"processing_time\": \"Not specified in sources\",\n    \"waitlist\": \"Not specified; availability varies by county[1]\",\n    \"forms\": [\"Individual Employment Plan (IEP) developed after enrollment; no specific pre-application form named[1][3]\"],\n    \"documents\": [\"Proof of age, income (pay stubs, benefit statements noting exclusions), unemployment status; exact list not detailed—prepare standard ID and financial docs[1]\"]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Available in many counties throughout Missouri, not all[1]\",\n    \"regional_variations\": \"Administered by different grantees/providers (e.g., Missouri Dept. of Health & Senior Services statewide contact; MERS Goodwill in eastern, central, southeast Missouri and southern Illinois)[1][4]\",\n    \"offices_or_providers\": [\"Missouri Dept. of Health & Senior Services (statewide inquiries: 573-526-4542)[1]\", \"MERS Goodwill (eastern/central/southeast MO)[4]\"]\n  },\n  \"official_source\": \"https://health.mo.gov/seniors/senioremployment/[1]\",\n  \"gotchas\": [\"Income exclusions are specific (e.g., only 25% of SS income excluded)—calculate carefully using current 125% FPL[1]\", \"Must be unemployed at application; program is temporary training bridge to unsubsidized jobs, not permanent[1][2]\", \"Availability limited to certain counties; contact state for local provider[1]\", \"Priority tiers may delay non-priority applicants[2]\", \"Host agencies are nonprofits/government only—no private sector placements[1][2]\"],\n  \"data_shape_notes\": \"Grantee-administered with regional providers; income test at 125% FPL with specific exclusions; county-restricted availability; priority-based enrollment\"\n}"
+    },
+    {
+      "name": "Legal Services of Eastern Missouri (Advocates for Older Adults Program)",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "Financial eligibility based on household income required; specific dollar amounts not provided in available sources[1][2]",
+        "asset_limits": "Not specified in available sources",
+        "other_requirements": [
+          "Must be low-income or meet other qualifications for consultation or representation[2]",
+          "Civil cases only — cannot assist with criminal cases or traffic citations[3]"
+        ]
+      },
+      "benefits": {
+        "type": "advocacy",
+        "value": "Free civil legal assistance, advice, and representation. Specific service areas include: housing issues (eviction defense, lease terminations, bad housing conditions, disability accommodations), public benefits (SNAP, Medicaid, Social Security, Medicare, TANF), consumer law (creditor/debtor problems, predatory lending), domestic abuse, orders of protection, estate planning, immigration, and legal help for grandparents/relatives caring for minors[1][2][4]",
+        "varies_by": "not_applicable — services are comprehensive across all eligible clients, though some staff primarily serve specific regions (e.g., St. Louis City)[1]"
+      },
+      "application": {
+        "methods": [
+          "Phone: 800.444.0514 (toll-free) or 314.534.4200 (general line) — applications available 9:00 AM to 5:00 PM Monday, Wednesday, and Thursday only[6]",
+          "Online: Apply anytime via the organization's website at lsem.org[1][6]",
+          "In-person: Legal Services of Eastern Missouri offices (five regional offices available)[10]",
+          "In-person clinic: Third Thursday of each month, 9:00 AM to noon at St. Louis Public Library Central Library[5]"
+        ],
+        "processing_time": "After phone application, someone will call back within 3-5 business days to conduct intake screening[6]",
+        "waitlist": "Not specified in available sources",
+        "forms": "No specific form names or numbers provided in available sources; online application available through website[6]",
+        "documents": "Not specified in available sources"
+      },
+      "geography": {
+        "statewide": false,
+        "restrictions": "Service area limited to 21 counties of eastern Missouri[1][2]",
+        "regional_variations": "Some staff primarily serve specific regions (e.g., Kayley Lincoln and Victoria St. Jean primarily serve St. Louis City)[1]. Legal assistance for seniors outside this service area may be available through local Area Agencies on Aging (AAAs) via partnerships with other legal providers[3]",
+        "offices_or_providers": [
+          "Five regional offices for Legal Services of Eastern Missouri (specific locations not detailed in search results)[10]",
+          "Main office: 4232 Forest Park Ave, Saint Louis, MO 63108-2811[8]",
+          "Alternative office: 701 Market Street, Suite 1100, St. Louis, Missouri 63101[9]"
+        ]
+      },
+      "official_source": "https://lsem.org/advocates-for-older-adults/ and https://health.mo.gov/seniors/aaa/legal.php",
+      "gotchas": [
+        "Phone applications are only available Monday, Wednesday, and Thursday, 9:00 AM to 5:00 PM — not all weekdays[6]",
+        "This program serves only 21 counties of eastern Missouri; seniors outside this region must contact their local Area Agency on Aging for legal assistance[3]",
+        "Civil cases only — the program cannot help with criminal cases or traffic citations[3]",
+        "Financial eligibility is required, but specific income thresholds are not publicly stated in available materials; families must apply to learn if they qualify[2]",
+        "Community legal education is available for seniors and groups, but representation is the primary service[1]",
+        "The Missouri Senior Resource Helpline (1-800-235-5503) can connect seniors to local legal assistance if they are outside the Legal Services of Eastern Missouri service area[3]"
+      ],
+      "data_shape_notes": "This program's eligibility and benefits structure is not publicly detailed with specific dollar amounts or service hour limits. The program is geographically restricted to 21 eastern Missouri counties and operates through a single organization (Legal Services of Eastern Missouri) rather than multiple providers. Income eligibility is required but thresholds are not published; families must apply directly. The program provides comprehensive civil legal advocacy rather than financial assistance or time-limited services. Phone intake is limited to three days per week.",
+      "_raw": "```json\n{\n  \"name\": \"Legal Services of Eastern Missouri (Advocates for Older Adults Program)\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"Financial eligibility based on household income required; specific dollar amounts not provided in available sources[1][2]\",\n    \"asset_limits\": \"Not specified in available sources\",\n    \"other_requirements\": [\n      \"Must be low-income or meet other qualifications for consultation or representation[2]\",\n      \"Civil cases only — cannot assist with criminal cases or traffic citations[3]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"advocacy\",\n    \"value\": \"Free civil legal assistance, advice, and representation. Specific service areas include: housing issues (eviction defense, lease terminations, bad housing conditions, disability accommodations), public benefits (SNAP, Medicaid, Social Security, Medicare, TANF), consumer law (creditor/debtor problems, predatory lending), domestic abuse, orders of protection, estate planning, immigration, and legal help for grandparents/relatives caring for minors[1][2][4]\",\n    \"varies_by\": \"not_applicable — services are comprehensive across all eligible clients, though some staff primarily serve specific regions (e.g., St. Louis City)[1]\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: 800.444.0514 (toll-free) or 314.534.4200 (general line) — applications available 9:00 AM to 5:00 PM Monday, Wednesday, and Thursday only[6]\",\n      \"Online: Apply anytime via the organization's website at lsem.org[1][6]\",\n      \"In-person: Legal Services of Eastern Missouri offices (five regional offices available)[10]\",\n      \"In-person clinic: Third Thursday of each month, 9:00 AM to noon at St. Louis Public Library Central Library[5]\"\n    ],\n    \"processing_time\": \"After phone application, someone will call back within 3-5 business days to conduct intake screening[6]\",\n    \"waitlist\": \"Not specified in available sources\",\n    \"forms\": \"No specific form names or numbers provided in available sources; online application available through website[6]\",\n    \"documents\": \"Not specified in available sources\"\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Service area limited to 21 counties of eastern Missouri[1][2]\",\n    \"regional_variations\": \"Some staff primarily serve specific regions (e.g., Kayley Lincoln and Victoria St. Jean primarily serve St. Louis City)[1]. Legal assistance for seniors outside this service area may be available through local Area Agencies on Aging (AAAs) via partnerships with other legal providers[3]\",\n    \"offices_or_providers\": [\n      \"Five regional offices for Legal Services of Eastern Missouri (specific locations not detailed in search results)[10]\",\n      \"Main office: 4232 Forest Park Ave, Saint Louis, MO 63108-2811[8]\",\n      \"Alternative office: 701 Market Street, Suite 1100, St. Louis, Missouri 63101[9]\"\n    ]\n  },\n  \"official_source\": \"https://lsem.org/advocates-for-older-adults/ and https://health.mo.gov/seniors/aaa/legal.php\",\n  \"gotchas\": [\n    \"Phone applications are only available Monday, Wednesday, and Thursday, 9:00 AM to 5:00 PM — not all weekdays[6]\",\n    \"This program serves only 21 counties of eastern Missouri; seniors outside this region must contact their local Area Agency on Aging for legal assistance[3]\",\n    \"Civil cases only — the program cannot help with criminal cases or traffic citations[3]\",\n    \"Financial eligibility is required, but specific income thresholds are not publicly stated in available materials; families must apply to learn if they qualify[2]\",\n    \"Community legal education is available for seniors and groups, but representation is the primary service[1]\",\n    \"The Missouri Senior Resource Helpline (1-800-235-5503) can connect seniors to local legal assistance if they are outside the Legal Services of Eastern Missouri service area[3]\"\n  ],\n  \"data_shape_notes\": \"This program's eligibility and benefits structure is not publicly detailed with specific dollar amounts or service hour limits. The program is geographically restricted to 21 eastern Missouri counties and operates through a single organization (Legal Services of Eastern Missouri) rather than multiple providers. Income eligibility is required but thresholds are not published; families must apply directly. The program provides comprehensive civil legal advocacy rather than financial assistance or time-limited services. Phone intake is limited to three days per week.\"\n}\n```\n\n## Key Context for Families\n\n**Critical limitation:** The search results do not contain specific income thresholds, asset limits, or detailed eligibility criteria beyond age (60+) and low-income status[1][2]. Families will need to contact the organization directly to determine if their loved one qualifies.\n\n**Geographic scope:** This program only serves 21 counties in eastern Missouri[1][2]. If your family member lives outside this region, contact the Missouri Senior Resource Helpline at 1-800-235-5503 to find legal assistance through your local Area Agency on Aging[3].\n\n**What makes this different:** Unlike some legal aid programs, this one explicitly serves seniors 60+ with comprehensive civil legal advocacy — not just one issue area. However, it cannot help with criminal matters or traffic citations[3]. The program also provides free community legal education for senior groups and agencies[1].\n\n**Fastest path to apply:** Call 800.444.0514 on Monday, Wednesday, or Thursday between 9:00 AM and 5:00 PM, or apply online anytime at lsem.org[6]."
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "eligibility": {
+        "age": null,
+        "income_limits": "No income limits; available to any resident regardless of financial status",
+        "asset_limits": "No asset limits; no financial tests apply",
+        "other_requirements": [
+          "Must be a resident of a long-term care facility in Missouri, such as nursing homes, residential care facilities, assisted living, skilled care nursing homes, residential care homes, or veteran homes"
+        ]
+      },
+      "benefits": {
+        "type": "advocacy",
+        "value": "Advocacy services including identifying, investigating, and resolving complaints related to health, safety, welfare, and rights; providing information on long-term services and supports; representing residents before agencies; seeking remedies; regular facility visits by trained volunteer ombudsmen to promote dignity, respect, protect rights, and voice concerns to facility management; community education on resident rights and long-term care issues",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Phone: (800) 309-3282 or local (573) 526-0727",
+          "Email: LTCOmbudsman@health.mo.gov",
+          "Contact regional Area Agency on Aging (AAA) or local ombudsman program for in-person assistance",
+          "Website: http://health.mo.gov/seniors/ombudsman/"
+        ],
+        "processing_time": "Immediate assistance upon contact; no formal application processing as it is a complaint-resolution and advocacy service",
+        "waitlist": null,
+        "forms": [
+          "No specific forms required"
+        ],
+        "documents": [
+          "No documents needed to request services; provide details of the resident's situation, facility name, and complaint"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Services provided through regional programs in participating counties via Area Agencies on Aging (AAAs)",
+        "regional_variations": "Operated by regional ombudsman coordinators through local AAAs or service providers; contact state office or local AAA for specific regional coordinator",
+        "offices_or_providers": [
+          "Administered statewide by Missouri Department of Health and Senior Services (DHSS), Division of Senior and Disability Services (DSDS); local programs via Area Agencies on Aging (AAAs)"
+        ]
+      },
+      "official_source": "http://health.mo.gov/seniors/ombudsman/",
+      "gotchas": [
+        "Not a financial aid or direct service program—provides advocacy only, not healthcare, housing, or payments; families may confuse it with entitlement programs; services are for residents already in facilities, not for admission or placement; relies on volunteers, so availability may depend on local coordinators; strict conflict-of-interest rules for ombudsmen ensure independence"
+      ],
+      "data_shape_notes": "no income or asset test; advocacy-only for LTC facility residents; delivered via statewide network of regional AAAs with volunteer ombudsmen; immediate access without application",
+      "_raw": "{\n  \"name\": \"Long-Term Care Ombudsman Program\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No income limits; available to any resident regardless of financial status\",\n    \"asset_limits\": \"No asset limits; no financial tests apply\",\n    \"other_requirements\": [\"Must be a resident of a long-term care facility in Missouri, such as nursing homes, residential care facilities, assisted living, skilled care nursing homes, residential care homes, or veteran homes\"]\n  },\n  \"benefits\": {\n    \"type\": \"advocacy\",\n    \"value\": \"Advocacy services including identifying, investigating, and resolving complaints related to health, safety, welfare, and rights; providing information on long-term services and supports; representing residents before agencies; seeking remedies; regular facility visits by trained volunteer ombudsmen to promote dignity, respect, protect rights, and voice concerns to facility management; community education on resident rights and long-term care issues\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: (800) 309-3282 or local (573) 526-0727\", \"Email: LTCOmbudsman@health.mo.gov\", \"Contact regional Area Agency on Aging (AAA) or local ombudsman program for in-person assistance\", \"Website: http://health.mo.gov/seniors/ombudsman/\"],\n    \"processing_time\": \"Immediate assistance upon contact; no formal application processing as it is a complaint-resolution and advocacy service\",\n    \"waitlist\": null,\n    \"forms\": [\"No specific forms required\"],\n    \"documents\": [\"No documents needed to request services; provide details of the resident's situation, facility name, and complaint\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Services provided through regional programs in participating counties via Area Agencies on Aging (AAAs)\",\n    \"regional_variations\": \"Operated by regional ombudsman coordinators through local AAAs or service providers; contact state office or local AAA for specific regional coordinator\",\n    \"offices_or_providers\": [\"Administered statewide by Missouri Department of Health and Senior Services (DHSS), Division of Senior and Disability Services (DSDS); local programs via Area Agencies on Aging (AAAs)\"]\n  },\n  \"official_source\": \"http://health.mo.gov/seniors/ombudsman/\",\n  \"gotchas\": [\"Not a financial aid or direct service program—provides advocacy only, not healthcare, housing, or payments; families may confuse it with entitlement programs; services are for residents already in facilities, not for admission or placement; relies on volunteers, so availability may depend on local coordinators; strict conflict-of-interest rules for ombudsmen ensure independence\"],\n  \"data_shape_notes\": \"no income or asset test; advocacy-only for LTC facility residents; delivered via statewide network of regional AAAs with volunteer ombudsmen; immediate access without application\"\n}"
+    },
+    {
+      "name": "Missouri Rx Program (MoRx)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Historically (pre-2017): Single household annual gross income ≤ $20,800-$21,660; married couple ≤ $28,000-$29,140. Post-2017 changes: No longer eligible if only Medicare Part D (no Medicaid); now requires MO HealthNet (Medicaid) eligibility, including full benefits, spenddown (met at least once/year), or qualified Medicare beneficiary status. Suggested LIS income thresholds (may overlap): single ≤ $15,315, couple ≤ $20,535 (202? figures).[2][1]",
+        "asset_limits": "Historical (pre-2017): Single ≤ $11,990-$11,710; married couple ≤ $23,970-$23,410. What counts: total resources (not fully detailed in sources). Post-2017: Tied to MO HealthNet asset rules, which vary by category (e.g., not specified here but typically apply to countable assets like bank accounts; exemptions for home, car often apply—confirm via MO HealthNet rules).[2][3]",
+        "other_requirements": [
+          "Missouri resident",
+          "Enrolled in Medicare Part D plan (required for all)",
+          "Eligible for or enrolled in MO HealthNet (Medicaid), including spenddown met at least once per year, full MO HealthNet, Ticket to Work, Home and Community Based Services, or qualified Medicare Part B premium payment",
+          "Not eligible if only Medicare Part D without MO HealthNet (ended June 30, 2017)",
+          "HIV-specific programs mentioned separately but not core MoRx"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "Pays 50% of Medicare Part D out-of-pocket costs (deductible, co-pays, coverage gap); covers Medicare-excluded drugs (e.g., specific OTC drugs, vitamins, minerals, limited cough/cold) if MO HealthNet eligible. For dual eligibles: 50% of co-pays/deductibles after Part D pays; MO HealthNet covers certain excluded drugs.",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Online via mydss.mo.gov (MO HealthNet application integrates with MoRx)",
+          "Phone: Not specified in results; use MO HealthNet helpline (implied via DSS)",
+          "Mail: MoRx Enrollment Form (historical, pre-2017; now via MO HealthNet app)",
+          "In-person: Local Family Support Division (FSD) offices for MO HealthNet"
+        ],
+        "processing_time": "Not specified in sources",
+        "waitlist": null,
+        "forms": [
+          "MoRx Enrollment Form (historical; requires personal info, income/assets—do not send if on MO HealthNet or employer plan)",
+          "MO HealthNet application (current path for eligibility)"
+        ],
+        "documents": [
+          "Proof of Missouri residency",
+          "Proof of income (e.g., tax returns, pay stubs)",
+          "Proof of assets (bank statements, etc.)",
+          "Medicare Part D plan info",
+          "MO HealthNet-related docs if applicable (spenddown notices)"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None; available to all Missouri residents meeting eligibility",
         "regional_variations": null,
         "offices_or_providers": [
-          "Family Support Division offices statewide; works with all approved Medicare Part D plans"
+          "Local Family Support Division (FSD) offices statewide for MO HealthNet/MoRx"
         ]
       },
       "official_source": "https://mydss.mo.gov/mhd/morx-general-faqs",
       "gotchas": [
-        "Post-2017: No longer available for Medicare Part D only (without MO HealthNet); coverage ended June 30, 2017 for those.[2][7]",
-        "Must pay your 50% co-pay share or pharmacy may refuse service (real co-pays, unlike some Medicaid).[4][5]",
-        "Spenddown must be met at least once per calendar year for MoRx to activate on Part D costs.[4]",
-        "Must enroll in Medicare Part D first; MoRx coordinates, does not replace.[3]",
-        "Income/asset limits outdated in some sources; verify via MO HealthNet current FPL (up to 185% possible but fixed lower).[8]",
-        "Dual eligibles pay premium difference if choosing non-benchmark Part D plan (2021 benchmark $30.48).[5]"
+        "Major 2017 change: Ended for those with only Medicare Part D (no Medicaid/MO HealthNet)—last coverage June 30, 2017[2][7]",
+        "Must enroll in Medicare Part D plan first; no MO HealthNet pharmacy coverage for Part D drugs without it[4][6]",
+        "Spenddown participants: Must meet spenddown at least once/year for MoRx to activate 50% coverage[4]",
+        "Automatic enrollment if receiving Medicare + MO HealthNet; otherwise apply via MO HealthNet[4]",
+        "Does not cover drugs excluded by both Medicare Part D and not MO HealthNet approved[4]",
+        "Outdated info common (e.g., pre-2017 income/assets still cited); always verify current MO HealthNet eligibility[1][3]"
       ],
-      "data_shape_notes": "Eligibility now strictly linked to MO HealthNet enrollment/spenddown (not standalone SPAP); auto-enrollment for qualified; benefits fixed at 50% cost-share regardless of household size; major 2017 changes excluded pure Medicare Part D users; data conflicts on exact income/assets due to dated sources.",
-      "_raw": "{\n  \"name\": \"Missouri Rx Program (MoRx)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Eligibility tied to MO HealthNet (Medicaid) programs, not standalone Medicare Part D. Individuals: yearly income less than $15,315; married couple: less than $20,535. Older sources mention single $20,800-$21,660 or married $28,000-$29,140, but post-2017 changes restrict to MO HealthNet enrollment (full benefits, spenddown met at least once, Medicare Savings Programs like QMB/SLMB, or specific waivers). No table by household size beyond individual/couple; based on MO HealthNet rules which vary.[2][1][3]\",\n    \"asset_limits\": \"Individuals: total resources less than $11,710; married couple: less than $23,410 (older figures: single $11,990, couple $23,970). Liquid assets (savings, investments, real estate) counted; primary home, vehicles, burial plots, personal possessions exempt. Required for some eligibility checks but program primarily MO HealthNet-linked.[2][3]\",\n    \"other_requirements\": [\n      \"Missouri resident\",\n      \"Enrolled in Medicare Part D plan (required for coordination)\",\n      \"Enrolled in or eligible for MO HealthNet (Medicaid): full benefits, spenddown (met at least once per year), Medicare Savings Programs (QMB, SLMB1, SLMB2), Ticket to Work (paying premium), Home and Community Based Services, or receive MO HealthNet-related supplemental payments/checks\",\n      \"Not eligible if only Medicare Part D without MO HealthNet (change effective July 1, 2017)\",\n      \"HIV program requires verified HIV+ status (separate but mentioned)\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Pays 50% of out-of-pocket costs (deductible, co-pays, coverage gap) on medications covered by Medicare Part D plan after Part D pays. Covers Medicare-excluded drugs (specific OTC drugs, vitamins, minerals, limited cough/cold) if meeting MO HealthNet eligibility. Participant pays remaining 50% co-pay (pharmacy may refuse if unpaid). No co-pay after first full month in long-term care facilities (SNF, ICF, psych hospital). For dual eligibles, co-pays capped (e.g., 2021: $3.30 generic, $9.20 brand).[4][5]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Automatically enrolled if receiving MO HealthNet benefits (full, spenddown, Medicare premiums only)\",\n      \"Phone: Family Support Division at 1-855-373-4636 (for MO HealthNet eligibility check)\",\n      \"Website: mydss.mo.gov (MO HealthNet application integrates with MoRx)\",\n      \"Older form: MoRx Enrollment Form (requires Medicare Part D enrollment first; do not send if in MO HealthNet or employer plan)[3]\"\n    ],\n    \"processing_time\": \"Not specified; automatic for MO HealthNet enrollees. Spenddown must be met once per year for benefits to activate.[4]\",\n    \"waitlist\": null,\n    \"forms\": [\"MoRx Enrollment Form (legacy, pre-2017 changes)\", \"MO HealthNet application (primary route)\"],\n    \"documents\": [\n      \"Proof of income\",\n      \"Proof of assets/resources\",\n      \"Proof of MO HealthNet eligibility or spenddown\",\n      \"Medicare Part D plan details\",\n      \"Missouri residency proof\",\n      \"Personal info (race/ethnicity optional on old form)\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Missouri residents only\",\n    \"regional_variations\": null,\n    \"offices_or_providers\": [\"Family Support Division offices statewide; works with all approved Medicare Part D plans\"]\n  },\n  \"official_source\": \"https://mydss.mo.gov/mhd/morx-general-faqs\",\n  \"gotchas\": [\n    \"Post-2017: No longer available for Medicare Part D only (without MO HealthNet); coverage ended June 30, 2017 for those.[2][7]\",\n    \"Must pay your 50% co-pay share or pharmacy may refuse service (real co-pays, unlike some Medicaid).[4][5]\",\n    \"Spenddown must be met at least once per calendar year for MoRx to activate on Part D costs.[4]\",\n    \"Must enroll in Medicare Part D first; MoRx coordinates, does not replace.[3]\",\n    \"Income/asset limits outdated in some sources; verify via MO HealthNet current FPL (up to 185% possible but fixed lower).[8]\",\n    \"Dual eligibles pay premium difference if choosing non-benchmark Part D plan (2021 benchmark $30.48).[5]\"\n  ],\n  \"data_shape_notes\": \"Eligibility now strictly linked to MO HealthNet enrollment/spenddown (not standalone SPAP); auto-enrollment for qualified; benefits fixed at 50% cost-share regardless of household size; major 2017 changes excluded pure Medicare Part D users; data conflicts on exact income/assets due to dated sources.\"\n}"
+      "data_shape_notes": "Post-2017 eligibility fully tied to MO HealthNet categories (full, spenddown, QMB); no standalone MoRx for pure Medicare seniors; income/assets historical and now MO HealthNet-dependent; dual eligibles get integrated Part D + MoRx layering",
+      "_raw": "{\n  \"name\": \"Missouri Rx Program (MoRx)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Historically (pre-2017): Single household annual gross income ≤ $20,800-$21,660; married couple ≤ $28,000-$29,140. Post-2017 changes: No longer eligible if only Medicare Part D (no Medicaid); now requires MO HealthNet (Medicaid) eligibility, including full benefits, spenddown (met at least once/year), or qualified Medicare beneficiary status. Suggested LIS income thresholds (may overlap): single ≤ $15,315, couple ≤ $20,535 (202? figures).[2][1]\",\n    \"asset_limits\": \"Historical (pre-2017): Single ≤ $11,990-$11,710; married couple ≤ $23,970-$23,410. What counts: total resources (not fully detailed in sources). Post-2017: Tied to MO HealthNet asset rules, which vary by category (e.g., not specified here but typically apply to countable assets like bank accounts; exemptions for home, car often apply—confirm via MO HealthNet rules).[2][3]\",\n    \"other_requirements\": [\n      \"Missouri resident\",\n      \"Enrolled in Medicare Part D plan (required for all)\",\n      \"Eligible for or enrolled in MO HealthNet (Medicaid), including spenddown met at least once per year, full MO HealthNet, Ticket to Work, Home and Community Based Services, or qualified Medicare Part B premium payment\",\n      \"Not eligible if only Medicare Part D without MO HealthNet (ended June 30, 2017)\",\n      \"HIV-specific programs mentioned separately but not core MoRx\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Pays 50% of Medicare Part D out-of-pocket costs (deductible, co-pays, coverage gap); covers Medicare-excluded drugs (e.g., specific OTC drugs, vitamins, minerals, limited cough/cold) if MO HealthNet eligible. For dual eligibles: 50% of co-pays/deductibles after Part D pays; MO HealthNet covers certain excluded drugs.\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online via mydss.mo.gov (MO HealthNet application integrates with MoRx)\",\n      \"Phone: Not specified in results; use MO HealthNet helpline (implied via DSS)\",\n      \"Mail: MoRx Enrollment Form (historical, pre-2017; now via MO HealthNet app)\",\n      \"In-person: Local Family Support Division (FSD) offices for MO HealthNet\"\n    ],\n    \"processing_time\": \"Not specified in sources\",\n    \"waitlist\": null,\n    \"forms\": [\n      \"MoRx Enrollment Form (historical; requires personal info, income/assets—do not send if on MO HealthNet or employer plan)\",\n      \"MO HealthNet application (current path for eligibility)\"\n    ],\n    \"documents\": [\n      \"Proof of Missouri residency\",\n      \"Proof of income (e.g., tax returns, pay stubs)\",\n      \"Proof of assets (bank statements, etc.)\",\n      \"Medicare Part D plan info\",\n      \"MO HealthNet-related docs if applicable (spenddown notices)\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; available to all Missouri residents meeting eligibility\",\n    \"regional_variations\": null,\n    \"offices_or_providers\": [\"Local Family Support Division (FSD) offices statewide for MO HealthNet/MoRx\"]\n  },\n  \"official_source\": \"https://mydss.mo.gov/mhd/morx-general-faqs\",\n  \"gotchas\": [\n    \"Major 2017 change: Ended for those with only Medicare Part D (no Medicaid/MO HealthNet)—last coverage June 30, 2017[2][7]\",\n    \"Must enroll in Medicare Part D plan first; no MO HealthNet pharmacy coverage for Part D drugs without it[4][6]\",\n    \"Spenddown participants: Must meet spenddown at least once/year for MoRx to activate 50% coverage[4]\",\n    \"Automatic enrollment if receiving Medicare + MO HealthNet; otherwise apply via MO HealthNet[4]\",\n    \"Does not cover drugs excluded by both Medicare Part D and not MO HealthNet approved[4]\",\n    \"Outdated info common (e.g., pre-2017 income/assets still cited); always verify current MO HealthNet eligibility[1][3]\"\n  ],\n  \"data_shape_notes\": \"Post-2017 eligibility fully tied to MO HealthNet categories (full, spenddown, QMB); no standalone MoRx for pure Medicare seniors; income/assets historical and now MO HealthNet-dependent; dual eligibles get integrated Part D + MoRx layering\"\n}"
     },
     {
       "name": "Missouri Property Tax Credit (Circuit Breaker)",
       "eligibility": {
         "age": 65,
-        "income_limits": "Income limits vary by filer status and housing type: Renters or part-year owners - Single: ≤$27,200; Married (combined): ≤$29,200. Full-year homeowners - Single: ≤$30,000; Married (combined): ≤$34,000. Household income includes Social Security, pensions, wages, dividends, interest, rental income, public assistance, unemployment, SSI, TANF, child support, veteran benefits (unless 100% disabled), and non-business losses[1][2][4][6][8].",
-        "asset_limits": "No asset limits apply[1][2][4][6][8].",
+        "income_limits": "Homeowners (owned and occupied entire year): Single ≤ $30,000; Married filing combined ≤ $34,000. Renters or part-year owners: Single ≤ $27,200; Married filing combined ≤ $29,200. Income includes Social Security, pensions, wages, dividends, interest, rental income, public assistance, SSI, TANF, child support, non-business losses, and most veteran benefits (except 100% disability). Credits phase out incrementally above $14,300, with full maximum only at or below that threshold.[1][4][6]",
+        "asset_limits": "No asset limits or tests apply.[1][6]",
         "other_requirements": [
-          "65+ years old (on or before December 31 of tax year), or 18-64 and 100% disabled, or 60+ receiving surviving spouse Social Security benefits[1][2][4][5][6][8].",
-          "Missouri resident for the entire year[5][6].",
-          "For renters: Must rent from a property that pays property taxes (not eligible if from non-profit assisted living or similar facility that does not pay property taxes)[1][8].",
-          "Homeowners must have owned and occupied the home (limits differ for part-year owners, treated as renters)[4][6]."
+          "65+ years old by December 31 of tax year, or 18-64 and 100% disabled (per Social Security or VA), or 60+ receiving surviving spouse Social Security benefits.",
+          "Missouri resident entire year.",
+          "Homeowners must have owned and occupied home (full-year) or part-year; renters must have paid rent to a property that pays real estate taxes (not eligible if renting from non-profit assisted living or similar tax-exempt facility).",
+          "Must truthfully state no employment of illegal/unauthorized aliens (per qualification chart).[6]"
         ]
       },
       "benefits": {
         "type": "financial",
-        "value": "Tax credit up to $750 for renters/part-year owners; up to $1,100 for full-year homeowners. Amount is calculated based on real estate taxes or rent paid and total household income, fully available at ≤$14,300 income with phase-out to zero at max limits[1][2][3][4][5][6][7][8].",
-        "varies_by": "household_size"
+        "value": "Tax credit up to $750 for renters/part-year owners; up to $1,100 for full-year homeowners. Exact amount based on real estate taxes or rent paid and total household income (phases down incrementally above $14,300 until full phase-out at income limits).[1][3][4][6][8]",
+        "varies_by": "homeowner_renter_status|income_level"
       },
       "application": {
         "methods": [
-          "File Form MO-PTC (standalone) or Form MO-PTS (with MO-1040 income tax return)[5][6].",
-          "Online/mail via Missouri Department of Revenue at dor.mo.gov/forms[6].",
-          "Assistance: Call Aging Ahead at 800-243-6060 or 636-207-0847[2].",
-          "Email questions to PropertyTaxCredit@dor.mo.gov[6].",
-          "Local options (e.g., Eureka: Submit copy of MO-PTC by April 15 for utility adjustment)[5]."
+          "File with Missouri income tax return (attach Form MO-PTS to MO-1040).",
+          "Standalone Form MO-PTC if not filing income tax return.",
+          "Mail to: Missouri Department of Revenue, PO Box 3340, Jefferson City, MO 65105-3340 (implied from DOR process).",
+          "Email questions: PropertyTaxCredit@dor.mo.gov.",
+          "Local assistance: Contact Aging Ahead at 800-243-6060 or 636-207-0847; some cities like Eureka accept forms by April 15 for utility adjustments.[2][5]"
         ],
-        "processing_time": "Not specified in sources; typically processed with tax returns (file by April 15)[5].",
+        "processing_time": "Not specified in sources; typically processed with tax returns (standard DOR timelines apply).",
         "waitlist": null,
         "forms": [
-          "MO-PTC (Property Tax Credit Claim, for non-filers)[5][6].",
-          "MO-PTS (with MO-1040 for income tax filers)[5][6]."
+          "MO-PTC (standalone Property Tax Credit Claim)",
+          "MO-PTS (if filing MO-1040)"
         ],
         "documents": [
-          "Proof of real estate taxes paid (homeowners) or rent paid (renters)[1][2][4][6][8].",
-          "Income documentation covering all household income sources (taxable/nontaxable)[4][6].",
-          "Proof of age, disability (if under 65), or surviving spouse benefits[1][4][6]."
+          "Proof of real estate taxes paid (for homeowners) or rent paid (for renters, e.g., receipts/lease).",
+          "Income documentation for all household income sources (taxable/nontaxable).",
+          "Proof of age, disability (if under 65), or surviving spouse benefits.",
+          "Completed qualification chart verification.[6]"
         ]
       },
       "geography": {
         "statewide": true,
-        "restrictions": "None; statewide program administered by Missouri Department of Revenue[1][2][6][7][8].",
-        "regional_variations": "Local assistance available (e.g., Aging Ahead in certain areas); some cities like Eureka offer utility bill adjustments but core program uniform[2][5].",
+        "restrictions": "None; statewide for Missouri residents.",
+        "regional_variations": "Some local assistance (e.g., Aging Ahead in certain areas, Eureka city utility credit adjustment), but core program uniform via state DOR.[2][5]",
         "offices_or_providers": [
-          "Missouri Department of Revenue (dor.mo.gov); local Aging Ahead offices (e.g., 800-243-6060)[2][6][8]"
+          "Statewide via DOR; local help from aging agencies like Aging Ahead"
         ]
       },
       "official_source": "https://dor.mo.gov/taxation/individual/tax-types/property-tax-credit/",
       "gotchas": [
-        "Renters from facilities not paying property taxes (e.g., non-profit assisted living) ineligible[1][8].",
-        "Income includes all sources, taxable and nontaxable, often leading to surprises[4][6].",
-        "Part-year owners use renter limits ($27,200 single/$29,200 married)[4][6].",
-        "Do not use MO-PTC if filing MO-1040 (use MO-PTS instead)[6].",
-        "Limits unchanged since 2008; may not reflect current costs, with phase-out starting at $14,300[1][3][7].",
-        "Must be full-year Missouri resident[5][6]."
+        "Renters ineligible if facility doesn't pay property taxes (e.g., non-profit assisted living).[1][8]",
+        "Income includes nontaxable sources like Social Security/SSI—many miss this, causing overestimation of eligibility.[4]",
+        "Full max credit ($750/$1,100) only for incomes ≤$14,300; phases down above that—middle-income qualify for less.[1][3]",
+        "Cannot use MO-PTC if filing MO-1040 (must use MO-PTS instead).[6]",
+        "Must be full-year resident; part-year owners use lower income limits.[4][6]",
+        "Proposed expansions (e.g., higher limits) not yet law as of 2023 data.[3]"
       ],
-      "data_shape_notes": "Income limits differ by single/married and renter vs. full-year owner; credit phases out incrementally by income with separate max amounts ($750/$1,100); no asset test",
-      "_raw": "{\n  \"name\": \"Missouri Property Tax Credit (Circuit Breaker)\",\n  \"eligibility\": {\n    \"age\": 65,\n    \"income_limits\": \"Income limits vary by filer status and housing type: Renters or part-year owners - Single: ≤$27,200; Married (combined): ≤$29,200. Full-year homeowners - Single: ≤$30,000; Married (combined): ≤$34,000. Household income includes Social Security, pensions, wages, dividends, interest, rental income, public assistance, unemployment, SSI, TANF, child support, veteran benefits (unless 100% disabled), and non-business losses[1][2][4][6][8].\",\n    \"asset_limits\": \"No asset limits apply[1][2][4][6][8].\",\n    \"other_requirements\": [\n      \"65+ years old (on or before December 31 of tax year), or 18-64 and 100% disabled, or 60+ receiving surviving spouse Social Security benefits[1][2][4][5][6][8].\",\n      \"Missouri resident for the entire year[5][6].\",\n      \"For renters: Must rent from a property that pays property taxes (not eligible if from non-profit assisted living or similar facility that does not pay property taxes)[1][8].\",\n      \"Homeowners must have owned and occupied the home (limits differ for part-year owners, treated as renters)[4][6].\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Tax credit up to $750 for renters/part-year owners; up to $1,100 for full-year homeowners. Amount is calculated based on real estate taxes or rent paid and total household income, fully available at ≤$14,300 income with phase-out to zero at max limits[1][2][3][4][5][6][7][8].\",\n    \"varies_by\": \"household_size\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"File Form MO-PTC (standalone) or Form MO-PTS (with MO-1040 income tax return)[5][6].\",\n      \"Online/mail via Missouri Department of Revenue at dor.mo.gov/forms[6].\",\n      \"Assistance: Call Aging Ahead at 800-243-6060 or 636-207-0847[2].\",\n      \"Email questions to PropertyTaxCredit@dor.mo.gov[6].\",\n      \"Local options (e.g., Eureka: Submit copy of MO-PTC by April 15 for utility adjustment)[5].\"\n    ],\n    \"processing_time\": \"Not specified in sources; typically processed with tax returns (file by April 15)[5].\",\n    \"waitlist\": null,\n    \"forms\": [\n      \"MO-PTC (Property Tax Credit Claim, for non-filers)[5][6].\",\n      \"MO-PTS (with MO-1040 for income tax filers)[5][6].\"\n    ],\n    \"documents\": [\n      \"Proof of real estate taxes paid (homeowners) or rent paid (renters)[1][2][4][6][8].\",\n      \"Income documentation covering all household income sources (taxable/nontaxable)[4][6].\",\n      \"Proof of age, disability (if under 65), or surviving spouse benefits[1][4][6].\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; statewide program administered by Missouri Department of Revenue[1][2][6][7][8].\",\n    \"regional_variations\": \"Local assistance available (e.g., Aging Ahead in certain areas); some cities like Eureka offer utility bill adjustments but core program uniform[2][5].\",\n    \"offices_or_providers\": [\"Missouri Department of Revenue (dor.mo.gov); local Aging Ahead offices (e.g., 800-243-6060)[2][6][8]\"]\n  },\n  \"official_source\": \"https://dor.mo.gov/taxation/individual/tax-types/property-tax-credit/\",\n  \"gotchas\": [\n    \"Renters from facilities not paying property taxes (e.g., non-profit assisted living) ineligible[1][8].\",\n    \"Income includes all sources, taxable and nontaxable, often leading to surprises[4][6].\",\n    \"Part-year owners use renter limits ($27,200 single/$29,200 married)[4][6].\",\n    \"Do not use MO-PTC if filing MO-1040 (use MO-PTS instead)[6].\",\n    \"Limits unchanged since 2008; may not reflect current costs, with phase-out starting at $14,300[1][3][7].\",\n    \"Must be full-year Missouri resident[5][6].\"\n  ],\n  \"data_shape_notes\": \"Income limits differ by single/married and renter vs. full-year owner; credit phases out incrementally by income with separate max amounts ($750/$1,100); no asset test\"\n}"
+      "data_shape_notes": "Income limits differ by filer status (single/married) and tenure (full-year owner vs. renter/part-year); refundable credit scales by taxes/rent paid and phases by income brackets, not household size beyond couple filing.",
+      "_raw": "{\n  \"name\": \"Missouri Property Tax Credit (Circuit Breaker)\",\n  \"eligibility\": {\n    \"age\": 65,\n    \"income_limits\": \"Homeowners (owned and occupied entire year): Single ≤ $30,000; Married filing combined ≤ $34,000. Renters or part-year owners: Single ≤ $27,200; Married filing combined ≤ $29,200. Income includes Social Security, pensions, wages, dividends, interest, rental income, public assistance, SSI, TANF, child support, non-business losses, and most veteran benefits (except 100% disability). Credits phase out incrementally above $14,300, with full maximum only at or below that threshold.[1][4][6]\",\n    \"asset_limits\": \"No asset limits or tests apply.[1][6]\",\n    \"other_requirements\": [\n      \"65+ years old by December 31 of tax year, or 18-64 and 100% disabled (per Social Security or VA), or 60+ receiving surviving spouse Social Security benefits.\",\n      \"Missouri resident entire year.\",\n      \"Homeowners must have owned and occupied home (full-year) or part-year; renters must have paid rent to a property that pays real estate taxes (not eligible if renting from non-profit assisted living or similar tax-exempt facility).\",\n      \"Must truthfully state no employment of illegal/unauthorized aliens (per qualification chart).[6]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Tax credit up to $750 for renters/part-year owners; up to $1,100 for full-year homeowners. Exact amount based on real estate taxes or rent paid and total household income (phases down incrementally above $14,300 until full phase-out at income limits).[1][3][4][6][8]\",\n    \"varies_by\": \"homeowner_renter_status|income_level\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"File with Missouri income tax return (attach Form MO-PTS to MO-1040).\",\n      \"Standalone Form MO-PTC if not filing income tax return.\",\n      \"Mail to: Missouri Department of Revenue, PO Box 3340, Jefferson City, MO 65105-3340 (implied from DOR process).\",\n      \"Email questions: PropertyTaxCredit@dor.mo.gov.\",\n      \"Local assistance: Contact Aging Ahead at 800-243-6060 or 636-207-0847; some cities like Eureka accept forms by April 15 for utility adjustments.[2][5]\"\n    ],\n    \"processing_time\": \"Not specified in sources; typically processed with tax returns (standard DOR timelines apply).\",\n    \"waitlist\": null,\n    \"forms\": [\"MO-PTC (standalone Property Tax Credit Claim)\", \"MO-PTS (if filing MO-1040)\"],\n    \"documents\": [\n      \"Proof of real estate taxes paid (for homeowners) or rent paid (for renters, e.g., receipts/lease).\",\n      \"Income documentation for all household income sources (taxable/nontaxable).\",\n      \"Proof of age, disability (if under 65), or surviving spouse benefits.\",\n      \"Completed qualification chart verification.[6]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; statewide for Missouri residents.\",\n    \"regional_variations\": \"Some local assistance (e.g., Aging Ahead in certain areas, Eureka city utility credit adjustment), but core program uniform via state DOR.[2][5]\",\n    \"offices_or_providers\": [\"Statewide via DOR; local help from aging agencies like Aging Ahead\"]\n  },\n  \"official_source\": \"https://dor.mo.gov/taxation/individual/tax-types/property-tax-credit/\",\n  \"gotchas\": [\n    \"Renters ineligible if facility doesn't pay property taxes (e.g., non-profit assisted living).[1][8]\",\n    \"Income includes nontaxable sources like Social Security/SSI—many miss this, causing overestimation of eligibility.[4]\",\n    \"Full max credit ($750/$1,100) only for incomes ≤$14,300; phases down above that—middle-income qualify for less.[1][3]\",\n    \"Cannot use MO-PTC if filing MO-1040 (must use MO-PTS instead).[6]\",\n    \"Must be full-year resident; part-year owners use lower income limits.[4][6]\",\n    \"Proposed expansions (e.g., higher limits) not yet law as of 2023 data.[3]\"\n  ],\n  \"data_shape_notes\": \"Income limits differ by filer status (single/married) and tenure (full-year owner vs. renter/part-year); refundable credit scales by taxes/rent paid and phases by income brackets, not household size beyond couple filing.\"\n}"
     },
     {
       "name": "Aged and Disabled Waiver (ADW)",
       "eligibility": {
         "age": 63,
-        "income_limits": "As of 2023, single applicants: $903 monthly; married applicants: $1,215 monthly. Limits set by MO HealthNet; certain exclusions and disregards may apply. No full household size table specified; consult MO HealthNet for updates[1][2].",
-        "asset_limits": "Single: $5,000; married: $10,000. Home equity limit in 2026: $752,000 if intending to return home. Home exempt if spouse, minor child under 21, or blind/disabled adult child (21+) lives there. Potential exposure to Medicaid Estate Recovery[1][2].",
+        "income_limits": "As of 2023, single applicant: $903/month; married couple: $1,215/month. Must be within MO HealthNet limits; certain disregards may apply. Updated figures should be verified with current MO HealthNet guidelines as they adjust annually[2].",
+        "asset_limits": "Single: $5,000; married couple: $10,000. Exempt: primary home (if spouse/minor child/disabled adult child lives there), one vehicle, household furnishings, personal effects, appliances. 60-month look-back rule applies; transfers below fair market value result in penalty period[1][2].",
         "other_requirements": [
-          "Missouri resident, U.S. citizen or qualified alien, valid Social Security number[1][9].",
-          "Meet Nursing Facility Level of Care (NFLOC) via InterRAI HC assessment (typically 21+ points on 0-60 scale, assessing ADLs like mobility, eating, bathing, cognition)[1][2][4].",
-          "Live in home or community setting (not assisted living or adult foster care)[1].",
-          "Need at least one ADW service to remain safely at home[1].",
-          "For ages 63-64: physical disability required; 65+: age-based[2][5]."
+          "Missouri resident, U.S. citizen or qualified alien, valid SSN[2][9].",
+          "Meet Nursing Facility Level of Care (NFLOC) via InterRAI HC assessment (typically ≥21 points on 0-60 scale, based on ADLs like mobility, eating, bathing, cognition)[1][2].",
+          "At risk of institutionalization; live in home/community setting (not assisted living or foster care)[2].",
+          "Enrolled in MO HealthNet (Missouri Medicaid)[2].",
+          "For ages 63-64: must be physically disabled; services continue after 65[1]."
         ]
       },
       "benefits": {
         "type": "service",
-        "value": "Homemaker services, chore services, basic and advanced respite, home-delivered meals, adult day care[4][5][7][8].",
+        "value": "Home and community-based services (HCBS): adult day care, homemaker services, chore services, basic respite, advanced respite, home-delivered meals. Specific hours/dollars not fixed; based on assessed needs to avoid nursing home placement[1][4][5][6][7].",
         "varies_by": "priority_tier"
       },
       "application": {
         "methods": [
-          "Contact Missouri Department of Social Services (DSS), local case management agencies, or Area Agencies on Aging (for older adults)[4].",
-          "Administered by Department of Health and Senior Services, Division of Senior and Disability Services[7].",
-          "No specific phone, URL, mail, or in-person details in results; start via mydss.mo.gov or dss.mo.gov[7][8]."
+          "Contact Missouri Department of Social Services (DSS) or local case management agencies[4].",
+          "Department of Health and Senior Services, Division of Senior and Disability Services (administers program)[6][7].",
+          "Area Agencies on Aging (for older adults)[4].",
+          "Phone/website not specified in sources; start via mydss.mo.gov or dss.mo.gov/mhd/waivers[6][7]."
         ],
-        "processing_time": "Not specified in results.",
-        "waitlist": "Not an entitlement program; limited enrollment slots may cause waitlists despite meeting eligibility[6].",
+        "processing_time": "Not specified in sources.",
+        "waitlist": "Yes; not an entitlement program with limited enrollment slots[8].",
         "forms": [
-          "Aged & Disabled Waiver (ADW) Application Draft[8].",
-          "Aged & Disabled Waiver (ADW) LOC Amendment Draft[8]."
+          "Aged & Disabled Waiver (ADW) Application Draft (available via DSS waiver documents)[7]."
         ],
         "documents": [
-          "Proof of residency, citizenship/qualified alien status, Social Security number.",
-          "Income and asset documentation.",
-          "Medical/functional assessment records for NFLOC.",
-          "Home equity details if applicable."
+          "Proof of residency, citizenship/SSN, income/assets.",
+          "Medical records for disability/NFLOC assessment.",
+          "InterRAI HC assessment completed by professional[1]."
         ]
       },
       "geography": {
         "statewide": true,
         "restrictions": "None specified; available statewide for eligible residents.",
-        "regional_variations": "Administered via local case management agencies and Area Agencies on Aging, potentially leading to regional differences in providers or wait times; no specific variations detailed[4].",
+        "regional_variations": "Administered via local case management agencies and Area Agencies on Aging; potential differences in providers or wait times by region not detailed[4].",
         "offices_or_providers": [
-          "Missouri Department of Social Services (DSS)[4].",
-          "Department of Health and Senior Services, Division of Senior and Disability Services[7].",
-          "Local case management agencies[4].",
-          "Area Agencies on Aging (for older adults)[4]."
+          "Department of Health and Senior Services, Division of Senior and Disability Services.",
+          "Local DSS offices, Area Agencies on Aging[4][6]."
         ]
       },
-      "official_source": "https://dss.mo.gov/mhd/waivers/1915c-home-and-community-waivers/aged-and-disabled.htm[8]",
+      "official_source": "https://dss.mo.gov/mhd/waivers/1915c-home-and-community-waivers/aged-and-disabled.htm",
       "gotchas": [
-        "Not entitlement-based: eligibility met does not guarantee slot due to limited enrollment[6].",
-        "Must live in home/community, not assisted living[1].",
-        "Home equity limit ($752,000 in 2026) and estate recovery risk[2].",
-        "Income/asset limits outdated (2023 figures); verify current with MO HealthNet[1].",
-        "For 18-62: some sources conflict on ADW vs. separate Adult Day Care Waiver; ADW primarily 63+[5].",
-        "Functional assessment required; dementia alone insufficient[2]."
+        "Not entitlement: limited slots mean waitlist even if eligible[8].",
+        "60-month look-back on asset transfers triggers penalties[1].",
+        "Home exempt only under specific conditions (e.g., spouse/child living there); subject to estate recovery[1].",
+        "Dementia diagnosis alone insufficient; must meet NFLOC score[1].",
+        "Must live in community setting, not assisted living[2].",
+        "Income/asset limits from 2023; verify current as they change yearly[2]."
       ],
-      "data_shape_notes": "Limited slots create waitlists; tiered/prioritized access; financials tied to MO HealthNet Medicaid eligibility with specific LOC assessment; statewide but local agency delivery.",
-      "_raw": "{\n  \"name\": \"Aged and Disabled Waiver (ADW)\",\n  \"eligibility\": {\n    \"age\": 63,\n    \"income_limits\": \"As of 2023, single applicants: $903 monthly; married applicants: $1,215 monthly. Limits set by MO HealthNet; certain exclusions and disregards may apply. No full household size table specified; consult MO HealthNet for updates[1][2].\",\n    \"asset_limits\": \"Single: $5,000; married: $10,000. Home equity limit in 2026: $752,000 if intending to return home. Home exempt if spouse, minor child under 21, or blind/disabled adult child (21+) lives there. Potential exposure to Medicaid Estate Recovery[1][2].\",\n    \"other_requirements\": [\n      \"Missouri resident, U.S. citizen or qualified alien, valid Social Security number[1][9].\",\n      \"Meet Nursing Facility Level of Care (NFLOC) via InterRAI HC assessment (typically 21+ points on 0-60 scale, assessing ADLs like mobility, eating, bathing, cognition)[1][2][4].\",\n      \"Live in home or community setting (not assisted living or adult foster care)[1].\",\n      \"Need at least one ADW service to remain safely at home[1].\",\n      \"For ages 63-64: physical disability required; 65+: age-based[2][5].\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Homemaker services, chore services, basic and advanced respite, home-delivered meals, adult day care[4][5][7][8].\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact Missouri Department of Social Services (DSS), local case management agencies, or Area Agencies on Aging (for older adults)[4].\",\n      \"Administered by Department of Health and Senior Services, Division of Senior and Disability Services[7].\",\n      \"No specific phone, URL, mail, or in-person details in results; start via mydss.mo.gov or dss.mo.gov[7][8].\"\n    ],\n    \"processing_time\": \"Not specified in results.\",\n    \"waitlist\": \"Not an entitlement program; limited enrollment slots may cause waitlists despite meeting eligibility[6].\",\n    \"forms\": [\n      \"Aged & Disabled Waiver (ADW) Application Draft[8].\",\n      \"Aged & Disabled Waiver (ADW) LOC Amendment Draft[8].\"\n    ],\n    \"documents\": [\n      \"Proof of residency, citizenship/qualified alien status, Social Security number.\",\n      \"Income and asset documentation.\",\n      \"Medical/functional assessment records for NFLOC.\",\n      \"Home equity details if applicable.\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None specified; available statewide for eligible residents.\",\n    \"regional_variations\": \"Administered via local case management agencies and Area Agencies on Aging, potentially leading to regional differences in providers or wait times; no specific variations detailed[4].\",\n    \"offices_or_providers\": [\n      \"Missouri Department of Social Services (DSS)[4].\",\n      \"Department of Health and Senior Services, Division of Senior and Disability Services[7].\",\n      \"Local case management agencies[4].\",\n      \"Area Agencies on Aging (for older adults)[4].\"\n    ]\n  },\n  \"official_source\": \"https://dss.mo.gov/mhd/waivers/1915c-home-and-community-waivers/aged-and-disabled.htm[8]\",\n  \"gotchas\": [\n    \"Not entitlement-based: eligibility met does not guarantee slot due to limited enrollment[6].\",\n    \"Must live in home/community, not assisted living[1].\",\n    \"Home equity limit ($752,000 in 2026) and estate recovery risk[2].\",\n    \"Income/asset limits outdated (2023 figures); verify current with MO HealthNet[1].\",\n    \"For 18-62: some sources conflict on ADW vs. separate Adult Day Care Waiver; ADW primarily 63+[5].\",\n    \"Functional assessment required; dementia alone insufficient[2].\"\n  ],\n  \"data_shape_notes\": \"Limited slots create waitlists; tiered/prioritized access; financials tied to MO HealthNet Medicaid eligibility with specific LOC assessment; statewide but local agency delivery.\"\n}"
+      "data_shape_notes": "Limited enrollment slots create waitlists; NFLOC determined by scored InterRAI HC assessment; services needs-based without fixed hours/dollars; income/assets tied to MO HealthNet with annual adjustments.",
+      "_raw": "{\n  \"name\": \"Aged and Disabled Waiver (ADW)\",\n  \"eligibility\": {\n    \"age\": 63,\n    \"income_limits\": \"As of 2023, single applicant: $903/month; married couple: $1,215/month. Must be within MO HealthNet limits; certain disregards may apply. Updated figures should be verified with current MO HealthNet guidelines as they adjust annually[2].\",\n    \"asset_limits\": \"Single: $5,000; married couple: $10,000. Exempt: primary home (if spouse/minor child/disabled adult child lives there), one vehicle, household furnishings, personal effects, appliances. 60-month look-back rule applies; transfers below fair market value result in penalty period[1][2].\",\n    \"other_requirements\": [\n      \"Missouri resident, U.S. citizen or qualified alien, valid SSN[2][9].\",\n      \"Meet Nursing Facility Level of Care (NFLOC) via InterRAI HC assessment (typically ≥21 points on 0-60 scale, based on ADLs like mobility, eating, bathing, cognition)[1][2].\",\n      \"At risk of institutionalization; live in home/community setting (not assisted living or foster care)[2].\",\n      \"Enrolled in MO HealthNet (Missouri Medicaid)[2].\",\n      \"For ages 63-64: must be physically disabled; services continue after 65[1].\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Home and community-based services (HCBS): adult day care, homemaker services, chore services, basic respite, advanced respite, home-delivered meals. Specific hours/dollars not fixed; based on assessed needs to avoid nursing home placement[1][4][5][6][7].\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact Missouri Department of Social Services (DSS) or local case management agencies[4].\",\n      \"Department of Health and Senior Services, Division of Senior and Disability Services (administers program)[6][7].\",\n      \"Area Agencies on Aging (for older adults)[4].\",\n      \"Phone/website not specified in sources; start via mydss.mo.gov or dss.mo.gov/mhd/waivers[6][7].\"\n    ],\n    \"processing_time\": \"Not specified in sources.\",\n    \"waitlist\": \"Yes; not an entitlement program with limited enrollment slots[8].\",\n    \"forms\": [\n      \"Aged & Disabled Waiver (ADW) Application Draft (available via DSS waiver documents)[7].\"\n    ],\n    \"documents\": [\n      \"Proof of residency, citizenship/SSN, income/assets.\",\n      \"Medical records for disability/NFLOC assessment.\",\n      \"InterRAI HC assessment completed by professional[1].\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None specified; available statewide for eligible residents.\",\n    \"regional_variations\": \"Administered via local case management agencies and Area Agencies on Aging; potential differences in providers or wait times by region not detailed[4].\",\n    \"offices_or_providers\": [\n      \"Department of Health and Senior Services, Division of Senior and Disability Services.\",\n      \"Local DSS offices, Area Agencies on Aging[4][6].\"\n    ]\n  },\n  \"official_source\": \"https://dss.mo.gov/mhd/waivers/1915c-home-and-community-waivers/aged-and-disabled.htm\",\n  \"gotchas\": [\n    \"Not entitlement: limited slots mean waitlist even if eligible[8].\",\n    \"60-month look-back on asset transfers triggers penalties[1].\",\n    \"Home exempt only under specific conditions (e.g., spouse/child living there); subject to estate recovery[1].\",\n    \"Dementia diagnosis alone insufficient; must meet NFLOC score[1].\",\n    \"Must live in community setting, not assisted living[2].\",\n    \"Income/asset limits from 2023; verify current as they change yearly[2].\"\n  ],\n  \"data_shape_notes\": \"Limited enrollment slots create waitlists; NFLOC determined by scored InterRAI HC assessment; services needs-based without fixed hours/dollars; income/assets tied to MO HealthNet with annual adjustments.\"\n}"
     },
     {
       "name": "Senior Independent Living Program (SILP)",
       "eligibility": {
         "age": 60,
-        "income_limits": "No specific income limits detailed in available sources; eligibility focuses on age, residency, and need for services to remain independent at home. Sources do not provide dollar amounts or household size tables.",
-        "asset_limits": "No asset limits specified.",
+        "income_limits": "No specific income limits stated; program targets seniors with insufficient resources to age independently in their own homes[4][5].",
+        "asset_limits": "No asset limits mentioned in available sources[4][5].",
         "other_requirements": [
-          "Missouri resident",
-          "Age 60 or older",
-          "Have lived in Missouri for at least five years (noted in one source)",
-          "Legally in the United States",
-          "Seniors with insufficient resources to age independently in their own homes, facing health or safety barriers"
+          "Missouri resident[4]",
+          "Seniors who have insufficient resources to age independently in their own homes[4][5]"
         ]
       },
       "benefits": {
         "type": "service",
-        "value": "Wrap-around services tailored to individual needs to help seniors age 60+ remain in their homes; specific services vary by program and include the most utilized categories (e.g., personal care, homemaker services, transportation—not itemized by hours or dollars in sources); goal is to improve health and safety.",
+        "value": "Wrap-around services tailored to individual needs to help seniors age 60+ remain in their homes; specific services vary by SILP and client needs (most utilized services listed by category per provider in FY2021, but exact lists not detailed); focuses on health and safety improvements[4][5].",
         "varies_by": "region"
       },
       "application": {
         "methods": [
-          "Contact specific SILP providers directly (no statewide centralized phone or URL listed; programs operated by local agencies)"
+          "Contact specific SILP providers: Jewish Federation of St. Louis (Creve Coeur), A Caring Plus Foundation (Jennings), Palestine Senior Center (Kansas City), Aging Best Senior Independent Living (location unspecified)[5]"
         ],
-        "processing_time": "Not specified in sources",
+        "processing_time": "Not specified",
         "waitlist": null,
         "forms": [],
         "documents": [
-          "Proof of age, residency, and Missouri residency duration if required",
-          "Documentation of health/safety barriers or insufficient resources (prepare based on provider intake)"
+          "Not detailed; prepare proof of age, residency, and needs assessment likely required"
         ]
       },
       "geography": {
         "statewide": false,
-        "restrictions": "Limited to designated planning areas served by four or five SILPs (sources vary: 4 in one, 5 in another)",
-        "regional_variations": "Services vary by SILP and needs of local population; different providers in specific urban areas.",
+        "restrictions": "Limited to designated planning areas served by four SILPs in urban areas[4][5]",
+        "regional_variations": "Services vary based on needs of eligible populations in each SILP's geographical area; different providers offer wrap-around services specific to their regions[4][5]",
         "offices_or_providers": [
-          "Jewish Federation of St. Louis (Creve Coeur)",
-          "A Caring Plus Foundation (Jennings)",
-          "Palestine Senior Center (Kansas City)",
-          "Aging Best Senior Independent Living (location not specified)",
-          "Fifth SILP not named in sources but indicated in older document"
+          "Jewish Federation of St. Louis in Creve Coeur",
+          "A Caring Plus Foundation in Jennings",
+          "Palestine Senior Center in Kansas City",
+          "Aging Best Senior Independent Living"
         ]
       },
-      "official_source": "https://health.mo.gov/seniors/pdf/program-info.pdf or https://oa.mo.gov/sites/default/files/dhss_senior_independent_living_program.pdf",
+      "official_source": "https://health.mo.gov/seniors/pdf/program-info.pdf[4]; https://oa.mo.gov/sites/default/files/dhss_senior_independent_living_program.pdf[5]",
       "gotchas": [
-        "Not statewide—only available through specific regional providers in select urban areas; families must contact local SILP directly.",
-        "Not a Medicaid waiver program (distinct from Independent Living Waiver, which targets younger adults 18+ with disabilities).",
-        "Services are needs-based and vary by location/provider—no fixed hours, dollars, or universal list.",
-        "Limited to 4-5 programs; may not cover rural areas.",
-        "No detailed eligibility dollar limits or application forms published, requiring direct provider contact."
+        "Not statewide—only available through 4 specific providers in select urban areas; families must contact the relevant SILP directly[4][5]",
+        "Not a Medicaid waiver program; state-funded and distinct from Independent Living Waiver (which is for younger adults 18+ with disabilities)[1][8]",
+        "Services are needs-based and vary by provider—no fixed dollar amounts or hours specified[4][5]",
+        "Limited to age 60+; excludes general independent living communities for 55+[6]"
       ],
-      "data_shape_notes": "Limited to 4-5 regional providers in urban areas; services customized per SILP with no standardized income/asset tests or statewide application process; data sparse on exact services, timelines, and documents.",
-      "_raw": "{\n  \"name\": \"Senior Independent Living Program (SILP)\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"No specific income limits detailed in available sources; eligibility focuses on age, residency, and need for services to remain independent at home. Sources do not provide dollar amounts or household size tables.\",\n    \"asset_limits\": \"No asset limits specified.\",\n    \"other_requirements\": [\n      \"Missouri resident\",\n      \"Age 60 or older\",\n      \"Have lived in Missouri for at least five years (noted in one source)\",\n      \"Legally in the United States\",\n      \"Seniors with insufficient resources to age independently in their own homes, facing health or safety barriers\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Wrap-around services tailored to individual needs to help seniors age 60+ remain in their homes; specific services vary by program and include the most utilized categories (e.g., personal care, homemaker services, transportation—not itemized by hours or dollars in sources); goal is to improve health and safety.\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact specific SILP providers directly (no statewide centralized phone or URL listed; programs operated by local agencies)\"\n    ],\n    \"processing_time\": \"Not specified in sources\",\n    \"waitlist\": null,\n    \"forms\": [],\n    \"documents\": [\n      \"Proof of age, residency, and Missouri residency duration if required\",\n      \"Documentation of health/safety barriers or insufficient resources (prepare based on provider intake)\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Limited to designated planning areas served by four or five SILPs (sources vary: 4 in one, 5 in another)\",\n    \"regional_variations\": \"Services vary by SILP and needs of local population; different providers in specific urban areas.\",\n    \"offices_or_providers\": [\n      \"Jewish Federation of St. Louis (Creve Coeur)\",\n      \"A Caring Plus Foundation (Jennings)\",\n      \"Palestine Senior Center (Kansas City)\",\n      \"Aging Best Senior Independent Living (location not specified)\",\n      \"Fifth SILP not named in sources but indicated in older document\"\n    ]\n  },\n  \"official_source\": \"https://health.mo.gov/seniors/pdf/program-info.pdf or https://oa.mo.gov/sites/default/files/dhss_senior_independent_living_program.pdf\",\n  \"gotchas\": [\n    \"Not statewide—only available through specific regional providers in select urban areas; families must contact local SILP directly.\",\n    \"Not a Medicaid waiver program (distinct from Independent Living Waiver, which targets younger adults 18+ with disabilities).\",\n    \"Services are needs-based and vary by location/provider—no fixed hours, dollars, or universal list.\",\n    \"Limited to 4-5 programs; may not cover rural areas.\",\n    \"No detailed eligibility dollar limits or application forms published, requiring direct provider contact.\"\n  ],\n  \"data_shape_notes\": \"Limited to 4-5 regional providers in urban areas; services customized per SILP with no standardized income/asset tests or statewide application process; data sparse on exact services, timelines, and documents.\"\n}"
+      "data_shape_notes": "Limited to 4 specific providers in urban areas; services customized per client and region, no standardized income/asset tests or fixed benefits; data sparse on application details and processing",
+      "_raw": "{\n  \"name\": \"Senior Independent Living Program (SILP)\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"No specific income limits stated; program targets seniors with insufficient resources to age independently in their own homes[4][5].\",\n    \"asset_limits\": \"No asset limits mentioned in available sources[4][5].\",\n    \"other_requirements\": [\n      \"Missouri resident[4]\",\n      \"Seniors who have insufficient resources to age independently in their own homes[4][5]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Wrap-around services tailored to individual needs to help seniors age 60+ remain in their homes; specific services vary by SILP and client needs (most utilized services listed by category per provider in FY2021, but exact lists not detailed); focuses on health and safety improvements[4][5].\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact specific SILP providers: Jewish Federation of St. Louis (Creve Coeur), A Caring Plus Foundation (Jennings), Palestine Senior Center (Kansas City), Aging Best Senior Independent Living (location unspecified)[5]\"\n    ],\n    \"processing_time\": \"Not specified\",\n    \"waitlist\": null,\n    \"forms\": [],\n    \"documents\": [\"Not detailed; prepare proof of age, residency, and needs assessment likely required\"]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Limited to designated planning areas served by four SILPs in urban areas[4][5]\",\n    \"regional_variations\": \"Services vary based on needs of eligible populations in each SILP's geographical area; different providers offer wrap-around services specific to their regions[4][5]\",\n    \"offices_or_providers\": [\n      \"Jewish Federation of St. Louis in Creve Coeur\",\n      \"A Caring Plus Foundation in Jennings\",\n      \"Palestine Senior Center in Kansas City\",\n      \"Aging Best Senior Independent Living\"\n    ]\n  },\n  \"official_source\": \"https://health.mo.gov/seniors/pdf/program-info.pdf[4]; https://oa.mo.gov/sites/default/files/dhss_senior_independent_living_program.pdf[5]\",\n  \"gotchas\": [\n    \"Not statewide—only available through 4 specific providers in select urban areas; families must contact the relevant SILP directly[4][5]\",\n    \"Not a Medicaid waiver program; state-funded and distinct from Independent Living Waiver (which is for younger adults 18+ with disabilities)[1][8]\",\n    \"Services are needs-based and vary by provider—no fixed dollar amounts or hours specified[4][5]\",\n    \"Limited to age 60+; excludes general independent living communities for 55+[6]\"\n  ],\n  \"data_shape_notes\": \"Limited to 4 specific providers in urban areas; services customized per client and region, no standardized income/asset tests or fixed benefits; data sparse on application details and processing\"\n}"
     }
   ]
 }

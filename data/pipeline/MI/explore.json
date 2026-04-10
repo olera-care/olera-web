@@ -1,4 +1,59 @@
 {
-  "programs": [],
-  "raw": "I can provide information on several major federal senior benefit programs as administered in Michigan based on the search results, though the results don't contain complete details for all categories you've requested.\n\nHere's what I can confirm from the search results:\n\n**Programs with Michigan-specific information available:**\n\n- **MI Health Link**: Combines Medicare and Medicaid for \"dual eligible\" seniors in 25 participating counties. Members receive all services through a single managed care plan with no copayments or deductibles for in-network care.[1]\n\n- **Michigan Medicare Assistance Program (MMAP)**: Provides Medicare counseling and prescription drug assistance. The program saved state residents over $800,000 in prescription drug costs in the previous year.[1]\n\n- **MI Choice Medicaid Waiver**: A home and community-based services waiver administered by the Area Agency on Aging of Northwest Michigan (AAANM), offering case coordination, care management, and services like transportation, meals, and in-home support.[3]\n\n- **SNAP (Food Assistance)**: Maximum monthly benefit of $291 with an income limit of $1,580/month for individuals. Seniors 60+ can apply through simplified processes, and medical expenses over $35/month can be deducted from income.[2]\n\n- **LIHEAP (Energy Assistance)**: Maximum benefit of $500–$1,000/year, with application periods from October–March.[2]\n\n- **Nursing Home Long-Term Care Ombudsman**: Provided through AAANM and local area agencies on aging.[3]\n\n- **Legal Services**: Elder Law of Michigan (866-400-9164) provides free legal services for seniors 60 and older.[5]\n\n- **Meals on Wheels**: Available through local Area Agencies on Aging; contact the Eldercare Locator at 800-677-1116.[5]\n\n**Limitations:** The search results do not contain sufficient Michigan-specific details for PACE, QMB/SLMB/QI Medicare Savings programs, Weatherization Assistance, SCSEP (Senior Community Service Employment Program), or caregiver/respite support programs to provide the complete JSON format you requested with official URLs and specific benefit values for all categories."
+  "entity": "Michigan",
+  "entitySlug": "michigan",
+  "state": "MI",
+  "stateName": "Michigan",
+  "isRegion": false,
+  "exploredAt": "2026-04-09T14:13:21.318Z",
+  "programCount": 6,
+  "programs": [
+    {
+      "name": "Michigan Choice Waiver Program",
+      "what_it_does": "This Medicaid-based program provides comprehensive long-term support services in participants' homes as an alternative to nursing home placement, serving about 18,000 seniors statewide. Local agencies coordinate individualized care plans, with a 'Self-Determination' option allowing seniors to select their own caregivers, often adult children (though not spouses or guardians).[1]",
+      "who_its_for": "Seniors requiring nursing home level of care but wishing to stay at home; must qualify for Medicaid.",
+      "whats_unique": "State-specific Medicaid waiver with self-determination feature enabling payment to family caregivers in most cases, not universally available in other states.",
+      "official_url": "https://seniorsite.org/resource/15-hidden-benefits-every-michigan-senior-should-know-in-2025/",
+      "benefit_value": "Home-based long-term care services for ~18,000 participants; paid family caregiving option."
+    },
+    {
+      "name": "MI Health Link Program",
+      "what_it_does": "This program integrates Medicare and Medicaid services into a single managed care plan for dual-eligible individuals, streamlining healthcare delivery and eliminating copays or deductibles for in-network care including prescriptions. It reduces out-of-pocket costs for participants in 25 participating counties.[1]",
+      "who_its_for": "Dual-eligible seniors age 21+ in 25 MI counties with Medicare Parts A/B/D and full Medicaid, not in hospice, MI Choice Waiver, or PACE.",
+      "whats_unique": "Michigan-specific integrated care model for dual eligibles, designed by state health department to simplify separate federal systems.",
+      "official_url": "https://seniorsite.org/resource/15-hidden-benefits-every-michigan-senior-should-know-in-2025/",
+      "benefit_value": "No copays/deductibles on covered care; serves thousands of older residents."
+    },
+    {
+      "name": "MI Options",
+      "what_it_does": "This statewide program connects older adults and people with disabilities to free person-centered counseling for long-term care, Medicare, home-based services like meal delivery or in-home care. It helps navigate benefits, services, and community supports through a network of local partners.[3]",
+      "who_its_for": "Older adults and people with disabilities in Michigan seeking long-term care or Medicare guidance.",
+      "whats_unique": "State-launched counseling network by MDHHS specifically to simplify Michigan's long-term care and Medicare options.",
+      "official_url": "https://www.michigan.gov/mdhhs",
+      "benefit_value": "Free counseling and connections to home/community services."
+    },
+    {
+      "name": "Senior Project Fresh Program",
+      "what_it_does": "This seasonal supplemental nutrition program provides eligible older adults with benefits to exchange for locally-grown produce and honey at Michigan farmers' markets and roadside stands. It promotes access to fresh, local foods.[2]",
+      "who_its_for": "Eligible older adults (typically 60+), low-income.",
+      "whats_unique": "Michigan-specific state program focused on redeeming benefits at local MI farmers' markets for fresh produce/honey.",
+      "official_url": "https://www.michigan.gov/mdhhs/adult-child-serv/adults-and-seniors/acls/special-programs",
+      "benefit_value": "Seasonal vouchers for fresh Michigan produce (value varies by eligibility)."
+    },
+    {
+      "name": "MiCAFE (Michigan's Coordinated Access to Food for the Elderly)",
+      "what_it_does": "This program assists seniors with benefit applications to access food assistance via Michigan Bridge Card for grocery purchases. It helps overcome barriers like complex paperwork or transportation to offices.[6]",
+      "who_its_for": "Seniors 60+ statewide, including those who may think they have too much income to qualify.",
+      "whats_unique": "Statewide application assistance program by Elder Law of Michigan tailored for elderly food benefits.",
+      "official_url": "https://www.elderlawofmi.org/micafe",
+      "benefit_value": "$23-$292/month in food benefits for single seniors."
+    },
+    {
+      "name": "Senior Companion Program",
+      "what_it_does": "Volunteers aged 55+ provide assistance and friendship to adults with difficulty in daily activities, helping them maintain independence. It complements core aging services through Michigan's aging network.[2]",
+      "who_its_for": "Adults needing help with daily living; volunteer providers 55+.",
+      "whats_unique": "State-implemented program within Michigan's aging network for senior volunteers aiding peers.",
+      "official_url": "https://www.michigan.gov/mdhhs/adult-child-serv/adults-and-seniors/acls/special-programs",
+      "benefit_value": "Free companionship and assistance services."
+    }
+  ]
 }

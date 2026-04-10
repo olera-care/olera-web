@@ -1,113 +1,56 @@
 {
   "state": "WY",
   "stateName": "Wyoming",
-  "comparedAt": "2026-04-09T09:45:17.091Z",
-  "total": 14,
+  "comparedAt": "2026-04-09T17:40:57.379Z",
+  "total": 3,
   "newPrograms": 0,
-  "withDiffs": 14,
-  "withNovelFields": 14,
+  "withDiffs": 3,
+  "withNovelFields": 3,
   "benefitTypes": {
-    "service": 9,
-    "financial": 3,
-    "employment": 1,
-    "advocacy": 1
+    "financial": 3
   },
   "variationPatterns": {
-    "program_type_and_individual_assessment": 1,
-    "priority_tier (waitlist based on eligibility date); service models (participant-directed vs agency-directed)[1][5]": 1,
-    "not_applicable": 3,
-    "priority_tier": 5,
-    "household_size": 1,
-    "household_size|income|fuel_type|priority_tier": 1,
-    "region": 1,
-    "fixed": 1
+    "not_applicable": 1,
+    "household_size|priority_tier|fuel_type": 1,
+    "income_level": 1
   },
   "novelFieldSummary": {
     "asset_limits": {
-      "count": 13,
+      "count": 3,
       "programs": [
-        "Wyoming Medicaid Long-Term Care",
-        "Community Choices Waiver (CCW)",
-        "PACE Wyoming",
-        "Medicare Savings Programs (QMB, SLMB, QI) in Wyoming",
-        "SNAP (Food Stamps)",
-        "Wyoming Energy Assistance (LIHEAP)",
-        "Weatherization Assistance Program",
-        "Meals on Wheels (via Title III-C)",
-        "National Family Caregiver Support Program",
-        "Senior Community Service Employment Program (SCSEP)",
-        "Legal Assistance for Seniors (via Wyoming Legal Services)",
-        "Long-Term Care Ombudsman Program",
-        "Wyoming Home Services Program (WyHS)"
+        "Wyoming State Parks Senior Discounts",
+        "Low Income Energy Assistance Program (LIHEAP)",
+        "Wyoming Tax Refund for Elderly & Disabled"
       ],
       "note": "Our model has no asset limit fields"
     },
-    "regional_variations": {
-      "count": 13,
+    "documents_required": {
+      "count": 3,
       "programs": [
-        "Wyoming Medicaid Long-Term Care",
-        "Community Choices Waiver (CCW)",
-        "PACE Wyoming",
-        "SNAP (Food Stamps)",
-        "Wyoming Energy Assistance (LIHEAP)",
-        "Weatherization Assistance Program",
-        "Wyoming State Health Insurance Information Program (WSHIIP)",
-        "Meals on Wheels (via Title III-C)",
-        "National Family Caregiver Support Program",
-        "Senior Community Service Employment Program (SCSEP)",
-        "Legal Assistance for Seniors (via Wyoming Legal Services)",
-        "Long-Term Care Ombudsman Program",
-        "Wyoming Home Services Program (WyHS)"
+        "Wyoming State Parks Senior Discounts",
+        "Low Income Energy Assistance Program (LIHEAP)",
+        "Wyoming Tax Refund for Elderly & Disabled"
+      ],
+      "note": "Has document checklist — our model doesn't store per-program documents"
+    },
+    "regional_variations": {
+      "count": 1,
+      "programs": [
+        "Low Income Energy Assistance Program (LIHEAP)"
       ],
       "note": "Program varies by region — our model doesn't capture this"
     },
     "waitlist": {
-      "count": 10,
-      "programs": [
-        "Wyoming Medicaid Long-Term Care",
-        "Community Choices Waiver (CCW)",
-        "PACE Wyoming",
-        "Medicare Savings Programs (QMB, SLMB, QI) in Wyoming",
-        "Wyoming Energy Assistance (LIHEAP)",
-        "Weatherization Assistance Program",
-        "Meals on Wheels (via Title III-C)",
-        "National Family Caregiver Support Program",
-        "Senior Community Service Employment Program (SCSEP)",
-        "Wyoming Home Services Program (WyHS)"
-      ],
-      "note": "Has waitlist info — our model has no wait time field"
-    },
-    "documents_required": {
-      "count": 14,
-      "programs": [
-        "Wyoming Medicaid Long-Term Care",
-        "Community Choices Waiver (CCW)",
-        "PACE Wyoming",
-        "Medicare Savings Programs (QMB, SLMB, QI) in Wyoming",
-        "SNAP (Food Stamps)",
-        "Wyoming Energy Assistance (LIHEAP)",
-        "Weatherization Assistance Program",
-        "Wyoming State Health Insurance Information Program (WSHIIP)",
-        "Meals on Wheels (via Title III-C)",
-        "National Family Caregiver Support Program",
-        "Senior Community Service Employment Program (SCSEP)",
-        "Legal Assistance for Seniors (via Wyoming Legal Services)",
-        "Long-Term Care Ombudsman Program",
-        "Wyoming Home Services Program (WyHS)"
-      ],
-      "note": "Has document checklist — our model doesn't store per-program documents"
-    },
-    "household_size_table": {
       "count": 1,
       "programs": [
-        "SNAP (Food Stamps)"
+        "Low Income Energy Assistance Program (LIHEAP)"
       ],
-      "note": "Benefits/eligibility vary by household size — we store a single number"
+      "note": "Has waitlist info — our model has no wait time field"
     }
   },
   "comparisons": [
     {
-      "name": "Wyoming Medicaid Long-Term Care",
+      "name": "Wyoming State Parks Senior Discounts",
       "isNew": false,
       "existingId": "wyoming",
       "existingVerified": null,
@@ -116,269 +59,43 @@
         {
           "field": "source_url",
           "ours": "MISSING",
-          "found": "health.wyo.gov/healthcarefin/medicaid/ (referenced in search results but specific pages not detailed)"
+          "found": "https://wyoparks.wyo.gov/index.php/permits-reservations/permits-fees"
         }
       ],
       "novelFields": [
         {
           "field": "asset_limits",
-          "value": "Countable assets must not exceed $2,000 for individuals or $3,000 for married couples if both require care[2]. Exempt assets include: one home (if equity under $602,000 and applicant intends to return or spouse/child under 21/disabled dependent resides there)[2]; one vehicle (if used for medical transport, employment, or primary vehicle of community spouse)[2]; household goods and personal effects[2]; irrevocable burial trusts (up to $1,800)[2].",
+          "value": "No asset limits.",
           "note": "Our model has no asset limit fields"
-        },
-        {
-          "field": "regional_variations",
-          "value": "Medical assessments are county-based (each county has a public health nursing office that evaluates applicants)[3], but no information provided on whether benefits, income limits, or processing times vary by region.",
-          "note": "Program varies by region — our model doesn't capture this"
-        },
-        {
-          "field": "waitlist",
-          "value": "Not specified in search results",
-          "note": "Has waitlist info — our model has no wait time field"
-        },
-        {
-          "field": "documents_required",
-          "value": "Search results do not provide a comprehensive list of required documents. General guidance: applicants should prepare documentation of income (all sources), assets, residency, citizenship/immigration status, and medical records for assessment.",
-          "note": "Has document checklist — our model doesn't store per-program documents"
-        }
-      ],
-      "dataShapeNotes": "Wyoming Medicaid Long-Term Care is structured as three distinct programs (Nursing Home Medicaid, HCBS Waivers, ABD Medicaid) with different benefit delivery models. It is an income-cap state requiring Qualified Income Trusts for over-limit applicants. Medical need assessment is county-based. Benefits vary significantly by program type and individual evaluation. Critical application logistics (phone, URLs, forms, processing times, regional variations) are not detailed in available search results, requiring direct contact with Wyoming Department of Health for complete guidance.",
-      "gotchas": [
-        "Wyoming has NOT expanded Medicaid under the ACA[6]—adults under 65 without minor children are ineligible regardless of income. This program is exclusively for elderly (65+), blind, or disabled individuals[6].",
-        "Income-cap state: Applicants exceeding the income limit ($2,982/month for singles in 2026) cannot simply reduce income—they must establish a Qualified Income Trust (QIT/Miller Trust) to qualify[2]. This is a specific planning tool many families miss.",
-        "60-month look-back period: Wyoming enforces a 60-month look-back rule to penalize asset transfers below market value[2]—families cannot simply gift assets to qualify.",
-        "Medical need is mandatory: Financial eligibility alone is insufficient. Applicants must demonstrate medical/functional need through LT101 assessment[3]. Meeting income and asset limits does NOT guarantee approval.",
-        "ABD Medicaid benefits are evaluated individually and provided one at a time, not all at once like Nursing Home Medicaid[5]—this affects what services are immediately available.",
-        "Not meeting initial criteria does not mean ineligibility[1]—elderly residents over the limits may still qualify through other mechanisms (e.g., QIT, spend-down strategies).",
-        "Search results lack critical application details: specific phone numbers, URLs, processing timelines, required documents, and regional office locations are not provided—families will need to contact Wyoming Department of Health directly."
-      ],
-      "benefitType": "service",
-      "benefitVariesBy": "program_type_and_individual_assessment",
-      "officialSource": "health.wyo.gov/healthcarefin/medicaid/ (referenced in search results but specific pages not detailed)"
-    },
-    {
-      "name": "Community Choices Waiver (CCW)",
-      "isNew": false,
-      "existingId": "wyoming",
-      "existingVerified": null,
-      "diffsFound": 1,
-      "diffs": [
-        {
-          "field": "source_url",
-          "ours": "MISSING",
-          "found": "https://health.wyo.gov/healthcarefin/hcbs/[3]"
-        }
-      ],
-      "novelFields": [
-        {
-          "field": "asset_limits",
-          "value": "Follows Wyoming Medicaid asset limits (limited countable assets); specifics not detailed in sources—primary residence, one vehicle often exempt; consult Medicaid rules[1][5]",
-          "note": "Our model has no asset limit fields"
-        },
-        {
-          "field": "regional_variations",
-          "value": "Case management providers vary by county (e.g., Align Services in Albany, Campbell, etc.); potential waitlist differences not detailed[4]",
-          "note": "Program varies by region — our model doesn't capture this"
-        },
-        {
-          "field": "waitlist",
-          "value": "Yes, not an entitlement program (capped at ~3,669 slots); priority by eligibility determination date[1]",
-          "note": "Has waitlist info — our model has no wait time field"
         },
         {
           "field": "documents_required",
           "value": [
-            "Social Security number[2]",
-            "Proof of residency, income, assets (for Medicaid eligibility)[1]",
-            "Disability verification if 19-64 (SSA determination)[2]",
-            "Nursing facility discharge date if applicable[2]"
+            "Photo ID proving age 62+",
+            "Proof of Wyoming residency (e.g., driver's license)."
           ],
           "note": "Has document checklist — our model doesn't store per-program documents"
         }
       ],
-      "dataShapeNotes": "Tied to Medicaid eligibility with NFLOC via LT-101 tool; county-specific case management providers; waitlisted with priority by eligibility date; two care models (participant/agency-directed)",
+      "dataShapeNotes": "No formal pass or application; simple proof-of-age/residency discount at entry. No income/asset tests. Distinct from annual resident passes which require purchase.",
       "gotchas": [
-        "Must be Medicaid-eligible first; apply/renew Medicaid before or with CCW[1][2][3]",
-        "Waiting list due to slot cap; not guaranteed access[1]",
-        "Requires selecting county-specific case management agency[2][4]",
-        "Level of care reassessed annually[2]",
-        "Applying over income/asset limits leads to denial[1]"
+        "Discounts not automatic—must request and show proof of age/residency each time.",
+        "Separate from federal Senior Pass (for national parks like Yellowstone).",
+        "Annual camping passes (resident-only) provide discounts but are not senior-specific; seniors get on-the-spot reductions instead.",
+        "No dedicated senior pass sticker; differs from states with formal senior passes like Nevada or Texas.",
+        "Historic sites may have fixed senior pricing (e.g., $9 adult/$4.50 youth at some, but seniors qualify for reduced)."
       ],
-      "benefitType": "service",
-      "benefitVariesBy": "priority_tier (waitlist based on eligibility date); service models (participant-directed vs agency-directed)[1][5]",
-      "officialSource": "https://health.wyo.gov/healthcarefin/hcbs/[3]"
-    },
-    {
-      "name": "PACE Wyoming",
-      "isNew": false,
-      "existingId": "wyoming",
-      "existingVerified": null,
-      "diffsFound": 1,
-      "diffs": [
-        {
-          "field": "source_url",
-          "ours": "MISSING",
-          "found": "https://health.wyo.gov/ (Wyoming Department of Health); https://www.medicaid.gov/medicaid/long-term-services-supports/program-of-all-inclusive-care-for-elderly"
-        }
-      ],
-      "novelFields": [
-        {
-          "field": "asset_limits",
-          "value": "No specific asset limits stated for PACE; for free Medicaid coverage, countable assets (excluding house and one automobile) must meet Wyoming Medicaid institutional thresholds (exact amounts not specified in sources)[4][7].",
-          "note": "Our model has no asset limit fields"
-        },
-        {
-          "field": "regional_variations",
-          "value": "Program closed statewide in October 2021 due to state budget cuts; no current operational programs confirmed as of source dates[5][6]",
-          "note": "Program varies by region — our model doesn't capture this"
-        },
-        {
-          "field": "waitlist",
-          "value": "Possible waitlists due to capped federal/state funding; varied by state/program[3]",
-          "note": "Has waitlist info — our model has no wait time field"
-        },
-        {
-          "field": "documents_required",
-          "value": [
-            "Medical records for NFLOC assessment; proof of residency in service area; Medicaid/Medicare status if applicable[2][5]"
-          ],
-          "note": "Has document checklist — our model doesn't store per-program documents"
-        }
-      ],
-      "dataShapeNotes": "Program closed in Wyoming since 2021; previously single-site (Cheyenne); no income test but ties to Medicaid institutional rules; not statewide, provider-restricted",
-      "gotchas": [
-        "Wyoming's only PACE program (WY PACE) closed in 2021 due to budget cuts; currently unavailable[5][6]",
-        "Not statewide; strictly limited to specific service areas where a PACE provider operates[1][2]",
-        "NFLOC certification required, varying by state definition[1]",
-        "Non-Medicaid pay high private premiums; 99% enrollees are dual-eligible[4]",
-        "Capped funding may cause waitlists[3]"
-      ],
-      "benefitType": "service",
+      "benefitType": "financial",
       "benefitVariesBy": "not_applicable",
-      "officialSource": "https://health.wyo.gov/ (Wyoming Department of Health); https://www.medicaid.gov/medicaid/long-term-services-supports/program-of-all-inclusive-care-for-elderly"
+      "officialSource": "https://wyoparks.wyo.gov/index.php/permits-reservations/permits-fees"
     },
     {
-      "name": "Medicare Savings Programs (QMB, SLMB, QI) in Wyoming",
-      "isNew": false,
-      "existingId": "medicare-savings-programs",
-      "existingVerified": null,
-      "diffsFound": 3,
-      "diffs": [
-        {
-          "field": "income_limit",
-          "ours": "$967",
-          "found": "$1,350",
-          "source": "https://ecom.wyo.gov/m1100-medicare-savings-programs (Wyoming Department of Health); https://www.medicare.gov/basics/costs/help/medicare-savings-programs (federal Medicare.gov)"
-        },
-        {
-          "field": "benefit_value",
-          "ours": "$2,000 – $8,000/year",
-          "found": "**QMB:** Pays Part A premiums (if you don't have premium-free Part A), Part B premiums, deductibles, coinsurance, and copayments for Medicare-covered services and items[5]\n\n**SLMB:** Pays Part B premiums only (you must have both Part A and Part B to qualify)[5]\n\n**QI:** Pays Medicare Part B premiums; also automatically qualifies you for Extra Help prescription drug program with copayments capped at $12.65 per drug in 2026[2][5]",
-          "source": "https://ecom.wyo.gov/m1100-medicare-savings-programs (Wyoming Department of Health); https://www.medicare.gov/basics/costs/help/medicare-savings-programs (federal Medicare.gov)"
-        },
-        {
-          "field": "source_url",
-          "ours": "MISSING",
-          "found": "https://ecom.wyo.gov/m1100-medicare-savings-programs (Wyoming Department of Health); https://www.medicare.gov/basics/costs/help/medicare-savings-programs (federal Medicare.gov)"
-        }
-      ],
-      "novelFields": [
-        {
-          "field": "asset_limits",
-          "value": "Wyoming uses federal asset limits for QMB, SLMB, and QI programs[4]:\n- Single: $9,090\n- Married couple: $13,630\n\nThese limits apply to countable resources; certain assets may be excluded depending on state policy[1]. The search results do not specify which assets are exempt or how they are counted.",
-          "note": "Our model has no asset limit fields"
-        },
-        {
-          "field": "waitlist",
-          "value": "QI Program operates on a first-come, first-served basis with priority given to people who received QI benefits in the previous year[5]. No waitlist information provided for QMB or SLMB.",
-          "note": "Has waitlist info — our model has no wait time field"
-        },
-        {
-          "field": "documents_required",
-          "value": "Search results do not specify required documentation. Typically, Medicare Savings Program applications require proof of income, resources, Medicare enrollment, and citizenship, but Wyoming-specific requirements should be confirmed with the state Medicaid agency.",
-          "note": "Has document checklist — our model doesn't store per-program documents"
-        }
-      ],
-      "dataShapeNotes": "Wyoming Medicare Savings Programs operate as a three-tier system (QMB, SLMB, QI) with escalating income limits and decreasing benefit levels. Benefits scale by program tier rather than household size. Income limits include a $20 household disregard. Asset limits are uniform across the first three tiers but differ for QDWI (a fourth program for disabled working individuals). The QI Program operates on first-come, first-served basis with priority carryover, creating potential waitlist dynamics. Search results lack specific Wyoming contact information, application forms, processing timelines, and documentation requirements — these details must be obtained directly from the state Medicaid agency.",
-      "gotchas": [
-        "QI Program is only available for people who don't qualify for any other Medicaid coverage or benefits[5] — if you qualify for QMB or SLMB, you cannot use QI",
-        "QI Program requires annual reapplication and operates on first-come, first-served basis; funding may be limited in some years[5]",
-        "Income limits include a $20 disregard per household, which slightly raises the effective threshold[3]",
-        "Asset limits are relatively low ($9,090 single/$13,630 married for QMB/SLMB/QI); exceeding these limits disqualifies applicants regardless of income[4]",
-        "Some states don't count certain types of income or resources when determining eligibility; Wyoming's specific exclusions are not detailed in search results — confirm with state agency",
-        "QMB provides the most comprehensive coverage (premiums, deductibles, coinsurance, copayments), while SLMB and QI only cover premiums — families should understand the tier differences",
-        "Search results do not provide specific Wyoming contact phone numbers, online application portals, or processing timelines — families must contact the state Medicaid agency directly for application details"
-      ],
-      "benefitType": "financial",
-      "benefitVariesBy": "priority_tier",
-      "officialSource": "https://ecom.wyo.gov/m1100-medicare-savings-programs (Wyoming Department of Health); https://www.medicare.gov/basics/costs/help/medicare-savings-programs (federal Medicare.gov)"
-    },
-    {
-      "name": "SNAP (Food Stamps)",
+      "name": "Low Income Energy Assistance Program (LIHEAP)",
       "isNew": false,
       "existingId": "wyoming",
       "existingVerified": null,
       "diffsFound": 1,
       "diffs": [
-        {
-          "field": "source_url",
-          "ours": "MISSING",
-          "found": "https://dfs.wyo.gov/assistance-programs/food-assistance/supplemental-nutrition-assistance-program-snap"
-        }
-      ],
-      "novelFields": [
-        {
-          "field": "asset_limits",
-          "value": "Countable resources: $4,500 if household includes member 60+ or disabled; $3,000 otherwise (some sources note $2,500/$3,750). Exempt: SSI recipients, POWER/Tribal TANF households, home, vehicles. Countable: bank accounts, etc.[1][2][3]",
-          "note": "Our model has no asset limit fields"
-        },
-        {
-          "field": "household_size_table",
-          "value": "Households with a member age 60+ or disabled have no gross income limit but must meet net income limits (100% poverty): 1: $1305, 2: $1763, 3: $2221, 4: $2680, 5: $3138, 6: $3596, 7: $4055, 8: $4513 monthly. Other households must meet gross (130% poverty or 165% for elderly/disabled in some contexts): 1: $1696/$2152, 2: $2292/$2909, 3: $2888/$3665, 4: $3483/$4421, 5: $4079/$5177, 6: $4675/$5934, 7: $5271/$6690, 8: $5867/$7446 and net limits. Net income calculated after deductions: 20% earned income, standard ($177 for 1-3, $184 for 4, $215 for 5, $246 for 6+), medical (> $35 for elderly/disabled), dependent care, child support, shelter (uncapped for elderly/disabled, max $569 otherwise).[2][3][6]",
-          "note": "Benefits/eligibility vary by household size — we store a single number"
-        },
-        {
-          "field": "regional_variations",
-          "value": "Administered by county DFS offices; potential differences in processing.",
-          "note": "Program varies by region — our model doesn't capture this"
-        },
-        {
-          "field": "documents_required",
-          "value": [
-            "Proof of income, resources, residency, identity, medical expenses (for elderly/disabled deductions), shelter costs, utilities."
-          ],
-          "note": "Has document checklist — our model doesn't store per-program documents"
-        }
-      ],
-      "dataShapeNotes": "Elderly/disabled special rules: no gross income limit, higher asset limit ($4500), uncapped shelter deduction; income/asset tests vary by household composition; county-administered statewide; benefits scale by household size and net income after deductions.",
-      "gotchas": [
-        "Elderly/disabled households: no gross income limit but asset/net tests apply; uncapped shelter deduction.",
-        "Resources exempt for SSI/POWER recipients but countable otherwise (e.g., bank accounts).",
-        "Must apply in specific county; deductions like medical/shelter critical for qualification.",
-        "No time limit on benefits if eligible; work exemptions for elderly/disabled households."
-      ],
-      "benefitType": "financial",
-      "benefitVariesBy": "household_size",
-      "officialSource": "https://dfs.wyo.gov/assistance-programs/food-assistance/supplemental-nutrition-assistance-program-snap"
-    },
-    {
-      "name": "Wyoming Energy Assistance (LIHEAP)",
-      "isNew": false,
-      "existingId": "low-income-energy-assistance-program-liheap",
-      "existingVerified": null,
-      "diffsFound": 3,
-      "diffs": [
-        {
-          "field": "income_limit",
-          "ours": "$3092",
-          "found": "$2,985",
-          "source": "https://dfs.wyo.gov/assistance-programs/home-utilities-energy-assistance/"
-        },
-        {
-          "field": "benefit_value",
-          "ours": "$500 – $2,000/year",
-          "found": "Heating assistance: one-time payment to utility/vendor, minimum $49, maximum $2,176 per season. Crisis assistance: up to $550 for emergencies like shutoff, broken heater, or empty fuel tank. Covers primary heating fuels (propane, pellets, wood, heating oil, coal, utilities). Not full coverage of energy costs.",
-          "source": "https://dfs.wyo.gov/assistance-programs/home-utilities-energy-assistance/"
-        },
         {
           "field": "source_url",
           "ours": "MISSING",
@@ -388,46 +105,43 @@
       "novelFields": [
         {
           "field": "asset_limits",
-          "value": "No asset limits mentioned in program sources.",
+          "value": "No asset limits mentioned in current program details.[1][2]",
           "note": "Our model has no asset limit fields"
         },
         {
           "field": "regional_variations",
-          "value": "Administered statewide by Wyoming Department of Family Services; eligibility determined by contractor NOWCAP. Local agencies handle applications with potential regional wait variations due to demand.",
+          "value": "Administered statewide by Dept. of Family Services; eligibility determined by contractors like NOWCAP (covers state, possible regional processing differences). No specific wait time or provider variations detailed.[1][3]",
           "note": "Program varies by region — our model doesn't capture this"
         },
         {
           "field": "waitlist",
-          "value": "Higher-than-normal applications reported; phone callback system manages demand.",
+          "value": "Funding limited; applications may stop if funds exhausted (no formal waitlist mentioned).[2]",
           "note": "Has waitlist info — our model has no wait time field"
         },
         {
           "field": "documents_required",
           "value": [
-            "Proof of identity",
-            "Proof of income for all household members",
-            "Recent utility bill",
-            "Social Security numbers for household members",
-            "Proof of U.S. citizenship or eligible immigration status"
+            "Proof of household income (earned/unearned).",
+            "Most recent utility bill.",
+            "Photocopy of ID for every household member.",
+            "Application form.[1]"
           ],
           "note": "Has document checklist — our model doesn't store per-program documents"
         }
       ],
-      "dataShapeNotes": "Income at 60% state median (higher than federal 150% FPL in WY); priority tiers for elderly/disabled/young children/crisis; statewide but local agency delivery; heating-season only (Oct-April); varies by fuel type and crisis status.",
+      "dataShapeNotes": "Income at 60% state median (recent ~$60k for 1); automatic eligibility via SNAP/SSI/TANF; crisis tiered; statewide but contractor-processed; seasonal/funding-limited.",
       "gotchas": [
-        "Priority for elderly 60+ and crisis cases until Oct. 1; general applications Oct. 1-April 30 only.",
-        "No cooling assistance.",
-        "Household counts all at address on utility bill (differs from SNAP).",
-        "High application volume; use callback phone feature.",
-        "Covers heating fuels/utilities directly; not full bill payment.",
-        "2025-2026 season applications open until April 30, 2026."
+        "Applications Oct 1 - Apr 30 (2025-2026 season; heating through Mar 31, crisis to Apr 15); funds limited, may close early.",
+        "Crisis requires regular app first.",
+        "Everyone at address counts as household (even non-sharing expenses).",
+        "Elderly: no special age priority beyond automatic via SSI; compare to property tax relief (different income/asset rules, residency req).[1][2][3][6]"
       ],
       "benefitType": "financial",
-      "benefitVariesBy": "household_size|income|fuel_type|priority_tier",
+      "benefitVariesBy": "household_size|priority_tier|fuel_type",
       "officialSource": "https://dfs.wyo.gov/assistance-programs/home-utilities-energy-assistance/"
     },
     {
-      "name": "Weatherization Assistance Program",
+      "name": "Wyoming Tax Refund for Elderly & Disabled",
       "isNew": false,
       "existingId": "wyoming",
       "existingVerified": null,
@@ -436,413 +150,34 @@
         {
           "field": "source_url",
           "ours": "MISSING",
-          "found": "https://dfs.wyo.gov/assistance-programs/home-utilities-energy-assistance/weatherization-assistance-program-wap-2/"
+          "found": "https://www.lincolninst.edu/app/uploads/legacy-files/gwipp/upload/sources/Wyoming/2017/WY_Tax_Refund_for_Elderly_and_Disabled_Wyoming_Department_of_Health_2013.pdf (2013/2017 info; check Wyoming Department of Health for current)"
         }
       ],
       "novelFields": [
         {
           "field": "asset_limits",
-          "value": "No asset limits mentioned.",
+          "value": "Total household assets must not exceed $29,950 per adult household member. Specific exemptions not detailed in sources.",
           "note": "Our model has no asset limit fields"
-        },
-        {
-          "field": "regional_variations",
-          "value": "Administered via regional contractors/subcontractors (e.g., NOWCAP, Wyoming Energy Council, Council of Community Services historically; current via Wyoming Weatherization Services (WWS), Community Action Partnership of Natrona County (CCS); local agency contacts for scheduling/audits; potential wait time/provider differences.[3][4][5]",
-          "note": "Program varies by region — our model doesn't capture this"
-        },
-        {
-          "field": "waitlist",
-          "value": "Services based on priority point system (elderly, disabled, children under 5 prioritized); approval does not guarantee services same year; historical waiting lists noted.[1][4]",
-          "note": "Has waitlist info — our model has no wait time field"
         },
         {
           "field": "documents_required",
           "value": [
-            "Proof of income (if not auto-eligible via other programs).",
-            "Rental Verification or Landlord Agreement (renters).",
-            "Proof of residency and home ownership/rental status.[1][2]"
+            "Proof of age/disability, income documentation, residency proof, asset statements (inferred from eligibility)"
           ],
           "note": "Has document checklist — our model doesn't store per-program documents"
         }
       ],
-      "dataShapeNotes": "Tied to LIEAP eligibility (200% FPL); priority tiers for elderly/disabled/kids under 5; regional contractors handle delivery; no fixed dollar cap detailed recently, up to ~$4,000 historically; year-round apps but funding-constrained.",
+      "dataShapeNotes": "Annual reapplication required; refund prorated by income tiers (full below threshold, phased out above); statewide but data outdated (2013+); separate from property tax programs with different admins/eligibility",
       "gotchas": [
-        "Approval for LIEAP/WAP does not guarantee weatherization services due to priority system and funding limits.[1][2][4]",
-        "Renters must secure landlord permission; restrictions apply.[1]",
-        "Home must not be for sale/rent soon or previously DOE-weatherized.[2]",
-        "Joint LIEAP application required; WAP considered automatically but prioritized.[1][7]",
-        "Crisis aid available but varies by situation until ~April (e.g., 2025).[6]"
+        "Must reapply every year with new application",
+        "Totally (100%) disabled for full year prior; not partial disability",
+        "Income limits and refund amounts may have changed since 2013 data (e.g., older 2006/2007 figures differ)",
+        "Asset limit per adult household member; excludes unclear items",
+        "Distinguish from separate Property Tax Refund Program (administered by Dept. of Revenue, different eligibility like 5-year residency, median income-based)"
       ],
-      "benefitType": "service",
-      "benefitVariesBy": "priority_tier",
-      "officialSource": "https://dfs.wyo.gov/assistance-programs/home-utilities-energy-assistance/weatherization-assistance-program-wap-2/"
-    },
-    {
-      "name": "Wyoming State Health Insurance Information Program (WSHIIP)",
-      "isNew": false,
-      "existingId": "senior-health-insurance-information-program-shiip",
-      "existingVerified": null,
-      "diffsFound": 2,
-      "diffs": [
-        {
-          "field": "benefit_value",
-          "ours": "$1,000 – $5,000/year",
-          "found": "Free, one-on-one health insurance counseling and information services. Specific services include: Medicare Part A and B education, Medicare Prescription Drug Coverage (Part D) guidance, Medicare Supplement Insurance (Medigap) information, Medicare Advantage Plans (HMOs and PPOs) comparison, long-term care insurance counseling, Medicare Savings Programs (QMB, SLMB, QI) information, prescription drug assistance programs and drug discount cards, Medicaid and other insurance program information, free or reduced-fee health care program referrals. Counselors help beneficiaries understand benefits, identify and compare health insurance options, and protect against overpaying for medical care and prescription drugs.[4] Free Long Term Care Insurance Buyers Guide and Free Medicare Supplement Insurance Buyers Guide available.[6]",
-          "source": "https://www.wyomingseniors.com/services/wyoming-state-health-insurance-information-program"
-        },
-        {
-          "field": "source_url",
-          "ours": "MISSING",
-          "found": "https://www.wyomingseniors.com/services/wyoming-state-health-insurance-information-program"
-        }
-      ],
-      "novelFields": [
-        {
-          "field": "regional_variations",
-          "value": "Program operates through over eighty trained volunteers distributed in almost every county across Wyoming.[6] Specific volunteer names and phone numbers available by calling 1-800-856-4398.[6]",
-          "note": "Program varies by region — our model doesn't capture this"
-        },
-        {
-          "field": "documents_required",
-          "value": "No documents required to receive counseling. However, having your Medicare card, insurance documents, and prescription list available when you call may be helpful for counselors to provide targeted advice.",
-          "note": "Has document checklist — our model doesn't store per-program documents"
-        }
-      ],
-      "dataShapeNotes": "WSHIIP is a federally mandated, grant-funded counseling and advocacy program with no eligibility barriers (no income or asset tests). It is fundamentally different from insurance programs like CHIP or Medicaid — it provides information and guidance rather than direct coverage or financial benefits. The program's reach is distributed through a volunteer network rather than centralized offices, making it accessible across rural and urban Wyoming. The program is specifically designed to help beneficiaries navigate complex Medicare rules and avoid overpaying for coverage and prescriptions.",
-      "gotchas": [
-        "WSHIIP is a counseling and information program, NOT an insurance enrollment program. It does not enroll you in plans or provide financial assistance — it educates you so you can make informed decisions.[4][6]",
-        "This program is specifically designed for Medicare beneficiaries and seniors, though it serves others. Families seeking coverage for children should explore Kid Care CHIP or Medicaid instead.[1]",
-        "Counselors are volunteers who must attend yearly in-services to stay current on Medicare issues — quality and depth of counseling may vary by volunteer.[6]",
-        "The program provides guidance on Medicare Savings Programs (QMB, SLMB, QI) but does not determine eligibility or process applications for those programs.[4]",
-        "If you receive a call claiming to be from Social Security asking for your Social Security number, hang up and call Social Security directly at 1-800-772-1213 to verify. WSHIIP counselors will not ask for this information unsolicited.[6]",
-        "Hours of operation are 8:00 am - 5:00 pm (Wyoming time).[5]"
-      ],
-      "benefitType": "service",
-      "benefitVariesBy": "not_applicable",
-      "officialSource": "https://www.wyomingseniors.com/services/wyoming-state-health-insurance-information-program"
-    },
-    {
-      "name": "Meals on Wheels (via Title III-C)",
-      "isNew": false,
-      "existingId": "wyoming",
-      "existingVerified": null,
-      "diffsFound": 1,
-      "diffs": [
-        {
-          "field": "source_url",
-          "ours": "MISSING",
-          "found": "https://health.wyo.gov/"
-        }
-      ],
-      "novelFields": [
-        {
-          "field": "asset_limits",
-          "value": "No asset limits; program is non-means tested.",
-          "note": "Our model has no asset limit fields"
-        },
-        {
-          "field": "regional_variations",
-          "value": "Administered by local providers (e.g., Meals on Wheels of Cheyenne serves homebound/ill 60+ with $4.25 suggested contribution; Natrona County requires assessment and ability-based contribution; no denial for inability to pay); wait times and exact meals vary.",
-          "note": "Program varies by region — our model doesn't capture this"
-        },
-        {
-          "field": "waitlist",
-          "value": "Possible in some programs; no statewide data.",
-          "note": "Has waitlist info — our model has no wait time field"
-        },
-        {
-          "field": "documents_required",
-          "value": [
-            "Proof of age, residence, medical information, dietary restrictions, emergency contacts; financial details for suggested contribution (not required for eligibility); medical assessment for waivers."
-          ],
-          "note": "Has document checklist — our model doesn't store per-program documents"
-        }
-      ],
-      "dataShapeNotes": "Administered statewide via local providers with regional variations in contributions, assessments, and delivery; no income/asset tests; eligibility prioritizes homebound/geographically isolated 60+ with narrow exceptions for under 60.",
-      "gotchas": [
-        "Non-means tested federally, but local providers may assess for suggested contributions (no one denied for inability to pay).",
-        "Must contact local provider for zone eligibility; not all areas have identical coverage.",
-        "Home-delivered not strictly limited to 'homebound' per OAA (no definition); includes geographically isolated.",
-        "Annual reassessment; may shift to congregate if no longer homebound.",
-        "Weather may cancel deliveries in Wyoming.",
-        "Under 60 eligibility only if living with 60+ eligible or in specific settings."
-      ],
-      "benefitType": "service",
-      "benefitVariesBy": "priority_tier",
-      "officialSource": "https://health.wyo.gov/"
-    },
-    {
-      "name": "National Family Caregiver Support Program",
-      "isNew": false,
-      "existingId": "national-family-caregiver-support-program",
-      "existingVerified": null,
-      "diffsFound": 3,
-      "diffs": [
-        {
-          "field": "min_age",
-          "ours": "60",
-          "found": "18",
-          "source": "https://health.wyo.gov/aging/communityliving/older-americans-act-programs/nfcp/"
-        },
-        {
-          "field": "benefit_value",
-          "ours": "$2,000 – $8,000/year",
-          "found": "Respite care (temporary breaks from caregiving responsibilities); information about available services; assistance gaining access to services; individual counseling; organization of support groups; caregiver training; supplemental services on a limited basis; care coordination and counseling (available statewide).",
-          "source": "https://health.wyo.gov/aging/communityliving/older-americans-act-programs/nfcp/"
-        },
-        {
-          "field": "source_url",
-          "ours": "MISSING",
-          "found": "https://health.wyo.gov/aging/communityliving/older-americans-act-programs/nfcp/"
-        }
-      ],
-      "novelFields": [
-        {
-          "field": "asset_limits",
-          "value": "No asset limits specified; no mention of countable assets or exemptions.",
-          "note": "Our model has no asset limit fields"
-        },
-        {
-          "field": "regional_variations",
-          "value": "Grandparent/relative caregiver support (55+ caring for children 17 or younger or adults 18-59 with disabilities) limited to Johnson, Laramie, and Sheridan counties only. Services delivered by local provider organizations awarded grants.",
-          "note": "Program varies by region — our model doesn't capture this"
-        },
-        {
-          "field": "waitlist",
-          "value": "Not specified; may vary by region or provider availability.",
-          "note": "Has waitlist info — our model has no wait time field"
-        },
-        {
-          "field": "documents_required",
-          "value": [
-            "Documentation of caregiver age (18+).",
-            "Proof care receiver meets criteria (e.g., age 60+, dementia diagnosis, frailty via 2 ADLs/2 IADLs).",
-            "For paid respite caregivers (licensed nurses/CNAs): Reference checks, character references from previous employers.",
-            "Participant files must include eligibility checklist."
-          ],
-          "note": "Has document checklist — our model doesn't store per-program documents"
-        }
-      ],
-      "dataShapeNotes": "County-restricted availability (excluded in 7 counties); relative caregiver benefits only in 3 specific counties; no income or asset tests; services vary by local grantee providers; frailty required for core respite/supplemental benefits.",
-      "gotchas": [
-        "Program not available in 7 specific counties (Albany, Niobrara, Park, Platte, Sublette, Washakie, Weston).",
-        "Grandparent/relative caregiver eligibility restricted to only 3 counties (Johnson, Laramie, Sheridan).",
-        "No services if caregiver is paid for care via public programs or private arrangements.",
-        "Respite/supplemental services require care receiver to be frail (2 ADLs or 2 IADLs); care coordination/counseling more broadly available.",
-        "No mention of income/asset tests, but strict documentation and no backdating allowed.",
-        "Paid caregivers (e.g., nurses/CNAs) require specific reference checks."
-      ],
-      "benefitType": "service",
-      "benefitVariesBy": "region",
-      "officialSource": "https://health.wyo.gov/aging/communityliving/older-americans-act-programs/nfcp/"
-    },
-    {
-      "name": "Senior Community Service Employment Program (SCSEP)",
-      "isNew": false,
-      "existingId": "wyoming",
-      "existingVerified": null,
-      "diffsFound": 1,
-      "diffs": [
-        {
-          "field": "source_url",
-          "ours": "MISSING",
-          "found": "https://dws.wyo.gov/dws-division/workforce-center-program-operations/programs/senior-community-service-employment-program/[2]"
-        }
-      ],
-      "novelFields": [
-        {
-          "field": "asset_limits",
-          "value": "Not specified in available search results.",
-          "note": "Our model has no asset limit fields"
-        },
-        {
-          "field": "regional_variations",
-          "value": "Two separate service providers operate in Wyoming: (1) Wyoming Department of Workforce Services operates in 5 counties (Hot Springs, Fremont, Natrona, Washakie, and Converse)[2], and (2) The Center for Workforce Inclusion, Inc. serves Fremont, Hot Springs, Natrona, and Washakie counties[8]. There may be differences in contact information and staff, but specific service variations are not detailed in available search results.",
-          "note": "Program varies by region — our model doesn't capture this"
-        },
-        {
-          "field": "waitlist",
-          "value": "Space is limited[1], but specific waitlist information is not provided in available search results.",
-          "note": "Has waitlist info — our model has no wait time field"
-        },
-        {
-          "field": "documents_required",
-          "value": "Not specified in available search results. Contact your local office for required documentation.",
-          "note": "Has document checklist — our model doesn't store per-program documents"
-        }
-      ],
-      "dataShapeNotes": "This program's data structure is defined by severe geographic restriction (5 of 23 Wyoming counties only), strict income-based eligibility (125% federal poverty level), and fixed benefit structure (approximately 20 hours/week at minimum wage for 6–12 months). The program is not universally available in Wyoming, and families must first determine if they live in a served county before proceeding with eligibility assessment. Processing timelines and specific required documents are not publicly detailed in available sources, requiring direct contact with local offices.",
-      "gotchas": [
-        "**Limited geographic availability**: The program operates in only 5 of Wyoming's 23 counties. Families outside these counties cannot access SCSEP[2].",
-        "**Income threshold is strict**: At 125% of federal poverty level, the income limit is quite restrictive. A family slightly above this threshold will not qualify, even if they believe they need assistance[3].",
-        "**Unemployment requirement is absolute**: Participants must be currently unemployed; part-time or underemployed individuals may not qualify[3].",
-        "**Priority enrollment exists**: While not explicitly detailed, enrollment priority is given to veterans, those over 65, individuals with disabilities, those with low literacy or limited English proficiency, rural residents, homeless or at-risk individuals, and those with poor employment prospects[3]. Families should ask about priority status when applying.",
-        "**Space is limited**: The program explicitly states 'space is limited'[1], suggesting demand may exceed availability.",
-        "**No statewide coverage**: Despite Wyoming having 23 counties, only 5 are served. Families in unserved counties have no access to this program[1][2]."
-      ],
-      "benefitType": "employment",
-      "benefitVariesBy": "fixed",
-      "officialSource": "https://dws.wyo.gov/dws-division/workforce-center-program-operations/programs/senior-community-service-employment-program/[2]"
-    },
-    {
-      "name": "Legal Assistance for Seniors (via Wyoming Legal Services)",
-      "isNew": false,
-      "existingId": "wyoming-legal-services-for-the-elderly",
-      "existingVerified": null,
-      "diffsFound": 2,
-      "diffs": [
-        {
-          "field": "benefit_value",
-          "ours": "$500 – $3,000/year",
-          "found": "Free civil legal assistance including advice, representation in elder law, public benefits, housing, education, health care access, employment, domestic violence; may include simple wills, powers of attorney, advanced directives via related programs like Estate Planning Practicum.[6][8][9]",
-          "source": "https://www.lawyoming.org"
-        },
-        {
-          "field": "source_url",
-          "ours": "MISSING",
-          "found": "https://www.lawyoming.org"
-        }
-      ],
-      "novelFields": [
-        {
-          "field": "asset_limits",
-          "value": "Assets considered for eligibility in related elder law services (e.g., Medicaid planning), with limits like $2,000 for long-term care applicants (exceptions apply); specific counts/exemptions for Legal Aid not detailed—primary residence, vehicle may be exempt in similar programs.[5]",
-          "note": "Our model has no asset limit fields"
-        },
-        {
-          "field": "regional_variations",
-          "value": "Services via Legal Aid of Wyoming statewide, but related senior programs (e.g., caregiver support) limited to counties like Albany, Fremont, Park; county public health offices handle assessments for linked services like LT101[2][4]",
-          "note": "Program varies by region — our model doesn't capture this"
-        },
-        {
-          "field": "documents_required",
-          "value": [
-            "Proof of income, household size, assets, citizenship/residency, details of legal issue; specific list confirmed upon application[6]"
-          ],
-          "note": "Has document checklist — our model doesn't store per-program documents"
-        }
-      ],
-      "dataShapeNotes": "Eligibility via multiple providers (Legal Aid of Wyoming primary for free services, State Bar for modest means); no fixed income/asset tables published—case-by-case with federal poverty tie-in; priority-based case acceptance",
-      "gotchas": [
-        "Must apply directly with providers like Legal Aid of Wyoming to confirm eligibility—screeners like WYLawHelp provide estimates only[6]",
-        "Not all cases accepted; priority on civil matters, no criminal or fee-generating cases[8]",
-        "Modest Means is reduced fee ($100/hr max, $1,000 retainer), not free—only for those above free legal aid thresholds[6]",
-        "Funds restricted by Legal Services Corporation rules, cannot assist certain immigration/fee cases[8]"
-      ],
-      "benefitType": "service",
-      "benefitVariesBy": "priority_tier",
-      "officialSource": "https://www.lawyoming.org"
-    },
-    {
-      "name": "Long-Term Care Ombudsman Program",
-      "isNew": false,
-      "existingId": "long-term-care-ombudsman-program",
-      "existingVerified": null,
-      "diffsFound": 2,
-      "diffs": [
-        {
-          "field": "benefit_value",
-          "ours": "$10,000 – $30,000/year",
-          "found": "Advocacy to resolve complaints and problems including care quality, billing/charges, Medicare/Medicaid benefits, transfers/discharges, rights violations; investigates issues, recommends changes to improve quality of life, dignity, autonomy; provides information on facilities and regulations; handles elder abuse concerns; available in nursing homes, assisted living, board/care homes, home care, hospice, adult day care[1][2][3][4][6]",
-          "source": "https://health.wyo.gov/admin/long-term-care-ombudsman-program/[3]"
-        },
-        {
-          "field": "source_url",
-          "ours": "MISSING",
-          "found": "https://health.wyo.gov/admin/long-term-care-ombudsman-program/[3]"
-        }
-      ],
-      "novelFields": [
-        {
-          "field": "asset_limits",
-          "value": "No asset limits or tests apply[1][2][3]",
-          "note": "Our model has no asset limit fields"
-        },
-        {
-          "field": "regional_variations",
-          "value": "Three ombudsmen: state-level plus two regional coordinators via Wyoming Senior Citizens, Inc. (WSCI); Riverton covers Big Horn, Washakie, Park, Hot Springs, Teton, Fremont, Sublette, Lincoln, Uinta; Southeast Cheyenne covers Crook, Weston, Niobrara, Goshen, Platte, Laramie, Albany, Carbon, Sweetwater[3]",
-          "note": "Program varies by region — our model doesn't capture this"
-        },
-        {
-          "field": "documents_required",
-          "value": [
-            "No documents needed to initiate contact; provide details of concern (e.g., facility name, issue description); residents' rights documents and ombudsman contacts must be provided by facilities[2][3][9]"
-          ],
-          "note": "Has document checklist — our model doesn't store per-program documents"
-        }
-      ],
-      "dataShapeNotes": "no income/asset/age test; advocacy-only (not benefits/services); regionally coordinated via nonprofit contractor (WSCI); open to public inquiries; complaint-driven, no formal application",
-      "gotchas": [
-        "Not a direct service/funding program but free advocacy to resolve issues; no financial aid or personal care services provided[1][2][3]",
-        "Open to anyone (not just residents/families); includes providers, community groups seeking info/training[2][4]",
-        "Volunteers also advocate after training; families can become volunteers[1][4]",
-        "Covers home care/hospice in Wyoming per state law, unlike some states[6]",
-        "Contact regional ombudsman for local issues, not just state office[3]"
-      ],
-      "benefitType": "advocacy",
-      "benefitVariesBy": "not_applicable",
-      "officialSource": "https://health.wyo.gov/admin/long-term-care-ombudsman-program/[3]"
-    },
-    {
-      "name": "Wyoming Home Services Program (WyHS)",
-      "isNew": false,
-      "existingId": "home-delivered-meals",
-      "existingVerified": null,
-      "diffsFound": 3,
-      "diffs": [
-        {
-          "field": "min_age",
-          "ours": "60",
-          "found": "18",
-          "source": "https://health.wyo.gov/aging/communityliving/community-living-section-programs/wyhs/"
-        },
-        {
-          "field": "benefit_value",
-          "ours": "$1,500 – $3,600/year",
-          "found": "Specific in-home services including: Personal care (assistance with eating, dressing, bathing, toileting, transferring, walking); Homemaker services (meal prep, shopping, money management, phone use, light housework); Chore services (heavy housework, yard work, sidewalk maintenance); Respite care (temporary relief for caregivers); Home modifications (minor adaptations to facilitate home living). Tailored to individual service plan; no fixed dollar amounts or hours stated.[1][6][7]",
-          "source": "https://health.wyo.gov/aging/communityliving/community-living-section-programs/wyhs/"
-        },
-        {
-          "field": "source_url",
-          "ours": "MISSING",
-          "found": "https://health.wyo.gov/aging/communityliving/community-living-section-programs/wyhs/"
-        }
-      ],
-      "novelFields": [
-        {
-          "field": "asset_limits",
-          "value": "No asset limits or exemptions specified for WyHS; program focuses on functional needs rather than financial tests.[1][7]",
-          "note": "Our model has no asset limit fields"
-        },
-        {
-          "field": "regional_variations",
-          "value": "Administered by one provider per county with local offices (e.g., Campbell County Senior Center, Wyoming Senior Citizens Inc. for certain counties). Services and access via local Access Care Coordinators; potential differences in wait times or availability by provider capacity.[5][6][8]",
-          "note": "Program varies by region — our model doesn't capture this"
-        },
-        {
-          "field": "waitlist",
-          "value": "Not mentioned; may vary by local provider capacity.",
-          "note": "Has waitlist info — our model has no wait time field"
-        },
-        {
-          "field": "documents_required",
-          "value": [
-            "Not explicitly listed; prepare for functional assessment of ADLs/IADLs. No financial documents required per sources.[1]"
-          ],
-          "note": "Has document checklist — our model doesn't store per-program documents"
-        }
-      ],
-      "dataShapeNotes": "One provider per county with local administration; no income/asset tests, eligibility driven by functional needs and institutionalization risk; services customized per individual plan without fixed hours/dollars.",
-      "gotchas": [
-        "Not limited to seniors (starts at age 18, includes disabled adults); priority for those at risk of institutionalization.[1][8]",
-        "No financial eligibility test mentioned—unlike Medicaid programs; people may overlook applying due to assuming income barriers.[1][2]",
-        "Services exclude handling banking, medications, alcohol/tobacco purchases.[8]",
-        "State-funded grant, not Medicaid; one provider per county means contacting local office is essential.[8]",
-        "Tailored plans require ongoing evaluation every 90 days.[5]"
-      ],
-      "benefitType": "service",
-      "benefitVariesBy": "priority_tier",
-      "officialSource": "https://health.wyo.gov/aging/communityliving/community-living-section-programs/wyhs/"
+      "benefitType": "financial",
+      "benefitVariesBy": "income_level",
+      "officialSource": "https://www.lincolninst.edu/app/uploads/legacy-files/gwipp/upload/sources/Wyoming/2017/WY_Tax_Refund_for_Elderly_and_Disabled_Wyoming_Department_of_Health_2013.pdf (2013/2017 info; check Wyoming Department of Health for current)"
     }
   ]
 }

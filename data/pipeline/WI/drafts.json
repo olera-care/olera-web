@@ -1,30 +1,854 @@
 {
   "state": "WI",
   "stateName": "Wisconsin",
-  "draftedAt": "2026-04-09T09:44:33.178Z",
+  "draftedAt": "2026-04-09T17:40:18.801Z",
   "total": 5,
-  "successful": 0,
+  "successful": 5,
   "programs": [
     {
+      "id": "wisconsin-seniorcare-prescription-drug-coverage",
       "name": "SeniorCare",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "shortName": "Wisconsin SeniorCare",
+      "tagline": "Prescription drug coverage for Wisconsin seniors 65+ with copays as low as $5 per prescription.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Administered statewide by Wisconsin DHS; use any participating pharmacy (most WI pharmacies accept SeniorCare card)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 65+ and struggling with prescription drug costs in Wisconsin, SeniorCare can reduce their copays to $5 for generics and $15 for brand-name medications. This state program works alongside Medicare and other insurance to lower out-of-pocket costs at most Wisconsin pharmacies.\n\nSeniorCare uses income tiers to determine your parent's costs. The lowest tier (income under $25,536 for singles, $34,624 for couples) has no deductible and just $5/$15 copays. Higher income tiers have deductibles ranging from $500-$850 but still provide significant savings once met. Unlike many programs, there are no asset limits — only income matters.\n\nThe program requires a $30 annual enrollment fee and yearly renewal. Coverage starts the month after approval, so apply early if your parent's 65th birthday is approaching.",
+      "savingsRange": "$240 – $1,800/year",
+      "savingsSource": "Based on $5-15 copays vs typical retail prices for 10-20 prescriptions monthly",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+",
+          "Wisconsin resident",
+          "Income-based tiers up to no limit",
+          "No asset limits",
+          "$30 annual fee"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Wisconsin resident",
+          "U.S. citizen or qualifying immigrant",
+          "Cannot be on full-benefit Medicaid/BadgerCare Plus (some exceptions apply)",
+          "Annual renewal required"
+        ],
+        "povertyLevelReference": "240% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call 800-657-2038 to request an application or download online; processing takes 4-6 weeks.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Get the application",
+            "description": "Call 800-657-2038 to have an application mailed to you, or download from the Wisconsin DHS website"
+          },
+          {
+            "step": 2,
+            "title": "Gather required documents",
+            "description": "Collect Social Security number, proof of income (tax returns or pay stubs), proof of Wisconsin residency, and $30 enrollment fee"
+          },
+          {
+            "step": 3,
+            "title": "Submit completed application",
+            "description": "Mail the completed application with documents and $30 fee to the address provided on the form"
+          },
+          {
+            "step": 4,
+            "title": "Wait for approval",
+            "description": "Processing takes 4-6 weeks; coverage begins the month after approval, not immediately"
+          }
+        ],
+        "processingTime": "4-6 weeks",
+        "waitlist": null,
+        "tip": "Apply starting the month of your parent's 65th birthday — don't wait until after, as coverage doesn't start immediately.",
+        "urls": [
+          {
+            "label": "Download SeniorCare application",
+            "url": "https://www.dhs.wisconsin.gov/seniorcare"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "tier-comparison",
+          "heading": "Income Tiers and Costs",
+          "tiers": [
+            {
+              "name": "Level 1",
+              "description": "Lowest income tier",
+              "incomeLimit": "Individual: ≤$25,536/year; Couple: ≤$34,624/year",
+              "coverage": "No deductible. $5 generic, $15 brand-name copays. $0 vaccines."
+            },
+            {
+              "name": "Level 2A",
+              "description": "Moderate income tier",
+              "incomeLimit": "Individual: $25,537–$31,920/year; Couple: $34,625–$43,280/year",
+              "coverage": "$500 deductible, then $5 generic, $15 brand-name copays."
+            },
+            {
+              "name": "Level 2B",
+              "description": "Higher income tier",
+              "incomeLimit": "Individual: $31,921–$38,304/year; Couple: $43,281–$51,936/year",
+              "coverage": "$850 deductible, then $5 generic, $15 brand-name copays."
+            },
+            {
+              "name": "Level 3",
+              "description": "Highest income tier",
+              "incomeLimit": "Individual/Couple: Above $38,304/$51,936 (no upper limit)",
+              "coverage": "Monthly spenddown of income over limit, plus $850 deductible, then $5/$15 copays."
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Social Security number",
+                "Proof of Wisconsin residency"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Tax returns or pay stubs showing income",
+                "$30 enrollment fee (check or money order)",
+                "Other insurance information if applicable"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "For married couples, both spouses' income counts even if only one parent applies for SeniorCare. This can bump them into a higher tier with deductibles."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent use SeniorCare if they already have Medicare Part D?",
+          "answer": "Yes. SeniorCare coordinates with Medicare Part D and other insurance as a secondary payer, which may reduce your parent's out-of-pocket costs even further."
+        },
+        {
+          "question": "What happens if my parent's income is just over the Level 1 limit?",
+          "answer": "They'll qualify for Level 2A, which has a $500 deductible but the same low $5/$15 copays once the deductible is met. The deductible resets each year."
+        },
+        {
+          "question": "Does my parent's house or savings count against them?",
+          "answer": "No. SeniorCare has no asset limits or tests. Only income matters for qualification and tier placement."
+        },
+        {
+          "question": "What if my parent forgets to renew annually?",
+          "answer": "They'll lose coverage and have to reapply. Mark the renewal date on your calendar and set a reminder — Wisconsin requires active renewal every year plus the $30 fee."
+        },
+        {
+          "question": "Can my parent on full Medicaid still get SeniorCare?",
+          "answer": "Generally no, but there are exceptions for people with Qualified Medicare Beneficiary (QMB) status or certain limited Medicaid categories. Check with SeniorCare directly about your parent's specific Medicaid type."
+        },
+        {
+          "question": "What happens in Level 3 with the monthly spenddown?",
+          "answer": "Each month, your parent pays the amount their income exceeds 240% of the federal poverty level, plus meets the $850 annual deductible, before getting the low copays. This makes Level 3 complex and potentially expensive."
+        }
+      ],
+      "phone": "800-657-2038",
+      "sourceUrl": "https://www.dhs.wisconsin.gov/seniorcare/index.htm",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
-      "name": "Family Care",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "id": "wisconsin-elder-benefit-specialist",
+      "name": "Elder Benefit Specialist (EBS) Program",
+      "shortName": "Elder Benefit Specialist",
+      "tagline": "Get free expert help navigating Medicare, Medicaid, Social Security, and other benefits for your parent.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local Aging and Disability Resource Centers (ADRCs), county aging offices, tribal partners; find via FindMyADRC.org",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If you're overwhelmed trying to help your parent navigate Medicare, Social Security, or other benefits, Wisconsin's Elder Benefit Specialist program provides free expert help. These specialists — supervised by elder law attorneys — can help your parent apply for benefits, appeal denials, compare Medicare plans, and resolve issues with debt collectors or landlords.\n\nThe program is open to anyone 60+ in Wisconsin, regardless of income. Because specialists are trained in all public and private benefits, your parent gets unbiased advice without anyone trying to sell insurance or other products. Services are confidential and you can participate in meetings with your parent's permission.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Wisconsin resident",
+          "No income limits",
+          "No asset limits"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must live in Wisconsin"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call the statewide helpline and get connected to services immediately — no formal application required.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the helpline",
+            "description": "Call 1-844-WIS-ADRC (1-844-947-2372) to connect with your local Elder Benefit Specialist."
+          },
+          {
+            "step": 2,
+            "title": "Find your local office",
+            "description": "Visit FindMyADRC.org to locate your county's Aging and Disability Resource Center or contact your county aging office directly."
+          },
+          {
+            "step": 3,
+            "title": "Gather benefit paperwork",
+            "description": "Bring any relevant documents like denial letters, income statements, or insurance paperwork if you need help with specific applications or appeals."
+          }
+        ],
+        "processingTime": "No formal processing; services provided upon contact as available",
+        "waitlist": null,
+        "tip": "Family members and caregivers can participate in meetings with your parent's permission — you don't have to navigate this alone.",
+        "urls": [
+          {
+            "label": "Find local ADRC office",
+            "url": "https://FindMyADRC.org"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Elder Benefit Specialists provide advocacy and assistance only — they don't give out cash or benefits directly. They help your parent access programs they're eligible for and resolve benefit-related problems."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can I call on behalf of my parent?",
+          "answer": "Yes, but your parent will need to give permission for you to discuss their case. You can participate in all meetings and calls once they sign a release of information form."
+        },
+        {
+          "question": "What if my parent makes too much for most programs?",
+          "answer": "Elder Benefit Specialists help regardless of income. Even if your parent doesn't qualify for income-based programs, they can help with Medicare plan comparisons, Social Security issues, consumer problems, and tenant rights."
+        },
+        {
+          "question": "Is this really free, or will someone try to sell us something?",
+          "answer": "Completely free. Elder Benefit Specialists are supervised by attorneys and provide unbiased advice. They cannot sell insurance or other products. Donations are encouraged but never required."
+        },
+        {
+          "question": "How is this different from calling the benefit agencies directly?",
+          "answer": "Elder Benefit Specialists know all the programs and can see the big picture. Instead of calling Medicare, Social Security, and Medicaid separately, one specialist helps coordinate everything and advocates for your parent when agencies deny claims or make errors."
+        },
+        {
+          "question": "What if we need legal representation, not just advice?",
+          "answer": "Elder Benefit Specialists provide advocacy supervised by elder law attorneys, but not full legal representation. If your parent needs a lawyer, they can refer you to appropriate legal services."
+        },
+        {
+          "question": "Do we have to go to their office?",
+          "answer": "Contact methods vary by county — some offer phone consultations, others prefer in-person meetings. Call your local ADRC to find out what options are available in your area."
+        }
+      ],
+      "phone": "1-844-947-2372",
+      "sourceUrl": "https://www.dhs.wisconsin.gov/benefit-specialists/ebs.htm",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
-      "name": "IRIS (Include, Respect, I Self-Direct)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
-    },
-    {
+      "id": "wisconsin-senior-employment-program",
       "name": "Wisconsin Senior Employment Program (WISE)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "shortName": "WISE",
+      "tagline": "If your parent is 55+ and struggling to find work, they may qualify for paid job training at $7.25/hour while building skills for permanent employment.",
+      "programType": "employment",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Fox Valley Workforce Development Board (920-229-5557)",
+            "type": "service-area"
+          },
+          {
+            "name": "GWAAR (608-242-4928 or 608-243-5670, Dane County)",
+            "type": "service-area"
+          },
+          {
+            "name": "Employ Milwaukee",
+            "type": "service-area"
+          },
+          {
+            "name": "Job Center of Wisconsin (detwise@dwd.wisconsin.gov)",
+            "type": "service-area"
+          },
+          {
+            "name": "CWI Works subgrantee network including Wisconsin",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 55+ and unemployed with limited income, WISE provides paid community service training positions while they search for permanent work. Your parent earns minimum wage ($7.25/hour in Wisconsin) for 20 hours per week while gaining work experience, job counseling, and skills training.\n\nBecause WISE focuses on transition to unsubsidized employment, participants receive comprehensive assessment, individual job counseling, and access to employment opportunities. The program also covers yearly physical exams. Priority goes to veterans and their qualified spouses, then people over 65—others may face lower priority for enrollment.\n\nThis is temporary training, not a permanent job. The goal is helping your parent gain skills and experience to find regular employment. Income must be at or below 125% of the federal poverty level based on total family income.",
+      "savingsRange": "$290 – $580/month in 2026",
+      "savingsSource": "20 hours per week at $7.25/hour minimum wage",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Family income ≤125% federal poverty level",
+          "Wisconsin resident",
+          "Currently unemployed",
+          "Seeking work"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be a legal resident of Wisconsin",
+          "Must be currently unemployed",
+          "Must be seeking employment"
+        ],
+        "povertyLevelReference": "125% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call your regional provider directly—processing time varies by local office capacity.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your regional provider",
+            "description": "Different organizations run WISE in different areas. Fox Valley Workforce Development Board serves northeast Wisconsin, GWAAR serves Dane County, and Employ Milwaukee serves the Milwaukee area."
+          },
+          {
+            "step": 2,
+            "title": "Contact your local office",
+            "description": "Call or email your regional provider to start the application process. They'll explain their specific requirements and availability."
+          },
+          {
+            "step": 3,
+            "title": "Prepare income documentation",
+            "description": "Gather proof of family income to verify you're at or below 125% of federal poverty level. This includes all household members' income."
+          },
+          {
+            "step": 4,
+            "title": "Complete assessment",
+            "description": "Participate in comprehensive assessment to match skills with available host agency positions in your area."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Veterans and qualified spouses get priority, followed by people over 65. Others may face longer waits.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Driver's license or state ID",
+                "Proof of Wisconsin residency"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Most recent tax return for all household members",
+                "Pay stubs or proof of unemployment",
+                "Social Security statements",
+                "Any other income documentation"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "This is temporary training, not permanent employment. Positions typically last while you search for unsubsidized work, with the goal of transitioning to regular employment."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Income limits are based on total family income, not just your parent's individual income. Veterans and their spouses get enrollment priority."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "How much will my parent earn?",
+          "answer": "Your parent earns at least minimum wage ($7.25/hour in Wisconsin) for 20 hours per week, which equals about $580/month before taxes. Some areas may pay the local minimum wage if it's higher."
+        },
+        {
+          "question": "What if our family income is just over 125% of poverty level?",
+          "answer": "There's no flexibility—family income must be at or below 125% of federal poverty level. Check current federal poverty guidelines at HHS.gov and calculate 125% of that amount for your household size."
+        },
+        {
+          "question": "How long can my parent stay in the program?",
+          "answer": "WISE is designed as temporary training while searching for permanent work. The exact duration varies by individual circumstances and local provider policies, but the goal is transitioning to unsubsidized employment."
+        },
+        {
+          "question": "What kind of work will my parent do?",
+          "answer": "Participants work at community service host agencies like nonprofits, schools, or government offices. The specific position depends on your parent's skills and what's available in your area."
+        },
+        {
+          "question": "Does my parent's house count against the income limit?",
+          "answer": "The program has income limits but no asset limits mentioned in official sources. Your parent's home and savings don't disqualify them—only monthly family income matters."
+        },
+        {
+          "question": "What if we live in a rural area?",
+          "answer": "WISE operates statewide through different regional providers. Contact the Wisconsin Department of Workforce Development at detwise@dwd.wisconsin.gov if you're unsure which provider serves your area."
+        }
+      ],
+      "phone": "(920) 229-5557",
+      "sourceUrl": "https://www.dhs.wisconsin.gov/publications/p00409-2024-2027.pdf",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
-      "name": "Wisconsin Home Energy Assistance Program (WHEAP)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "id": "wisconsin-family-care",
+      "name": "Family Care",
+      "shortName": "Family Care",
+      "tagline": "Get comprehensive home care and support services for your parent without moving them to a nursing home.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local ADRCs statewide",
+            "type": "service-area"
+          },
+          {
+            "name": "Managed Care Organizations (CMOs) like Community Care Inc., Anthem, My Choice Wisconsin",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs help with daily tasks like bathing, dressing, or managing medications, Family Care can provide comprehensive home and community-based services to keep them out of a nursing home. The program covers personal care, respite care for you as the caregiver, home modifications, and even assisted living or memory care if needed — all coordinated through one managed care team.\n\nTo qualify, your parent must be 65+ or have a disability, meet Wisconsin Medicaid financial limits (typically under $2,000 in countable assets for single applicants), and pass a functional assessment proving they need nursing facility-level care. Because Family Care operates through managed care organizations, your parent gets a care team that coordinates all services instead of you having to manage multiple providers separately.\n\nThe catch: Family Care isn't available statewide. Your parent must live in a participating county where managed care organizations operate. No waitlists exist, but you'll need to check if your area participates before applying.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+ or disability",
+          "Wisconsin Medicaid income/asset limits",
+          "Needs help with daily activities",
+          "Live in participating county"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 2000,
+          "couple": null,
+          "countedAssets": [
+            "Bank accounts",
+            "Investments",
+            "Second vehicles"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "One vehicle",
+            "Personal belongings"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "Must need Nursing Facility Level of Care — assessed through Wisconsin's functional screening to determine if your parent needs daily help with activities like bathing, dressing, eating, mobility, meal preparation, or medication management.",
+        "otherRequirements": [
+          "Wisconsin resident in participating county",
+          "Financially eligible for Medicaid"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact your local Aging and Disability Resource Center (ADRC) to start the screening process — they handle both the functional assessment and Medicaid application assistance.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact your local ADRC",
+            "description": "Call your county's Aging and Disability Resource Center to confirm Family Care operates in your area and schedule the functional screening."
+          },
+          {
+            "step": 2,
+            "title": "Complete functional screening",
+            "description": "ADRC staff will assess your parent's need for nursing facility-level care using Wisconsin's Long Term Care Functional Screen."
+          },
+          {
+            "step": 3,
+            "title": "Apply for Medicaid",
+            "description": "Submit Medicaid application online or through paper form — ADRC can help with this process and required documentation."
+          },
+          {
+            "step": 4,
+            "title": "Choose managed care organization",
+            "description": "If approved, ADRC will help you select from available CMOs in your area (like Community Care, Anthem, or My Choice Wisconsin) and complete enrollment."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": "No waitlists",
+        "tip": "Call your ADRC first to confirm Family Care operates in your county — this saves time before gathering documents.",
+        "urls": [
+          {
+            "label": "Find your local ADRC",
+            "url": "https://www.dhs.wisconsin.gov/familycare/apply.htm"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and savings",
+            "Investments and stocks",
+            "Second vehicles",
+            "Property other than primary home"
+          ],
+          "excluded": [
+            "Primary residence",
+            "One personal vehicle",
+            "Personal belongings and household items",
+            "Burial funds"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Driver's license or state ID",
+                "Proof of Wisconsin residency",
+                "Social Security card",
+                "Medicare card if applicable"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Bank statements (last 3 months)",
+                "Income records (Social Security, pensions)",
+                "Asset documentation (investments, property)",
+                "Medical bills and expenses"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Family Care isn't available statewide. You must live in a participating county with active managed care organizations. Check with your local ADRC before starting the application process."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "The functional assessment is separate from financial eligibility. Your parent must qualify for BOTH Medicaid financial limits AND prove they need nursing facility-level care through Wisconsin's screening process."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house if she qualifies for Family Care?",
+          "answer": "Yes. Your parent's primary residence doesn't count toward the $2,000 asset limit for Medicaid eligibility. They can keep their home and still receive Family Care services."
+        },
+        {
+          "question": "What if Dad has Medicare — can he still get Family Care?",
+          "answer": "Yes. Having Medicare doesn't disqualify your parent from Family Care. They still need to meet Medicaid financial limits and pass the functional assessment, but Medicare coverage won't interfere."
+        },
+        {
+          "question": "How do I know which managed care organization to choose?",
+          "answer": "Your local ADRC will explain which CMOs operate in your area and help you compare options. Different organizations may have different provider networks, so ask about which one includes your parent's preferred doctors or services."
+        },
+        {
+          "question": "What if our county doesn't have Family Care?",
+          "answer": "If Family Care isn't available in your county, ask your ADRC about other Wisconsin long-term care programs that might serve your area, such as Partnership or IRIS programs."
+        },
+        {
+          "question": "Can I still be Dad's caregiver if he gets Family Care?",
+          "answer": "Yes. Family Care often includes respite services to give family caregivers breaks, and you remain involved in your parent's care planning. The program supplements family care rather than replacing it."
+        },
+        {
+          "question": "What happens if Mom's income is just over the Medicaid limit?",
+          "answer": "Wisconsin has spend-down options where medical expenses can reduce countable income to meet Medicaid limits. Your ADRC can help determine if your parent qualifies through spend-down calculations."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://www.dhs.wisconsin.gov/familycare/apply.htm",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "wisconsin-iris-self-directed-care",
+      "name": "IRIS (Include, Respect, I Self-Direct)",
+      "shortName": "IRIS",
+      "tagline": "Your parent controls their own care budget to hire providers and buy services they actually need.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local ADRCs (find via dhs.wisconsin.gov/adrc/consumer/index.htm)",
+            "type": "service-area"
+          },
+          {
+            "name": "Tribal ADRS (dhs.wisconsin.gov/adrc/consumer/tribes.htm)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs daily help with bathing, dressing, or medication management but wants to stay at home, IRIS gives them control over their own care budget. Instead of being assigned a home care agency, your parent chooses and hires their own caregivers — even family members — and decides what services to buy within their approved budget.\n\nThis Wisconsin Medicaid program is for adults 18+ who need nursing home-level care but want to live at home or in a residential setting. Because IRIS follows Medicaid income rules, your parent can have up to $3,525-$3,948 per month in income (2025-2026 rates) and keep their home if it's worth less than $750,000 in equity.\n\nThe budget amount varies based on your parent's assessed care needs — there's no fixed dollar amount. Your parent manages the money through a fiscal agent who handles payroll and taxes, but your parent makes all the hiring and firing decisions.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 18+",
+          "Nursing home level of care needed",
+          "Medicaid income limits",
+          "Wisconsin resident",
+          "Must live at home or residential setting"
+        ],
+        "ageRequirement": "18+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": null,
+          "couple": null,
+          "countedAssets": [
+            "Bank accounts",
+            "Investments",
+            "Second homes"
+          ],
+          "exemptAssets": [
+            "Primary home (if equity under $750,000)",
+            "Home if spouse lives there",
+            "Home if disabled child lives there",
+            "One vehicle"
+          ],
+          "homeEquityCap": 750000
+        },
+        "functionalRequirement": "Must need nursing home level of care (daily help with bathing, dressing, medication management, or similar tasks) determined through Wisconsin Adult Long-Term Care Functional Screen",
+        "otherRequirements": [
+          "Wisconsin resident",
+          "U.S. citizen or qualifying immigrant",
+          "Cannot live in nursing facility or community-based residential facility",
+          "Must qualify for Medicaid"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact your local Aging and Disability Resource Center to start the functional assessment — processing time not specified by the state.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact your local ADRC",
+            "description": "Find your county's Aging and Disability Resource Center at dhs.wisconsin.gov/adrc/consumer/index.htm or call them directly. They'll schedule your Long-Term Care Functional Screen."
+          },
+          {
+            "step": 2,
+            "title": "Complete the functional assessment",
+            "description": "An ADRC assessor will evaluate whether your parent needs nursing home-level care by reviewing their ability to handle daily activities like bathing, dressing, and medication management."
+          },
+          {
+            "step": 3,
+            "title": "Apply for Medicaid",
+            "description": "If your parent doesn't already have Medicaid, the ADRC will help you apply online or with paper forms. Having Medicaid already speeds up the process."
+          },
+          {
+            "step": 4,
+            "title": "Choose a Fiscal Employer Agent",
+            "description": "Your ADRC will help you select a FEA — the company that will handle payroll, taxes, and background checks for any caregivers your parent hires."
+          }
+        ],
+        "processingTime": "Not specified by Wisconsin",
+        "waitlist": null,
+        "tip": "If your parent already has Medicaid, the process moves faster. Gather their Medicaid card before calling the ADRC.",
+        "urls": [
+          {
+            "label": "Find your local ADRC",
+            "url": "https://www.dhs.wisconsin.gov/adrc/consumer/index.htm"
+          },
+          {
+            "label": "Tribal ADRS offices",
+            "url": "https://www.dhs.wisconsin.gov/adrc/consumer/tribes.htm"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and savings",
+            "Stocks, bonds, and investments",
+            "Second homes or rental properties",
+            "Vehicles beyond the first one"
+          ],
+          "excluded": [
+            "Primary home (if equity under $750,000)",
+            "Home where spouse still lives",
+            "Home where disabled child lives",
+            "One vehicle for transportation",
+            "Personal belongings and household items"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Driver's license or state ID",
+                "Social Security card",
+                "Proof of Wisconsin residency",
+                "Citizenship or immigration documents"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Bank statements (last 3 months)",
+                "Income records (Social Security, pensions)",
+                "Property deeds or mortgage statements",
+                "Vehicle titles",
+                "Insurance policies"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Current medication list",
+                "Recent hospital or doctor visits",
+                "Any existing care assessments",
+                "Medical insurance cards"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Your parent cannot live in a skilled nursing facility or community-based residential facility while on IRIS. The program is specifically for people living in their own homes or certain residential settings."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "With IRIS, your parent can hire family members as paid caregivers. The Fiscal Employer Agent will handle all the payroll paperwork and taxes, but your parent makes the hiring decisions."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom hire me or my sister as her paid caregiver?",
+          "answer": "Yes. IRIS allows your parent to hire family members as caregivers. The Fiscal Employer Agent will put you on payroll, handle taxes, and run background checks, but your parent controls the hiring decision and pay rate within their budget."
+        },
+        {
+          "question": "What happens if Mom's income is just over the Medicaid limit?",
+          "answer": "She may still qualify if her medical expenses are high enough. Wisconsin uses 'spend-down' rules where medical costs can reduce countable income. The ADRC will calculate this during the Medicaid application process."
+        },
+        {
+          "question": "Can Mom keep her house if it's worth more than $750,000?",
+          "answer": "No. If the home equity exceeds $750,000, she won't qualify for IRIS unless she can reduce the equity below that limit through a mortgage or other legal means."
+        },
+        {
+          "question": "What if Mom doesn't want to manage her own care budget?",
+          "answer": "IRIS requires active self-direction. If your parent cannot or doesn't want to hire and manage caregivers, they would need to apply for other Medicaid long-term care programs where agencies provide pre-selected caregivers."
+        },
+        {
+          "question": "How much money will Mom get in her care budget?",
+          "answer": "The budget amount depends on her functional assessment results. Wisconsin doesn't publish fixed amounts because each person's budget is individualized based on their specific care needs identified in the Long-Term Care Functional Screen."
+        },
+        {
+          "question": "What if our county's ADRC has a waiting list?",
+          "answer": "Contact your ADRC directly to ask about current wait times. Processing speed can vary by county based on staffing and demand, but Wisconsin doesn't publish statewide waitlist information."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://www.dhs.wisconsin.gov/iris/index.htm",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     }
   ],
-  "stateOverview": null
+  "stateOverview": {
+    "intro": "Wisconsin offers 5 key programs for seniors and their families — 3 direct benefits that require qualification and 2 free resources available to everyone. If your parent is 65+, they may qualify for prescription drug coverage through SeniorCare with copays as low as $5 per prescription. For comprehensive care needs, Wisconsin's Family Care and IRIS programs can provide extensive home care services without nursing home placement, while the Elder Benefit Specialist Program offers free expert help navigating all available benefits.\n\nStart with the Elder Benefit Specialist Program — it's free for all Wisconsin families and will help you identify which combination of benefits your parent qualifies for.",
+    "startHere": [
+      {
+        "name": "Elder Benefit Specialist (EBS) Program",
+        "programId": "elder-benefit-specialist-ebs-program",
+        "why": "Free expert help for any Wisconsin family to identify and apply for all benefits your parent qualifies for."
+      },
+      {
+        "name": "SeniorCare",
+        "programId": "seniorcare",
+        "why": "Wisconsin seniors 65+ can get prescription coverage with $5 copays regardless of other insurance."
+      },
+      {
+        "name": "Family Care",
+        "programId": "family-care",
+        "why": "Comprehensive home care services that can prevent or delay nursing home placement."
+      }
+    ],
+    "byNeed": [
+      {
+        "need": "Help paying for prescriptions",
+        "programs": [
+          "SeniorCare"
+        ],
+        "description": "Wisconsin's prescription drug program for seniors 65+ with low copays."
+      },
+      {
+        "need": "Home care and daily living support",
+        "programs": [
+          "Family Care",
+          "IRIS"
+        ],
+        "description": "Two programs that provide comprehensive care services to help your parent stay at home."
+      },
+      {
+        "need": "Free expert guidance",
+        "programs": [
+          "Elder Benefit Specialist (EBS) Program"
+        ],
+        "description": "Professional help navigating Medicare, Medicaid, Social Security, and Wisconsin benefits."
+      },
+      {
+        "need": "Employment support for older adults",
+        "programs": [
+          "Wisconsin Senior Employment Program (WISE)"
+        ],
+        "description": "Paid job training for Wisconsin residents 55+ who are struggling to find work."
+      }
+    ],
+    "quickFacts": [
+      "Wisconsin's Elder Benefit Specialist Program is free for all families — no income limits or qualification requirements.",
+      "SeniorCare is Wisconsin's own prescription program that works alongside Medicare Part D.",
+      "Both Family Care and IRIS help seniors stay at home, but IRIS gives your parent direct control over their care budget."
+    ],
+    "resourcesVsBenefits": "Wisconsin separates programs into benefits you must qualify for (SeniorCare, Family Care, IRIS, and WISE based on age, income, or care needs) and free resources available to everyone (Elder Benefit Specialist Program). The EBS Program costs nothing and has no requirements — any Wisconsin family can get professional help understanding benefits, while the other programs require meeting specific criteria like being 65+ for SeniorCare or needing daily care assistance for Family Care."
+  }
 }

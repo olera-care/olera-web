@@ -4,106 +4,99 @@
   "state": "TX",
   "stateName": "Texas",
   "isRegion": false,
-  "exploredAt": "2026-04-09T09:41:38.151Z",
-  "programCount": 14,
+  "exploredAt": "2026-04-09T16:37:21.843Z",
+  "programCount": 13,
   "programs": [
     {
-      "name": "Medicaid for Seniors/Disabled",
-      "what_it_does": "Provides comprehensive health coverage including doctor visits, hospital stays, prescription medications, and long-term care to low-income seniors. It significantly reduces out-of-pocket medical expenses for eligible individuals.[3]",
-      "who_its_for": "Low-income seniors and disabled individuals who meet income and resource limits.",
+      "name": "Medicaid Buy-In for Children (MBIC) / Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), Qualifying Individual (QI)",
+      "what_it_does": "QMB, SLMB, and QI programs help pay Medicare premiums, deductibles, and cost-sharing for low-income seniors. They provide Medicare Savings Programs administered through Texas HHS.[2]",
+      "who_its_for": "Low-income Medicare beneficiaries meeting specific income and resource limits.[2]",
       "official_url": "https://www.yourtexasbenefits.com",
-      "benefit_value": "Varies; covers medical services, long-term care, and reduces out-of-pocket costs.[3]"
-    },
-    {
-      "name": "Community Based Alternatives (CBA) Waiver",
-      "what_it_does": "Pays for services associated with assisted living facilities and community-based alternatives to institutional care. It supports seniors in living independently rather than in nursing homes, though it does not cover room and board.[5]",
-      "who_its_for": "Medicaid-eligible seniors needing long-term care services with functional or geographic restrictions.",
-      "official_url": "https://www.hhs.texas.gov/services/long-term-care",
-      "benefit_value": "Covers personal care, nursing, and assisted living services (excludes room/board).[5]"
+      "benefit_value": "QMB covers Part A/B premiums/cost-sharing; SLMB/QI cover Part B premiums (up to $148.50/mo in 2025).[2]"
     },
     {
       "name": "STAR+PLUS",
-      "what_it_does": "Offers comprehensive managed care support tailored to individual needs, including access to essential long-term services. It enhances quality of care for seniors through coordinated healthcare and support services.[4][5]",
-      "who_its_for": "Medicaid-eligible seniors, particularly in certain regions, needing long-term care.",
-      "official_url": "https://www.hhs.texas.gov/services/health/medicaid-chip/medicaid-chip-programs/star-plus",
-      "benefit_value": "Comprehensive long-term care services including nursing and personal care.[4][5]"
+      "what_it_does": "Offers comprehensive long-term care services through managed care, including home and community-based services to support seniors' needs. It facilitates access to essential services tailored to individual requirements.[3][4]",
+      "who_its_for": "Medicaid-eligible seniors needing long-term care services.[3][4]",
+      "official_url": "https://www.hhs.texas.gov/services/long-term-care",
+      "benefit_value": "Covers nursing facility care, home health, and community services; no room/board in assisted living.[4]"
     },
     {
-      "name": "PACE (Program of All-Inclusive Care for the Elderly)",
-      "what_it_does": "Delivers comprehensive medical and social services to eligible seniors in community settings. It coordinates all needed care to help participants avoid nursing home placement.",
-      "who_its_for": "Seniors aged 55+ certified for nursing home level care but able to live safely in the community.",
-      "official_url": "https://www.hhs.texas.gov/services/long-term-care/pace",
-      "benefit_value": "All-inclusive capitation covering medical, social, and long-term care services."
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "what_it_does": "Delivers comprehensive medical and social services to eligible seniors in community settings, including adult day health care and hospitalization when needed. It allows participants to live safely at home with coordinated care.[2]",
+      "who_its_for": "Seniors aged 55+ who are nursing facility eligible, certified by Medicaid, and live in a PACE service area.[2]",
+      "official_url": "https://www.hhs.texas.gov/services/health/medicaid-chip/medicaid-chip-members/pace",
+      "benefit_value": "Full coverage of Medicare and Medicaid services; value depends on individual care plan.[2]"
     },
     {
-      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
-      "what_it_does": "QMB covers Medicare Parts A & B premiums, deductibles, and copayments; SLMB and QI cover Part B premiums only. These programs help low-income seniors afford Medicare costs.[1]",
-      "who_its_for": "Low-income Medicare beneficiaries meeting specific income limits (e.g., QMB: $1,275 individual/$1,724 couple monthly).[1]",
+      "name": "Supplemental Nutrition Assistance Program (SNAP)",
+      "what_it_does": "Provides monthly benefits via Electronic Benefits Transfer card to buy nutritious food. It alleviates food insecurity and improves dietary health for eligible seniors.[3]",
+      "who_its_for": "Low-income seniors aged 60+ meeting income tests.[3]",
       "official_url": "https://www.yourtexasbenefits.com",
-      "benefit_value": "Premiums, deductibles, copays (QMB); Part B premiums (SLMB/QI).[1]"
-    },
-    {
-      "name": "Texas Simplified Application Project (TSAP) for SNAP",
-      "what_it_does": "Provides food assistance through a simplified application process for seniors with longer certification periods and no renewal interviews. It helps eligible seniors purchase nutritious food.[1][4]",
-      "who_its_for": "Seniors (60+) with income/resources under limits (e.g., $4,500 resource limit).[1]",
-      "official_url": "https://www.yourtexasbenefits.com",
-      "benefit_value": "Average $188/month for older adults; EBT card for food purchases.[1][4]"
+      "benefit_value": "Average $188 per month for older adults in 2025.[3]"
     },
     {
       "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
-      "what_it_does": "Offers emergency energy services and home weatherization to help with utility bills. It assists low-income households in maintaining affordable home energy.[1]",
-      "who_its_for": "Seniors with income below 150% federal poverty level, SSI/SNAP/Veterans benefits recipients.[1]",
-      "official_url": "https://www.hhs.texas.gov/services/energy-assistance",
-      "benefit_value": "One-time payments or crisis aid based on available federal funding.[1]"
+      "what_it_does": "Assists with home energy costs including heating and cooling bills, emergencies, and weather-related repairs. It helps low-income households maintain affordable utility services.[2]",
+      "who_its_for": "Low-income seniors aged 60+.[2]",
+      "official_url": "https://www.hhs.texas.gov/services/financial/cash-assistance/low-income-home-energy-assistance-program-liheap",
+      "benefit_value": "One-time grants averaging $200-$1,000 depending on need.[2]"
     },
     {
       "name": "Weatherization Assistance Program",
-      "what_it_does": "Provides home weatherization services to improve energy efficiency and reduce utility costs. It targets low-income households including seniors.[1]",
-      "who_its_for": "Low-income seniors (income <150% FPL) and benefit recipients.[1]",
-      "official_url": "https://www.hhs.texas.gov/services/energy-assistance",
-      "benefit_value": "Free weatherization improvements; funding-dependent.[1]"
+      "what_it_does": "Improves energy efficiency in homes through insulation, sealing, and heating/cooling upgrades. It reduces energy costs and improves health/safety for low-income households.[2]",
+      "who_its_for": "Low-income seniors, including those 60+.[2]",
+      "official_url": "https://www.hhs.texas.gov/services/financial/weatherization-assistance-program",
+      "benefit_value": "Free home improvements; average energy savings of 20-30% on bills.[2]"
     },
     {
-      "name": "State Health Insurance Assistance Program (SHIP)",
-      "what_it_does": "Offers free counseling on Medicare options, including savings programs and Extra Help. It helps seniors navigate Medicare benefits and appeals.",
-      "who_its_for": "Texas seniors eligible for Medicare seeking benefits counseling.[3]",
-      "official_url": "https://www.hhs.texas.gov/services/health/medicare-medicaid/medicare-counseling",
-      "benefit_value": "Free personalized Medicare counseling and application assistance."
+      "name": "Texas State Health Insurance Assistance Program (SHIP)",
+      "what_it_does": "Offers free one-on-one counseling and assistance for Medicare issues, including plan choices and appeals. Provided through Area Agencies on Aging (AAAs) with no charge.[5]",
+      "who_its_for": "Texas residents aged 60+ with Medicare and families.[5]",
+      "official_url": "https://www.hhs.texas.gov/services/health/medicare",
+      "benefit_value": "Free counseling; helps save thousands on premiums/drugs.[5]"
     },
     {
       "name": "Meals on Wheels",
-      "what_it_does": "Delivers nutritious meals to homebound seniors to combat food insecurity and promote health. It provides regular hot meals and sometimes friendly visits.",
-      "who_its_for": "Homebound seniors aged 60+ unable to prepare meals independently.",
-      "official_url": "https://www.hhs.texas.gov/services/aging/nutrition-services",
-      "benefit_value": "Daily/weekly home-delivered meals; often low/no cost for eligible."
+      "what_it_does": "Delivers nutritious meals to homebound seniors to promote health and independence. Often provided through AAAs and community programs.[5]",
+      "who_its_for": "Homebound seniors aged 60+ who are unable to prepare meals.[5]",
+      "official_url": "https://www.hhs.texas.gov/services/aging/area-agencies-on-aging",
+      "benefit_value": "Daily meals; suggested donation, income-based sliding scale.[5]"
+    },
+    {
+      "name": "Community Based Alternatives (CBA) Waiver",
+      "what_it_does": "Provides home and community-based services as an alternative to nursing homes, including personal care and assisted living services. Pays for care but not room/board.[4]",
+      "who_its_for": "Medicaid-eligible seniors/disabled needing nursing home level care.[4]",
+      "official_url": "https://www.hhs.texas.gov/services/long-term-care/community-care/cba",
+      "benefit_value": "Covers personal attendant services, therapies; up to nursing home cost limits.[4]"
     },
     {
       "name": "Community Caregiver Support Program",
-      "what_it_does": "Provides in-home assistance, caregiver training, and respite care to support family caregivers. It promotes senior independence through community resources.[4]",
-      "who_its_for": "Family caregivers of seniors aged 60+ or disabled adults 18+.",
-      "official_url": "https://www.hhs.texas.gov/services/aging/caregiver-support",
-      "benefit_value": "Respite care, training, in-home aid; enhanced by ADRC grants.[4]"
+      "what_it_does": "Offers caregiver training, respite care, and support services to help family caregivers. Enhances independence through in-home assistance and resources.[3]",
+      "who_its_for": "Family caregivers of seniors aged 60+.[3]",
+      "official_url": "https://www.hhs.texas.gov/services/aging",
+      "benefit_value": "Respite up to 240 hours/year; training free.[3]"
     },
     {
       "name": "Senior Community Service Employment Program (SCSEP)",
-      "what_it_does": "Offers part-time community service jobs with training to unemployed low-income seniors. It provides work experience and wage subsidies leading to employment.",
-      "who_its_for": "Unemployed seniors aged 55+ with low income (≤125% poverty level).",
-      "official_url": "https://www.dol.gov/agencies/eta/seniors",
-      "benefit_value": "Minimum wage part-time work (20 hrs/week) plus training."
+      "what_it_does": "Provides part-time paid training at community sites for older workers to gain skills and employment. Promotes economic self-sufficiency.[2]",
+      "who_its_for": "Unemployed low-income seniors aged 55+.[2]",
+      "official_url": "https://www.hhs.texas.gov/services/aging/scsep",
+      "benefit_value": "Minimum wage pay (20 hrs/wk); job placement support.[2]"
     },
     {
-      "name": "Legal Aid for Seniors",
-      "what_it_does": "Provides free legal services for issues like benefits, housing, and consumer problems. It helps seniors access rights and resolve disputes.",
-      "who_its_for": "Low-income seniors aged 60+ facing legal barriers.[1]",
+      "name": "Legal Aid for Seniors through AAAs",
+      "what_it_does": "Provides free legal assistance and referrals for benefits, housing, and consumer issues. Available via Area Agencies on Aging.[5]",
+      "who_its_for": "Seniors aged 60+ with low income prioritized.[5]",
       "official_url": "https://www.texaslawhelp.org",
-      "benefit_value": "Free legal advice, representation, and education.[1]"
+      "benefit_value": "Free consultations/representation; no financial eligibility for basic help.[5]"
     },
     {
       "name": "Long-Term Care Ombudsman Program",
-      "what_it_does": "Advocates for residents in long-term care facilities resolving complaints and protecting rights. It investigates issues and promotes quality care.",
-      "who_its_for": "Residents of nursing homes, assisted living, and similar facilities in Texas.",
-      "official_url": "https://www.hhs.texas.gov/services/long-term-care/ombudsman",
-      "benefit_value": "Free advocacy, complaint resolution, and rights protection."
+      "what_it_does": "Advocates for residents in nursing homes and assisted living, resolving complaints and ensuring quality care. Operated through AAAs.[5]",
+      "who_its_for": "Residents of long-term care facilities and families.[5]",
+      "official_url": "https://www.hhs.texas.gov/services/aging/ombudsman",
+      "benefit_value": "Free advocacy services statewide.[5]"
     }
   ]
 }

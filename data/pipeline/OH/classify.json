@@ -1,31 +1,33 @@
 {
   "state": "OH",
   "stateName": "Ohio",
-  "classifiedAt": "2026-04-09T09:39:27.596Z",
-  "total": 4,
+  "classifiedAt": "2026-04-09T15:54:10.303Z",
+  "total": 12,
   "typeSummary": {
-    "benefit": 3,
-    "resource": 1
+    "benefit": 9,
+    "resource": 2,
+    "employment": 1
   },
   "scopeSummary": {
-    "state": 2,
-    "local": 2
+    "state": 7,
+    "local": 1,
+    "federal": 4
   },
   "complexitySummary": {
-    "deep": 1,
-    "medium": 2,
-    "simple": 1
+    "deep": 9,
+    "simple": 2,
+    "medium": 1
   },
   "programs": [
     {
-      "name": "Healthy Aging Grants",
+      "name": "Medicaid for the Aged, Blind, or Disabled (ABD)",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Local county aging agencies or funded nonprofits (e.g., Montgomery County providers via mcohio.org; check county websites)[1][2].",
+            "name": "Local county JFS offices statewide (e.g., Muskingum[2], Clark[3], Clermont[6], Lorain[7])",
             "type": "service-area"
           }
         ]
@@ -35,6 +37,39 @@
         "prose",
         "income-table",
         "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "PASSPORT Waiver",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local Area Agencies on Aging (AAAs) coordinate services from local providers",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
         "documents",
         "county-directory",
         "callout"
@@ -44,66 +79,35 @@
         "hasIncomeTiers": true,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": true,
         "isStatewide": true
       }
     },
     {
-      "name": "Ohio Senior Citizen Tax Credit",
+      "name": "Ohio Program of All-Inclusive Care for the Elderly (PACE)",
       "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Ohio Department of Taxation (central contact point)",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "medium",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "documents",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "financial",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": false,
-        "hasRegionalVariation": false,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Elderly Services Program (ESP)",
-      "programType": "resource",
       "geographicScope": {
         "type": "local",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Warren County Community Services, Inc. (WCCS), Lebanon & surrounding: (513) 695-2271[6]",
+            "name": "PACE of Cincinnati (Hamilton County)",
             "type": "service-area"
           },
           {
-            "name": "Council on Aging of Southwestern Ohio administers[6]",
-            "type": "service-area"
-          },
-          {
-            "name": "Community First Solutions (Butler/Clinton/Hamilton areas)[7][8]",
+            "name": "McGregor PACE (Cuyahoga, Lorain, Summit Counties)",
             "type": "service-area"
           }
         ]
       },
-      "complexity": "simple",
+      "complexity": "deep",
       "recommendedSections": [
         "prose",
-        "county-directory"
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
       ],
       "signals": {
         "benefitType": "service",
@@ -116,22 +120,212 @@
       }
     },
     {
-      "name": "Franklin County Senior Services Levy Programs (Senior Options)",
+      "name": "Medicare Savings Programs (QMB, SLMB, QI-1)",
       "programType": "benefit",
       "geographicScope": {
-        "type": "local",
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local County Job and Family Services offices statewide (jfs.ohio.gov/counties.stm).",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Ohio SNAP (Supplemental Nutrition Assistance Program)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local county Department of Job & Family Services (directory at benefits.ohio.gov)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Home Energy Assistance Program (HEAP)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "See county provider list at provider link in [1]; examples: COAD, IMPACT, NOCAC, MORPC, BridgesCAP.",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Ohio Senior Health Insurance Information Program (OSHIIP)",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Franklin County Office on Aging (primary administrator)[3]",
+            "name": "Central office: 50 W Town St, 3rd Floor Suite 300, Columbus OH 43215[4][5]",
             "type": "service-area"
           },
           {
-            "name": "Central Ohio Area Agency on Aging (COAAA) — provides assessments and case management[3]",
+            "name": "Local coordinators listed at https://insurance.ohio.gov/consumers/medicare/oshiip-coordinators-list[9]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "advocacy",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Home-Delivered Meals (via Ohio Aging Network)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Franklin County Senior Options: (614) 525-6200[1]",
             "type": "service-area"
           },
           {
-            "name": "Network of community educational and human service agencies as partners[3]",
+            "name": "Geauga County Department on Aging[5]",
+            "type": "service-area"
+          },
+          {
+            "name": "Vantage Aging (NE Ohio): 330-832-7220[6]",
+            "type": "service-area"
+          },
+          {
+            "name": "Ohio Department of Aging: 1-800-266-4346, Aging.Ohio.gov[2]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "National Family Caregiver Support Program (NFCSP)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local Area Agencies on Aging (AAAs) throughout Ohio; contact via Ohio Department of Aging[7]",
             "type": "service-area"
           }
         ]
@@ -151,7 +345,100 @@
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
         "hasMultipleTiers": false,
-        "isStatewide": false
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "programType": "employment",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Ohio Department of Aging",
+            "type": "service-area"
+          },
+          {
+            "name": "AARP Foundation",
+            "type": "service-area"
+          },
+          {
+            "name": "Goodwill Industries, Inc.",
+            "type": "service-area"
+          },
+          {
+            "name": "Goodwill Easter Seals Miami Valley",
+            "type": "service-area"
+          },
+          {
+            "name": "VANTAGE Aging (e.g., Hillsboro: 1575 N. High Street Suite 402, Hillsboro, OH 45133; 937-840-0055)",
+            "type": "service-area"
+          },
+          {
+            "name": "National Caucus and Center on Black Aged, Inc.",
+            "type": "service-area"
+          },
+          {
+            "name": "National Council on Aging/Pathstone",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "documents"
+      ],
+      "signals": {
+        "benefitType": "employment",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": false,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Legal Assistance for Seniors (via Ohio Legal Services)",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Pro Seniors (Cincinnati-area focus)",
+            "type": "service-area"
+          },
+          {
+            "name": "Legal Aid of Western Ohio (LAWO: Northwest counties)",
+            "type": "service-area"
+          },
+          {
+            "name": "Legal Aid Society of Cleveland (Northeast)",
+            "type": "service-area"
+          },
+          {
+            "name": "LASCO (Central Ohio seniors team)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
       }
     }
   ]

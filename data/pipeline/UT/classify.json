@@ -1,21 +1,22 @@
 {
   "state": "UT",
   "stateName": "Utah",
-  "classifiedAt": "2026-04-09T09:43:15.130Z",
+  "classifiedAt": "2026-04-09T16:45:55.258Z",
   "total": 13,
   "typeSummary": {
     "benefit": 9,
-    "resource": 4
+    "resource": 3,
+    "employment": 1
   },
   "scopeSummary": {
     "state": 4,
-    "local": 2,
-    "federal": 7
+    "local": 1,
+    "federal": 8
   },
   "complexitySummary": {
-    "deep": 7,
+    "deep": 8,
     "medium": 2,
-    "simple": 4
+    "simple": 3
   },
   "programs": [
     {
@@ -26,7 +27,7 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Utah DHHS regional offices, e.g., Utah/Wasatch/Summit Counties[7]",
+            "name": "Utah County/Wasatch/Summit: 801-526-9675, 801-526-0950[8]",
             "type": "service-area"
           }
         ]
@@ -52,31 +53,22 @@
       }
     },
     {
-      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "name": "Utah PACE (Program of All-Inclusive Care for the Elderly)",
       "programType": "benefit",
       "geographicScope": {
         "type": "local",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Limited to areas with PACE organizations; use Medicare tool to find Utah locations",
-            "type": "service-area"
-          }
-        ]
+        "stateVariation": false
       },
-      "complexity": "deep",
+      "complexity": "medium",
       "recommendedSections": [
         "prose",
-        "what-counts",
-        "documents",
-        "county-directory",
-        "callout"
+        "what-counts"
       ],
       "signals": {
         "benefitType": "service",
         "hasIncomeTiers": false,
         "hasAssetLimits": true,
-        "hasRegionalVariation": true,
+        "hasRegionalVariation": false,
         "hasFunctionalReq": true,
         "hasMultipleTiers": false,
         "isStatewide": false
@@ -90,39 +82,40 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Utah Department of Health and Human Services (DHHS) Medicaid office handles all applications statewide[3]",
+            "name": "Local Utah Medicaid offices (find via https://medicaid.utah.gov/)[2]",
             "type": "service-area"
           }
         ]
       },
-      "complexity": "medium",
+      "complexity": "deep",
       "recommendedSections": [
         "prose",
         "income-table",
         "what-counts",
+        "tier-comparison",
         "documents",
         "county-directory",
         "callout"
       ],
       "signals": {
-        "benefitType": "unknown",
+        "benefitType": "financial",
         "hasIncomeTiers": true,
         "hasAssetLimits": true,
-        "hasRegionalVariation": false,
+        "hasRegionalVariation": true,
         "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
+        "hasMultipleTiers": true,
         "isStatewide": true
       }
     },
     {
-      "name": "SNAP (Food Stamps)",
+      "name": "Utah SNAP (Supplemental Nutrition Assistance Program)",
       "programType": "benefit",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Local Utah Workforce Services offices; find via jobs.utah.gov",
+            "name": "Local Utah Workforce Services offices (e.g., Salt Lake County office for that area)[8]",
             "type": "service-area"
           }
         ]
@@ -146,14 +139,26 @@
       }
     },
     {
-      "name": "LIHEAP (HEAT in Utah)",
+      "name": "Utah LIHEAP (Low-Income Home Energy Assistance Program)",
       "programType": "benefit",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Local HEAT offices; find via state site or regional like MAG.[2][3][4]",
+            "name": "Statewide via jobs.utah.gov/housing/scso/seal/heat.html local HEAT offices.[3]",
+            "type": "service-area"
+          },
+          {
+            "name": "Five County: fivecountyheat.org.[4]",
+            "type": "service-area"
+          },
+          {
+            "name": "MAG (Summit/Wasatch): magutah.gov/heat.[5]",
+            "type": "service-area"
+          },
+          {
+            "name": "Paiute Tribal (separate): pitu.gov/liheap, 435-586-1112.[2]",
             "type": "service-area"
           }
         ]
@@ -178,26 +183,26 @@
       }
     },
     {
-      "name": "Weatherization Assistance Program",
+      "name": "Utah Weatherization Assistance Program",
       "programType": "benefit",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Bear River Association of Governments (Logan): Box Elder, Cache, Rich, Shoshone Indian Tribe.",
+            "name": "Bear River AoG (Box Elder, Cache, Rich, Shoshone Tribe): Logan.[1]",
             "type": "service-area"
           },
           {
-            "name": "Utah Community Action (Salt Lake City): Davis, Morgan, Weber, Salt Lake, Tooele, Goshute Indian Tribe.",
+            "name": "Utah Community Action (Davis, Morgan, Weber, Salt Lake, Tooele, Goshute): Salt Lake City.[1][3]",
             "type": "service-area"
           },
           {
-            "name": "Five County Association of Governments (Cedar City): Beaver, Iron, Washington, Garfield, Kane, Paiute Indian Tribe.",
+            "name": "Mountainland Association of Governments (e.g., Utah/Provo area): Vineyard.[2]",
             "type": "service-area"
           },
           {
-            "name": "Others via agency map at state site.",
+            "name": "Five County AoG (Beaver, Iron, Washington, Garfield, Kane, Paiute): Cedar City.[1]",
             "type": "service-area"
           }
         ]
@@ -223,14 +228,14 @@
       }
     },
     {
-      "name": "State Health Insurance Assistance Program (SHIP)",
+      "name": "Utah SHIP (State Health Insurance Assistance Program)",
       "programType": "resource",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Network of local sites across all Utah counties via Utah Insurance Department and Department of Health & Human Services Division of Aging and Adult Services[3]",
+            "name": "Primary contact: Utah Department of Human Services, 195 North 1950 West, Salt Lake City, UT 84116[3]",
             "type": "service-area"
           }
         ]
@@ -241,7 +246,7 @@
         "county-directory"
       ],
       "signals": {
-        "benefitType": "service",
+        "benefitType": "service|advocacy",
         "hasIncomeTiers": false,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
@@ -251,26 +256,26 @@
       }
     },
     {
-      "name": "Meals on Wheels (Utah)",
+      "name": "Utah Meals on Wheels",
       "programType": "benefit",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Davis County: 60+ years, homebound, do not drive, Davis County resident[4]",
+            "name": "Davis County Aging Services[5]",
             "type": "service-area"
           },
           {
-            "name": "MAG (Mountainland Association of Governments) serving Utah County, Wasatch County, and Summit County: Utah County (801-229-3802), Wasatch County (435-654-4920), Summit County (801-229-3802). Those under 60 may be served but pay $6/meal vs. $4 voluntary donation for those 60+[5]",
+            "name": "Mountainland Assoc. of Govts (MAG) for Utah/Wasatch/Summit Counties[6]",
             "type": "service-area"
           },
           {
-            "name": "Cache County: 60+ years, homebound and/or disabled, frail or at risk. Contact: 435-755-1722[6]",
+            "name": "Cache County Senior Center[7]",
             "type": "service-area"
           },
           {
-            "name": "MOW-SUW (Meals on Wheels Southern Utah): Serves southern Utah region[7]",
+            "name": "Local AAAs per region[1][3]",
             "type": "service-area"
           }
         ]
@@ -278,14 +283,15 @@
       "complexity": "medium",
       "recommendedSections": [
         "prose",
+        "what-counts",
         "documents",
         "county-directory",
         "callout"
       ],
       "signals": {
-        "benefitType": "in_kind",
+        "benefitType": "service",
         "hasIncomeTiers": false,
-        "hasAssetLimits": false,
+        "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
         "hasMultipleTiers": false,
@@ -294,38 +300,41 @@
     },
     {
       "name": "Utah Caregiver Support Program (UCSP)",
-      "programType": "resource",
+      "programType": "benefit",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Salt Lake County: 801-468-2460[6]",
+            "name": "Salt Lake County Aging & Adult Services: 801-468-2460",
             "type": "service-area"
           },
           {
-            "name": "Davis County: 801-451-3377[6]",
+            "name": "Davis County: 801-451-3377",
             "type": "service-area"
           },
           {
-            "name": "Weber/Morgan Counties: 801-625-3866[6]",
+            "name": "Weber/Morgan Counties: 801-625-3866",
             "type": "service-area"
           },
           {
-            "name": "Other counties: Contact Local Area Agency on Aging through https://daas.utah.gov/seniors/[2]",
+            "name": "Contact DAAS for other counties: https://daas.utah.gov/seniors/",
             "type": "service-area"
           }
         ]
       },
-      "complexity": "simple",
+      "complexity": "deep",
       "recommendedSections": [
         "prose",
-        "county-directory"
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
       ],
       "signals": {
         "benefitType": "service",
         "hasIncomeTiers": false,
-        "hasAssetLimits": false,
+        "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": true,
         "hasMultipleTiers": false,
@@ -333,18 +342,43 @@
       }
     },
     {
-      "name": "Legal Aid for Seniors",
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "programType": "employment",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Easterseals-Goodwill Northern Rocky Mountain (serves Utah, phone: (800) 771-2153)[7]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "documents"
+      ],
+      "signals": {
+        "benefitType": "employment",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": false
+      }
+    },
+    {
+      "name": "Utah Legal Services for Seniors",
       "programType": "resource",
       "geographicScope": {
-        "type": "local",
+        "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Salt Lake County Aging and Adult Services / ULS Senior Citizen Law Center[7].",
-            "type": "service-area"
-          },
-          {
-            "name": "Utah County: ULS Provo office (84601), Angel Advocates (801-997-9270), Randy Lish Law (Provo), Platt Law PC (Lehi)[8].",
+            "name": "Utah Legal Services main site; Salt Lake County Senior Citizen Law Center; Timpanogos Legal Center (Utah, Wasatch, Summit Counties)[2][5][9]",
             "type": "service-area"
           }
         ]
@@ -360,23 +394,31 @@
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": false
+        "hasMultipleTiers": true,
+        "isStatewide": true
       }
     },
     {
-      "name": "Long-Term Care Ombudsman",
+      "name": "Utah Long-Term Care Ombudsman Program",
       "programType": "resource",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "County-specific via https://daas.utah.gov/long-term-care-ombudsman/ to locate[3]",
+            "name": "State-level program manager[4]",
             "type": "service-area"
           },
           {
-            "name": "Examples: MAG Utah (801-229-3809)[5], Salt Lake County[6]",
+            "name": "11 local Area Agencies on Aging programs[4]",
+            "type": "service-area"
+          },
+          {
+            "name": "Example: Salt Lake County Aging and Adult Services[4]",
+            "type": "service-area"
+          },
+          {
+            "name": "Example: Mountain Association of Governments (Summit, Utah, Wasatch counties) - 801-229-3809[5]",
             "type": "service-area"
           }
         ]
@@ -388,8 +430,8 @@
       ],
       "signals": {
         "benefitType": "advocacy",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
+        "hasIncomeTiers": null,
+        "hasAssetLimits": false,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
         "hasMultipleTiers": false,
@@ -404,11 +446,7 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Salt Lake County Aging & Adult Services",
-            "type": "service-area"
-          },
-          {
-            "name": "San Juan County Aging Services",
+            "name": "Local Aging & Adult Services offices by county, in partnership with Utah Medicaid[4][5].",
             "type": "service-area"
           }
         ]
@@ -416,7 +454,6 @@
       "complexity": "deep",
       "recommendedSections": [
         "prose",
-        "income-table",
         "what-counts",
         "tier-comparison",
         "documents",
@@ -425,40 +462,7 @@
       ],
       "signals": {
         "benefitType": "service",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": true,
-        "hasMultipleTiers": true,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "New Choices Waiver Program",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Statewide via Utah DHHS Medicaid; contact central program office.[6]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "tier-comparison",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": true,
+        "hasIncomeTiers": false,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": true,

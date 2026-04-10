@@ -1,60 +1,33 @@
 {
   "state": "DE",
   "stateName": "Delaware",
-  "classifiedAt": "2026-04-09T09:30:14.413Z",
-  "total": 17,
+  "classifiedAt": "2026-04-09T12:39:40.626Z",
+  "total": 12,
   "typeSummary": {
-    "benefit": 15,
+    "benefit": 9,
     "employment": 1,
-    "resource": 1
+    "resource": 2
   },
   "scopeSummary": {
-    "state": 7,
-    "local": 2,
+    "state": 3,
+    "local": 1,
     "federal": 8
   },
   "complexitySummary": {
-    "deep": 10,
-    "medium": 6,
-    "simple": 1
+    "deep": 7,
+    "medium": 3,
+    "simple": 2
   },
   "programs": [
     {
-      "name": "Delaware Medicaid for the Elderly",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "tier-comparison",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": true,
-        "hasMultipleTiers": true,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Diamond State HCBS Waiver",
+      "name": "Diamond State Health Plan (DSHP and DSHP-Plus)",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Division of Medicaid and Medical Assistance (DMMA); Division of Developmental Disabilities Services (DDDS) for related waivers[1][4]",
+            "name": "Managed Care Organizations (MCOs) like Highmark Health Options, Delaware First Health; statewide[7][9]",
             "type": "service-area"
           }
         ]
@@ -64,34 +37,70 @@
         "prose",
         "income-table",
         "what-counts",
-        "tier-comparison",
         "documents",
-        "county-directory",
-        "callout"
+        "county-directory"
       ],
       "signals": {
         "benefitType": "service",
         "hasIncomeTiers": true,
         "hasAssetLimits": true,
-        "hasRegionalVariation": true,
+        "hasRegionalVariation": false,
         "hasFunctionalReq": true,
-        "hasMultipleTiers": true,
+        "hasMultipleTiers": false,
         "isStatewide": true
       }
     },
     {
-      "name": "Delaware PACE",
+      "name": "Division of Services for Aging and Adults with Physical Disabilities (DSAAPD) Waivers",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Delaware Aging & Disability Resource Center (ADRC): www.dhss.delaware.gov/dhss/dsaapd/adrc.html[1]",
+            "type": "service-area"
+          },
+          {
+            "name": "Joining Generations: 800.223.9074[4]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "documents",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Program of All-Inclusive Care for the Elderly (PACE) - Delaware PACE",
       "programType": "benefit",
       "geographicScope": {
         "type": "local",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Saint Francis LIFE (Trinity Health PACE)[6].",
+            "name": "PACE Your LIFE (contact: info@paceyourlifemwv.com)[7]",
             "type": "service-area"
           },
           {
-            "name": "PACE Your LIFE[4][7]",
+            "name": "Saint Francis LIFE (Trinity Health PACE) — serves specific Delaware service area zip codes[6]",
+            "type": "service-area"
+          },
+          {
+            "name": "Additional providers may exist; verify with Delaware Division of Medicaid and Medical Assistance",
             "type": "service-area"
           }
         ]
@@ -99,7 +108,6 @@
       "complexity": "deep",
       "recommendedSections": [
         "prose",
-        "income-table",
         "what-counts",
         "documents",
         "county-directory",
@@ -107,7 +115,7 @@
       ],
       "signals": {
         "benefitType": "service",
-        "hasIncomeTiers": true,
+        "hasIncomeTiers": false,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": true,
@@ -116,11 +124,17 @@
       }
     },
     {
-      "name": "Delaware Medicare Savings Programs (QMB, SLMB, QI)",
+      "name": "Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB)",
       "programType": "benefit",
       "geographicScope": {
         "type": "federal",
-        "stateVariation": true
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Statewide via DMMA; local offices in each county (New Castle, Kent, Sussex).",
+            "type": "service-area"
+          }
+        ]
       },
       "complexity": "deep",
       "recommendedSections": [
@@ -129,8 +143,7 @@
         "what-counts",
         "tier-comparison",
         "documents",
-        "county-directory",
-        "callout"
+        "county-directory"
       ],
       "signals": {
         "benefitType": "financial",
@@ -143,19 +156,19 @@
       }
     },
     {
-      "name": "Delaware Food First/SNAP",
+      "name": "Food Stamp Program (SNAP)",
       "programType": "benefit",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Division of Social Services offices across Delaware counties (New Castle, Kent, Sussex).",
+            "name": "Local DSS offices statewide; contact via dhss.delaware.gov/dss.",
             "type": "service-area"
           }
         ]
       },
-      "complexity": "medium",
+      "complexity": "deep",
       "recommendedSections": [
         "prose",
         "income-table",
@@ -167,25 +180,25 @@
         "benefitType": "financial",
         "hasIncomeTiers": true,
         "hasAssetLimits": true,
-        "hasRegionalVariation": false,
+        "hasRegionalVariation": true,
         "hasFunctionalReq": false,
         "hasMultipleTiers": false,
         "isStatewide": true
       }
     },
     {
-      "name": "Delaware LIHEAP",
+      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
       "programType": "benefit",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Catholic Charities Diocese of Wilmington: Phone (302) 255-9875, Fax (302) 255-4463[4]",
+            "name": "Catholic Charities Diocese of Wilmington (statewide weatherization/LIHEAP)[4][7]",
             "type": "service-area"
           },
           {
-            "name": "Other DSSC-contracted local agencies",
+            "name": "Division of State Service Centers (DSSC)[4]",
             "type": "service-area"
           }
         ]
@@ -210,35 +223,41 @@
       }
     },
     {
-      "name": "Delaware Weatherization Assistance Program",
+      "name": "Weatherization Assistance Program (WAP)",
       "programType": "benefit",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Energy Coordinating Agency (statewide contractor): 302-504-6111.[1][8]",
+            "name": "Energy Coordinating Agency (ECA): 302-504-6111, ecasavesenergy.org[1][4]",
+            "type": "service-area"
+          },
+          {
+            "name": "Delaware Opportunities Inc.: weatherization@deop.org[3]",
+            "type": "service-area"
+          },
+          {
+            "name": "DNREC Division of Climate, Coastal, and Energy: 302-735-3480[1]",
             "type": "service-area"
           }
         ]
       },
-      "complexity": "deep",
+      "complexity": "medium",
       "recommendedSections": [
         "prose",
         "income-table",
-        "what-counts",
-        "tier-comparison",
         "documents",
         "county-directory",
         "callout"
       ],
       "signals": {
-        "benefitType": "service",
+        "benefitType": "in_kind",
         "hasIncomeTiers": true,
-        "hasAssetLimits": true,
+        "hasAssetLimits": false,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
+        "hasMultipleTiers": false,
         "isStatewide": true
       }
     },
@@ -250,7 +269,7 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Delaware Senior Medicare Patrol, contact Barbara Jackson at (302) 255-9642 or barbara.jackson@delaware.gov[4]",
+            "name": "Administered statewide by Delaware Division of Services for Aging and Adults with Physical Disabilities (DSAAPD) under DHSS; local sites via SMP locator[5][9]",
             "type": "service-area"
           }
         ]
@@ -266,37 +285,25 @@
         "benefitType": "service|advocacy",
         "hasIncomeTiers": false,
         "hasAssetLimits": true,
-        "hasRegionalVariation": true,
+        "hasRegionalVariation": false,
         "hasFunctionalReq": false,
         "hasMultipleTiers": false,
         "isStatewide": true
       }
     },
     {
-      "name": "Delaware Meals on Wheels",
+      "name": "Home Delivered Meals (Meals on Wheels)",
       "programType": "benefit",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "New Castle County (most areas): City Fare Meals On Wheels / St. Anthony's Center — 302-421-3734 or text/call 302-293-0008 — www.cityfare.org",
+            "name": "New Castle County: City Fare Meals On Wheels / St. Anthony’s Center[7]",
             "type": "service-area"
           },
           {
-            "name": "Newark: Newark Senior Center — 302-737-5747 — www.newarkseniorcenter.com",
-            "type": "service-area"
-          },
-          {
-            "name": "Kent County: Modern Maturity Center — 302-734-1200 ext. 119 — www.modern-maturity.org",
-            "type": "service-area"
-          },
-          {
-            "name": "Lewes and Rehoboth Beach area: Meals On Wheels Lewes-Rehoboth — 302-645-7449 — www.mealsonwheels-lr.org",
-            "type": "service-area"
-          },
-          {
-            "name": "Statewide coordination: Meals on Wheels Delaware — 302-656-3257 — info@mealsonwheelsde.org — www.mealsonwheelsde.org",
+            "name": "Kent County: Modern Maturity Center[7]",
             "type": "service-area"
           }
         ]
@@ -304,14 +311,15 @@
       "complexity": "medium",
       "recommendedSections": [
         "prose",
+        "what-counts",
         "documents",
         "county-directory",
         "callout"
       ],
       "signals": {
-        "benefitType": "in_kind",
+        "benefitType": "service",
         "hasIncomeTiers": false,
-        "hasAssetLimits": false,
+        "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
         "hasMultipleTiers": false,
@@ -319,54 +327,26 @@
       }
     },
     {
-      "name": "Delaware Family Caregiver Support Program",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Delaware Aging and Disability Resource Center (ADRC)",
-            "type": "service-area"
-          },
-          {
-            "name": "Local Area Agencies on Aging",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "tier-comparison",
-        "documents",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Delaware Senior Community Service Employment Program (SCSEP)",
+      "name": "Senior Community Service Employment Program (SCSEP)",
       "programType": "employment",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "National Able (primary per DE handbook)[1]",
+            "name": "New Castle: National Able Network, 300 East Lea Blvd, Wilmington, DE 19802",
             "type": "service-area"
           },
           {
-            "name": "Rose Hill Community Center, Inc. (New Castle County)[3]",
+            "name": "New Castle: Rose Hill Community Center, Inc., 19 Lambson Lane, Suite 105A",
+            "type": "service-area"
+          },
+          {
+            "name": "Sussex: First State Community Action Agency",
+            "type": "service-area"
+          },
+          {
+            "name": "Kent/Sussex: Contact via Delaware 211 or county SCSEP manager",
             "type": "service-area"
           }
         ]
@@ -380,6 +360,42 @@
       "signals": {
         "benefitType": "employment",
         "hasIncomeTiers": true,
+        "hasAssetLimits": false,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Legal Aid for Seniors",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Community Legal Aid Society, Inc. (CLASI) Elder Law Program (statewide focus, county offices)",
+            "type": "service-area"
+          },
+          {
+            "name": "Legal Services Corporation of Delaware (county offices)",
+            "type": "service-area"
+          },
+          {
+            "name": "Coordination with Division of Services for Aging and Adults with Physical Disabilities[1][3][6]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
@@ -388,18 +404,18 @@
       }
     },
     {
-      "name": "Delaware Long-Term Care Ombudsman Program",
+      "name": "Long-Term Care Ombudsman Program",
       "programType": "resource",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Main Administration: 1901 N DuPont Hwy, New Castle, DE 19720[1][2]",
+            "name": "Main Administration Building, 1901 North DuPont Highway, New Castle, DE (statewide office)[2]",
             "type": "service-area"
           },
           {
-            "name": "Kent/Sussex coordination via Delaware ADRC[6]",
+            "name": "Kent/Sussex regional program[7]",
             "type": "service-area"
           }
         ]
@@ -415,182 +431,6 @@
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Delaware Prescription Assistance Program (DPAP)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Lewis Building, DHSS Campus, 1901 N. DuPont Highway, New Castle, DE 19720",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "medium",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "financial",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": false,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Wilmington Senior Tax Assistance Program",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "local",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Administered by Delaware State Housing Authority (DSHA) in partnership with City of Wilmington and United Way of Delaware (UWD)",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "medium",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "documents",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "financial",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": false,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": false
-      }
-    },
-    {
-      "name": "SCAT – Senior Citizens Affordable Taxi",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "DTC Wilmington: 400 S. Madison St., Wilmington, DE 19801",
-            "type": "service-area"
-          },
-          {
-            "name": "DTC Dover: 900 Public Safety Blvd., Dover, DE 19901",
-            "type": "service-area"
-          },
-          {
-            "name": "Participating taxi companies (call nearest one)",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "medium",
-      "recommendedSections": [
-        "prose",
-        "what-counts",
-        "documents",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Over-60 Tuition Benefit",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "University of Delaware",
-            "type": "service-area"
-          },
-          {
-            "name": "Delaware State University",
-            "type": "service-area"
-          },
-          {
-            "name": "Delaware Technical Community College (multiple campuses)",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "financial",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Assistive Devices Program",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "DSAAPD offices via 800.223.9074[4]",
-            "type": "service-area"
-          },
-          {
-            "name": "DATI Assistive Technology Resource Centers (ATRCs)[5]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "documents",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "in_kind",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": true,
         "hasMultipleTiers": false,
         "isStatewide": true
       }

@@ -1,21 +1,348 @@
 {
   "state": "TN",
   "stateName": "Tennessee",
-  "classifiedAt": "2026-04-09T09:42:20.547Z",
-  "total": 5,
+  "classifiedAt": "2026-04-09T16:32:49.433Z",
+  "total": 12,
   "typeSummary": {
-    "resource": 1,
-    "benefit": 4
+    "benefit": 7,
+    "navigator": 1,
+    "employment": 1,
+    "resource": 3
   },
   "scopeSummary": {
-    "local": 1,
-    "state": 4
+    "federal": 8,
+    "state": 2,
+    "local": 2
   },
   "complexitySummary": {
-    "simple": 1,
-    "deep": 4
+    "medium": 5,
+    "deep": 3,
+    "simple": 4
   },
   "programs": [
+    {
+      "name": "TennCare Medicare Savings Programs (QMB, SLMB, QI)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true
+      },
+      "complexity": "medium",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": false,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Tennessee SNAP",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local TDHS county offices statewide (directory at tn.gov/humanservices)[10].",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Tennessee LIHEAP",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Network of 19 local agencies; THDA contacts PDF for specifics.[4][5]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "medium",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Tennessee State Health Insurance Assistance Program (TN SHIP)",
+      "programType": "navigator",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Nine regional SHIP offices statewide[3]",
+            "type": "service-area"
+          },
+          {
+            "name": "Aging Commission of the Mid-South (Shelby, Fayette, Lauderdale, Tipton counties): 901-222-4111 or 877-801-0044[3]",
+            "type": "service-area"
+          },
+          {
+            "name": "Upper Cumberland SHIP (14-county region): (931) 432-4150 or (931) 345-3635[7]",
+            "type": "service-area"
+          },
+          {
+            "name": "Statewide coordination: Tennessee Commission on Aging and Disability[3]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "provider-list"
+      ],
+      "signals": {
+        "benefitType": "service|advocacy",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Tennessee Meals on Wheels",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local Area Agencies on Aging and Disability (AAAD); e.g., FTHRA Northeast[1], Mid-Cumberland HRA[4], CAC Knox[8]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "National Family Caregiver Support Program (NFCSP)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false
+      },
+      "complexity": "medium",
+      "recommendedSections": [
+        "prose",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": false,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "programType": "employment",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Greater Memphis Workforce: Shelby, Fayette, Tipton, Lauderdale (jmuhammad@greatermemworkforce.com)",
+            "type": "service-area"
+          },
+          {
+            "name": "NWTHRA: Martin area (731-587-4213 ext. 234)",
+            "type": "service-area"
+          },
+          {
+            "name": "ETHRA: East TN counties (865-691-2551 ext. 4347)",
+            "type": "service-area"
+          },
+          {
+            "name": "Statewide inquiries: tn.gov/workforce or Jeff.Hughes@tn.gov",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "documents"
+      ],
+      "signals": {
+        "benefitType": "employment",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": false
+      }
+    },
+    {
+      "name": "Tennessee Senior Law Alliance (TSLA) / Tennessee Senior Legal Helpline",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Legal Aid Society of Middle TN and The Cumberlands[1][2]",
+            "type": "service-area"
+          },
+          {
+            "name": "Legal Aid of East Tennessee[1][3]",
+            "type": "service-area"
+          },
+          {
+            "name": "West Tennessee Legal Services[1]",
+            "type": "service-area"
+          },
+          {
+            "name": "Tennessee Alliance for Legal Services (statewide helpline)[1][7]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Tennessee Long-Term Care Ombudsman Program",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Districts include First TN (1), East TN (2), Southeast TN (3), Upper Cumberland (4), and others; full list at state site[8]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "advocacy",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "OPTIONS for Community Living",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Contact statewide intake at 1-866-836-6678 to find local AAAD.[2][4]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "medium",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": false
+      }
+    },
     {
       "name": "Senior Advocate Program",
       "programType": "resource",
@@ -24,15 +351,19 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "ETHRA (Knoxville)[3]",
+            "name": "McMinn Senior Activity Center, Athens, TN[5]",
             "type": "service-area"
           },
           {
-            "name": "McMinn Senior Activity Center (Athens, TN)[5]",
+            "name": "ETHRA (East Tennessee), Knoxville office: 9111 Cross Park Drive Ste. D-100[3]",
             "type": "service-area"
           },
           {
-            "name": "Upper Cumberland and Middle TN legal programs[8]",
+            "name": "Southeast TN Area Agency on Aging and Disability (partner)[5]",
+            "type": "service-area"
+          },
+          {
+            "name": "Other AAADs via statewide toll-free numbers (not specified)[7]",
             "type": "service-area"
           }
         ]
@@ -53,150 +384,32 @@
       }
     },
     {
-      "name": "OPTIONS Program",
+      "name": "Tennessee State Health Insurance Assistance Program (TN SHIP) and Senior Medicare Patrol (SMP)",
       "programType": "benefit",
       "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
+        "type": "federal",
+        "stateVariation": true,
         "localEntities": [
           {
-            "name": "First Tennessee Area Agency on Aging and Disability (FTAAAD), East Tennessee Human Resource Agency (ETHRA), contact via central intake 1-866-836-6678[3][6]",
+            "name": "9 Area Agencies on Aging and Disability (AAADs) statewide; e.g., Aging Commission of the Mid-South, Upper Cumberland AAAD[4][5][7]",
             "type": "service-area"
           }
         ]
       },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": true,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "TennCare CHOICES",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "tier-comparison",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": true,
-        "hasMultipleTiers": true,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Single Point of Entry (SPOE)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "First Tennessee Development District",
-            "type": "service-area"
-          },
-          {
-            "name": "Northwest Tennessee Development District",
-            "type": "service-area"
-          },
-          {
-            "name": "Greater Nashville Regional Council",
-            "type": "service-area"
-          },
-          {
-            "name": "Aging Commission of the Mid-South",
-            "type": "service-area"
-          },
-          {
-            "name": "South Central Tennessee Development District",
-            "type": "service-area"
-          },
-          {
-            "name": "Southeast Tennessee Development District",
-            "type": "service-area"
-          },
-          {
-            "name": "Southwest Tennessee Development District",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "tier-comparison",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": true,
-        "hasMultipleTiers": true,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Aging Nutrition Program",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Local AAAD offices (contact via 1-866-836-6678); 150+ congregate sites statewide[6]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
+      "complexity": "medium",
       "recommendedSections": [
         "prose",
         "what-counts",
-        "tier-comparison",
         "documents",
-        "county-directory",
-        "callout"
+        "county-directory"
       ],
       "signals": {
-        "benefitType": "service",
+        "benefitType": "service|advocacy",
         "hasIncomeTiers": false,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
+        "hasMultipleTiers": false,
         "isStatewide": true
       }
     }

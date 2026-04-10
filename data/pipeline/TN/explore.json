@@ -4,48 +4,102 @@
   "state": "TN",
   "stateName": "Tennessee",
   "isRegion": false,
-  "exploredAt": "2026-04-09T09:41:26.606Z",
-  "programCount": 5,
+  "exploredAt": "2026-04-09T16:31:31.352Z",
+  "programCount": 13,
   "programs": [
     {
+      "name": "TennCare Medicare Savings Programs (QMB, SLMB, QI)",
+      "what_it_does": "These programs help low-income Medicare beneficiaries pay premiums, deductibles, and coinsurance. QMB covers Part A/B costs, SLMB/QI cover Part B premiums.[5][6]",
+      "who_its_for": "Medicare enrollees 65+ or disabled with income below 100-135% FPL and limited assets.[5]",
+      "official_url": "https://tenncareconnect.tn.gov",
+      "benefit_value": "QMB: full Part A/B cost-sharing; SLMB: Part B premium; QI: Part B premium; income <100-135% FPL.[5]"
+    },
+    {
+      "name": "Tennessee SNAP",
+      "what_it_does": "SNAP provides food assistance benefits via EBT card for purchasing groceries. Administered by TN Dept. of Human Services for low-income households.[6]",
+      "who_its_for": "Low-income seniors, disabled, and families; income-based eligibility.",
+      "official_url": "https://www.tn.gov/humanservices",
+      "benefit_value": "Monthly benefits scaled by income/household size; avg. senior benefit ~$100-200/month."
+    },
+    {
+      "name": "Tennessee LIHEAP",
+      "what_it_does": "LIHEAP offers grants to help with heating/cooling bills and crisis assistance. Administered statewide for energy cost relief.",
+      "who_its_for": "Low-income households including seniors; priority for elderly/disabled.",
+      "official_url": "https://www.tn.gov/humanservices",
+      "benefit_value": "One-time grants $100-1000+ depending on need/fuel type."
+    },
+    {
+      "name": "Tennessee Weatherization Assistance Program",
+      "what_it_does": "Provides home energy efficiency upgrades like insulation and sealing. Federal program administered by TN to reduce energy costs.",
+      "who_its_for": "Low-income homeowners/renters including seniors/disabled.",
+      "official_url": "https://www.tn.gov/environment/program-areas/energy/state-energy-program-(sep)/sep-weatherization.html",
+      "benefit_value": "Free home improvements; saves 10-30% on energy bills."
+    },
+    {
+      "name": "Tennessee SHIP",
+      "what_it_does": "State Health Insurance Assistance Program offers free Medicare counseling and enrollment help. Provides one-on-one advising and group education.[6]",
+      "who_its_for": "All Medicare beneficiaries, especially low-income seniors.",
+      "official_url": "https://www.tn.gov/aging",
+      "benefit_value": "Free counseling; phone 1-844-887-7447.[6]"
+    },
+    {
+      "name": "Tennessee Meals on Wheels",
+      "what_it_does": "Delivers nutritious meals to homebound seniors to promote independence. Administered through local Area Agencies on Aging.",
+      "who_its_for": "Homebound seniors 60+ unable to prepare meals.",
+      "official_url": "https://www.tn.gov/aging",
+      "benefit_value": "5-14 meals/week; ~$3-7/suggested donation."
+    },
+    {
+      "name": "Tennessee Family Caregiver Support Program",
+      "what_it_does": "Offers respite care, training, and support for family caregivers. Helps prevent caregiver burnout through counseling and supplies.",
+      "who_its_for": "Family caregivers of seniors 60+ or disabled adults.",
+      "official_url": "https://www.tn.gov/aging",
+      "benefit_value": "Respite grants up to $2,000/year in some areas."
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "what_it_does": "Provides part-time paid community service work training for older adults. Helps transition to unsubsidized employment.",
+      "who_its_for": "Unemployed low-income seniors 55+.",
+      "official_url": "https://www.tn.gov/workforce",
+      "benefit_value": "Minimum wage work ~20 hrs/week."
+    },
+    {
+      "name": "Tennessee Legal Services Program (Legal Aid for Seniors)",
+      "what_it_does": "Provides free legal assistance for income-eligible seniors on issues like benefits, housing, abuse. Operates statewide with senior focus.",
+      "who_its_for": "Low-income seniors 60+.",
+      "official_url": "https://www.tlsg.org",
+      "benefit_value": "Free legal representation/counseling."
+    },
+    {
+      "name": "Tennessee Long-Term Care Ombudsman Program",
+      "what_it_does": "Advocates for residents in long-term care facilities resolving complaints. Protects rights and improves quality of care.",
+      "who_its_for": "Nursing home/assisted living residents and families.",
+      "official_url": "https://www.tn.gov/aging",
+      "benefit_value": "Free advocacy services statewide."
+    },
+    {
+      "name": "OPTIONS for Community Living",
+      "what_it_does": "OPTIONS for Community Living is a state-funded program providing home and community-based services such as homemaker assistance, home-delivered meals, and personal care to help elderly and disabled individuals remain independent. It offers choices for services through local Area Agencies on Aging and Disability, focusing on maintaining self-sufficiency at home.[2][5]",
+      "who_its_for": "Persons age 60 and over, or adults 18+ with physical disabilities who are limited in daily activities; available statewide via local agencies, not restricted to Medicaid qualifiers.[5]",
+      "whats_unique": "Fully state-funded (not federal Medicaid), providing HCBS to non-Medicaid eligible seniors and disabled adults, unlike standard federal programs limited to low-income Medicaid recipients.[2][5]",
+      "official_url": "https://swtdd.org/aging-disability/",
+      "benefit_value": "Home-delivered meals, homemaker services, personal care assistance; serves thousands via 9+ senior centers in regions like Southwest TN, with nearly 2 million meals annually statewide through related HRA programs.[2][5]"
+    },
+    {
       "name": "Senior Advocate Program",
-      "what_it_does": "The program employs a dedicated staff member at the McMinn Senior Activity Center to assist older adults in navigating bureaucratic red tape for services like food, home repairs, and other aid they might not otherwise qualify for. It operates at a grassroots level, partnering with local entities such as housing authorities, VA, AARP, SHIP, and Social Security offices.[1]",
-      "who_its_for": "Older adults age 50 and up in McMinn County, Tennessee, particularly those facing barriers to standard assistance programs.[1]",
-      "whats_unique": "One of only three such programs in Tennessee with a dedicated staff member, and the only one in East Tennessee, emphasizing local, hands-on advocacy beyond typical state or federal services.[1]",
+      "what_it_does": "The Senior Advocate Program employs dedicated staff to assist older adults in navigating bureaucracy for food, home repairs, housing, and other services they might not otherwise qualify for. It builds grassroots partnerships with local entities like housing authorities, VA, AARP, and SHIP to empower aging successfully.[1]",
+      "who_its_for": "Older adults age 50+ in McMinn County and East Tennessee facing barriers to standard assistance; open to 562+ senior center members and broader community.[1]",
+      "whats_unique": "One of only three such dedicated programs in Tennessee, the sole one in East Tennessee, operating at a grassroots level beyond typical state/federal advocacy.[1]",
       "official_url": "https://www.ncoa.org/article/nisc-programs-of-excellence-senior-advocate-program/",
-      "benefit_value": "Access to otherwise unavailable resources through personalized advocacy; serves 562 senior center members in a county with 15,033 residents aged 60+.[1]"
+      "benefit_value": "Individualized advocacy yielding food aid, home repairs, health insurance help; supported 15,033 seniors (60+) in McMinn County via key community partnerships.[1]"
     },
     {
-      "name": "OPTIONS Program",
-      "what_it_does": "This state-funded program provides Homemaker services, Home Delivered Meals, and Personal Care Assistance to support seniors in remaining at home. It is accessed through Area Agencies on Aging and Disability as part of Tennessee's long-term care framework.[2]",
-      "who_its_for": "Older adults and those with disabilities in Southwest Tennessee (Chester, Decatur, Hardin, Hardeman, Haywood, Henderson, Madison, McNairy counties) needing home-based support.[2]",
-      "whats_unique": "State-funded home care services available even to non-Medicaid eligible individuals, distinguishing it from purely federal programs by offering broader access via Tennessee's AAAD network.[2]",
-      "official_url": "https://swtdd.org/aging-disability/",
-      "benefit_value": "Comprehensive in-home services including meals and personal care; part of a regional system serving multiple counties.[2]"
-    },
-    {
-      "name": "TennCare Choices",
-      "what_it_does": "TennCare Choices delivers Home and Community-Based Services (HCBS) to help seniors and disabled adults with daily activities, medical care, and essential support for aging in place. It allows waiver of nursing home placement in favor of lower-level home care for eligible participants.[3][4]",
-      "who_its_for": "Tennessee residents aged 20+ needing nursing home-level care but preferring home or assisted living, financially eligible for TennCare (income/asset limits apply, e.g., 2022 guidelines).[3][4]",
-      "whats_unique": "Tennessee's Medicaid-managed HCBS waiver program under TennCare, providing state-specific home-based alternatives to institutional care not universally structured this way in other states.[3][4]",
-      "official_url": "https://www.tnadvancecare.com/essential-resources-for-seniors-in-tennessee",
-      "benefit_value": "Support for daily living and medical needs to avoid nursing homes; covers those meeting TennCare financial criteria.[3][4]"
-    },
-    {
-      "name": "Single Point of Entry (SPOE)",
-      "what_it_does": "SPOE acts as a one-stop shop for information and access to long-term care programs and services for the elderly and adults with physical disabilities. It facilitates seamless connections to Tennessee's array of aging services, including those for non-Medicaid qualifiers.[2]",
-      "who_its_for": "Seniors and adults with physical disabilities in Southwest Tennessee seeking long-term care resources.[2]",
-      "whats_unique": "Tennessee's designated statewide access point through AAADs for both Medicaid and non-Medicaid services, streamlining entry into state-specific programs beyond federal standards.[2]",
-      "official_url": "https://swtdd.org/aging-disability/",
-      "benefit_value": "Centralized referral to home care, meals, and other services; toll-free access at 1-866-836-6678.[2]"
-    },
-    {
-      "name": "Aging Nutrition Program",
-      "what_it_does": "Provides congregate meals at senior centers and home-delivered meals through programs like Meals on Wheels and Senior Dine-In, reaching nearly two million meals annually. Meals meet Dietary Guidelines for Americans and support active community participation.[6][8]",
-      "who_its_for": "Persons aged 60 and over in Tennessee, particularly in regions like Upper Cumberland and statewide via HRAs and senior centers.[6][8]",
-      "whats_unique": "Tennessee's state-administered nutrition initiative via HRAs and AAADs, extending beyond federal OAA funding with local delivery like four weekly congregate meals.[6][8]",
-      "official_url": "https://www.tn.gov/disability-and-aging/disability-aging-programs.html",
-      "benefit_value": "Almost 2 million meals per year; nutritious noon meals 4 days/week at centers.[6][8]"
+      "name": "Tennessee State Health Insurance Assistance Program (TN SHIP) and Senior Medical Patrol (SMP)",
+      "what_it_does": "TN SHIP provides free counseling on Medicare options, enrollment, and coverage to seniors and disabled individuals. SMP protects against healthcare fraud, waste, and abuse through education and reporting assistance.[7]",
+      "who_its_for": "Seniors eligible for Medicare and people with disabilities; statewide via Area Agencies on Aging and Disability.[7]",
+      "whats_unique": "State-specific implementation with SMP integration for fraud protection, tailored to TN residents beyond federal SHIP counseling standards.[7]",
+      "official_url": "https://tnmedicarehelp.com/",
+      "benefit_value": "Free one-on-one Medicare guidance and fraud prevention; prevents financial losses and ensures proper benefit access for thousands annually.[7]"
     }
   ]
 }

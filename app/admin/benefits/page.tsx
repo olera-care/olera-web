@@ -688,45 +688,83 @@ function ProgramRow({ program, stateId, pipelineComparison, draft, reviewStatus,
   // Review status badge
   const statusInfo = reviewStatus ? STATUSES.find((s) => s.value === reviewStatus) : null;
 
+  // Determine what versions exist
+  const hasV2 = !!draft || !!program.programType; // Pipeline draft or hand-enriched
+  const hasCurrent = true; // All programs have a current page in waiver-library
+
   return (
     <div
       className={`px-5 py-3.5 transition-colors ${
         expanded ? "bg-gray-50/50" : "hover:bg-gray-50/50"
       }`}
     >
-      <button
-        onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center gap-3 text-left"
-      >
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm font-medium text-gray-900 truncate">
-              {program.name}
-            </span>
-            <TypeBadge type={type} />
-            {statusInfo && (
-              <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${statusInfo.color}`}>
-                {statusInfo.label}
-              </span>
-            )}
-          </div>
-          <div className="flex items-center gap-3 mt-0.5">
-            {program.savingsRange ? (
-              <span className="text-xs text-emerald-600 font-medium">{program.savingsRange}</span>
-            ) : (
-              <span className="text-xs text-gray-400">Free service</span>
-            )}
-          </div>
-        </div>
-        <svg
-          className={`w-4 h-4 text-gray-300 shrink-0 transition-transform duration-200 ${expanded ? "rotate-90" : ""}`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
+      <div className="flex items-center gap-3">
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="flex-1 flex items-center gap-3 text-left min-w-0"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
-        </svg>
-      </button>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-sm font-medium text-gray-900 truncate">
+                {program.name}
+              </span>
+              <TypeBadge type={type} />
+              {statusInfo && (
+                <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${statusInfo.color}`}>
+                  {statusInfo.label}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-3 mt-0.5">
+              {program.savingsRange ? (
+                <span className="text-xs text-emerald-600 font-medium">{program.savingsRange}</span>
+              ) : (
+                <span className="text-xs text-gray-400">Free service</span>
+              )}
+            </div>
+          </div>
+          <svg
+            className={`w-4 h-4 text-gray-300 shrink-0 transition-transform duration-200 ${expanded ? "rotate-90" : ""}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+
+        {/* Preview links — top right of each program row */}
+        <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+          {hasV2 ? (
+            <>
+              <a
+                href={`/waiver-library/${stateId}/${program.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-[11px] font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-2 py-1 rounded transition-colors"
+              >
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                Preview v2
+              </a>
+            </>
+          ) : (
+            <>
+              <a
+                href={`/waiver-library/${stateId}/${program.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-[11px] font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 px-2 py-1 rounded transition-colors"
+              >
+                Preview current
+              </a>
+              <span className="text-[10px] text-gray-300">No v2</span>
+            </>
+          )}
+        </div>
+      </div>
       {expanded && <ProgramPreview program={program} stateId={stateId} pipelineComparison={pipelineComparison} draft={draft} allReviews={allReviews} onReviewAdded={onReviewAdded} />}
     </div>
   );

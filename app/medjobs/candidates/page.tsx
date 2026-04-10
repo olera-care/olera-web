@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import CandidateCard from "@/components/medjobs/CandidateCard";
 import type { CandidateData } from "@/components/medjobs/CandidateRow";
@@ -11,8 +12,10 @@ import type { CandidateFilterValues } from "@/components/medjobs/CandidateFilter
 const PAGE_SIZE = 20;
 
 export default function CandidateBrowsePage() {
-  const { openAuth, activeProfile } = useAuth();
+  const { openAuth, activeProfile, refreshAccountData } = useAuth();
   const isProvider = activeProfile?.type === "organization" || activeProfile?.type === "caregiver";
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const [candidates, setCandidates] = useState<CandidateData[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -27,6 +30,30 @@ export default function CandidateBrowsePage() {
   });
 
   const sentinelRef = useRef<HTMLDivElement>(null);
+
+  // After returning from Stripe checkout, verify subscription and refresh auth
+  const hasVerified = useRef(false);
+  useEffect(() => {
+    if (hasVerified.current) return;
+    if (searchParams.get("upgraded") !== "true" || !isProvider) return;
+    hasVerified.current = true;
+
+    // Clear the query param
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("upgraded");
+    const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname;
+    router.replace(newUrl, { scroll: false });
+
+    // Verify subscription with Stripe and refresh auth context
+    (async () => {
+      try {
+        await fetch("/api/medjobs/verify-subscription", { method: "POST" });
+        await refreshAccountData();
+      } catch {
+        // Silent — webhook may still activate later
+      }
+    })();
+  }, [searchParams, isProvider, router, refreshAccountData]);
 
   const fetchCandidates = useCallback(
     async (pageNum: number, append: boolean) => {

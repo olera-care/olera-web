@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getStateById, getProgramById, activeStateIds } from "@/data/waiver-library";
-import { getEnrichedProgram } from "@/lib/program-data";
+import { getEnrichedProgram, getAllProgramIds } from "@/lib/program-data";
 import { Breadcrumb } from "@/components/waiver-library/Breadcrumb";
 import { ServiceAreasMap } from "@/components/waiver-library/ServiceAreasMapLoader";
 import { ExpandableText } from "@/components/waiver-library/ExpandableText";
@@ -19,11 +19,10 @@ interface Props {
 export async function generateStaticParams() {
   const params: { state: string; benefit: string }[] = [];
   for (const stateId of activeStateIds) {
-    const state = getStateById(stateId);
-    if (state) {
-      for (const program of state.programs) {
-        params.push({ state: stateId, benefit: program.id });
-      }
+    // Include both waiver-library AND pipeline-only programs
+    const programIds = getAllProgramIds(stateId);
+    for (const programId of programIds) {
+      params.push({ state: stateId, benefit: programId });
     }
   }
   return params;

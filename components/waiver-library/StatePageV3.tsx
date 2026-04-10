@@ -262,9 +262,17 @@ function TypeBadge({ type }: { type: string }) {
 // Main component
 // ═══════════════════════════════════════════════════════════════════════════════
 
+// Lightweight pipeline program reference for linking (avoids bundling full pipeline-drafts.ts)
+interface PipelineProgramRef {
+  id: string;
+  name: string;
+  shortName: string;
+}
+
 interface StatePageV3Props {
   state: StateData;
   overview: PipelineStateOverview;
+  pipelinePrograms?: PipelineProgramRef[];
 }
 
 const typeLabels: Record<string, { label: string; description: string; emoji: string }> = {
@@ -274,11 +282,28 @@ const typeLabels: Record<string, { label: string; description: string; emoji: st
   employment: { label: "Employment", description: "Job training and income support", emoji: "◆" },
 };
 
-export function StatePageV3({ state, overview }: StatePageV3Props) {
+export function StatePageV3({ state, overview, pipelinePrograms = [] }: StatePageV3Props) {
   const [activeArchetype, setActiveArchetype] = useState<ArchetypeId>(null);
   const [showAll, setShowAll] = useState(false);
   const responseRef = useRef<HTMLDivElement>(null);
   const programs = state.programs;
+
+  // Find a program by name — checks waiver-library first, then pipeline
+  function findProgramByName(name: string): { id: string; program?: WaiverProgram } | null {
+    const lower = name.toLowerCase().slice(0, 20);
+    const wlMatch = programs.find((p) =>
+      p.name.toLowerCase().includes(lower) || lower.includes(p.name.toLowerCase().slice(0, 20))
+    );
+    if (wlMatch) return { id: wlMatch.id, program: wlMatch };
+
+    const plMatch = pipelinePrograms.find((p) =>
+      p.name.toLowerCase().includes(lower) || p.shortName.toLowerCase().includes(lower) ||
+      lower.includes(p.name.toLowerCase().slice(0, 20))
+    );
+    if (plMatch) return { id: plMatch.id };
+
+    return null;
+  }
 
   // Group programs by type
   const grouped = programs.reduce<Record<string, WaiverProgram[]>>((acc, p) => {
@@ -499,15 +524,23 @@ export function StatePageV3({ state, overview }: StatePageV3Props) {
                   p.name.toLowerCase().includes(pick.name.toLowerCase().slice(0, 20)) ||
                   pick.name.toLowerCase().includes(p.name.toLowerCase().slice(0, 20))
                 );
+                // Also check pipeline drafts for the program ID
+                const pipelineId = pick.programId;
+                const href = program
+                  ? `/senior-benefits/${state.id}/${program.id}`
+                  : `/senior-benefits/${state.id}/${pipelineId}`;
                 const highlighted = !selectedArchetype || (program && isProgramHighlighted(program));
-                const cardClasses = `group relative flex flex-col p-5 rounded-2xl bg-white border transition-all duration-200 ${
-                  highlighted
-                    ? "border-gray-200 hover:border-primary-300 hover:shadow-md"
-                    : "border-gray-100 opacity-50"
-                }`;
 
-                const cardContent = (
-                  <>
+                return (
+                  <Link
+                    key={i}
+                    href={href}
+                    className={`group relative flex flex-col p-5 rounded-2xl bg-white border transition-all duration-200 ${
+                      highlighted
+                        ? "border-gray-200 hover:border-primary-300 hover:shadow-md"
+                        : "border-gray-100 opacity-50"
+                    }`}
+                  >
                     <div className="flex items-center justify-between mb-3">
                       <span className="flex items-center justify-center w-7 h-7 rounded-full bg-vanilla-200 text-gray-500 text-xs font-semibold">
                         {i + 1}
@@ -519,32 +552,19 @@ export function StatePageV3({ state, overview }: StatePageV3Props) {
                         </div>
                       )}
                     </div>
-                    <p className={`font-semibold leading-snug transition-colors ${program ? "text-gray-900 group-hover:text-primary-700" : "text-gray-900"}`}>
+                    <p className="font-semibold text-gray-900 group-hover:text-primary-700 transition-colors leading-snug">
                       {pick.name}
                     </p>
                     <p className="text-sm text-gray-500 mt-2 leading-relaxed flex-1">
                       {pick.why}
                     </p>
-                    {program && (
-                      <div className="flex items-center gap-1 mt-3 text-xs font-medium text-primary-600 opacity-0 group-hover:opacity-100 transition-opacity">
-                        Learn more
-                        <svg className="w-3 h-3 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </div>
-                    )}
-                  </>
-                );
-
-                // Only wrap in Link if the program has an actual page
-                return program ? (
-                  <Link key={i} href={`/senior-benefits/${state.id}/${program.id}`} className={cardClasses}>
-                    {cardContent}
+                    <div className="flex items-center gap-1 mt-3 text-xs font-medium text-primary-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                      Learn more
+                      <svg className="w-3 h-3 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
                   </Link>
-                ) : (
-                  <div key={i} className={`${cardClasses} cursor-default`}>
-                    {cardContent}
-                  </div>
                 );
               })}
             </div>
@@ -640,17 +660,14 @@ export function StatePageV3({ state, overview }: StatePageV3Props) {
                       <p className="text-sm text-gray-500 mt-1 leading-relaxed">{group.description}</p>
                       <div className="flex flex-wrap gap-2 mt-3">
                         {group.programs.map((name, j) => {
-                          const program = programs.find((p) =>
-                            p.name.toLowerCase().includes(name.toLowerCase().slice(0, 20)) ||
-                            name.toLowerCase().includes(p.name.toLowerCase().slice(0, 20))
-                          );
-                          return program ? (
+                          const match = findProgramByName(name);
+                          return match ? (
                             <Link
                               key={j}
-                              href={`/senior-benefits/${state.id}/${program.id}`}
+                              href={`/senior-benefits/${state.id}/${match.id}`}
                               className="text-xs font-medium text-primary-700 hover:text-primary-500 bg-primary-50 hover:bg-primary-100 px-3 py-1.5 rounded-full transition-colors"
                             >
-                              {program.shortName || program.name}
+                              {match.program?.shortName || match.program?.name || name}
                             </Link>
                           ) : (
                             <span key={j} className="text-xs text-gray-400 bg-gray-50 px-3 py-1.5 rounded-full">{name}</span>

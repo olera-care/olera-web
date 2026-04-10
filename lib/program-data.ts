@@ -45,20 +45,78 @@ function findDraftMatch(stateAbbrev: string, programId: string): PipelineDraft |
 }
 
 /**
+ * Get all program IDs for a state — both waiver-library and pipeline-only.
+ * Used by generateStaticParams to create pages for all known programs.
+ */
+export function getAllProgramIds(stateId: string): string[] {
+  const state = getStateById(stateId);
+  const ids = new Set<string>();
+
+  // Waiver-library programs
+  if (state) {
+    for (const p of state.programs) ids.add(p.id);
+  }
+
+  // Pipeline-only programs (not in waiver-library)
+  const stateAbbrev = STATE_ABBREVS[stateId] || stateId.toUpperCase();
+  const drafts = pipelineDrafts[stateAbbrev]?.programs || [];
+  for (const d of drafts) ids.add(d.id);
+
+  return Array.from(ids);
+}
+
+/**
  * Get an enriched program by merging waiver-library base data with pipeline draft.
  * Hand-curated fields from waiver-library always win over pipeline-generated.
+ * Also returns pipeline-only programs that don't exist in waiver-library.
  */
 export function getEnrichedProgram(
   stateId: string,
   programId: string
 ): WaiverProgram | undefined {
   const baseProgram = getProgramById(stateId, programId);
-  if (!baseProgram) return undefined;
 
   // Find matching pipeline draft
   const stateAbbrev = STATE_ABBREVS[stateId] || stateId.toUpperCase();
   const draft = findDraftMatch(stateAbbrev, programId);
 
+  // Pipeline-only program — create synthetic WaiverProgram from draft
+  if (!baseProgram && draft) {
+    return {
+      id: draft.id,
+      name: draft.name,
+      shortName: draft.shortName,
+      tagline: draft.tagline,
+      savingsRange: draft.savingsRange,
+      description: draft.tagline,
+      eligibilityHighlights: draft.structuredEligibility?.summary || [],
+      applicationSteps: draft.applicationGuide?.steps || [],
+      forms: [],
+      // Pipeline fields
+      programType: draft.programType as WaiverProgram["programType"],
+      complexity: draft.complexity as WaiverProgram["complexity"],
+      geographicScope: draft.geographicScope as WaiverProgram["geographicScope"],
+      intro: draft.intro,
+      structuredEligibility: draft.structuredEligibility as WaiverProgram["structuredEligibility"],
+      applicationGuide: draft.applicationGuide as WaiverProgram["applicationGuide"],
+      contentSections: draft.contentSections as WaiverProgram["contentSections"],
+      faqs: draft.faqs,
+      savingsSource: draft.savingsSource,
+      savingsVerified: draft.savingsVerified,
+      phone: draft.phone || undefined,
+      sourceUrl: draft.sourceUrl || undefined,
+      contentStatus: draft.contentStatus as WaiverProgram["contentStatus"],
+      draftedAt: draft.draftedAt,
+      documentsNeeded: draft.documentsNeeded,
+      contacts: draft.contacts,
+      applicationNotes: draft.applicationNotes,
+      relatedPrograms: draft.relatedPrograms,
+      regionalApplications: draft.regionalApplications,
+      layoutIntent: draft.layoutIntent as WaiverProgram["layoutIntent"],
+    };
+  }
+
+  if (!baseProgram) return undefined;
   if (!draft) return baseProgram;
 
   // Merge: base wins for existing fields, draft fills gaps

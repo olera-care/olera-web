@@ -80,10 +80,16 @@ export default async function StatePage({ params }: Props) {
     notFound();
   }
 
-  // V2 state page if pipeline has generated a state overview
+  // V3 state page if pipeline has generated a state overview
   const stateDrafts = pipelineDrafts[state.abbreviation];
   if (stateDrafts?.stateOverview) {
-    return <StatePageV3 state={state} overview={stateDrafts.stateOverview} />;
+    // Pass lightweight pipeline program refs for linking (avoids bundling full draft data)
+    const pipelinePrograms = (stateDrafts.programs || []).map((p) => ({
+      id: p.id,
+      name: p.name,
+      shortName: p.shortName,
+    }));
+    return <StatePageV3 state={state} overview={stateDrafts.stateOverview} pipelinePrograms={pipelinePrograms} />;
   }
 
   const faqs = STATE_FAQS[stateId] ?? [];

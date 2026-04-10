@@ -6,7 +6,7 @@ import { ProgramList } from "@/components/waiver-library/ProgramList";
 import { StateOutline } from "@/components/waiver-library/StateOutline";
 import { FaqAccordion } from "@/components/waiver-library/FaqAccordion";
 import { pipelineDrafts } from "@/data/pipeline-drafts";
-import { StatePageV2 } from "@/components/waiver-library/StatePageV2";
+import { StatePageV3 } from "@/components/waiver-library/StatePageV3";
 
 const STATE_FAQS: Record<string, { question: string; answer: string }[]> = {
   texas: [
@@ -83,7 +83,7 @@ export default async function StatePage({ params }: Props) {
   // V2 state page if pipeline has generated a state overview
   const stateDrafts = pipelineDrafts[state.abbreviation];
   if (stateDrafts?.stateOverview) {
-    return <StatePageV2 state={state} overview={stateDrafts.stateOverview} />;
+    return <StatePageV3 state={state} overview={stateDrafts.stateOverview} />;
   }
 
   const faqs = STATE_FAQS[stateId] ?? [];

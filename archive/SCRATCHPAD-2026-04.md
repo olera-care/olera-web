@@ -86,3 +86,17 @@
 
 - Full AIA migration: dark cinematic index + episode detail pages
 - YouTube IDs confirmed, hero image, sitemap, thumbnail fallback
+
+---
+
+### 2026-04-09 (Session 71) — State Page Redesign + Dashboard Streamlining + Region System
+
+**Branch:** `eager-ride` | **Latest: `ff26b594`**
+
+Session 71 was a massive session covering: StatePageV2 redesign (organic blobs, wavy dividers, dark stat band, width variation), state page review workflow (/current sub-route), admin dashboard streamlining (readiness filters, content metrics, TypeBadge, reviewer persistence), region-flexible pipeline (4 layers: pipeline, data model, flat routing, admin), pipeline concurrency + batch runner, 50-state batch run (47/50 succeeded, 568 programs), admin dashboard taste pass, post-mortems (entity refactor + rate limits), rate limit fix (429 retry, sequential drafts), browser back button in admin.
+
+Bugs caught: 5 (phaseReport dir, undefined stateCode ×2, state/region selection collision, searchParams SSG regression).
+
+**Commits:** `86530f8e` → ... → `460eec1e`
+
+*Full session log preserved in git history at commit `f7d947c6` (SCRATCHPAD.md before compaction)*

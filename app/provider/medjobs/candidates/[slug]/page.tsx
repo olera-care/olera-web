@@ -94,7 +94,7 @@ export default async function ProviderStudentProfilePage({ params }: PageProps) 
   // Determine the viewing provider's access tier for paywall gating
   const adminSb = getAdminSupabase();
   let accessTier: AccessTier = "anonymous";
-  let accessInfo: AccessInfo = { tier: "anonymous", interviewsUsed: 0, requestsSent: 0, isPaid: false };
+  let accessInfo: AccessInfo = { tier: "anonymous", creditsUsed: 0, creditsRemaining: 0, isPaid: false };
   try {
     const serverSb = await createServerClient();
     const { data: { user } } = await serverSb.auth.getUser();

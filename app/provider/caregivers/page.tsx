@@ -71,7 +71,7 @@ export default function ProviderCaregiversPage() {
 
       {showUpgradeModal && (
         <UpgradeModal
-          interviewsUsed={accessInfo.interviewsUsed}
+          creditsUsed={accessInfo.creditsUsed}
           onClose={() => setShowUpgradeModal(false)}
         />
       )}

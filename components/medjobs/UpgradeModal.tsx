@@ -3,11 +3,11 @@
 import { useState } from "react";
 
 interface UpgradeModalProps {
-  interviewsUsed: number;
+  creditsUsed: number;
   onClose: () => void;
 }
 
-export default function UpgradeModal({ interviewsUsed, onClose }: UpgradeModalProps) {
+export default function UpgradeModal({ creditsUsed, onClose }: UpgradeModalProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -37,7 +37,7 @@ export default function UpgradeModal({ interviewsUsed, onClose }: UpgradeModalPr
 
         <h2 className="text-lg font-semibold text-gray-900 mb-2">Unlock unlimited interviews</h2>
         <p className="text-sm text-gray-500 mb-4">
-          {interviewsUsed > 0
+          {creditsUsed > 0
             ? "You\u2019ve used your free interview and experienced MedJobs firsthand. Keep hiring the best student caregivers."
             : "Upgrade to schedule interviews with top student caregivers."}
         </p>

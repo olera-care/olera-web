@@ -240,7 +240,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Failed to create interview" }, { status: 500 });
     }
 
-    // Increment outbound request count
+    // Increment credits used for outbound request
     try {
       const { data: provRow } = await admin
         .from("business_profiles")
@@ -248,13 +248,13 @@ export async function POST(request: NextRequest) {
         .eq("id", providerProfileId)
         .single();
       const reqMeta = ((provRow?.metadata as Record<string, unknown>) ?? {});
-      const currentRequests = (reqMeta.medjobs_request_count as number) || 0;
+      const currentCredits = (reqMeta.medjobs_credits_used as number) || 0;
       await admin
         .from("business_profiles")
-        .update({ metadata: { ...reqMeta, medjobs_request_count: currentRequests + 1 } })
+        .update({ metadata: { ...reqMeta, medjobs_credits_used: currentCredits + 1 } })
         .eq("id", providerProfileId);
     } catch (err) {
-      console.error("[medjobs/interviews/quick] request count increment error:", err);
+      console.error("[medjobs/interviews/quick] credit increment error:", err);
     }
 
     // Generate magic link URL for the confirmation email

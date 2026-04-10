@@ -279,7 +279,7 @@ export default function ContactSection({
           candidate={candidate}
         />
         {showUpgradeModal && (
-          <UpgradeModal interviewsUsed={accessInfo.interviewsUsed} onClose={() => setShowUpgradeModal(false)} />
+          <UpgradeModal creditsUsed={accessInfo.creditsUsed} onClose={() => setShowUpgradeModal(false)} />
         )}
       </>
     );
@@ -346,7 +346,7 @@ export default function ContactSection({
         candidate={candidate}
       />
       {showUpgradeModal && (
-        <UpgradeModal interviewsUsed={accessInfo.interviewsUsed} onClose={() => setShowUpgradeModal(false)} />
+        <UpgradeModal creditsUsed={accessInfo.creditsUsed} onClose={() => setShowUpgradeModal(false)} />
       )}
     </>
   );

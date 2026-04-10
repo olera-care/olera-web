@@ -4,11 +4,16 @@
  * Four tiers control what providers see and can do:
  *
  * 1. anonymous       — not logged in, limited preview
- * 2. free_active     — logged in, under limits
- * 3. free_exhausted  — logged in, hit either limit, not paid
+ * 2. free_active     — logged in, under credit limit
+ * 3. free_exhausted  — logged in, credits exhausted, not paid
  * 4. paid            — active $49/mo subscription
  *
- * Exhaustion triggers: >= 5 outbound requests OR >= 1 confirmed interview.
+ * Providers get 3 free credits. Each credit is consumed by:
+ * - Sending an outbound interview request (provider → candidate)
+ * - Confirming an inbound interview request (candidate → provider)
+ *
+ * When a candidate confirms a provider's outbound request, no credit
+ * is consumed (the credit was already spent at request time).
  *
  * Contact info, LinkedIn, resume, and full names are paid-only to prevent
  * de-platforming (providers bypassing Olera by contacting candidates directly).
@@ -18,13 +23,12 @@ export type AccessTier = "anonymous" | "free_active" | "free_exhausted" | "paid"
 
 export interface AccessInfo {
   tier: AccessTier;
-  interviewsUsed: number;
-  requestsSent: number;
+  creditsUsed: number;
+  creditsRemaining: number;
   isPaid: boolean;
 }
 
-const FREE_REQUEST_LIMIT = 5;
-const FREE_CONFIRM_LIMIT = 1;
+const FREE_CREDIT_LIMIT = 3;
 
 /**
  * Determine the provider's access tier.
@@ -37,25 +41,24 @@ export function getAccessTier(
   providerMeta?: Record<string, unknown> | null,
 ): AccessInfo {
   if (!isAuthenticated || !providerMeta) {
-    return { tier: "anonymous", interviewsUsed: 0, requestsSent: 0, isPaid: false };
+    return { tier: "anonymous", creditsUsed: 0, creditsRemaining: 0, isPaid: false };
   }
 
   const isPaid = !!(providerMeta.medjobs_subscription_active as boolean);
-  const confirmCount = (providerMeta.medjobs_interview_count as number) || 0;
-  const requestCount = (providerMeta.medjobs_request_count as number) || 0;
+  const creditsUsed = (providerMeta.medjobs_credits_used as number) || 0;
 
   if (isPaid) {
-    return { tier: "paid", interviewsUsed: confirmCount, requestsSent: requestCount, isPaid: true };
+    return { tier: "paid", creditsUsed, creditsRemaining: Infinity, isPaid: true };
   }
 
-  if (confirmCount >= FREE_CONFIRM_LIMIT || requestCount >= FREE_REQUEST_LIMIT) {
-    return { tier: "free_exhausted", interviewsUsed: confirmCount, requestsSent: requestCount, isPaid: false };
+  if (creditsUsed >= FREE_CREDIT_LIMIT) {
+    return { tier: "free_exhausted", creditsUsed, creditsRemaining: 0, isPaid: false };
   }
 
   return {
     tier: "free_active",
-    interviewsUsed: confirmCount,
-    requestsSent: requestCount,
+    creditsUsed,
+    creditsRemaining: FREE_CREDIT_LIMIT - creditsUsed,
     isPaid: false,
   };
 }

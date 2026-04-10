@@ -3,7 +3,7 @@
 import Link from "next/link";
 import type { StateData, WaiverProgram } from "@/data/waiver-library";
 import type { PipelineStateOverview } from "@/data/pipeline-drafts";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useSavedPrograms, type SaveProgramData } from "@/hooks/use-saved-programs";
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -26,7 +26,7 @@ const ARCHETYPES: Archetype[] = [
   {
     id: "home",
     title: "Help staying home",
-    subtitle: "My parent needs care at home but we can't afford it",
+    subtitle: "My loved one needs care at home but we can't afford it",
     keywords: ["home", "waiver", "hcbs", "attendant", "personal care", "community", "pace", "choice", "alternatives"],
     needKeywords: ["home", "staying", "personal"],
   },
@@ -40,7 +40,7 @@ const ARCHETYPES: Archetype[] = [
   {
     id: "start",
     title: "I don't know where to start",
-    subtitle: "My parent needs help and I'm overwhelmed",
+    subtitle: "My loved one needs help and I'm overwhelmed",
     keywords: ["ship", "shine", "navigator", "counseling", "information", "cafе", "micafe", "options"],
     needKeywords: ["advice", "navigation", "start", "free", "advocacy"],
   },
@@ -52,6 +52,14 @@ const ARCHETYPES: Archetype[] = [
     needKeywords: ["companion", "support", "caregiver", "legal"],
   },
 ];
+
+// Archetype response messages — situation-specific, empathetic
+const archetypeResponses: Record<string, string> = {
+  home: "Your loved one wants to stay home. These programs help cover in-home care, personal assistance, and home modifications so they can age safely in place.",
+  paying: "Paying for care is overwhelming. These programs help cover medical costs, prescriptions, food, utilities, and other essentials.",
+  start: "It's okay not to know where to begin. These programs help you understand your options, navigate benefits, and get personalized guidance.",
+  caregiver: "Caring for someone is hard work. These programs provide respite breaks, companionship for your loved one, legal guidance, and support for you.",
+};
 
 function programMatchesArchetype(program: WaiverProgram, archetype: Archetype): boolean {
   const haystack = `${program.name} ${program.tagline || ""} ${program.description} ${program.programType || ""}`.toLowerCase();
@@ -269,6 +277,7 @@ const typeLabels: Record<string, { label: string; description: string; emoji: st
 export function StatePageV3({ state, overview }: StatePageV3Props) {
   const [activeArchetype, setActiveArchetype] = useState<ArchetypeId>(null);
   const [showAll, setShowAll] = useState(false);
+  const responseRef = useRef<HTMLDivElement>(null);
   const programs = state.programs;
 
   // Group programs by type
@@ -303,14 +312,7 @@ export function StatePageV3({ state, overview }: StatePageV3Props) {
     return programMatchesArchetype(program, selectedArchetype);
   }
 
-  function toggleArchetype(id: ArchetypeId) {
-    setActiveArchetype((prev) => (prev === id ? null : id));
-  }
-
-  // Count matching programs for the active archetype
-  const matchingCount = selectedArchetype
-    ? programs.filter((p) => programMatchesArchetype(p, selectedArchetype)).length
-    : programs.length;
+  // (archetype toggle is inline in the button onClick)
 
   return (
     <div className="bg-vanilla-100 min-h-screen">
@@ -342,7 +344,7 @@ export function StatePageV3({ state, overview }: StatePageV3Props) {
       <main className="pb-24">
 
         {/* ─── Archetype Entry — "What's your situation?" ─── */}
-        <section className="max-w-4xl mx-auto px-6 lg:px-8 -mt-2 mb-12">
+        <section className="max-w-4xl mx-auto px-6 lg:px-8 -mt-2 mb-10">
           <p className="text-sm text-gray-500 mb-4">What brought you here?</p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {ARCHETYPES.map((arch) => {
@@ -350,7 +352,16 @@ export function StatePageV3({ state, overview }: StatePageV3Props) {
               return (
                 <button
                   key={arch.id}
-                  onClick={() => toggleArchetype(arch.id)}
+                  onClick={() => {
+                    const newValue = activeArchetype === arch.id ? null : arch.id;
+                    setActiveArchetype(newValue);
+                    // Scroll response panel into view after a brief render delay
+                    if (newValue) {
+                      setTimeout(() => {
+                        responseRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+                      }, 50);
+                    }
+                  }}
                   className={`text-left p-4 rounded-2xl border transition-all duration-200 group ${
                     isActive
                       ? "bg-white border-primary-300 shadow-md ring-1 ring-primary-200"
@@ -371,20 +382,70 @@ export function StatePageV3({ state, overview }: StatePageV3Props) {
             })}
           </div>
 
-          {/* Active archetype indicator */}
-          {selectedArchetype && (
-            <div className="mt-4 flex items-center gap-2">
-              <p className="text-sm text-gray-500">
-                Showing <span className="font-medium text-gray-700">{matchingCount} programs</span> related to {selectedArchetype.title.toLowerCase()}
-              </p>
-              <button
-                onClick={() => setActiveArchetype(null)}
-                className="text-xs text-gray-400 hover:text-gray-600 underline transition-colors"
-              >
-                Show all
-              </button>
-            </div>
-          )}
+          {/* ─── Archetype Response Panel — matching programs shown RIGHT HERE ─── */}
+          <div ref={responseRef}>
+            {selectedArchetype && (() => {
+              const matchingPrograms = programs.filter((p) => programMatchesArchetype(p, selectedArchetype));
+              const displayPrograms = matchingPrograms.slice(0, 4);
+
+              return (
+                <div className="mt-5 p-5 md:p-6 bg-white rounded-2xl border border-gray-200 shadow-sm">
+                  {/* Response message */}
+                  <p className="text-sm text-gray-600 leading-relaxed mb-5">
+                    {archetypeResponses[selectedArchetype.id!] || ""}
+                  </p>
+
+                  {/* Matching program cards */}
+                  {displayPrograms.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {displayPrograms.map((program) => (
+                        <Link
+                          key={program.id}
+                          href={`/senior-benefits/${state.id}/${program.id}`}
+                          className="group flex items-start justify-between gap-3 p-3.5 rounded-xl border border-gray-100 hover:border-primary-200 hover:shadow-sm transition-all"
+                        >
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <p className="text-sm font-semibold text-gray-900 group-hover:text-primary-700 transition-colors leading-snug truncate">
+                                {program.shortName || program.name}
+                              </p>
+                              {program.programType && <TypeBadge type={program.programType} />}
+                            </div>
+                            <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">
+                              {program.tagline || program.description}
+                            </p>
+                            {program.savingsRange && (
+                              <p className="text-xs text-emerald-600 font-medium mt-1.5">
+                                Saves up to {program.savingsRange}
+                              </p>
+                            )}
+                          </div>
+                          <svg className="w-4 h-4 text-gray-300 group-hover:text-primary-400 shrink-0 mt-1 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </Link>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-400">No exact matches found. Browse all {programs.length} programs below.</p>
+                  )}
+
+                  {/* Footer: count + show all */}
+                  <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
+                    <p className="text-xs text-gray-400">
+                      {matchingPrograms.length} of {programs.length} programs match
+                    </p>
+                    <button
+                      onClick={() => setActiveArchetype(null)}
+                      className="text-xs text-gray-500 hover:text-gray-700 font-medium transition-colors"
+                    >
+                      Show all programs
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
         </section>
 
         {/* ─── Intro prose ─── */}
@@ -502,7 +563,7 @@ export function StatePageV3({ state, overview }: StatePageV3Props) {
         <section className="max-w-2xl mx-auto px-6 lg:px-8 mt-14">
           <div className="rounded-2xl bg-vanilla-200/60 border border-vanilla-300/50 p-6 md:p-8">
             <p className="text-sm font-semibold text-gray-900 mb-1">Not sure which programs apply?</p>
-            <p className="text-sm text-gray-500 mb-5">Answer a few questions to see what your parent may qualify for.</p>
+            <p className="text-sm text-gray-500 mb-5">Answer a few questions to see what your loved one may qualify for.</p>
             <Link
               href="/benefits/finder"
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white text-sm font-medium rounded-xl hover:bg-gray-800 transition-colors"

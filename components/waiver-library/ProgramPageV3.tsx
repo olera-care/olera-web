@@ -757,8 +757,8 @@ function HowToApplyTab({ program }: { program: WaiverProgram }) {
   const guide = program.applicationGuide;
 
   // Use pipeline documentsNeeded if available, else try contentSections for documents type
-  const documents = (program as WaiverProgramExtended).documentsNeeded || [];
-  const applicationNotes = (program as WaiverProgramExtended).applicationNotes || [];
+  const documents = (program).documentsNeeded || [];
+  const applicationNotes = (program).applicationNotes || [];
 
   return (
     <>
@@ -883,8 +883,8 @@ function HowToApplyTab({ program }: { program: WaiverProgram }) {
 }
 
 function ResourcesTab({ program }: { program: WaiverProgram }) {
-  const contacts = (program as WaiverProgramExtended).contacts || [];
-  const relatedPrograms = (program as WaiverProgramExtended).relatedPrograms || [];
+  const contacts = (program).contacts || [];
+  const relatedPrograms = (program).relatedPrograms || [];
 
   return (
     <>
@@ -987,26 +987,12 @@ function ResourcesTab({ program }: { program: WaiverProgram }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// Extended type — the new fields the pipeline will produce.
-// This is a forward declaration; the pipeline schema update (Task 4) will
-// add these to WaiverProgram. For now, cast when reading.
-// ═══════════════════════════════════════════════════════════════════════════════
-
-interface WaiverProgramExtended extends WaiverProgram {
-  documentsNeeded?: string[] | null;
-  contacts?: { label: string; description?: string; phone: string; hours?: string }[] | null;
-  applicationNotes?: string[] | null;
-  relatedPrograms?: string[] | null;
-  regionalApplications?: { region: string; counties?: string[]; url: string; isPdf?: boolean }[] | null;
-}
-
-// ═══════════════════════════════════════════════════════════════════════════════
 // Resource One-Pager — for simple programs (hotlines, counseling, companion)
 // No tabs. Just what it is, who to call, where to go.
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function ResourceOnePager({ program, state }: { program: WaiverProgram; state: StateData }) {
-  const contacts = (program as WaiverProgramExtended).contacts || [];
+  const contacts = (program).contacts || [];
 
   return (
     <div className="pb-20">

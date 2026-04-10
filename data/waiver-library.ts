@@ -130,6 +130,23 @@ export interface WaiverProgram {
   structuredEligibility?: StructuredEligibility;
   contentSections?: ContentSection[];
 
+  // Pipeline v3: Chantel-depth content fields
+  documentsNeeded?: string[] | null; // 6-15 program-specific items ("Social Security card", not "proof of identity")
+  contacts?: { label: string; description?: string; phone: string; hours?: string }[] | null;
+  applicationNotes?: string[] | null; // Conditional guidance ("Crisis cases may get expedited processing")
+  relatedPrograms?: string[] | null; // Sibling programs by name
+  regionalApplications?: { region: string; counties?: string[]; url: string; isPdf?: boolean }[] | null;
+
+  // Pipeline v3: Layout intent — which visual components Claude recommends for this program
+  layoutIntent?: {
+    aboutHighlight?: "savings" | "coverage" | "waitlist"; // What stat to feature in the bold moment
+    eligibilityDisplay?: "income-table" | "asset-focused" | "simple-list"; // How to render eligibility
+    applyDisplay?: "step-journey" | "single-action" | "phone-cta"; // Application UX pattern
+    hasLocationFinder?: boolean;
+    hasDocumentChecklist?: boolean;
+    visualTone?: "editorial" | "warm" | "minimal"; // How much design energy to apply
+  } | null;
+
   // Pipeline v2: Content lifecycle
   contentStatus?: ContentStatus;
   draftedAt?: string;

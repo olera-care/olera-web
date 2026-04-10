@@ -82,6 +82,13 @@ export function getEnrichedProgram(
     sourceUrl: baseProgram.sourceUrl || draft.sourceUrl || undefined,
     contentStatus: baseProgram.contentStatus || (draft.contentStatus as WaiverProgram["contentStatus"]),
     draftedAt: baseProgram.draftedAt || draft.draftedAt,
+    // v3 fields — pass through from pipeline (base rarely has these)
+    documentsNeeded: baseProgram.documentsNeeded || draft.documentsNeeded,
+    contacts: baseProgram.contacts || draft.contacts,
+    applicationNotes: baseProgram.applicationNotes || draft.applicationNotes,
+    relatedPrograms: baseProgram.relatedPrograms || draft.relatedPrograms,
+    regionalApplications: baseProgram.regionalApplications || draft.regionalApplications,
+    layoutIntent: baseProgram.layoutIntent || draft.layoutIntent as WaiverProgram["layoutIntent"],
     // Use pipeline name/tagline only if base is clearly a scaffold
     tagline: baseProgram.tagline?.length > 50 ? baseProgram.tagline : (draft.tagline || baseProgram.tagline),
   };

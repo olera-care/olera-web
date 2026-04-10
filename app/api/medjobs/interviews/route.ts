@@ -173,7 +173,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Failed to create interview" }, { status: 500 });
     }
 
-    // Increment outbound request count for the provider (only for provider-initiated requests)
+    // Increment credits used for the provider (only for provider-initiated outbound requests)
     if (studentProfileId) {
       try {
         const { data: provRow } = await admin
@@ -182,10 +182,10 @@ export async function POST(request: NextRequest) {
           .eq("id", resolvedProviderId)
           .single();
         const meta = ((provRow?.metadata as Record<string, unknown>) ?? {});
-        const currentRequests = (meta.medjobs_request_count as number) || 0;
+        const currentCredits = (meta.medjobs_credits_used as number) || 0;
         await admin
           .from("business_profiles")
-          .update({ metadata: { ...meta, medjobs_request_count: currentRequests + 1 } })
+          .update({ metadata: { ...meta, medjobs_credits_used: currentCredits + 1 } })
           .eq("id", resolvedProviderId);
       } catch (err) {
         console.error("[medjobs/interviews] request count increment error:", err);
@@ -319,22 +319,29 @@ export async function PATCH(request: NextRequest) {
 
     await admin.from("interviews").update(update).eq("id", interviewId);
 
-    // Increment the provider's confirmed interview count after successful confirmation
+    // Increment credits used when PROVIDER confirms an inbound request
+    // (Outbound credits are consumed at POST time, not at confirmation)
     if (status === "confirmed") {
-      try {
-        const { data: providerRow } = await admin
-          .from("business_profiles")
-          .select("metadata")
-          .eq("id", interview.provider_profile_id)
-          .single();
-        const meta = ((providerRow?.metadata as Record<string, unknown>) ?? {});
-        const currentCount = (meta.medjobs_interview_count as number) || 0;
-        await admin
-          .from("business_profiles")
-          .update({ metadata: { ...meta, medjobs_interview_count: currentCount + 1 } })
-          .eq("id", interview.provider_profile_id);
-      } catch (err) {
-        console.error("[medjobs/interviews] count increment error:", err);
+      const providerConfirmedInbound =
+        userProfileIds.includes(interview.provider_profile_id) &&
+        interview.proposed_by !== interview.provider_profile_id;
+
+      if (providerConfirmedInbound) {
+        try {
+          const { data: providerRow } = await admin
+            .from("business_profiles")
+            .select("metadata")
+            .eq("id", interview.provider_profile_id)
+            .single();
+          const meta = ((providerRow?.metadata as Record<string, unknown>) ?? {});
+          const currentCredits = (meta.medjobs_credits_used as number) || 0;
+          await admin
+            .from("business_profiles")
+            .update({ metadata: { ...meta, medjobs_credits_used: currentCredits + 1 } })
+            .eq("id", interview.provider_profile_id);
+        } catch (err) {
+          console.error("[medjobs/interviews] credit increment error:", err);
+        }
       }
     }
 

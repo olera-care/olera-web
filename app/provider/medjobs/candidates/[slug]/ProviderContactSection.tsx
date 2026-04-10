@@ -129,7 +129,7 @@ export default function ProviderContactSection({
           />
         )}
         {showUpgradeModal && (
-          <UpgradeModal interviewsUsed={1} onClose={() => setShowUpgradeModal(false)} />
+          <UpgradeModal creditsUsed={1} onClose={() => setShowUpgradeModal(false)} />
         )}
       </>
     );
@@ -216,7 +216,7 @@ export default function ProviderContactSection({
         />
       )}
       {showUpgradeModal && (
-        <UpgradeModal interviewsUsed={1} onClose={() => setShowUpgradeModal(false)} />
+        <UpgradeModal creditsUsed={1} onClose={() => setShowUpgradeModal(false)} />
       )}
     </div>
   );

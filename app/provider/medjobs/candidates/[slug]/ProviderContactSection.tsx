@@ -192,14 +192,14 @@ export default function ProviderContactSection({
         </div>
       )}
 
-      {/* Primary CTA - Schedule Interview (available to all authenticated providers) */}
+      {/* Primary CTA - Schedule Interview */}
       {scheduled ? (
         <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-700 font-medium text-center">
           Interview request sent to {firstName}!
         </div>
       ) : (
         <button
-          onClick={() => setShowModal(true)}
+          onClick={handleScheduleClick}
           className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-semibold text-white transition-colors"
         >
           <CalendarIcon />

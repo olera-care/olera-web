@@ -15,7 +15,7 @@ import {
   getYouTubeId,
   INTENDED_SCHOOL_LABELS,
 } from "@/lib/medjobs-helpers";
-import { getAccessTier, filterCandidateForTier, type AccessTier } from "@/lib/medjobs-access";
+import { getAccessTier, filterCandidateForTier, type AccessTier, type AccessInfo } from "@/lib/medjobs-access";
 import CandidateDetailClientWrapper from "./CandidateDetailClientWrapper";
 
 function getSupabase() {
@@ -94,6 +94,7 @@ export default async function ProviderStudentProfilePage({ params }: PageProps) 
   // Determine the viewing provider's access tier for paywall gating
   const adminSb = getAdminSupabase();
   let accessTier: AccessTier = "anonymous";
+  let accessInfo: AccessInfo = { tier: "anonymous", interviewsUsed: 0, interviewsRemaining: 0, isPaid: false };
   try {
     const serverSb = await createServerClient();
     const { data: { user } } = await serverSb.auth.getUser();
@@ -109,17 +110,14 @@ export default async function ProviderStudentProfilePage({ params }: PageProps) 
           .single();
         if (providerProfile) {
           const providerMeta = (providerProfile.metadata ?? {}) as Record<string, unknown>;
-          const access = getAccessTier(true, providerMeta);
-          accessTier = access.tier;
+          accessInfo = getAccessTier(true, providerMeta);
+          accessTier = accessInfo.tier;
         }
       }
     }
   } catch {
     // If auth check fails, default to anonymous (most restrictive)
   }
-
-  // Filter candidate data based on access tier
-  const accessInfo = getAccessTier(accessTier !== "anonymous", accessTier === "paid" ? { medjobs_subscription_active: true } : accessTier === "free_active" ? {} : { medjobs_interview_count: 1 });
   const filtered = filterCandidateForTier(
     {
       displayName: profile.display_name || "",

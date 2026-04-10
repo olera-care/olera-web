@@ -69,8 +69,8 @@ function MedJobsOnboardContent() {
 
   const initRef = useRef(false);
 
-  // Redirect URL for interviews page
-  const interviewsUrl = "/portal/medjobs/interviews";
+  // Redirect URL for provider interviews page
+  const interviewsUrl = "/provider/caregivers";
 
   // Initialize: validate token, show interview immediately, auto-sign-in in background
   useEffect(() => {

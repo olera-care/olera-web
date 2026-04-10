@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { sendEmail } from "@/lib/email";
 import { generateMedJobsNotificationUrl } from "@/lib/claim-tokens";
 import { interviewRequestEmail } from "@/lib/email-templates";
+import { getAccessTier, canScheduleInterview } from "@/lib/medjobs-access";
 
 function getAdminClient() {
   return createClient(
@@ -201,6 +202,20 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Paywall check: if the provider profile already exists and is exhausted, block
+    if (!isNewProfile) {
+      const { data: existingMeta } = await admin
+        .from("business_profiles")
+        .select("metadata")
+        .eq("id", providerProfileId)
+        .single();
+      const meta = ((existingMeta?.metadata as Record<string, unknown>) ?? {});
+      const access = getAccessTier(true, meta);
+      if (!canScheduleInterview(access)) {
+        return NextResponse.json({ error: "upgrade_required", tier: access.tier }, { status: 402 });
+      }
+    }
+
     // Create the interview
     const { data: interview, error: interviewError } = await admin
       .from("interviews")
@@ -223,6 +238,23 @@ export async function POST(request: NextRequest) {
         await admin.from("business_profiles").delete().eq("id", providerProfileId);
       }
       return NextResponse.json({ error: "Failed to create interview" }, { status: 500 });
+    }
+
+    // Increment outbound request count
+    try {
+      const { data: provRow } = await admin
+        .from("business_profiles")
+        .select("metadata")
+        .eq("id", providerProfileId)
+        .single();
+      const reqMeta = ((provRow?.metadata as Record<string, unknown>) ?? {});
+      const currentRequests = (reqMeta.medjobs_request_count as number) || 0;
+      await admin
+        .from("business_profiles")
+        .update({ metadata: { ...reqMeta, medjobs_request_count: currentRequests + 1 } })
+        .eq("id", providerProfileId);
+    } catch (err) {
+      console.error("[medjobs/interviews/quick] request count increment error:", err);
     }
 
     // Generate magic link URL for the confirmation email

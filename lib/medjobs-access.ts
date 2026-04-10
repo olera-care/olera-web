@@ -4,9 +4,11 @@
  * Four tiers control what providers see and can do:
  *
  * 1. anonymous       — not logged in, limited preview
- * 2. free_active     — logged in, 0 confirmed interviews (1 free credit remaining)
- * 3. free_exhausted  — logged in, >= 1 confirmed interview, not paid
+ * 2. free_active     — logged in, under limits
+ * 3. free_exhausted  — logged in, hit either limit, not paid
  * 4. paid            — active $49/mo subscription
+ *
+ * Exhaustion triggers: >= 5 outbound requests OR >= 1 confirmed interview.
  *
  * Contact info, LinkedIn, resume, and full names are paid-only to prevent
  * de-platforming (providers bypassing Olera by contacting candidates directly).
@@ -17,45 +19,45 @@ export type AccessTier = "anonymous" | "free_active" | "free_exhausted" | "paid"
 export interface AccessInfo {
   tier: AccessTier;
   interviewsUsed: number;
-  interviewsRemaining: number;
+  requestsSent: number;
   isPaid: boolean;
 }
 
-const FREE_INTERVIEW_LIMIT = 1;
+const FREE_REQUEST_LIMIT = 5;
+const FREE_CONFIRM_LIMIT = 1;
 
 /**
  * Determine the provider's access tier.
  *
  * @param isAuthenticated - Whether the user has an active session
  * @param providerMeta - The provider's business_profiles.metadata (if they have a provider profile)
- * @param interviewCount - Post-deploy confirmed interview count (optional override; if not provided, reads from metadata cache)
  */
 export function getAccessTier(
   isAuthenticated: boolean,
   providerMeta?: Record<string, unknown> | null,
-  interviewCount?: number
 ): AccessInfo {
   if (!isAuthenticated || !providerMeta) {
-    return { tier: "anonymous", interviewsUsed: 0, interviewsRemaining: 0, isPaid: false };
+    return { tier: "anonymous", interviewsUsed: 0, requestsSent: 0, isPaid: false };
   }
 
   const isPaid = !!(providerMeta.medjobs_subscription_active as boolean);
-  const count = interviewCount ?? ((providerMeta.medjobs_interview_count as number) || 0);
+  const confirmCount = (providerMeta.medjobs_interview_count as number) || 0;
+  const requestCount = (providerMeta.medjobs_request_count as number) || 0;
 
   if (isPaid) {
-    return { tier: "paid", interviewsUsed: count, interviewsRemaining: Infinity, isPaid: true };
+    return { tier: "paid", interviewsUsed: confirmCount, requestsSent: requestCount, isPaid: true };
   }
 
-  if (count < FREE_INTERVIEW_LIMIT) {
-    return {
-      tier: "free_active",
-      interviewsUsed: count,
-      interviewsRemaining: FREE_INTERVIEW_LIMIT - count,
-      isPaid: false,
-    };
+  if (confirmCount >= FREE_CONFIRM_LIMIT || requestCount >= FREE_REQUEST_LIMIT) {
+    return { tier: "free_exhausted", interviewsUsed: confirmCount, requestsSent: requestCount, isPaid: false };
   }
 
-  return { tier: "free_exhausted", interviewsUsed: count, interviewsRemaining: 0, isPaid: false };
+  return {
+    tier: "free_active",
+    interviewsUsed: confirmCount,
+    requestsSent: requestCount,
+    isPaid: false,
+  };
 }
 
 /**

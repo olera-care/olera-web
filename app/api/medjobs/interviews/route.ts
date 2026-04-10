@@ -173,6 +173,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Failed to create interview" }, { status: 500 });
     }
 
+    // Increment outbound request count for the provider (only for provider-initiated requests)
+    if (studentProfileId) {
+      try {
+        const { data: provRow } = await admin
+          .from("business_profiles")
+          .select("metadata")
+          .eq("id", resolvedProviderId)
+          .single();
+        const meta = ((provRow?.metadata as Record<string, unknown>) ?? {});
+        const currentRequests = (meta.medjobs_request_count as number) || 0;
+        await admin
+          .from("business_profiles")
+          .update({ metadata: { ...meta, medjobs_request_count: currentRequests + 1 } })
+          .eq("id", resolvedProviderId);
+      } catch (err) {
+        console.error("[medjobs/interviews] request count increment error:", err);
+      }
+    }
+
     // Send notification email to the other party
     try {
       const typeLabel = type === "video" ? "Video" : type === "in_person" ? "In-Person" : "Phone";

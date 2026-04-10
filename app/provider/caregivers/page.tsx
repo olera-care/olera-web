@@ -55,7 +55,7 @@ export default function ProviderCaregiversPage() {
     <main className="min-h-screen bg-[#FAFAF8]">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
         <div className="mb-6">
-          <h1 className="text-2xl font-semibold text-gray-900">Caregivers</h1>
+          <h1 className="text-2xl font-semibold text-gray-900">Interviews</h1>
           <p className="text-sm text-gray-500 mt-1">Track interview requests and scheduled meetings with candidates.</p>
         </div>
 

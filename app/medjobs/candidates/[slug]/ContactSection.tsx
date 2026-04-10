@@ -6,6 +6,8 @@ import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import ScheduleInterviewModal, { ScheduleFormData } from "@/components/medjobs/ScheduleInterviewModal";
 import QuickScheduleModal from "@/components/medjobs/QuickScheduleModal";
+import UpgradeModal from "@/components/medjobs/UpgradeModal";
+import { getAccessTier } from "@/lib/medjobs-access";
 import type { StudentMetadata } from "@/lib/types";
 
 const SCHEDULE_STORAGE_KEY = "medjobs_schedule_draft";
@@ -37,6 +39,7 @@ export default function ContactSection({
 
   const [showModal, setShowModal] = useState(false);
   const [showQuickScheduleModal, setShowQuickScheduleModal] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [scheduled, setScheduled] = useState(false);
   const [savedFormData, setSavedFormData] = useState<ScheduleFormData | undefined>();
 
@@ -57,6 +60,12 @@ export default function ContactSection({
 
   // Only organization profiles are providers (caregivers are job-seekers)
   const hasProviderProfile = profiles.some((p) => p.type === "organization");
+
+  // Compute provider's access tier for paywall gating
+  const providerProfile = profiles.find((p) => p.type === "organization" || p.type === "caregiver");
+  const providerMeta = (providerProfile?.metadata ?? {}) as Record<string, unknown>;
+  const accessInfo = getAccessTier(!!providerProfile, hasProviderProfile ? providerMeta : null);
+  const isFreeExhausted = accessInfo.tier === "free_exhausted";
 
   // Check if caregiver is viewing their own profile
   const ownCaregiverProfile = profiles.find(
@@ -116,10 +125,13 @@ export default function ContactSection({
     if (requiresAuth) {
       // Show quick schedule modal for unauthenticated users
       setShowQuickScheduleModal(true);
+    } else if (isFreeExhausted) {
+      // Authenticated provider who has hit their free limit
+      setShowUpgradeModal(true);
     } else {
       setShowModal(true);
     }
-  }, [requiresAuth]);
+  }, [requiresAuth, isFreeExhausted]);
 
   // Handle modal close
   const handleModalClose = useCallback(() => {
@@ -266,6 +278,9 @@ export default function ContactSection({
           onScheduled={handleQuickScheduled}
           candidate={candidate}
         />
+        {showUpgradeModal && (
+          <UpgradeModal interviewsUsed={accessInfo.interviewsUsed} onClose={() => setShowUpgradeModal(false)} />
+        )}
       </>
     );
   }
@@ -330,6 +345,9 @@ export default function ContactSection({
         onScheduled={handleQuickScheduled}
         candidate={candidate}
       />
+      {showUpgradeModal && (
+        <UpgradeModal interviewsUsed={accessInfo.interviewsUsed} onClose={() => setShowUpgradeModal(false)} />
+      )}
     </>
   );
 }

@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
-import { useSearchParams, useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import CandidateCard from "@/components/medjobs/CandidateCard";
 import type { CandidateData } from "@/components/medjobs/CandidateRow";
@@ -14,8 +13,6 @@ const PAGE_SIZE = 20;
 export default function CandidateBrowsePage() {
   const { openAuth, activeProfile, refreshAccountData } = useAuth();
   const isProvider = activeProfile?.type === "organization" || activeProfile?.type === "caregiver";
-  const searchParams = useSearchParams();
-  const router = useRouter();
   const [candidates, setCandidates] = useState<CandidateData[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -35,14 +32,14 @@ export default function CandidateBrowsePage() {
   const hasVerified = useRef(false);
   useEffect(() => {
     if (hasVerified.current) return;
-    if (searchParams.get("upgraded") !== "true" || !isProvider) return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("upgraded") !== "true" || !isProvider) return;
     hasVerified.current = true;
 
-    // Clear the query param
-    const params = new URLSearchParams(searchParams.toString());
+    // Clear the query param from URL
     params.delete("upgraded");
-    const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname;
-    router.replace(newUrl, { scroll: false });
+    const newUrl = params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname;
+    window.history.replaceState({}, "", newUrl);
 
     // Verify subscription with Stripe and refresh auth context
     (async () => {
@@ -53,7 +50,7 @@ export default function CandidateBrowsePage() {
         // Silent — webhook may still activate later
       }
     })();
-  }, [searchParams, isProvider, router, refreshAccountData]);
+  }, [isProvider, refreshAccountData]);
 
   const fetchCandidates = useCallback(
     async (pageNum: number, append: boolean) => {

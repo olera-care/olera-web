@@ -407,6 +407,7 @@ export default function QuickScheduleModal({
       setState("");
       setEmail("");
       setError("");
+      setShowUpgradeModal(false);
     }, 200);
   }, [onClose]);
 
@@ -730,7 +731,7 @@ export default function QuickScheduleModal({
     </div>
   );
 
-  if (showUpgradeModal) {
+  if (showUpgradeModal && isOpen) {
     return <UpgradeModal creditsUsed={3} onClose={handleClose} />;
   }
 

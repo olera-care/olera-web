@@ -242,17 +242,10 @@ export async function POST(request: NextRequest) {
 
     // Increment credits used for outbound request
     try {
-      const { data: provRow } = await admin
-        .from("business_profiles")
-        .select("metadata")
-        .eq("id", providerProfileId)
-        .single();
-      const reqMeta = ((provRow?.metadata as Record<string, unknown>) ?? {});
-      const currentCredits = (reqMeta.medjobs_credits_used as number) || 0;
-      await admin
-        .from("business_profiles")
-        .update({ metadata: { ...reqMeta, medjobs_credits_used: currentCredits + 1 } })
-        .eq("id", providerProfileId);
+      await admin.rpc("increment_profile_metadata_counter", {
+        p_profile_id: providerProfileId,
+        p_key: "medjobs_credits_used",
+      });
     } catch (err) {
       console.error("[medjobs/interviews/quick] credit increment error:", err);
     }

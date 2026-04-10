@@ -176,19 +176,12 @@ export async function POST(request: NextRequest) {
     // Increment credits used for the provider (only for provider-initiated outbound requests)
     if (studentProfileId) {
       try {
-        const { data: provRow } = await admin
-          .from("business_profiles")
-          .select("metadata")
-          .eq("id", resolvedProviderId)
-          .single();
-        const meta = ((provRow?.metadata as Record<string, unknown>) ?? {});
-        const currentCredits = (meta.medjobs_credits_used as number) || 0;
-        await admin
-          .from("business_profiles")
-          .update({ metadata: { ...meta, medjobs_credits_used: currentCredits + 1 } })
-          .eq("id", resolvedProviderId);
+        await admin.rpc("increment_profile_metadata_counter", {
+          p_profile_id: resolvedProviderId,
+          p_key: "medjobs_credits_used",
+        });
       } catch (err) {
-        console.error("[medjobs/interviews] request count increment error:", err);
+        console.error("[medjobs/interviews] credit increment error:", err);
       }
     }
 
@@ -328,17 +321,10 @@ export async function PATCH(request: NextRequest) {
 
       if (providerConfirmedInbound) {
         try {
-          const { data: providerRow } = await admin
-            .from("business_profiles")
-            .select("metadata")
-            .eq("id", interview.provider_profile_id)
-            .single();
-          const meta = ((providerRow?.metadata as Record<string, unknown>) ?? {});
-          const currentCredits = (meta.medjobs_credits_used as number) || 0;
-          await admin
-            .from("business_profiles")
-            .update({ metadata: { ...meta, medjobs_credits_used: currentCredits + 1 } })
-            .eq("id", interview.provider_profile_id);
+          await admin.rpc("increment_profile_metadata_counter", {
+            p_profile_id: interview.provider_profile_id,
+            p_key: "medjobs_credits_used",
+          });
         } catch (err) {
           console.error("[medjobs/interviews] credit increment error:", err);
         }

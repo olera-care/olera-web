@@ -197,7 +197,7 @@ function IncomeTable({
                     )}
                   </td>
                   <td className="px-5 py-3 font-semibold text-gray-900">
-                    ${row.monthlyLimit.toLocaleString()}/mo
+                    {typeof row.monthlyLimit === "number" ? `$${row.monthlyLimit.toLocaleString()}/mo` : String(row.monthlyLimit || "—")}
                   </td>
                 </tr>
               );
@@ -226,8 +226,8 @@ function AssetLimitsDisplay({ limits }: { limits: NonNullable<StructuredEligibil
         </div>
         <div>
           <p className="font-medium text-gray-900">
-            Assets must be under ${(limits.individual || 0).toLocaleString()}
-            {limits.couple != null && (
+            Assets must be under ${typeof limits.individual === "number" ? limits.individual.toLocaleString() : "—"}
+            {limits.couple != null && typeof limits.couple === "number" && (
               <span className="text-gray-500 font-normal">
                 {" "}(${limits.couple.toLocaleString()} for couples)
               </span>
@@ -252,7 +252,7 @@ function AssetLimitsDisplay({ limits }: { limits: NonNullable<StructuredEligibil
           </ul>
           {limits.homeEquityCap && (
             <p className="text-xs text-gray-400 mt-2">
-              Home equity exempt up to ${limits.homeEquityCap.toLocaleString()}
+              Home equity exempt up to ${typeof limits.homeEquityCap === "number" ? limits.homeEquityCap.toLocaleString() : "—"}
             </p>
           )}
         </div>
@@ -722,10 +722,10 @@ function EligibilityTab({ program }: { program: WaiverProgram }) {
       </section>
 
       {/* Income table — wider, it's the bold moment of this tab */}
-      {elig.incomeTable && elig.incomeTable.length > 0 && (
+      {elig.incomeTable && elig.incomeTable.filter((r) => typeof r.monthlyLimit === "number").length > 0 && (
         <section className="max-w-3xl mx-auto px-6 lg:px-8 mt-10">
           <IncomeTable
-            rows={elig.incomeTable}
+            rows={elig.incomeTable.filter((r) => typeof r.monthlyLimit === "number")}
             heading="Income limits by household size"
             footnote={elig.povertyLevelReference || undefined}
           />

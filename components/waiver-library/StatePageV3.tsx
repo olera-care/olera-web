@@ -519,17 +519,13 @@ export function StatePageV3({ state, overview, pipelinePrograms = [] }: StatePag
             <SectionLabel>Where to start</SectionLabel>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {overview.startHere.map((pick, i) => {
-                const program = programs.find((p) =>
-                  p.id === pick.programId ||
-                  p.name.toLowerCase().includes(pick.name.toLowerCase().slice(0, 20)) ||
-                  pick.name.toLowerCase().includes(p.name.toLowerCase().slice(0, 20))
-                );
-                // Also check pipeline drafts for the program ID
-                const pipelineId = pick.programId;
-                const href = program
-                  ? `/senior-benefits/${state.id}/${program.id}`
-                  : `/senior-benefits/${state.id}/${pipelineId}`;
-                const highlighted = !selectedArchetype || (program && isProgramHighlighted(program));
+                // Find the program by name across waiver-library + pipeline
+                const match = findProgramByName(pick.name);
+                const program = match?.program;
+                const href = match
+                  ? `/senior-benefits/${state.id}/${match.id}`
+                  : `/senior-benefits/${state.id}`;
+                const highlighted = !selectedArchetype || !match || (program && isProgramHighlighted(program));
 
                 return (
                   <Link

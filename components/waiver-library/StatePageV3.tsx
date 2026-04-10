@@ -3,7 +3,7 @@
 import Link from "next/link";
 import type { StateData, WaiverProgram } from "@/data/waiver-library";
 import type { PipelineStateOverview } from "@/data/pipeline-drafts";
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { useSavedPrograms, type SaveProgramData } from "@/hooks/use-saved-programs";
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -354,7 +354,7 @@ export function StatePageV3({ state, overview }: StatePageV3Props) {
                   className={`text-left p-4 rounded-2xl border transition-all duration-200 group ${
                     isActive
                       ? "bg-white border-primary-300 shadow-md ring-1 ring-primary-200"
-                      : "bg-white/60 border-gray-150 hover:border-gray-300 hover:bg-white hover:shadow-sm"
+                      : "bg-white/60 border-gray-200 hover:border-gray-300 hover:bg-white hover:shadow-sm"
                   }`}
                 >
                   <div className={`mb-2.5 transition-opacity ${isActive ? "opacity-100" : "opacity-60 group-hover:opacity-80"}`}>
@@ -449,7 +449,7 @@ export function StatePageV3({ state, overview }: StatePageV3Props) {
                     href={href}
                     className={`group relative flex flex-col p-5 rounded-2xl bg-white border transition-all duration-200 ${
                       highlighted
-                        ? "border-gray-150 hover:border-primary-300 hover:shadow-md"
+                        ? "border-gray-200 hover:border-primary-300 hover:shadow-md"
                         : "border-gray-100 opacity-50"
                     }`}
                   >
@@ -607,15 +607,15 @@ export function StatePageV3({ state, overview }: StatePageV3Props) {
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {[
-              { label: "Home Care", desc: "Non-medical help at home", category: "Home Care (Non-medical)" },
-              { label: "Home Health", desc: "Skilled nursing at home", category: "Home Health Care" },
-              { label: "Assisted Living", desc: "Residential care communities", category: "Assisted Living" },
-              { label: "Nursing Homes", desc: "24/7 skilled nursing", category: "Nursing Home" },
+              { label: "Home Care", desc: "Non-medical help at home", type: "home-care" },
+              { label: "Home Health", desc: "Skilled nursing at home", type: "home-health" },
+              { label: "Assisted Living", desc: "Residential care communities", type: "assisted-living" },
+              { label: "Nursing Homes", desc: "24/7 skilled nursing", type: "nursing-homes" },
             ].map((cat) => (
               <Link
-                key={cat.category}
-                href={`/browse?state=${state.abbreviation}&category=${encodeURIComponent(cat.category)}`}
-                className="group flex items-center gap-3 p-4 rounded-xl bg-white border border-gray-150 hover:border-primary-300 hover:shadow-sm transition-all"
+                key={cat.type}
+                href={`/browse?type=${cat.type}&location=${encodeURIComponent(state.name)}`}
+                className="group flex items-center gap-3 p-4 rounded-xl bg-white border border-gray-200 hover:border-primary-300 hover:shadow-sm transition-all"
               >
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-gray-900 group-hover:text-primary-700 transition-colors">{cat.label}</p>
@@ -628,7 +628,7 @@ export function StatePageV3({ state, overview }: StatePageV3Props) {
             ))}
           </div>
           <Link
-            href={`/browse?state=${state.abbreviation}`}
+            href={`/browse?location=${encodeURIComponent(state.name)}`}
             className="inline-flex items-center gap-1.5 mt-4 text-sm font-medium text-primary-600 hover:text-primary-500 transition-colors"
           >
             Browse all providers in {state.name}

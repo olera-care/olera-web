@@ -15,6 +15,7 @@ interface CandidateDetailClientWrapperProps {
   studentSlug: string;
   variant: "sidebar" | "sticky" | "inline";
   accessTier?: AccessTier;
+  creditsUsed?: number;
 }
 
 export default function CandidateDetailClientWrapper({
@@ -25,6 +26,7 @@ export default function CandidateDetailClientWrapper({
   studentSlug,
   variant,
   accessTier,
+  creditsUsed,
 }: CandidateDetailClientWrapperProps) {
   const { activeProfile, user } = useAuth();
   const [showVerificationModal, setShowVerificationModal] = useState(false);
@@ -89,6 +91,7 @@ export default function CandidateDetailClientWrapper({
         variant={variant}
         initialScheduled={hasExistingInterview}
         accessTier={accessTier}
+        creditsUsed={creditsUsed}
       />
       <VerificationFormModal
         isOpen={showVerificationModal}

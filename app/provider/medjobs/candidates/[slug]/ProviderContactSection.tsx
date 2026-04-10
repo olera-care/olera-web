@@ -18,6 +18,8 @@ interface ProviderContactSectionProps {
   initialScheduled?: boolean;
   /** Provider's access tier for paywall gating */
   accessTier?: AccessTier;
+  /** Provider's credits used count for upgrade modal */
+  creditsUsed?: number;
 }
 
 export default function ProviderContactSection({
@@ -29,6 +31,7 @@ export default function ProviderContactSection({
   variant = "sidebar",
   initialScheduled = false,
   accessTier,
+  creditsUsed = 0,
 }: ProviderContactSectionProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -129,7 +132,7 @@ export default function ProviderContactSection({
           />
         )}
         {showUpgradeModal && (
-          <UpgradeModal creditsUsed={1} onClose={() => setShowUpgradeModal(false)} />
+          <UpgradeModal creditsUsed={creditsUsed} onClose={() => setShowUpgradeModal(false)} />
         )}
       </>
     );

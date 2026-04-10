@@ -241,13 +241,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Increment credits used for outbound request
-    try {
-      await admin.rpc("increment_profile_metadata_counter", {
-        p_profile_id: providerProfileId,
-        p_key: "medjobs_credits_used",
-      });
-    } catch (err) {
-      console.error("[medjobs/interviews/quick] credit increment error:", err);
+    const { error: creditError } = await admin.rpc("increment_profile_metadata_counter", {
+      p_profile_id: providerProfileId,
+      p_key: "medjobs_credits_used",
+    });
+    if (creditError) {
+      console.error("[medjobs/interviews/quick] credit increment error:", creditError);
     }
 
     // Generate magic link URL for the confirmation email

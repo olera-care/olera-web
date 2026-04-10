@@ -3,6 +3,7 @@
 import { useState, useMemo, useRef, useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";
 import Modal from "@/components/ui/Modal";
+import UpgradeModal from "@/components/medjobs/UpgradeModal";
 import { useCitySearch } from "@/hooks/use-city-search";
 import OrganizationSearch, { type SelectedOrg } from "@/components/shared/OrganizationSearch";
 import type { StudentMetadata } from "@/lib/types";
@@ -288,6 +289,7 @@ export default function QuickScheduleModal({
   // Submission state
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   // Date options
   const dateOptions = useMemo(() => getDateOptions(), []);
@@ -346,7 +348,7 @@ export default function QuickScheduleModal({
       const data = await res.json();
 
       if (res.status === 402 || data.error === "upgrade_required") {
-        setError("You\u2019ve used your free interview requests. Upgrade to schedule more.");
+        setShowUpgradeModal(true);
         return;
       }
       if (!res.ok) {
@@ -405,6 +407,7 @@ export default function QuickScheduleModal({
       setState("");
       setEmail("");
       setError("");
+      setShowUpgradeModal(false);
     }, 200);
   }, [onClose]);
 
@@ -727,6 +730,10 @@ export default function QuickScheduleModal({
       <div className={`w-2 h-2 rounded-full transition-colors ${step === "info" ? "bg-gray-900" : "bg-gray-200"}`} />
     </div>
   );
+
+  if (showUpgradeModal && isOpen) {
+    return <UpgradeModal creditsUsed={3} onClose={handleClose} />;
+  }
 
   return (
     <Modal

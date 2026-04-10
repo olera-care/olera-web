@@ -51,9 +51,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const meta = data.metadata as StudentMetadata;
   const trackLabel = getTrackLabel(meta);
+
+  // Redact full name in metadata to prevent de-platforming via view-source.
+  // Use "First L." format since we can't check access tier in generateMetadata.
+  const parts = (data.display_name || "").trim().split(/\s+/);
+  const redactedName = parts.length <= 1 ? parts[0] : `${parts[0]} ${parts[parts.length - 1].charAt(0)}.`;
+
   return {
-    title: `${data.display_name} — Student Caregiver | Hire Staff`,
-    description: `${data.display_name} is a ${trackLabel || "healthcare"} student${meta.university ? ` at ${meta.university}` : ""} seeking healthcare experience${data.city ? ` in ${data.city}, ${data.state}` : ""}.`,
+    title: `${redactedName} — Student Caregiver | Hire Staff`,
+    description: `${redactedName} is a ${trackLabel || "healthcare"} student${meta.university ? ` at ${meta.university}` : ""} seeking healthcare experience${data.city ? ` in ${data.city}, ${data.state}` : ""}.`,
   };
 }
 
@@ -673,6 +679,7 @@ export default async function ProviderStudentProfilePage({ params }: PageProps) 
                   studentSlug={profile.slug}
                   variant="inline"
                   accessTier={accessTier}
+                  creditsUsed={accessInfo.creditsUsed}
                 />
               </div>
             </div>
@@ -692,6 +699,7 @@ export default async function ProviderStudentProfilePage({ params }: PageProps) 
           studentSlug={profile.slug}
           variant="sticky"
           accessTier={accessTier}
+          creditsUsed={accessInfo.creditsUsed}
         />
       </div>
     </main>

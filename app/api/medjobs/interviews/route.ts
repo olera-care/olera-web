@@ -175,13 +175,12 @@ export async function POST(request: NextRequest) {
 
     // Increment credits used for the provider (only for provider-initiated outbound requests)
     if (studentProfileId) {
-      try {
-        await admin.rpc("increment_profile_metadata_counter", {
-          p_profile_id: resolvedProviderId,
-          p_key: "medjobs_credits_used",
-        });
-      } catch (err) {
-        console.error("[medjobs/interviews] credit increment error:", err);
+      const { error: creditError } = await admin.rpc("increment_profile_metadata_counter", {
+        p_profile_id: resolvedProviderId,
+        p_key: "medjobs_credits_used",
+      });
+      if (creditError) {
+        console.error("[medjobs/interviews] credit increment error:", creditError);
       }
     }
 
@@ -320,13 +319,12 @@ export async function PATCH(request: NextRequest) {
         interview.proposed_by !== interview.provider_profile_id;
 
       if (providerConfirmedInbound) {
-        try {
-          await admin.rpc("increment_profile_metadata_counter", {
-            p_profile_id: interview.provider_profile_id,
-            p_key: "medjobs_credits_used",
-          });
-        } catch (err) {
-          console.error("[medjobs/interviews] credit increment error:", err);
+        const { error: creditError } = await admin.rpc("increment_profile_metadata_counter", {
+          p_profile_id: interview.provider_profile_id,
+          p_key: "medjobs_credits_used",
+        });
+        if (creditError) {
+          console.error("[medjobs/interviews] credit increment error:", creditError);
         }
       }
     }

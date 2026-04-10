@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
-import { getStripe, isStripeConfigured } from "@/lib/stripe";
+import { getStripe, isStripeConfigured, PRICE_IDS } from "@/lib/stripe";
 
 function getAdminClient() {
   return createClient(
@@ -62,11 +62,13 @@ export async function POST() {
       return NextResponse.json({ error: "No Stripe customer found" }, { status: 404 });
     }
 
-    // Check Stripe for active subscriptions
+    // Check Stripe for active MedJobs subscriptions (filter by price for safety)
     const stripe = getStripe();
+    const priceFilter = PRICE_IDS.medjobs_monthly || undefined;
     const subscriptions = await stripe.subscriptions.list({
       customer: customerId,
       status: "active",
+      ...(priceFilter ? { price: priceFilter } : {}),
       limit: 1,
     });
 
@@ -75,6 +77,7 @@ export async function POST() {
       ? await stripe.subscriptions.list({
           customer: customerId,
           status: "trialing",
+          ...(priceFilter ? { price: priceFilter } : {}),
           limit: 1,
         })
       : { data: [] };

@@ -52,9 +52,11 @@ export async function POST(request: NextRequest) {
         metadata: { profile_id: providerProfile.id, account_id: account.id },
       });
       customerId = customer.id;
-      // Save customer ID to profile metadata
-      meta.medjobs_stripe_customer_id = customerId;
-      await admin.from("business_profiles").update({ metadata: meta }).eq("id", providerProfile.id);
+      // Save customer ID atomically (no read-modify-write race)
+      await admin.rpc("merge_profile_metadata", {
+        p_profile_id: providerProfile.id,
+        p_updates: { medjobs_stripe_customer_id: customerId },
+      });
     }
 
     // Create checkout session

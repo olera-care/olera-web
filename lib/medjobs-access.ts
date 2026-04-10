@@ -3,10 +3,13 @@
  *
  * Four tiers control what providers see and can do:
  *
- * 1. anonymous    — not logged in, limited preview
- * 2. free_active  — logged in, < 3 confirmed interviews
- * 3. free_exhausted — logged in, >= 3 confirmed interviews, not paid
- * 4. paid         — active $50/mo subscription
+ * 1. anonymous       — not logged in, limited preview
+ * 2. free_active     — logged in, 0 confirmed interviews (1 free credit remaining)
+ * 3. free_exhausted  — logged in, >= 1 confirmed interview, not paid
+ * 4. paid            — active $49/mo subscription
+ *
+ * Contact info, LinkedIn, resume, and full names are paid-only to prevent
+ * de-platforming (providers bypassing Olera by contacting candidates directly).
  */
 
 export type AccessTier = "anonymous" | "free_active" | "free_exhausted" | "paid";
@@ -18,14 +21,14 @@ export interface AccessInfo {
   isPaid: boolean;
 }
 
-const FREE_INTERVIEW_LIMIT = 3;
+const FREE_INTERVIEW_LIMIT = 1;
 
 /**
  * Determine the provider's access tier.
  *
  * @param isAuthenticated - Whether the user has an active session
  * @param providerMeta - The provider's business_profiles.metadata (if they have a provider profile)
- * @param interviewCount - Count of confirmed/completed/no_show interviews (optional override; if not provided, reads from metadata cache)
+ * @param interviewCount - Post-deploy confirmed interview count (optional override; if not provided, reads from metadata cache)
  */
 export function getAccessTier(
   isAuthenticated: boolean,
@@ -64,20 +67,23 @@ export function canScheduleInterview(access: AccessInfo): boolean {
 
 /**
  * Check if contact info (email, phone) should be visible.
+ * Paid-only to prevent de-platforming.
  */
 export function canSeeContactInfo(access: AccessInfo): boolean {
-  return access.tier === "paid" || access.tier === "free_active";
+  return access.tier === "paid";
 }
 
 /**
  * Check if LinkedIn URL should be visible.
+ * Paid-only to prevent de-platforming.
  */
 export function canSeeLinkedIn(access: AccessInfo): boolean {
-  return access.tier === "paid" || access.tier === "free_active";
+  return access.tier === "paid";
 }
 
 /**
- * Check if resume link should be clickable (vs just "on file" badge).
+ * Check if resume link should be clickable.
+ * Paid-only to prevent de-platforming.
  */
 export function canSeeResume(access: AccessInfo): boolean {
   return access.tier === "paid";
@@ -85,16 +91,56 @@ export function canSeeResume(access: AccessInfo): boolean {
 
 /**
  * Format candidate display name based on access tier.
- * Free providers see "First L." — paid see full name.
+ * Only paid providers see full names. Free tiers see "First L."
+ * to prevent de-platforming via name lookup.
  */
 export function formatCandidateName(fullName: string, access: AccessInfo): string {
   if (access.tier === "paid") return fullName;
   if (access.tier === "anonymous") {
-    // Anonymous: first name only
     return fullName.split(" ")[0];
   }
   // Free (active or exhausted): First + last initial
   const parts = fullName.trim().split(/\s+/);
   if (parts.length <= 1) return parts[0];
   return `${parts[0]} ${parts[parts.length - 1].charAt(0)}.`;
+}
+
+/**
+ * Filter candidate data for a given access tier.
+ * Call this server-side BEFORE passing data to client components
+ * so restricted fields never reach the browser.
+ */
+export function filterCandidateForTier(
+  candidate: {
+    displayName: string;
+    email: string | null;
+    phone: string | null;
+    linkedinUrl?: string | null;
+    resumeUrl?: string | null;
+  },
+  access: AccessInfo
+): {
+  displayName: string;
+  email: string | null;
+  phone: string | null;
+  linkedinUrl: string | null;
+  resumeUrl: string | null;
+} {
+  if (access.isPaid) {
+    return {
+      displayName: candidate.displayName,
+      email: candidate.email,
+      phone: candidate.phone,
+      linkedinUrl: candidate.linkedinUrl ?? null,
+      resumeUrl: candidate.resumeUrl ?? null,
+    };
+  }
+
+  return {
+    displayName: formatCandidateName(candidate.displayName, access),
+    email: null,
+    phone: null,
+    linkedinUrl: null,
+    resumeUrl: null,
+  };
 }

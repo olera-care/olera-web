@@ -1,7 +1,10 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useAuth } from "@/components/auth/AuthProvider";
 import InterviewCalendar from "@/components/medjobs/InterviewCalendar";
+import UpgradeModal from "@/components/medjobs/UpgradeModal";
+import { getAccessTier } from "@/lib/medjobs-access";
 import type { Interview } from "@/lib/types";
 
 type InterviewWithProfiles = Interview & {
@@ -10,9 +13,15 @@ type InterviewWithProfiles = Interview & {
 };
 
 export default function ProviderCaregiversPage() {
+  const { activeProfile } = useAuth();
   const [interviews, setInterviews] = useState<InterviewWithProfiles[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+
+  // Compute access tier from the provider's metadata
+  const providerMeta = (activeProfile?.metadata ?? {}) as Record<string, unknown>;
+  const accessInfo = getAccessTier(!!activeProfile, providerMeta);
 
   const fetchInterviews = useCallback(async () => {
     try {
@@ -28,11 +37,15 @@ export default function ProviderCaregiversPage() {
   const updateStatus = async (interviewId: string, status: string) => {
     setActionLoading(interviewId);
     try {
-      await fetch("/api/medjobs/interviews", {
+      const res = await fetch("/api/medjobs/interviews", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ interviewId, status }),
       });
+      if (res.status === 402) {
+        setShowUpgradeModal(true);
+        return;
+      }
       await fetchInterviews();
     } catch { /* ignore */ }
     finally { setActionLoading(null); }
@@ -52,8 +65,16 @@ export default function ProviderCaregiversPage() {
           loading={loading}
           onUpdateStatus={updateStatus}
           actionLoading={actionLoading}
+          accessTier={accessInfo.tier}
         />
       </div>
+
+      {showUpgradeModal && (
+        <UpgradeModal
+          interviewsUsed={accessInfo.interviewsUsed}
+          onClose={() => setShowUpgradeModal(false)}
+        />
+      )}
     </main>
   );
 }

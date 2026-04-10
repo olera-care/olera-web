@@ -30,17 +30,30 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 **Benefits Pipeline v3** (branch: `eager-ride`) — tabbed program pages + Chantel-depth content + layout intent.
 
 ### What's shipped (v3 — Session 72, Apr 10)
-- **ProgramPageV3**: 4-tab structure (About / Eligibility / How to Apply / Resources) with "painting outside the lines" design language
+- **ProgramPageV3** (`components/waiver-library/ProgramPageV3.tsx`): 4-tab structure (About / Eligibility / How to Apply / Resources) with "painting outside the lines" design language
 - **Tab availability adapts to program type**: deep benefits get 4 tabs, resources/navigators get a one-pager, simple benefits get 3 tabs
-- **Reusable component vocabulary**: IncomeTable (with row highlighting), AssetLimitsDisplay, DocumentChecklist (interactive with progress bar), StepJourney (visual with connecting line), ContactCards, StatCallout (dark band), ApplicationNotes (amber callouts), FaqSection
+- **Tabs use CSS hidden/shown** (not conditional render) so interactive state (document checklist) survives tab switches
+- **Reusable component vocabulary**: IncomeTable (with row highlighting), AssetLimitsDisplay, DocumentChecklist (interactive with progress bar), StepJourney (visual with connecting line), ContactCards (null-safe for phone), StatCallout (dark band), ApplicationNotes (amber callouts), FaqSection
+- **FAQs only on About tab** — not duplicated across all 4 tabs
 - **Width variation within tabs**: prose at max-w-2xl, tools (income table, checklist) at max-w-3xl, maps at max-w-5xl — same principle as state pages
 - **Organic SVG elements on program pages**: HeaderAccent (softer than state page blobs), WavyDividers between sections
 - **Resource one-pager**: prominent phone CTA, no tabs, warm design
-- **Program data merge layer** (`lib/program-data.ts`): combines waiver-library base data with pipeline draft content. Hand-curated always wins. Pipeline programs now render through V3 automatically.
-- **5 new schema fields**: `documentsNeeded`, `contacts`, `applicationNotes`, `relatedPrograms`, `regionalApplications`
+- **Program data merge layer** (`lib/program-data.ts`): combines waiver-library base data with pipeline draft content. Hand-curated always wins. Pipeline programs now render through V3 automatically. SEO metadata also uses enriched data.
+- **5 new schema fields**: `documentsNeeded`, `contacts`, `applicationNotes`, `relatedPrograms`, `regionalApplications` — on both `WaiverProgram` and `PipelineDraft`
 - **Layout intent**: pipeline decides which visual components best serve each program (`layoutIntent.aboutHighlight`, `eligibilityDisplay`, `applyDisplay`, `hasDocumentChecklist`, `hasLocationFinder`, `visualTone`)
-- **Pipeline v3 prompt**: few-shot exemplars from Chantel's Texas content, "never cite Olera" constraint, component menu for Claude to select from, higher token limits, FAQ minimums by complexity
+- **Pipeline v3 prompt** (`scripts/benefits-pipeline.js`): few-shot exemplars from Chantel's Texas content, "never cite Olera" constraint, component menu for Claude to select from, higher token limits (8K deep, 6K medium, 4K simple), FAQ minimums by complexity
+- **Pipeline v3 validated**: SD Medicaid drafted successfully with all new fields populated (documentsNeeded, contacts, applicationNotes, relatedPrograms, layoutIntent). Remaining 15 SD programs hit API overload (529).
+- **Admin program-level preview links**: each ProgramRow shows "Preview v2" (eye icon) or "Preview current" + "No v2" label on top right
+- **Admin state detail taste pass**: state overview collapsed by default, header condensed to one line (back + name + counts + previews), pipeline summary box killed, progress bar killed, binary toggle replaced with disclosure
 - **48-state batch** committed (225K lines). 44/46 batch succeeded, KY+SD pending retry.
+
+**Self-review bug sweep (6 bugs caught and fixed before TJ tested):**
+1. CRASH: ContactCards called `.replace()` on null phone from pipeline
+2. DUPLICATE: Same FAQs rendered on all 4 tabs
+3. DUPLICATE: Savings shown twice on About tab (stat callout + text)
+4. STATE LOSS: Document checklist reset on tab switch (component unmounted)
+5. MISSING DATA: ServiceAreasMap got `stateId=""` instead of `state.id`
+6. SEO: `generateMetadata` used scaffold data instead of enriched pipeline data
 
 ### What's shipped (v2 — from previous sessions)
 - 6-phase pipeline: explore → dive → compare → classify → draft → report
@@ -52,13 +65,12 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 - All 50 states + DC explored and researched
 
 ### What's next
-1. **Run v3 pipeline on a test state** (SD or KY) — Claude API was overloaded (529). Retry: `node scripts/benefits-pipeline.js --state SD --phase draft --run`
-2. **Compare v3 output quality** against Chantel's Texas content bar — documents, FAQs, contacts, layout intent
-3. **Re-run all 50 states with v3 prompt** — will produce richer drafts with the new fields
-4. Review program pages on Vercel — V3 is live for all pipeline programs
-5. Design iteration on program page components based on real content
-6. Apply approved MI drafts to waiver-library.ts
-7. Review draft quality with Chantel
+1. **Re-run v3 pipeline on all states** — SD validated (1/16 succeeded, 15 hit 529 overload). Retry: `node scripts/benefits-pipeline.js --state SD --phase draft --run`. Then full batch for v3-quality content.
+2. **Review program pages on Vercel** — V3 is live for all pipeline-enriched programs. TJ is actively testing.
+3. **Design iteration on program page components** based on real content rendering — calculators, maps, interactive elements that Chantel does well
+4. **Program `/current` route** — add `/waiver-library/{state}/{benefit}/current` for side-by-side comparison in admin (like state pages have)
+5. Apply approved MI drafts to waiver-library.ts
+6. Review draft quality with Chantel
 
 ### Other active work (different branches)
 - Homepage de-jank + mega menu (`gifted-rosalind`) — ready for QA
@@ -80,6 +92,12 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 ## Decisions Made
 
 | Date | Decision | Rationale |
+| 2026-04-10 | Program pages get "painting outside the lines" design — not just editorial | TJ: program pages should have the same design energy as state pages. Current ProgramPageV2 was editorially solid but visually flat. V3 adds HeaderAccent SVGs, WavyDividers, StatCallout dark band, width variation within tabs. |
+| 2026-04-10 | Design first, pipeline second | Design the component vocabulary using STAR+PLUS as reference specimen, then upgrade pipeline prompt to produce content that fills those shapes. Avoids guessing what the design needs. |
+| 2026-04-10 | Take Chantel's content patterns, not her UI patterns | Chantel's 4-tab structure, document checklists, decision-grade FAQs, contacts = keep. Her container-soup card-based design = don't keep. Our design language renders her content depth. |
+| 2026-04-10 | Pipeline decides visual components (layoutIntent) | During research, Claude selects which components best serve each program from a menu (income table, checklist, map, stat callout, etc.). Programs with regional offices get a map; hotlines get a phone CTA. Not a uniform template. |
+| 2026-04-10 | Tabs rendered with CSS hidden, not conditional unmount | Interactive state (document checklist progress) must survive tab switches. User checks 10 documents, looks at eligibility, comes back — checklist intact. |
+| 2026-04-10 | Admin state overview starts collapsed | The state overview pushed programs below the fold. Programs are what you came to manage. Overview is reference material, one click away. |
 | 2026-04-09 | Region-flexible pipeline: flat slug routing at `/benefits/{slug}` | State-level hierarchy too rigid. PACE operates in service areas, DMV spans 3 states, Miami-Dade has county-specific programs. Pipeline should research any geographic entity. Option A (flat slugs) chosen — "michigan" and "miami-dade-fl" are peers, no nesting. |
 | 2026-04-09 | Admin dashboard: verification → content production | Review workflow is the new quality gate, not verification dots. Killed inferCategory heuristic, replaced with pipeline programType. Filters now readiness-based (Published/Drafted/Explored/Scaffolding). |
 | 2026-04-09 | StatePageV2 "painting outside the lines" design approved | Hand-drawn SVG illustrations, wavy dividers, dark stat band, width variation between sections. Inspired by Wispr Flow (character, bold moments) + Perena (atmospheric warmth). Visual elements are scanning aids, not decoration. |
@@ -182,7 +200,7 @@ The deep dive. Restrained, lets content breathe. Reads like a well-researched ar
 ## Notes & Observations
 
 - Project is a TypeScript/Next.js 16 web app for senior care discovery
-- Benefits data: 1,145 programs across 50 states in `data/waiver-library.ts` (~11,740 lines). Only 15 (1.3%, all TX) have real content. 28 states now have pipeline-drafted content in `pipeline-drafts.ts` (19,500 lines).
+- Benefits data: 1,145 programs across 50 states in `data/waiver-library.ts` (~11,740 lines). Only 15 (1.3%, all TX) have real content. 48 states now have pipeline-drafted content in `pipeline-drafts.ts` (~87K lines). V3 prompt produces richer content (documents, contacts, layout intent).
 - Pipeline cost: ~$0.40/state. 50-state batch: ~$20. Time: ~8 min/state sequential (rate-limited by 8K output tokens/min on Anthropic Tier 1). Dive is parallelized (5x), draft is sequential with 429 retry.
 - Chantel Research files: `~/Desktop/olera-hq/Senior Benefits/Chantel Research/` — TX audit CSV + accuracy docx
 - Notion docs: "Benefits Pipeline v2 — Content Production System" (spec), "Benefits Hub Next Steps" (Apr 7 meeting)
@@ -193,6 +211,60 @@ The deep dive. Restrained, lets content breathe. Reads like a well-researched ar
 ---
 
 ## Session Log
+
+### 2026-04-10 (Session 72) — ProgramPageV3 + Pipeline v3 + Admin UX
+
+**Branch:** `eager-ride` | **Latest: `8d68ec02`**
+
+**Context gathering:** Read Chantel meeting transcript (Notion), PR #523 diff (660KB), context brief. Aligned with TJ on key distinction: take Chantel's content patterns (4-tab, document checklists, decision FAQs, contacts), keep our design language (painting outside the lines, organic SVGs, editorial feel, Claude latitude for page structure).
+
+**ProgramPageV3** (`components/waiver-library/ProgramPageV3.tsx` — 1,200 lines):
+- 4-tab system: About / Eligibility / How to Apply / Resources
+- Tab availability adapts: deep=4 tabs, simple=3 tabs, resource/navigator=one-pager
+- Tabs rendered with CSS `hidden` (not conditional) to preserve interactive state
+- Reusable components: IncomeTable, AssetLimitsDisplay, DocumentChecklist (interactive + progress bar), StepJourney (visual connecting line), ContactCards, StatCallout (dark band), ApplicationNotes, FaqSection
+- Width variation within tabs: 2xl prose → 3xl tools → 5xl maps
+- Organic HeaderAccent SVG, WavyDividers between sections
+- ResourceOnePager variant: prominent phone CTA, warm design, no tabs
+- FAQs only on About tab (not duplicated across all 4)
+- Savings shown once (stat callout OR text, not both)
+
+**Program data merge layer** (`lib/program-data.ts`):
+- `getEnrichedProgram(stateId, programId)` merges waiver-library + pipeline drafts
+- Hand-curated fields always win over pipeline-generated
+- Normalized fuzzy ID matching for pipeline draft lookups
+- State slug → abbreviation map (all 50 + DC)
+- Used by both page render AND metadata generation (SEO fix)
+
+**Schema update** (`data/waiver-library.ts`, `data/pipeline-drafts.ts`):
+- 5 new fields: `documentsNeeded`, `contacts`, `applicationNotes`, `relatedPrograms`, `regionalApplications`
+- `layoutIntent` field: `aboutHighlight`, `eligibilityDisplay`, `applyDisplay`, `hasLocationFinder`, `hasDocumentChecklist`, `visualTone`
+
+**Pipeline v3 prompt** (`scripts/benefits-pipeline.js`):
+- Few-shot exemplars from Chantel's Texas content (MEPD 15-item document list, CEAP 6-item list, decision-grade FAQ examples, contact card examples, application note examples)
+- "Never cite Olera" constraint (circular AI sourcing)
+- Component menu: Claude selects visual components per program
+- Higher token limits: 8K deep, 6K medium, 4K simple (was 6K/4K/3K)
+- FAQ minimums: 6+ deep, 4+ medium, 2+ simple
+- Validated: SD Medicaid drafted with all v3 fields. API overload (529) blocked remaining.
+
+**Admin dashboard** (`app/admin/benefits/page.tsx`):
+- Program rows: preview links on top right ("Preview v2" with eye icon, or "Preview current" + "No v2")
+- State detail taste pass: overview collapsed by default, header condensed to one line, pipeline summary box killed, progress bar killed, binary toggle → disclosure pattern
+
+**Self-review bug sweep (6 bugs caught before TJ tested):**
+1. CRASH: ContactCards `.replace()` on null phone
+2. DUPLICATE: FAQs on all 4 tabs
+3. DUPLICATE: Savings shown twice on About
+4. STATE LOSS: Checklist reset on tab switch
+5. MISSING DATA: ServiceAreasMap got empty stateId
+6. SEO: generateMetadata used scaffold data
+
+**Build:** Clean (tsc --noEmit passes). Pushed to Vercel.
+
+**Commits:** `3a3bd30c` → `500fe622` → `4b35ff8e` → `dccad6e7` → `139034b0` → `03a0bb46` → `75d87693` → `e838b9a6` → `8d68ec02`
+
+---
 
 ### 2026-04-09 (Session 71) — State Page Redesign + Dashboard Streamlining + Region System
 

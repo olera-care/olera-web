@@ -3,6 +3,7 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import Modal from "@/components/ui/Modal";
+import UpgradeModal from "@/components/medjobs/UpgradeModal";
 
 export interface ScheduleFormData {
   type: "video" | "in_person" | "phone";
@@ -224,6 +225,7 @@ export default function ScheduleInterviewModal({
   const [notes, setNotes] = useState(initialValues?.notes ?? "");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   const isStudentInitiated = !!providerProfileId;
   const firstName = otherName.split(" ")[0];
@@ -268,7 +270,7 @@ export default function ScheduleInterviewModal({
       });
       const data = await res.json();
       if (res.status === 402 || data.error === "upgrade_required") {
-        setError("You\u2019ve used your free interview. Upgrade to schedule more.");
+        setShowUpgradeModal(true);
         return;
       }
       if (!res.ok) { setError(data.error || "Failed to schedule."); return; }
@@ -281,6 +283,10 @@ export default function ScheduleInterviewModal({
   };
 
   const canSubmit = date && time && !submitting;
+
+  if (showUpgradeModal) {
+    return <UpgradeModal creditsUsed={3} onClose={onClose} />;
+  }
 
   return (
     <Modal

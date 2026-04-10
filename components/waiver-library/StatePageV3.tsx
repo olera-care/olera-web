@@ -499,21 +499,15 @@ export function StatePageV3({ state, overview }: StatePageV3Props) {
                   p.name.toLowerCase().includes(pick.name.toLowerCase().slice(0, 20)) ||
                   pick.name.toLowerCase().includes(p.name.toLowerCase().slice(0, 20))
                 );
-                const href = program
-                  ? `/senior-benefits/${state.id}/${program.id}`
-                  : `/senior-benefits/${state.id}`;
                 const highlighted = !selectedArchetype || (program && isProgramHighlighted(program));
+                const cardClasses = `group relative flex flex-col p-5 rounded-2xl bg-white border transition-all duration-200 ${
+                  highlighted
+                    ? "border-gray-200 hover:border-primary-300 hover:shadow-md"
+                    : "border-gray-100 opacity-50"
+                }`;
 
-                return (
-                  <Link
-                    key={i}
-                    href={href}
-                    className={`group relative flex flex-col p-5 rounded-2xl bg-white border transition-all duration-200 ${
-                      highlighted
-                        ? "border-gray-200 hover:border-primary-300 hover:shadow-md"
-                        : "border-gray-100 opacity-50"
-                    }`}
-                  >
+                const cardContent = (
+                  <>
                     <div className="flex items-center justify-between mb-3">
                       <span className="flex items-center justify-center w-7 h-7 rounded-full bg-vanilla-200 text-gray-500 text-xs font-semibold">
                         {i + 1}
@@ -525,19 +519,32 @@ export function StatePageV3({ state, overview }: StatePageV3Props) {
                         </div>
                       )}
                     </div>
-                    <p className="font-semibold text-gray-900 group-hover:text-primary-700 transition-colors leading-snug">
+                    <p className={`font-semibold leading-snug transition-colors ${program ? "text-gray-900 group-hover:text-primary-700" : "text-gray-900"}`}>
                       {pick.name}
                     </p>
                     <p className="text-sm text-gray-500 mt-2 leading-relaxed flex-1">
                       {pick.why}
                     </p>
-                    <div className="flex items-center gap-1 mt-3 text-xs font-medium text-primary-600 opacity-0 group-hover:opacity-100 transition-opacity">
-                      Learn more
-                      <svg className="w-3 h-3 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </div>
+                    {program && (
+                      <div className="flex items-center gap-1 mt-3 text-xs font-medium text-primary-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                        Learn more
+                        <svg className="w-3 h-3 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    )}
+                  </>
+                );
+
+                // Only wrap in Link if the program has an actual page
+                return program ? (
+                  <Link key={i} href={`/senior-benefits/${state.id}/${program.id}`} className={cardClasses}>
+                    {cardContent}
                   </Link>
+                ) : (
+                  <div key={i} className={`${cardClasses} cursor-default`}>
+                    {cardContent}
+                  </div>
                 );
               })}
             </div>

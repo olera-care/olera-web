@@ -435,14 +435,19 @@ function MedJobsOnboardContent() {
 
             <button
               onClick={() => { window.location.href = interviewsUrl; }}
-              className="w-full py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-colors"
+              disabled={!isSignedIn}
+              className={`w-full py-3 font-semibold rounded-xl transition-colors ${
+                isSignedIn
+                  ? "bg-primary-600 hover:bg-primary-700 text-white"
+                  : "bg-gray-200 text-gray-400 cursor-not-allowed"
+              }`}
             >
-              View All Interviews
+              {isSignedIn ? "View All Interviews" : "Setting up your account..."}
             </button>
 
             {!isSignedIn && (
               <p className="mt-3 text-center text-xs text-gray-500">
-                Signing you in automatically...
+                This usually takes a few seconds.
               </p>
             )}
           </div>

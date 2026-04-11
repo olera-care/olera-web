@@ -83,12 +83,14 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 - Michigan: 16 programs drafted + state overview. MI Choice as live test.
 - All 50 states + DC explored and researched
 
-### What's next
-1. **TJ reviewing StatePageV3 on Vercel** — archetype entry, provider bridge, save buttons, benefits CTA all live. Check /senior-benefits/michigan.
-2. **"Families are asking" social proof section** — needs Supabase query for state-filtered answered questions from provider_questions table. Follow-up after TJ reviews base V3.
-3. **Inline mini benefits check** — could evolve CTA into embedded 3-field form (age, ZIP, Medicaid) with live result. Needs server-side eligibility logic integration.
-4. **Program page v3 iteration** — component vocabulary built. Needs: deeper interactive elements (calculators, maps), Chantel-depth content. After state page approved.
-5. **Re-run v3 pipeline on all states** — SD + TX validated. Full batch for v3-quality content.
+### What's next (in progress)
+1. **Inline benefits check** — 3-field form (age, ZIP, Medicaid) embedded in state page with instant "Your loved one may qualify for X of Y programs" result. Highest-impact missing piece — turns the page from content to tool.
+2. **Spend-down calculator link** — add to "Help paying for care" archetype response. We have `/benefits/spend-down-calculator`, it's just not referenced on the state page.
+3. **"Families are asking" social proof** — Supabase query for state-filtered answered questions from provider_questions. Real questions from real families.
+
+### What's next (after state page)
+4. **Program page v3 iteration** — deeper interactive elements (calculators, maps), Chantel-depth content via v3 pipeline
+5. **Re-run v3 pipeline on all states** — SD + TX validated, full batch for v3-quality content
 6. Apply approved MI drafts
 7. Review draft quality with Chantel
 
@@ -285,10 +287,20 @@ The deep dive. Restrained, lets content breathe. Reads like a well-researched ar
 
 **Build:** Clean (tsc --noEmit passes). Pushed to Vercel.
 
-**Commits:** `3a3bd30c` → ... → `0fb5f0ac` → `ae6b89c0` → `a4d1a251` → `e485b3f5`
+**State page cleanup pass:**
+- Killed quick orientation strip (redundant with dark stat band)
+- Page restructures when archetype active: hides "Where to start", quick facts, "Browse by need" — response panel + filtered directory handle it. 12 sections → 8.
+- Pipeline-only programs now get pages (synthetic WaiverProgram from draft data, generateStaticParams includes pipeline IDs)
+- "Where to start" + "Browse by need" pills now find programs across both waiver-library and pipeline via findProgramByName()
+- Fixed startHere programId mismatch (LLM generates short slugs like "mi-options" but actual draft ID is "michigan-mi-options-counseling")
 
-**Self-review bugs caught (session total: 9):**
+**Commits:** `3a3bd30c` → ... → `0fb5f0ac` → `ae6b89c0` → `a4d1a251` → `e485b3f5` → ... → `87c13ccf`
+
+**Self-review bugs caught (session total: 14):**
 - 6 in ProgramPageV3 (crash on null phone, duplicate FAQs, duplicate savings, checklist state loss, empty stateId, stale SEO metadata)
 - 3 in StatePageV3 (wrong browse query params, unused imports, nonexistent Tailwind class)
+- 2 in build (toLocaleString on null monthlyLimit from 117 LLM rows, non-numeric householdSize)
+- 2 in pipeline programs (programId mismatch in startHere, synthetic description=tagline hiding tagline)
+- 1 dead links (pipeline-only programs had no pages)
 
 *Session 71 archived to `archive/SCRATCHPAD-2026-04.md`. Sessions 67-70b also in that archive.*

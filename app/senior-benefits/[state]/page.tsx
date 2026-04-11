@@ -7,6 +7,7 @@ import { StateOutline } from "@/components/waiver-library/StateOutline";
 import { FaqAccordion } from "@/components/waiver-library/FaqAccordion";
 import { pipelineDrafts } from "@/data/pipeline-drafts";
 import { StatePageV3 } from "@/components/waiver-library/StatePageV3";
+import { createClient } from "@/lib/supabase/server";
 
 const STATE_FAQS: Record<string, { question: string; answer: string }[]> = {
   texas: [
@@ -89,7 +90,37 @@ export default async function StatePage({ params }: Props) {
       name: p.name,
       shortName: p.shortName,
     }));
-    return <StatePageV3 state={state} overview={stateDrafts.stateOverview} pipelinePrograms={pipelinePrograms} />;
+
+    // Fetch recent answered questions (social proof)
+    // Uses a simple query — no cross-table join to avoid Supabase typed client issues with hyphenated table names
+    let familyQuestions: { question: string; answer: string; providerName: string; answeredAt: string }[] = [];
+    try {
+      const supabase = await createClient();
+      const { data } = await supabase
+        .from("provider_questions")
+        .select("question, answer, answered_at, answered_by")
+        .eq("status", "answered")
+        .eq("is_public", true)
+        .not("answer", "is", null)
+        .order("answered_at", { ascending: false })
+        .limit(6);
+
+      if (data) {
+        familyQuestions = data
+          .filter((q) => q.question && q.answer)
+          .slice(0, 3)
+          .map((q) => ({
+            question: q.question!,
+            answer: q.answer!,
+            providerName: q.answered_by || "Care provider",
+            answeredAt: q.answered_at || "",
+          }));
+      }
+    } catch {
+      // Silent — social proof is nice-to-have, not critical
+    }
+
+    return <StatePageV3 state={state} overview={stateDrafts.stateOverview} pipelinePrograms={pipelinePrograms} familyQuestions={familyQuestions} />;
   }
 
   const faqs = STATE_FAQS[stateId] ?? [];

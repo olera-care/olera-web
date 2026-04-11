@@ -259,6 +259,130 @@ function TypeBadge({ type }: { type: string }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// Inline Benefits Check — the tool that turns readers into participants
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function InlineBenefitsCheck({ programs, stateId, stateName }: { programs: WaiverProgram[]; stateId: string; stateName: string }) {
+  const [age, setAge] = useState("");
+  const [medicaid, setMedicaid] = useState<"yes" | "no" | "not-sure" | "">("");
+  const [submitted, setSubmitted] = useState(false);
+
+  // Simple client-side matching based on program eligibility data
+  const matchingPrograms = submitted ? programs.filter((p) => {
+    if (!age && !medicaid) return true;
+
+    const ageNum = parseInt(age);
+    const elig = p.structuredEligibility;
+
+    // Age check
+    if (ageNum && elig?.ageRequirement) {
+      const ageReq = parseInt(elig.ageRequirement);
+      if (ageReq && ageNum < ageReq) return false;
+    }
+
+    // Medicaid check — if "no", filter out programs that require Medicaid
+    if (medicaid === "no") {
+      const isMedicaid = `${p.name} ${p.tagline || ""}`.toLowerCase();
+      if (isMedicaid.includes("medicaid") && !isMedicaid.includes("savings")) return false;
+    }
+
+    // Resources/navigators are available to everyone
+    if (p.programType === "resource" || p.programType === "navigator") return true;
+
+    return true;
+  }) : [];
+
+  const hasInput = age || medicaid;
+
+  return (
+    <div className="rounded-2xl bg-vanilla-200/60 border border-vanilla-300/50 p-6 md:p-8">
+      <p className="text-sm font-semibold text-gray-900 mb-1">Quick eligibility check</p>
+      <p className="text-sm text-gray-500 mb-5">See which {stateName} programs may apply to your family.</p>
+
+      <div className="flex flex-col sm:flex-row gap-3 mb-4">
+        {/* Age */}
+        <div className="flex-1">
+          <label className="text-xs text-gray-500 mb-1 block">Loved one&apos;s age</label>
+          <input
+            type="number"
+            placeholder="e.g. 72"
+            value={age}
+            onChange={(e) => { setAge(e.target.value); setSubmitted(false); }}
+            className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white focus:border-primary-300 focus:ring-1 focus:ring-primary-200 outline-none transition-colors"
+          />
+        </div>
+
+        {/* Medicaid */}
+        <div className="flex-1">
+          <label className="text-xs text-gray-500 mb-1 block">On Medicaid?</label>
+          <select
+            value={medicaid}
+            onChange={(e) => { setMedicaid(e.target.value as typeof medicaid); setSubmitted(false); }}
+            className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white focus:border-primary-300 focus:ring-1 focus:ring-primary-200 outline-none transition-colors"
+          >
+            <option value="">Select...</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+            <option value="not-sure">Not sure</option>
+          </select>
+        </div>
+
+        {/* Check button */}
+        <div className="flex items-end">
+          <button
+            onClick={() => setSubmitted(true)}
+            disabled={!hasInput}
+            className={`px-5 py-2 text-sm font-medium rounded-lg transition-colors ${
+              hasInput
+                ? "bg-gray-900 text-white hover:bg-gray-800"
+                : "bg-gray-100 text-gray-400 cursor-not-allowed"
+            }`}
+          >
+            Check
+          </button>
+        </div>
+      </div>
+
+      {/* Results */}
+      {submitted && hasInput && (
+        <div className="pt-4 border-t border-vanilla-300/50">
+          <p className="text-sm text-gray-700">
+            Your loved one may qualify for{" "}
+            <span className="font-bold text-gray-900">{matchingPrograms.length} of {programs.length} programs</span>
+            {" "}in {stateName}.
+          </p>
+          {matchingPrograms.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-3">
+              {matchingPrograms.slice(0, 5).map((p) => (
+                <Link
+                  key={p.id}
+                  href={`/senior-benefits/${stateId}/${p.id}`}
+                  className="text-xs font-medium text-primary-700 bg-primary-50 hover:bg-primary-100 px-3 py-1.5 rounded-full transition-colors"
+                >
+                  {p.shortName}
+                </Link>
+              ))}
+              {matchingPrograms.length > 5 && (
+                <span className="text-xs text-gray-400 px-2 py-1.5">+{matchingPrograms.length - 5} more</span>
+              )}
+            </div>
+          )}
+          <Link
+            href="/benefits/finder"
+            className="inline-flex items-center gap-1.5 mt-3 text-xs font-medium text-primary-600 hover:text-primary-500 transition-colors"
+          >
+            Get a detailed assessment
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            </svg>
+          </Link>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // Main component
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -269,10 +393,18 @@ interface PipelineProgramRef {
   shortName: string;
 }
 
+interface FamilyQuestion {
+  question: string;
+  answer: string;
+  providerName: string;
+  answeredAt: string;
+}
+
 interface StatePageV3Props {
   state: StateData;
   overview: PipelineStateOverview;
   pipelinePrograms?: PipelineProgramRef[];
+  familyQuestions?: FamilyQuestion[];
 }
 
 const typeLabels: Record<string, { label: string; description: string; emoji: string }> = {
@@ -282,7 +414,7 @@ const typeLabels: Record<string, { label: string; description: string; emoji: st
   employment: { label: "Employment", description: "Job training and income support", emoji: "◆" },
 };
 
-export function StatePageV3({ state, overview, pipelinePrograms = [] }: StatePageV3Props) {
+export function StatePageV3({ state, overview, pipelinePrograms = [], familyQuestions = [] }: StatePageV3Props) {
   const [activeArchetype, setActiveArchetype] = useState<ArchetypeId>(null);
   const [showAll, setShowAll] = useState(false);
   const responseRef = useRef<HTMLDivElement>(null);
@@ -455,6 +587,27 @@ export function StatePageV3({ state, overview, pipelinePrograms = [] }: StatePag
                     <p className="text-sm text-gray-400">No exact matches found. Browse all {programs.length} programs below.</p>
                   )}
 
+                  {/* Contextual tools — spend-down calculator for "paying" archetype */}
+                  {selectedArchetype.id === "paying" && (
+                    <Link
+                      href="/benefits/spend-down-calculator"
+                      className="flex items-center gap-3 mt-4 p-3 rounded-xl bg-vanilla-200/60 border border-vanilla-300/30 hover:border-primary-200 transition-colors group"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
+                        <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 group-hover:text-primary-700 transition-colors">Spend-down calculator</p>
+                        <p className="text-xs text-gray-500">Will your loved one&apos;s assets affect Medicaid eligibility?</p>
+                      </div>
+                      <svg className="w-4 h-4 text-gray-300 group-hover:text-primary-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </Link>
+                  )}
+
                   {/* Footer: count + show all */}
                   <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
                     <p className="text-xs text-gray-400">
@@ -554,21 +707,9 @@ export function StatePageV3({ state, overview, pipelinePrograms = [] }: StatePag
           </section>
         )}
 
-        {/* ─── Mini benefits check ─── */}
+        {/* ─── Inline benefits check ─── */}
         <section className="max-w-2xl mx-auto px-6 lg:px-8 mt-14">
-          <div className="rounded-2xl bg-vanilla-200/60 border border-vanilla-300/50 p-6 md:p-8">
-            <p className="text-sm font-semibold text-gray-900 mb-1">Not sure which programs apply?</p>
-            <p className="text-sm text-gray-500 mb-5">Answer a few questions to see what your loved one may qualify for.</p>
-            <Link
-              href="/benefits/finder"
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white text-sm font-medium rounded-xl hover:bg-gray-800 transition-colors"
-            >
-              Check eligibility
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-              </svg>
-            </Link>
-          </div>
+          <InlineBenefitsCheck programs={programs} stateId={state.id} stateName={state.name} />
         </section>
 
         {/* ─── Dark stat band ─── */}
@@ -690,6 +831,29 @@ export function StatePageV3({ state, overview, pipelinePrograms = [] }: StatePag
             </svg>
           </Link>
         </section>
+
+        {/* ─── Families are asking — social proof ─── */}
+        {familyQuestions.length > 0 && (
+          <section className="max-w-2xl mx-auto px-6 lg:px-8 mb-16">
+            <SectionLabel>Families in {state.name} are asking</SectionLabel>
+            <div className="space-y-4">
+              {familyQuestions.slice(0, 3).map((q, i) => (
+                <div key={i} className="p-4 rounded-xl bg-white border border-gray-100">
+                  <p className="text-sm font-medium text-gray-900 leading-snug">&ldquo;{q.question}&rdquo;</p>
+                  <p className="text-sm text-gray-600 mt-2 leading-relaxed line-clamp-3">{q.answer}</p>
+                  <div className="flex items-center gap-2 mt-3">
+                    <div className="w-5 h-5 rounded-full bg-primary-100 flex items-center justify-center">
+                      <span className="text-[10px] font-bold text-primary-700">{q.providerName.charAt(0)}</span>
+                    </div>
+                    <p className="text-xs text-gray-400">
+                      Answered by <span className="text-gray-600 font-medium">{q.providerName}</span>
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* ─── All programs directory ─── */}
         <section className="max-w-2xl mx-auto px-6 lg:px-8">

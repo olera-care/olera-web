@@ -483,38 +483,10 @@ export function StatePageV3({ state, overview, pipelinePrograms = [] }: StatePag
           </div>
         </section>
 
-        {/* ─── Quick orientation strip ─── */}
-        <section className="max-w-3xl mx-auto px-6 lg:px-8 mt-10">
-          <div className="flex flex-wrap gap-6 md:gap-10">
-            {topSavings?.savingsRange && (
-              <div>
-                <p className="text-xl font-bold text-gray-900 font-serif">
-                  {topSavings.savingsRange.match(/\$[\d,]+/)?.[0] || topSavings.savingsRange}+
-                </p>
-                <p className="text-xs text-gray-400 mt-0.5">potential savings</p>
-              </div>
-            )}
-            <div>
-              <p className="text-xl font-bold text-gray-900 font-serif">{programs.length}</p>
-              <p className="text-xs text-gray-400 mt-0.5">programs available</p>
-            </div>
-            <div>
-              <p className="text-xl font-bold text-gray-900 font-serif">Free</p>
-              <p className="text-xs text-gray-400 mt-0.5">to apply for all</p>
-            </div>
-            {resourceCount > 0 && (
-              <div>
-                <p className="text-xl font-bold text-gray-900 font-serif">{resourceCount}</p>
-                <p className="text-xs text-gray-400 mt-0.5">free resources</p>
-              </div>
-            )}
-          </div>
-        </section>
-
         <WavyDivider className="my-12 max-w-3xl mx-auto px-6" />
 
-        {/* ─── Where to start ─── */}
-        {overview.startHere && overview.startHere.length > 0 && (
+        {/* ─── Where to start (hidden when archetype active — response panel already shows relevant programs) ─── */}
+        {!activeArchetype && overview.startHere && overview.startHere.length > 0 && (
           <section className="max-w-4xl mx-auto px-6 lg:px-8">
             <SectionLabel>Where to start</SectionLabel>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -568,7 +540,7 @@ export function StatePageV3({ state, overview, pipelinePrograms = [] }: StatePag
         )}
 
         {/* ─── Quick facts ─── */}
-        {overview.quickFacts && overview.quickFacts.length > 0 && !activeArchetype && (
+        {!activeArchetype && overview.quickFacts && overview.quickFacts.length > 0 && (
           <section className="max-w-2xl mx-auto px-6 lg:px-8 mt-14">
             <SectionLabel>Good to know</SectionLabel>
             <div className="space-y-2.5">
@@ -634,8 +606,8 @@ export function StatePageV3({ state, overview, pipelinePrograms = [] }: StatePag
           </div>
         </section>
 
-        {/* ─── Browse by what you need ─── */}
-        {overview.byNeed && overview.byNeed.length > 0 && (
+        {/* ─── Browse by what you need (hidden when archetype active — response panel + directory handle it) ─── */}
+        {!activeArchetype && overview.byNeed && overview.byNeed.length > 0 && (
           <section className="max-w-3xl mx-auto px-6 lg:px-8">
             <SectionLabel>Browse by what you need</SectionLabel>
             <div className="space-y-6">
@@ -678,7 +650,7 @@ export function StatePageV3({ state, overview, pipelinePrograms = [] }: StatePag
           </section>
         )}
 
-        <WavyDivider className="my-16 max-w-3xl mx-auto px-6" />
+        {!activeArchetype && <WavyDivider className="my-16 max-w-3xl mx-auto px-6" />}
 
         {/* ─── Provider bridge ─── */}
         <section className="max-w-3xl mx-auto px-6 lg:px-8 mb-16">

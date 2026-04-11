@@ -904,21 +904,6 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
   const sectionIds = navSections.map((s) => s.id);
   const activeSection = useSectionObserver(sectionIds);
 
-  // Build stats for the dark band
-  const stats: { value: string; label: string }[] = [];
-  const intent = program.layoutIntent;
-  if (intent?.aboutHighlight === "waitlist" && guide?.waitlist) {
-    const wlMatch = guide.waitlist.match(/\d+/);
-    if (wlMatch) stats.push({ value: wlMatch[0] + "+", label: "month typical wait" });
-  }
-  if (program.savingsRange && intent?.aboutHighlight !== "waitlist") {
-    const match = program.savingsRange.match(/\$[\d,]+/);
-    if (match) stats.push({ value: match[0] + "+", label: "potential savings" });
-  }
-  if (program.serviceAreas && program.serviceAreas.length > 0) {
-    stats.push({ value: String(program.serviceAreas.length), label: "service areas" });
-  }
-
   return (
     <div className="bg-vanilla-100 min-h-screen">
       {/* Structured data */}
@@ -1080,16 +1065,6 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
                       ))}
                     </ul>
                   </div>
-                )}
-              </section>
-            )}
-
-            {/* ─── Dark stat band — visual break between eligibility and apply ─── */}
-            {stats.length > 0 && (
-              <section className="max-w-4xl mx-auto px-6 lg:px-8 mb-16">
-                <StatCallout stats={stats} />
-                {program.savingsRange && program.savingsSource && program.savingsSource !== "Free service" && (
-                  <p className="text-xs text-gray-400 mt-2">Source: {program.savingsSource}</p>
                 )}
               </section>
             )}

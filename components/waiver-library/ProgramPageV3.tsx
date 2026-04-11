@@ -12,7 +12,7 @@ import type {
 import { ServiceAreasMap } from "@/components/waiver-library/ServiceAreasMapLoader";
 import { CityBadge } from "@/components/waiver-library/CityBadge";
 import { useSavedPrograms } from "@/hooks/use-saved-programs";
-import { Vault, Phone, Info, CaretDown, ArrowSquareOut, BookmarkSimple } from "@phosphor-icons/react";
+import { Vault, Phone, Info, CaretDown, ArrowSquareOut, BookmarkSimple, CheckCircle, FileText, Clock, HourglassHigh, MapPin, ArrowsClockwise, Globe, ShareNetwork, Printer, Check } from "@phosphor-icons/react";
 import { ProgramIcon } from "@/lib/program-icon";
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -88,7 +88,7 @@ function HandDrawnUnderline() {
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gray-400 mb-3">
+    <p className="text-xs font-semibold uppercase tracking-[0.1em] text-gray-500 mb-3">
       {children}
     </p>
   );
@@ -96,7 +96,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 
 function SectionHeading({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="text-xl md:text-2xl font-bold text-gray-900 font-serif leading-snug mb-1">
+    <h2 className="text-2xl md:text-3xl font-bold text-gray-900 font-serif leading-snug mb-1">
       {children}
     </h2>
   );
@@ -112,7 +112,7 @@ function TypeBadge({ type }: { type: string }) {
     employment: "bg-amber-50 text-amber-600",
   };
   return (
-    <span className={`text-[10px] font-semibold uppercase tracking-wide px-2.5 py-1 rounded-full ${styles[type] || "bg-gray-100 text-gray-500"}`}>
+    <span className={`text-[11px] font-semibold uppercase tracking-wide px-2.5 py-1 rounded-full ${styles[type] || "bg-gray-100 text-gray-500"}`}>
       {type}
     </span>
   );
@@ -120,7 +120,7 @@ function TypeBadge({ type }: { type: string }) {
 
 function ScopeBadge({ scope }: { scope: string }) {
   return (
-    <span className="text-[10px] font-medium text-gray-400 uppercase tracking-wide px-2.5 py-1 rounded-full border border-gray-200">
+    <span className="text-[11px] font-medium text-gray-500 uppercase tracking-wide px-2.5 py-1 rounded-full border border-gray-200">
       {scope}
     </span>
   );
@@ -143,7 +143,7 @@ function StatCallout({ stats }: { stats: { value: string; label: string }[] }) {
             <span className="text-display-xs md:text-display-sm font-bold text-white font-serif">
               {stat.value}
             </span>
-            <span className="text-gray-400 text-sm ml-2">{stat.label}</span>
+            <span className="text-gray-400 text-base ml-2">{stat.label}</span>
           </div>
         ))}
       </div>
@@ -173,10 +173,10 @@ function IncomeTable({
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-200">
-              <th className="px-5 py-3 text-left font-medium text-gray-500 text-xs uppercase tracking-wide">
+              <th className="px-5 py-3 text-left font-medium text-gray-500 text-[11px] uppercase tracking-wide">
                 Household size
               </th>
-              <th className="px-5 py-3 text-left font-medium text-gray-500 text-xs uppercase tracking-wide">
+              <th className="px-5 py-3 text-left font-medium text-gray-500 text-[11px] uppercase tracking-wide">
                 Monthly income limit
               </th>
             </tr>
@@ -189,11 +189,11 @@ function IncomeTable({
                   key={i}
                   className={isHighlighted ? "bg-primary-50/40" : ""}
                 >
-                  <td className="px-5 py-3 text-gray-700">
+                  <td className="px-5 py-3 text-gray-700 text-sm">
                     {row.householdSize}{" "}
                     {row.householdSize === 1 ? "person" : "people"}
                     {isHighlighted && (
-                      <span className="ml-2 text-[10px] font-semibold uppercase tracking-wide text-primary-600 bg-primary-100 px-1.5 py-0.5 rounded">
+                      <span className="ml-2 text-[11px] font-semibold uppercase tracking-wide text-primary-600 bg-primary-100 px-1.5 py-0.5 rounded">
                         You
                       </span>
                     )}
@@ -238,13 +238,13 @@ function AssetLimitsDisplay({ limits }: { limits: NonNullable<StructuredEligibil
 
       {limits.exemptAssets && limits.exemptAssets.length > 0 && (
         <div className="pl-11">
-          <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 mb-2">
             What your parent can keep
           </p>
           <ul className="space-y-1">
             {limits.exemptAssets.map((a, i) => (
               <li key={i} className="text-sm text-gray-600 flex items-start gap-2">
-                <span className="text-emerald-400 mt-0.5 shrink-0">&#10003;</span>
+                <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" weight="bold" />
                 {a}
               </li>
             ))}
@@ -259,7 +259,7 @@ function AssetLimitsDisplay({ limits }: { limits: NonNullable<StructuredEligibil
 
       {limits.countedAssets && limits.countedAssets.length > 0 && (
         <div className="pl-11 pt-2 border-t border-gray-100">
-          <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 mb-2">
             What does count
           </p>
           <p className="text-sm text-gray-500">
@@ -273,7 +273,7 @@ function AssetLimitsDisplay({ limits }: { limits: NonNullable<StructuredEligibil
 
 // --- Document Checklist (interactive) ---
 
-function DocumentChecklist({ documents, heading }: { documents: string[]; heading?: string }) {
+function DocumentChecklist({ documents, heading, programName }: { documents: string[]; heading?: string; programName?: string }) {
   const [checked, setChecked] = useState<Set<number>>(new Set());
 
   const toggle = (i: number) => {
@@ -293,7 +293,7 @@ function DocumentChecklist({ documents, heading }: { documents: string[]; headin
         <p className="text-sm font-medium text-gray-900 mb-3">{heading}</p>
       )}
 
-      {/* Progress bar */}
+      {/* Progress bar + print */}
       <div className="flex items-center gap-3 mb-4">
         <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
           <div
@@ -301,9 +301,25 @@ function DocumentChecklist({ documents, heading }: { documents: string[]; headin
             style={{ width: `${progress}%` }}
           />
         </div>
-        <span className="text-xs font-medium text-gray-400 tabular-nums">
+        <span className="text-sm font-medium text-gray-500 tabular-nums">
           {checked.size}/{documents.length}
         </span>
+        <button
+          onClick={() => {
+            const printContent = documents.map((d, i) => `${checked.has(i) ? "☑" : "☐"} ${d}`).join("\n");
+            const w = window.open("", "_blank");
+            if (w) {
+              w.document.write(`<pre style="font-family:system-ui;font-size:14px;line-height:2">${programName ? `Documents for ${programName}\n${"—".repeat(40)}\n\n` : ""}${printContent}</pre>`);
+              w.document.close();
+              w.print();
+            }
+          }}
+          className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+          aria-label="Print checklist"
+          title="Print checklist"
+        >
+          <Printer className="w-4 h-4 text-gray-400 hover:text-gray-500" />
+        </button>
       </div>
 
       <div className="rounded-xl border border-gray-200 bg-white divide-y divide-gray-100">
@@ -331,7 +347,7 @@ function DocumentChecklist({ documents, heading }: { documents: string[]; headin
 
       {progress === 100 && (
         <p className="text-sm text-emerald-600 font-medium mt-3 flex items-center gap-1.5">
-          <span>&#10003;</span> All documents ready
+          <CheckCircle className="w-4 h-4" weight="fill" /> All documents ready
         </p>
       )}
     </div>
@@ -370,7 +386,7 @@ function ContactCards({ contacts }: { contacts: { label: string; description?: s
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
       {contacts.map((c, i) => (
-        <div key={i} className="rounded-xl border border-gray-200 bg-white p-4 space-y-2">
+        <div key={i} className="rounded-xl border border-gray-200 bg-white p-4 space-y-2 hover:border-primary-200 hover:shadow-sm transition-all">
           <p className="font-medium text-gray-900 text-sm">{c.label}</p>
           {c.description && (
             <p className="text-xs text-gray-500 leading-relaxed">{c.description}</p>
@@ -423,7 +439,7 @@ function FaqSection({ faqs, label = "Common questions" }: { faqs: { question: st
           <details key={i} className="group py-4 first:pt-0">
             <summary className="flex items-start justify-between gap-4 cursor-pointer list-none text-gray-900 font-medium leading-snug hover:text-gray-700 transition-colors">
               {faq.question}
-              <CaretDown className="w-4 h-4 text-gray-400 shrink-0 mt-1 transition-transform duration-200 group-open:rotate-180" />
+              <CaretDown className="w-4 h-4 text-gray-500 shrink-0 mt-1 transition-transform duration-200 group-open:rotate-180" />
             </summary>
             <p className="mt-2 text-sm text-gray-600 leading-relaxed pr-8">{faq.answer}</p>
           </details>
@@ -560,7 +576,7 @@ function TabNavigation({
               className={`relative px-4 py-3 text-sm font-medium transition-colors ${
                 activeTab === tab.id
                   ? "text-gray-900"
-                  : "text-gray-400 hover:text-gray-600"
+                  : "text-gray-500 hover:text-gray-700"
               }`}
             >
               {tab.label}
@@ -684,6 +700,128 @@ function AboutTab({ program, state }: { program: WaiverProgram; state: StateData
   );
 }
 
+// --- Quick Eligibility Check (interactive) ---
+
+function QuickEligibilityCheck({ elig }: { elig: StructuredEligibility }) {
+  const [age, setAge] = useState("");
+  const [income, setIncome] = useState("");
+  const [result, setResult] = useState<"likely" | "unlikely" | "maybe" | null>(null);
+
+  const handleCheck = () => {
+    const ageNum = parseInt(age);
+    const incomeNum = parseInt(income.replace(/[,$]/g, ""));
+    if (isNaN(ageNum) || isNaN(incomeNum)) return;
+
+    // Parse age requirement
+    const ageReq = elig.ageRequirement;
+    let ageOk = true;
+    if (ageReq) {
+      const ageMatch = ageReq.match(/(\d+)\+/);
+      if (ageMatch && ageNum < parseInt(ageMatch[1])) ageOk = false;
+    }
+
+    // Check income against table (use household size 1 as default)
+    let incomeOk = true;
+    let incomeUnknown = false;
+    if (elig.incomeTable && elig.incomeTable.length > 0) {
+      const row1 = elig.incomeTable.find((r) => r.householdSize === 1);
+      if (row1 && typeof row1.monthlyLimit === "number") {
+        incomeOk = incomeNum <= row1.monthlyLimit;
+      } else {
+        incomeUnknown = true;
+      }
+    } else {
+      // Try to parse from summary
+      const incomeLine = elig.summary.find((s) => /income|below|\$/i.test(s));
+      if (incomeLine) {
+        const limitMatch = incomeLine.match(/\$[\d,]+/);
+        if (limitMatch) {
+          const limit = parseInt(limitMatch[0].replace(/[,$]/g, ""));
+          incomeOk = incomeNum <= limit;
+        } else {
+          incomeUnknown = true;
+        }
+      } else {
+        incomeUnknown = true;
+      }
+    }
+
+    if (!ageOk) setResult("unlikely");
+    else if (incomeUnknown) setResult("maybe");
+    else if (!incomeOk) setResult("unlikely");
+    else setResult("likely");
+  };
+
+  return (
+    <div className="rounded-2xl border border-gray-200 bg-white p-5 md:p-6">
+      <p className="font-semibold text-gray-900 mb-1">Quick eligibility check</p>
+      <p className="text-sm text-gray-500 mb-4">Enter basic info for a rough estimate — not a guarantee.</p>
+
+      <div className="flex flex-col sm:flex-row gap-3 mb-4">
+        <div className="flex-1">
+          <label htmlFor="elig-age" className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1 block">Age</label>
+          <input
+            id="elig-age"
+            type="number"
+            value={age}
+            onChange={(e) => { setAge(e.target.value); setResult(null); }}
+            placeholder="65"
+            className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400"
+          />
+        </div>
+        <div className="flex-1">
+          <label htmlFor="elig-income" className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1 block">Monthly income</label>
+          <input
+            id="elig-income"
+            type="text"
+            value={income}
+            onChange={(e) => { setIncome(e.target.value); setResult(null); }}
+            placeholder="$2,000"
+            className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400"
+          />
+        </div>
+        <div className="flex items-end">
+          <button
+            onClick={handleCheck}
+            disabled={!age || !income}
+            className="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
+          >
+            Check
+          </button>
+        </div>
+      </div>
+
+      {result === "likely" && (
+        <div className="flex items-start gap-2.5 p-3 rounded-lg bg-emerald-50 border border-emerald-200/50">
+          <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" weight="fill" />
+          <div>
+            <p className="text-sm font-medium text-emerald-800">You likely qualify based on age and income.</p>
+            <p className="text-xs text-emerald-600 mt-0.5">Other factors (assets, residency, functional need) also apply. See full details below.</p>
+          </div>
+        </div>
+      )}
+      {result === "unlikely" && (
+        <div className="flex items-start gap-2.5 p-3 rounded-lg bg-amber-50 border border-amber-200/50">
+          <Info className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-medium text-amber-800">You may not meet the basic age or income requirements.</p>
+            <p className="text-xs text-amber-600 mt-0.5">Some exceptions exist (disability, spend-down). Review the full criteria or call the program directly.</p>
+          </div>
+        </div>
+      )}
+      {result === "maybe" && (
+        <div className="flex items-start gap-2.5 p-3 rounded-lg bg-blue-50 border border-blue-200/50">
+          <Info className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-medium text-blue-800">We couldn&apos;t determine income limits for this program.</p>
+            <p className="text-xs text-blue-600 mt-0.5">Age looks good. Contact the program directly to confirm income eligibility.</p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function EligibilityTab({ program }: { program: WaiverProgram }) {
   const elig = program.structuredEligibility;
   if (!elig) {
@@ -696,13 +834,18 @@ function EligibilityTab({ program }: { program: WaiverProgram }) {
 
   return (
     <>
+      {/* Quick eligibility check */}
+      <section className="max-w-3xl mx-auto px-6 lg:px-8 mb-10">
+        <QuickEligibilityCheck elig={elig} />
+      </section>
+
       {/* Summary bullets */}
       <section className="max-w-2xl mx-auto px-6 lg:px-8">
         <SectionLabel>Who qualifies</SectionLabel>
         <ul className="space-y-2.5">
           {elig.summary.map((s, i) => (
             <li key={i} className="flex items-start gap-2.5 text-gray-700">
-              <span className="text-emerald-500 mt-0.5 text-sm shrink-0">&#10003;</span>
+              <CheckCircle className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" weight="fill" />
               <span className="leading-relaxed">{s}</span>
             </li>
           ))}
@@ -745,7 +888,7 @@ function EligibilityTab({ program }: { program: WaiverProgram }) {
           <ul className="space-y-2">
             {elig.otherRequirements.map((r, i) => (
               <li key={i} className="text-sm text-gray-600 flex items-start gap-2.5">
-                <span className="text-gray-300 mt-0.5 shrink-0">&#8226;</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-gray-300 shrink-0 mt-2" />
                 <span className="leading-relaxed">{r}</span>
               </li>
             ))}
@@ -770,6 +913,12 @@ function HowToApplyTab({ program, state }: { program: WaiverProgram; state: Stat
       {guide && (
         <section className="max-w-2xl mx-auto px-6 lg:px-8">
           <p className="text-lg text-gray-600 leading-relaxed">{guide.summary}</p>
+          {guide.tip && (
+            <div className="mt-4 flex items-start gap-2.5 p-3.5 rounded-lg bg-primary-50/40 border-l-2 border-primary-400">
+              <Info className="w-4 h-4 text-primary-500 shrink-0 mt-0.5" />
+              <p className="text-sm text-gray-700 leading-relaxed">{guide.tip}</p>
+            </div>
+          )}
         </section>
       )}
 
@@ -777,7 +926,7 @@ function HowToApplyTab({ program, state }: { program: WaiverProgram; state: Stat
       {documents.length > 0 && (
         <section className="max-w-3xl mx-auto px-6 lg:px-8 mt-10">
           <SectionLabel>Documents you&apos;ll need</SectionLabel>
-          <DocumentChecklist documents={documents} />
+          <DocumentChecklist documents={documents} programName={program.name} />
         </section>
       )}
 
@@ -800,17 +949,29 @@ function HowToApplyTab({ program, state }: { program: WaiverProgram; state: Stat
 
       {/* Processing time / waitlist */}
       {(guide?.processingTime || guide?.waitlist) && (
-        <section className="max-w-2xl mx-auto px-6 lg:px-8 mt-8">
-          <div className="rounded-xl border border-gray-200 bg-white p-4 space-y-1.5">
+        <section className="max-w-3xl mx-auto px-6 lg:px-8 mt-8">
+          <div className={`grid gap-3 ${guide.processingTime && guide.waitlist ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"}`}>
             {guide.processingTime && (
-              <p className="text-sm text-gray-600">
-                <span className="font-medium text-gray-900">Processing time:</span> {guide.processingTime}
-              </p>
+              <div className="rounded-xl border border-gray-200 bg-white p-4 flex items-start gap-3">
+                <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+                  <Clock className="w-5 h-5 text-gray-500" />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-0.5">Processing time</p>
+                  <p className="text-sm text-gray-700 leading-relaxed">{guide.processingTime}</p>
+                </div>
+              </div>
             )}
             {guide.waitlist && (
-              <p className="text-sm text-gray-600">
-                <span className="font-medium text-gray-900">Waitlist:</span> {guide.waitlist}
-              </p>
+              <div className="rounded-xl border border-amber-200/60 bg-amber-50/40 p-4 flex items-start gap-3">
+                <div className="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+                  <HourglassHigh className="w-5 h-5 text-amber-600" />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-amber-700 mb-0.5">Waitlist</p>
+                  <p className="text-sm text-gray-700 leading-relaxed">{guide.waitlist}</p>
+                </div>
+              </div>
             )}
           </div>
         </section>
@@ -878,7 +1039,20 @@ function HowToApplyTab({ program, state }: { program: WaiverProgram; state: Stat
   );
 }
 
-function ResourcesTab({ program }: { program: WaiverProgram }) {
+function findProgramSlug(name: string, state: StateData): string | null {
+  const needle = name.toLowerCase().replace(/[^a-z0-9]/g, "");
+  // Search waiver-library programs
+  for (const p of state.programs) {
+    const pName = p.name.toLowerCase().replace(/[^a-z0-9]/g, "");
+    const pShort = (p.shortName || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+    if (pName === needle || pShort === needle || pName.includes(needle) || needle.includes(pName)) {
+      return p.id;
+    }
+  }
+  return null;
+}
+
+function ResourcesTab({ program, state }: { program: WaiverProgram; state: StateData }) {
   const contacts = (program).contacts || [];
   const relatedPrograms = (program).relatedPrograms || [];
 
@@ -916,7 +1090,7 @@ function ResourcesTab({ program }: { program: WaiverProgram }) {
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 hover:text-primary-500 underline underline-offset-2 decoration-primary-200 transition-colors"
           >
-            Visit official program page &#8599;
+            <Globe className="w-4 h-4" /> Visit official program page
           </a>
           {program.lastVerifiedDate && (
             <p className="text-xs text-gray-400 mt-1">
@@ -939,8 +1113,9 @@ function ResourcesTab({ program }: { program: WaiverProgram }) {
                 rel="noopener noreferrer"
                 className="block p-3 rounded-lg border border-gray-200 bg-white hover:border-primary-300 hover:shadow-sm transition-all group"
               >
-                <p className="font-medium text-sm text-gray-900 group-hover:text-primary-700 transition-colors">
-                  {form.name} &#8599;
+                <p className="font-medium text-sm text-gray-900 group-hover:text-primary-700 transition-colors flex items-center gap-1.5">
+                  <FileText className="w-4 h-4 text-gray-400 group-hover:text-primary-500 transition-colors" />
+                  {form.name}
                 </p>
                 {form.description && (
                   <p className="text-xs text-gray-500 mt-0.5">{form.description}</p>
@@ -958,14 +1133,28 @@ function ResourcesTab({ program }: { program: WaiverProgram }) {
         <section className="max-w-2xl mx-auto px-6 lg:px-8">
           <SectionLabel>Related programs</SectionLabel>
           <div className="flex flex-wrap gap-2">
-            {relatedPrograms.map((name, i) => (
-              <span
-                key={i}
-                className="text-sm font-medium text-primary-700 bg-primary-50 px-3 py-1.5 rounded-full"
-              >
-                {name}
-              </span>
-            ))}
+            {relatedPrograms.map((name, i) => {
+              const slug = findProgramSlug(name, state);
+              if (slug) {
+                return (
+                  <Link
+                    key={i}
+                    href={`/senior-benefits/${state.id}/${slug}`}
+                    className="text-sm font-medium text-primary-700 bg-primary-50 px-3 py-1.5 rounded-full hover:bg-primary-100 transition-colors"
+                  >
+                    {name}
+                  </Link>
+                );
+              }
+              return (
+                <span
+                  key={i}
+                  className="text-sm font-medium text-gray-600 bg-gray-100 px-3 py-1.5 rounded-full"
+                >
+                  {name}
+                </span>
+              );
+            })}
           </div>
         </section>
       )}
@@ -1116,6 +1305,7 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
 
   const tabs = getAvailableTabs(program);
   const [activeTab, setActiveTab] = useState<TabId>(tabs[0].id);
+  const [copied, setCopied] = useState(false);
 
   return (
     <div className="bg-vanilla-100 min-h-screen">
@@ -1142,7 +1332,7 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
         <HeaderAccent />
         <div className="relative max-w-2xl mx-auto px-6 lg:px-8">
           {/* Breadcrumb */}
-          <nav className="flex items-center gap-1.5 text-xs text-gray-400 mb-6">
+          <nav className="flex items-center gap-1.5 text-sm text-gray-400 mb-6">
             <Link href="/senior-benefits" className="hover:text-gray-600 transition-colors">Benefits Hub</Link>
             <span>&#8250;</span>
             <Link href={`/senior-benefits/${state.id}`} className="hover:text-gray-600 transition-colors">{state.name}</Link>
@@ -1163,24 +1353,46 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
             <ScopeBadge scope={isFederal ? "Federal" : "State"} />
           </div>
 
-          {/* Title + bookmark */}
+          {/* Title + actions */}
           <div className="flex items-start justify-between gap-4">
             <h1 className="text-display-xs md:text-display-sm font-bold text-gray-900 font-serif leading-tight">
               <span className="relative inline">
                 {program.name}
               </span>
             </h1>
-            <BookmarkButton program={program} state={state} />
+            <div className="flex items-center gap-1 shrink-0">
+              <button
+                onClick={() => {
+                  if (typeof navigator !== "undefined" && navigator.share) {
+                    navigator.share({ title: program.name, url: window.location.href });
+                  } else if (typeof navigator !== "undefined") {
+                    navigator.clipboard.writeText(window.location.href);
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 2000);
+                  }
+                }}
+                className="group p-2 -m-1 rounded-lg hover:bg-gray-100 transition-colors relative"
+                aria-label="Share this program"
+                title={copied ? "Link copied!" : "Share"}
+              >
+                {copied ? (
+                  <Check className="w-5 h-5 text-emerald-500 transition-colors" weight="bold" />
+                ) : (
+                  <ShareNetwork className="w-5 h-5 text-gray-300 group-hover:text-gray-400 transition-colors" />
+                )}
+              </button>
+              <BookmarkButton program={program} state={state} />
+            </div>
           </div>
 
           {/* Tagline */}
           {program.tagline && program.tagline !== program.description && (
-            <p className="mt-3 text-gray-500 leading-relaxed">{program.tagline}</p>
+            <p className="mt-3 text-lg text-gray-500 leading-relaxed">{program.tagline}</p>
           )}
 
           {/* Free service badge */}
           {!program.savingsRange && program.savingsSource === "Free service" && (
-            <p className="mt-2 text-sm text-gray-400">Free — no cost to you</p>
+            <p className="mt-2 text-sm text-gray-500">Free — no cost to you</p>
           )}
         </div>
       </header>
@@ -1203,7 +1415,7 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
               <div className={activeTab === "apply" ? "" : "hidden"}><HowToApplyTab program={program} state={state} /></div>
             )}
             {tabs.some((t) => t.id === "resources") && (
-              <div className={activeTab === "resources" ? "" : "hidden"}><ResourcesTab program={program} /></div>
+              <div className={activeTab === "resources" ? "" : "hidden"}><ResourcesTab program={program} state={state} /></div>
             )}
           </>
         )}

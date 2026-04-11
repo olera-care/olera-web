@@ -84,11 +84,12 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 - All 50 states + DC explored and researched
 
 ### What's next
-1. **Replace hand-drawn SVG icons with Phosphor Icons** — `@phosphor-icons/react` installed, `better-icons` MCP server configured (system-wide in `~/.claude.json`). Restart Claude Code to activate MCP, then search for production icons by description. Replace archetype card icons, keep organic blob/underline SVGs as-is (those are unique brand elements, not icons).
-2. **Program page v3 iteration** — apply same design energy to program pages. Component vocabulary built (tabs, checklist, step journey). Needs: Phosphor icons, deeper interactive elements (calculators, maps), Chantel-depth content via v3 pipeline.
+1. **Program page v3 iteration** — apply same design energy as state page. Component vocabulary built (tabs, checklist, step journey). Needs: deeper interactive elements (calculators, maps), Chantel-depth content, Phosphor icons where appropriate, category pills, typography pass for readability.
+2. **Admin review guide** — embed quality-check directions directly in the admin dashboard (tooltip or inline). State page review: check intro accuracy, "Where to start" picks, numbers. Program page review: spot-check 1 eligibility number against .gov source, verify phone/URL works, check FAQ relevance. The key: spot-check 2-3 facts per page, not verify everything. Make reviewing a 2-minute task, not an overwhelming audit.
 3. **Re-run v3 pipeline on all states** — SD + TX validated, full batch for v3-quality content
 4. Apply approved MI drafts
 5. Review draft quality with Chantel
+6. **Phosphor Icons already handled** — installed + MCP configured. Icons being used on archetype cards. Keep organic blob/underline SVGs as brand elements.
 
 ### Other active work (different branches)
 - Homepage de-jank + mega menu (`gifted-rosalind`) — ready for QA

@@ -19,7 +19,6 @@ interface Archetype {
   title: string;
   subtitle: string;
   keywords: string[]; // matched against program name + tagline + type
-  needKeywords: string[]; // matched against byNeed group names
 }
 
 const ARCHETYPES: Archetype[] = [
@@ -28,28 +27,28 @@ const ARCHETYPES: Archetype[] = [
     title: "Help staying home",
     subtitle: "My loved one needs care at home but we can't afford it",
     keywords: ["home", "waiver", "hcbs", "attendant", "personal care", "community", "pace", "choice", "alternatives"],
-    needKeywords: ["home", "staying", "personal"],
+
   },
   {
     id: "paying",
     title: "Help paying for care",
     subtitle: "We need help covering medical or living costs",
     keywords: ["medicaid", "medicare", "savings", "snap", "food", "energy", "liheap", "weatherization", "financial"],
-    needKeywords: ["pay", "cost", "financial", "food", "utilit", "saving"],
+
   },
   {
     id: "start",
     title: "I don't know where to start",
     subtitle: "My loved one needs help and I'm overwhelmed",
     keywords: ["ship", "shine", "navigator", "counseling", "information", "cafе", "micafe", "options"],
-    needKeywords: ["advice", "navigation", "start", "free", "advocacy"],
+
   },
   {
     id: "caregiver",
     title: "Support for me as caregiver",
     subtitle: "I'm burning out and need help or a break",
     keywords: ["respite", "caregiver", "companion", "support", "ombudsman", "legal"],
-    needKeywords: ["companion", "support", "caregiver", "legal"],
+
   },
 ];
 
@@ -66,10 +65,6 @@ function programMatchesArchetype(program: WaiverProgram, archetype: Archetype): 
   return archetype.keywords.some((kw) => haystack.includes(kw));
 }
 
-function needMatchesArchetype(needName: string, archetype: Archetype): boolean {
-  const lower = needName.toLowerCase();
-  return archetype.needKeywords.some((kw) => lower.includes(kw));
-}
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Design atoms — organic SVG elements from the shared design language
@@ -139,64 +134,6 @@ const archetypeIcons: Record<string, React.ReactNode> = {
     </svg>
   ),
 };
-
-// Need category icons (from StatePageV2)
-const needIcons: Record<string, React.ReactNode> = {
-  home: (
-    <svg viewBox="0 0 40 40" fill="none" className="w-10 h-10" aria-hidden="true">
-      <path d="M8 22l12-11 12 11" stroke="#417272" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M11 20v11a1 1 0 001 1h5v-7h6v7h5a1 1 0 001-1V20" stroke="#417272" strokeWidth="2" strokeLinecap="round" />
-      <circle cx="32" cy="10" r="2" fill="#e9bd91" opacity="0.6" />
-    </svg>
-  ),
-  medical: (
-    <svg viewBox="0 0 40 40" fill="none" className="w-10 h-10" aria-hidden="true">
-      <rect x="12" y="8" width="16" height="24" rx="8" stroke="#417272" strokeWidth="2.5" transform="rotate(-30 20 20)" />
-      <line x1="10" y1="20" x2="30" y2="20" stroke="#417272" strokeWidth="2" strokeLinecap="round" transform="rotate(-30 20 20)" />
-      <circle cx="33" cy="8" r="2.5" fill="#96c8c8" opacity="0.5" />
-    </svg>
-  ),
-  food: (
-    <svg viewBox="0 0 40 40" fill="none" className="w-10 h-10" aria-hidden="true">
-      <path d="M20 10c-6 0-11 5-11 12 0 8 6 14 11 14s11-6 11-14c0-7-5-12-11-12Z" stroke="#417272" strokeWidth="2.5" strokeLinecap="round" />
-      <path d="M20 4c0 3-2 6-2 6" stroke="#417272" strokeWidth="2" strokeLinecap="round" />
-      <circle cx="8" cy="15" r="2" fill="#e9bd91" opacity="0.5" />
-    </svg>
-  ),
-  advice: (
-    <svg viewBox="0 0 40 40" fill="none" className="w-10 h-10" aria-hidden="true">
-      <path d="M8 12a4 4 0 014-4h16a4 4 0 014 4v10a4 4 0 01-4 4H16l-5 4v-4H12a4 4 0 01-4-4V12Z" stroke="#417272" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx="16" cy="17" r="1.5" fill="#417272" />
-      <circle cx="22" cy="17" r="1.5" fill="#417272" />
-      <circle cx="34" cy="7" r="2" fill="#e9bd91" opacity="0.5" />
-    </svg>
-  ),
-  money: (
-    <svg viewBox="0 0 40 40" fill="none" className="w-10 h-10" aria-hidden="true">
-      <circle cx="20" cy="20" r="13" stroke="#417272" strokeWidth="2.5" />
-      <path d="M20 12v16M16 16c0-2 2-3 4-3s4 1 4 3-2 3-4 3-4 1-4 3 2 3 4 3 4-1 4-3" stroke="#417272" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx="34" cy="8" r="2" fill="#96c8c8" opacity="0.4" />
-    </svg>
-  ),
-  work: (
-    <svg viewBox="0 0 40 40" fill="none" className="w-10 h-10" aria-hidden="true">
-      <rect x="6" y="14" width="28" height="18" rx="3" stroke="#417272" strokeWidth="2.5" />
-      <path d="M14 14V11a3 3 0 013-3h6a3 3 0 013 3v3" stroke="#417272" strokeWidth="2" strokeLinecap="round" />
-      <circle cx="35" cy="10" r="2" fill="#e9bd91" opacity="0.5" />
-    </svg>
-  ),
-};
-
-function getNeedIcon(need: string) {
-  const lower = need.toLowerCase();
-  if (lower.includes("home") || lower.includes("staying")) return needIcons.home;
-  if (lower.includes("medical") || lower.includes("health") || lower.includes("coordinat")) return needIcons.medical;
-  if (lower.includes("food") || lower.includes("utilit") || lower.includes("meal") || lower.includes("energy")) return needIcons.food;
-  if (lower.includes("advice") || lower.includes("advocacy") || lower.includes("legal") || lower.includes("free")) return needIcons.advice;
-  if (lower.includes("pay") || lower.includes("cost") || lower.includes("financial") || lower.includes("saving")) return needIcons.money;
-  if (lower.includes("employ") || lower.includes("work") || lower.includes("income") || lower.includes("job")) return needIcons.work;
-  return needIcons.advice;
-}
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Shared atoms

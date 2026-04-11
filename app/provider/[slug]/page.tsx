@@ -28,6 +28,9 @@ import ReviewsSection from "@/components/providers/ReviewsSection";
 import CMSQualitySection from "@/components/providers/CMSQualitySection";
 import AiTrustSignalsSection from "@/components/providers/AiTrustSignalsSection";
 import ScrollToConnectionCard from "@/components/providers/ScrollToConnectionCard";
+import BenefitsDiscoveryModule from "@/components/providers/BenefitsDiscoveryModule";
+import type { BenefitsProgram } from "@/components/providers/BenefitsDiscoveryModule";
+import { getTopProgramsForState, getAllProgramIds, getEnrichedProgram } from "@/lib/program-data";
 import {
   getInitials,
   formatCategory,
@@ -515,6 +518,28 @@ export default async function ProviderPage({
     category: profile.category,
   });
 
+  // Prepare benefits data for this provider's state (server-side, keeps client bundle small)
+  const benefitsData = profile.state ? getTopProgramsForState(profile.state, 3) : null;
+  let benefitsAllPrograms: BenefitsProgram[] = [];
+  if (benefitsData) {
+    const allIds = getAllProgramIds(benefitsData.stateId);
+    benefitsAllPrograms = allIds
+      .map((id) => getEnrichedProgram(benefitsData.stateId, id))
+      .filter((p): p is NonNullable<typeof p> => !!p)
+      .map((p) => ({
+        id: p.id,
+        name: p.name,
+        shortName: p.shortName,
+        tagline: p.tagline,
+        savingsRange: p.savingsRange,
+        programType: p.programType,
+        structuredEligibility: p.structuredEligibility
+          ? { ageRequirement: p.structuredEligibility.ageRequirement }
+          : undefined,
+      }));
+  }
+  const hasBenefitsData = !!(benefitsData && benefitsData.programs.length > 0);
+
   // ============================================================
   // Section navigation items — only show tabs for visible sections
   // ============================================================
@@ -523,6 +548,7 @@ export default async function ProviderPage({
   const hasGoogleReviews = (googleReviewsData?.reviews?.length ?? 0) > 0;
   if (hasGoogleReviews) sectionItems.push({ id: "reviews", label: "Reviews" });
   sectionItems.push({ id: "qa", label: "Q&A" });
+  if (hasBenefitsData) sectionItems.push({ id: "benefits", label: "Benefits" });
   sectionItems.push({ id: "services", label: "Services" });
   if (!hasGoogleReviews) sectionItems.push({ id: "reviews", label: "Reviews" });
   if (cmsData?.overall_rating && cmsData.overall_rating >= 4) sectionItems.push({ id: "quality", label: "Quality" });
@@ -912,6 +938,25 @@ export default async function ProviderPage({
                   suggestedQuestions={getSuggestedQuestions(profile.category)}
                 />
               </div>
+
+              {/* ── Benefits Discovery ── */}
+              {hasBenefitsData && benefitsData && (
+                <div id="benefits" className="py-8 scroll-mt-20 border-t border-gray-200">
+                  <BenefitsDiscoveryModule
+                    providerName={profile.display_name}
+                    stateId={benefitsData.stateId}
+                    stateName={benefitsData.stateName}
+                    topPrograms={benefitsData.programs.map((p) => ({
+                      id: p.id,
+                      name: p.name,
+                      shortName: p.shortName,
+                      tagline: p.tagline,
+                      savingsRange: p.savingsRange,
+                    }))}
+                    allPrograms={benefitsAllPrograms}
+                  />
+                </div>
+              )}
 
               {/* ── Care Services ── */}
               <div id="services" className="py-8 scroll-mt-20 border-t border-gray-200">

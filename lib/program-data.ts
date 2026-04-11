@@ -201,3 +201,59 @@ export function getEnrichedProgram(
 export function getStateAbbrev(stateId: string): string {
   return STATE_ABBREVS[stateId] || stateId.toUpperCase();
 }
+
+// Reverse lookup: abbreviation → slug (e.g., "TX" → "texas")
+const ABBREV_TO_SLUG: Record<string, string> = Object.fromEntries(
+  Object.entries(STATE_ABBREVS).map(([slug, abbrev]) => [abbrev, slug])
+);
+
+/**
+ * Get state slug from abbreviation (e.g., "TX" → "texas").
+ */
+export function getStateSlug(abbrev: string): string | undefined {
+  return ABBREV_TO_SLUG[abbrev.toUpperCase()];
+}
+
+/**
+ * Parse a savings range string to extract the upper bound number.
+ * "$10,000 – $30,000/year" → 30000, "Free" → 0
+ */
+function parseSavingsUpper(savingsRange?: string): number {
+  if (!savingsRange) return 0;
+  const matches = savingsRange.match(/\$[\d,]+/g);
+  if (!matches || matches.length === 0) return 0;
+  const last = matches[matches.length - 1];
+  return parseInt(last.replace(/[$,]/g, ""), 10) || 0;
+}
+
+/**
+ * Get top programs for a state by savings potential.
+ * Returns enriched programs sorted by highest savings, filtered to benefits only.
+ * Dynamically reads from waiver-library + pipeline-drafts — no hardcoding.
+ */
+export function getTopProgramsForState(
+  stateAbbrev: string,
+  limit = 3
+): { programs: WaiverProgram[]; stateId: string; stateName: string } | null {
+  const stateId = getStateSlug(stateAbbrev);
+  if (!stateId) return null;
+
+  const state = getStateById(stateId);
+  const allIds = getAllProgramIds(stateId);
+  if (allIds.length === 0) return null;
+
+  // Enrich all programs and filter to benefits with savings data
+  const enriched = allIds
+    .map((id) => getEnrichedProgram(stateId, id))
+    .filter((p): p is WaiverProgram => !!p)
+    .filter((p) => p.programType === "benefit" && parseSavingsUpper(p.savingsRange) > 0)
+    .sort((a, b) => parseSavingsUpper(b.savingsRange) - parseSavingsUpper(a.savingsRange));
+
+  if (enriched.length === 0) return null;
+
+  return {
+    programs: enriched.slice(0, limit),
+    stateId,
+    stateName: state?.name || stateId.charAt(0).toUpperCase() + stateId.slice(1).replace(/-/g, " "),
+  };
+}

@@ -84,7 +84,7 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 - All 50 states + DC explored and researched
 
 ### What's next
-1. **Program page polish iteration** — TJ reviewing the single-scroll redesign on Vercel. May need further adjustments to spacing, section ordering, or visual treatments based on feedback.
+1. **`/punch` the program page** — apply the newly created skill to STAR+PLUS. The single-scroll structure is right but needs more Wispr Flow/Perena energy: bolder headlines, more width variation, warmer zones, organic touches.
 2. **Admin review guide** — embed quality-check directions directly in the admin dashboard (tooltip or inline).
 3. **Re-run v3 pipeline on all states** — SD + TX validated, full batch for v3-quality content
 4. Apply approved MI drafts
@@ -114,6 +114,8 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 | 2026-04-11 | Eligibility check as the hook, phone CTA as the action | Caregivers arrive in research mode ("does my parent qualify?"). The eligibility check answers that in 10 seconds. THEN the phone CTA hits — they have a reason to call. Hook → motivation → action, not cold CTA. |
 | 2026-04-11 | Document checklist: gradient fade, not full collapse | Showing 3 items + gradient fade previews enough to be useful without overwhelming. Full collapse risks users missing the checklist entirely. Full expand is one click away. |
 | 2026-04-11 | How to Apply gets background shift | Two white content zones back-to-back (Eligibility → Apply) bleed together visually. Subtle `bg-vanilla-200/30` on the Apply zone signals "new territory" like the warm contact block does. |
+| 2026-04-11 | Kill dark stat band on program pages | State page stats are impressive (15 programs, $20K). Program stats are trivial ("6 service areas") or discouraging (waitlist). The eligibility check IS the program page's bold moment. Same visual treatment for unimpressive data = "spotlight on an empty stage." |
+| 2026-04-11 | `/punch` combines all design sharpening | Wispr Flow + Perena DNA + Painting Outside the Lines toolkit in one command. Simplicity/boldness first (most important), character/style second. One command: diagnose → direct → implement. |
 | 2026-04-10 | State page evolves from article to discovery platform | Current page is a well-designed article but fundamentally passive. The TripAdvisor/GetYourGuide model (category entry, visual cards, curated picks, interactive tools, social proof) applied to senior benefits — but NOT visual-heavy like travel. Olera's version: editorial warmth meets interactive purpose. "Something in between that transcends both." |
 | 2026-04-10 | Archetype-based entry is always visible | 3-4 situation cards ("My parent needs help at home", "We're going broke on facility costs", etc.) that filter/reorder the page. Not a quiz or flow — a gentle "What brought you here?" Like Airbnb's category bar. Always present, not a one-time orientation. |
 | 2026-04-10 | State pages first, then program pages | State page is the entry point — the discovery layer. Once that's nailed, program page improvements follow naturally. The program page component vocabulary is already built. |
@@ -220,7 +222,7 @@ The deep dive. Restrained, lets content breathe. Reads like a well-researched ar
 
 ### 2026-04-11 (Session 73) — Program Page Single-Scroll Redesign + Texas Route Fix
 
-**Branch:** `eager-ride` | **Latest: `f63ab28d`**
+**Branch:** `eager-ride` | **Latest: `4106da1f`**
 
 **Program page v3 iteration** (initial pass):
 - Typography pass: bumped all text sizes, gray-400→500 for readability
@@ -258,11 +260,23 @@ The deep dive. Restrained, lets content breathe. Reads like a well-researched ar
 - How to Apply zone gets `bg-vanilla-200/30` background for zone contrast
 - Stronger section headings: SectionLabel above ("ELIGIBILITY DETAILS" / "APPLICATION PROCESS")
 
+**Dark stat band removed from program pages:**
+- TJ: "on the state level the full-width banner is great, but on the program level it kind of sucks"
+- State page stats are genuinely impressive (15 programs, $20K savings). Program page stats are trivial ("6 service areas") or discouraging (waitlist).
+- The eligibility check widget is the program page's bold moment — the stat band competed without earning its weight.
+- Savings already shown in hero text. Nothing lost.
+
+**`/punch` slash command created** (`.claude/commands/punch.md`):
+- Reusable design sharpening tool for any page or component
+- Three layers: Design DNA (Wispr Flow + Perena from actual screenshots) → Two Lenses (simplicity/boldness first, character/style second) → Painting Outside the Lines toolkit (width variation, bg shifts, organic elements, typography scale, spacing)
+- References `~/Desktop/olera-hq/docs/Design Inspirations/` for Wispr Flow and Perena screenshots
+- TJ: "simplicity and boldness are probably even more important" than character/style — reflected in priority order
+
 **Post-mortem:** Texas parallel routes (documented in `docs/POSTMORTEMS.md`, CLAUDE.md, memory)
 
 **Build:** Clean (tsc --noEmit passes). Pushed to Vercel.
 
-**Commits:** `e99b4cf7` → `92c32678` → `5d46950e` → `eed9f9a2` → `feea4db3` → `f63ab28d`
+**Commits:** `e99b4cf7` → ... → `4106da1f` (10 commits total)
 
 ---
 

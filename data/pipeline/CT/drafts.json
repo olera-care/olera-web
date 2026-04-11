@@ -1,0 +1,1870 @@
+{
+  "state": "CT",
+  "stateName": "Connecticut",
+  "draftedAt": "2026-04-09T12:38:52.145Z",
+  "total": 10,
+  "successful": 10,
+  "programs": [
+    {
+      "id": "connecticut-husky-health-medicaid-seniors",
+      "name": "HUSKY Health (Medicaid for seniors/disabled)",
+      "shortName": "HUSKY Health",
+      "tagline": "If your parent is 65+ or disabled in Connecticut, HUSKY Health can cover all their medical care plus help at home.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Department of Social Services (DSS) statewide; local DSS offices for in-person",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 65+ or disabled and lives in Connecticut, HUSKY Health provides comprehensive Medicaid coverage including doctor visits, hospital care, prescription drugs, dental, vision, and mental health services. Because HUSKY Health has multiple program tiers, your parent may qualify even with higher income or assets than standard Medicaid allows.\n\nThe program includes three main categories: standard coverage for seniors and disabled adults, Long-Term Services & Supports (LTSS) for parents who need help at home or in care facilities, and MED-Connect for working disabled adults. Income limits range from $851/month for standard coverage up to $85,000/year for working disabled individuals.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+ or disabled",
+          "Connecticut resident",
+          "Income varies by tier ($851-$2,982/month)",
+          "Asset limits apply"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 1600,
+          "couple": 2400,
+          "countedAssets": [
+            "Cash",
+            "Bank accounts",
+            "Stocks and bonds",
+            "IRAs",
+            "Non-primary real estate"
+          ],
+          "exemptAssets": [
+            "Primary home (under equity limits)",
+            "One vehicle",
+            "Personal belongings"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "For Long-Term Services & Supports: must need nursing home level of care or help with daily activities like bathing, dressing, or medication management",
+        "otherRequirements": [
+          "Connecticut resident",
+          "U.S. citizen or qualified non-citizen"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online at portal.ct.gov/HUSKY or call 1-877-284-4911 for enrollment assistance.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Choose your application method",
+            "description": "Apply online at portal.ct.gov/HUSKY or www.accesshealthct.com, or call Connecticut Health Care Referrals at 1-877-284-4911"
+          },
+          {
+            "step": 2,
+            "title": "Gather required documents",
+            "description": "Collect proof of income, assets, residency, age/disability documentation, and citizenship status"
+          },
+          {
+            "step": 3,
+            "title": "Complete the application",
+            "description": "Fill out the complete application through Access Health CT or Department of Social Services"
+          },
+          {
+            "step": 4,
+            "title": "For LTSS applicants",
+            "description": "If applying for long-term services, prepare for a 5-year financial review and clinical assessment for level of care"
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "If your parent needs long-term care services, apply for LTSS specifically — the income limits are much higher ($2,982/month vs $851/month for standard coverage).",
+        "urls": [
+          {
+            "label": "Apply Online",
+            "url": "https://portal.ct.gov/HUSKY"
+          },
+          {
+            "label": "Access Health CT",
+            "url": "https://www.accesshealthct.com"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Cash and bank accounts",
+            "Stocks, bonds, and investments",
+            "IRAs and retirement accounts",
+            "Non-primary real estate",
+            "Investment properties"
+          ],
+          "excluded": [
+            "Primary home (under equity limits)",
+            "One vehicle",
+            "Personal belongings and household items"
+          ]
+        },
+        {
+          "type": "tier-comparison",
+          "heading": "Program Tiers",
+          "tiers": [
+            {
+              "name": "Standard HUSKY C",
+              "description": "Basic Medicaid for seniors and disabled adults",
+              "incomeLimit": "Single: $851/month, Couple: $1,153/month",
+              "coverage": "Doctor visits, hospital care, prescriptions, dental, vision, mental health"
+            },
+            {
+              "name": "Long-Term Services & Supports (LTSS)",
+              "description": "For parents who need help at home or in care facilities",
+              "incomeLimit": "Single: $2,982/month",
+              "coverage": "All standard benefits plus home care, adult day care, nursing homes, assisted living"
+            },
+            {
+              "name": "MED-Connect",
+              "description": "For working adults with disabilities",
+              "incomeLimit": "Up to $85,000/year",
+              "coverage": "All standard benefits with higher asset limits ($20,000 single, $30,000 couple)"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Driver's license or state ID",
+                "Proof of Connecticut residency",
+                "Social Security card",
+                "Birth certificate or citizenship documents"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Bank statements for all accounts",
+                "SSDI award letter",
+                "Pay stubs (if working)",
+                "Property deeds for all real estate",
+                "Investment account statements"
+              ]
+            },
+            {
+              "name": "For LTSS Applicants",
+              "items": [
+                "Medical records showing need for care",
+                "5 years of financial records",
+                "Documentation of daily care needs"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Income limits are updated annually and may change March 1, 2026. Current limits may increase to approximately $1,413/month for single applicants in standard HUSKY C."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If your parent is married and needs long-term care, Community Spouse Protection rules may allow the at-home spouse to keep more income and assets than the standard limits."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if they qualify for HUSKY Health?",
+          "answer": "Yes, your parent can keep their primary home under equity limits. The home is an exempt asset as long as they live in it or intend to return."
+        },
+        {
+          "question": "What if my parent's income is just over the limit for standard HUSKY C?",
+          "answer": "If your parent needs care services, they may qualify for Long-Term Services & Supports (LTSS) which has a much higher income limit of $2,982/month for single applicants."
+        },
+        {
+          "question": "Does HUSKY Health have a 5-year lookback like regular Medicaid?",
+          "answer": "Yes, but only for Long-Term Services & Supports (LTSS) applicants. Standard HUSKY C coverage does not have a lookback period."
+        },
+        {
+          "question": "Can my working disabled parent qualify for HUSKY Health?",
+          "answer": "Yes, through MED-Connect which allows income up to $85,000/year and higher asset limits ($20,000 for single applicants). They may need to pay a premium based on income."
+        },
+        {
+          "question": "What's the difference between HUSKY Health and regular Medicare?",
+          "answer": "HUSKY Health is Connecticut's Medicaid program that covers services Medicare doesn't, like long-term care, dental, and vision. Your parent can have both Medicare and HUSKY Health."
+        },
+        {
+          "question": "How long does it take to get approved for HUSKY Health?",
+          "answer": "Processing times aren't specified in official sources, but as an entitlement program, there's no waitlist if your parent qualifies. Call 1-877-284-4911 for current processing estimates."
+        }
+      ],
+      "phone": "1-877-284-4911",
+      "sourceUrl": "https://portal.ct.gov/HUSKY/How-to-Qualify",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "connecticut-home-care-program-elders-medicare-savings",
+      "name": "Connecticut Home Care Program for Elders (CHCPE) - Medicare Savings",
+      "shortName": "CHCPE Medicare Savings",
+      "tagline": "Help your parent stay home safely with up to 70 hours/week of care assistance plus Medicare premium relief.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Western CT Area Agency on Aging (WCAAA)",
+            "type": "service-area"
+          },
+          {
+            "name": "Department of Social Services (DSS) regional offices",
+            "type": "service-area"
+          },
+          {
+            "name": "Local home care providers",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 65+ and struggles with daily tasks like bathing or dressing, CHCPE provides home care services to help them avoid nursing home placement. The program covers assistance with activities of daily living (ADLs) and can provide up to 70 hours per week of care for qualifying parents.\n\nThe program has two funding tracks: Medicaid-funded (income limit $1,956/month for singles) and state-funded (no income limit, but your parent pays 3% of service costs). Both include Medicare Savings Program benefits that can pay your parent's Medicare Part B premium ($185/month in 2026) plus deductibles and co-insurance.\n\nBecause CHCPE is designed to prevent nursing home placement, your parent must demonstrate they need help with at least one daily living activity for state-funded services, or three or more activities for higher-level Medicaid services.",
+      "savingsRange": "$2,220 – $6,000+/year",
+      "savingsSource": "Medicare Part B premium savings ($2,220/year) plus deductibles and co-insurance for QMB level; home care services valued at thousands annually",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+",
+          "Connecticut resident",
+          "Needs help with 1+ daily activities",
+          "At risk of nursing home placement",
+          "Various income limits by tier"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1956
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2636
+          }
+        ],
+        "assetLimits": {
+          "individual": 35766,
+          "couple": 47688,
+          "countedAssets": [
+            "Bank accounts",
+            "Investments",
+            "Property other than primary home"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "One vehicle"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "Must need assistance with at least 1 activity of daily living (bathing, dressing, eating, medication management, toileting, or transferring) for state-funded services; 3+ activities for Medicaid-funded services",
+        "otherRequirements": [
+          "Connecticut resident",
+          "At risk of nursing home placement or hospitalization",
+          "US citizen or legal resident for Medicare Savings component"
+        ],
+        "povertyLevelReference": "150% FPL for Medicaid-funded tier"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call your local Area Agency on Aging to start the process — services may begin quickly for state-funded tier.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact your regional Area Agency on Aging",
+            "description": "Call your local office to discuss your parent's needs and begin the assessment process."
+          },
+          {
+            "step": 2,
+            "title": "Complete functional assessment",
+            "description": "A care coordinator will evaluate your parent's ability to perform daily activities to determine service level needed."
+          },
+          {
+            "step": 3,
+            "title": "Submit financial documentation",
+            "description": "Provide income, asset, and Medicare enrollment proof to determine which funding tier applies."
+          },
+          {
+            "step": 4,
+            "title": "Develop care plan",
+            "description": "Work with the care team to create a service plan that meets your parent's specific needs."
+          }
+        ],
+        "processingTime": "Not specified; services may start quickly for state-funded tier, but Medicaid waiver involves financial review up to 5 years",
+        "waitlist": "Possible waitlist of 2+ years for Medicaid waiver services; varies by region",
+        "tip": "Start with the state-funded tier if your parent's income exceeds Medicaid limits — there's no income cap and services can begin faster.",
+        "urls": [
+          {
+            "label": "Connecticut Home Care Request Form",
+            "url": "https://maximusclinicalservices.com/content/dam/maximusclinicalservices/svcs/ct/ct-pasrr/public/resources/guides-and-forms/CT-Home-Care-Form.pdf"
+          },
+          {
+            "label": "Connecticut DSS Program Information",
+            "url": "https://portal.ct.gov/dss/health-and-home-care/connecticut-home-care-program-for-elders"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "tier-comparison",
+          "heading": "Program Tiers",
+          "tiers": [
+            {
+              "name": "Medicaid-Funded CHCPE",
+              "description": "Full coverage for qualifying low-income seniors",
+              "incomeLimit": "$1,956/month single, $2,636/month couple",
+              "coverage": "Up to 70 hours/week home care, full Medicare premium/deductible coverage, no client cost-share"
+            },
+            {
+              "name": "State-Funded CHCPE",
+              "description": "Services for higher-income seniors",
+              "incomeLimit": "No limit",
+              "coverage": "Home care services, Medicare Part B premium coverage, client pays 3% of service costs"
+            },
+            {
+              "name": "Medicare Savings Only (QMB)",
+              "description": "Premium and cost-sharing help",
+              "incomeLimit": "$2,807/month single, $3,806/month couple",
+              "coverage": "Medicare Part B premium ($185/month) plus all deductibles and co-insurance"
+            }
+          ]
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and cash",
+            "Stocks, bonds, and investments",
+            "Property other than primary home",
+            "Life insurance with cash value over $1,500"
+          ],
+          "excluded": [
+            "Primary home where your parent lives",
+            "One vehicle of any value",
+            "Personal belongings and household items",
+            "Burial funds up to $1,500",
+            "Assets held in certain trusts"
+          ]
+        },
+        {
+          "type": "county-directory",
+          "heading": "Regional Contact Offices",
+          "offices": [
+            {
+              "name": "Western CT Area Agency on Aging (WCAAA)",
+              "type": "service-area",
+              "phone": "203-757-5449",
+              "address": "Serves western Connecticut counties"
+            },
+            {
+              "name": "Connecticut Department of Social Services",
+              "type": "statewide",
+              "phone": "800-842-1508",
+              "address": "Find local DSS offices at portal.ct.gov/dss"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Connecticut driver's license or state ID",
+                "Social Security card",
+                "Medicare card and enrollment verification"
+              ]
+            },
+            {
+              "name": "Financial Records",
+              "items": [
+                "Last 3 months of bank statements",
+                "Social Security award letter",
+                "Pension or retirement income statements",
+                "Property tax records"
+              ]
+            },
+            {
+              "name": "Health Information",
+              "items": [
+                "Recent doctor visits or hospital records",
+                "List of current medications",
+                "Documentation of assistance needed with daily activities"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Medicaid-funded services may have a 2+ year waitlist. If your parent needs immediate help, apply for state-funded services first — there's no income limit and services can start faster."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Even if your parent has 'too much' income for Medicaid services, the Medicare Savings Program has NO asset limits and can still save $2,220+ per year on Medicare costs."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house if she qualifies for CHCPE?",
+          "answer": "Yes. Your parent's primary home doesn't count toward asset limits for any tier of the program. The goal is to help them stay safely in their own home."
+        },
+        {
+          "question": "What if Dad's income is just over the Medicaid limit?",
+          "answer": "He can still get state-funded CHCPE services with no income limit — he'll just pay 3% of the service costs. He may also qualify for Medicare Savings Program benefits that cover his Part B premium ($185/month)."
+        },
+        {
+          "question": "How quickly can services start?",
+          "answer": "State-funded services may start relatively quickly after assessment. Medicaid-funded services can have waitlists of 2+ years and require extensive financial review going back up to 5 years."
+        },
+        {
+          "question": "What happens if Mom gave money to grandchildren recently?",
+          "answer": "Gift transfers can create penalties for Medicaid-funded services (5-year lookback period). State-funded services have shorter lookback periods. Discuss any recent gifts during the application process."
+        },
+        {
+          "question": "Does this program cover 24/7 care?",
+          "answer": "CHCPE can provide up to 70 hours per week for the highest need level, but isn't designed for round-the-clock care. It focuses on specific assistance with daily activities like bathing, dressing, and medication management."
+        },
+        {
+          "question": "Can Dad have both CHCPE and regular Medicaid?",
+          "answer": "Yes, but the funding structures are different. CHCPE includes Medicaid waiver services specifically for home care. Regular Medicaid recipients cannot get ALMB-level Medicare Savings Program benefits."
+        }
+      ],
+      "phone": "800-842-1508",
+      "sourceUrl": "https://portal.ct.gov/dss/health-and-home-care/connecticut-home-care-program-for-elders",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "connecticut-pace-elderly-care",
+      "name": "Program of All-Inclusive Care for the Elderly (CT PACE)",
+      "shortName": "CT PACE",
+      "tagline": "If your parent needs nursing home-level care but wants to stay home, PACE provides all medical care, prescriptions, and daily support under one coordinated team.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false
+      },
+      "intro": "If your parent is 55+ and needs significant daily help but wants to avoid a nursing home, CT PACE might be the solution. PACE provides everything — doctors, specialists, prescriptions, therapy, even adult day care — all coordinated by one team instead of juggling multiple providers.\n\nOnce enrolled, your parent pays zero deductibles or copays for any PACE-provided care, regardless of how much they use. Because PACE covers all medical expenses under one program, you'll never coordinate between separate doctors or fight insurance denials again.\n\nThe catch: PACE isn't available everywhere in Connecticut, and your parent must qualify medically for nursing home care (even though they'll live at home). No income limits exist, but non-Medicaid participants pay a monthly premium.",
+      "savingsRange": "",
+      "savingsSource": "Comprehensive medical service with no deductibles or copays",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Needs nursing home level of care",
+          "Must live safely at home with support",
+          "Available only in select Connecticut areas"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must be certified as needing nursing facility level of care (a clinical assessment of whether your parent needs daily help with bathing, dressing, medication management, or other basic activities)",
+        "otherRequirements": [
+          "Must live in a PACE service area",
+          "Cannot be enrolled in Medicare Advantage (Part C)",
+          "Must be able to live safely in the community with PACE services"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Contact your local PACE organization directly — they'll complete a medical assessment within 30 days.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local PACE organization",
+            "description": "PACE isn't available statewide. Contact the National PACE Association or Connecticut Department of Social Services to find programs in your area."
+          },
+          {
+            "step": 2,
+            "title": "Call for initial screening",
+            "description": "The PACE team will determine if your parent meets basic eligibility requirements over the phone."
+          },
+          {
+            "step": 3,
+            "title": "Schedule medical assessment",
+            "description": "A PACE interdisciplinary team will assess whether your parent needs nursing facility level of care."
+          },
+          {
+            "step": 4,
+            "title": "Complete enrollment",
+            "description": "If approved, the team develops a comprehensive care plan and enrollment begins immediately."
+          }
+        ],
+        "processingTime": "Medical assessment completed within 30 days of enrollment",
+        "waitlist": null,
+        "tip": "You can leave PACE anytime for any reason, but re-enrollment isn't guaranteed — make sure you understand what you're giving up before switching.",
+        "urls": [
+          {
+            "label": "Eligibility Test",
+            "url": "https://medicaidlongtermcare.org"
+          },
+          {
+            "label": "National PACE Association",
+            "url": "https://www.npaonline.org/eligibility-requirements"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "PACE becomes your parent's ONLY source of medical care. They cannot use other doctors, specialists, or hospitals for covered services while enrolled."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If your parent enrolls in Medicaid to cover PACE costs, Connecticut may place a lien against their home to recover costs after death — even though PACE has no asset limits."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her current doctors if she joins PACE?",
+          "answer": "No. PACE becomes the sole source of all medical care. Your parent must use PACE doctors, specialists, and hospitals exclusively. This is the biggest trade-off for comprehensive coverage."
+        },
+        {
+          "question": "What if our area doesn't have PACE?",
+          "answer": "PACE isn't available statewide in Connecticut. If there's no PACE organization in your parent's area, they cannot enroll. You'll need to explore other programs like Community Medicaid waiver services."
+        },
+        {
+          "question": "How much does it cost if Dad has Medicare but not Medicaid?",
+          "answer": "Non-Medicaid participants pay a monthly premium (exact amount varies by organization), but once enrolled, there are no deductibles, copays, or additional costs for any PACE-provided services."
+        },
+        {
+          "question": "Will Connecticut take Mom's house if she gets Medicaid to pay for PACE?",
+          "answer": "Possibly. While PACE has no asset limits, if your parent enrolls in Community Medicaid to cover PACE costs, Connecticut may place a lien against their home for estate recovery after death."
+        },
+        {
+          "question": "What happens if Dad gets kicked out of Medicare Advantage to join PACE?",
+          "answer": "Your parent cannot be in both Medicare Advantage and PACE simultaneously. If they leave Medicare Advantage for PACE, they can return to Original Medicare during the next open enrollment period if they leave PACE."
+        },
+        {
+          "question": "Can both parents enroll if only one needs nursing home-level care?",
+          "answer": "No. Only the parent who meets the nursing facility level of care requirement can enroll in PACE. The other spouse keeps their existing insurance and providers."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://www.medicaid.gov/medicaid/long-term-services-supports/program-of-all-inclusive-care-for-elderly",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "connecticut-snap-food-benefits",
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "shortName": "SNAP",
+      "tagline": "Your parent can get $100-300+ monthly for groceries if they're on a fixed income",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local DSS offices; find via portal.ct.gov/dss",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent struggles to afford groceries on Social Security or a fixed income, SNAP provides an EBT card that works like a debit card for food purchases. Most single seniors get $100-300 monthly, while couples can receive up to $546. Connecticut makes this easier than other states — there's no asset limit for most seniors, and those 60+ can use a simplified application.\n\nYour parent's benefit amount depends on their net income after deductions for medical expenses, rent, and utilities. Because medical costs reduce countable income, many seniors with health expenses qualify even if their Social Security seems too high. About half of eligible seniors don't apply, often because they think they won't qualify.",
+      "savingsRange": "$1,200 – $3,600/year in 2026",
+      "savingsSource": "Monthly SNAP benefits range from $100-300+ for typical seniors",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Connecticut resident",
+          "Income below $2,608/month (single)",
+          "U.S. citizen or qualified immigrant",
+          "No asset limit for most seniors"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2608
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 3526
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 4442
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 5358
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Connecticut resident",
+          "U.S. citizen or qualified non-citizen",
+          "If under 60 and able-bodied, must register for work"
+        ],
+        "povertyLevelReference": "200% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online at portal.ct.gov/Apply or call 877-423-4746 — processing takes 30 days (7 days if urgent).",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Use the simplified form if your parent is 60+",
+            "description": "Ask for the Elderly Simplified Application Project (ESAP) form — it's shorter and has fewer requirements than the standard SNAP application."
+          },
+          {
+            "step": 2,
+            "title": "Gather income and expense documents",
+            "description": "Collect Social Security letters, pay stubs, rent receipts, utility bills, and medical expense records. Medical costs help reduce countable income."
+          },
+          {
+            "step": 3,
+            "title": "Submit application online or by phone",
+            "description": "Complete the application at portal.ct.gov/Apply or call 877-423-4746. You can also mail forms or visit a local DSS office."
+          },
+          {
+            "step": 4,
+            "title": "Complete the interview",
+            "description": "DSS will schedule a phone interview to review the application and verify information."
+          }
+        ],
+        "processingTime": "Typically 30 days; expedited (7 days) if very low income/no assets",
+        "waitlist": null,
+        "tip": "If your parent is 60+ with high medical expenses, apply even if their income seems too high — medical deductions often make them eligible.",
+        "urls": [
+          {
+            "label": "Apply Online",
+            "url": "https://portal.ct.gov/Apply"
+          },
+          {
+            "label": "Download Forms",
+            "url": "https://portal.ct.gov/dss/snap"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Gross Income Limits by Household Size (2026)",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": "$2,608",
+              "annualLimit": "$31,296"
+            },
+            {
+              "householdSize": 2,
+              "monthlyLimit": "$3,526",
+              "annualLimit": "$42,312"
+            },
+            {
+              "householdSize": 3,
+              "monthlyLimit": "$4,442",
+              "annualLimit": "$53,304"
+            },
+            {
+              "householdSize": 4,
+              "monthlyLimit": "$5,358",
+              "annualLimit": "$64,296"
+            }
+          ],
+          "footnote": "If over this limit but 60+, you may still qualify based on net income after deductions"
+        },
+        {
+          "type": "what-counts",
+          "heading": "What Counts as Income vs. Deductions",
+          "included": [
+            "Social Security benefits",
+            "Pension payments",
+            "Part-time work wages",
+            "Investment income",
+            "Rental income"
+          ],
+          "excluded": [
+            "Medical expenses over $35/month (major deduction for seniors)",
+            "Rent or mortgage payments over half of income",
+            "Utility costs",
+            "Standard deduction ($198 for seniors)"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Driver's license or state ID",
+                "Utility bill or lease showing Connecticut address"
+              ]
+            },
+            {
+              "name": "Income",
+              "items": [
+                "Social Security award letter",
+                "Pension statements",
+                "Pay stubs if working",
+                "Bank statements"
+              ]
+            },
+            {
+              "name": "Expenses (for deductions)",
+              "items": [
+                "Rent receipts or mortgage statements",
+                "Utility bills",
+                "Medical bills and prescription receipts",
+                "Medicare premium statements"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Seniors with high medical expenses often qualify even when their income seems too high. Medical costs over $35/month are fully deducted from countable income — this includes Medicare premiums, prescription costs, and medical equipment."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house and savings and still get SNAP?",
+          "answer": "Yes. Connecticut doesn't count your parent's home, car, or retirement savings toward SNAP asset limits. Most seniors have no asset limit at all."
+        },
+        {
+          "question": "What if her Social Security is just over the income limit?",
+          "answer": "She may still qualify. SNAP subtracts medical expenses, rent costs, and utilities from Social Security income. A senior paying $150/month for prescriptions and Medicare premiums could qualify even with $2,800/month Social Security."
+        },
+        {
+          "question": "Can she buy any food with SNAP benefits?",
+          "answer": "She can buy groceries, fresh food, and packaged meals at most stores. She cannot buy hot prepared food, alcohol, tobacco, vitamins, or household items like soap."
+        },
+        {
+          "question": "What if she lives with me but buys her own groceries?",
+          "answer": "If she buys and prepares food separately, she can apply as a one-person household. If you share meals or grocery shopping, you'd apply together as a larger household."
+        },
+        {
+          "question": "How much will she actually get each month?",
+          "answer": "SNAP calculates 30% of her net income (after deductions) and subtracts that from the maximum benefit. A single senior with $1,500 Social Security and $200 in medical expenses might get $200-250/month."
+        },
+        {
+          "question": "Is there a simplified application for seniors?",
+          "answer": "Yes. Connecticut offers the Elderly Simplified Application Project (ESAP) for anyone 60+. It's shorter and has fewer documentation requirements than the standard SNAP application."
+        }
+      ],
+      "phone": "877-423-4746",
+      "sourceUrl": "https://portal.ct.gov/dss/snap",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "connecticut-energy-assistance-ceap",
+      "name": "Connecticut Energy Assistance Program (CEAP)",
+      "shortName": "CEAP",
+      "tagline": "Get $295-$645 toward your parent's heating and electric bills this winter.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Regional providers like New Opportunities Inc., Alliance for Community Empowerment",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent struggles to pay heating or electric bills, Connecticut's Energy Assistance Program (CEAP) provides direct payment to their utility company. Most households get $295-$595, but families with elderly members, people with disabilities, or young children receive higher amounts: $345-$645.\n\nThe program covers all Connecticut residents — renters and homeowners — regardless of their heating source. Beyond the basic benefit, parents facing heating emergencies can get up to three crisis payments of $425 each for fuel deliveries. CEAP also offers shut-off protection and can help repair heating equipment.\n\nIncome limits are generous: a single person can earn up to $47,764 annually, while couples can earn up to $62,460. If your parent already receives SNAP, SSI, or certain other benefits, they automatically qualify regardless of income.",
+      "savingsRange": "$295 – $645 per year in 2026",
+      "savingsSource": "Basic and vulnerable household benefit amounts from Connecticut DSS",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Connecticut resident",
+          "Income at or below 60% state median",
+          "Auto-qualify if receiving SNAP/SSI",
+          "No asset limits"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 3980
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 5205
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 6430
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 7655
+          },
+          {
+            "householdSize": 5,
+            "monthlyLimit": 8879
+          },
+          {
+            "householdSize": 6,
+            "monthlyLimit": 10104
+          },
+          {
+            "householdSize": 7,
+            "monthlyLimit": 10334
+          },
+          {
+            "householdSize": 8,
+            "monthlyLimit": 10563
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Social Security Number required for each household member"
+        ],
+        "povertyLevelReference": "60% of Connecticut median income"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online at portal.ct.gov or call your regional provider — processing takes 18 hours for heating emergencies.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Gather required documents",
+            "description": "Electric bill (everyone needs this), heating bills if you use gas/oil, recent pay stubs or Social Security award letters, rent receipt if applicable."
+          },
+          {
+            "step": 2,
+            "title": "Apply through your preferred method",
+            "description": "Online at portal.ct.gov, by phone through your regional community action agency, or in-person at local offices."
+          },
+          {
+            "step": 3,
+            "title": "Program pays utility directly",
+            "description": "CEAP sends payments directly to your utility company or fuel vendor — you don't handle the money."
+          }
+        ],
+        "processingTime": "18 hours for heating crisis situations with deliverable fuels",
+        "waitlist": "Benefits available until annual funds run out",
+        "tip": "Apply early in the season — funds are limited and distributed first-come, first-served.",
+        "urls": [
+          {
+            "label": "Apply Online",
+            "url": "https://portal.ct.gov/dss/economic-security/winter-heating-assistance/energy-assistance---winter-heating"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits by Household Size",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 3980,
+              "annualLimit": 47764
+            },
+            {
+              "householdSize": 2,
+              "monthlyLimit": 5205,
+              "annualLimit": 62460
+            },
+            {
+              "householdSize": 3,
+              "monthlyLimit": 6430,
+              "annualLimit": 77157
+            },
+            {
+              "householdSize": 4,
+              "monthlyLimit": 7655,
+              "annualLimit": 91854
+            },
+            {
+              "householdSize": 5,
+              "monthlyLimit": 8879,
+              "annualLimit": 106550
+            },
+            {
+              "householdSize": 6,
+              "monthlyLimit": 10104,
+              "annualLimit": 121247
+            },
+            {
+              "householdSize": 7,
+              "monthlyLimit": 10334,
+              "annualLimit": 124002
+            },
+            {
+              "householdSize": 8,
+              "monthlyLimit": 10563,
+              "annualLimit": 126758
+            }
+          ],
+          "footnote": "2025-2026 program year limits (60% of Connecticut median income)"
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Required for Everyone",
+              "items": [
+                "Electric bill (all households must provide)",
+                "Social Security cards for all household members",
+                "Heating bills if you use natural gas, oil, or propane"
+              ]
+            },
+            {
+              "name": "Income Proof (if not receiving SNAP/SSI)",
+              "items": [
+                "Last 30 days of pay stubs",
+                "Social Security award letter",
+                "Self-employment: IRS Form 1040 and worksheet"
+              ]
+            },
+            {
+              "name": "Housing",
+              "items": [
+                "Rent receipt or lease if renter",
+                "Proof of heating source/fuel vendor contact"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "county-directory",
+          "heading": "Regional Contact Numbers",
+          "offices": [
+            {
+              "name": "New Opportunities Inc. - Waterbury",
+              "type": "service-area",
+              "phone": "(203) 756-8151",
+              "address": "Waterbury area"
+            },
+            {
+              "name": "New Opportunities Inc. - Meriden",
+              "type": "service-area",
+              "phone": "(203) 235-0278",
+              "address": "Meriden area"
+            },
+            {
+              "name": "New Opportunities Inc. - Torrington",
+              "type": "service-area",
+              "phone": "(860) 496-0622",
+              "address": "Torrington area"
+            },
+            {
+              "name": "New Opportunities Inc. - Winsted",
+              "type": "service-area",
+              "phone": "(860) 738-9138",
+              "address": "Winsted area"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Application season runs September 1, 2025 through May 29, 2026. Funds are limited — apply as early as possible to secure benefits."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If your parent is elderly, disabled, or lives with a child under 6, make sure to indicate this — vulnerable households receive $50 more per month."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if Mom receives SNAP benefits — does she still need to prove income?",
+          "answer": "No. If your parent receives SNAP, SSI, TANF, State Supplement, or Refugee Cash Assistance, they automatically qualify for CEAP regardless of income. You'll still need the electric bill and other housing documents, but no income proof required."
+        },
+        {
+          "question": "Can Dad get help if he's already behind on his heating bill?",
+          "answer": "Yes. CEAP provides shut-off protection and can help with past-due amounts. If he uses delivered fuels like oil or propane and faces a heating emergency, he can get crisis benefits of $425 up to three times per year, processed within 18 hours."
+        },
+        {
+          "question": "Does Mom's savings account count against her for this program?",
+          "answer": "No. Connecticut eliminated the asset test for the 2025-2026 program year. Your parent's savings, checking accounts, or other assets won't affect their eligibility."
+        },
+        {
+          "question": "What if their income is just over the limit?",
+          "answer": "The income limits are annual, so if your parent had higher earnings earlier in the year but current income is lower, they may still qualify. CEAP looks at recent income — last 30 days of pay stubs or 4 consecutive weeks within the last 3 months."
+        },
+        {
+          "question": "How does Mom get the money — does CEAP send her a check?",
+          "answer": "No. CEAP pays your parent's utility company or fuel vendor directly. The money goes straight toward their energy bills — they never handle cash. This also helps ensure the funds go toward their intended purpose."
+        },
+        {
+          "question": "Can renters get help even if heat is included in rent?",
+          "answer": "Yes. Renters whose heat is included in rent can receive $75-$125 in rental assistance through CEAP. You'll need to provide the rent receipt or lease showing heat is included."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://portal.ct.gov/dss/economic-security/winter-heating-assistance/energy-assistance---winter-heating",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "connecticut-weatherization-assistance",
+      "name": "Weatherization Assistance Program",
+      "shortName": "Weatherization Assistance",
+      "tagline": "Free home weatherization up to $15,000 to reduce your parent's energy bills — priority for seniors 60+.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Statewide CAA network, local non-profits (e.g., CRT, PSH); find via 2-1-1 or DEEP email",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent struggles with high heating and cooling bills, Connecticut's Weatherization Assistance Program provides free home improvements worth up to $15,000. The program includes professional energy audits, insulation, air sealing, heating system tune-ups, and health/safety inspections — all at no cost to qualifying homeowners and renters.\n\nSeniors age 60+ get priority, along with people with disabilities and households spending 6% or more of their income on energy bills. Your parent's household income must be under 60% of the state median — $39,027 annually for a single person in 2026.\n\nBecause this program coordinates with Connecticut's Energy Assistance Program, you can apply for both through the same process. However, homes weatherized in the past 15 years don't qualify, and the home cannot be listed for sale or in foreclosure.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Income under $39,027/year (single)",
+          "Priority for age 60+",
+          "Home not weatherized in past 15 years",
+          "Not for sale or in foreclosure"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 3252
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 4253
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 5254
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 6254
+          },
+          {
+            "householdSize": 5,
+            "monthlyLimit": 7255
+          },
+          {
+            "householdSize": 6,
+            "monthlyLimit": 8256
+          },
+          {
+            "householdSize": 7,
+            "monthlyLimit": 8443
+          },
+          {
+            "householdSize": 8,
+            "monthlyLimit": 8631
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Home not weatherized by WAP, LIHEAP, HUD, or USDA in past 15 years",
+          "Home not for sale or listed for sale within 6 months of work completion",
+          "Home not in foreclosure or loan mediation",
+          "For multi-family buildings: at least 2/3 of tenants must be income-eligible"
+        ],
+        "povertyLevelReference": "60% of State Median Income"
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call 2-1-1 to apply jointly with Energy Assistance — processing time not specified but priority groups move faster.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call 2-1-1 for intake appointment",
+            "description": "Request both Energy Assistance and Weatherization programs. They'll direct you to your local Community Action Agency."
+          },
+          {
+            "step": 2,
+            "title": "Gather income and housing documents",
+            "description": "Bring pay stubs or tax returns, utility bills, and proof of home ownership or rental agreement."
+          },
+          {
+            "step": 3,
+            "title": "Complete joint intake interview",
+            "description": "Your local agency will determine eligibility for both programs and issue a Weatherization Card or Referral Form."
+          },
+          {
+            "step": 4,
+            "title": "Schedule home energy audit",
+            "description": "If approved, a certified technician will assess your parent's home and recommend specific weatherization measures."
+          },
+          {
+            "step": 5,
+            "title": "Coordinate installation",
+            "description": "Work is performed by approved contractors at no cost, up to program limits."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": "Priority groups (elderly, disabled, families with children, high-energy users) get preference. Non-priority applicants may face longer waits or be referred to other programs.",
+        "tip": "Apply during the same visit as Energy Assistance to streamline the process — both programs use identical income requirements.",
+        "urls": [
+          {
+            "label": "Email DEEP Weatherization",
+            "url": "mailto:DEEP.Weatherization@ct.gov"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "tier-comparison",
+          "heading": "Priority Groups",
+          "tiers": [
+            {
+              "name": "Priority",
+              "description": "Elderly (60+), persons with disabilities, families with children, households spending 6%+ of income on energy",
+              "incomeLimit": "Under 60% State Median Income",
+              "coverage": "Faster processing, first access to services"
+            },
+            {
+              "name": "General",
+              "description": "All other income-eligible households",
+              "incomeLimit": "Under 60% State Median Income",
+              "coverage": "Same services but may face longer wait times"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Income Verification",
+              "items": [
+                "Pay stubs (most recent 4 weeks)",
+                "Tax returns (previous year)",
+                "Social Security award letters",
+                "Pension statements",
+                "Affidavit if zero income"
+              ]
+            },
+            {
+              "name": "Housing Documentation",
+              "items": [
+                "Proof of home ownership or rental agreement",
+                "Recent utility bills (to verify high-energy usage)",
+                "Documentation that home hasn't been weatherized in past 15 years"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Homes weatherized by any federal program (WAP, LIHEAP, HUD, USDA) in the past 15 years are not eligible. Homes listed for sale or in foreclosure proceedings also cannot participate."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If your parent rents, their landlord may need to contribute up to $500 (20% of material costs) for the work. Confirm this requirement before applying."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if Mom's house was insulated through a utility program a few years ago?",
+          "answer": "If the previous work was done through WAP, LIHEAP, HUD, or USDA programs within the past 15 years, she won't qualify. However, utility-funded programs like HES-IE don't count against this rule."
+        },
+        {
+          "question": "Can Dad get weatherization if he's planning to sell his house next year?",
+          "answer": "No. Homes listed for sale or expected to be sold within 6 months of work completion are not eligible. The program requires homes to remain occupied to justify the investment."
+        },
+        {
+          "question": "What's the difference between this and the energy audit from the utility company?",
+          "answer": "The utility's HES-IE program offers audits but limited free improvements. Weatherization Assistance provides up to $15,000 in actual weatherization work, but uses the same income limits and has stricter eligibility rules."
+        },
+        {
+          "question": "How much work will they actually do for free?",
+          "answer": "Single-family homes can receive up to $10,000 in energy measures (insulation, air sealing), plus $2,500 each for health/safety improvements and incidental repairs — a total of $15,000 without special review."
+        },
+        {
+          "question": "What if Mom's income is just over the limit?",
+          "answer": "There's no wiggle room on income limits, but if she doesn't qualify, she may be referred to other programs like REPS (Residential Energy Programs) that have different requirements."
+        },
+        {
+          "question": "Does Mom need to reapply every year?",
+          "answer": "Annual renewal is required to maintain eligibility, but once approved for weatherization work, it's typically completed within that program year."
+        }
+      ],
+      "phone": "2-1-1",
+      "sourceUrl": "https://portal.ct.gov/DEEP/Energy/Weatherization/Weatherization-in-Connecticut",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "connecticut-choices-medicare-counseling",
+      "name": "CHOICES (CT SHIP)",
+      "shortName": "CHOICES",
+      "tagline": "Free, one-on-one Medicare counseling to help your parent choose the right coverage and save on costs.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "5 Area Agencies on Aging (AAAs)",
+            "type": "service-area"
+          },
+          {
+            "name": "Center for Medicare Advocacy, Inc.",
+            "type": "service-area"
+          },
+          {
+            "name": "Local examples: Western CT AoA (203.785.8533), Senior Resources EC, Windham CT[2][3][7]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is Medicare-eligible or about to turn 65 in Connecticut, CHOICES provides free, unbiased counseling to help them navigate Medicare options and find cost-savings programs. Because CHOICES counselors are trained volunteers with no financial stake in any insurance company, they'll give you honest guidance on Medicare Parts A, B, C, and D without trying to sell you anything.\n\nCHOICES helps with more than just Medicare plan selection — they'll screen your parent for cost-assistance programs like Medicaid, Medicare Savings Programs, and Low-Income Subsidy (Extra Help) that could reduce their premiums and out-of-pocket costs. The service is available to all Connecticut residents regardless of income, including family caregivers who need help understanding their parent's options.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Connecticut resident",
+          "Medicare-eligible or becoming eligible",
+          "No income or asset limits",
+          "Free for caregivers and families too"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Connecticut resident",
+          "Medicare-eligible: US citizens or permanent residents aged 65+, certain younger people with disabilities approved by Social Security Administration, or those collecting SSDI for 24 months"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call 800-994-9422 for immediate counseling — no formal application needed.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the statewide number",
+            "description": "Call 800-994-9422 to be connected with a local CHOICES counselor in your area."
+          },
+          {
+            "step": 2,
+            "title": "Schedule your counseling session",
+            "description": "Choose between phone counseling or in-person meetings at accessible locations throughout Connecticut."
+          },
+          {
+            "step": 3,
+            "title": "Gather Medicare information",
+            "description": "Have your parent's Medicare card, income proof, and any Social Security award letters ready if you need help with cost-assistance programs."
+          }
+        ],
+        "processingTime": "Counseling provided upon contact",
+        "waitlist": null,
+        "tip": "Call during Medicare Open Enrollment (October 15 - December 7) for timely help with plan changes.",
+        "urls": [
+          {
+            "label": "Connecticut CHOICES Official Page",
+            "url": "https://portal.ct.gov/ads/programs-and-services/choices"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "Local Offices",
+          "offices": [
+            {
+              "name": "Western CT Area Agency on Aging",
+              "type": "service-area",
+              "phone": "203-785-8533",
+              "address": ""
+            },
+            {
+              "name": "Senior Resources Eastern Connecticut",
+              "type": "service-area",
+              "phone": "",
+              "address": ""
+            },
+            {
+              "name": "Windham Connecticut Office",
+              "type": "service-area",
+              "phone": "",
+              "address": ""
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "CHOICES counselors are trained volunteers, not insurance agents — they have no financial gain from their recommendations and will give you unbiased advice."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can CHOICES help if my parent already has Medicare?",
+          "answer": "Yes. CHOICES helps people already on Medicare compare plans during Open Enrollment, find cost-assistance programs they may have missed, and resolve claims disputes."
+        },
+        {
+          "question": "Will they try to sell my parent insurance?",
+          "answer": "No. CHOICES counselors are trained volunteers with no financial stake in any insurance company. They provide unbiased guidance only."
+        },
+        {
+          "question": "Can I get help even if my parent's income is too high for other programs?",
+          "answer": "Yes. CHOICES has no income limits and helps all Medicare-eligible Connecticut residents, regardless of income level."
+        },
+        {
+          "question": "What if my parent has employer insurance and is turning 65?",
+          "answer": "CHOICES can help navigate the timing of Medicare enrollment when your parent has employer group health plans, which may affect when they need to sign up."
+        },
+        {
+          "question": "Can CHOICES help me understand my parent's Medicare bills?",
+          "answer": "Yes. They provide guidance on claims disputes and can help you understand Medicare statements and coverage decisions."
+        },
+        {
+          "question": "Do I need to bring documents to the counseling session?",
+          "answer": "For basic Medicare counseling, no documents are required. If you want help applying for cost-assistance programs, bring your parent's Medicare card, income proof, and any Social Security award letters."
+        }
+      ],
+      "phone": "800-994-9422",
+      "sourceUrl": "https://portal.ct.gov/ads/programs-and-services/choices",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "connecticut-respite-care-program",
+      "name": "Connecticut Statewide Respite Care Program",
+      "shortName": "CT Respite Care",
+      "tagline": "Get up to $7,500/year toward respite services if your parent has dementia and you need caregiving breaks.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Senior Resources – Eastern CT: 860-887-3561",
+            "type": "service-area"
+          },
+          {
+            "name": "Multiple Area Agencies on Aging throughout Connecticut",
+            "type": "service-area"
+          },
+          {
+            "name": "Program is partnership between Alzheimer's Association Connecticut Chapter, Area Agencies on Aging, and Connecticut Aging and Disability Services, Bureau of Aging",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If you're caring for a parent with dementia in Connecticut and need respite services, this program can provide up to $7,500 per year toward adult day care, home health aides, companion services, and short-term nursing home stays. Because the program covers multiple types of respite care under one subsidy, you won't need to navigate separate funding streams for different services.\n\nYour parent must have a physician-confirmed diagnosis of irreversible dementia (including Alzheimer's, Parkinson's, or related conditions) and meet income limits of $58,772/year or less. You'll pay a 20% co-payment for services unless waived due to financial hardship. Both you and your parent must live in Connecticut, and your parent cannot currently receive services from the Connecticut Homecare Program for Elders.",
+      "savingsRange": "$7,500/year in 2026",
+      "savingsSource": "Maximum annual respite care subsidy",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Parent has dementia diagnosis",
+          "Parent income under $58,772/year",
+          "Liquid assets under $156,253",
+          "Both caregiver and parent live in CT"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 156253,
+          "couple": null,
+          "countedAssets": [
+            "Liquid assets"
+          ],
+          "exemptAssets": [],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "Parent must have physician-confirmed irreversible and deteriorating dementia (Alzheimer's disease, Multi-infarct dementia, Parkinson's Disease, Lewy Body Dementia, Huntington's Disease, Normal Pressure Hydrocephalus, or Pick's Disease)",
+        "otherRequirements": [
+          "Must have an identified caregiver",
+          "Cannot receive Connecticut Homecare Program for Elders services",
+          "Caregiver experiencing physical/mental impairments or has primary care responsibility"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call 1-800-994-9422 to reach your local Area Agency on Aging — processing time not specified by the state.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call your Area Agency on Aging",
+            "description": "Call 1-800-994-9422 to be directed to your nearest office, or call Senior Resources Eastern CT directly at 860-887-3561"
+          },
+          {
+            "step": 2,
+            "title": "Complete application and gather documents",
+            "description": "Fill out the application form and gather financial documentation showing income and liquid assets"
+          },
+          {
+            "step": 3,
+            "title": "Get physician statement",
+            "description": "Have your parent's doctor complete the specific 'Physician Statement' form confirming dementia diagnosis — generic medical records won't work"
+          },
+          {
+            "step": 4,
+            "title": "Submit documentation",
+            "description": "Submit completed application, physician form, financial documents, and proof of Connecticut residency for both you and your parent"
+          }
+        ],
+        "processingTime": "Not specified by state",
+        "waitlist": null,
+        "tip": "Income limits vary in state documents ($58,772 vs $48,266) — verify the current limit when you call to avoid surprises.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Financial Limits",
+          "included": [
+            "Parent's annual income: $58,772 maximum",
+            "Liquid assets: $156,253 maximum",
+            "20% co-payment required (unless waived for hardship)"
+          ],
+          "excluded": [
+            "Specific asset exemptions not detailed in state regulations"
+          ]
+        },
+        {
+          "type": "county-directory",
+          "heading": "Local Offices",
+          "offices": [
+            {
+              "name": "Statewide Access Number",
+              "type": "service-area",
+              "phone": "1-800-994-9422",
+              "address": "Directs you to nearest Area Agency on Aging"
+            },
+            {
+              "name": "Senior Resources - Eastern CT",
+              "type": "service-area",
+              "phone": "860-887-3561",
+              "address": "Eastern Connecticut region"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Medical",
+              "items": [
+                "Completed 'Physician Statement' form (specific form required)",
+                "Documentation of dementia diagnosis from eligible conditions"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Proof of parent's annual income",
+                "Documentation of liquid assets",
+                "Financial hardship documentation (if requesting co-payment waiver)"
+              ]
+            },
+            {
+              "name": "Legal/Residency",
+              "items": [
+                "Proof of Connecticut residency for both parent and caregiver",
+                "Power of Attorney or conservatorship papers (if applicable)"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Funding depends on available state budget — you can meet all eligibility requirements but still not receive services if funding runs out."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If your parent receives Connecticut Homecare Program for Elders services, they must stop those before starting respite care — you can't get both programs simultaneously."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What types of respite care does this cover?",
+          "answer": "Adult day care, home health aides, personal care assistants, homemakers, companions, nursing care, personal emergency response systems, short-term nursing home or assisted living stays, and cognitive fitness training."
+        },
+        {
+          "question": "Can I hire my own caregiver with this money?",
+          "answer": "Yes, through the self-directed option you can hire a private caregiver through a fiduciary, but this requires additional setup and the caregiver cannot be your parent's spouse or conservator."
+        },
+        {
+          "question": "What if Mom's income is just over the limit?",
+          "answer": "There are conflicting income limits in state documents ($58,772 vs $48,266) — call 1-800-994-9422 to verify the current threshold before assuming she's ineligible."
+        },
+        {
+          "question": "Does this program pay for everything?",
+          "answer": "No. You'll pay a 20% co-payment plus any costs above the $7,500 annual subsidy limit. The co-payment can be waived if your care manager determines financial hardship."
+        },
+        {
+          "question": "How long does approval take?",
+          "answer": "The state doesn't specify processing times. Call your Area Agency on Aging to understand current wait expectations in your region."
+        },
+        {
+          "question": "What dementia conditions qualify?",
+          "answer": "Alzheimer's Disease, Multi-infarct dementia, Parkinson's Disease, Lewy Body Dementia, Huntington's Disease, Normal Pressure Hydrocephalus, or Pick's Disease — confirmed by a physician on their specific form."
+        }
+      ],
+      "phone": "1-800-994-9422",
+      "sourceUrl": "https://portal.ct.gov/ads/knowledge-base/articles/independent-living-services/healthy-living-services/connecticut-statewide-respite-care",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "connecticut-scsep-employment",
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "shortName": "SCSEP",
+      "tagline": "If your parent is 55+ and unemployed with low income, they can get paid training at 20 hours/week to build skills for a new job.",
+      "programType": "navigator",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Associates for Training and Development (A4TD) — primary Connecticut provider, Stamford, CT 06831",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 55+ and unemployed, SCSEP provides paid on-the-job training at nonprofits and public agencies like schools, hospitals, and senior centers. Your parent earns minimum wage for 20 hours per week while learning marketable skills in fields like home health aide, food service, customer service, and office administration.\n\nBecause SCSEP combines paid work experience with job placement assistance, your parent builds both income and skills while transitioning back to permanent employment. The program also provides career assessment, individualized employment planning, and specialized training.\n\nIncome must be below 125% of the federal poverty level. Veterans, people over 65, and those with disabilities get priority enrollment.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Currently unemployed",
+          "Income below 125% federal poverty level",
+          "Priority for veterans and 65+"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be currently unemployed",
+          "Priority given to veterans, people over 65, individuals with disabilities, those with low literacy or limited English, rural residents, homeless or at-risk individuals"
+        ],
+        "povertyLevelReference": "125% FPL"
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call Associates for Training and Development at 203-461-2154 to apply — they handle all SCSEP applications in Connecticut.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the Connecticut provider",
+            "description": "Contact Associates for Training and Development at 203-461-2154 to discuss eligibility and available positions."
+          },
+          {
+            "step": 2,
+            "title": "Provide income and employment verification",
+            "description": "You'll need proof of age, current income, unemployment status, and Connecticut residency (contact A4TD for specific document requirements)."
+          },
+          {
+            "step": 3,
+            "title": "Complete career assessment",
+            "description": "A4TD will assess your parent's skills and interests to match them with appropriate community service training positions."
+          },
+          {
+            "step": 4,
+            "title": "Get matched to a training placement",
+            "description": "Your parent will be placed at a nonprofit or public agency for 20 hours per week of paid training while receiving job placement assistance."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "If your parent is a veteran or over 65, mention this immediately — they get priority enrollment over other applicants.",
+        "urls": [
+          {
+            "label": "A4TD website",
+            "url": "https://www.a4td.org"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "This is temporary training, not permanent employment. SCSEP is designed as a bridge to help your parent find regular unsubsidized work after gaining skills and experience."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "The income limit is strict at 125% of federal poverty level, which is relatively low. Verify your parent's exact threshold based on household size before applying, as any income over the limit disqualifies them."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "How much will my parent earn during the training?",
+          "answer": "Your parent earns the highest of federal, state, or local minimum wage for 20 hours per week while in training. In Connecticut, this is currently the state minimum wage."
+        },
+        {
+          "question": "What types of jobs can my parent train for?",
+          "answer": "Common training positions include home health aide, food service worker, customer service representative, office administrator, stock clerk, and retail sales associate. All training happens at nonprofits and public agencies like schools, hospitals, day-care centers, and senior centers."
+        },
+        {
+          "question": "Can my parent apply if they're working part-time?",
+          "answer": "No. Your parent must be completely unemployed to qualify. Any current employment, even part-time work, disqualifies them from SCSEP."
+        },
+        {
+          "question": "Will this affect my parent's other benefits like Social Security?",
+          "answer": "SCSEP wages count as earned income and may affect other means-tested benefits. Contact 203-461-2154 to discuss how the program interacts with your parent's specific benefit situation."
+        },
+        {
+          "question": "What if my parent doesn't have strong English skills?",
+          "answer": "People with limited English proficiency actually get priority enrollment in SCSEP. The program can provide additional support and training to help your parent succeed."
+        },
+        {
+          "question": "How long does the training program last?",
+          "answer": "The program length isn't specified, but SCSEP is designed as temporary training to help participants transition to permanent employment. Contact A4TD at 203-461-2154 for specific duration details."
+        }
+      ],
+      "phone": "203-461-2154",
+      "sourceUrl": "https://www.dol.gov/agencies/eta/seniors",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "connecticut-long-term-care-ombudsman",
+      "name": "Long Term Care Ombudsman Program",
+      "shortName": "Ombudsman Program",
+      "tagline": "Free advocacy when your parent has problems with their nursing home or assisted living facility.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Central office: 55 Farmington Avenue, Hartford, CT 06105-3730.",
+            "type": "service-area"
+          },
+          {
+            "name": "Regional Ombudsman programs (search Community Resources Database for local providers).",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent lives in a Connecticut nursing home, assisted living, or residential care facility and faces problems like poor care, medication errors, or being ignored by staff, the Long Term Care Ombudsman Program provides free advocacy to resolve these issues. Trained advocates investigate complaints confidentially (with your permission), help you communicate with facility staff, and ensure your parent's rights are protected.\n\nThe program serves residents of all Connecticut skilled nursing facilities, assisted living facilities, residential care homes, and board and care homes. Family members can contact ombudsmen even if they're considering placement — advocates provide information about facilities and what constitutes quality care. No income limits apply; services are completely free.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Resident of Connecticut long-term care facility",
+          "Family members and friends eligible",
+          "No income limits",
+          "Completely free"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Parent must live in or be considering placement in a Connecticut skilled nursing facility, residential care home, assisted living/managed residential services facility, or board and care home"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call the ombudsman hotline and receive immediate assistance — no forms or applications required.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the ombudsman hotline",
+            "description": "Phone 860-424-5200 or toll-free 1-866-388-1888 to speak with an advocate immediately."
+          },
+          {
+            "step": 2,
+            "title": "Explain the situation",
+            "description": "Describe the problem your parent is experiencing at their facility. The ombudsman will listen confidentially."
+          },
+          {
+            "step": 3,
+            "title": "Give permission to act",
+            "description": "If you want the ombudsman to investigate or contact the facility, give explicit permission. They cannot act without your consent."
+          },
+          {
+            "step": 4,
+            "title": "Follow up as needed",
+            "description": "The ombudsman will work to resolve the issue and keep you informed of progress."
+          }
+        ],
+        "processingTime": "Immediate assistance available upon contact",
+        "waitlist": null,
+        "tip": "You can also email LTCOP@CT.GOV if calling isn't convenient — include your contact information and a brief description of the issue.",
+        "urls": [
+          {
+            "label": "Connecticut Long Term Care Ombudsman",
+            "url": "https://portal.ct.gov/LTCOP"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "Contact Information",
+          "offices": [
+            {
+              "name": "Central Office",
+              "type": "service-area",
+              "phone": "860-424-5200 or 1-866-388-1888",
+              "address": "55 Farmington Avenue, Hartford, CT 06105-3730"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "This program provides advocacy services only — they help resolve facility problems but don't provide financial aid, healthcare services, or help finding housing placement."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if the nursing home retaliates against my parent for filing a complaint?",
+          "answer": "Retaliation is illegal. The ombudsman maintains confidentiality unless you give permission to share information. They can investigate anonymously first, and federal law protects residents from retaliation for legitimate complaints."
+        },
+        {
+          "question": "Can the ombudsman help before we choose a facility for Mom?",
+          "answer": "Yes. Families considering placement can contact ombudsmen for information about facilities, what constitutes quality care, and what questions to ask during tours. This helps you make informed decisions before placement."
+        },
+        {
+          "question": "What types of problems can the ombudsman actually solve?",
+          "answer": "Common issues include medication errors, poor personal care, dietary problems, activities concerns, billing disputes, and communication problems with staff. They facilitate solutions by working with facility management and ensuring your parent's rights are respected."
+        },
+        {
+          "question": "Will the facility know I called if I don't want them to?",
+          "answer": "No. Ombudsmen keep all communications confidential unless you specifically give permission to share information or take action. You control whether and how they get involved."
+        },
+        {
+          "question": "Does this work for assisted living facilities or just nursing homes?",
+          "answer": "The program covers skilled nursing facilities, residential care homes, assisted living/managed residential services facilities, and board and care homes throughout Connecticut. All licensed long-term care facilities are included."
+        },
+        {
+          "question": "How quickly can an ombudsman respond to an urgent safety concern?",
+          "answer": "Ombudsmen provide immediate assistance when you call. For urgent safety issues, they can contact facilities right away (with your permission) or help you understand when to contact other authorities like Adult Protective Services."
+        }
+      ],
+      "phone": "860-424-5200",
+      "sourceUrl": "https://portal.ct.gov/LTCOP",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    }
+  ],
+  "stateOverview": {
+    "intro": "Connecticut offers 10 senior programs that can reduce your parent's expenses by thousands of dollars annually — from $100-300 monthly grocery assistance through SNAP to up to $15,000 in free home weatherization. Seven programs provide direct financial benefits or services, while three offer free guidance and advocacy that every Connecticut family can access. If your parent is 65+ or disabled, start with HUSKY Health, which covers all medical care and can include home care services. For families managing caregiving stress, Connecticut provides respite funding and specialized support that many other states don't offer. Most benefit programs have income limits around $2,000-3,000 monthly for single seniors, but several valuable resources are available regardless of income.",
+    "startHere": [
+      {
+        "name": "HUSKY Health (Medicaid for seniors/disabled)",
+        "programId": "husky-health-medicaid-seniors-disabled",
+        "why": "Covers all medical care plus potential home care services — the foundation that makes other programs work better."
+      },
+      {
+        "name": "CHOICES (CT SHIP)",
+        "programId": "choices-ct-ship",
+        "why": "Free Medicare counseling helps optimize your parent's existing coverage before applying for other benefits."
+      },
+      {
+        "name": "SNAP (Supplemental Nutrition Assistance Program)",
+        "programId": "snap",
+        "why": "Quick application process for immediate monthly grocery assistance — often approved within days."
+      },
+      {
+        "name": "Connecticut Home Care Program for Elders (CHCPE)",
+        "programId": "chcpe-medicare-savings",
+        "why": "Combines up to 70 hours weekly of home care with Medicare premium relief — addresses both safety and costs."
+      }
+    ],
+    "byNeed": [
+      {
+        "need": "Medical care and home support",
+        "programs": [
+          "HUSKY Health (Medicaid for seniors/disabled)",
+          "Connecticut Home Care Program for Elders (CHCPE)",
+          "Program of All-Inclusive Care for the Elderly (CT PACE)"
+        ],
+        "description": "Programs that cover medical expenses and provide care services to help your parent stay home safely."
+      },
+      {
+        "need": "Food and utility assistance",
+        "programs": [
+          "SNAP (Supplemental Nutrition Assistance Program)",
+          "Connecticut Energy Assistance Program (CEAP)",
+          "Weatherization Assistance Program"
+        ],
+        "description": "Direct financial help with groceries and energy bills, plus home improvements to reduce long-term costs."
+      },
+      {
+        "need": "Caregiver support and respite",
+        "programs": [
+          "Connecticut Statewide Respite Care Program"
+        ],
+        "description": "Funding specifically for family caregivers who need breaks from caregiving responsibilities."
+      },
+      {
+        "need": "Free advice and advocacy",
+        "programs": [
+          "CHOICES (CT SHIP)",
+          "Long Term Care Ombudsman Program"
+        ],
+        "description": "Professional guidance on Medicare choices and advocacy for nursing home or assisted living issues."
+      },
+      {
+        "need": "Employment assistance",
+        "programs": [
+          "Senior Community Service Employment Program (SCSEP)"
+        ],
+        "description": "Paid training opportunities for seniors 55+ who want to return to work."
+      }
+    ],
+    "quickFacts": [
+      "Connecticut prioritizes seniors 60+ for weatherization assistance, potentially saving thousands in energy costs",
+      "The state offers up to $7,500 annually in respite funding specifically for dementia caregivers — more generous than most states",
+      "HUSKY Health applications can be submitted online at access.ct.gov or by calling 855-626-6632",
+      "Most income-based programs use limits around $2,152-2,901 monthly for single seniors (2026 guidelines)"
+    ],
+    "resourcesVsBenefits": "Connecticut separates programs into qualification-based benefits and universal resources. Benefits like HUSKY Health and SNAP require income verification and have specific eligibility criteria. Resources like CHOICES Medicare counseling and Long Term Care Ombudsman advocacy are free to all Connecticut families regardless of income — use these immediately while determining benefit eligibility."
+  }
+}

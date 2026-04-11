@@ -57,7 +57,7 @@ export function StatePickerCard() {
                   <li key={state.id}>
                     <button
                       onClick={() => {
-                        router.push(`/waiver-library/forms/${state.id}`);
+                        router.push(`/senior-benefits/forms/${state.id}`);
                         setSearch("");
                         setFocused(false);
                       }}

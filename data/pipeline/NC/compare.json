@@ -1,0 +1,761 @@
+{
+  "state": "NC",
+  "stateName": "North Carolina",
+  "comparedAt": "2026-04-09T15:43:08.829Z",
+  "total": 15,
+  "newPrograms": 7,
+  "withDiffs": 8,
+  "withNovelFields": 8,
+  "benefitTypes": {
+    "service": 5,
+    "financial": 5,
+    "in_kind": 2,
+    "employment": 1,
+    "advocacy": 1,
+    "service|in_kind": 1
+  },
+  "variationPatterns": {
+    "priority_tier": 7,
+    "funding_source — Medicare covers Medicare-eligible services; Medicaid covers Medicaid-eligible services; private pay covers all services at negotiated rates. Specific service mix is individualized based on care plan[3].": 1,
+    "household_size": 1,
+    "household_size and primary heating source": 1,
+    "county": 1,
+    "not_applicable": 1,
+    "property_value": 1,
+    "priority_tier|region": 1,
+    "Availability and individual need. Respite care vouchers are limited.[5] The level of assistance provided varies based on what the caregiver needs and prefers.[3]": 1
+  },
+  "novelFieldSummary": {
+    "asset_limits": {
+      "count": 8,
+      "programs": [
+        "NC Medicaid Home and Community-Based Services (HCBS) Waivers",
+        "NC Program of All-Inclusive Care for the Elderly (PACE)",
+        "NC Medicare Savings Programs (QMB, SLMB, QI)",
+        "NC Food and Nutrition Services (FNS)/SNAP",
+        "NC Low-Income Energy Assistance Program (LIHEAP)",
+        "NC Home-Delivered Meals (County-Specific Programs)",
+        "NC Long-Term Care Ombudsman Program",
+        "State-County Special Assistance - In Home"
+      ],
+      "note": "Our model has no asset limit fields"
+    },
+    "regional_variations": {
+      "count": 8,
+      "programs": [
+        "NC Medicaid Home and Community-Based Services (HCBS) Waivers",
+        "NC Program of All-Inclusive Care for the Elderly (PACE)",
+        "NC Medicare Savings Programs (QMB, SLMB, QI)",
+        "NC Food and Nutrition Services (FNS)/SNAP",
+        "NC Low-Income Energy Assistance Program (LIHEAP)",
+        "NC Home-Delivered Meals (County-Specific Programs)",
+        "NC Long-Term Care Ombudsman Program",
+        "State-County Special Assistance - In Home"
+      ],
+      "note": "Program varies by region — our model doesn't capture this"
+    },
+    "waitlist": {
+      "count": 6,
+      "programs": [
+        "NC Medicaid Home and Community-Based Services (HCBS) Waivers",
+        "NC Program of All-Inclusive Care for the Elderly (PACE)",
+        "NC Medicare Savings Programs (QMB, SLMB, QI)",
+        "NC Low-Income Energy Assistance Program (LIHEAP)",
+        "NC Home-Delivered Meals (County-Specific Programs)",
+        "State-County Special Assistance - In Home"
+      ],
+      "note": "Has waitlist info — our model has no wait time field"
+    },
+    "documents_required": {
+      "count": 8,
+      "programs": [
+        "NC Medicaid Home and Community-Based Services (HCBS) Waivers",
+        "NC Program of All-Inclusive Care for the Elderly (PACE)",
+        "NC Medicare Savings Programs (QMB, SLMB, QI)",
+        "NC Food and Nutrition Services (FNS)/SNAP",
+        "NC Low-Income Energy Assistance Program (LIHEAP)",
+        "NC Home-Delivered Meals (County-Specific Programs)",
+        "NC Long-Term Care Ombudsman Program",
+        "State-County Special Assistance - In Home"
+      ],
+      "note": "Has document checklist — our model doesn't store per-program documents"
+    },
+    "household_size_table": {
+      "count": 1,
+      "programs": [
+        "NC Food and Nutrition Services (FNS)/SNAP"
+      ],
+      "note": "Benefits/eligibility vary by household size — we store a single number"
+    }
+  },
+  "comparisons": [
+    {
+      "name": "NC Medicaid Home and Community-Based Services (HCBS) Waivers",
+      "isNew": false,
+      "existingId": "home-and-community-based-services-hcbs-waiver",
+      "existingVerified": null,
+      "diffsFound": 4,
+      "diffs": [
+        {
+          "field": "min_age",
+          "ours": "65",
+          "found": "Varies by waiver: CAP/DA (18+), CAP/C (0-20), TBI (18+), Innovations (all ages with I/DD)[1][2][5][8]",
+          "source": "https://medicaid.ncdhhs.gov/"
+        },
+        {
+          "field": "income_limit",
+          "ours": "$2500",
+          "found": "$1,255",
+          "source": "https://medicaid.ncdhhs.gov/"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$10,000 – $30,000/year",
+          "found": "Specific services vary by waiver; e.g., CAP/DA: personal assistance, adult day health, respite, home modifications, non-medical transport, nutritional services, PERS; CAP/C: in-home aide, respite, assistive tech, vehicle mods, nurse aide; TBI: day supports, therapies, home mods, supported living; Innovations: wide range for I/DD; no fixed $ or hours stated, cost-neutral to institutional care[1][2][4][5]",
+          "source": "https://medicaid.ncdhhs.gov/"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://medicaid.ncdhhs.gov/"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "$2,000 countable resources for individual; exempt: primary home (equity limit $752,000 in 2026 if no qualifying resident), car, personal belongings; most bank accounts, retirement, cash count[1][3][4]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered via local DSS, Case Management Agencies, LME/MCOs; wait times/providers may vary by region[2]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Yes for some (e.g., Innovations 'Registry of Unmet Needs'); others limited slots, not entitlement[2][3][4]",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Income/asset proof, medical records for NFLOC assessment, ID; consult local DSS[1][3]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Multiple distinct waivers (CAP/DA, CAP/C, TBI, Innovations) with target populations, all statewide but local admin; benefits/service arrays waiver-specific; waitlists and NFLOC universal; applicant-only income for Medicaid qual",
+      "gotchas": [
+        "Multiple waivers exist (not one program): CAP/DA for disabled adults, CAP/C children, TBI, Innovations I/DD—match to needs[2][5][7][8]",
+        "Not entitlement: limited slots, waitlists common[3][4]",
+        "Must qualify for Medicaid first, but waiver uses applicant-only income[1][2]",
+        "NFLOC required, assessed via functional needs—not just age/disability[1][3]",
+        "Home equity limits apply ($752K 2026)[3]",
+        "Spend-down/Miller Trusts possible if over limits[1]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://medicaid.ncdhhs.gov/"
+    },
+    {
+      "name": "NC Program of All-Inclusive Care for the Elderly (PACE)",
+      "isNew": false,
+      "existingId": "program-of-all-inclusive-care-for-the-elderly-pace",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$1305",
+          "found": "$2,901",
+          "source": "https://medicaid.ncdhhs.gov/providers/programs-and-services/long-term-care/program-all-inclusive-care-elderly-pace and https://www.ncpace.org/"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$15,000 – $35,000/year",
+          "found": "Comprehensive managed care including: primary care, specialist care, hospital care, prescription drugs, therapy services, social services, transportation, and other services needed to support community living. Participants receive no deductibles, co-pays, or co-insurance for approved services[3]. PACE becomes both insurer and provider[8].",
+          "source": "https://medicaid.ncdhhs.gov/providers/programs-and-services/long-term-care/program-all-inclusive-care-elderly-pace and https://www.ncpace.org/"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://medicaid.ncdhhs.gov/providers/programs-and-services/long-term-care/program-all-inclusive-care-elderly-pace and https://www.ncpace.org/"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "For Medicaid eligibility: $2,000 or less in countable assets (excluding primary home)[2]. The primary residence is exempt from asset calculations[2].",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Different PACE organizations serve different regions. For example, Carolina SeniorCare serves Davidson, Rowan, Davie, and Iredell Counties[3]. Each PACE organization may have different service areas, staffing, and specific offerings.",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Not specified in available sources",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": "Not specified in available sources. Contact your local PACE Center for specific documentation requirements.",
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "NC PACE is a regionally fragmented program with multiple independent PACE organizations, each serving specific counties. Eligibility is standardized statewide (age 55+, nursing home level of care, service area residency), but availability, service offerings, and costs vary by provider. Income limits apply only if seeking Medicaid coverage; otherwise, no income test exists. Asset limits ($2,000) apply only for Medicaid eligibility. The program is voluntary enrollment with no waitlist information publicly available. Processing timelines and required documentation are not standardized across providers.",
+      "gotchas": [
+        "PACE is NOT available statewide — you must live in a service area where a PACE organization operates[7]. Check availability before assuming eligibility[8].",
+        "You cannot be enrolled in Medicare Advantage (Part C) — if you have a Medicare Advantage plan, you must disenroll before joining PACE[1].",
+        "Nursing home level of care certification is required and is determined by the state, not by the program — this is a gatekeeping requirement[1][4].",
+        "If you exceed Medicaid income limits, you don't lose eligibility; instead, you pay a Patient Monthly Liability (out-of-pocket cost) determined by Medicaid[3].",
+        "Private pay costs are substantial (~$4,000–$5,000/month) if you have neither Medicare nor Medicaid[2].",
+        "All services except emergencies must be approved in advance by your PACE organization — using out-of-network providers without approval may result in full cost to you[3].",
+        "You can disenroll at any time, but PACE becomes your sole insurer and provider — you won't have separate health insurance coverage[3][8].",
+        "The average PACE participant is 76 years old with multiple complex medical conditions — this is designed for frail seniors, not those with minimal care needs[1]."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "funding_source — Medicare covers Medicare-eligible services; Medicaid covers Medicaid-eligible services; private pay covers all services at negotiated rates. Specific service mix is individualized based on care plan[3].",
+      "officialSource": "https://medicaid.ncdhhs.gov/providers/programs-and-services/long-term-care/program-all-inclusive-care-elderly-pace and https://www.ncpace.org/"
+    },
+    {
+      "name": "NC Medicare Savings Programs (QMB, SLMB, QI)",
+      "isNew": false,
+      "existingId": "medicare-savings-programs",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$1305",
+          "found": "$20",
+          "source": "https://medicaid.ncdhhs.gov/providers/programs-and-services/medicare-savings-programs"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$2,000 – $8,000/year",
+          "found": "QMB: Medicare Part A premiums (if applicable), Part B premiums ($202.90/mo in 2026), deductibles, copays, coinsurance; providers prohibited from billing beneficiary for covered costs. SLMB: Part B premium only ($202.90/mo, ~$2,435/year). QI: Part B premium only ($202.90/mo, ~$2,435/year). All auto-qualify for full Extra Help (LIS) for Part D drugs, no separate application. Annual savings $2,400-$8,000+ depending on program.[1][2][4][5]",
+          "source": "https://medicaid.ncdhhs.gov/providers/programs-and-services/medicare-savings-programs"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://medicaid.ncdhhs.gov/providers/programs-and-services/medicare-savings-programs"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Resources ≤$9,950 (individual) or $14,910 (couple) across QMB, SLMB, QI. Countable resources include bank accounts, stocks; exempt: home, one car, burial plots, life insurance (up to certain values), personal belongings. Some sources note slightly lower prior-year limits ($9,290/$14,810 or $9,090/$13,630).[1][2][3][4][6]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Processing times and support vary by county DSS office; no benefit differences.",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "QI only: first-come, first-served with limited federal funding; may run out annually (reapply each year).[1][2][8]",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of income (SSI awards, pay stubs, pension statements for 1-2 months).",
+            "Proof of resources (bank statements, investment accounts).",
+            "Medicare card.",
+            "ID (birth certificate, Social Security card).",
+            "Proof of residency (utility bill).",
+            "Household size details."
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Tiered by income brackets (QMB lowest, QI highest); QI capped enrollment; asset limits fixed federally but income FPL-adjusted annually; local county administration with statewide uniformity in rules.",
+      "gotchas": [
+        "QI funding limited—first-come, first-served, may exhaust before year-end; reapply annually.[1][2][8]",
+        "Income includes $20 disregard; countable income must be under exact FPL-based limits—many miss eligibility due to unawareness.[2]",
+        "Assets include most liquid resources but exempt primary home/car; people overlook countable items like second vehicles.",
+        "Auto-triggers Extra Help for Part D, but confirm enrollment.",
+        "Providers cannot bill QMB for covered services, but some unaware—carry MSP card.",
+        "Outdated asset/income figures in older sources; always check current year.",
+        "Must have Medicare; not for full Medicaid eligibles."
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://medicaid.ncdhhs.gov/providers/programs-and-services/medicare-savings-programs"
+    },
+    {
+      "name": "NC Food and Nutrition Services (FNS)/SNAP",
+      "isNew": false,
+      "existingId": "food-and-nutrition-services-snap",
+      "existingVerified": null,
+      "diffsFound": 4,
+      "diffs": [
+        {
+          "field": "min_age",
+          "ours": "65",
+          "found": "60",
+          "source": "https://www.ncdhhs.gov/divisions/child-and-family-well-being/food-and-nutrition-services-food-stamps"
+        },
+        {
+          "field": "income_limit",
+          "ours": "$1924",
+          "found": "$193",
+          "source": "https://www.ncdhhs.gov/divisions/child-and-family-well-being/food-and-nutrition-services-food-stamps"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$1,500 – $3,600/year",
+          "found": "EBT card for purchasing food (groceries, fresh produce, non-alcoholic beverages at authorized retailers). Maximum monthly allotments as in income table (e.g., $281 for 1-person, actual amount based on income/deductions; average $188 for seniors). Simplified SNAP certified for 3 years.[1][4][5]",
+          "source": "https://www.ncdhhs.gov/divisions/child-and-family-well-being/food-and-nutrition-services-food-stamps"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.ncdhhs.gov/divisions/child-and-family-well-being/food-and-nutrition-services-food-stamps"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "For households with elderly (60+) or disabled members, countable resources must be $4,500 or less. Exemptions typically include primary home, one vehicle, household goods, retirement accounts, and certain life insurance; exact countable assets follow federal SNAP rules with state application.[5][6]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "household_size_table",
+          "value": "Households with a senior (60+) must have monthly net income at or below these thresholds after deductions (standard $193 for 1-4 members, 20% earnings deduction, medical expenses over $35/month for elderly/disabled): |Household Size|Maximum Monthly Net Income|Maximum Monthly Benefits Allotment| |1|$1,133|$281| |2|$1,526|$516| |3|$1,920|$740| |4|$2,313|$939| Thresholds increase with household size. For elderly/disabled-only households, only net income limit applies (no gross income test). Simplified SNAP variant for SSI recipients age 65+ has no specific income limit beyond SSI receipt.[1][3][5]",
+          "note": "Benefits/eligibility vary by household size — we store a single number"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered uniformly by county DSS offices; potential processing/wait time differences by county workload, but no specified benefit variations.[4][6]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of income (Social Security, pension statements)",
+            "Proof of expenses (medical over $35/month, rent, utilities)",
+            "ID (birth certificate, driver's license)",
+            "Proof of residency",
+            "SSI award letter (for Simplified SNAP)",
+            "Bank statements for assets if applicable."
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Net income only for elderly/disabled households (no gross test); deductions heavily favor seniors (medical, standard); Simplified SNAP auto-enrollment for SSI/65+; benefits scale by household size with max allotments; county DSS processing.",
+      "gotchas": [
+        "Elderly households skip gross income test (only net matters), but must calculate deductions accurately (medical key for seniors).[1][3]",
+        "Simplified SNAP only for SSI/65+ separate food prep; married couples count as one household.[4]",
+        "Assets $4,500 limit applies to elderly/disabled (higher than non-elderly $3,000).[5]",
+        "Post-2025 changes: Work rules for 55-64, non-citizen restrictions; expedited SNAP often missed for urgent need.[2][8]",
+        "Include all who buy/prepare food in household; students 18-51 need exemptions.[7]",
+        "Benefits loaded on EBT card; can't buy hot foods/alcohol/tobacco."
+      ],
+      "benefitType": "in_kind",
+      "benefitVariesBy": "household_size",
+      "officialSource": "https://www.ncdhhs.gov/divisions/child-and-family-well-being/food-and-nutrition-services-food-stamps"
+    },
+    {
+      "name": "NC Low-Income Energy Assistance Program (LIHEAP)",
+      "isNew": false,
+      "existingId": "low-income-energy-assistance-program-lieap",
+      "existingVerified": null,
+      "diffsFound": 4,
+      "diffs": [
+        {
+          "field": "min_age",
+          "ours": "65",
+          "found": "60 or older (priority tier); disabled persons receiving services through NC Division of Aging and Adult Services also qualify for priority tier",
+          "source": "https://www.ncdhhs.gov/divisions/social-services/energy-assistance/low-income-energy-assistance-lieap"
+        },
+        {
+          "field": "income_limit",
+          "ours": "$2400",
+          "found": "$34,056",
+          "source": "https://www.ncdhhs.gov/divisions/social-services/energy-assistance/low-income-energy-assistance-lieap"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$500 – $2,000/year",
+          "found": "One-time vendor payment of $300, $400, or $500 sent directly to heating vendor. Last year (2023-2024), the program provided approximately $48 million to help more than 134,000 households.[2][3]",
+          "source": "https://www.ncdhhs.gov/divisions/social-services/energy-assistance/low-income-energy-assistance-lieap"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.ncdhhs.gov/divisions/social-services/energy-assistance/low-income-energy-assistance-lieap"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Countable resources (savings, checking accounts, cash on hand) must be at or below $2,250. One source indicates $3,000 for Union County specifically, suggesting possible regional variation.[1][6][7]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Asset limits may vary by county (most sources cite $2,250; Union County cites $3,000)[7]. Income eligibility thresholds are consistent statewide at 130% FPL for general households and 150% FPL for priority households, but dollar amounts vary by household size and may change year to year.[1][4]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "No formal waitlist mentioned; program operates on first-come, first-served basis until funds are exhausted[1]",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Photo ID and contact information[7]",
+            "Proof of address: lease, rental agreement, or shelter expense documentation[7]",
+            "Citizenship/alien status verification via Immigration and Naturalization Service[7]",
+            "Valid Social Security card or number[7]",
+            "Earned income documentation: wage stubs, tax forms, or employer contact[7]",
+            "Unearned income documentation: benefit award letters, retirement statements[7]",
+            "Asset/resource documentation: bank statements, ownership records, court documents[7]",
+            "Copy of heating bills[7]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "This program operates on a strict annual cycle with two application windows: a priority window (December 1-31) for elderly and disabled households, and a general window (January 1-March 31) for all other eligible households. Benefits are fixed at $300-$500 per household (not scaled by household size as one might expect) and vary only by primary heating source. The program is entirely dependent on annual federal appropriations and available funds; it is not an entitlement program. Income thresholds are percentage-based (130-150% of FPL) rather than fixed dollar amounts, meaning eligibility changes annually. County-level administration creates potential for minor regional variations in asset limits and processing procedures, though core eligibility criteria are statewide.",
+      "gotchas": [
+        "Application windows are time-limited and critical: Priority households (age 60+ or disabled) can apply December 1-31 only; all other households can apply January 1-March 31 or until funds are exhausted. Missing these windows means waiting until the next funding cycle.[1][4][6][7]",
+        "North Carolina received approximately $96.3 million in LIHEAP funding for the current cycle, but $1.8 million is reserved for Tribal communities, reducing available funds for general population.[1]",
+        "Income limits are based on gross (pre-tax) income, not net income.[1]",
+        "Households that received LIEAP in the prior year (2023-2024) and meet priority criteria may receive automatic payments without reapplying, but only if they received notice of eligibility; those who did not receive notice must apply manually.[2]",
+        "The program provides only a one-time payment per funding cycle, not ongoing assistance.[1][2]",
+        "Payment goes directly to the heating vendor, not to the household, so applicants cannot redirect funds.[2]",
+        "Disabled persons must be receiving services through the NC Division of Aging and Adult Services to qualify for priority status; simply having a disability is insufficient.[1][4]",
+        "Asset limits are strict: even modest savings can disqualify a household if they exceed the threshold.[1]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "household_size and primary heating source",
+      "officialSource": "https://www.ncdhhs.gov/divisions/social-services/energy-assistance/low-income-energy-assistance-lieap"
+    },
+    {
+      "name": "NC Weatherization Assistance Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Decentralized by region/local providers; DOE-funded statewide but contact county-specific agency; priority tiers; no age minimum but elderly prioritized; income at 200% FPL or SSI/TANF auto-qualify.",
+      "gotchas": [
+        "Funds limited, first-come first-served; may exhaust quickly.[1]",
+        "Home must pass pre-assessment (not for major repairs/rehab).[2][3]",
+        "Renters need landlord permission; only one service per household.[1][4]",
+        "Income/SSI/TANF automatic qualifier, but priority for elderly/disabled/kids—still apply early.[2][6]",
+        "Verify current poverty guidelines (annual update); example table may be outdated.[2]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.deq.nc.gov/energy-climate/state-energy-office/weatherization-assistance-program[8]"
+    },
+    {
+      "name": "NC Home-Delivered Meals (County-Specific Programs)",
+      "isNew": false,
+      "existingId": "home-delivered-meals-eat-right-to-age-well",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "min_age",
+          "ours": "60",
+          "found": "60+ years old (65+ in Brunswick County)"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$1,500 – $3,600/year",
+          "found": "Nutritious meals delivered to home; frequency and meal count not specified in sources"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Not specified in available sources; contact county program",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Each county operates independently with different contact procedures, eligibility assessments, and service models",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Waiting lists exist in all documented programs; specific wait times not available",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of age",
+            "Proof of residency",
+            "Medical information",
+            "Dietary restrictions documentation"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "This is not a single program but a collection of county-operated programs with common eligibility principles but different administrative structures. Families must identify their county and contact that specific program for accurate, current information.",
+      "gotchas": [
+        "No unified statewide program—eligibility and application vary significantly by county",
+        "Waiting lists are standard; enrollment delays expected",
+        "County residency requirement is strict",
+        "Age requirement varies (60+ vs. 65+)",
+        "Income and asset limits not documented in available sources—must verify with county",
+        "Spouse eligibility is conditional on primary applicant's eligibility",
+        "No income test mentioned, but this should be confirmed with each county program"
+      ],
+      "benefitType": "in_kind",
+      "benefitVariesBy": "county",
+      "officialSource": null
+    },
+    {
+      "name": "NC Lifespan Respite Program / Family Caregiver Support",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Referral-only via agencies; priority tiers over strict income/assets; administered by specific regional agency despite statewide scope; flexible voucher for any-age special needs.",
+      "gotchas": [
+        "Must be referred by a professional agency; caregiver-direct applications rejected.",
+        "No ongoing publicly-funded respite or in-home care allowed.",
+        "Funds expire in 90 days; reimbursement-based only.",
+        "Priority-based allocation may limit access for non-priority caregivers.",
+        "Not a direct service; voucher for family-chosen respite providers.[1][3][5]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "www.highcountryaging.org/services/lifespan-respite-project"
+    },
+    {
+      "name": "NC Senior Community Service Employment Program (SCSEP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Grantee-administered with priority tiers; income scales by household size at 125% FPL; regional providers determine slots/wait times; no fixed asset limits",
+      "gotchas": [
+        "Income limit strictly 125% FPL—no asset test but proof required",
+        "Temporary bridge program (avg 6 months) to unsubsidized work—not permanent job",
+        "Priority tiers limit access for non-priority applicants",
+        "Funding delays/transitions may cause waitlists or slots",
+        "Must be unemployed and seeking work—not retirement income support",
+        "Paid at minimum wage only"
+      ],
+      "benefitType": "employment",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.ncdhhs.gov/divisions/aging/senior-community-services-employment-program"
+    },
+    {
+      "name": "NC Legal Assistance for Older Adults",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "no income test; age 60+ exempt from financial eligibility; statewide helpline with priority tiers; services via advice, letters, referrals rather than full representation for all",
+      "gotchas": [
+        "Priority for those with greatest economic/social need may mean non-priority cases receive referrals rather than direct representation[2][3][5]",
+        "Specific intake hours (9-11 AM, 1-3 PM M-F); call during those times[2][5]",
+        "Excludes prisoners; not for those under 60 (separate line: 1-866-219-5262)[1][5]",
+        "Free but civil matters only, focused on basic needs like safety, shelter, income[2][3]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://legalaidnc.org/project/senior-law-project/[3]"
+    },
+    {
+      "name": "NC Long-Term Care Ombudsman Program",
+      "isNew": false,
+      "existingId": "long-term-care-ombudsman-program",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$10,000 – $30,000/year",
+          "found": "Advocacy to resolve complaints about resident rights, quality of care/life; investigation of grievances; mediation with facilities; education on rights, elder abuse prevention/detection/reporting; monitoring of federal/state/local laws; facility visits (e.g., nursing homes every 3 months, adult care homes every 3 months, family care homes annually); confidential services at no cost.",
+          "source": "https://www.ncdhhs.gov/divisions/aging/long-term-care-ombudsman"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.ncdhhs.gov/divisions/aging/long-term-care-ombudsman"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits or tests apply.",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered by 16 regional offices (housed in Area Agencies on Aging) with local Community Advisory Committees (CACs) appointed by county commissioners; CACs conduct facility visits and report locally; specific contacts/offices vary by region (e.g., Albemarle Commission, Kerr Tar COG, Land of Sky, Central Pines, Piedmont Triad).",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Resident name/address, age/birthdate, caregiver name (if any), description of situation/concern, mental/physical condition details."
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "no income/asset test; advocacy-only for long-term care facility residents/families; delivered via 16 regional offices + local CACs with county-specific appointments/visits; complaint-driven, not enrollment-based",
+      "gotchas": [
+        "Not a financial aid, healthcare, or Medicaid program—purely advocacy/complaint resolution; no direct services like care or funding.",
+        "Abuse/neglect reports go to NC Division of Health Service Regulation or law enforcement, not solely ombudsman.",
+        "Review admission agreements carefully, especially arbitration clauses—consult attorney before signing.",
+        "Services are confidential and free, but ombudsmen cannot act if resident refuses involvement.",
+        "For Medicaid/long-term care funding, apply separately via local DSS; ombudsman can assist in facility selection but not approval.",
+        "Volunteering as CAC member has strict requirements (e.g., 18+, local residency, no conflicts of interest, 36-hour training)."
+      ],
+      "benefitType": "advocacy",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://www.ncdhhs.gov/divisions/aging/long-term-care-ombudsman"
+    },
+    {
+      "name": "North Carolina Homestead Exemption",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Statewide uniform eligibility/benefit formula, but county-administered applications; fixed income threshold (not scaled by household); one-time vs. annual application types; confusable with bankruptcy homestead protection",
+      "gotchas": [
+        "One-time application for main exclusion, but annual for Circuit Breaker—must reapply or lose benefit",
+        "Income based on prior full calendar year; exceeds limit = ineligible",
+        "Must own/occupy as of Jan 1; disqualifiers: death, property transfer, not using as permanent residence",
+        "Cannot receive other property tax relief simultaneously",
+        "Note: Separate from bankruptcy/creditor homestead exemption ($35k/$60k equity protection; automatic, no application)",
+        "Deadline June 1—miss it, miss the year",
+        "Veteran exclusion separate (no income test)"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "property_value",
+      "officialSource": "https://www.ncleg.net/enactedlegislation/statutes/html/bysection/chapter_105/gs_105-277.1.html"
+    },
+    {
+      "name": "North Carolina Long-Term Care Medicaid",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Income test is facility-specific pay rate (regional variation), not fixed amount; requires NFLOC assessment; multiple programs/waivers (nursing home vs HCBS) with tiered access/waitlists; spousal protections scale by joint assets.",
+      "gotchas": [
+        "No single income cap—must be <facility's Medicaid rate, but all income pays toward care (only $70 PNA kept).",
+        "5-year look-back penalty for asset transfers/gifts.",
+        "HCBS waivers have waitlists; nursing home preferred for faster access.",
+        "Home equity limit $730,000; intent to return must be realistic.",
+        "Spousal impoverishment rules complex—community spouse asset allowance up to $162,660.",
+        "ABD Medicaid (65+/blind/disabled) needed first for LTC add-ons.",
+        "Medically needy spend-down via medical expenses if over limit."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier|region",
+      "officialSource": "https://medicaid.ncdhhs.gov/providers/programs-and-services/long-term-care"
+    },
+    {
+      "name": "Project C.A.R.E. (Caregiver Alternatives to Running on Empty)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Project C.A.R.E. is a regionally fragmented program with no statewide uniform application process. Benefits are service-based rather than cash-based, with respite care vouchers being the primary financial component (limited availability). Eligibility is straightforward (dementia diagnosis + caregiver recognition of need) with no income or asset tests, but priority is given to underserved populations. The program's structure relies on regional Area Agencies on Aging as host agencies, meaning application methods, contact information, and processing times vary by county/region. No public data on processing times or waitlists is available.",
+      "gotchas": [
+        "Caregivers of persons CURRENTLY on Medicaid CAP/DA Waiver are ineligible for care consultation services, though they can still receive dementia education and referrals. This is a common point of confusion.[2]",
+        "There is NO income limit, but the program prioritizes low-income, minority, and rural families—meaning higher-income families may face longer waits or lower priority.[2][3]",
+        "Respite care vouchers are explicitly limited in availability.[5] Not all eligible caregivers will receive them.",
+        "The program is NOT statewide—coverage depends on which regional host agency serves your county. You must contact your specific regional provider.[2]",
+        "Processing time and waitlist status are not publicly documented, making it difficult to plan ahead.",
+        "The program began in 2001 and is described as the 'only state-funded, dementia-specific support' for caregivers in North Carolina, but availability varies significantly by region.[5]"
+      ],
+      "benefitType": "service|in_kind",
+      "benefitVariesBy": "Availability and individual need. Respite care vouchers are limited.[5] The level of assistance provided varies based on what the caregiver needs and prefers.[3]",
+      "officialSource": "https://www.ncdhhs.gov/divisions/aging/project-care-caregiver-alternatives-running-empty"
+    },
+    {
+      "name": "State-County Special Assistance - In Home",
+      "isNew": false,
+      "existingId": "special-assistance-state-ssi-supplement",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "min_age",
+          "ours": "65",
+          "found": "65 or older, or 18-64 and disabled per Social Security definition, or under 18 and legally blind[1][2][3]",
+          "source": "https://www.ncdhhs.gov/divisions/social-services/special-assistance/state-and-county-special-assistance-home-residents[7]"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$3,000 – $10,000/year",
+          "found": "Monthly cash payments for living expenses (food, shelter, clothing, daily necessities); 2024 maximum rates: Basic $1,326/month, Enhanced $1,700/month (requires Alzheimer's/dementia diagnosis verified by FL-2); automatic Medicaid eligibility[2][5]",
+          "source": "https://www.ncdhhs.gov/divisions/social-services/special-assistance/state-and-county-special-assistance-home-residents[7]"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.ncdhhs.gov/divisions/social-services/special-assistance/state-and-county-special-assistance-home-residents[7]"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Must meet State/County Special Assistance resource requirements (specific limits and exemptions not detailed in sources)[2][3]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered by local county DSS; contacts and processes may vary (e.g., specific phone numbers in Wake County); processing times standardized but potential regional differences in wait times or providers not detailed[1][2]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Eliminated; eligible applicants approved without delay[5]",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Income and asset information",
+            "Insurance information",
+            "State-issued proof of identity",
+            "Information on life and financial situation for assessment[1][2]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "County-administered statewide with local DSS variation; tiered benefits (Basic/Enhanced) by dementia diagnosis; no waitlist; scales by diagnosed needs rather than household size",
+      "gotchas": [
+        "Must exhaust Medicaid/community resources first[1]",
+        "Requires doctor-verified FL-2 form for Adult Care Home level of care[2][5]",
+        "Enhanced rate only for Alzheimer's/dementia with valid FL-2[2]",
+        "Case management mandatory: monthly contact, quarterly visits, annual assessment[1]",
+        "Spouse's income/assets do not affect eligibility[5]",
+        "Eligibility case-by-case; not automatic even if criteria met[1]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.ncdhhs.gov/divisions/social-services/special-assistance/state-and-county-special-assistance-home-residents[7]"
+    }
+  ]
+}

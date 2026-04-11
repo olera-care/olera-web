@@ -1,0 +1,51 @@
+{
+  "entity": "Virginia",
+  "entitySlug": "virginia",
+  "state": "VA",
+  "stateName": "Virginia",
+  "isRegion": false,
+  "exploredAt": "2026-04-09T17:01:51.661Z",
+  "programCount": 5,
+  "programs": [
+    {
+      "name": "Commonwealth Coordinated Care Plus (CCC+) Waiver",
+      "what_it_does": "This state Medicaid managed care waiver provides long-term care and community-based supports, including skilled nursing, assisted living, personal care, home health care, prescription medications, durable medical equipment, and routine vision screenings. Unlike typical waivers, it has no waiting lists and serves seniors and disabled adults requiring nursing home or hospital level of care.[1][2]",
+      "who_its_for": "Virginia residents aged 65 or older (or disabled if younger), U.S. citizens or qualifying noncitizens, meeting nursing home level of care via Uniform Assessment Instrument, with income/resource limits.[2]",
+      "whats_unique": "Virginia's specific implementation as a statewide managed care waiver with no waiting lists, covering a broad range of long-term services without institutionalization risk prioritization seen elsewhere.[1][2]",
+      "official_url": "https://commonhelp.virginia.gov",
+      "benefit_value": "Comprehensive long-term care services including home health, assisted living, and medical equipment; serves over 2 million adults, value varies by assessed needs and funding.[1][2]"
+    },
+    {
+      "name": "Virginia Adult Services Program",
+      "what_it_does": "Provides home-based care and support services to help seniors maintain independence. Care hours are tailored to individual needs and funding availability through local agencies.[1]",
+      "who_its_for": "Virginia seniors aged 60+, particularly low-income, rural, minority individuals, those with limited English, or at risk of institutionalization.[1]",
+      "whats_unique": "State-funded program prioritizing home-based independence for at-risk seniors, integrated with the No Wrong Door system to reduce bureaucratic barriers, not a universal federal offering.[1]",
+      "official_url": "https://dars.virginia.gov/aging/",
+      "benefit_value": "Variable home care hours based on needs; connects to broader services like meals and transportation via local Area Agencies on Aging.[1][5]"
+    },
+    {
+      "name": "Virginia Insurance Counseling and Assistance Program (VICAP)",
+      "what_it_does": "Offers free, unbiased Medicare counseling, explaining options, comparing plans, and identifying savings. Provides objective guidance without sales pressure.[6]",
+      "who_its_for": "All Virginians with Medicare, especially older adults navigating benefits.[6]",
+      "whats_unique": "State-specific SHIP program delivering personalized, no-cost counseling tailored to Virginia's Medicare landscape, beyond federal basics.[6]",
+      "official_url": "https://dars.virginia.gov/benefits/",
+      "benefit_value": "Free counseling leading to plan savings and better coverage; no direct monetary value but significant cost reductions on premiums/drugs.[6]"
+    },
+    {
+      "name": "SeniorNavigator",
+      "what_it_does": "Connects older residents with local support services across Virginia counties, including home care, transportation, and more. Serves as a centralized resource hub for aging services.[1]",
+      "who_its_for": "Virginia residents aged 50+, focusing on those 60+ needing community supports.[1]",
+      "whats_unique": "Virginia's statewide system linking seniors to county-specific services, integrated with Adult Services, not replicated in every state.[1]",
+      "official_url": "https://www.seniornavigator.org",
+      "benefit_value": "Access to tailored local services like meals, homemaker help, and transport; indirect savings through coordinated care.[1]"
+    },
+    {
+      "name": "Senior Employment Program",
+      "what_it_does": "Assists low-income older adults in finding jobs and demonstrates to businesses the value of hiring experienced workers. Promotes employment opportunities for seniors.[5]",
+      "who_its_for": "Low-income Virginia seniors seeking employment.[5]",
+      "whats_unique": "State-run initiative under DARS specifically for senior job placement and employer education, supplementing federal programs like SCSEP.[5]",
+      "official_url": "https://dars.virginia.gov/aging/",
+      "benefit_value": "Job placement leading to income; wage subsidies or training not quantified but targets independence.[5]"
+    }
+  ]
+}

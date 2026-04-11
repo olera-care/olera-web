@@ -1,0 +1,88 @@
+{
+  "entity": "Connecticut",
+  "entitySlug": "connecticut",
+  "state": "CT",
+  "stateName": "Connecticut",
+  "isRegion": false,
+  "exploredAt": "2026-04-09T12:32:48.266Z",
+  "programCount": 11,
+  "programs": [
+    {
+      "name": "HUSKY Health (Medicaid for seniors/disabled)",
+      "what_it_does": "Provides medical coverage including long-term care services for eligible low-income seniors and disabled individuals. In Connecticut, it is administered through the Department of Social Services as HUSKY Health plans.[4]",
+      "who_its_for": "Low-income seniors aged 65+ and adults with disabilities meeting income and asset limits.",
+      "official_url": "https://portal.ct.gov/dss",
+      "benefit_value": "Varies by eligibility; covers doctor visits, hospital care, prescription drugs, and nursing home care."
+    },
+    {
+      "name": "Connecticut Home Care Program for Elders (CHCPE) - Medicare Savings",
+      "what_it_does": "Covers Medicare premiums, deductibles, and cost-sharing (QMB, SLMB, QI) for eligible low-income seniors. Administered via CHCPE financial eligibility screening.[1][2]",
+      "who_its_for": "Low-income Medicare beneficiaries meeting specific income thresholds for QMB, SLMB, QI.",
+      "official_url": "https://portal.ct.gov/dss",
+      "benefit_value": "Pays Medicare Part A/B premiums (up to $170+/month for SLMB) and co-pays."
+    },
+    {
+      "name": "Program of All-Inclusive Care for the Elderly (CT PACE)",
+      "what_it_does": "Delivers comprehensive medical and social services to frail seniors in community settings. Administered through approved CT providers as part of federal PACE program.[4]",
+      "who_its_for": "Nursing home eligible seniors 55+ who can live safely in the community.",
+      "official_url": "https://portal.ct.gov/aging",
+      "benefit_value": "All-inclusive care including medical, therapies, transportation, and meals."
+    },
+    {
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "what_it_does": "Provides monthly benefits via EBT card for purchasing food at approved retailers. Administered by CT Department of Social Services.[4]",
+      "who_its_for": "Low-income seniors 60+ or households meeting income guidelines.",
+      "official_url": "https://portal.ct.gov/dss",
+      "benefit_value": "Average $200+ per month per eligible senior household."
+    },
+    {
+      "name": "Connecticut Energy Assistance Program (CEAP)",
+      "what_it_does": "Offers grants to help pay heating costs during winter months. Administered by Department of Social Services.[5]",
+      "who_its_for": "Low-income households including seniors meeting income eligibility.",
+      "official_url": "https://portal.ct.gov/dss",
+      "benefit_value": "Grants from $200-$1,500+ based on household size and income."
+    },
+    {
+      "name": "Weatherization Assistance Program",
+      "what_it_does": "Provides free home energy efficiency improvements like insulation and furnace repairs. Administered through CT community action agencies.[5]",
+      "who_its_for": "Low-income homeowners/renters including seniors (200% FPL).",
+      "official_url": "https://portal.ct.gov/dss",
+      "benefit_value": "Free weatherization services valued at $5,000-$10,000 per home."
+    },
+    {
+      "name": "CHOICES (CT SHIP)",
+      "what_it_does": "Offers free Medicare counseling, education, and assistance on benefits and options. Administered by CT Department on Aging.[2][4]",
+      "who_its_for": "All Medicare beneficiaries, families, and caregivers in Connecticut.",
+      "official_url": "https://portal.ct.gov/aging",
+      "benefit_value": "Free one-on-one counseling; helps save thousands on premiums/coverage."
+    },
+    {
+      "name": "Connecticut Statewide Respite Care Program",
+      "what_it_does": "Provides respite services to relieve family caregivers of seniors with Alzheimer's or related dementias. Offers in-home and out-of-home care up to 30 days/year.[1][4]",
+      "who_its_for": "Family caregivers of seniors with Alzheimer's/dementia.",
+      "official_url": "https://portal.ct.gov/aging",
+      "benefit_value": "Up to $3,500/year and 30 days respite services."
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "what_it_does": "Provides part-time paid community service work training for low-income seniors. Administered through CT Area Agencies on Aging.[2]",
+      "who_its_for": "Unemployed low-income seniors 55+.",
+      "official_url": "https://portal.ct.gov/aging",
+      "benefit_value": "Minimum wage work experience (20 hrs/week) leading to employment."
+    },
+    {
+      "name": "Legal Assistance for Seniors",
+      "what_it_does": "Provides free legal services to low-income seniors on issues like housing, benefits, and consumer protection. Funded through Area Agencies on Aging.[2][6]",
+      "who_its_for": "Income-eligible seniors 60+.",
+      "official_url": "https://portal.ct.gov/aging",
+      "benefit_value": "Free legal representation valued at $200+/hour."
+    },
+    {
+      "name": "Long Term Care Ombudsman Program",
+      "what_it_does": "Advocates for residents in long-term care facilities resolving complaints and protecting rights. Administered statewide by Department on Aging.[2]",
+      "who_its_for": "Residents of nursing homes, assisted living, and other LT facilities.",
+      "official_url": "https://portal.ct.gov/aging",
+      "benefit_value": "Free advocacy services; resolves 80%+ of complaints."
+    }
+  ]
+}

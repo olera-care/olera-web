@@ -1,0 +1,222 @@
+{
+  "state": "VA",
+  "stateName": "Virginia",
+  "comparedAt": "2026-04-09T17:02:28.467Z",
+  "total": 5,
+  "newPrograms": 3,
+  "withDiffs": 2,
+  "withNovelFields": 2,
+  "benefitTypes": {
+    "service": 4,
+    "employment": 1
+  },
+  "variationPatterns": {
+    "priority_tier": 2,
+    "priority_tier|region": 1,
+    "not_applicable": 1,
+    "region": 1
+  },
+  "novelFieldSummary": {
+    "asset_limits": {
+      "count": 1,
+      "programs": [
+        "Commonwealth Coordinated Care Plus (CCC+) Waiver"
+      ],
+      "note": "Our model has no asset limit fields"
+    },
+    "regional_variations": {
+      "count": 2,
+      "programs": [
+        "Commonwealth Coordinated Care Plus (CCC+) Waiver",
+        "Virginia Insurance Counseling and Assistance Program (VICAP)"
+      ],
+      "note": "Program varies by region — our model doesn't capture this"
+    },
+    "waitlist": {
+      "count": 2,
+      "programs": [
+        "Commonwealth Coordinated Care Plus (CCC+) Waiver",
+        "Virginia Insurance Counseling and Assistance Program (VICAP)"
+      ],
+      "note": "Has waitlist info — our model has no wait time field"
+    },
+    "documents_required": {
+      "count": 2,
+      "programs": [
+        "Commonwealth Coordinated Care Plus (CCC+) Waiver",
+        "Virginia Insurance Counseling and Assistance Program (VICAP)"
+      ],
+      "note": "Has document checklist — our model doesn't store per-program documents"
+    }
+  },
+  "comparisons": [
+    {
+      "name": "Commonwealth Coordinated Care Plus (CCC+) Waiver",
+      "isNew": false,
+      "existingId": "commonwealth-coordinated-care-plus-ccc-plus-waiver",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$10,000 – $30,000/year",
+          "found": "Home and Community-Based Services (HCBS) including: Respite (480 hours per State fiscal year, July 1-June 30); Environmental Modifications (EM, up to $5,000 per individual per calendar year); Assistive Technology (AT, up to $5,000 per individual per calendar year); Private Duty Nursing (up to 112 hours per week); Transition Services (up to $5,000 per individual per lifetime). Other supports for older adults, physical disabilities, chronic illness; enrolled in managed care receive transition supports. Waiver reimbursement rates on DMAS site.[2][3]",
+          "source": "https://www.dmas.virginia.gov/for-members/benefits-and-services/waivers/ccc-plus-waiver/[2]"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.dmas.virginia.gov/for-members/benefits-and-services/waivers/ccc-plus-waiver/[2]"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Must meet Virginia Medicaid financial eligibility (income and assets). No specific dollar amounts provided; spousal protections apply.[1]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Screenings by local DSS and health departments; providers located by screening team in applicant's area. Examples: Fairfax County - under 18 call 703-222-0880, 18+ call 703-324-7948.[2][6]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "No current waiting list.[5]",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Documents for Medicaid eligibility and LTSS screening (not detailed; prepare income/asset proof, medical records for NFLOC assessment via UAI).[1][2]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "No waitlist unlike some waivers; eligibility ties to Medicaid with NFLOC via UAI tool; services have hard caps (e.g., 480 respite hours/year, 112 nursing hours/week); screenings always local via DSS/health depts.",
+      "gotchas": [
+        "Must meet Medicaid financial eligibility first; applying over limits leads to denial.[1]",
+        "Dementia diagnosis alone does not qualify; must meet NFLOC via UAI.[1]",
+        "Services more limited than DD waivers; can use CCC+ while on DD waitlist.[5][6]",
+        "Must be at imminent risk of NF placement.[3]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.dmas.virginia.gov/for-members/benefits-and-services/waivers/ccc-plus-waiver/[2]"
+    },
+    {
+      "name": "Virginia Adult Services Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Administered locally by 120+ DSS offices with state oversight; no fixed statewide income/asset test; services scale by assessed need/priority and local funding; provider approvals vary by locality",
+      "gotchas": [
+        "Not Medicaid (separate financial eligibility); services optional and funding-limited",
+        "Must report changes within 10 days or risk prosecution for inaccurate info",
+        "Targeted at at-risk elderly/disabled; anyone can apply but priority for protective needs",
+        "Local variations in providers/hours; no guaranteed hours statewide[2][4][7]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier|region",
+      "officialSource": "https://www.dss.virginia.gov/adults.cgi"
+    },
+    {
+      "name": "Virginia Insurance Counseling and Assistance Program (VICAP)",
+      "isNew": false,
+      "existingId": "virginia-insurance-counseling-and-assistance-program-vicap",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$3,000 – $10,000/year",
+          "found": "Free, unbiased, confidential one-on-one counseling and group workshops. No dollar limits specified; services include plan comparison, enrollment assistance, appeals support, and fraud prevention education.",
+          "source": "https://dars.virginia.gov/aging/home-community/medicare-counseling/"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://dars.virginia.gov/aging/home-community/medicare-counseling/"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "regional_variations",
+          "value": "Different regional offices have different phone numbers and mailing addresses. For example, Fairfax County uses (703) 324-5851, while other regions use (540) 635-7141. Each locality has its own Area Agency on Aging contact point.",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Not mentioned in available sources",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Current Medicare plan information (if applicable)",
+            "Preferred pharmacy name",
+            "Home zip code",
+            "Information about Medicaid status (if applicable)",
+            "Information about Supplemental Security Income (SSI) status (if applicable)",
+            "Information about Medicare Savings Programs enrollment (if applicable)",
+            "Information about Extra Help enrollment (if applicable)"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "VICAP is a service-based counseling program, not a financial assistance program. There are no income limits, asset limits, or benefit dollar amounts because the program provides education and guidance, not direct payments. Eligibility is based on Medicare status, not financial need. The program is delivered through a network of local Area Agencies on Aging, so access points vary by county. The key distinction is that VICAP counselors do not sell insurance and cannot receive commissions, ensuring unbiased advice. Services are entirely free. Processing time and waitlist information are not publicly documented, suggesting either no significant delays or that this information is managed locally by each Area Agency on Aging.",
+      "gotchas": [
+        "VICAP counselors cannot sell insurance — they provide unbiased guidance only. Do not expect them to push any particular plan.",
+        "You must contact your local Area Agency on Aging to access VICAP services; there is no direct walk-in service at the main DARS office.",
+        "Medicare Annual Open Enrollment Period is October 15 to December 7 each year; changes made during this period are effective January 1 of the following year. Outside this window, plan changes are limited.",
+        "VICAP serves not just seniors but 'any beneficiary, including those with disabilities and younger than 65,' meaning younger disabled Medicare beneficiaries qualify.",
+        "The program is free and confidential — there are no hidden fees or sales pitches.",
+        "Counselors are trained and certified specifically for Medicare counseling; they are not general financial advisors.",
+        "If you have both Medicare and Medicaid, you may qualify for special Dual Eligible Special Needs Plans (D-SNPs) — VICAP counselors can help identify these."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://dars.virginia.gov/aging/home-community/medicare-counseling/"
+    },
+    {
+      "name": "SeniorNavigator",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Resource directory with drill-down details on 27,000+ programs; varies by locality with no direct eligibility test for the tool itself; public-private nonprofit partnership unique in using technology for customized local searches[1]",
+      "gotchas": [
+        "Not a direct service or benefits program—it's a navigator tool to find and compare other programs' eligibility, applications, and costs; users must follow through on listed services separately, which may have their own waitlists or requirements[1][3]",
+        "Over 1 million annual visits indicate high usage, but success depends on acting on referrals[1]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "region",
+      "officialSource": "https://www.virginianavigator.org/"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Federally-authorized (Older Americans Act) but regionally-administered by grantees like DARS; income at 125% FPL by household size (annual update); priority tiers; no asset test; availability/waitlists vary by local provider and funding",
+      "gotchas": [
+        "Must be fully unemployed; any paid hours disqualifies[3][4]",
+        "Income at 125% FPL (not 100%); regular Social Security counts, but SSI/SSDI does not[1][2][3]",
+        "Priority service for veterans, 65+, disabled, rural, homeless, low literacy—not guaranteed slot[3][5]",
+        "Temporary training only (up to 29 hrs/wk); goal is unsubsidized job exit[4][5][7]",
+        "Regional providers only; must live in their coverage area[1][4]"
+      ],
+      "benefitType": "employment",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://dars.virginia.gov/aging/senior-employment-program/"
+    }
+  ]
+}

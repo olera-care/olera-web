@@ -1,0 +1,173 @@
+{
+  "state": "DC",
+  "stateName": "District of Columbia",
+  "classifiedAt": "2026-04-09T17:43:15.161Z",
+  "total": 4,
+  "typeSummary": {
+    "benefit": 3,
+    "resource": 1
+  },
+  "scopeSummary": {
+    "state": 4
+  },
+  "complexitySummary": {
+    "deep": 3,
+    "simple": 1
+  },
+  "programs": [
+    {
+      "name": "Elderly and Persons with Physical Disabilities (EPD) Waiver Program",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Liberty Healthcare (assessments)[1][2]",
+            "type": "service-area"
+          },
+          {
+            "name": "DACL Medicaid Services Enrollment Unit (MES)[1][6]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": false,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Safe at Home Program",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Administered by Department of Aging and Community Living (DACL)",
+            "type": "service-area"
+          },
+          {
+            "name": "Historically administered through Home Care Partners (DCOA grantee) in partnership with District of Columbia Office on Aging and Department of Housing and Community Development[5]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "in_kind",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": false,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "DACL Benefits Assistance",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "DACL Medicaid Enrollment Services (MES)",
+            "type": "service-area"
+          },
+          {
+            "name": "Aging and Disability Resource Center (ADRC)",
+            "type": "service-area"
+          },
+          {
+            "name": "Liberty Healthcare for assessments",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": false,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "DC Senior Centers",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "SOME Senior Services (1395 Aspen St. NW)",
+            "type": "service-area"
+          },
+          {
+            "name": "Vida Senior Centers (multiple sites for Hispanic seniors)",
+            "type": "service-area"
+          },
+          {
+            "name": "D.C. Office on Aging ADRC",
+            "type": "service-area"
+          },
+          {
+            "name": "Various community centers across DC",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    }
+  ]
+}

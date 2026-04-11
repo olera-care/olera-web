@@ -26,6 +26,73 @@ export interface MapPin {
   lng: number;
 }
 
+// ─── Pipeline v2: Classification & Content Types ─────────────────────────────
+
+export type ProgramType = "benefit" | "resource" | "navigator" | "employment";
+export type ProgramComplexity = "deep" | "medium" | "simple";
+export type ContentStatus = "pipeline-draft" | "under-review" | "approved" | "published";
+
+export interface GeographicScope {
+  type: "federal" | "state" | "local";
+  stateVariation?: boolean;
+  localEntities?: LocalEntity[];
+}
+
+export interface LocalEntity {
+  name: string;
+  type: "county" | "city" | "service-area" | "region";
+  provider?: string;
+  phone?: string;
+  address?: string;
+  url?: string;
+}
+
+export interface IncomeRow {
+  householdSize: number;
+  monthlyLimit: number;
+  annualLimit?: number;
+}
+
+export interface AssetLimits {
+  individual?: number;
+  couple?: number;
+  countedAssets?: string[];
+  exemptAssets?: string[];
+  homeEquityCap?: number;
+}
+
+export interface ApplicationGuide {
+  method: "online" | "phone" | "mail" | "in-person" | "multiple";
+  summary: string;
+  steps?: ApplicationStep[];
+  processingTime?: string;
+  waitlist?: string;
+  tip?: string;
+  urls?: { label: string; url: string }[];
+}
+
+export interface StructuredEligibility {
+  summary: string[];
+  incomeTable?: IncomeRow[];
+  assetLimits?: AssetLimits;
+  functionalRequirement?: string;
+  ageRequirement?: string;
+  otherRequirements?: string[];
+  povertyLevelReference?: string;
+}
+
+export type ContentSection =
+  | { type: "prose"; heading: string; body: string }
+  | { type: "tier-comparison"; heading?: string; tiers: { name: string; description: string; incomeLimit?: string; coverage?: string }[] }
+  | { type: "income-table"; heading?: string; rows: IncomeRow[]; footnote?: string }
+  | { type: "county-directory"; heading?: string; offices: LocalEntity[] }
+  | { type: "provider-list"; heading?: string; providers: { name: string; area: string; phone?: string; url?: string }[] }
+  | { type: "what-counts"; heading?: string; included: string[]; excluded: string[] }
+  | { type: "documents"; heading?: string; categories: { name: string; items: string[] }[] }
+  | { type: "callout"; tone: "info" | "warning" | "tip"; text: string };
+
+// ─── WaiverProgram ───────────────────────────────────────────────────────────
+
 export interface WaiverProgram {
   id: string;
   name: string;
@@ -52,6 +119,43 @@ export interface WaiverProgram {
   verifiedBy?: string; // e.g., "chantel", "pipeline"
   savingsSource?: string; // Where the savings estimate came from
   savingsVerified?: boolean; // true = researched, false/undefined = category estimate
+
+  // Pipeline v2: Classification (optional — old programs won't have these)
+  programType?: ProgramType;
+  geographicScope?: GeographicScope;
+  complexity?: ProgramComplexity;
+
+  // Pipeline v2: Rich content (optional — replaces flat fields when present)
+  applicationGuide?: ApplicationGuide;
+  structuredEligibility?: StructuredEligibility;
+  contentSections?: ContentSection[];
+
+  // Pipeline v3: Chantel-depth content fields
+  documentsNeeded?: string[] | null; // 6-15 program-specific items ("Social Security card", not "proof of identity")
+  contacts?: { label: string; description?: string; phone?: string | null; hours?: string }[] | null;
+  applicationNotes?: string[] | null; // Conditional guidance ("Crisis cases may get expedited processing")
+  relatedPrograms?: string[] | null; // Sibling programs by name
+  regionalApplications?: { region: string; counties?: string[]; url: string; isPdf?: boolean }[] | null;
+
+  // Pipeline v3: Layout intent — which visual components Claude recommends for this program
+  layoutIntent?: {
+    aboutHighlight?: "savings" | "coverage" | "waitlist"; // What stat to feature in the bold moment
+    eligibilityDisplay?: "income-table" | "asset-focused" | "simple-list"; // How to render eligibility
+    applyDisplay?: "step-journey" | "single-action" | "phone-cta"; // Application UX pattern
+    hasLocationFinder?: boolean;
+    hasDocumentChecklist?: boolean;
+    visualTone?: "editorial" | "warm" | "minimal"; // How much design energy to apply
+  } | null;
+
+  // Pipeline v3: Program icon (Phosphor icon name)
+  icon?: string | null;
+
+  // Pipeline v2: Content lifecycle
+  contentStatus?: ContentStatus;
+  draftedAt?: string;
+  reviewedBy?: string;
+  reviewedAt?: string;
+  contentNotes?: string;
 }
 
 export interface StateData {
@@ -4489,24 +4593,75 @@ const michiganPrograms: WaiverProgram[] = [
   {
     id: "mi-choice-waiver-program",
     name: "MI Choice Waiver Program",
-    shortName: "MI Choice Waiver Program",
-    tagline: "Medicaid waiver providing home and community-based services to seniors needing nursing home level of care.",
+    shortName: "MI Choice Waiver",
+    tagline: "If your parent needs daily care but wants to stay home, MI Choice may cover home health aides, adult day programs, and more.",
     savingsRange: "$10,000 – $30,000/year",
     description: "Medicaid waiver providing home and community-based services to seniors needing nursing home level of care.",
     eligibilityHighlights: [
-      "Age 65 or older",
-      "Income below $2901/month",
-      "Must be enrolled in Medicaid",
+      "Age 65+ or disabled",
+      "Monthly income under $2,901",
+      "Assets under $9,950",
+      "Needs daily care help",
+      "Medicaid eligible",
     ],
     applicationSteps: [
-      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
-      { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
-      { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
+      { step: 1, title: "Call your regional MI Choice agency", description: "Contact your area's agency for initial phone screening to determine if your parent meets basic eligibility requirements." },
+      { step: 2, title: "Complete phone screening", description: "Agency staff will ask about your parent's income, assets, medical conditions, and daily care needs over the phone." },
+      { step: 3, title: "Schedule in-home assessment", description: "If eligible, a nurse or social worker will visit your parent's home to conduct the Nursing Facility Level of Care assessment." },
+      { step: 4, title: "Develop care plan", description: "If approved, the supports coordinator will create a personalized service plan based on your parent's specific needs and preferences." },
     ],
     forms: [
       { id: "michigan-medicaid-application", name: "Michigan Medicaid Application", description: "Official Michigan Medicaid application, required for waiver enrollment.", url: "https://newmibridges.michigan.gov" },
       { id: "michigan-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://newmibridges.michigan.gov" },
     ],
+    // Pipeline v2
+    programType: "benefit",
+    complexity: "deep",
+    geographicScope: { type: "state", localEntities: [{ name: "Regional AAAs and partners", type: "service-area" as const }] },
+    intro: "If your aging parent needs help with bathing, dressing, or managing medications but wants to avoid a nursing home, MI Choice may pay for home health aides, adult day programs, meal delivery, and other services that let them stay home safely. This Medicaid waiver covers the same level of care they'd get in a nursing facility — but delivered at home or in the community.\n\nYour parent must be 65+ (or disabled if younger) and meet nursing home-level care requirements through a clinical assessment. They also need to qualify financially: monthly income under $2,901 and countable assets under $9,950 (home and one car don't count). The program is available statewide but administered through regional agencies, so wait times and specific services may vary by area.",
+    structuredEligibility: {
+      summary: ["Age 65+ or disabled", "Monthly income under $2,901", "Assets under $9,950", "Needs daily care help", "Medicaid eligible"],
+      ageRequirement: "65+",
+      assetLimits: {
+        individual: 9950,
+        countedAssets: ["Bank accounts", "Investments", "Second vehicles", "Property other than primary home"],
+        exemptAssets: ["Primary residence", "One vehicle", "Personal belongings", "Burial funds up to limits"],
+      },
+      functionalRequirement: "Must meet Nursing Facility Level of Care (a clinical assessment of whether your parent needs daily help with bathing, dressing, medication management, or has cognitive impairment requiring supervision)",
+      otherRequirements: ["Must be Medicaid eligible", "Must require supports coordination plus at least one other waiver service", "Cannot currently live in a nursing facility"],
+      povertyLevelReference: "300% of Federal Benefit Rate",
+    },
+    applicationGuide: {
+      method: "multiple",
+      summary: "Call your regional MI Choice agency for a phone screening, followed by an in-home assessment if you qualify.",
+      steps: [
+        { step: 1, title: "Call your regional MI Choice agency", description: "Contact your area's agency for initial phone screening to determine if your parent meets basic eligibility requirements." },
+        { step: 2, title: "Complete phone screening", description: "Agency staff will ask about your parent's income, assets, medical conditions, and daily care needs over the phone." },
+        { step: 3, title: "Schedule in-home assessment", description: "If eligible, a nurse or social worker will visit your parent's home to conduct the Nursing Facility Level of Care assessment." },
+        { step: 4, title: "Develop care plan", description: "If approved, the supports coordinator will create a personalized service plan based on your parent's specific needs and preferences." },
+      ],
+      processingTime: "Varies by region — initial screening plus in-home assessment",
+      waitlist: "Possible if program at capacity in your region",
+      tip: "Have your parent's medical records and recent bank statements ready before calling — the phone screening covers both health and financial eligibility.",
+    },
+    contentSections: [
+      { type: "callout", tone: "warning", text: "Dementia diagnosis alone does not qualify. Your parent must demonstrate specific functional limitations through the clinical assessment — needing hands-on help with daily activities like bathing, dressing, or eating." },
+      { type: "callout", tone: "tip", text: "If your parent's income is slightly over the $2,901 limit, ask about the \"spend down\" option — they may still qualify after deducting medical expenses." },
+    ],
+    faqs: [
+      { question: "Can my parent keep their house if they qualify?", answer: "Yes. The primary home is exempt from asset limits, regardless of value. One vehicle is also exempt. MI Choice is specifically designed to help people stay in their homes." },
+      { question: "What if Mom's income is just over the limit?", answer: "Michigan has a spend-down option. If medical expenses bring your parent's countable income below the limit, they may still qualify. Ask the MI Choice agency about this during the phone screening." },
+      { question: "How long does it take to get approved?", answer: "The timeline varies by region. After the initial phone screening, an in-home assessment is scheduled. If your parent qualifies, a care plan is developed and services can begin. Some regions have waitlists if the program is at capacity." },
+      { question: "Can family members be paid caregivers?", answer: "In some cases, yes. MI Choice allows certain family members (not spouses) to be hired as paid caregivers through the program. The supports coordinator can explain the specific rules for your situation." },
+      { question: "What happens if my parent's condition changes?", answer: "The care plan is reviewed regularly and adjusted as needs change. If your parent needs more or fewer services, the supports coordinator updates the plan accordingly." },
+    ],
+    contentStatus: "pipeline-draft",
+    draftedAt: "2026-04-08",
+    sourceUrl: "https://www.michigan.gov/mdhhs/assistance-programs/medicaid/portalhome/medicaid-program/mi-choice",
+    lastVerifiedDate: "2026-04-08",
+    verifiedBy: "pipeline",
+    savingsSource: "Comparison to private-pay home care rates",
+    savingsVerified: false,
   },
   {
     id: "medicare-savings-program",

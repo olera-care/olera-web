@@ -1,12 +1,6 @@
-# Senior Benefits Expansion Pipeline
+# Senior Benefits Pipeline — Content Production System
 
-You are helping expand Olera's senior benefits coverage to new states. The pipeline explores benefit programs, verifies data against official sources, flags errors in our existing data, and updates the site.
-
-This skill supports two modes:
-- **New state mode**: Run the full pipeline on a state
-- **Apply mode**: Ingest pipeline findings into the codebase after review
-
-Always start with Step 0 to understand the current state before doing any work.
+You are helping expand Olera's senior benefits coverage. The pipeline discovers programs, researches them, classifies their type and complexity, generates page content drafts, and produces reports. Run it autonomously end-to-end without pausing for approval.
 
 ## Environment Setup
 
@@ -15,57 +9,80 @@ Always start with Step 0 to understand the current state before doing any work.
 cd ~/Desktop/olera-web && npx vercel env pull .env.local
 ```
 
+Required keys:
+- `PERPLEXITY_API_KEY` — for explore + dive phases (research)
+- `ANTHROPIC_API_KEY` — for draft phase (content generation)
+
 **Node scripts must run from `~/Desktop/olera-web`** (has node_modules). Worktrees don't have node_modules installed. The pipeline script handles worktree env loading automatically.
 
 ## Step 0: Understand Current State
 
-Check what's already been explored:
+**First, check for approved drafts ready to publish.** Query the draft reviews API:
+
+```bash
+curl -s "https://staging-olera2-web.vercel.app/api/admin/draft-reviews" \
+  -H "Cookie: $(cat ~/.olera-session 2>/dev/null || echo '')" | head -200
+```
+
+If that fails (auth required), check the local pipeline data instead:
 
 ```bash
 ls data/pipeline/
 ```
 
-Each directory is a state that's been explored. For each, check if it has:
+Each directory is a state. Check for:
 - `explore.json` — landscape survey done
 - `dive.json` — deep dives done
 - `compare.json` — comparison done
+- `classify.json` — classification done (program types, geo scopes, complexity)
+- `drafts.json` — content drafts generated
 - `exploration_report.md` — report generated
 
 Also check the admin dashboard data:
 ```bash
-cat data/pipeline-summary.ts | head -40
+cat data/pipeline-summary.ts | head -50
 ```
 
-Check which states have verified programs in `waiver-library.ts`:
-```bash
-node scripts/benefits-pipeline.js --state TX
-```
+**Present a summary to the user:**
+1. **Approved drafts** — If any programs across any states have been marked "approved" in the review workflow, list them prominently: "{N} programs approved and ready to publish: {list}. Apply all?"
+2. **State overview status** — Check if any state overviews have been approved (review with `programId: "state-overview"`). List: "{State} state page: approved/pending/needs-changes"
+3. **Pipeline status** — Which states have been explored, classified, drafted
+4. **Needs attention** — Any programs or state overviews marked "needs-changes" with reviewer comments
+5. **Next states** — Suggest the next high-population states to explore
 
-Present a summary: which states have been explored, which have verified data, what's the next state to tackle. Ask what the user wants to do.
+If approved drafts exist, offer to apply them first before doing any new exploration. Applying means: read the draft from `data/pipeline/{STATE}/drafts.json`, write the v2 fields into the matching program in `data/waiver-library.ts`, commit, and push.
+
+If an approved state overview exists, the state page is already rendering from `pipeline-drafts.ts` — no separate apply step needed. Just confirm the v2 state page looks good at `/senior-benefits/{state-id}` (compare with old page at `/current`).
 
 ## Pipeline Script Reference
 
 ```bash
-# Dry run (preview what would happen)
-node scripts/benefits-pipeline.js --state MI
-
-# Full exploration (~4 min, ~$0.09)
-node scripts/benefits-pipeline.js --state MI --run
-
-# Single phase only
+# State (original shorthand)
+node scripts/benefits-pipeline.js --state MI              # dry-run
+node scripts/benefits-pipeline.js --state MI --run        # full pipeline
 node scripts/benefits-pipeline.js --state MI --phase explore --run
-node scripts/benefits-pipeline.js --state MI --phase dive --run
-node scripts/benefits-pipeline.js --state MI --phase compare --run
-node scripts/benefits-pipeline.js --state MI --phase report --run
+
+# Region (any geographic entity)
+node scripts/benefits-pipeline.js --region "Miami-Dade County, FL" --parent-state FL --run
+node scripts/benefits-pipeline.js --region "Greater Houston" --parent-state TX --run
+node scripts/benefits-pipeline.js --region "DMV" --run
 ```
 
-**Phases run in order. Each phase reads the previous phase's output:**
-- `explore` → finds all programs (2 Perplexity queries: federal + state-unique)
-- `dive` → deep dives each program (1 Perplexity query per program, open-ended)
-- `compare` → cross-references against `waiver-library.ts`, surfaces diffs and novel fields
-- `report` → generates markdown report + auto-updates `data/pipeline-summary.ts`
+`--state XX` is shorthand for `--region "{state name}"`. `--parent-state` links a region to a state for comparison data.
 
-**Resumable:** If a phase was already run, its output file exists and later phases can read it. You can re-run just one phase without re-running the rest.
+**Six phases run in order. Each reads the previous phase's output:**
+1. `explore` — finds all programs (2 Perplexity queries adapted to entity type)
+2. `dive` — deep dives each program (1 Perplexity query per program)
+3. `compare` — cross-references against `waiver-library.ts` (uses parent state data for regions)
+4. `classify` — determines program type, geographic scope, complexity ($0, local processing)
+5. `draft` — generates structured page content via Claude API (1 call per program)
+6. `report` — generates markdown report + auto-updates `data/pipeline-summary.ts` and `data/pipeline-drafts.ts`
+
+**Output:** State data goes to `data/pipeline/{STATE_CODE}/`, region data to `data/pipeline/{slug}/` (e.g., `data/pipeline/miami-dade-county-fl/`).
+
+**Resumable:** If a phase was already run, its output file exists and later phases can read it.
+
+**Pages:** States render at `/senior-benefits/{state-id}` (existing). All entities also render at `/benefits/{slug}` (flat routing — "michigan" and "miami-dade-county-fl" are peers).
 
 ## Step 1: Explore a State
 
@@ -75,13 +92,6 @@ Run the full pipeline:
 node scripts/benefits-pipeline.js --state XX --run
 ```
 
-This takes ~4 minutes and costs ~$0.09. It will:
-1. Discover all programs in the state
-2. Deep dive each one (eligibility, benefits, application, gotchas)
-3. Compare against our existing data
-4. Generate a markdown report
-5. Auto-update `data/pipeline-summary.ts` (admin dashboard picks this up)
-
 **After it finishes:**
 
 1. Read the exploration report:
@@ -89,57 +99,51 @@ This takes ~4 minutes and costs ~$0.09. It will:
 cat data/pipeline/XX/exploration_report.md
 ```
 
-2. Summarize for the user:
-   - How many programs found
-   - How many data discrepancies (our data vs official sources)
-   - How many new programs not in our data
-   - What data fields our model can't capture yet
+2. Read the classification:
+```bash
+cat data/pipeline/XX/classify.json | head -40
+```
+
+3. Read the drafts (if generated):
+```bash
+cat data/pipeline/XX/drafts.json | head -100
+```
+
+4. Summarize for the user:
+   - How many programs found and their types (benefit/resource/navigator/employment)
+   - Data discrepancies (our data vs official sources)
+   - New programs not in our data
+   - Classification breakdown (types, scopes, complexity)
+   - How many content drafts generated
    - Any gotchas or surprises
 
-3. Post the summary to Notion under the Benefits Data page:
+5. Post the summary to Notion under the Benefits Data page:
    - Parent page ID: `3345903a-0ffe-8185-8b5b-d3dbdccd683f`
    - Title: `{State Name} Pipeline Exploration — {date}`
-   - Include: summary stats, data discrepancies, new programs, questions for review
-
-4. Ask if the user wants to apply the findings now or review first.
+   - Include: summary stats, classification, draft count, questions for review
 
 ## Step 2: Apply Findings
 
-After the user reviews the report (or immediately if they want to move fast), apply the pipeline's findings to the codebase.
-
 ### Fix Data Errors
-
-Read the compare data:
-```bash
-cat data/pipeline/XX/compare.json
-```
 
 For each diff where the pipeline found our data is wrong:
 1. Read the relevant program in `data/waiver-library.ts`
 2. Update the incorrect field with the pipeline's finding
 3. Add verification metadata:
-   - `sourceUrl` — the official .gov URL from the pipeline
-   - `lastVerifiedDate` — today's date
-   - `verifiedBy` — "pipeline"
-   - `savingsSource` — where the savings number came from
-   - `savingsVerified` — true if the pipeline found a real number
+   - `sourceUrl`, `lastVerifiedDate`, `verifiedBy: "pipeline"`
+   - `savingsSource`, `savingsVerified`
 
-**Important checks when applying:**
-- If the pipeline says savings should be "Free service", set `savingsRange` to `""` (empty string, not "Free service" — the UI renders "Save {savingsRange}" so non-empty strings display wrong)
-- Update ALL references to changed numbers — eligibility highlights AND FAQ text AND application steps. They must be consistent within the same program.
-- For free services (ombudsman, legal aid, companion), also check that `savingsSource` says "Free service" or similar
+**Important:** If savings should be "Free service", set `savingsRange` to `""` (empty string). Update ALL references to changed numbers — eligibility highlights AND FAQ text AND application steps.
 
-### Add New Programs
+### Apply Drafts to New Programs
 
-For new programs the pipeline discovered that should be added:
-1. Read the dive data for the program from `data/pipeline/XX/dive.json`
-2. Create a new entry in `waiver-library.ts` following the existing format
-3. Include all verification metadata from the pipeline
-4. Generate FAQs if the dive data has enough info (or leave faqs empty for now)
+For new programs with drafts in `data/pipeline/XX/drafts.json`:
+1. Read the draft — it's already structured as a WaiverProgram-compatible object
+2. Add to `waiver-library.ts` following existing format
+3. Include the pipeline v2 fields: `programType`, `geographicScope`, `complexity`, `applicationGuide`, `structuredEligibility`, `contentSections`, `contentStatus`
+4. Set `contentStatus: "pipeline-draft"` until human review
 
-### Seed Supabase
-
-After updating `waiver-library.ts`:
+### Seed Supabase (after verification)
 
 ```bash
 # Dry run first
@@ -149,30 +153,29 @@ curl "https://staging-olera2-web.vercel.app/api/admin/seed-sbf-programs?state=XX
 curl "https://staging-olera2-web.vercel.app/api/admin/seed-sbf-programs?state=XX&confirm=true"
 ```
 
-**Important:** The seed endpoint must be called on the deployed version (staging or production), not localhost, because it needs admin auth. The user must be logged in as admin in their browser. Alternative: have the user visit the URL directly in their browser.
-
 ## Step 3: Build and Verify
 
-1. Run `npx next build` to verify no errors
-2. Check the admin dashboard: does the state show as partially/fully verified?
-3. Check a sample program page: `/waiver-library/{state-id}/{program-id}`
+1. Run `./node_modules/.bin/next build` to verify no errors
+2. Check the admin dashboard: does the state show updated readiness?
+3. Check the v2 state page: `/senior-benefits/{state-id}` — verify overview, start-here picks, need groups render correctly
+4. Compare with old page: `/senior-benefits/{state-id}/current` — the `/current` route always renders the legacy page
+5. Check a sample program page: `/senior-benefits/{state-id}/{program-id}`
 
 ## Step 4: Commit and PR
 
-Commit changes and create PR to staging:
-
 ```bash
-git add data/waiver-library.ts data/pipeline-summary.ts
-git commit -m "Verify {State} benefits: {N} programs verified, {N} errors fixed
+git add data/waiver-library.ts data/pipeline-summary.ts data/pipeline/
+git commit -m "Run benefits pipeline on {State}: {N} programs, {N} drafts
 
-- Pipeline exploration found {findings summary}
-- Fixed: {list key corrections}
-- Added: {list new programs if any}
+- {N} benefit, {N} resource, {N} navigator, {N} employment
+- {N} data discrepancies found and fixed
+- {N} new programs added with content drafts
+- Classification and draft data in data/pipeline/{STATE}/
 
 Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>"
 
 git push origin {branch}
-gh pr create --base staging --title "Verify {State} benefits data" --body "..."
+gh pr create --base staging --title "Benefits pipeline: {State}" --body "..."
 ```
 
 ## Key Files
@@ -185,68 +188,93 @@ gh pr create --base staging --title "Verify {State} benefits data" --body "..."
 | Source of truth for programs | `data/waiver-library.ts` |
 | Admin dashboard | `app/admin/benefits/page.tsx` |
 | Seed endpoint | `app/api/admin/seed-sbf-programs/route.ts` |
-| Program types | `lib/types/benefits.ts` |
-| SQL migration | `supabase/migrations/034_sbf_verification_metadata.sql` |
+| Program types (Supabase) | `lib/types/benefits.ts` |
 | Notion: Benefits Data page | `3345903a-0ffe-8185-8b5b-d3dbdccd683f` |
-| Notion: Product Development | `5d14b458-594c-4031-b671-81a0fc612644` |
+| Notion: Pipeline v2 spec | `33c5903a-0ffe-81f9-8ab9-f5f40c10dc2b` |
 
-## Waiver Library Data Shape
+## Data Model (Pipeline v2)
 
-Each program in `waiver-library.ts` looks like:
+Programs now have optional classification and rich content fields:
+
 ```typescript
 {
-  id: "state-program-name-slug",
-  name: "Official Program Name",
-  shortName: "Abbreviation",
-  tagline: "One-line description",
-  savingsRange: "$X – $Y/year in 2026",  // or "" for free services
-  description: "Full description",
-  eligibilityHighlights: ["Age 65 or older", "Income below $X/month"],
-  applicationSteps: [{ step: 1, title: "...", description: "..." }],
-  forms: [{ id: "...", name: "...", description: "...", url: "..." }],
-  // Optional
-  intro: "Detailed intro paragraph",
-  faqs: [{ question: "...", answer: "..." }],
-  serviceAreas: [{ name: "City", description: "Counties" }],
-  phone: "1-800-XXX-XXXX",
-  // Verification metadata
-  sourceUrl: "https://state.gov/program",
-  lastVerifiedDate: "2026-04-07",
-  verifiedBy: "pipeline",
-  savingsSource: "Description of where savings number came from",
-  savingsVerified: true,
+  // Existing flat fields (backwards-compatible)
+  id, name, shortName, tagline, savingsRange, description,
+  eligibilityHighlights, applicationSteps, forms,
+  intro, faqs, phone, sourceUrl, lastVerifiedDate, verifiedBy,
+  savingsSource, savingsVerified,
+
+  // Pipeline v2: Classification
+  programType: "benefit" | "resource" | "navigator" | "employment",
+  geographicScope: { type: "federal" | "state" | "local", localEntities?: [...] },
+  complexity: "deep" | "medium" | "simple",
+
+  // Pipeline v2: Rich content
+  applicationGuide: { method, summary, steps, processingTime, waitlist, tip, urls },
+  structuredEligibility: { summary, incomeTable, assetLimits, functionalRequirement, ... },
+  contentSections: [
+    { type: "income-table", rows: [...] },
+    { type: "what-counts", included: [...], excluded: [...] },
+    { type: "tier-comparison", tiers: [...] },
+    { type: "county-directory", offices: [...] },
+    { type: "documents", categories: [...] },
+    { type: "callout", tone: "warning", text: "..." },
+  ],
+
+  // Pipeline v2: Lifecycle
+  contentStatus: "pipeline-draft" | "under-review" | "approved" | "published",
+  draftedAt, reviewedBy, reviewedAt,
 }
 ```
 
-## Known Issues and Learnings
+## Program Type Classification
 
-### From Texas (Chantel's manual audit, March 2026)
-- SNAP income limit was wrong ($1,729 → $2,152)
-- MEPD income limit was wrong ($994 → $967)
-- Three free services (Ombudsman, Legal, Companion) had fake savings ranges ($10K–$30K)
-- FAQ text and eligibility highlights had inconsistent numbers — always update ALL references
-- "Save Free service" renders wrong in the UI — use empty string for savingsRange
+| Type | What it is | Page shape |
+|------|-----------|------------|
+| **benefit** | Qualification-gated, has savings | Full: eligibility, savings, application, documents, FAQs |
+| **resource** | Available to all, free | Contact-focused: what it is, how to reach them |
+| **navigator** | Helps access other programs | Gateway: what programs they connect you to |
+| **employment** | Paid work/training | Opportunity: requirements, what the work is |
 
-### From Michigan (first pipeline run, April 2026)
-- PACE age was wrong (65 → 55)
-- SNAP age was wrong (65 → 60)
-- Ombudsman had fake savings again (different state, same pattern)
-- Pipeline found 5 data field types our model can't capture yet: asset_limits, regional_variations, waitlist, documents_required, household_size_table
-- Dedup catches most duplicates but "MI Choice Medicaid Waiver" vs "MI Choice Waiver Program" still sometimes both survive
+## Content Voice (enforced in draft phase)
+
+1. Lead with caregiver's need, not the definition
+2. Causal chains: "Because X, your parent won't need to Y"
+3. Specific evidence immediately after claims
+4. Clarify jargon inline in parentheses
+5. End sections with the next step
+6. No hedging, no filler, no bureaucratic language
+7. Honest about unknowns — fewer facts > more filler
+
+## Known Learnings
+
+### Texas (Chantel's audit, March 2026)
+- SNAP income $1,729 → $2,152. MEPD income $994 → $967
+- Free services had fake savings ranges — use `savingsRange: ""`
+- FAQ text and eligibility highlights must stay consistent
+
+### Michigan (first pipeline run, April 2026)
+- PACE age 65 → 55. SNAP age 65 → 60
+- 16 programs found: 9 benefit, 4 resource, 2 navigator, 1 employment
+- 5 novel field types: asset_limits, regional_variations, waitlist, documents_required, household_size_table
+- Pipeline v2 model now captures all of these
 
 ### General
-- Programs don't all have the same shape. Some need household-size income tables, some have asset limits, some are free services. The data model will evolve — don't force it.
-- Perplexity sometimes refuses overly specific prompts. The pipeline uses open-ended questions instead of predetermined forms.
-- Government websites often block HEAD requests. URL checking may show false "broken" results for valid .gov URLs.
-- Always verify the pipeline's findings — it's a research tool, not an oracle. It flags issues for review.
-- The pipeline auto-updates `data/pipeline-summary.ts` so the admin dashboard immediately shows findings. No manual step needed.
-- Pages auto-generate from `waiver-library.ts` via `generateStaticParams`. Adding programs = pages on next deploy.
+- Programs don't all have the same shape. The classification system handles this.
+- Perplexity for research, Claude for content generation — different tools for different strengths.
+- Always verify pipeline findings. It flags issues for review, it's not an oracle.
+- Run end-to-end without pausing. TJ prefers autonomous execution.
+- Pipeline generates both program-level drafts AND state-level overview (intro, start-here, by-need, quick facts). Both need team review before going live.
+- State overview review uses `programId: "state-overview"` in the same review API.
+- The v2 state page renders automatically from `pipeline-drafts.ts` when overview exists. Force old page with `/current`.
 
 ## Cost Per State
 
 | Item | Cost |
 |------|------|
 | Explore (2 Perplexity queries) | ~$0.01 |
-| Deep dive (1 query per program, ~15 programs) | ~$0.08 |
-| Compare + Report | $0 (local processing) |
-| **Total** | **~$0.09** |
+| Deep dive (~15 programs × 1 query) | ~$0.08 |
+| Compare + Classify | $0 (local) |
+| Draft (~15 programs × 1 Claude call) | ~$0.30 |
+| Report | $0 (local) |
+| **Total** | **~$0.40** |

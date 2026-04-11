@@ -1,0 +1,75 @@
+{
+  "entity": "New Jersey",
+  "entitySlug": "new-jersey",
+  "state": "NJ",
+  "stateName": "New Jersey",
+  "isRegion": false,
+  "exploredAt": "2026-04-09T15:21:32.227Z",
+  "programCount": 8,
+  "programs": [
+    {
+      "name": "Stay NJ",
+      "what_it_does": "Stay NJ provides a property tax credit of up to 50% on property taxes, capped at $6,500, to encourage seniors to remain in New Jersey during retirement. It coordinates with existing programs like ANCHOR and Senior Freeze for additional relief.[2][7]",
+      "who_its_for": "Homeowners aged 65 and older with income up to $500,000, who reside in New Jersey full-time.[2][6]",
+      "whats_unique": "New program signed into law in 2024, effective 2026, specifically designed to retain seniors in NJ by countering high property taxes and 'snowbird' migration to lower-tax states.[2][6]",
+      "official_url": "https://mullooly.net/5-things-about-the-stay-nj-program/",
+      "benefit_value": "Up to 50% property tax credit, capped at $6,500 annually.[2][7]"
+    },
+    {
+      "name": "Senior Freeze (Property Tax Reimbursement)",
+      "what_it_does": "This program reimburses eligible seniors for property tax increases on their principal residence above a base year amount. It protects homeowners from rising taxes as they age in place.[1][2][5]",
+      "who_its_for": "Seniors 65+ or those receiving Social Security disability, living full-time in their NJ home for 3 years, with income not exceeding $168,268 (adjusted annually).[2][5]",
+      "whats_unique": "NJ-specific freeze on tax increases via reimbursement, distinct from standard federal programs or common exemptions; coordinates with Stay NJ and ANCHOR.[1][2]",
+      "official_url": "https://lifespancm.com/benefits-for-senior-citizens-and-long-term-care-in-new-jersey/",
+      "benefit_value": "Reimbursement for property tax increases over base year amount.[1][5]"
+    },
+    {
+      "name": "Jersey Assistance for Community Caregiving (JACC)",
+      "what_it_does": "JACC offers cost-shared in-home services, meal delivery, and caregiver respite to help seniors avoid nursing homes. It supports community-based care for those not qualifying for Medicaid.[1][3]",
+      "who_its_for": "Seniors nursing home eligible but not Medicaid-eligible, typically low-income needing home-based support.[1][3]",
+      "whats_unique": "State-funded, non-Medicaid program unique to NJ for in-home services and respite, administered by Division of Aging Services.[1][3]",
+      "official_url": "https://www.nj.gov/humanservices/doas/",
+      "benefit_value": "Cost-shared home care services, meals, respite (value varies by need).[1][3]"
+    },
+    {
+      "name": "Pharmaceutical Assistance to the Aged & Disabled (PAAD)",
+      "what_it_does": "PAAD helps eligible seniors and disabled individuals save on prescription drug costs through a state-funded subsidy. It covers copays and premiums beyond federal programs.[5]",
+      "who_its_for": "NJ seniors 65+ and disabled persons meeting state income eligibility.[5]",
+      "whats_unique": "Purely state-funded NJ program providing direct prescription assistance, separate from federal Medicare Part D.[5]",
+      "official_url": "https://libguides.njstatelib.org/get_help/seniors",
+      "benefit_value": "Significant savings on prescription drugs (exact amount varies by medications and copays).[5]"
+    },
+    {
+      "name": "Lifeline Credit",
+      "what_it_does": "Lifeline provides an annual credit to reduce gas and electric utility bills for low-income seniors. It eases energy cost burdens alongside programs like Universal Services Fund.[1][3]",
+      "who_its_for": "Low-income seniors who are PAAD or Medicaid beneficiaries.[1][3]",
+      "whats_unique": "NJ state program offering fixed annual utility credit, targeted at seniors beyond federal LIHEAP.[1][3]",
+      "official_url": "https://ahs.atlantichealth.org/conditions-treatments/senior-services/federal-state-social-service-programs.html",
+      "benefit_value": "$225 annual utility credit.[1]"
+    },
+    {
+      "name": "New Jersey Statewide Respite Care Program",
+      "what_it_does": "This program offers short-term or periodic breaks for family caregivers of frail elderly or impaired persons. It provides temporary relief to prevent caregiver burnout.[1][8]",
+      "who_its_for": "Family caregivers of functionally impaired seniors in NJ.[8]",
+      "whats_unique": "Statewide NJ-funded respite specifically for elderly caregivers, coordinated through Division of Aging Services.[1][8]",
+      "official_url": "https://njaaw.org/services-resources/",
+      "benefit_value": "Temporary caregiver respite services (duration and cost coverage varies).[1][8]"
+    },
+    {
+      "name": "Alzheimer’s Adult Day Services Program",
+      "what_it_does": "This program subsidizes out-of-pocket costs for adult day care services for those with Alzheimer’s or related dementia. It supports participants at approved providers.[3]",
+      "who_its_for": "NJ residents with Alzheimer’s/dementia meeting eligibility, using participating adult day providers.[3]",
+      "whats_unique": "NJ-specific state subsidy for dementia adult day care, not a standard federal offering.[3]",
+      "official_url": "https://ahs.atlantichealth.org/conditions-treatments/senior-services/federal-state-social-service-programs.html",
+      "benefit_value": "Partial subsidy on adult day care costs (amount varies).[3]"
+    },
+    {
+      "name": "Senior Citizen E-ZPass Discount",
+      "what_it_does": "Offers a discount on tolls for seniors using E-ZPass on NJ Turnpike and Garden State Parkway during off-peak times. It reduces transportation costs for older drivers.[3]",
+      "who_its_for": "NJ residents aged 65+ with E-ZPass.[3]",
+      "whats_unique": "NJ-only toll discount program tailored for seniors on state highways.[3]",
+      "official_url": "https://ahs.atlantichealth.org/conditions-treatments/senior-services/federal-state-social-service-programs.html",
+      "benefit_value": "10% discount on tolls during weekday off-peak and weekends.[3]"
+    }
+  ]
+}

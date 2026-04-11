@@ -1,0 +1,566 @@
+{
+  "state": "AR",
+  "stateName": "Arkansas",
+  "comparedAt": "2026-04-09T11:51:42.370Z",
+  "total": 12,
+  "newPrograms": 6,
+  "withDiffs": 6,
+  "withNovelFields": 6,
+  "benefitTypes": {
+    "service": 5,
+    "in_kind": 1,
+    "financial": 3,
+    "employment": 1,
+    "unknown": 1,
+    "advocacy": 1
+  },
+  "variationPatterns": {
+    "priority_tier": 2,
+    "Individual care plan determined by interdisciplinary team; no fixed tier system described in available sources": 1,
+    "program_tier": 1,
+    "household_size": 1,
+    "household_size|priority_tier|region": 1,
+    "not_applicable": 3,
+    "region": 2
+  },
+  "novelFieldSummary": {
+    "asset_limits": {
+      "count": 5,
+      "programs": [
+        "Program of All-Inclusive Care for the Elderly (PACE)",
+        "Medicare Savings Programs (QMB, SLMB, QI)",
+        "SNAP (Supplemental Nutrition Assistance Program)",
+        "LIHEAP (Low-Income Home Energy Assistance Program)",
+        "Family Caregiver Support Program"
+      ],
+      "note": "Our model has no asset limit fields"
+    },
+    "regional_variations": {
+      "count": 6,
+      "programs": [
+        "Program of All-Inclusive Care for the Elderly (PACE)",
+        "Medicare Savings Programs (QMB, SLMB, QI)",
+        "SNAP (Supplemental Nutrition Assistance Program)",
+        "LIHEAP (Low-Income Home Energy Assistance Program)",
+        "Family Caregiver Support Program",
+        "Arkansas Long-Term Care Ombudsman Program"
+      ],
+      "note": "Program varies by region — our model doesn't capture this"
+    },
+    "waitlist": {
+      "count": 3,
+      "programs": [
+        "Program of All-Inclusive Care for the Elderly (PACE)",
+        "Medicare Savings Programs (QMB, SLMB, QI)",
+        "LIHEAP (Low-Income Home Energy Assistance Program)"
+      ],
+      "note": "Has waitlist info — our model has no wait time field"
+    },
+    "documents_required": {
+      "count": 6,
+      "programs": [
+        "Program of All-Inclusive Care for the Elderly (PACE)",
+        "Medicare Savings Programs (QMB, SLMB, QI)",
+        "SNAP (Supplemental Nutrition Assistance Program)",
+        "LIHEAP (Low-Income Home Energy Assistance Program)",
+        "Family Caregiver Support Program",
+        "Arkansas Long-Term Care Ombudsman Program"
+      ],
+      "note": "Has document checklist — our model doesn't store per-program documents"
+    },
+    "household_size_table": {
+      "count": 1,
+      "programs": [
+        "SNAP (Supplemental Nutrition Assistance Program)"
+      ],
+      "note": "Benefits/eligibility vary by household size — we store a single number"
+    }
+  },
+  "comparisons": [
+    {
+      "name": "ARChoices in Homecare",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Tiered by ARIA functional assessment (Tier 2 only); Medicaid financial eligibility via county DHS; services budgeted individually post-assessment; statewide but county-initiated[2][3][4]",
+      "gotchas": [
+        "Must meet exact Tier 2 on ARIA assessment; Tier 3 needs too high for program[2][4]",
+        "Financial eligibility via Medicaid rules; spend-down or planning may be needed[7]",
+        "Nursing home level of care required, determined by OLTC[2][3]",
+        "Apply first at local DHS county office, not directly to waiver[3][5]",
+        "Excludes those needing skilled care or with certain institutional stays without qualifiers[4][5]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://humanservices.arkansas.gov/wp-content/uploads/ARChoices-Detailed-Overview.pdf or access.arkansas.gov[6]"
+    },
+    {
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "isNew": false,
+      "existingId": "program-of-all-inclusive-care-for-the-elderly-pace",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$2901",
+          "found": "$2,901",
+          "source": "https://humanservices.arkansas.gov/divisions-shared-services/aging-adult-behavioral-health-services/find-home-community-based-services-for-adults-seniors/pace-program-of-all-inclusive-care-for-the-elderly/"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$15,000 – $35,000/year",
+          "found": "Comprehensive services including: doctor visits, transportation, home care, primary/preventive/acute/long-term care, all Medicare and Medicaid-approved services, plus additional medically necessary services not typically covered by Medicare/Medicaid as determined by care team[4]. Average participant is 76 years old with multiple complex medical conditions[2].",
+          "source": "https://humanservices.arkansas.gov/divisions-shared-services/aging-adult-behavioral-health-services/find-home-community-based-services-for-adults-seniors/pace-program-of-all-inclusive-care-for-the-elderly/"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://humanservices.arkansas.gov/divisions-shared-services/aging-adult-behavioral-health-services/find-home-community-based-services-for-adults-seniors/pace-program-of-all-inclusive-care-for-the-elderly/"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "For Medicaid-funded PACE: $2,000 or less in assets (excluding primary home)[3]. Private pay participants with higher assets may qualify if meeting medical criteria[5].",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Two primary providers serve different regions: (1) PACE of the Ozarks serves Northwest Arkansas (Benton, Madison, Washington counties)[4][5]; (2) Total Life Healthcare serves Northeast Arkansas (Craighead, Cross, Greene, Lawrence, Mississippi, Poinsett, Randolph counties)[4]. Baptist Health PACE serves six-county area (specific counties not listed)[6].",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Not specified in available sources",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": "Not specified in available sources; recommend contacting regional provider for documentation requirements",
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "PACE in Arkansas is provider-limited (3 known providers), geographically restricted by county, and medically gated (nursing facility level of care certification is mandatory). No income ceiling for PACE itself, but Medicaid funding has income/asset limits with planning workarounds (Income Trusts, spousal division). Processing timelines, waitlists, and specific application forms are not publicly documented in available sources. Eligibility determination mirrors nursing facility services criteria, suggesting families should consult with state DHS caseworkers for individualized assessment.",
+      "gotchas": [
+        "PACE is NOT statewide — availability is geographically limited to specific counties[4]. Verify service area before applying.",
+        "Temporary medical conditions lasting 21 days or less do not disqualify; conditions expected to last longer than 21 days may terminate eligibility[1].",
+        "No financial criteria considered for enrollment, BUT cannot enroll if already in Medicare Advantage, prepayment plans, prescription drug plans, or hospice[2].",
+        "Private pay option exists for those not meeting Medicaid financial criteria but meeting medical criteria[5].",
+        "Income Trust option available for those exceeding Medicaid limits — this is a planning tool many families miss[4].",
+        "Approximately 90% of PACE participants are dually eligible for Medicare and Medicaid; enrollment does not require pre-existing Medicare/Medicaid enrollment[2].",
+        "Baptist Health PACE serves only ~3% of eligible seniors in its six-county area, suggesting limited capacity[6].",
+        "State determines nursing facility level of care certification — this is the critical gating factor, not income or assets alone[5]."
+      ],
+      "benefitType": "in_kind",
+      "benefitVariesBy": "Individual care plan determined by interdisciplinary team; no fixed tier system described in available sources",
+      "officialSource": "https://humanservices.arkansas.gov/divisions-shared-services/aging-adult-behavioral-health-services/find-home-community-based-services-for-adults-seniors/pace-program-of-all-inclusive-care-for-the-elderly/"
+    },
+    {
+      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "isNew": false,
+      "existingId": "medicare-savings-program",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$1043",
+          "found": "$1,235",
+          "source": "https://humanservices.arkansas.gov"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$2,000 – $8,000/year",
+          "found": "QMB: Pays Medicare Part A premiums (if applicable), Part B premiums (~$202.90/month in 2026), annual deductible, coinsurance, copayments for Medicare-covered services. SLMB: Pays Part B premiums only. QI: Pays Part B premiums only. Automatic eligibility for Extra Help with Part D if qualified.[1][2][7]",
+          "source": "https://humanservices.arkansas.gov"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://humanservices.arkansas.gov"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Federal limits apply in Arkansas: $9,090 single / $13,630 couple for QMB/SLMB/QI. Counts: bank accounts, stocks, bonds. Exempt: home, one car, burial plots, life insurance (up to $1,500 face value), personal belongings. Some sources note slight variations like $9,430 single / $14,130 couple or $7,860/$11,800 (older data).[2]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered via local DHS county offices; potential minor processing time differences by county, but no specified benefit variations.",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "QI: First-come, first-served with priority to prior-year recipients; limited federal funding may create waitlist.",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of income (pay stubs, SSI/SSDI award letters, pension statements).",
+            "Proof of resources/assets (bank statements).",
+            "Medicare card or proof of Part A eligibility.",
+            "ID (birth certificate, Social Security card).",
+            "Proof of residency.",
+            "Voter registration form if applicable."
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Tiered by program (QMB/SLMB/QI) with escalating income limits; household size limited to single/couple (no full table for larger households); asset exemptions standard federal; QI has waitlist/priority; statewide but county-administered.",
+      "gotchas": [
+        "Income/asset limits update annually (January FPL announcement, effective April); always verify current figures with DHS.",
+        "QI requires annual reapplication, first-come-first-served, and excludes Medicaid-eligible.",
+        "Assets include countable items like second cars/stocks; exemptions often missed (e.g., primary home/car).",
+        "Working disabled may qualify with higher income under certain rules.",
+        "Automatic Extra Help for Rx drugs, but must confirm enrollment.",
+        "Conflicting source data on exact limits/assets due to yearly changes; use DHS for 2026 specifics."
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "program_tier",
+      "officialSource": "https://humanservices.arkansas.gov"
+    },
+    {
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "isNew": false,
+      "existingId": "snap-supplemental-nutrition-assistance-program",
+      "existingVerified": null,
+      "diffsFound": 4,
+      "diffs": [
+        {
+          "field": "min_age",
+          "ours": "65",
+          "found": "60",
+          "source": "https://humanservices.arkansas.gov/services-worth-knowing/snap/"
+        },
+        {
+          "field": "income_limit",
+          "ours": "$1948",
+          "found": "$1,305",
+          "source": "https://humanservices.arkansas.gov/services-worth-knowing/snap/"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$1,500 – $3,600/year",
+          "found": "Monthly EBT card benefits for food purchases. Maximum monthly benefits (Oct 1, 2025–Sept 30, 2026): 1 person $298; 2 $546; 3 $785; 4 varies by size/income (actual amount based on net income, deductions). Can be used at stores; Restaurant Meals Program for eligible elderly/disabled.[3][8]",
+          "source": "https://humanservices.arkansas.gov/services-worth-knowing/snap/"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://humanservices.arkansas.gov/services-worth-knowing/snap/"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Households with member 60+ or disabled: $4,500 (or $3,500 in some references); temporarily $5,500 for first 12 months (once every 5 years), then reverts. Regular households: $3,000. Exempt: Home, some income-producing/inaccessible properties, life insurance, burial spaces, household goods, some vehicles, retirement savings. Non-exempt: Cash, bank accounts, non-exempt property.[3][4]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "household_size_table",
+          "value": "For households with a member 60+ or disabled: No gross income limit; must meet net income limit at or below 100% federal poverty level. Oct 1, 2025–Sept 30, 2026 net income limits (monthly): 1 person $1,305; 2 $1,763; 3 $2,221; 4 $2,680. All other households: Gross ≤130% FPL and net ≤100% FPL. Seniors qualify if 60+ even with Social Security, VA benefits, or disability payments counting as income.[1][2][3][4]",
+          "note": "Benefits/eligibility vary by household size — we store a single number"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered uniformly by DHS county offices; potential processing/wait differences by local office workload.",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of ID",
+            "Social Security Number",
+            "Income proof (pay stubs, Social Security award letters, VA benefits)",
+            "Expense proofs (rent/mortgage, utilities, medical costs >$35/month for seniors)",
+            "Asset proofs if over limits (bank statements)",
+            "Proof of disability if claiming"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Elderly/disabled households exempt from gross income test and have higher asset limits; benefits/max income scale by household size; strict federal rules, no BBCE expansion; medical deductions key for seniors.",
+      "gotchas": [
+        "No broad-based categorical eligibility in AR (uses strict federal asset/income limits, unlike many states)[8]",
+        "Net income calculation complex (deduct shelter, medical >$35/mo for 60+, utilities); use calculator[1]",
+        "Assets temporarily higher only first 12 months/5 years[3]",
+        "Seniors exempt from work rules/gross income test but still need net income ≤100% FPL[1][2]",
+        "Household includes food-sharing members; Social Security counts as income[2]",
+        "Able-bodied adults 18-54 limited to 3 months/36 without 20hr work (seniors exempt)[6][9]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "household_size",
+      "officialSource": "https://humanservices.arkansas.gov/services-worth-knowing/snap/"
+    },
+    {
+      "name": "LIHEAP (Low-Income Home Energy Assistance Program)",
+      "isNew": false,
+      "existingId": "liheap-low-income-home-energy-assistance-program",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$3106",
+          "found": "$2,251",
+          "source": "https://www.adeq.state.ar.us/energy/assistance/liheap.aspx"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$500 – $2,000/year",
+          "found": "Regular: Fixed amount via approved model based on income, household size, energy source (electricity/gas/propane/wood/pellets); max heating $475, min $50; max cooling $287, min $50. Crisis: Up to $500 max (summer/winter) for shut-off, disconnection, depleted fuel, or life-threatening situations[2][1]. Payments direct to vendor. Only 1 regular and 1 crisis per household per season[1]. Benefit matrix from Arkansas Energy Office[8].",
+          "source": "https://www.adeq.state.ar.us/energy/assistance/liheap.aspx"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.adeq.state.ar.us/energy/assistance/liheap.aspx"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Meet countable resource standard, including cash, checking/savings accounts, CDs, cryptocurrency, stocks, bonds. Exact limits not specified in sources; contact local agency[1].",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered by local CBOs (e.g., CSCDC, CADC, EOA, CRDC); income charts vary slightly by provider (e.g., EOA Washington County only[8]; different max incomes[7][9]); contact local for specifics[1][3][4][5].",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Funding limited; applications may close early if funds exhausted. Program dates: Heating Jan-Mar, Cooling Jul-Aug, Crisis Jan-Apr/Jul-Sep (dates approximate, not deadlines)[2].",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Photo ID[4][8].",
+            "Social Security card/SSN for household members 18+; SSNs/birth dates for minors[4][8].",
+            "Most recent utility bills (proof of residency/energy)[4].",
+            "Proof of income (previous month, all adult household members)[4][7][8].",
+            "Lease if utilities included in rent[9].",
+            "Additional as requested by CBO[4]."
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Administered by county CBOs with varying income charts and providers; benefits via state matrix scaling by income/size/fuel; seasonal with funding caps; dual regular/crisis tiers",
+      "gotchas": [
+        "Household = all under one roof/one meter; roommates count even if not sharing expenses[1][2].",
+        "Only 1 regular + 1 crisis benefit per season per household[1].",
+        "Must be responsible for bill; not if paid by non-resident[1].",
+        "Funds limited; apply early as programs close when exhausted[2].",
+        "Seasonal: Not year-round; separate heating/cooling/crisis periods[2].",
+        "Regional income charts differ; verify with your CBO[7][9].",
+        "Crisis only for emergencies like shut-off/depletion[1]."
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "household_size|priority_tier|region",
+      "officialSource": "https://www.adeq.state.ar.us/energy/assistance/liheap.aspx"
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Income at 200% FPL with table for household sizes; priority tiers for elderly/disabled/children; delivered via 5-6 regional CAAs statewide; renters require landlord forms; no fixed dollar value per home—needs-based via audit.",
+      "gotchas": [
+        "Renters need landlord approval via Lessor Agreement[3].",
+        "Priority for elderly/disabled/young children but SSI auto-eligible; others may face waitlists due to funding limits[1][3].",
+        "Not immediate; involves audit and scheduling[1][4].",
+        "Separate from utility-specific programs like Entergy Low-Income Solutions (requires LIHEAP or head 65+)[7].",
+        "Must provide detailed income/utility proof[3][8]."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.adeq.state.ar.us/energy/assistance/wap.aspx"
+    },
+    {
+      "name": "Senior Medicare Patrol (SMP) / SHIP",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "no income or asset test; education and advocacy services only, available statewide to all Medicare beneficiaries without application",
+      "gotchas": [
+        "Not a financial assistance or healthcare provision program—focuses solely on fraud prevention, education, and counseling; volunteers provide services, not paid staff; often paired with SHIP but SMP specifically targets fraud detection; no enrollment process, just contact for help"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://insurance.arkansas.gov/consumer-assistance/senior-medicare-patrol-smp/"
+    },
+    {
+      "name": "Meals on Wheels",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Locally administered by AAAs with no uniform statewide application/form/phone; eligibility emphasizes homebound status over income; varies significantly by region/provider with potential waitlists and exceptions for spouses/under-60 disabled",
+      "gotchas": [
+        "Not income-based (common misconception); focus on homebound/need, not poverty[3]",
+        "Must be in specific delivery zone; no statewide uniformity—contact local AAA first[1][2][3]",
+        "Mobile seniors may only qualify for congregate meals at centers, not home delivery[3][5]",
+        "Spouses/dependents not automatically eligible; requires assessment[7]",
+        "Some programs need doctor referral; processing/waitlists vary regionally[2][5]",
+        "Car ownership or ability to leave home may disqualify[2]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "region",
+      "officialSource": "https://aging.arkansas.gov/ (Arkansas Division of Aging, Adult, and Independent Services; oversees AAAs); state rules at codeofarrules.arkansas.gov[3][7]"
+    },
+    {
+      "name": "Family Caregiver Support Program",
+      "isNew": false,
+      "existingId": "national-family-caregiver-support-program",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$2,000 – $8,000/year",
+          "found": "Respite care and supplemental services (specifics like transportation, housework, meal preparation, medication reminders, medical appointments, managing finances, dressing, managing chronic conditions such as diabetes or dementia; no fixed dollar amounts or hours specified statewide)[2][3].",
+          "source": "https://agingarkansas.org/services/family-caregiver-support/[2]"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://agingarkansas.org/services/family-caregiver-support/[2]"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits or tests apply[2].",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered locally by AAAs with potential differences in providers, availability, and specific processes; e.g., CareLink requires service area residency and physician cert for chronic illness[5].",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Physician certification diagnosing chronic illness/need for caregiver (date, diagnosis, signature on letterhead)[3][5].",
+            "Proof care recipient lives in service area (regional)[5].",
+            "Confirmation no duplicate services from other sources (insurance, Medicaid, Medicare, etc.)[5]."
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Administered via 9 regional Area Agencies on Aging; no statewide income/asset test; eligibility hinges on functional impairment and no duplicate funding; dementia bypasses age limit; local variations in providers and forms.",
+      "gotchas": [
+        "No income/asset tests, but care recipient cannot receive duplicate services from Medicaid, Medicare, insurance, etc.[5].",
+        "Dementia cases have no age minimum[2].",
+        "Services are non-financial (respite/supplemental), not paid caregiving (separate from Medicaid programs like Arkansas Independent Choices)[7].",
+        "Regional administration means contacting local AAA essential; not all areas may offer identical services[2][5].",
+        "Functional impairment strictly defined (2+ ADLs or supervision need)[3]."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "region",
+      "officialSource": "https://agingarkansas.org/services/family-caregiver-support/[2]"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Income test at 125% federal poverty level (varies by household size annually); statewide but centralized intake in Little Rock; employment-focused with priority tiers; no asset limits specified",
+      "gotchas": [
+        "Must be unemployed at time of application (not just low-income)",
+        "Income limit is 125% of federal poverty guidelines (check current HHS table for exact $ amounts by household size)",
+        "Priority enrollment for veterans/qualified spouses, those over 65, disabled, rural residents, homeless/at-risk, low literacy/limited English, poor employment prospects, or American Job Center users",
+        "Temporary program bridging to unsubsidized employment; not permanent income source",
+        "Potential waitlist due to funding/capacity limits",
+        "Wage is minimum (higher of federal/state/local), so modest pay"
+      ],
+      "benefitType": "employment",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://humanservices.arkansas.gov/divisions-shared-services/aging-adult-behavioral-health-services/find-home-community-based-services-for-adults-seniors/senior-community-service-employment-program/"
+    },
+    {
+      "name": "Legal Aid for Seniors in Arkansas (Multiple Programs)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Arkansas legal aid for seniors is fragmented across multiple organizations with different service areas, eligibility criteria, and specializations. There is no unified intake process, no statewide income table, and no published processing timelines. Families must first identify their county, then contact the appropriate AAA for a referral, then contact the specific legal aid organization. The search results lack granular details (exact income tables by household size, asset limits, specific forms, processing times) needed for a comprehensive guide.",
+      "gotchas": [
+        "Arkansas does NOT have a single unified 'Area Agency Program' for legal aid — seniors must navigate multiple separate organizations[1][2][3]",
+        "AVLE does NOT serve 8 counties in Central Arkansas; those counties must use Central Arkansas Legal Services instead[3]",
+        "Center for Arkansas Legal Services (River Valley) is permanently closed as of 12/31/2025[10]",
+        "Area Agencies on Aging are referral points, NOT direct legal service providers[2][6]",
+        "Income limits are based on Federal Poverty Guidelines but exact dollar amounts are not provided in public materials — you must call to verify your household's eligibility[9]",
+        "Processing times and waitlists are not publicly disclosed in search results",
+        "Some services are FREE; others are 'low-cost' but the cost structure is not detailed in search results[2]",
+        "Legal Aid of Arkansas focuses on civil matters only — criminal legal issues are not covered[5]"
+      ],
+      "benefitType": "unknown",
+      "benefitVariesBy": null,
+      "officialSource": null
+    },
+    {
+      "name": "Arkansas Long-Term Care Ombudsman Program",
+      "isNew": false,
+      "existingId": "long-term-care-ombudsman-program",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$10,000 – $30,000/year",
+          "found": "Free advocacy and complaint resolution services[5]",
+          "source": "Arkansas Department of Health and Human Services (specific URL not provided in search results)"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "Arkansas Department of Health and Human Services (specific URL not provided in search results)"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "regional_variations",
+          "value": "Regional ombudsmen exist; contact your Area Agency on Aging for your region[1]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": "None required to access advocacy services[5]",
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "This program is a free, universal advocacy service with no eligibility barriers. It exists to protect residents' rights within facilities, not to determine who can access long-term care.",
+      "gotchas": [
+        "This is NOT a program to help families access long-term care—it's a service FOR residents already in facilities[5][6]",
+        "There is no application or eligibility determination process[5]",
+        "Ombudsmen are advocates, not decision-makers; they investigate complaints and work toward resolution[1]",
+        "If a facility denies access to an ombudsman, the State Ombudsman can seek court orders and request sanctions[3]"
+      ],
+      "benefitType": "advocacy",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "Arkansas Department of Health and Human Services (specific URL not provided in search results)"
+    }
+  ]
+}

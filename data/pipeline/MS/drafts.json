@@ -1,0 +1,2095 @@
+{
+  "state": "MS",
+  "stateName": "Mississippi",
+  "draftedAt": "2026-04-09T14:32:38.267Z",
+  "total": 14,
+  "successful": 14,
+  "programs": [
+    {
+      "id": "mississippi-medicaid-elderly-disabled",
+      "name": "Mississippi Medicaid (Elderly and Disabled)",
+      "shortName": "Mississippi Medicaid E&D",
+      "tagline": "Get in-home care services to help your parent stay home instead of moving to a nursing home",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local Division of Medicaid offices",
+            "type": "service-area"
+          },
+          {
+            "name": "Regional entities like CMPDD, SMPDD",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs nursing home-level care but wants to stay home, Mississippi Medicaid's Elderly and Disabled waiver can provide in-home services like personal care, case management, and home-delivered meals. Your parent must be 65+ (or 21-64 if disabled) and need significant daily help with activities like bathing, dressing, or medication management.\n\nBecause this is a waiver program with limited slots, there may be a waitlist. Your parent must qualify for SSI or have monthly income below 300% of the SSI federal benefit rate. If their income is higher, they can still qualify by paying the excess into an income trust each month.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+ or disabled",
+          "Need nursing home-level care",
+          "Income at SSI levels",
+          "Mississippi resident"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 2000,
+          "couple": null,
+          "countedAssets": [
+            "Bank accounts",
+            "Stocks and bonds",
+            "Extra vehicles"
+          ],
+          "exemptAssets": [
+            "Primary home (if living there)",
+            "One vehicle",
+            "Household furnishings",
+            "Personal effects",
+            "Life insurance up to $1,500 face value"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "Must need nursing home-level care, assessed through an in-person evaluation. This means needing daily help with 2+ activities like bathing, dressing, eating, toileting, or mobility.",
+        "otherRequirements": [
+          "Must be Mississippi resident",
+          "Must apply for all other benefits (VA, Social Security, etc.)",
+          "Physician must certify need for nursing home-level care"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online or contact your local Medicaid office — processing time varies and there may be a waitlist.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Apply for SSI first if eligible",
+            "description": "If your parent might qualify for SSI, apply through Social Security first — SSI recipients automatically get Medicaid."
+          },
+          {
+            "step": 2,
+            "title": "Submit Medicaid application",
+            "description": "Apply online at medicaid.ms.gov or contact your local Division of Medicaid office."
+          },
+          {
+            "step": 3,
+            "title": "Schedule in-person assessment",
+            "description": "A licensed social worker or nurse will visit your parent to complete the InterRAI assessment tool to determine if they need nursing home-level care (must score 50+)."
+          },
+          {
+            "step": 4,
+            "title": "Get physician certification",
+            "description": "Your parent's doctor must certify that they need nursing home-level care. This certification must be renewed at least every 12 months."
+          }
+        ],
+        "processingTime": "Not specified",
+        "waitlist": "Possible due to limited waiver slots",
+        "tip": "Start with SSI application if your parent might qualify — it's automatic Medicaid eligibility and often faster.",
+        "urls": [
+          {
+            "label": "Apply online",
+            "url": "https://medicaid.ms.gov"
+          },
+          {
+            "label": "Find local office",
+            "url": "https://medicaid.ms.gov"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and cash",
+            "Stocks, bonds, and investments",
+            "Second vehicles",
+            "Property other than primary home"
+          ],
+          "excluded": [
+            "Primary home (if living there or intend to return)",
+            "One vehicle",
+            "Household furnishings and appliances",
+            "Personal effects and clothing",
+            "Life insurance up to $1,500 total face value"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Driver's license or state ID",
+                "Proof of Mississippi residency"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "SSI award letter (if receiving)",
+                "Bank statements",
+                "Proof of all income sources",
+                "Property deeds",
+                "Life insurance policies"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Physician certification of nursing home-level care need",
+                "Medical records showing functional limitations",
+                "Current medication list"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "This program has limited slots and may have a waitlist. Apply as soon as you think your parent might qualify — you can always decline services if offered later."
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Do not give away or sell your parent's assets for less than fair market value in the 5 years before applying. This triggers penalty periods that delay eligibility."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent's income is just over the SSI limit?",
+          "answer": "They can still qualify by paying the excess income into a qualified income trust (also called a Miller trust) each month. The trust pays their excess income to Medicaid, allowing them to meet the income requirement."
+        },
+        {
+          "question": "Can my parent keep their house if they qualify?",
+          "answer": "Yes. The primary home is exempt from asset limits as long as your parent lives there or intends to return. However, Medicaid may place a lien on the home to recover costs after your parent passes away."
+        },
+        {
+          "question": "What happens if my parent has dementia but can still dress and bathe themselves?",
+          "answer": "Dementia alone doesn't qualify for this program. Your parent must need physical help with daily activities like bathing, dressing, eating, or moving around. The assessment focuses on functional limitations, not just medical diagnoses."
+        },
+        {
+          "question": "How long does the in-person assessment take?",
+          "answer": "The InterRAI assessment is completed by a licensed social worker or nurse who visits your parent. The specific timing isn't published, but your parent must score 50+ on this assessment to qualify for nursing home-level care."
+        },
+        {
+          "question": "What services can my parent actually get?",
+          "answer": "Services include case management, personal care services, adult day services, home-delivered meals, expanded home health services, and respite care. The specific services depend on what your parent needs and what's available in your area."
+        },
+        {
+          "question": "Does my parent have to try to get VA benefits first?",
+          "answer": "Yes. Your parent must apply for and accept all other benefits they might qualify for, including VA benefits, Social Security, or retirement benefits. Refusing available benefits can make them ineligible for this program."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://medicaid.ms.gov/programs/elderly-and-disabled-waiver/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "mississippi-elderly-disabled-waiver",
+      "name": "Mississippi Elderly and Disabled (E&D) Waiver",
+      "shortName": "E&D Waiver",
+      "tagline": "If your parent needs daily help but wants to stay home, this waiver covers personal care, home health, and meals instead of nursing home placement.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Office of Long Term Care (administers); Planning and Development Districts (case management, e.g., SMPDD, NCPDD, etc.)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs nursing home-level care but wants to stay at home, Mississippi's Elderly and Disabled Waiver can cover the services that make this possible. This Medicaid waiver pays for personal care services, home-delivered meals, adult day health care, respite care, and expanded home health services that go beyond what regular Medicaid covers.\n\nYour parent must be 65+ (or 21+ if physically disabled), meet Medicaid income limits or qualify for SSI, and pass a clinical assessment proving they need nursing home-level care. Because this waiver serves as an alternative to nursing home placement, your parent must demonstrate they need daily help with activities like bathing, dressing, or medication management through an in-person evaluation by a registered nurse and social worker.\n\nThe waiver is available statewide through regional Planning and Development Districts that provide case management. Each participant gets an assigned case manager (registered nurse or social worker) who coordinates all services and develops an individualized care plan.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+ (or 21+ if disabled)",
+          "Medicaid eligible or SSI recipient",
+          "Need nursing home-level care",
+          "Mississippi resident"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": null,
+          "couple": null,
+          "countedAssets": null,
+          "exemptAssets": [
+            "Primary home (if equity under $752,000)",
+            "Household goods",
+            "Personal belongings"
+          ],
+          "homeEquityCap": 752000
+        },
+        "functionalRequirement": "Must meet Nursing Facility Level of Care through clinical assessment — this means needing daily help with activities like bathing, dressing, medication management, or having cognitive deficits that require supervision",
+        "otherRequirements": [
+          "Mississippi resident",
+          "Medicaid eligible or SSI recipient",
+          "Physician certification of care needs (renewed annually)"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact your regional Planning and Development District for screening — processing time not specified by the state.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Apply for Medicaid",
+            "description": "If your parent isn't already on Medicaid or SSI, start there first. If income exceeds 300% of SSI rate, you'll need to set up an income trust to pay the excess to Medicaid each month."
+          },
+          {
+            "step": 2,
+            "title": "Contact local Planning District",
+            "description": "Call your regional Planning and Development District office for case management screening. They'll determine if your parent might qualify for waiver services."
+          },
+          {
+            "step": 3,
+            "title": "Complete clinical assessment",
+            "description": "A registered nurse and social worker will conduct an in-person assessment using the state's LTSS assessment tool to determine if your parent meets nursing facility level of care."
+          },
+          {
+            "step": 4,
+            "title": "Get physician certification",
+            "description": "Your parent's doctor must certify that they need nursing home-level care. This certification must be renewed every 12 months."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Having a dementia diagnosis alone doesn't automatically qualify your parent — they still need the full clinical assessment to prove nursing facility level of care.",
+        "urls": [
+          {
+            "label": "Mississippi Medicaid E&D Waiver",
+            "url": "https://medicaid.ms.gov/programs/elderly-and-disabled-waiver/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and savings",
+            "Investments and stocks",
+            "Second homes or rental property",
+            "Vehicles beyond one car"
+          ],
+          "excluded": [
+            "Primary home (if equity under $752,000 and you intend to return)",
+            "Household goods and personal belongings",
+            "One vehicle for transportation",
+            "Burial funds and life insurance (within limits)",
+            "Home if spouse or disabled child lives there"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Driver's license or state ID",
+                "Social Security card",
+                "Proof of Mississippi residency (utility bill, lease)"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Social Security award letters",
+                "Bank statements (3 months)",
+                "Income documentation (pensions, retirement)",
+                "Home deed or mortgage statements if applicable"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Current medication list",
+                "Recent medical records",
+                "Physician certification of care needs"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "If your parent's income exceeds 300% of the SSI rate, they can still qualify but must pay the excess amount to Medicaid each month through an income trust. This requires legal setup and ongoing monthly payments."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "The waiver only provides services after regular Medicaid benefits are exhausted. For example, if your parent has used up their annual home health visits under regular Medicaid, the waiver can provide extended home health services."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house if she qualifies for the waiver?",
+          "answer": "Yes, as long as the home equity is under $752,000 (2026 limit) and she intends to return home, or if a spouse or disabled child lives there. The home won't count toward asset limits for Medicaid eligibility."
+        },
+        {
+          "question": "What if Dad's income is just over the SSI limit?",
+          "answer": "He can still qualify if his income is within 300% of the SSI rate by paying the excess to Medicaid each month through an income trust. This requires setting up a legal trust and making monthly payments to the Division of Medicaid."
+        },
+        {
+          "question": "How is this different from regular Medicaid home health?",
+          "answer": "The waiver provides services after regular Medicaid benefits run out. It also covers services regular Medicaid doesn't, like home-delivered meals, adult day health care, respite care, and personal care services specifically designed to avoid nursing home placement."
+        },
+        {
+          "question": "What exactly does 'nursing facility level of care' mean?",
+          "answer": "Your parent must need daily help with basic activities like bathing, dressing, eating, or medication management, or require supervision due to cognitive problems. A nurse and social worker assess this in person using a specific scoring system — having dementia or other diagnoses alone isn't enough."
+        },
+        {
+          "question": "Who decides what services Mom gets and how many hours?",
+          "answer": "An assigned case manager (registered nurse or social worker) works with you and your parent to develop an individualized care plan. They coordinate all services and approve the specific amount and type of care based on the assessment and available waiver services."
+        },
+        {
+          "question": "Can we choose our own home care provider?",
+          "answer": "Providers must be enrolled with the Office of Long Term Care to provide waiver services. Your case manager can help you understand which enrolled providers serve your area and meet your parent's specific needs."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://medicaid.ms.gov/programs/elderly-and-disabled-waiver/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "mississippi-medicare-savings-programs",
+      "name": "Medicare Savings Programs",
+      "shortName": "Medicare Savings",
+      "tagline": "If your parent's Medicare costs are unaffordable, Mississippi may pay their premiums, deductibles, and copays.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local Mississippi DHS Medicaid offices statewide (locations at medicaid.ms.gov)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent struggles to pay Medicare premiums, deductibles, or copayments, Mississippi's Medicare Savings Programs can help. The state offers three levels of assistance based on income — from covering all Medicare costs to just paying the Part B premium.\n\nUnlike most states, Mississippi has no asset limits for this program. Your parent could own their home, have retirement savings, and still qualify if their monthly income is below the limits. The highest tier helps people earning up to $1,816/month as a single person or $2,455/month as a couple (2026 limits).\n\nBecause there are three different benefit levels with different income cutoffs, it's worth applying even if your parent's income seems too high for basic assistance — they may qualify for partial help with Medicare costs.",
+      "savingsRange": "$2,000 – $8,000/year in 2026",
+      "savingsSource": "Medicare Part B premiums ($185/month), deductibles ($1,676 Part A, $240 Part B), and copayments",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Has Medicare Part A",
+          "Income below $1,816/month (single)",
+          "Mississippi resident",
+          "No asset limits in MS"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1816
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2455
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must have Medicare Part A eligibility",
+          "Mississippi resident",
+          "U.S. citizen or qualified non-citizen"
+        ],
+        "povertyLevelReference": "135% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online through Mississippi's Medicaid portal or call 800-421-2408 — processing typically takes 30-45 days.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Gather Medicare and income documents",
+            "description": "You'll need proof of Medicare enrollment, recent pay stubs or benefit letters, and ID documents."
+          },
+          {
+            "step": 2,
+            "title": "Apply through Mississippi Medicaid",
+            "description": "Use the online application at medicaid.ms.gov for 'Medicare cost-sharing' or call 800-421-2408."
+          },
+          {
+            "step": 3,
+            "title": "Choose your preferred benefit level",
+            "description": "The application will determine which of the three tiers your parent qualifies for based on income."
+          },
+          {
+            "step": 4,
+            "title": "Wait for approval and Medicaid card",
+            "description": "QMB recipients get a Medicaid card for provider billing; SLMB and QI recipients just get premium payment assistance."
+          }
+        ],
+        "processingTime": "QMB benefits begin one month after approval with no retroactive coverage. SLMB can be retroactive up to 3 months.",
+        "waitlist": "QI (highest income tier) may have waitlists due to federal funding caps",
+        "tip": "Apply even if your parent's income seems too high — Mississippi has three different income tiers and no asset test.",
+        "urls": [
+          {
+            "label": "Apply Online",
+            "url": "https://medicaid.ms.gov"
+          },
+          {
+            "label": "Find Local Office",
+            "url": "https://medicaid.ms.gov"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "tier-comparison",
+          "heading": "Three Levels of Help",
+          "tiers": [
+            {
+              "name": "QMB (Full Coverage)",
+              "description": "Pays all Medicare costs",
+              "incomeLimit": "$1,350/month single, $1,824/month couple",
+              "coverage": "Part A & B premiums, deductibles, coinsurance, copayments. Includes Medicaid card."
+            },
+            {
+              "name": "SLMB (Premium Only)",
+              "description": "Pays Medicare Part B premiums",
+              "incomeLimit": "$1,616/month single, $2,184/month couple",
+              "coverage": "Part B premium only ($185/month in 2026). Up to 3 months retroactive."
+            },
+            {
+              "name": "QI (Premium Only)",
+              "description": "Pays Medicare Part B premiums",
+              "incomeLimit": "$1,816/month single, $2,455/month couple",
+              "coverage": "Part B premium only ($185/month in 2026). Limited federal funding."
+            }
+          ]
+        },
+        {
+          "type": "what-counts",
+          "heading": "Income That Counts",
+          "included": [
+            "Social Security benefits",
+            "Pension payments",
+            "Wages (after $65 + half remaining wages disregard)",
+            "Investment income",
+            "Other retirement income"
+          ],
+          "excluded": [
+            "First $20/month of any income",
+            "$65 in wages plus half of remaining wages",
+            "Assets and savings (no asset test in Mississippi)"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Birth certificate",
+                "Social Security card",
+                "Proof of Mississippi residency"
+              ]
+            },
+            {
+              "name": "Medicare",
+              "items": [
+                "Medicare card showing Part A and Part B",
+                "Medicare Summary Notice if available"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Pay stubs or benefit award letters",
+                "Bank statements (past 3 months)",
+                "Pension or retirement income statements"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "QI (the highest income tier) has federal funding limits. Even if your parent qualifies by income, they may be put on a waitlist if funding runs out."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Mississippi has no asset test — your parent can own their home, have savings, and still qualify based on income alone. This is more generous than most states."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house and still qualify?",
+          "answer": "Yes. Mississippi has no asset limits for Medicare Savings Programs. Your parent can own their home, have retirement savings, and still qualify based on income alone."
+        },
+        {
+          "question": "What if Mom's income is just over the QMB limit?",
+          "answer": "She may still qualify for SLMB or QI, which pay the Medicare Part B premium ($185/month). The income limits go up to $1,816/month for a single person in the highest tier."
+        },
+        {
+          "question": "Will this affect my parent's other benefits?",
+          "answer": "No, Medicare Savings Programs don't count as income for other programs like SNAP or housing assistance. QMB recipients get additional Medicaid benefits, which can only help."
+        },
+        {
+          "question": "How long does approval take?",
+          "answer": "Typically 30-45 days. QMB benefits start the month after approval with no retroactive coverage. SLMB can be retroactive up to 3 months before application."
+        },
+        {
+          "question": "What's the difference between the three programs?",
+          "answer": "QMB covers all Medicare costs but has the lowest income limit. SLMB and QI only pay the Part B premium but allow higher incomes. QI may have waitlists due to federal funding caps."
+        },
+        {
+          "question": "Can married couples apply if only one has Medicare?",
+          "answer": "Yes, but both spouses' income counts toward the couple limits ($1,824-$2,455/month depending on tier). Only the spouse with Medicare gets the benefits."
+        }
+      ],
+      "phone": "800-421-2408",
+      "sourceUrl": "https://medicaid.ms.gov/medicaid-coverage/who-qualifies-for-coverage/medicare-cost-sharing/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "mississippi-snap-food-benefits",
+      "name": "SNAP (Supplemental Nutrition Assistance Program) in Mississippi",
+      "shortName": "SNAP Food Benefits",
+      "tagline": "Monthly grocery assistance that could provide hundreds of dollars in food benefits for your parent",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true
+      },
+      "intro": "If your parent is struggling to afford groceries on a fixed income, SNAP can provide monthly benefits loaded onto an EBT card to buy food at grocery stores, farmers markets, and many retailers. Mississippi makes it easier for seniors — if your parent is 60 or older, they only need to meet the net income test (after deductions), not the stricter gross income limits that apply to younger households. Because seniors 60+ get simplified rules, many qualify even if their initial income seems too high. Mississippi also offers a streamlined Elderly Simplified Application (ESAP) for households where everyone is 60+ with no earned income, making the application process much faster and simpler.",
+      "savingsRange": "",
+      "savingsSource": "Monthly food purchasing assistance",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+ gets simplified rules",
+          "Net income below limits for household size",
+          "Assets under $4,500 (if 60+ or disabled)",
+          "Must live in Mississippi"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1255
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 1704
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 2152
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 2600
+          },
+          {
+            "householdSize": 5,
+            "monthlyLimit": 3049
+          }
+        ],
+        "assetLimits": {
+          "individual": 3000,
+          "couple": 4500,
+          "countedAssets": [
+            "Bank accounts",
+            "Cash",
+            "Real estate (not primary home)",
+            "Personal property",
+            "Vehicles (beyond one per household)"
+          ],
+          "exemptAssets": [
+            "Primary residence",
+            "One vehicle per household"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be Mississippi resident",
+          "If 60+ or disabled, higher asset limit ($4,500) and no gross income test applies"
+        ],
+        "povertyLevelReference": "100% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online, by phone, or in-person at local Mississippi Department of Human Services offices.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Choose your application type",
+            "description": "If everyone in your parent's household is 60+ with no earned income, they must use the Elderly Simplified Application (ESAP Form MDHS EA 904). Otherwise, use the standard SNAP application."
+          },
+          {
+            "step": 2,
+            "title": "Gather required documents",
+            "description": "Contact your local MDHS office for the specific document list, as requirements vary by household situation."
+          },
+          {
+            "step": 3,
+            "title": "Submit application",
+            "description": "Apply online, mail the completed form, call your local MDHS office, or visit in person."
+          },
+          {
+            "step": 4,
+            "title": "Complete any required interview",
+            "description": "MDHS will contact you about next steps after reviewing your application."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "If your parent is 60+, ask specifically about ESAP — it's mandatory if they qualify and makes the process much simpler.",
+        "urls": [
+          {
+            "label": "SNAP for Elderly/Disabled",
+            "url": "https://www.mdhs.ms.gov/help/snap/special/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Net Monthly Income Limits (After Deductions)",
+          "rows": [
+            {
+              "householdSize": "1 person",
+              "monthlyLimit": "$1,255"
+            },
+            {
+              "householdSize": "2 people",
+              "monthlyLimit": "$1,704"
+            },
+            {
+              "householdSize": "3 people",
+              "monthlyLimit": "$2,152"
+            },
+            {
+              "householdSize": "4 people",
+              "monthlyLimit": "$2,600"
+            },
+            {
+              "householdSize": "5 people",
+              "monthlyLimit": "$3,049"
+            },
+            {
+              "householdSize": "Each additional person",
+              "monthlyLimit": "Add $449"
+            }
+          ],
+          "footnote": "2026 limits. If household has someone 60+ or disabled, only net income test applies (gross income minus allowable deductions)."
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and cash",
+            "Real estate (except primary home)",
+            "Personal property",
+            "Vehicles beyond one per household"
+          ],
+          "excluded": [
+            "Your primary residence (house)",
+            "At least one vehicle per household"
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If your parent is 60+ with no earned income, they must use the Elderly Simplified Application (ESAP) — they cannot use regular SNAP. This is actually better because ESAP has simpler rules and faster processing."
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "About half of eligible seniors don't receive SNAP despite qualifying. Many elderly don't know they're eligible or assume their income is too high, but the 60+ rules are more generous than regular SNAP."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house and car if they get SNAP?",
+          "answer": "Yes. The primary residence doesn't count toward asset limits, and each household can have one vehicle that doesn't count. If your parent is 60+ or disabled, they get a higher asset limit ($4,500 vs $3,000)."
+        },
+        {
+          "question": "What if my parent's Social Security seems too high for the income limits?",
+          "answer": "If your parent is 60+, they only need to meet the net income test — that's their gross income minus allowable deductions for medical expenses, utilities, and other costs. Many seniors qualify even if their Social Security initially appears over the limit."
+        },
+        {
+          "question": "Does my parent have to use the simplified elderly application?",
+          "answer": "If everyone in the household is 60+ and no one has earned income, they must use ESAP (Elderly Simplified Application). They cannot choose regular SNAP. If anyone has earned income or is under 60, they use regular SNAP."
+        },
+        {
+          "question": "Can SNAP benefits be used at farmers markets?",
+          "answer": "Yes, SNAP benefits work at participating farmers markets, grocery stores, and many retailers. The benefits are loaded onto an EBT card that works like a debit card for eligible food purchases."
+        },
+        {
+          "question": "What happens if my parent starts working part-time after getting SNAP?",
+          "answer": "Any earned income would disqualify them from the simplified elderly program (ESAP), but they could still qualify for regular SNAP. Report income changes to MDHS right away to avoid overpayments."
+        },
+        {
+          "question": "How long do SNAP benefits last?",
+          "answer": "SNAP is ongoing as long as your parent continues to meet eligibility requirements. Seniors typically have longer certification periods and don't face the work requirements that apply to younger adults without dependents."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://www.mdhs.ms.gov/help/snap/special/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "mississippi-liheap-energy-assistance",
+      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "shortName": "LIHEAP Energy Help",
+      "tagline": "Help paying your parent's electricity and gas bills when they're struggling with energy costs.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local Community Action Agencies (CAAs) in each county; find via MDHS site",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is struggling to pay electricity or gas bills, LIHEAP can help cover those costs by paying money directly to their energy company. The program helps households with income at or below 60% of Mississippi's median income for their household size — seniors, people with disabilities, and families with young children get priority when funds are limited.\n\nBecause LIHEAP pays vendors directly, your parent doesn't handle cash — the money goes straight toward reducing what they owe on energy bills. Mississippi administers this through Community Action Agencies in all 82 counties, but funding is limited and distributed first-come, first-served.",
+      "savingsRange": "",
+      "savingsSource": "Amount varies based on energy bill due at time of application",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Income at or below 60% state median",
+          "Current energy bill due",
+          "U.S. citizen or legal resident",
+          "Priority for seniors and disabled"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Has an energy bill due to an energy company or landlord",
+          "U.S. citizen or legal permanent resident"
+        ],
+        "povertyLevelReference": "60% of state median income"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online through MDHS portal or contact your county's Community Action Agency — approval within 30 days for regular benefits.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Gather required documents",
+            "description": "Collect photo ID for everyone over 18, income proof (pay stubs, award letters), proof of residence, and copies of current energy bills"
+          },
+          {
+            "step": 2,
+            "title": "Choose application method",
+            "description": "Apply online at MDHS portal selecting 'Community Services' for LIHEAP, or contact your county's Community Action Agency"
+          },
+          {
+            "step": 3,
+            "title": "Submit application",
+            "description": "Complete application with all required documentation — Community Action Agency can help obtain energy bill copies if needed"
+          },
+          {
+            "step": 4,
+            "title": "Continue paying bills",
+            "description": "Keep paying your parent's full energy bills while waiting for approval to avoid service disconnection"
+          }
+        ],
+        "processingTime": "Approval within 30 days for regular benefits; 48 hours for emergency situations",
+        "waitlist": "No formal waitlist — funding distributed first-come, first-served with priority for vulnerable households",
+        "tip": "Apply early in the program year and emphasize if your parent is elderly, disabled, or has children under 5 living with them for priority processing.",
+        "urls": [
+          {
+            "label": "Apply Online - MDHS Portal",
+            "url": "https://www.mdhs.ms.gov/community/liheap/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Photo ID for everyone over 18 (driver's license, passport, state ID)"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Proof of income (pay stubs, W2, 1099, award letters, unemployment benefits letter)",
+                "Proof of residence (lease, mortgage documents, utility bills)",
+                "Copies of current energy bills (Community Action Agency can help obtain if needed)"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "county-directory",
+          "heading": "Find Your County Office",
+          "offices": [
+            {
+              "name": "Community Action Agencies by County",
+              "type": "service-area",
+              "phone": "Contact MDHS for county-specific numbers",
+              "address": "Visit MDHS website for local Community Action Agency contacts in all 82 counties"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Funding is limited and distributed first-come, first-served. Apply as early as possible when the program year opens to avoid missing out."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Your parent must have a current energy bill due to qualify. Continue paying the full amount while waiting for approval to prevent service disconnection."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent's income is just over the 60% state median limit?",
+          "answer": "They won't qualify for LIHEAP, but your county's Community Action Agency may know about other local energy assistance programs or payment plan options with utility companies."
+        },
+        {
+          "question": "How much will this actually save on Mom's electric bill?",
+          "answer": "The amount varies based on what she owes when approved — LIHEAP pays money directly to her energy company to reduce her balance, but there's no set dollar amount."
+        },
+        {
+          "question": "Can Dad get help if he rents and the landlord pays utilities?",
+          "answer": "Only if he has energy bills in his name due to an energy company or landlord. If utilities are included in rent with no separate bill, he won't qualify."
+        },
+        {
+          "question": "What happens if there's an emergency and Mom's power is about to be shut off?",
+          "answer": "Emergency situations can be processed within 48 hours. Contact your county's Community Action Agency immediately and explain the disconnection notice."
+        },
+        {
+          "question": "Does applying for LIHEAP affect other benefits like Social Security or Medicare?",
+          "answer": "No, LIHEAP doesn't count as income and won't affect other federal benefits. It's designed to work alongside programs like Social Security and SNAP."
+        },
+        {
+          "question": "Can my parent get help with both heating and cooling bills?",
+          "answer": "Yes, LIHEAP covers both electricity and gas bills regardless of whether they're for heating, cooling, or other energy needs — the program looks at what's due, not what the energy is used for."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://www.mdhs.ms.gov/community/liheap/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "mississippi-weatherization-assistance-program",
+      "name": "Weatherization Assistance Program (WAP)",
+      "shortName": "WAP",
+      "tagline": "Free home energy upgrades that can save your parent $372+ per year on heating and cooling bills.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true
+      },
+      "intro": "If your parent's heating or cooling bills are eating into their fixed income, Mississippi's Weatherization Assistance Program provides free home energy improvements that could save them $372 or more per year. The program installs insulation, seals air leaks, upgrades heating and cooling systems, and makes other modifications at no cost to qualifying homeowners, renters, and mobile home owners.\n\nPriority goes to households with seniors 60+, people with disabilities, or children under 5, but all income-eligible families can apply. Your parent qualifies if their household income is at or below 200% of the Federal Poverty Guidelines — a higher threshold than many programs use.\n\nBecause this program focuses on permanent home improvements rather than temporary bill assistance, the energy savings continue year after year. One energy audit and improvement project can reduce your parent's monthly utility costs for decades.",
+      "savingsRange": "$372+/year",
+      "savingsSource": "National average annual savings from weatherization improvements",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Income at or below 200% Federal Poverty Level",
+          "Mississippi resident",
+          "Homeowner, renter, or mobile home owner",
+          "Priority for age 60+"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be Mississippi resident",
+          "Must be homeowner, renter, or mobile home owner",
+          "Proof of identity required for all household members over 18"
+        ],
+        "povertyLevelReference": "200% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Start with an online pre-application, then complete the full application in person with your local Community Action Agency.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Submit online pre-application",
+            "description": "Go to Access MS Common Web Portal and mark 'Community Services' on the program list to start your pre-application."
+          },
+          {
+            "step": 2,
+            "title": "Wait for contact from local agency",
+            "description": "Your regional Community Action Agency will contact you to schedule an in-person appointment after receiving your pre-application."
+          },
+          {
+            "step": 3,
+            "title": "Complete full application in person",
+            "description": "Meet with CAA staff to complete the full application and provide required documentation."
+          },
+          {
+            "step": 4,
+            "title": "Schedule energy audit",
+            "description": "If approved, the agency will schedule a home energy audit to determine which improvements will save the most energy."
+          }
+        ],
+        "processingTime": "Processing time varies by regional Community Action Agency",
+        "waitlist": "Applicants on waiting lists must update eligibility documentation annually",
+        "tip": "Gather all required documents before your in-person appointment to speed up the process.",
+        "urls": [
+          {
+            "label": "Start Pre-Application",
+            "url": "https://www.mdhs.ms.gov/wap/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring to Your Appointment",
+          "categories": [
+            {
+              "name": "Identity (all household members over 18)",
+              "items": [
+                "Photo driver's license, passport, or state-issued photo ID",
+                "Employment ID, school ID, or US Military ID",
+                "Tribal ID or permanent residence card"
+              ]
+            },
+            {
+              "name": "Income Proof",
+              "items": [
+                "W-2 form or paycheck stubs from past 30 days",
+                "1099 forms or IRS tax returns with schedules",
+                "Unemployment determination letter",
+                "Social Security or pension award letters"
+              ]
+            },
+            {
+              "name": "Residency Proof",
+              "items": [
+                "Recent utility bills",
+                "Lease agreement or mortgage documents",
+                "Property deed"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "This program makes permanent home improvements, not temporary bill payment help. For immediate utility bill assistance, also explore the Low Income Home Energy Assistance Program (LIHEAP)."
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "You cannot complete the entire application online. After the pre-application, you must meet with Community Action Agency staff in person to finish the process."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent rents their home — can they still get weatherization help?",
+          "answer": "Yes, renters qualify for weatherization assistance. However, the property owner must agree to the improvements and sign consent forms before work can begin."
+        },
+        {
+          "question": "How do I know if my parent's income qualifies for the 200% poverty level?",
+          "answer": "The exact dollar amounts vary by household size and aren't provided online. Contact your local Community Action Agency directly — they can tell you the current income limits for your parent's household size over the phone."
+        },
+        {
+          "question": "My parent is 75 and her utility bills are huge. Does her age help her get services faster?",
+          "answer": "Yes, households with seniors 60+ get priority for weatherization services, along with people with disabilities and families with young children. Her age should move her higher on the waiting list."
+        },
+        {
+          "question": "What kinds of improvements will they actually make to the house?",
+          "answer": "After an energy audit, they might add insulation, seal air leaks, repair or replace heating/cooling systems, install storm windows, or make other efficiency upgrades. The specific improvements depend on what will save the most energy in your parent's home."
+        },
+        {
+          "question": "If my parent is on a waiting list, does she need to reapply every year?",
+          "answer": "She doesn't need to reapply, but she must update her eligibility documentation annually while on the waiting list to maintain her place."
+        },
+        {
+          "question": "Can my parent get both weatherization and help paying current utility bills?",
+          "answer": "Yes, these are separate programs. Apply for weatherization for long-term energy savings, and also check if she qualifies for LIHEAP for immediate help with current utility bills."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://www.mdhs.ms.gov/wap/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "mississippi-ship-medicare-counseling",
+      "name": "Mississippi State Health Insurance Assistance Program (SHIP)",
+      "shortName": "Mississippi SHIP",
+      "tagline": "Get free one-on-one help understanding Medicare options and applying for savings programs.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Administered by Mississippi Department of Human Services (MDHS), Division of Aging and Adult Services, 750 North State Street, Jackson MS 39202",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is confused by Medicare options or struggling with claims and appeals, Mississippi SHIP provides free counseling to help them navigate their choices. Because Medicare has dozens of plan options and complex rules, SHIP counselors can compare plans side-by-side, help with paperwork, and walk your parent through applications for money-saving programs like Extra Help or Medicare Savings Programs.\n\nSHIP serves all Medicare beneficiaries in Mississippi — no income limits apply, though they prioritize people with limited incomes. Counselors provide one-on-one help by phone or in-person, plus assistance with Medicare Parts A, B, C, and D, Medigap policies, claims problems, and fraud prevention.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Medicare beneficiary",
+          "Family/caregiver of Medicare beneficiary",
+          "No income limits",
+          "Statewide availability"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be a Medicare beneficiary, under age 65 with Medicare due to disability, dually eligible for Medicare and Medicaid, or family/caregiver of such individuals"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call to schedule a counseling appointment — no formal application needed.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call SHIP",
+            "description": "Call 1-844-822-4622 (Monday-Friday 8am-5pm) to request counseling appointment"
+          },
+          {
+            "step": 2,
+            "title": "Gather Medicare information",
+            "description": "Have your parent's Medicare card, current insurance details, and prescription list ready for the appointment"
+          },
+          {
+            "step": 3,
+            "title": "Meet with counselor",
+            "description": "Attend scheduled phone or in-person counseling session to get personalized help with Medicare questions"
+          }
+        ],
+        "processingTime": "Services provided via appointment scheduling upon contact",
+        "waitlist": null,
+        "tip": "During Open Enrollment (October 15 - December 7), high demand may affect appointment availability, so call early.",
+        "urls": [
+          {
+            "label": "Mississippi DHHS SHIP page",
+            "url": "https://www.mdhs.ms.gov/post/navigating-medicare-made-easy-with-ship/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "SHIP provides counseling and education only — they don't provide direct payments, medical services, or guarantee approval for savings programs. They help you understand and apply, but can't approve benefits themselves."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can SHIP help my parent apply for programs that reduce Medicare costs?",
+          "answer": "Yes. SHIP counselors help with applications for Medicare Savings Programs (which pay Medicare premiums) and Extra Help/Low Income Subsidy (which reduces prescription costs). They'll walk your parent through the paperwork, but approval depends on meeting those programs' income limits."
+        },
+        {
+          "question": "Does my parent's income matter for getting SHIP counseling?",
+          "answer": "No income limits apply. SHIP prioritizes people with limited incomes but provides free counseling to all Medicare beneficiaries regardless of income level."
+        },
+        {
+          "question": "What should my parent bring to a SHIP appointment?",
+          "answer": "Medicare card, details about current health insurance, list of prescription medications, and income/asset information if they want help applying for savings programs. The counselor will help organize this information during the session."
+        },
+        {
+          "question": "Can I attend the SHIP counseling session with my parent?",
+          "answer": "Yes. SHIP specifically serves family members and caregivers of Medicare beneficiaries. You can attend sessions and get help understanding your parent's Medicare options."
+        },
+        {
+          "question": "How long does a SHIP counseling session take?",
+          "answer": "Session length varies based on your parent's needs — from simple plan comparisons to complex appeals help. Most sessions are scheduled by appointment, and counselors work at your parent's pace to ensure they understand their options."
+        },
+        {
+          "question": "What if my parent has problems with Medicare claims or suspects fraud?",
+          "answer": "SHIP includes Senior Medicare Patrol (SMP) services for fraud prevention and can help with Medicare claims and appeals. They'll guide your parent through the process of disputing incorrect charges or filing appeals for denied claims."
+        }
+      ],
+      "phone": "1-844-822-4622",
+      "sourceUrl": "https://www.mdhs.ms.gov/post/navigating-medicare-made-easy-with-ship/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "mississippi-home-delivered-meals",
+      "name": "Home Delivered Meals (Meals on Wheels)",
+      "shortName": "Meals on Wheels",
+      "tagline": "Free daily meals delivered to your homebound parent's door — no income limits required.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local Area Agency on Aging (contact for specific county)",
+            "type": "service-area"
+          },
+          {
+            "name": "Examples: Union Nutrition Site (age 60+)[7]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and struggles to cook or leave home for groceries, Meals on Wheels delivers hot, nutritionally balanced meals directly to their door. Each meal provides at least 33% of daily nutritional needs and meets federal dietary standards.\n\nUnlike most government programs, there are no income or asset limits. Your parent qualifies based on age and need — whether they're homebound due to mobility issues, health conditions, or simply can't safely prepare meals anymore. Because the program is run by local agencies, availability depends on your parent's address and current waitlists.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Homebound or unable to prepare meals",
+          "Lives in service delivery area",
+          "No income limits"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must be homebound or unable to prepare meals due to age, disability, or health status",
+        "otherRequirements": [
+          "Must live within local provider's delivery zone"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your local Area Agency on Aging for an assessment — some areas start delivery within a week if no waitlist.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local Area Agency on Aging",
+            "description": "Search online for '[your county] Area Agency on Aging Mississippi' — there's no statewide number"
+          },
+          {
+            "step": 2,
+            "title": "Call for assessment",
+            "description": "They'll ask about your parent's age, health conditions, mobility, and dietary restrictions over the phone"
+          },
+          {
+            "step": 3,
+            "title": "Provide required documents",
+            "description": "Proof of age and residence are typically needed; medical information helps determine priority"
+          },
+          {
+            "step": 4,
+            "title": "Wait for placement",
+            "description": "If there's a waitlist, priority goes to those who can't attend congregate meal sites"
+          }
+        ],
+        "processingTime": "Varies; some within a week, longer if waitlist",
+        "waitlist": "Yes, home-delivered waiting list takes priority; access limited if waitlist exists",
+        "tip": "Ask about emergency or shelf-stable meals while waiting for regular delivery to start",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Required",
+              "items": [
+                "Proof of age (driver's license, birth certificate)",
+                "Proof of residence (utility bill, lease)"
+              ]
+            },
+            {
+              "name": "Helpful for Assessment",
+              "items": [
+                "List of medical conditions",
+                "Current medications",
+                "Dietary restrictions or allergies",
+                "Emergency contact information"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Most areas have waitlists. Even if your parent qualifies, meals may not start immediately. Ask about emergency meal options while waiting."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If your parent can still drive or leave home regularly, they may not qualify as 'homebound.' Ask about congregate meal sites as an alternative."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent can still drive but shouldn't be cooking?",
+          "answer": "Being able to drive may disqualify them from home-delivered meals since the program prioritizes truly homebound seniors. Ask your local agency about congregate meal sites instead — these serve meals at community centers for seniors who can travel."
+        },
+        {
+          "question": "Can my parent choose what meals they get?",
+          "answer": "Meals are pre-planned to meet nutritional standards, but providers accommodate dietary restrictions and allergies when possible. Mention any medical dietary needs (diabetic, low-sodium, etc.) during the assessment."
+        },
+        {
+          "question": "What if we live just outside the delivery area?",
+          "answer": "Each local agency has specific delivery zones. If your parent is outside the boundaries, contact the Area Agency on Aging in the adjacent county — boundaries don't always follow county lines."
+        },
+        {
+          "question": "Do we have to pay anything?",
+          "answer": "The program is free, though voluntary donations are welcomed. No one is required to pay, and inability to donate won't affect service."
+        },
+        {
+          "question": "How often are meals delivered?",
+          "answer": "Most areas deliver one meal per delivery day, typically 1-5 times per week depending on local capacity and your parent's assessed need. The exact schedule varies by provider."
+        },
+        {
+          "question": "What happens if my parent gets better and doesn't need the meals anymore?",
+          "answer": "Contact the local provider to discuss changes in your parent's condition. They can pause or end service, and your parent can reapply later if needs change again."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://www.law.cornell.edu/regulations/mississippi/18-Miss-Code-R-SS-2-2-10",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "mississippi-family-caregiver-support",
+      "name": "National Family Caregiver Support Program (Mississippi)",
+      "shortName": "Family Caregiver Support",
+      "tagline": "Free respite care, counseling, and support services for family caregivers caring for aging parents in Mississippi.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "10 Area Agencies on Aging (AAA); contact via MAC Center at 844-822-4622",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If you're caring for a parent age 60 or older in Mississippi, this federal program provides free support services to help you manage caregiving responsibilities. You can access respite care (temporary relief while someone else watches your parent), individual counseling, support groups, caregiver training, and help connecting to other services.\n\nThe program serves family caregivers of any age caring for someone 60+, plus caregivers age 60+ caring for children under 18, and adults 55+ caring for people with developmental disabilities. There are no income or asset limits — eligibility focuses on your caregiving role and the age requirements.\n\nServices are delivered through 10 regional Area Agencies on Aging across Mississippi, so availability may vary by location. This is not a cash payment program — it provides actual services and support.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Caring for family member age 60+",
+          "Or caregiver age 60+ caring for child under 18",
+          "Or age 55+ caring for adult with developmental disabilities",
+          "No income limits"
+        ],
+        "ageRequirement": "Varies by situation",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be primary caregiver (spouse, child, or relative)",
+          "Care recipient must need constant in-home care due to illness, functional impairment, or dementia"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call the Mississippi Access to Care Center at 844-822-4622 to connect with your local Area Agency on Aging.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the MAC Center",
+            "description": "Contact Mississippi Access to Care at 844-822-4622 to be connected to your local Area Agency on Aging"
+          },
+          {
+            "step": 2,
+            "title": "Describe your caregiving situation",
+            "description": "Explain who you're caring for, their age and needs, and what type of support would be most helpful"
+          },
+          {
+            "step": 3,
+            "title": "Connect with local services",
+            "description": "Your Area Agency will assess what services are available in your region and help you access them"
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Services may be limited and temporary, so ask specifically about availability in your area when you call.",
+        "urls": [
+          {
+            "label": "Mississippi Department of Human Services - Caregivers",
+            "url": "https://www.mdhs.ms.gov/aging/caregivers/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "This program is separate from other respite programs in Mississippi. The Lifespan Respite Program offers vouchers ($300-$400), and the Dementia Care Program provides 27 hours of respite per month. Ask about all options when you call."
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Services are provided on a limited basis only and are meant to supplement, not replace, the care you provide. Availability varies by region through the 10 Area Agencies on Aging."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What's the difference between this and other respite programs in Mississippi?",
+          "answer": "This federal program provides five basic support services through Area Agencies on Aging. The separate Lifespan Respite Program offers vouchers worth $300-$400, and the Mississippi Dementia Care Program provides up to 27 hours of respite monthly. You may be eligible for multiple programs."
+        },
+        {
+          "question": "Do I get paid to be a caregiver through this program?",
+          "answer": "No, this program does not provide cash payments to caregivers. It offers services like respite care, counseling, support groups, and training. For paid caregiver programs, ask about Medicaid self-direction options or VA benefits if your parent is a veteran."
+        },
+        {
+          "question": "How much respite care can I get?",
+          "answer": "The program doesn't specify exact hours or limits. Respite care is provided on a limited basis to give you temporary relief. The amount available depends on your local Area Agency on Aging and current capacity."
+        },
+        {
+          "question": "What if my parent is under 60?",
+          "answer": "If your parent is under 60, you may still qualify if you're age 55+ and caring for an adult with developmental disabilities. Otherwise, ask your Area Agency about other local programs for younger adults needing care."
+        },
+        {
+          "question": "Can I get services if my income is too high for other programs?",
+          "answer": "Yes, this program has no income or asset limits. Eligibility is based on your caregiving role and the age requirements, not your financial situation."
+        },
+        {
+          "question": "What if there's a waiting list in my area?",
+          "answer": "Services are limited and may not be immediately available. When you call the MAC Center, ask about current wait times in your region and whether you can be placed on a list for when services become available."
+        }
+      ],
+      "phone": "844-822-4622",
+      "sourceUrl": "https://www.mdhs.ms.gov/aging/caregivers/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "mississippi-senior-community-service-employment",
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "shortName": "SCSEP",
+      "tagline": "If your parent is 55+ and unemployed, they could earn minimum wage while gaining job skills through part-time community service work.",
+      "programType": "employment",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "City of Jackson Senior Services (Hinds, Rankin, Scott, Warren): (601) 960-0419, kimberlym@city.jackson.ms.us",
+            "type": "service-area"
+          },
+          {
+            "name": "Copiah-Lincoln Community College (Adams, Amite, Claiborne, Copiah, Franklin, Jefferson, Lawrence, Lincoln, Pike, Simpson, Smith, Walthall, Wilkinson): (601) 643-8671, brenda.orr@colin.edu",
+            "type": "service-area"
+          },
+          {
+            "name": "East Central Planning and Development District (Clarke, Jasper, Kemper, Lauderdale, Neshoba): (601) 683-2007, rjcoleman@ecpdd.org",
+            "type": "service-area"
+          },
+          {
+            "name": "Southern Mississippi Planning and Development District (Forrest, George, Greene, Hancock, Harrison, Jackson, Jones, Lamar, Marion, Pearl River, Perry, Stone, Wayne): (228) 314-1433, jhale@smpdd.com",
+            "type": "service-area"
+          },
+          {
+            "name": "Southern Foundation for Homeless Children (Pearl River, Jones, Harrison, Jefferson Davis, Forrest, Covington): via southernfoundationfhc.com",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 55+ and struggling to find work, SCSEP provides paid part-time jobs (20 hours/week) at community organizations like senior centers, schools, and hospitals. Your parent earns minimum wage while developing skills to transition to permanent employment. Because this program combines income with job training, your parent builds work experience and receives employment assistance through American Job Centers. SCSEP serves specific counties in Mississippi through regional partners — not every county participates, so you'll need to check if your parent's area is covered.",
+      "savingsRange": "",
+      "savingsSource": "Paid employment opportunity",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Unemployed",
+          "Income below 125% federal poverty level",
+          "U.S. citizen or authorized to work"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be unemployed",
+          "U.S. citizen or authorized to work in the U.S.",
+          "Veterans and their spouses get priority enrollment",
+          "People over 65, with disabilities, or in rural areas also get priority"
+        ],
+        "povertyLevelReference": "125% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact your county's regional partner by phone or email — processing time varies by location.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your county's partner",
+            "description": "Look up which organization serves your parent's county from the list below. Not all counties participate."
+          },
+          {
+            "step": 2,
+            "title": "Call or email directly",
+            "description": "Contact your regional partner to request an application. No statewide online application exists."
+          },
+          {
+            "step": 3,
+            "title": "Gather required documents",
+            "description": "Prepare proof of age, income, unemployment status, and veteran status if applicable."
+          },
+          {
+            "step": 4,
+            "title": "Submit application",
+            "description": "Return completed application to your regional partner by mail or in-person visit."
+          }
+        ],
+        "processingTime": "Varies by region",
+        "waitlist": "May exist depending on local funding and demand",
+        "tip": "Veterans and people over 65 get priority — mention this when applying if it applies to your parent.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Age",
+              "items": [
+                "Driver's license or state ID",
+                "Birth certificate or passport"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Recent pay stubs or unemployment documentation",
+                "Social Security award letter",
+                "Tax returns or income statements for all household members"
+              ]
+            },
+            {
+              "name": "Work Authorization",
+              "items": [
+                "Social Security card",
+                "U.S. citizenship documents or work authorization",
+                "DD-214 or veteran status documentation (if applicable)"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "SCSEP doesn't operate in every Mississippi county. If your county isn't listed below, contact your local American Job Center to ask about other employment programs for seniors."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "This is a bridge program to permanent employment, not a long-term job. Your parent will work 20 hours per week while receiving job search assistance and skills training."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "How much will my parent earn?",
+          "answer": "Your parent earns the highest of federal, state, or local minimum wage for up to 20 hours per week. The exact amount depends on current minimum wage rates in your area."
+        },
+        {
+          "question": "What if our county isn't listed?",
+          "answer": "Contact your local American Job Center or call the state workforce agency. Some counties may not have SCSEP but offer other employment programs for older adults."
+        },
+        {
+          "question": "Can my parent work permanently through this program?",
+          "answer": "No. SCSEP is designed as a bridge to unsubsidized employment. Your parent receives job training and placement assistance to find permanent work in the regular job market."
+        },
+        {
+          "question": "Does being a veteran help with getting in?",
+          "answer": "Yes. Veterans and their qualified spouses get first priority for enrollment. People over 65, those with disabilities, and rural residents also get priority over other applicants."
+        },
+        {
+          "question": "What kind of work sites are available?",
+          "answer": "Your parent could work at nonprofits and public agencies like senior centers, schools, hospitals, libraries, or community organizations. The specific options depend on partnerships in your area."
+        },
+        {
+          "question": "What if my parent's income is slightly over the limit?",
+          "answer": "Income limits are based on total household size and change annually. Contact your regional partner to verify current limits — they calculate based on everyone living in your parent's household."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://www.dol.gov/agencies/eta/seniors",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "mississippi-legal-services-senior-aid",
+      "name": "Mississippi Legal Services / Senior Legal Aid",
+      "shortName": "Senior Legal Aid",
+      "tagline": "Free legal help for your parent with housing, healthcare, benefits, and elder abuse issues.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "North Mississippi Rural Legal Services (NMRLS): nmrls.com.",
+            "type": "service-area"
+          },
+          {
+            "name": "Mississippi Center for Legal Services (MCLSC): mscenterforlegalservices.org, 43 counties central/southern.",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs legal help but can't afford an attorney, Mississippi's legal aid programs provide free civil legal services to low-income seniors. These nonprofit law firms handle issues like elder care disputes, housing problems, healthcare denials, benefit appeals, consumer fraud, and domestic violence cases.\n\nYour parent qualifies if their household income is at or below 125% of federal poverty guidelines. Because seniors often have high medical expenses, the programs may make exceptions even if income appears too high on paper. The service covers attorney fees completely — your parent pays nothing for legal advice or representation.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Household income at or below 125% of poverty level",
+          "Reside in Mississippi service area",
+          "Civil legal issue only",
+          "Seniors get priority"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must have civil legal issue (not criminal)",
+          "Must reside in service area"
+        ],
+        "povertyLevelReference": "125% FPL"
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call the intake hotline for your region — processing time varies by case complexity.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your regional provider",
+            "description": "Northern Mississippi: call North Mississippi Rural Legal Services. Central/Southern Mississippi (43 counties): call Mississippi Center for Legal Services."
+          },
+          {
+            "step": 2,
+            "title": "Call intake hotline",
+            "description": "Northern MS: 1-800-898-8731. Central/Southern MS: 1-800-519-2915 or 1-800-498-1804."
+          },
+          {
+            "step": 3,
+            "title": "Prepare income information",
+            "description": "Have ready: all household income sources including Social Security, SSI, wages, and other benefits. Include medical expenses and debts if income seems too high."
+          },
+          {
+            "step": 4,
+            "title": "Describe the legal issue",
+            "description": "Explain your parent's specific legal problem during intake. Seniors get priority for services."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "If your parent's income seems too high, still call — seniors often qualify due to medical expenses and debts.",
+        "urls": [
+          {
+            "label": "Mississippi Center for Legal Services (Central/Southern)",
+            "url": "https://mscenterforlegalservices.org"
+          },
+          {
+            "label": "North Mississippi Rural Legal Services",
+            "url": "https://www.nmrls.com"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "Regional Providers",
+          "offices": [
+            {
+              "name": "North Mississippi Rural Legal Services",
+              "type": "service-area",
+              "phone": "1-800-898-8731",
+              "address": "Northern Mississippi counties"
+            },
+            {
+              "name": "Mississippi Center for Legal Services",
+              "type": "service-area",
+              "phone": "1-800-519-2915 or 1-800-498-1804",
+              "address": "Central and Southern Mississippi (43 counties)"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Mississippi is divided into regions with separate providers. Make sure you call the right intake number for your parent's county — northern Mississippi uses a different organization than central and southern counties."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if Mom's Social Security puts her just over the income limit?",
+          "answer": "Call anyway. Because seniors often have high medical expenses and debts, the programs can make exceptions to income limits. They look at your parent's total financial situation, not just gross income."
+        },
+        {
+          "question": "Can they help with criminal charges against my parent?",
+          "answer": "No. These programs only handle civil legal issues like housing disputes, benefit denials, healthcare problems, consumer fraud, and elder abuse. For criminal matters, contact a criminal defense attorney."
+        },
+        {
+          "question": "How do I know which provider covers my parent's county?",
+          "answer": "If your parent lives in northern Mississippi, call North Mississippi Rural Legal Services at 1-800-898-8731. For central and southern Mississippi (43 counties), call Mississippi Center for Legal Services at 1-800-519-2915."
+        },
+        {
+          "question": "What counts as household income for eligibility?",
+          "answer": "All income from everyone living in your parent's household before taxes: Social Security, SSI, wages, pensions, TANF, and other regular assistance. They use gross amounts, but may consider medical bills and debts for seniors."
+        },
+        {
+          "question": "Will Mom have to pay anything if they take her case?",
+          "answer": "No attorney fees. These are nonprofit legal aid organizations that provide completely free legal services to qualifying low-income individuals. Your parent pays nothing for advice or representation."
+        },
+        {
+          "question": "How long does it take to get help?",
+          "answer": "Processing time isn't specified and likely varies by case complexity and urgency. Seniors get priority for services, which may speed up the process. Call the intake line to discuss your parent's specific timeline needs."
+        }
+      ],
+      "phone": "1-800-519-2915",
+      "sourceUrl": "https://www.mslegalservices.org",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "mississippi-long-term-care-ombudsman",
+      "name": "State Long Term Care Ombudsman Program",
+      "shortName": "Ombudsman Program",
+      "tagline": "Free advocacy when your parent faces problems in a nursing home or assisted living facility — 71% of complaints resolved in 2023.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "State office: 200 South Lamar St., Jackson, MS 39201; 19 local ombudsmen (contact state for assignments); example: Golden Triangle Planning and Development District at 662-498-1170.",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent lives in a Mississippi nursing home, assisted living facility, or personal care home and faces problems with care quality, abuse, neglect, or rights violations, the State Ombudsman Program provides free advocacy. These trained advocates investigate complaints, visit facilities, and work to resolve issues — in 2023, they resolved or partially resolved 71% of complaints to resident satisfaction.\n\nThe program serves any resident in licensed long-term care facilities across all 82 Mississippi counties, regardless of income. In 2023, ombudsmen made 151,094 facility visits and provided information and assistance to 973 individuals. Because ombudsmen are independent advocates, they can investigate concerns without facility interference and maintain confidentiality unless you give permission to share information.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Resident in licensed facility",
+          "Any income level",
+          "Family can request help",
+          "All 82 counties covered"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be a resident of a licensed long-term care facility in Mississippi (nursing homes, assisted living facilities, personal care homes, extended care homes, skilled nursing facilities, intermediate care facilities, boarding homes), or their family/representative"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call the toll-free number and describe your concern — assistance begins immediately with no forms required.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the ombudsman hotline",
+            "description": "Call 1-888-844-0041 (toll-free) or 601-359-4927 to reach State Ombudsman Lisa M. Smith directly."
+          },
+          {
+            "step": 2,
+            "title": "Describe the situation",
+            "description": "Provide details about your parent, the facility name, and the specific problem or concern. No documents needed to start."
+          },
+          {
+            "step": 3,
+            "title": "Receive immediate assistance",
+            "description": "The ombudsman will begin investigating your complaint right away and work with the facility to resolve the issue."
+          }
+        ],
+        "processingTime": "Immediate assistance for complaints",
+        "waitlist": null,
+        "tip": "You can remain anonymous when reporting concerns — ombudsmen maintain confidentiality unless you specifically authorize them to share information.",
+        "urls": [
+          {
+            "label": "Mississippi Ombudsman Program",
+            "url": "https://www.mdhs.ms.gov/aging/ombudsman/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "This program only helps residents of licensed facilities — it cannot assist with home care problems or provide direct healthcare, housing, or financial aid."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What types of problems can the ombudsman help with?",
+          "answer": "Ombudsmen investigate care quality issues, abuse or neglect, medication errors, billing disputes, food complaints, facility rule violations, and resident rights violations. They also help with choosing facilities and understanding your parent's rights."
+        },
+        {
+          "question": "Can I file a complaint without my parent knowing?",
+          "answer": "Yes, you can report concerns confidentially. The ombudsman will not share your identity or that you made the complaint unless you give specific permission to do so."
+        },
+        {
+          "question": "What happens after I call with a complaint?",
+          "answer": "The ombudsman will investigate by visiting the facility, interviewing staff and residents, and reviewing records. They work directly with facility management to resolve issues and follow up to ensure problems are fixed."
+        },
+        {
+          "question": "Does this cost anything or affect my parent's care?",
+          "answer": "The service is completely free with no income limits. Facilities cannot retaliate against residents whose families file complaints — ombudsmen monitor for retaliation and can take action if it occurs."
+        },
+        {
+          "question": "How long does it take to resolve complaints?",
+          "answer": "Most complaints receive immediate attention, with ombudsmen visiting facilities and beginning investigations right away. Resolution time varies by complexity, but 71% of complaints were resolved or partially resolved to resident satisfaction in 2023."
+        },
+        {
+          "question": "Can the ombudsman help if my parent lives at home?",
+          "answer": "No, this program only serves residents of licensed long-term care facilities like nursing homes and assisted living facilities. It cannot help with home care or community-based services."
+        }
+      ],
+      "phone": "1-888-844-0041",
+      "sourceUrl": "https://www.mdhs.ms.gov/aging/ombudsman/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "mississippi-respite-voucher-program",
+      "name": "Mississippi Respite Voucher Program",
+      "shortName": "Respite Vouchers",
+      "tagline": "Get $300 to pay for temporary care while you take a break from caregiving.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local offices accessible via Mississippi Access to Care (MAC) Center",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If you're caring for a parent or family member with a significant disability or chronic illness who needs 24/7 care, you can get vouchers to pay someone else to provide care while you take a break. The Mississippi Respite Voucher Program provides $300 per household for your first voucher, then $290 for repeat vouchers after about six months.\n\nUnlike Medicaid waiver programs, this has no age limits, income limits, or asset tests. You can use vouchers to pay in-home care agencies, adult day centers, or private individuals to provide temporary respite care. Emergency respite is also available for unexpected situations.",
+      "savingsRange": "$300 – $590/year in 2026",
+      "savingsSource": "Initial $300 voucher plus one repeat $290 voucher per year",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Mississippi resident",
+          "Providing unpaid care",
+          "Care recipient needs 24/7 help",
+          "No income or asset limits"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be Mississippi resident",
+          "Must provide unpaid care for someone with significant disability or chronic illness requiring 24/7 care"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call the MAC Center for application assistance — processing time not specified.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call Mississippi Access to Care Center",
+            "description": "Call 1-844-822-4622 to speak with a resource specialist who will help you complete the application or connect you with your local office."
+          },
+          {
+            "step": 2,
+            "title": "Complete application with assistance",
+            "description": "The resource specialist will help you fill out the Mississippi Lifespan Respite Voucher Program Application and specify your preferred respite type (in-home agency, adult day center, or private individual)."
+          },
+          {
+            "step": 3,
+            "title": "Submit required documents",
+            "description": "Provide any documentation requested during your call — specific document requirements are determined during application assistance."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Specify your preferred type of respite care on the application — whether you want in-home agency care, adult day center services, or to hire a private individual.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "This is separate from Medicaid waiver programs. Unlike the Elderly & Disabled Waiver, there are no age, income, or asset requirements — and your care recipient can be any age."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can I get another voucher after using my first $300?",
+          "answer": "Yes, you can apply for a repeat voucher of $290 approximately six months after your initial voucher approval. You'll need to reapply through the MAC Center."
+        },
+        {
+          "question": "What if my parent doesn't qualify for other programs because our income is too high?",
+          "answer": "This program has no income or asset limits. Even if your family doesn't qualify for Medicaid waivers or other need-based programs, you can still get respite vouchers."
+        },
+        {
+          "question": "Can I use the voucher to pay a family member or friend?",
+          "answer": "Yes, you can use vouchers to pay private individuals for respite care, not just agencies or adult day centers."
+        },
+        {
+          "question": "What counts as needing '24/7 care'?",
+          "answer": "Your care recipient must have a significant disability or chronic illness that requires around-the-clock supervision or assistance. The MAC Center specialist can help determine if your situation qualifies."
+        },
+        {
+          "question": "Is emergency respite available if I need help immediately?",
+          "answer": "Yes, emergency respite is available, though specific details aren't provided. Call the MAC Center at 1-844-822-4622 to discuss urgent situations."
+        },
+        {
+          "question": "Can I use this for ongoing weekly care?",
+          "answer": "No, these vouchers are specifically for short-term respite breaks, not ongoing regular care arrangements."
+        }
+      ],
+      "phone": "1-844-822-4622",
+      "sourceUrl": "https://www.mdhs.ms.gov/wp-content/uploads/2023/09/Respite-Flyer.pdf",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "central-mississippi-reassurance-program",
+      "name": "Central Mississippi Area Agency on Aging Reassurance Program",
+      "shortName": "Reassurance Program",
+      "tagline": "Regular wellness check calls for aging parents to ensure their safety and connect them to needed resources.",
+      "programType": "navigator",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Central MS Area Agency on Aging, 1170 Lakeland Drive, Jackson, MS 39296-4935",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent lives alone and you worry about their daily safety, the Reassurance Program provides regular wellness check calls from trained staff. Because these are scheduled phone conversations with Resource Specialists, your parent gets both social connection and immediate help if they need emergency services or community resources.\n\nThe program serves aging adults in seven Central Mississippi counties through regular phone contact and a 24-hour helpline. Your parent's only requirement is being available for the scheduled calls — staff handle everything else, including emergency follow-up if your parent doesn't answer.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Live in 7 Central MS counties",
+          "Available for scheduled calls",
+          "No income limits"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must reside in Copiah, Hinds, Madison, Rankin, Simpson, Warren, or Yazoo counties",
+          "Must be available for scheduled phone calls",
+          "Provide doctor and hospital contact information"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call 844-822-4622 between 8:00 a.m. and 4:30 p.m. — processing time not specified.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Gather medical contacts",
+            "description": "Have your parent's primary doctor name and phone number, plus their preferred hospital and hospital phone number ready."
+          },
+          {
+            "step": 2,
+            "title": "Call or apply online",
+            "description": "Call 844-822-4622 during business hours, download the application at cmpdd.org, or visit the Jackson office at 1170 Lakeland Drive."
+          },
+          {
+            "step": 3,
+            "title": "Schedule call times",
+            "description": "Work with staff to set up regular phone call times when your parent will be available."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Have your parent's medical contact information ready before calling — this speeds up enrollment.",
+        "urls": [
+          {
+            "label": "Download application",
+            "url": "https://cmpdd.org/images/aging/Reassurance-Program-application.pdf"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "This program only serves 7 counties in Central Mississippi. If your parent lives elsewhere in the state, contact their local Area Agency on Aging for similar services."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What happens if my parent doesn't answer a scheduled call?",
+          "answer": "Staff will make emergency follow-up calls and contact you or emergency services if they can't reach your parent. This is one of the key safety benefits of the program."
+        },
+        {
+          "question": "Can my parent still qualify if they have Medicare or other insurance?",
+          "answer": "Yes. This program has no income limits or insurance restrictions. It focuses on phone-based wellness checks, not medical services."
+        },
+        {
+          "question": "How often will staff call my parent?",
+          "answer": "Call frequency is determined when you enroll, based on your parent's needs and preferences. Staff work with you to set a schedule that works."
+        },
+        {
+          "question": "What if my parent needs more help than phone calls?",
+          "answer": "Resource Specialists can connect your parent to other local services and programs. However, this program itself only provides phone-based support, not in-home care or medical services."
+        },
+        {
+          "question": "Does my parent need to live in a specific city within these counties?",
+          "answer": "No. Any aging adult living anywhere in Copiah, Hinds, Madison, Rankin, Simpson, Warren, or Yazoo counties can apply."
+        },
+        {
+          "question": "What if my parent sometimes travels or isn't always home?",
+          "answer": "Your parent must be available for scheduled calls to participate. Discuss travel plans with staff — they may be able to adjust the schedule temporarily."
+        }
+      ],
+      "phone": "844-822-4622",
+      "sourceUrl": "https://cmpdd.org/images/aging/Reassurance-Program-brochure.pdf",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    }
+  ],
+  "stateOverview": {
+    "intro": "Mississippi offers 14 programs to help your aging parent stay home safely and reduce your family's financial burden. Nine provide direct financial benefits — from hundreds of dollars monthly in grocery assistance (SNAP) to free in-home care services (Mississippi Medicaid) to $300 respite vouchers when you need a caregiving break. Five additional programs provide free resources like Medicare guidance, legal help, and advocacy that don't require income qualification. Many Mississippi seniors miss out on benefits they've earned simply because they don't know these programs exist or how to apply.\n\nStart with the high-impact programs below, then explore options by your family's specific needs. Most applications can be started with a phone call, and free assistance is available to help you navigate the process.",
+    "startHere": [
+      {
+        "name": "Medicare Savings Programs",
+        "programId": "medicare-savings-programs-mississippi",
+        "why": "Could eliminate hundreds in monthly Medicare costs if your parent's income qualifies."
+      },
+      {
+        "name": "SNAP in Mississippi",
+        "programId": "snap-mississippi",
+        "why": "Monthly grocery assistance that could provide hundreds of dollars in food benefits with relatively simple qualification."
+      },
+      {
+        "name": "Mississippi State Health Insurance Assistance Program (SHIP)",
+        "programId": "mississippi-ship",
+        "why": "Free one-on-one help to understand all Medicare options and apply for cost savings — no income requirements."
+      },
+      {
+        "name": "Mississippi Medicaid (Elderly and Disabled)",
+        "programId": "mississippi-medicaid-elderly-disabled",
+        "why": "Covers in-home care services to help your parent avoid nursing home placement."
+      }
+    ],
+    "byNeed": [
+      {
+        "need": "Help staying home instead of nursing home care",
+        "programs": [
+          "Mississippi Medicaid (Elderly and Disabled)",
+          "Mississippi Elderly and Disabled (E&D) Waiver"
+        ],
+        "description": "Both programs cover personal care, home health, and support services to keep your parent home safely."
+      },
+      {
+        "need": "Food and basic living costs",
+        "programs": [
+          "SNAP in Mississippi",
+          "Home Delivered Meals (Meals on Wheels)"
+        ],
+        "description": "Monthly grocery benefits plus free daily meal delivery for homebound seniors — no income limits for meals."
+      },
+      {
+        "need": "Medicare and healthcare costs",
+        "programs": [
+          "Medicare Savings Programs",
+          "Mississippi State Health Insurance Assistance Program (SHIP)"
+        ],
+        "description": "Financial help with Medicare expenses plus free expert guidance on all healthcare options."
+      },
+      {
+        "need": "Utility bills and home energy costs",
+        "programs": [
+          "Low-Income Home Energy Assistance Program (LIHEAP)",
+          "Weatherization Assistance Program (WAP)"
+        ],
+        "description": "Direct bill payment assistance plus free home upgrades that reduce energy costs long-term."
+      },
+      {
+        "need": "Caregiver support and respite",
+        "programs": [
+          "National Family Caregiver Support Program (Mississippi)",
+          "Mississippi Respite Voucher Program"
+        ],
+        "description": "Free counseling and support services plus $300 vouchers to pay for temporary care when you need a break."
+      },
+      {
+        "need": "Free advice and advocacy",
+        "programs": [
+          "Mississippi Legal Services / Senior Legal Aid",
+          "State Long Term Care Ombudsman Program",
+          "Central Mississippi Area Agency on Aging Reassurance Program"
+        ],
+        "description": "Free legal help, nursing home advocacy, and wellness check services available to all Mississippi seniors."
+      }
+    ],
+    "quickFacts": [
+      "Nine programs provide direct financial benefits that require income or asset qualification",
+      "Five programs offer free resources and advocacy available to all Mississippi seniors regardless of income",
+      "The State Long Term Care Ombudsman resolved 71% of nursing home complaints in 2023",
+      "Home Delivered Meals has no income limits — any homebound senior can receive free daily meals"
+    ],
+    "resourcesVsBenefits": "Mississippi offers two types of help: qualifying benefits and free resources. Benefits like SNAP, Medicaid, and utility assistance require your parent to meet income limits and go through an application process, but they provide direct financial help. Free resources like SHIP Medicare counseling, legal aid, and ombudsman advocacy are available to every Mississippi senior regardless of income — you simply call and ask for help."
+  }
+}

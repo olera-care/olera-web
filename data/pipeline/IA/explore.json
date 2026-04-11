@@ -1,0 +1,104 @@
+{
+  "entity": "Iowa",
+  "entitySlug": "iowa",
+  "state": "IA",
+  "stateName": "Iowa",
+  "isRegion": false,
+  "exploredAt": "2026-04-09T13:28:19.675Z",
+  "programCount": 13,
+  "programs": [
+    {
+      "name": "Iowa Medicaid Home & Community Based Services Elderly Waiver",
+      "what_it_does": "Provides Medicaid-funded long-term services and supports for elderly residents at risk of nursing home admission, enabling them to remain in their homes and communities. Services include personal emergency response systems, homemaker services, personal care, adult day care, respite care, home modifications, home-delivered meals, and consumer-directed options with a monthly budget.",
+      "who_its_for": "Iowa residents aged 65 or older who are Medicaid-eligible, meet nursing home level of care requirements, and have income up to $2,982/month (300% of Federal Benefit Rate in 2026).",
+      "whats_unique": "State-administered Medicaid waiver program with consumer choice options and self-directed care, tailored to divert seniors from institutionalization; not a federal standard but Iowa's specific HCBS implementation.",
+      "official_url": "https://www.medicaidplanningassistance.org/iowa-elderly-waiver/",
+      "benefit_value": "Varies by individual needs; includes services like home modifications (e.g., ramps, grab bars), respite care, and monthly consumer budget for self-directed purchases."
+    },
+    {
+      "name": "Home and Community-Based Services (HCBS)",
+      "what_it_does": "Delivers medical and supportive services in home/community settings to avoid institutional care. Supports physical or cognitive needs for independence.[2]",
+      "who_its_for": "Iowans with disabilities or seniors needing long-term care, certified for institutional level of care but preferring home-based options.",
+      "official_url": "https://hhs.iowa.gov/programs",
+      "benefit_value": "Covers personal care, homemaker, respite; value depends on assessed needs, up to full cost for eligibles."
+    },
+    {
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "what_it_does": "Offers comprehensive medical care, long-term services, and prescriptions for frail seniors. Coordinates all needed care including adult day health.[2]",
+      "who_its_for": "Individuals aged 55+ needing nursing home level care but able to live safely in community.",
+      "official_url": "https://hhs.iowa.gov/programs",
+      "benefit_value": "All-inclusive coverage; no additional costs for Medicare/Medicaid-covered services."
+    },
+    {
+      "name": "Supplemental Nutrition Assistance Program (SNAP)",
+      "what_it_does": "Provides monthly EBT card for food purchases at stores. Helps buy healthy groceries.[4]",
+      "who_its_for": "Low-income seniors (60+), disabled, households meeting income tests.",
+      "official_url": "https://hhs.iowa.gov/assistance-programs/all",
+      "benefit_value": "Avg $200+/mo per senior household; max benefits scale by household size/income."
+    },
+    {
+      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "what_it_does": "Assists with heating/cooling bills, crisis aid, weatherproofing. Reduces energy costs for vulnerable households.[4]",
+      "who_its_for": "Low-income households including seniors/disabled; priority for 60+ or impaired.",
+      "official_url": "https://hhs.iowa.gov/assistance-programs/all",
+      "benefit_value": "One-time grants $50-$1,000+ depending on fuel type, income, household."
+    },
+    {
+      "name": "Weatherization Assistance Program",
+      "what_it_does": "Insulates homes, seals leaks, improves efficiency to lower energy bills and health risks. Free for qualified low-income homes.[1]",
+      "who_its_for": "Low-income homeowners/renters, priority seniors/disabled in rural/urban Iowa.",
+      "official_url": "https://iowa.grantwatch.com/cat/1/aging-and-seniors-grants.html",
+      "benefit_value": "Free upgrades worth $3,000-$7,000; lifetime energy savings $500+/yr."
+    },
+    {
+      "name": "Senior Health Insurance Program (SHIP)",
+      "what_it_does": "Offers free counseling on Medicare, supplements, low-income aid. Helps choose/enroll in plans, fight denials.[3]",
+      "who_its_for": "Iowa Medicare beneficiaries 65+, under 65 disabled; no income limit.",
+      "official_url": "https://iowalegalaid.org/resource/benefits-for-seniors/",
+      "benefit_value": "Free personalized assistance; potential savings thousands in premiums/coverage."
+    },
+    {
+      "name": "Meals on Wheels",
+      "what_it_does": "Delivers nutritious meals to homebound seniors. Promotes health, reduces isolation via visits.[1]",
+      "who_its_for": "Homebound seniors 60+ unable to prepare meals, often low-income.",
+      "official_url": "https://iowa.grantwatch.com/cat/1/aging-and-seniors-grants.html",
+      "benefit_value": "5-14 meals/week; $5-$10/meal suggested donation, free for many."
+    },
+    {
+      "name": "National Family Caregiver Support Program",
+      "what_it_does": "Provides respite, training, counseling for caregivers. Funds short-term relief, support groups.[1]",
+      "who_its_for": "Family caregivers of seniors 60+ or grandparents raising kids.",
+      "official_url": "https://iowa.grantwatch.com/cat/1/aging-and-seniors-grants.html",
+      "benefit_value": "Respite grants up to $1,750/project; training/counseling at low/no cost."
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "what_it_does": "Subsidized part-time work training at nonprofits. Builds skills for unsubsidized jobs.[1]",
+      "who_its_for": "Unemployed low-income seniors 55+ lacking training.",
+      "official_url": "https://iowa.grantwatch.com/cat/1/aging-and-seniors-grants.html",
+      "benefit_value": "20 hrs/wk at min wage (~$7,500/yr); leads to employment."
+    },
+    {
+      "name": "Iowa Legal Aid for Seniors",
+      "what_it_does": "Free legal help for benefits, housing, abuse, powers of attorney. Represents/educates seniors.[3]",
+      "who_its_for": "Low-income seniors 60+ facing legal issues.",
+      "official_url": "https://iowalegalaid.org/resource/benefits-for-seniors/",
+      "benefit_value": "Free services worth thousands; resolves denials, protections."
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "what_it_does": "Advocates for residents in nursing homes/assisted living. Investigates complaints, ensures rights.[1]",
+      "who_its_for": "Seniors in IA long-term care facilities; families.",
+      "official_url": "https://iowa.grantwatch.com/cat/1/aging-and-seniors-grants.html",
+      "benefit_value": "Free advocacy; resolves 80%+ complaints without litigation."
+    },
+    {
+      "name": "State Supplementary Assistance (SSA)",
+      "what_it_does": "Fully state-funded program supplementing SSI for aged, blind, and disabled individuals to cover special needs not met by federal SSI benefits. Covers categories including blind allowance, dependent person allowance, family life home assistance, in-home health-related care, residential care facility assistance, and supplements for Medicare/Medicaid eligible.",
+      "who_its_for": "Aged, blind, or disabled Iowa SSI recipients with additional special needs in the specified categories.",
+      "whats_unique": "Entirely state-funded supplement to federal SSI with Iowa-specific categories and payment rates, such as Family Life Home payments and Residential Care Facility per diem rates, not available nationwide.",
+      "official_url": "https://hhs.iowa.gov/assistance-programs/state-supplementary-assistance",
+      "benefit_value": "Family Life Home: $1,026 payment to family + $130 personal needs (total $1,156); Dependent Person max $518 (up to $3,031 with dependents); Residential Care: $130 personal needs + $17.86-$38.47 per diem."
+    }
+  ]
+}

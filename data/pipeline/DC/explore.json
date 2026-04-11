@@ -1,0 +1,51 @@
+{
+  "entity": "District of Columbia",
+  "entitySlug": "district-of-columbia",
+  "state": "DC",
+  "stateName": "District of Columbia",
+  "isRegion": false,
+  "exploredAt": "2026-04-09T17:42:53.813Z",
+  "programCount": 5,
+  "programs": [
+    {
+      "name": "Elderly and Persons with Physical Disabilities (EPD) Waiver Program",
+      "what_it_does": "The EPD Waiver Program allows DC residents who would otherwise require nursing home care to receive services and supports while living in their home or in assisted living communities. It provides home and community-based services as an alternative to institutional care.[4]",
+      "who_its_for": "DC residents who are elderly or have physical disabilities and meet nursing facility level of care criteria, typically low-income and means-tested.[4]",
+      "whats_unique": "DC-specific state-funded Medicaid waiver program that emphasizes home-based care over nursing homes, distinct from standard federal Medicaid options available uniformly across states.[4]",
+      "official_url": "https://dacl.dc.gov/services",
+      "benefit_value": "Varies based on assessed needs; can include personal care, homemaker services, and adult day care up to the cost of nursing home placement (financial value depends on individual plan)."
+    },
+    {
+      "name": "Safe at Home",
+      "what_it_does": "Safe at Home provides home safety adaptations for DC seniors to help them age in place safely. It funds modifications like grab bars, ramps, and other accessibility improvements.[4]",
+      "who_its_for": "Low-income seniors living in the District of Columbia.[4]",
+      "whats_unique": "DC-funded program specifically for home safety modifications targeted at seniors, not a standard federal offering and unique to DC's aging services portfolio.[4]",
+      "official_url": "https://dacl.dc.gov/services",
+      "benefit_value": "Grants or funding for specific home adaptations; exact amounts vary by need and assessment."
+    },
+    {
+      "name": "DACL Benefits Assistance",
+      "what_it_does": "DACL assists low-income seniors, people with disabilities, and social workers in applying for Medicaid, SNAP, and Home and Community Based (HCB) Waivers. It provides guidance on eligibility and application processes for these benefits.[3]",
+      "who_its_for": "Low-income seniors and adults with disabilities in DC.[3]",
+      "whats_unique": "DC government-run concierge service through the Department of Aging and Community Living for navigating state and federal benefits, with specialized support for DC waivers and programs not replicated in every jurisdiction.[3]",
+      "official_url": "https://dacl.dc.gov/service/benefits-assistance",
+      "benefit_value": "Free application assistance; unlocks access to benefits like Medicaid (up to full coverage) and SNAP (average $200+/month per household)."
+    },
+    {
+      "name": "DC Senior Centers",
+      "what_it_does": "DC Senior Centers help seniors take charge of their health, wellness, and social life by offering hobbies, educational topics, and opportunities to connect with friends. They support community engagement and active aging.[4]",
+      "who_its_for": "Seniors aged 60+ residing in the District of Columbia.[4]",
+      "whats_unique": "Network of municipally funded senior centers unique to DC's Department of Aging and Community Living, providing localized social and wellness programming beyond federal community center grants.[4]",
+      "official_url": "https://dacl.dc.gov/services",
+      "benefit_value": "Free or low-cost access to programs, meals, and activities; promotes health savings through prevention (quantitative value not specified)."
+    },
+    {
+      "name": "Legal Services for Seniors",
+      "what_it_does": "Provides legal services, advice, and guidance for seniors who need assistance with issues like housing, benefits, or consumer problems. Offered through DC's aging services network.[4]",
+      "who_its_for": "Seniors living in the District of Columbia.[4]",
+      "whats_unique": "DC-specific legal aid program tailored for seniors, integrated into DACL services, distinguishing it from general federal legal aid available nationwide.[4]",
+      "official_url": "https://dacl.dc.gov/services",
+      "benefit_value": "Free legal consultations and representation; value depends on case (e.g., securing benefits or resolving disputes worth thousands)."
+    }
+  ]
+}

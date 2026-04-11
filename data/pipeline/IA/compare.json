@@ -1,0 +1,235 @@
+{
+  "state": "IA",
+  "stateName": "Iowa",
+  "comparedAt": "2026-04-09T13:28:53.390Z",
+  "total": 10,
+  "newPrograms": 10,
+  "withDiffs": 0,
+  "withNovelFields": 0,
+  "benefitTypes": {
+    "service": 5,
+    "financial": 3,
+    "service|advocacy": 1,
+    "advocacy": 1
+  },
+  "variationPatterns": {
+    "priority_tier": 4,
+    "Individual need and state certification; not by household size or priority tier": 1,
+    "household_size": 1,
+    "household_size, income, fuel_type, housing_type, priority_status": 1,
+    "not_applicable — services are standardized across the state": 1,
+    "region": 1,
+    "not_applicable": 1
+  },
+  "novelFieldSummary": {},
+  "comparisons": [
+    {
+      "name": "Iowa Medicaid Home & Community Based Services Elderly Waiver",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Individualized services based on assessed needs and interdisciplinary team plan; no fixed budgets/hours; tied to nursing facility level of care determination; statewide with provider availability precondition.",
+      "gotchas": [
+        "Must need nursing/skilled level of care; not for those not at institutional risk.",
+        "Must exhaust other Medicaid services first.",
+        "Annual review required with current medical info from doctor.",
+        "Availability depends on approved providers in area.",
+        "Home equity limits apply (follows nursing home Medicaid rules).",
+        "Income over limit may still qualify conditionally, but details require Medicaid planning."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://hhs.iowa.gov/medicaid/services-care/home-and-community-based-services/waiver-programs"
+    },
+    {
+      "name": "Home and Community-Based Services (HCBS)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Multiple waivers under HCBS umbrella with varying eligibility (Elderly: 65+, NFLOC; others by disability/age); financial eligibility tied to Medicaid with 2026-specific income/equity limits; services via certified providers.[1][2][7][9]",
+      "gotchas": [
+        "HCBS refers to 7 separate waivers (e.g., Elderly for 65+; must select correct one).[2][9]",
+        "Must first qualify for Medicaid on own income/assets; family income does not count.[8]",
+        "60-month look-back penalizes asset transfers.[1]",
+        "NFLOC required; dementia diagnosis alone insufficient.[1]",
+        "Home equity limit $752,000 (2026).[1]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://hhs.iowa.gov/medicaid/services-care/home-and-community-based-services/waiver-programs[9]"
+    },
+    {
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "PACE in Iowa is geographically restricted to select counties with specific PACE organizations. Eligibility is primarily medical (nursing home level of care certification) rather than income-based, though Medicaid financial limits apply for those seeking Medicaid-funded enrollment. Iowa-specific income and asset limits, provider contact information, processing times, and waitlist status are not detailed in publicly available search results and require direct contact with Iowa Department of Human Services or local PACE providers. The program structure is uniform across Iowa (comprehensive coordinated care model), but availability and regional provider operations vary significantly by location.",
+      "gotchas": [
+        "PACE is NOT available statewide in Iowa — only in select counties. Verify your county is in a PACE service area before proceeding.[5]",
+        "Approximately 90% of PACE participants are 'dual-eligible' (enrolled in both Medicare and Medicaid).[3] If your loved one is only Medicare-eligible or only Medicaid-eligible, confirm they can still enroll with your provider.[3][7]",
+        "You cannot be enrolled in a Medicare Advantage plan (Part C) to join PACE — this is a common barrier for seniors who switched to Advantage plans.[3]",
+        "PACE becomes the SOLE source of services for dual-eligible enrollees — you cannot use other Medicare or Medicaid providers simultaneously.[2]",
+        "Enrollment is voluntary but you can leave at any time for any reason.[2][3]",
+        "Iowa requires notification to your PACE social worker if you move to a different county, as service areas are geographically limited.[5]",
+        "Financial eligibility is complex and varies by state. Not meeting standard income/asset thresholds does NOT automatically disqualify you — Medicaid has multiple pathways to eligibility, and a Medicaid Planning Professional can help.[4]",
+        "The average PACE participant is 76 years old with multiple complex medical conditions — this program is designed for seniors with significant health and long-term care needs, not general preventive care.[3]",
+        "If you are Medicare-eligible, you must have been a U.S. citizen or legal resident of Iowa for 5 years prior to application.[4]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "Individual need and state certification; not by household size or priority tier",
+      "officialSource": "https://hhs.iowa.gov/ (Iowa Department of Human Services); https://www.medicaid.gov/medicaid/long-term-services-supports/program-of-all-inclusive-care-for-elderly"
+    },
+    {
+      "name": "Supplemental Nutrition Assistance Program (SNAP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Benefits scale by household size and net income with special elderly deductions; Iowa has broader gross income test (160% FPL) and categorical eligibility for SSI/elderly/disabled households; statewide but local admin",
+      "gotchas": [
+        "Iowa expanded eligibility to 160% FPL gross (higher than federal 130%), but must meet net/asset if over gross; seniors miss higher deductions for medical/shelter costs; new 2025 work rules impact 55-64; include all who buy/prepare food in household; SSI auto-eligible but verify[1][2][4][5][6]",
+        "Own home/retirement savings often don't count as assets"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "household_size",
+      "officialSource": "https://hhs.iowa.gov/assistance-programs/food-assistance/snap"
+    },
+    {
+      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Benefits scale by household size, income level, fuel type, and housing type. Program is administered through a network of local community action agencies rather than a single state office, creating regional variation in application methods and processing. Income limits are tied to federal poverty guidelines and updated annually. Priority application period (October 1) exists for elderly and disabled households, with general application period starting November 1. No asset test simplifies eligibility determination. One-time annual payment structure means this is emergency/seasonal assistance rather than ongoing support.",
+      "gotchas": [
+        "Income limits vary by source (175% vs. 200% of federal poverty guidelines) — verify with your local community action agency[3][4][7]",
+        "Roommates are counted as household members if they share the same utility bill, which may affect eligibility[1]",
+        "This is a one-time payment per year, not ongoing assistance[6]",
+        "Payment goes directly to the utility company, not to the applicant[6]",
+        "Application deadline is April 30, 2026, but funding may run out earlier — apply as soon as possible[1]",
+        "Elderly (60+) and disabled applicants can apply starting October 1, but all others must wait until November 1[2][4]",
+        "LIHEAP-approved households receive protection from heating service disconnection November 1 through April 1, but only if they have an active LIHEAP application[5][6]",
+        "Income documentation requirements vary by income type (wage earners, fixed income, self-employed) — bring the appropriate documentation[2]",
+        "A separate Weatherization Assistance Program exists for home energy efficiency improvements, distinct from LIHEAP cash assistance[1]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "household_size, income, fuel_type, housing_type, priority_status",
+      "officialSource": "https://iuc.iowa.gov/customer-assistance/how-do-i-apply-energy-assistance-liheap and https://liheap-apply.hhs.iowa.gov/s/"
+    },
+    {
+      "name": "Senior Health Insurance Information Program (SHIIP) — Iowa's implementation of the national SHIP program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "SHIIP is fundamentally a counseling and advocacy service, not a direct-benefit program. It helps beneficiaries access OTHER programs (Medicare, Medicaid, Extra Help, Medicare Savings Programs). Income and asset limits are referenced but not detailed in publicly available search results — families must contact local offices for specific thresholds. The program operates through a distributed network of volunteer counselors at sponsor locations rather than centralized offices, which may create regional variation in availability and responsiveness.",
+      "gotchas": [
+        "SHIIP is Iowa's name for the national SHIP program — confusion between the two names is common[1][4]",
+        "This is a COUNSELING and INFORMATION service, not a direct financial assistance program — it helps people understand and enroll in programs that provide financial help (Medicare Savings Programs, Extra Help)[1][5]",
+        "Counselors are volunteers — availability may vary by location and season[1][6]",
+        "SHIIP does not sell insurance products and is not affiliated with insurance companies — it provides unbiased information[6]",
+        "Medicare enrollment deadlines matter: people should enroll at 65; drug plan changes occur October 15 – December 7 annually[3]",
+        "If not eligible for Medicare, Iowa Navigators (1-877-474-6284) is the referral program[5]"
+      ],
+      "benefitType": "service|advocacy",
+      "benefitVariesBy": "not_applicable — services are standardized across the state",
+      "officialSource": "shiip.iowa.gov[1]"
+    },
+    {
+      "name": "Meals on Wheels",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Decentralized by local AAAs/providers with regional service areas, no statewide income/asset tables or central application; eligibility via homebound assessment prioritizing economic/social need.",
+      "gotchas": [
+        "Not statewide uniform program; must contact local AAA/provider for service area and exact process—no central application[1][4][6][8].",
+        "No fixed income/asset tests in state rules; 'greatest economic need' determined locally, often via assessment or donations[1][7].",
+        "Spouse eligibility discretionary, based on older individual's best interest[1].",
+        "Frequency (days/week) set by assessment, not guaranteed 7 days[1].",
+        "Private pay required if ineligible (e.g., $8.10-$9.50/meal)[4][7].",
+        "Homebound strictly required; temporary for recovery or respite[4][5]."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "region",
+      "officialSource": "https://www.legis.iowa.gov/docs/iac/rule/02-05-2025.17.7.21.pdf (Iowa Administrative Code 17.7(21))"
+    },
+    {
+      "name": "Iowa Legal Aid for Seniors",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "No strict asset test but income up to 125% FPL with senior priority; statewide with local targeting; services via grants for elders beyond standard limits",
+      "gotchas": [
+        "Not automatic—must apply to confirm qualification even if 60+; income exceptions not guaranteed[2]",
+        "Priority for greatest need (e.g., frail, rural, at risk); others may be waitlisted or referred[1]",
+        "Separate from Medicaid Elderly Waiver (which has strict asset/income rules they can assist with)[3][4]",
+        "Means testing prohibited, but funding guidelines influence help[1][6]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://iowalegalaid.org"
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "no income test; open to all long-term care residents statewide via local ombudsmen at every facility; advocacy-only, no quantified benefits like hours/dollars; serves HCBS waiver members beyond facilities",
+      "gotchas": [
+        "Not a healthcare or financial aid program—purely advocacy for rights/complaints, not direct services like care or funding[6]",
+        "Families considering placement or with loved ones in facilities can contact preemptively, but core service is for current residents[3]",
+        "Volunteers (not recipients) have age 18+ requirement, criminal background check, conflict of interest rules, transportation needs—confused with service eligibility[2][3][4]",
+        "Exclusions apply to certain residential care levels (e.g., acute mental health needs)—check facility type[1][6]",
+        "Must contact Local Ombudsman posted in facility, not assume statewide office handles all[5]"
+      ],
+      "benefitType": "advocacy",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://hhs.iowa.gov/health-prevention/aging-services/ltcombudsman"
+    },
+    {
+      "name": "State Supplementary Assistance (SSA)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Tied to SSI eligibility except income; supplements via categories (blind allowance, residential care, etc.); split administration (SSA vs. HHS); no fixed income tables—uses SSI standards.",
+      "gotchas": [
+        "Must meet SSI rules except excess income; SSI denial doesn't automatically qualify—full verification needed if income over SSI limit.",
+        "Different administration: SSA for most, HHS for residential/in-home—wrong office delays.",
+        "Special categories require physician note (e.g., Residential Care).",
+        "Children: Blind in own/dependent relative home; disabled only with dependent relative.",
+        "Resources include countable life insurance over $1,500 face value.",
+        "Must apply for all other benefits."
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://hhs.iowa.gov/media/3987/download"
+    }
+  ]
+}

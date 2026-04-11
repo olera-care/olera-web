@@ -1,0 +1,110 @@
+{
+  "entity": "Montana",
+  "entitySlug": "montana",
+  "state": "MT",
+  "stateName": "Montana",
+  "isRegion": false,
+  "exploredAt": "2026-04-09T14:43:20.017Z",
+  "programCount": 14,
+  "programs": [
+    {
+      "name": "Big Sky Waiver Program",
+      "what_it_does": "Montana's Big Sky Waiver is a Medicaid 1915(c) HCBS waiver that provides long-term services and supports to help elderly or disabled individuals avoid nursing home placement and live independently in their home, a relative's home, or community settings like assisted living.[1][2] Benefits include adult day care, personal care, homemaker services, skilled nursing, home modifications, companion services, meal delivery, and respite care, with individualized service plans.[1][2]",
+      "who_its_for": "Montana residents aged 65+ or physically disabled adults under 65 at risk of institutionalization; 2025 income limit $967/month (individual), asset limit $2,000.[1][2]",
+      "whats_unique": "State-specific Medicaid waiver unique to Montana (not available in other states), with capped slots (2,783 max, including reserves for assisted living and nursing home transitions via Money Follows the Person); not an entitlement, may have waitlists.[2]",
+      "official_url": "https://dphhs.mt.gov/sltc",
+      "benefit_value": "Varies by individualized plan; covers services like skilled nursing and home mods up to program limits (e.g., 28 slots for assisted living at risk of institutionalization).[1][2]"
+    },
+    {
+      "name": "Community First Choice Services (CFCS) / Personal Care Services (PCS)",
+      "what_it_does": "Provides in-home personal assistance for daily activities like bathing, dressing, toileting, ambulation, and meal preparation to support independent living. Additional services through CFCS include personal emergency response systems.[2][4][6]",
+      "who_its_for": "Seniors and disabled persons meeting Medicaid financial and functional eligibility; entitlement program without waiting list.[2]",
+      "official_url": "https://dphhs.mt.gov/SLTC/csb/",
+      "benefit_value": "Hands-on assistance as needed; no waitlist for eligible applicants.[2][4]"
+    },
+    {
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "what_it_does": "Not explicitly detailed in Montana-specific sources; federal PACE provides comprehensive medical and social services to enable frail seniors to live in the community. Availability in Montana not confirmed in results.",
+      "who_its_for": "Frail seniors 55+ certified for nursing home level care but able to live safely in community.",
+      "official_url": "",
+      "benefit_value": "N/A; limited information available."
+    },
+    {
+      "name": "Medicaid for the Aged, Blind, and Disabled (ABD)",
+      "what_it_does": "Provides Medicaid coverage for long-term care and other health services for seniors and disabled individuals. Includes estate recovery for costs from age 55+ (excludes expansion enrollees).[5]",
+      "who_its_for": "Aged, blind, or disabled Medicare beneficiaries with limited income/resources per Montana guidelines.[5]",
+      "official_url": "https://dphhs.mt.gov/sltc",
+      "benefit_value": "Full Medicaid benefits including LTSS; estate recovery applies post-55.[5]"
+    },
+    {
+      "name": "Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), Qualifying Individual (QI)",
+      "what_it_does": "Montana Medicare Savings Programs pay Medicare premiums, deductibles, and copayments for eligible low-income seniors. Administered under state Medicaid guidelines for ABD.[5]",
+      "who_its_for": "Medicare beneficiaries with limited income/resources meeting Montana ABD financial criteria.[5]",
+      "official_url": "https://www.medicareresources.org/states/montana-guide-content/",
+      "benefit_value": "Premiums/deductibles/copays covered based on program (QMB/SLMB/QI).[5]"
+    },
+    {
+      "name": "SNAP (Food Stamps)",
+      "what_it_does": "Provides monthly food assistance benefits to low-income seniors. Seniors 60+ have simplified application, medical expense deductions over $35/month, and access to senior food banks.[1][9]",
+      "who_its_for": "Low-income individuals/households, especially seniors 60+ with income under $1,580/month (individual).[1]",
+      "official_url": "https://seniorbenefitscarefinder.com/low-income-programs/montana/",
+      "benefit_value": "Up to $291/month maximum; restaurant meals in some areas.[1]"
+    },
+    {
+      "name": "Montana Energy Assistance (LIHEAP)",
+      "what_it_does": "Offers grants to help low-income households, including seniors, pay heating costs. Application open October–March.[1]",
+      "who_its_for": "Low-income households including seniors.[1]",
+      "official_url": "https://seniorbenefitscarefinder.com/low-income-programs/montana/",
+      "benefit_value": "$500–$1,000/year maximum.[1]"
+    },
+    {
+      "name": "Weatherization Assistance Program",
+      "what_it_does": "Provides home weatherization services to improve energy efficiency for low-income households. Available in Montana for seniors.[1]",
+      "who_its_for": "Low-income households including seniors.[1]",
+      "official_url": "https://seniorbenefitscarefinder.com/low-income-programs/montana/",
+      "benefit_value": "Free or low-cost home improvements (insulation, etc.).[1]"
+    },
+    {
+      "name": "State Health Insurance Assistance Program (SHIP)",
+      "what_it_does": "Offers free counseling on Medicare options through Montana Area Agencies on Aging (AAAs). Assists with Medicare Savings Programs and long-term care planning.[4][5]",
+      "who_its_for": "Montana Medicare beneficiaries seeking guidance on coverage and assistance.[5]",
+      "official_url": "https://dphhs.mt.gov/SLTC",
+      "benefit_value": "Free personalized counseling.[5]"
+    },
+    {
+      "name": "Meals on Wheels",
+      "what_it_does": "Not detailed by specific Montana name; delivers meals to homebound seniors (federal/state-funded via AAAs). Supports nutrition for those unable to prepare food.",
+      "who_its_for": "Homebound seniors 60+.",
+      "official_url": "",
+      "benefit_value": "N/A; typically 5-14 meals/week; limited state-specific details."
+    },
+    {
+      "name": "Respite Care (via Big Sky Waiver)",
+      "what_it_does": "Provides temporary relief for caregivers of seniors/disabled through paid respite services. Included in Big Sky Waiver to support family caregivers.[2][4]",
+      "who_its_for": "Seniors/disabled enrolled in Big Sky Waiver and their caregivers.[2]",
+      "official_url": "https://dphhs.mt.gov/SLTC/csb/Providers",
+      "benefit_value": "Varies by assessed need.[2]"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "what_it_does": "Not explicitly named in Montana results; federal program offers part-time paid training jobs for low-income seniors 55+. Focuses on employment and community service.",
+      "who_its_for": "Unemployed low-income seniors 55+.",
+      "official_url": "",
+      "benefit_value": "N/A; minimum wage training positions; limited MT details."
+    },
+    {
+      "name": "Legal Services for Seniors",
+      "what_it_does": "Not specified by Montana name; elder law attorneys and AAAs assist with legal issues like Medicaid planning. NAELA provides local elder law attorney search.[5]",
+      "who_its_for": "Seniors needing legal help with benefits/LTC.[5]",
+      "official_url": "https://www.medicareresources.org/states/montana-guide-content/",
+      "benefit_value": "Varies; free/low-cost via AAAs or pro bono.[5]"
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "what_it_does": "Not explicitly detailed; advocates for residents in long-term care facilities (administered via AAAs/SLTC). Resolves complaints and protects rights.",
+      "who_its_for": "Seniors in nursing homes/assisted living.[5]",
+      "official_url": "https://dphhs.mt.gov/sltc",
+      "benefit_value": "Free advocacy services; limited specifics.[5]"
+    }
+  ]
+}

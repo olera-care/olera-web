@@ -1,0 +1,2397 @@
+{
+  "state": "UT",
+  "stateName": "Utah",
+  "draftedAt": "2026-04-09T16:53:05.091Z",
+  "total": 13,
+  "successful": 13,
+  "programs": [
+    {
+      "id": "utah-medicaid-program",
+      "name": "Utah Medicaid Program",
+      "shortName": "Utah Medicaid",
+      "tagline": "Long-term care coverage for your parent's nursing home, home care, or assisted living costs.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Utah County/Wasatch/Summit",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs daily help with bathing, dressing, or medication management, Utah Medicaid can cover their long-term care costs — whether that's nursing home care, home-based services, or assisted living. The program has multiple tiers with different income limits depending on your parent's care needs and where they want to receive services.\n\nUnlike regular health insurance, Medicaid covers long-term care indefinitely as long as your parent remains eligible. The catch: strict asset limits ($2,000 for singles, $3,000-$4,000 for couples) and most of your parent's income will go toward care costs, leaving them with only $45/month for personal needs in nursing homes.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+ or disabled",
+          "Income varies by program tier",
+          "Assets under $2,000 (single) or $3,000-$4,000 (couple)",
+          "Needs daily care assistance",
+          "Utah resident"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 2000,
+          "couple": 3000,
+          "countedAssets": [
+            "Bank accounts",
+            "Stocks and bonds",
+            "Additional vehicles",
+            "Investment property"
+          ],
+          "exemptAssets": [
+            "Primary home (up to $730,000 equity)",
+            "One vehicle",
+            "Personal belongings and household items",
+            "Burial plots or irrevocable burial trusts up to $7,000",
+            "Life insurance with face value up to $1,500"
+          ],
+          "homeEquityCap": 730000
+        },
+        "functionalRequirement": "Must need Nursing Home Level of Care (a clinical assessment showing your parent needs daily help with activities like bathing, dressing, eating, or medication management)",
+        "otherRequirements": [
+          "Utah resident",
+          "U.S. citizen or qualified immigrant"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online at medicaid.utah.gov or call 1-866-435-7414; coverage can begin up to 3 months before approval.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Gather financial documents",
+            "description": "Collect proof of income, assets, bank statements, and medical documentation showing your parent's need for daily care assistance."
+          },
+          {
+            "step": 2,
+            "title": "Complete MyCase application",
+            "description": "Apply online at medicaid.utah.gov using the MyCase system, or call 1-866-435-7414 to apply by phone."
+          },
+          {
+            "step": 3,
+            "title": "Submit medical assessment",
+            "description": "Your parent will need a clinical evaluation to determine Nursing Home Level of Care eligibility."
+          },
+          {
+            "step": 4,
+            "title": "Choose program tier",
+            "description": "Based on income and care preferences, you'll be enrolled in the appropriate tier (nursing home, home waiver, or regular Medicaid)."
+          }
+        ],
+        "processingTime": "Coverage may begin 3 months prior to approval; applications sometimes take longer than expected",
+        "waitlist": null,
+        "tip": "Apply as soon as you think your parent might need long-term care — coverage can start up to 3 months before approval, potentially saving thousands in care costs.",
+        "urls": [
+          {
+            "label": "Apply Online",
+            "url": "https://medicaid.utah.gov/apply/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "tier-comparison",
+          "heading": "Program Tiers",
+          "tiers": [
+            {
+              "name": "Nursing Home Medicaid",
+              "description": "For parents who need 24/7 skilled nursing care",
+              "incomeLimit": "No strict limit — most income pays toward care",
+              "coverage": "Full nursing home costs, medical care. Parent keeps $45/month for personal needs."
+            },
+            {
+              "name": "New Choices Waiver",
+              "description": "Home and community-based services to avoid nursing home placement",
+              "incomeLimit": "$2,901/month (2025-2026)",
+              "coverage": "Daily living assistance, home modifications, adult day programs, respite care."
+            },
+            {
+              "name": "Aging Waiver",
+              "description": "Lower-intensity home supports for aging adults",
+              "incomeLimit": "$1,255-$1,305/month (2025-2026)",
+              "coverage": "Light housekeeping, meal preparation, transportation, personal care."
+            },
+            {
+              "name": "Regular ABD Medicaid",
+              "description": "Health coverage for aged, blind, or disabled individuals",
+              "incomeLimit": "$1,255/month single, $1,704/month couple",
+              "coverage": "Medical services, prescriptions, doctor visits. No long-term care."
+            }
+          ]
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and savings",
+            "Stocks, bonds, and investments",
+            "Second vehicles",
+            "Investment or rental property",
+            "Life insurance with face value over $1,500"
+          ],
+          "excluded": [
+            "Primary home (up to $730,000 in equity)",
+            "One vehicle of any value",
+            "Personal belongings and household items",
+            "Wedding and engagement rings",
+            "Burial plots or irrevocable burial trusts up to $7,000",
+            "Life insurance with face value $1,500 or less"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Social Security card",
+                "Birth certificate or proof of age",
+                "Proof of Utah residency",
+                "Citizenship or immigration documents"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Bank statements for all accounts (3 months)",
+                "Social Security award letters",
+                "Pension or retirement income statements",
+                "Property deeds or mortgage statements",
+                "Life insurance policies",
+                "Investment account statements"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Medical records showing need for daily care",
+                "Current medication list",
+                "Doctor's assessment of functional abilities",
+                "Hospital or nursing home discharge papers if applicable"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Your parent's home is subject to Estate Recovery after death — Utah may place a lien to recover Medicaid costs paid, though a surviving spouse can remain in the home."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If your parent's income is slightly over the limit, ask about Medically Needy Spenddown — they can qualify by having high medical expenses that bring their effective income below $1,330/month (single) or $1,803/month (couple)."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house if she qualifies for Medicaid?",
+          "answer": "Yes, your parent can keep their primary home as long as the equity is $730,000 or less and they intend to return home. However, Utah may recover costs from the home after death through Estate Recovery, though a surviving spouse can continue living there."
+        },
+        {
+          "question": "What happens to Dad's Social Security check if he goes on nursing home Medicaid?",
+          "answer": "Almost all of his Social Security and other income will go toward nursing home costs. He'll keep only $45/month for personal needs like haircuts or small purchases. If he's married, his spouse may keep more income through spousal protections."
+        },
+        {
+          "question": "What if Mom's income is just over the Medicaid limit?",
+          "answer": "She may still qualify through Medically Needy Spenddown if she has high medical expenses. Her medical bills can effectively reduce her countable income to $1,330/month (single) or $1,803/month (couple), making her eligible."
+        },
+        {
+          "question": "How do I choose between nursing home Medicaid and a home waiver?",
+          "answer": "It depends on your parent's care needs and income. Nursing home Medicaid has no income limit but requires 24/7 care. Home waivers let them stay home but have income limits ($1,255-$2,901/month depending on the waiver) and may have waiting lists."
+        },
+        {
+          "question": "Can my parents protect any of their savings if one needs Medicaid?",
+          "answer": "Yes, if only one spouse needs Medicaid, the other spouse can keep up to $157,920 in assets (or as little as $31,584 depending on total assets). This is called spousal impoverishment protection and helps prevent the healthy spouse from becoming destitute."
+        },
+        {
+          "question": "How far back does Utah look at financial records during the application?",
+          "answer": "Utah reviews financial records for transfers or gifts that could affect eligibility, but the specific lookback period wasn't detailed in available sources. Expect to provide several months of bank statements and documentation of any large transactions or asset transfers."
+        }
+      ],
+      "phone": "1-866-435-7414",
+      "sourceUrl": "https://medicaid.utah.gov/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "utah-pace-elderly-care",
+      "name": "Utah PACE (Program of All-Inclusive Care for the Elderly)",
+      "shortName": "Utah PACE",
+      "tagline": "Complete medical and long-term care under one program — but not available in Utah.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false
+      },
+      "intro": "If your parent needs nursing home-level care but wants to stay home, PACE provides all medical care, medications, therapies, and daily support services under one program with no copays. Because PACE coordinates everything — from doctors to adult day programs to home care — your parent won't need separate Medicare and Medicaid providers.\n\nHowever, Utah is one of 19 states that does not offer PACE. No PACE organizations operate anywhere in Utah, so families cannot apply regardless of eligibility.\n\nNationally, PACE serves adults 55+ who need nursing home-level care but can live safely at home with support. Unlike most programs, PACE has no income or asset limits — eligibility depends entirely on medical need and living in a service area.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Nursing home-level care needed",
+          "No income limits",
+          "Not available in Utah"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must be certified as requiring nursing home level of care (a state assessment of whether your parent needs daily help with activities like bathing, dressing, eating, or medication management)",
+        "otherRequirements": [
+          "Must live in a PACE service area (none exist in Utah)",
+          "Able to live safely in the community with PACE services",
+          "Cannot be enrolled in Medicare Advantage or hospice"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Cannot apply — no PACE programs operate in Utah.",
+        "steps": [],
+        "processingTime": "Not applicable",
+        "waitlist": null,
+        "tip": null,
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Utah does not offer PACE anywhere in the state. If you search for 'PACE Utah,' you'll find unrelated programs like property financing or scholarships — these are different programs entirely."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Why isn't PACE available in Utah?",
+          "answer": "PACE requires organizations to meet strict federal requirements and coordinate all medical and social services. Utah has not developed PACE organizations, making it one of 19 states without the program."
+        },
+        {
+          "question": "What Utah programs are similar to PACE?",
+          "answer": "Utah offers Medicaid home and community-based waiver programs that provide some similar services. These have waitlists and different eligibility rules, but can help parents avoid nursing homes."
+        },
+        {
+          "question": "Could Utah get PACE in the future?",
+          "answer": "Possibly, but there's no timeline. Organizations must apply to become PACE providers and demonstrate they can coordinate all medical and social services in a specific geographic area."
+        },
+        {
+          "question": "If we move to a state with PACE, would Mom qualify?",
+          "answer": "If she's 55+, needs nursing home-level care, can live safely at home with support, and moves to a PACE service area, yes. There are no income or asset limits for PACE eligibility."
+        },
+        {
+          "question": "What should we do instead of PACE?",
+          "answer": "Contact Utah's Division of Aging and Adult Services at 801-538-3910 to learn about home and community-based services, adult day programs, and other support options available in Utah."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://www.cms.gov/medicare/medicaid-coordination/about/pace",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "utah-medicare-savings-programs-qmb-slmb-qi",
+      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "shortName": "Medicare Savings Programs",
+      "tagline": "If your parent struggles to pay Medicare premiums, deductibles, or copays, these programs can cover those costs entirely.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local Utah Medicaid offices",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is on Medicare and has limited income, Medicare Savings Programs can pay their Medicare premiums, deductibles, and copays. Because these are three separate programs with different income limits, most people qualify for at least one tier. QMB (Qualified Medicare Beneficiary) covers the most costs including all copays and deductibles. SLMB (Specified Low-Income Medicare Beneficiary) and QI (Qualifying Individual) cover Medicare Part B premiums only.\n\nThe programs work automatically once approved — your parent won't need to coordinate payments or submit claims. Because QMB participants get a special Medicaid card, providers cannot bill them for any Medicare-covered services. SLMB and QI participants have their premiums paid directly to Medicare.",
+      "savingsRange": "$1,800 – $4,500/year in 2026",
+      "savingsSource": "Medicare Part B premiums ($185/month) plus potential deductibles and copays",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Medicare-eligible",
+          "Income below $1,823/month (single)",
+          "Assets under $9,950 (single)",
+          "Utah resident"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1823
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2462
+          }
+        ],
+        "assetLimits": {
+          "individual": 9950,
+          "couple": 14910,
+          "countedAssets": [
+            "Cash and bank accounts",
+            "Stocks and bonds",
+            "Life insurance over $1,500 face value"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "One vehicle",
+            "Household items",
+            "Wedding rings",
+            "Burial plots",
+            "Up to $1,500 burial expenses"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be eligible for Medicare Part A",
+          "Cannot receive other Medicaid (QI program only)"
+        ],
+        "povertyLevelReference": "100-135% FPL depending on program tier"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply through Utah Medicaid by phone or online, with processing taking up to 45 days.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact Utah Medicaid",
+            "description": "Visit medicaid.utah.gov or call your local Medicaid office to request an application for Medicare cost-sharing programs."
+          },
+          {
+            "step": 2,
+            "title": "Gather financial documents",
+            "description": "Collect recent bank statements, pay stubs or Social Security award letters, and your Medicare card."
+          },
+          {
+            "step": 3,
+            "title": "Submit application",
+            "description": "Return completed application with required documents by mail, phone, or in-person at local Medicaid office."
+          },
+          {
+            "step": 4,
+            "title": "Receive determination",
+            "description": "QMB approval includes a Medicaid card marked 'MEDICARE COST-SHARING ONLY'. SLMB and QI approvals result in automatic premium payments to Medicare."
+          }
+        ],
+        "processingTime": "Up to 45 days, effective first of month after determination",
+        "waitlist": "QI program may have waitlist when federal funds are exhausted",
+        "tip": "Apply early in the year for QI program since funding can run out, blocking new applicants until the following year.",
+        "urls": [
+          {
+            "label": "Utah Medicaid Medicare Cost-Sharing Programs",
+            "url": "https://medicaid.utah.gov/medicare-cost-sharing-programs/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "tier-comparison",
+          "heading": "Program Tiers",
+          "tiers": [
+            {
+              "name": "QMB (Qualified Medicare Beneficiary)",
+              "description": "Comprehensive coverage for all Medicare costs",
+              "incomeLimit": "Up to $1,350/month (single), $1,824/month (couple)",
+              "coverage": "Medicare Part A premiums, Part B premiums, all deductibles, coinsurance, and copayments"
+            },
+            {
+              "name": "SLMB (Specified Low-Income Medicare Beneficiary)",
+              "description": "Part B premium assistance only",
+              "incomeLimit": "$1,351-$1,620/month (single), $1,825-$2,189/month (couple)",
+              "coverage": "Medicare Part B premiums only"
+            },
+            {
+              "name": "QI (Qualifying Individual)",
+              "description": "Part B premium assistance with limited funding",
+              "incomeLimit": "$1,621-$1,823/month (single), $2,190-$2,462/month (couple)",
+              "coverage": "Medicare Part B premiums only (subject to funding availability)"
+            }
+          ]
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Cash and bank accounts",
+            "Stocks, bonds, and investments",
+            "Life insurance with face value over $1,500",
+            "Additional vehicles beyond one"
+          ],
+          "excluded": [
+            "Primary home (any value)",
+            "One vehicle for transportation",
+            "Household items and personal belongings",
+            "Wedding and engagement rings",
+            "Burial plots and up to $1,500 burial funds",
+            "SNAP benefits and certain Native American payments"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Medicare",
+              "items": [
+                "Government-issued photo ID",
+                "Medicare card",
+                "Proof of Utah residency"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Bank statements for all accounts",
+                "Pay stubs or Social Security award letters",
+                "Investment and retirement account statements",
+                "Life insurance policies",
+                "Vehicle registration and valuation"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "QI program funding can run out during the year. If you're near the higher income limits, apply early in the calendar year to avoid being waitlisted until the following year."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If your parent qualifies for QMB, make sure they show their Medicaid card at all medical appointments. Providers cannot legally bill QMB participants for any Medicare-covered services."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What happens if Mom's income is just over the QMB limit but under SLMB?",
+          "answer": "She can still qualify for SLMB, which covers Medicare Part B premiums (about $185/month in 2026). While SLMB doesn't cover copays and deductibles like QMB does, it still provides meaningful savings on her monthly Medicare costs."
+        },
+        {
+          "question": "Can Dad keep his house and car if he qualifies?",
+          "answer": "Yes. The primary home is completely exempt regardless of value, and one vehicle for transportation doesn't count toward the asset limit. Only additional vehicles, large bank accounts, and investments count toward the $9,950 limit for single people."
+        },
+        {
+          "question": "Will this affect Mom's other Medicare benefits or Medicare Advantage plan?",
+          "answer": "No, Medicare Savings Programs work with any Medicare plan. If she has Medicare Advantage, the program pays her plan premiums and cost-sharing. If she has Original Medicare, it covers the standard premiums and out-of-pocket costs."
+        },
+        {
+          "question": "What's the difference between getting a Medicaid card and not getting one?",
+          "answer": "QMB participants get a Medicaid card marked 'Medicare Cost-Sharing Only' because providers need to see it to know they can't bill for copays. SLMB and QI participants don't get cards because their benefits (premium payments) go directly from the state to Medicare."
+        },
+        {
+          "question": "How long does approval last?",
+          "answer": "Approval typically lasts one year, then you'll need to renew. The state should send renewal paperwork before benefits expire. Income and asset limits update each April, so someone who didn't qualify before might qualify with new limits."
+        },
+        {
+          "question": "What if we apply for QI but the funding runs out?",
+          "answer": "You'll be placed on a waiting list and automatically enrolled when funding becomes available the following year. In the meantime, check if your parent qualifies for SLMB, which has the same premium benefit but is guaranteed funding as an entitlement program."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://medicaid.utah.gov/medicare-cost-sharing-programs/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "utah-snap-food-benefits",
+      "name": "Utah SNAP (Supplemental Nutrition Assistance Program)",
+      "shortName": "Utah SNAP",
+      "tagline": "If your parent is 60+ and on a fixed income, they may qualify for monthly grocery assistance through an EBT card.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local Utah Workforce Services offices",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60 or older and struggling with grocery costs, Utah SNAP provides monthly benefits loaded onto an EBT card for food purchases. Because your parent is a senior, they face easier eligibility rules — no gross income test and higher asset limits than younger households.\n\nThe monthly benefit amount depends on household size, net income, and deductions for medical expenses over $35/month. A typical 2-person elderly household might receive around $415/month after calculations, though your parent's amount will vary based on their specific income and expenses.\n\nUtah offers ESAP (Elderly Simplified Application Project) for seniors 60+ and disabled individuals, which means one interview and approval for 3 years instead of frequent recertification. This reduces paperwork stress for ongoing benefits.",
+      "savingsRange": "$100 – $500/month in 2026",
+      "savingsSource": "Monthly EBT benefits based on household size and net income calculations",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Net income below $1,255/month (1 person)",
+          "Assets under $4,500",
+          "Utah resident"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1255
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 1703
+          }
+        ],
+        "assetLimits": {
+          "individual": 4500,
+          "couple": 4500,
+          "countedAssets": [
+            "Bank accounts",
+            "Cash",
+            "Stocks and bonds"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "Vehicles",
+            "Retirement savings",
+            "Household goods",
+            "Life insurance cash value"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Live in Utah",
+          "Household includes those who live together and buy/prepare food together"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online at mycase.utah.gov or call 1-866-526-3663; ESAP processing for seniors takes one interview and approves for 3 years.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Start your mySNAP application online",
+            "description": "Go to mycase.utah.gov and create an account. The online application walks through income, expenses, and household information."
+          },
+          {
+            "step": 2,
+            "title": "Gather required documents",
+            "description": "Collect proof of income (Social Security statements, pension), medical expenses over $35/month, rent/mortgage, utilities, and bank statements."
+          },
+          {
+            "step": 3,
+            "title": "Complete the interview",
+            "description": "Utah will schedule one phone or in-person interview to verify information. Because your parent is 60+, this uses the simplified ESAP process."
+          },
+          {
+            "step": 4,
+            "title": "Receive EBT card",
+            "description": "If approved, benefits load monthly onto an EBT card that works like a debit card at grocery stores and farmers markets."
+          }
+        ],
+        "processingTime": "30 days for standard processing; ESAP for elderly uses simplified process with 3-year approval",
+        "waitlist": null,
+        "tip": "Medical expenses over $35/month can significantly reduce your parent's countable income, so gather all medical bills, insurance premiums, and prescription costs.",
+        "urls": [
+          {
+            "label": "Apply online at mycase.utah.gov",
+            "url": "https://mycase.utah.gov"
+          },
+          {
+            "label": "Download paper application",
+            "url": "https://jobs.utah.gov"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Net Income Limits by Household Size",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 1255,
+              "annualLimit": 15060
+            },
+            {
+              "householdSize": 2,
+              "monthlyLimit": 1703,
+              "annualLimit": 20440
+            }
+          ],
+          "footnote": "October 2025 - September 2026 federal limits. Net income = gross income minus deductions for medical expenses over $35/month, shelter costs, and utilities."
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts Toward $4,500",
+          "included": [
+            "Bank accounts and cash",
+            "Stocks, bonds, and investments",
+            "Income-producing life insurance cash value"
+          ],
+          "excluded": [
+            "Primary home (any value)",
+            "Vehicles (any number or value)",
+            "Retirement savings (401k, IRA, pensions)",
+            "Household goods and personal belongings",
+            "Non-income-producing life insurance"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Driver's license or state ID",
+                "Proof of Utah address (utility bill, lease)"
+              ]
+            },
+            {
+              "name": "Income",
+              "items": [
+                "Social Security award letter",
+                "Pension statements",
+                "VA benefits documentation"
+              ]
+            },
+            {
+              "name": "Expenses",
+              "items": [
+                "Medical bills over $35/month",
+                "Rent or mortgage statement",
+                "Utility bills"
+              ]
+            },
+            {
+              "name": "Assets",
+              "items": [
+                "Bank statements (if near $4,500 limit)",
+                "Investment account statements"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Seniors 60+ skip the gross income test that applies to younger households. High medical expenses over $35/month and shelter costs can reduce countable net income significantly, potentially qualifying your parent even if their gross income seems too high."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house and car if they get SNAP?",
+          "answer": "Yes. The primary home has no value limit, and vehicles are completely exempt from the $4,500 asset limit for seniors 60+. Retirement savings like 401k and IRA accounts also don't count."
+        },
+        {
+          "question": "What if Mom's Social Security is just over the income limit?",
+          "answer": "Medical expenses over $35/month, rent, mortgage, and utility costs reduce countable income. If your mom pays $200/month for prescriptions and medical bills, that's $165/month deducted from her Social Security ($200 minus the $35 threshold)."
+        },
+        {
+          "question": "Does my non-citizen parent qualify for SNAP benefits?",
+          "answer": "Many non-citizens qualify if they've lived in the U.S. for 5+ years or receive disability benefits. U.S. citizenship is not required for SNAP in Utah."
+        },
+        {
+          "question": "How often does my parent need to reapply?",
+          "answer": "Because your parent is 60+, they qualify for ESAP (Elderly Simplified Application Project), which means one interview and approval for 3 years instead of frequent recertification."
+        },
+        {
+          "question": "What if we live together but buy separate groceries?",
+          "answer": "SNAP counts people who live together AND buy/prepare food together as one household. If you and your parent shop separately and prepare separate meals, you may apply as separate households even if living together."
+        },
+        {
+          "question": "Can SNAP benefits pay for meals at senior centers?",
+          "answer": "Yes, many senior centers and meal delivery programs accept EBT cards. The card works like a debit card for eligible food purchases at grocery stores, farmers markets, and participating meal programs."
+        }
+      ],
+      "phone": "1-866-526-3663",
+      "sourceUrl": "https://jobs.utah.gov/customereducation/services/foodstamps/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "utah-liheap-energy-assistance",
+      "name": "Utah LIHEAP (Low-Income Home Energy Assistance Program)",
+      "shortName": "Utah HEAT",
+      "tagline": "Get $190-850 toward your parent's heating and cooling bills if their income is below $1,956/month (single person).",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Statewide via jobs.utah.gov/housing/scso/seal/heat.html local HEAT offices",
+            "type": "service-area"
+          },
+          {
+            "name": "Five County: fivecountyheat.org",
+            "type": "service-area"
+          },
+          {
+            "name": "MAG (Summit/Wasatch): magutah.gov/heat",
+            "type": "service-area"
+          },
+          {
+            "name": "Paiute Tribal (separate): pitu.gov/liheap, 435-586-1112",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent struggles to pay heating or cooling bills, Utah's HEAT program can help cover $190-850 of their annual energy costs. The program pays money directly to the utility company based on your parent's income, household size, and type of heating fuel.\n\nPriority applications open October 1 for people 60+, disabled adults, or households with children under 6. General applications start November 1. Because funding is limited and distributed first-come, first-served, apply as early as possible once your parent's priority window opens.\n\nThe program runs through local agencies across Utah, so you'll work with a regional HEAT office rather than the state directly. Your parent must be responsible for paying their own energy costs (either directly to the utility or through rent) and have gross monthly household income at or below 150% of the Federal Poverty Level.",
+      "savingsRange": "$190 – $850/year in 2026",
+      "savingsSource": "Utah HEAT program benefit ranges",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Income below $1,956/month (single person)",
+          "Responsible for paying energy costs",
+          "At least one U.S. citizen in household",
+          "Utah resident"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1956
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2644
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 3331
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 4018
+          },
+          {
+            "householdSize": 5,
+            "monthlyLimit": 4707
+          },
+          {
+            "householdSize": 6,
+            "monthlyLimit": 5394
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Household responsible for paying home energy costs directly or through rent",
+          "At least one adult (18+ or emancipated minor) in household",
+          "At least one U.S. citizen or qualified non-citizen in household",
+          "Household includes all people at address sharing utility bill"
+        ],
+        "povertyLevelReference": "150% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact your local HEAT office by phone or visit in person — processing time varies but funds run out quickly.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local HEAT office",
+            "description": "Use the office directory below or visit jobs.utah.gov/housing/scso/seal/heat.html to find your regional provider."
+          },
+          {
+            "step": 2,
+            "title": "Gather required documents",
+            "description": "Collect income proof for all household members from the prior month, recent utility bills, and ID/Social Security cards for everyone."
+          },
+          {
+            "step": 3,
+            "title": "Apply during your priority window",
+            "description": "If your parent is 60+, disabled, or you have children under 6, apply starting October 1. Everyone else can apply starting November 1."
+          },
+          {
+            "step": 4,
+            "title": "Submit application to local office",
+            "description": "Call or visit your regional HEAT office. They'll process the application and pay benefits directly to the utility company if approved."
+          }
+        ],
+        "processingTime": "Not specified - funds are limited, apply early",
+        "waitlist": null,
+        "tip": "Apply immediately when your priority window opens — this isn't a year-round program with guaranteed funding.",
+        "urls": [
+          {
+            "label": "Find Local HEAT Office",
+            "url": "https://jobs.utah.gov/housing/scso/seal/heat.html"
+          },
+          {
+            "label": "Online Eligibility Check",
+            "url": "https://mydoorway.utah.gov/utility-assistance"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits by Household Size",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 1956
+            },
+            {
+              "householdSize": 2,
+              "monthlyLimit": 2644
+            },
+            {
+              "householdSize": 3,
+              "monthlyLimit": 3331
+            },
+            {
+              "householdSize": 4,
+              "monthlyLimit": 4018
+            },
+            {
+              "householdSize": 5,
+              "monthlyLimit": 4707
+            },
+            {
+              "householdSize": 6,
+              "monthlyLimit": 5394
+            }
+          ],
+          "footnote": "2026 limits at 150% Federal Poverty Level"
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "ID for all household members",
+                "Social Security cards for all household members",
+                "Proof of citizenship or qualified alien status"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Proof of ALL income for prior month for all household members (pay stubs, SSI statements, etc.)",
+                "Recent utility bills (electric, gas, propane, etc.)",
+                "Proof of eligible medical expenses from prior month",
+                "Child support or alimony documentation from prior month"
+              ]
+            },
+            {
+              "name": "Special Circumstances",
+              "items": [
+                "Proof of disability if claiming priority access",
+                "Birth certificate for children under 6 if claiming priority"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "county-directory",
+          "heading": "Local HEAT Offices",
+          "offices": [
+            {
+              "name": "Statewide Directory",
+              "type": "service-area",
+              "phone": null,
+              "url": "https://jobs.utah.gov/housing/scso/seal/heat.html"
+            },
+            {
+              "name": "Five County Area",
+              "type": "service-area",
+              "phone": null,
+              "url": "https://fivecountyheat.org"
+            },
+            {
+              "name": "Summit/Wasatch Counties (MAG)",
+              "type": "service-area",
+              "phone": null,
+              "url": "https://magutah.gov/heat"
+            },
+            {
+              "name": "Paiute Tribal Program",
+              "type": "service-area",
+              "phone": "435-586-1112",
+              "url": "https://pitu.gov/liheap"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Funding runs out every year. Priority applications for people 60+, disabled adults, or households with children under 6 start October 1. General public can apply starting November 1, but funds may already be exhausted."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "The household definition includes everyone at your parent's address who shares the utility bill — this may be different from other programs like SNAP. Cannot apply to both state HEAT and tribal programs."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent pays utilities through their rent?",
+          "answer": "They can still qualify. The program covers people who pay energy costs directly to utilities or indirectly through rent to a landlord."
+        },
+        {
+          "question": "Can my parent get emergency help if their heat is about to be shut off?",
+          "answer": "Yes. Crisis assistance is available up to $2,000 maximum for emergency situations. Contact your local HEAT office immediately."
+        },
+        {
+          "question": "My parent is 62 — when should they apply?",
+          "answer": "October 1. People 60+ get priority access and can apply a full month before the general public. Don't wait until November."
+        },
+        {
+          "question": "What if my parent's income is just over the limit?",
+          "answer": "They won't qualify. The income limits are firm at 150% of Federal Poverty Level. For a single person, that's $1,956/month maximum."
+        },
+        {
+          "question": "Does my parent need to reapply every year?",
+          "answer": "Yes. This is an annual program that runs from October 1 through September 30 or until funds are exhausted. They must reapply each program year."
+        },
+        {
+          "question": "Will this affect my parent's other benefits?",
+          "answer": "LIHEAP benefits are not counted as income for other federal programs like SNAP or Medicaid. This help won't reduce their other assistance."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://jobs.utah.gov/housing/scso/seal/heat.html",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "utah-weatherization-assistance-program",
+      "name": "Utah Weatherization Assistance Program",
+      "shortName": "Utah Weatherization",
+      "tagline": "Free home energy improvements including insulation, air sealing, and heating system repairs for qualifying Utah homeowners and renters.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Bear River AoG (Box Elder, Cache, Rich, Shoshone Tribe): Logan",
+            "type": "service-area"
+          },
+          {
+            "name": "Utah Community Action (Davis, Morgan, Weber, Salt Lake, Tooele, Goshute): Salt Lake City",
+            "type": "service-area"
+          },
+          {
+            "name": "Mountainland Association of Governments (Utah/Provo area): Vineyard",
+            "type": "service-area"
+          },
+          {
+            "name": "Five County AoG (Beaver, Iron, Washington, Garfield, Kane, Paiute): Cedar City",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent's home has high heating or cooling bills, Utah's Weatherization Assistance Program provides free professional energy improvements. The program covers insulation, air sealing, furnace repairs, and other weatherization services — all at no cost to qualifying households.\n\nBecause the program prioritizes elderly households, disabled individuals, and families with high energy costs, your parent may move up the waitlist faster. Income limits are set at 200% of the Federal Poverty Level (around $30,120 annually for a single person in 2026), and both homeowners and renters can qualify.\n\nYour home gets a computerized energy audit first, then receives tailored improvements based on what will save the most energy. The program covers safety inspections and indoor air quality checks as part of the service.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Income at or below 200% Federal Poverty Level",
+          "Home never weatherized or last weatherized 15+ years ago",
+          "At least one U.S. citizen or qualified non-citizen in household",
+          "Priority for elderly and disabled households"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2510
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 3395
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 4280
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 5200
+          },
+          {
+            "householdSize": 5,
+            "monthlyLimit": 6085
+          },
+          {
+            "householdSize": 6,
+            "monthlyLimit": 6970
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Home must have never been weatherized or weatherized more than 15 years ago (determined by energy audit)",
+          "Renters need notarized Weatherization Rental Agreement from landlord",
+          "At least one adult in household must be U.S. citizen or qualified non-citizen"
+        ],
+        "povertyLevelReference": "200% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact your county's regional agency by phone, email, or mail — processing time varies by agency and you'll be placed on a prioritized waitlist.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your county's agency",
+            "description": "Utah has 7 regional agencies. You must contact the specific one for your county — applying to the wrong agency delays processing."
+          },
+          {
+            "step": 2,
+            "title": "Submit application and documents",
+            "description": "Complete the weatherization application and provide income verification, social security cards, utility bills, and property ownership proof."
+          },
+          {
+            "step": 3,
+            "title": "Wait for eligibility determination",
+            "description": "If eligible, you'll be placed on a waitlist prioritized by need. Elderly, disabled, and households with children under 6 get priority."
+          },
+          {
+            "step": 4,
+            "title": "Schedule energy audit",
+            "description": "When your turn comes, a professional conducts a computerized energy audit to determine which improvements will save the most energy."
+          }
+        ],
+        "processingTime": "Not specified by program",
+        "waitlist": "Yes, applications prioritized by need (elderly, disabled households get priority)",
+        "tip": "If your parent already receives HEAT program benefits, mention this — HEAT recipients get priority processing.",
+        "urls": [
+          {
+            "label": "Find your county agency",
+            "url": "https://jobs.utah.gov/housing/scso/wap/how.html"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits by Household Size (2026)",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 2510,
+              "annualLimit": 30120
+            },
+            {
+              "householdSize": 2,
+              "monthlyLimit": 3395,
+              "annualLimit": 40740
+            },
+            {
+              "householdSize": 3,
+              "monthlyLimit": 4280,
+              "annualLimit": 51360
+            },
+            {
+              "householdSize": 4,
+              "monthlyLimit": 5200,
+              "annualLimit": 62400
+            },
+            {
+              "householdSize": 5,
+              "monthlyLimit": 6085,
+              "annualLimit": 73020
+            },
+            {
+              "householdSize": 6,
+              "monthlyLimit": 6970,
+              "annualLimit": 83640
+            }
+          ],
+          "footnote": "Based on 200% Federal Poverty Level. Income is gross monthly without deductions."
+        },
+        {
+          "type": "tier-comparison",
+          "heading": "Priority Levels",
+          "tiers": [
+            {
+              "name": "High Priority",
+              "description": "Processed first on waitlist",
+              "incomeLimit": "HEAT program recipients (150% FPL) or elderly/disabled households",
+              "coverage": "Same weatherization services, faster processing"
+            },
+            {
+              "name": "Standard Priority",
+              "description": "Standard waitlist placement",
+              "incomeLimit": "Up to 200% Federal Poverty Level",
+              "coverage": "Full weatherization services when turn arrives"
+            }
+          ]
+        },
+        {
+          "type": "county-directory",
+          "heading": "Regional Agencies by County",
+          "offices": [
+            {
+              "name": "Bear River AoG",
+              "type": "service-area",
+              "counties": "Box Elder, Cache, Rich, Shoshone Tribe",
+              "phone": "(435) 752-7242",
+              "email": "weatherization@brag.utah.gov",
+              "address": "95 W 100 S #116, Logan UT 84321"
+            },
+            {
+              "name": "Utah Community Action",
+              "type": "service-area",
+              "counties": "Davis, Morgan, Weber, Salt Lake, Tooele, Goshute",
+              "phone": "(801) 214-3215",
+              "email": "info@utahca.org",
+              "address": "1307 S 900 W, Salt Lake City UT 84104"
+            },
+            {
+              "name": "Mountainland AoG",
+              "type": "service-area",
+              "counties": "Utah County area",
+              "phone": null,
+              "email": "weatherization@mountainland.org",
+              "address": "478 South Geneva Rd, Vineyard UT 84059"
+            },
+            {
+              "name": "Five County AoG",
+              "type": "service-area",
+              "counties": "Beaver, Iron, Washington, Garfield, Kane, Paiute",
+              "phone": "(435) 865-0195",
+              "email": null,
+              "address": "Cedar City office"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "Required Documents",
+          "categories": [
+            {
+              "name": "Identity & Eligibility",
+              "items": [
+                "Social security cards for all household members",
+                "HEAT program approval letter (if applicable)"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Verification of all earned and unearned income (if not on HEAT)",
+                "Copy of utility bill",
+                "Bill History Release Authorization"
+              ]
+            },
+            {
+              "name": "Property",
+              "items": [
+                "Proof of home ownership OR notarized Weatherization Rental Agreement (for renters)",
+                "Owner approval documentation (for renters)"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "You must contact the specific regional agency for your county. Applying to the wrong agency causes delays. Use the county directory above to find your correct contact."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If your parent's home was weatherized in the past, it must have been more than 15 years ago to qualify again. The energy audit will determine eligibility."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent qualify if they rent their home?",
+          "answer": "Yes, renters can qualify, but you'll need a notarized Weatherization Rental Agreement from the landlord giving permission for the weatherization work. The landlord must also provide owner approval documentation."
+        },
+        {
+          "question": "How long is the waitlist for weatherization services?",
+          "answer": "Wait times aren't specified and vary by regional agency. However, elderly households, disabled individuals, and families with children under 6 get priority placement. HEAT program recipients also move up the waitlist."
+        },
+        {
+          "question": "What if Mom's income is slightly over the limit?",
+          "answer": "If she's already receiving HEAT program benefits (which uses 150% Federal Poverty Level), she automatically qualifies for weatherization. Otherwise, income must be at or below 200% FPL with no exceptions mentioned."
+        },
+        {
+          "question": "What happens if the home was weatherized before?",
+          "answer": "The home must have never been weatherized OR last weatherized more than 15 years ago. This is determined during the initial energy audit — if it was weatherized more recently, the application will be denied."
+        },
+        {
+          "question": "Does my parent have to pay anything upfront?",
+          "answer": "No, all weatherization services are completely free including the energy audit, improvements, safety inspections, and indoor air quality checks. There are no upfront costs or repayment requirements."
+        },
+        {
+          "question": "What if we live on the border between counties?",
+          "answer": "You must apply to the specific regional agency that serves your county. Check the county directory above — applying to the wrong agency will delay processing. Each agency only serves designated counties."
+        }
+      ],
+      "phone": "(801) 214-3215",
+      "sourceUrl": "https://jobs.utah.gov/housing/scso/wap/how.html",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "utah-ship-medicare-counseling",
+      "name": "Utah SHIP (State Health Insurance Assistance Program)",
+      "shortName": "Utah SHIP",
+      "tagline": "Free Medicare counseling to help your parent navigate insurance options and find cost-saving programs.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Primary contact: Utah Department of Human Services, 195 North 1950 West, Salt Lake City, UT 84116",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is on Medicare or turning 65 soon, Utah SHIP provides free one-on-one counseling to help them understand their insurance options and find programs that could lower their costs. SHIP counselors explain Medicare Parts A, B, C, and D in plain English, help compare plans, and identify whether your parent qualifies for Medicare Savings Programs or Extra Help with prescription drugs.\n\nBecause Medicare has dozens of plan options and annual changes, SHIP counselors receive 8-10 hours of intensive Medicare training to give unbiased guidance. They can also help with Medicare appeals, avoiding enrollment penalties, and coordinating benefits if your parent has other insurance. This is a counseling service — SHIP doesn't sell insurance or process benefit applications, but they'll guide you to the right agencies for programs your parent may qualify for.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+ or Medicare-eligible",
+          "No income limits",
+          "Available to family caregivers"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be eligible for Medicare or will be eligible for Medicare soon",
+          "Family members and caregivers of Medicare beneficiaries can also access SHIP services"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call 800-541-7735 to schedule free counseling — no forms required.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact Utah SHIP",
+            "description": "Call 800-541-7735 or visit shiphelp.org to find your local counselor"
+          },
+          {
+            "step": 2,
+            "title": "Schedule appointment",
+            "description": "Ask what information to bring for your parent's specific situation"
+          },
+          {
+            "step": 3,
+            "title": "Gather documents",
+            "description": "Bring Medicare card, current insurance policies, prescription list, and financial documents if exploring cost-assistance programs"
+          },
+          {
+            "step": 4,
+            "title": "Meet with counselor",
+            "description": "Get personalized guidance on Medicare options and identify other programs your parent may qualify for"
+          }
+        ],
+        "processingTime": "Counseling available immediately — contact 3 months before Medicare starts for best timing",
+        "waitlist": null,
+        "tip": "Call 3 months before your parent's Medicare starts to avoid enrollment penalties and compare all options.",
+        "urls": [
+          {
+            "label": "Find Local Medicare Help",
+            "url": "https://www.shiphelp.org"
+          },
+          {
+            "label": "Utah SHIP Services",
+            "url": "https://daas.utah.gov/seniors/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "Contact Information",
+          "offices": [
+            {
+              "name": "Utah Department of Human Services",
+              "type": "service-area",
+              "phone": "800-541-7735",
+              "address": "195 North 1950 West, Salt Lake City, UT 84116"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "SHIP is different from Utah's Children's Health Insurance Program (CHIP). SHIP serves Medicare beneficiaries (typically 65+), while CHIP serves children under 19."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "SHIP counselors can identify if your parent qualifies for Medicare Savings Programs (income limits around $1,800/month for individuals) or Extra Help with prescription drugs, but you must apply separately through Social Security Administration."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can SHIP help if my parent already has Medicare?",
+          "answer": "Yes. SHIP helps at any point after Medicare eligibility, not just during initial enrollment. They can help with plan changes during Open Enrollment, appeals, or finding additional assistance programs."
+        },
+        {
+          "question": "Will SHIP try to sell my parent insurance?",
+          "answer": "No. SHIP provides unbiased counseling and doesn't sell insurance. Counselors help compare options but don't receive commissions or push specific plans."
+        },
+        {
+          "question": "Can I get help as the caregiver even if my parent can't attend?",
+          "answer": "Yes. Family members and caregivers of Medicare beneficiaries can access SHIP services and get guidance on behalf of their parent."
+        },
+        {
+          "question": "What's the difference between SHIP and Medicare.gov?",
+          "answer": "SHIP provides personalized, one-on-one counseling to explain options specific to your parent's situation. Medicare.gov has general information but no personal guidance."
+        },
+        {
+          "question": "Can SHIP help with Medicare appeals?",
+          "answer": "Yes. SHIP counselors can guide you through the Medicare appeals process if a claim is denied or your parent disagrees with a coverage decision."
+        },
+        {
+          "question": "Does SHIP cost anything?",
+          "answer": "No. All SHIP counseling services are completely free, funded by federal grants and administered by the Utah Department of Human Services."
+        }
+      ],
+      "phone": "800-541-7735",
+      "sourceUrl": "https://daas.utah.gov/seniors/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "utah-meals-on-wheels",
+      "name": "Utah Meals on Wheels",
+      "shortName": "Meals on Wheels",
+      "tagline": "Hot, nutritious meals delivered to your homebound parent's door 5 days a week at no cost.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Davis County Aging Services",
+            "type": "service-area"
+          },
+          {
+            "name": "Mountainland Assoc. of Govts (MAG) for Utah/Wasatch/Summit Counties",
+            "type": "service-area"
+          },
+          {
+            "name": "Cache County Senior Center",
+            "type": "service-area"
+          },
+          {
+            "name": "Local AAAs per region",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and homebound (unable to leave home without assistance), they may qualify for free daily meal delivery Monday through Friday. Each meal provides one-third of daily nutritional needs — hot, low-sodium, heart-healthy with protein, vegetables, fruit, grains, and milk. Because the delivery driver also provides a wellness check, you'll have peace of mind knowing someone visits your parent daily.\n\nYour parent must be unable to shop or prepare meals due to mobility challenges, disability, or frailty. There are no income limits — the program serves anyone who meets the homebound requirement. However, coverage varies by county, and some areas like Utah County have waitlists as of 2022.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Homebound (unable to leave without help)",
+          "Cannot shop or prepare meals",
+          "No income limits"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must be homebound (unable to leave home without assistance) and unable to shop or prepare meals due to mobility challenges, disability, or frailty. This is assessed annually by program staff.",
+        "otherRequirements": [
+          "Must live within local program's delivery zone",
+          "Priority given to isolated individuals",
+          "Cannot drive a vehicle (in some counties like Davis)"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your local Area Agency on Aging — an in-person assessment is required before meals can start.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call your local provider",
+            "description": "Contact your county's Area Agency on Aging or senior center to request meals. Phone numbers vary by county."
+          },
+          {
+            "step": 2,
+            "title": "Complete assessment",
+            "description": "Staff will visit your parent's home to assess their homebound status, mobility, and meal preparation abilities. This is required before starting."
+          },
+          {
+            "step": 3,
+            "title": "Provide basic information",
+            "description": "Share proof of age, residence, and any medical information relevant to dietary needs or homebound status."
+          },
+          {
+            "step": 4,
+            "title": "Start delivery",
+            "description": "Once approved, meals begin delivery Monday through Friday. Your parent can cancel by 9am on delivery days if needed."
+          }
+        ],
+        "processingTime": "Varies by area — some within a week, others longer due to waitlists",
+        "waitlist": "Yes, in some areas like Utah County since January 2022",
+        "tip": "Call early in the day — meals aren't left if your parent is absent, and cancellations must be made by 9am.",
+        "urls": [
+          {
+            "label": "MAG Utah Online Referral",
+            "url": "https://magutah.gov/meals/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "Local Providers by County",
+          "offices": [
+            {
+              "name": "Davis County Aging Services",
+              "type": "county",
+              "phone": "801-525-5099",
+              "address": "Davis County"
+            },
+            {
+              "name": "Mountainland Association of Governments (MAG)",
+              "type": "service-area",
+              "phone": "801-229-3802",
+              "address": "Utah, Wasatch, and Summit Counties"
+            },
+            {
+              "name": "Cache County Senior Center",
+              "type": "county",
+              "phone": "435-755-1720",
+              "address": "Cache County"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residence",
+              "items": [
+                "Proof of age (birth certificate, driver's license)",
+                "Proof of residence within the delivery zone"
+              ]
+            },
+            {
+              "name": "Medical Information",
+              "items": [
+                "Medical documentation of homebound status",
+                "Dietary restrictions or special meal needs",
+                "Emergency contact information"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Utah County has had a waitlist since January 2022. Contact them early to get on the list, as processing times vary significantly by area."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Donations are suggested ($3.50-$4 per meal) but completely voluntary. Your parent will never be denied meals for inability to donate."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent can still drive sometimes but has trouble cooking?",
+          "answer": "It depends on your county. In Davis County, owning or driving a car may disqualify your parent. Other counties focus more on whether they can safely shop and prepare meals. The in-home assessment will determine eligibility based on overall mobility and cooking ability."
+        },
+        {
+          "question": "Can my parent get meals on weekends?",
+          "answer": "Some areas offer optional weekend meals delivered on Thursday or Friday for Saturday and Sunday. This varies by local provider — ask when you call your Area Agency on Aging."
+        },
+        {
+          "question": "What happens if my parent isn't home when meals are delivered?",
+          "answer": "Meals won't be left if your parent is absent. They must cancel by 9am on delivery days to avoid this. The delivery also serves as a daily wellness check, so being present is part of the program."
+        },
+        {
+          "question": "My parent is under 60 but disabled — can they still get meals?",
+          "answer": "Possibly. Some programs serve disabled adults under 60 or spouses of eligible participants, but they may need to pay the full meal cost rather than just the suggested donation. Contact your local provider to ask about exceptions."
+        },
+        {
+          "question": "What if we live in a rural area outside the main delivery zones?",
+          "answer": "Coverage is limited to specific delivery zones within each county. You'll need to verify with your local Area Agency on Aging whether your parent's address is covered. Rural areas may have different providers or limited service."
+        },
+        {
+          "question": "How strict is the 'homebound' requirement?",
+          "answer": "Very strict — it's assessed annually and documented. Your parent must be unable to leave home without assistance. If they can easily get out or have regular caregivers who could shop and cook, they may not qualify."
+        }
+      ],
+      "phone": "801-229-3802",
+      "sourceUrl": "https://rules.utah.gov/publicat/code_rtf/r510-104.rtf",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "utah-caregiver-support-program",
+      "name": "Utah Caregiver Support Program (UCSP)",
+      "shortName": "Utah Caregiver Support",
+      "tagline": "Get up to $1,500/year in respite care and support services while caring for your aging parent.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Salt Lake County Aging & Adult Services: 801-468-2460",
+            "type": "service-area"
+          },
+          {
+            "name": "Davis County: 801-451-3377",
+            "type": "service-area"
+          },
+          {
+            "name": "Weber/Morgan Counties: 801-625-3866",
+            "type": "service-area"
+          },
+          {
+            "name": "Contact DAAS for other counties: https://daas.utah.gov/seniors/",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If you're caring for an aging parent and feeling overwhelmed, Utah's Caregiver Support Program can provide up to $1,500 in services over 12 months. This includes respite care (someone else watches your parent so you can take a break), adult day care, personal care aides, and caregiver counseling.\n\nYour parent must be 60+ (or any age with Alzheimer's) and need help with at least two daily activities like bathing or dressing. You must be an unpaid family caregiver showing medium-to-high stress levels through a formal assessment. No income limits apply, but priority goes to older caregivers (55+) with the greatest need.\n\nBecause this program has no income requirements but strict stress/burden criteria, you'll need to complete detailed assessments to prove your caregiver stress level. Most areas maintain waiting lists, with applicants served by priority score, not first-come-first-served.",
+      "savingsRange": "Up to $1,500/year in 2026",
+      "savingsSource": "Maximum annual benefit per caregiver",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "You're 18+ (priority for 55+)",
+          "Unpaid family caregiver",
+          "Parent needs help with 2+ daily activities",
+          "No income limits"
+        ],
+        "ageRequirement": "18+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Your parent must have deficits in at least two activities of daily living (bathing, dressing, eating, toileting, transferring, or continence)",
+        "otherRequirements": [
+          "Must demonstrate medium-to-high caregiver stress through formal assessment",
+          "Must be unpaid, informal caregiver (not paid staff)",
+          "Care recipient must be 60+ OR any age with Alzheimer's/related disorder"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your county's Area Agency on Aging to start the assessment process — expect a waiting list.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact your county office",
+            "description": "Call the Area Agency on Aging for your county to request an intake assessment"
+          },
+          {
+            "step": 2,
+            "title": "Complete screening tools",
+            "description": "Staff will administer the DAAS Demographic Intake and Risk Screening tool to determine your priority level"
+          },
+          {
+            "step": 3,
+            "title": "Take caregiver burden assessment",
+            "description": "Complete the formal Caregiver Burden assessment to measure your stress level — you need medium-to-high scores to qualify"
+          },
+          {
+            "step": 4,
+            "title": "Wait for services",
+            "description": "If you qualify, you'll be placed on the waiting list and contacted when services become available based on your priority score"
+          }
+        ],
+        "processingTime": "Not specified — varies by county and waiting list",
+        "waitlist": "Yes, program often maintains a waiting list with applicants served in priority order based on assessment scores",
+        "tip": "Priority goes to caregivers 55+ with the greatest social and economic need — complete assessments thoroughly to maximize your priority score.",
+        "urls": [
+          {
+            "label": "Utah Division of Aging & Adult Services",
+            "url": "https://daas.utah.gov/seniors/"
+          },
+          {
+            "label": "Program Information",
+            "url": "https://magutah.gov/cgsupport/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "Local Offices",
+          "offices": [
+            {
+              "name": "Salt Lake County Aging & Adult Services",
+              "type": "county",
+              "phone": "801-468-2460",
+              "address": "Contact for specific location"
+            },
+            {
+              "name": "Davis County Area Agency on Aging",
+              "type": "county",
+              "phone": "801-451-3377",
+              "address": "Contact for specific location"
+            },
+            {
+              "name": "Weber/Morgan Counties (Care for the Caregiver Program)",
+              "type": "service-area",
+              "phone": "801-625-3866",
+              "address": "Contact for specific location"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Services are capped at $1,500 per 12-month period. This program often has waiting lists, and you'll be prioritized by your assessment scores, not when you apply."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "No income limits apply, but you must demonstrate medium-to-high caregiver stress through formal assessments. Be thorough when describing your caregiving challenges and stress levels."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent only needs help with one daily activity like bathing?",
+          "answer": "Your parent must have deficits in at least two activities of daily living to qualify. Single-activity limitations don't meet the program requirements."
+        },
+        {
+          "question": "Can I get services if I'm not showing high stress yet?",
+          "answer": "You must demonstrate medium-to-high caregiver burden through the formal assessment. The program specifically targets caregivers who are already experiencing significant stress levels."
+        },
+        {
+          "question": "What happens after I use up the $1,500?",
+          "answer": "The $1,500 cap applies to each 12-month period. You can reapply annually, but you'll need to go through the assessment process again and may face another waiting list."
+        },
+        {
+          "question": "I'm 40 and caring for my mom — will I be lower priority?",
+          "answer": "Yes, priority is given to caregivers 55+ with the greatest social and economic need. Younger caregivers may face longer wait times even if they qualify."
+        },
+        {
+          "question": "Can I get help if I'm already paying for some care?",
+          "answer": "You must be an unpaid, informal family caregiver to qualify. Paid caregivers or facility staff don't qualify, but you can still be informal caregiver even if you also pay for some services."
+        },
+        {
+          "question": "What if my county has a long waiting list?",
+          "answer": "Wait times vary by county office. Contact your specific Area Agency on Aging for current status — some counties may have shorter waits than others."
+        }
+      ],
+      "phone": "801-468-2460",
+      "sourceUrl": "https://daas.utah.gov/seniors/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "utah-scsep-employment",
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "shortName": "SCSEP",
+      "tagline": "If your parent is 55+ and struggling to find work, they can earn wages while gaining job skills through community service positions.",
+      "programType": "employment",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Easterseals-Goodwill Northern Rocky Mountain",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 55 or older and having trouble finding work, SCSEP provides paid part-time community service jobs (up to 20 hours per week) while they develop new skills. Because this is both employment and training, your parent earns wages through direct deposit while working at nonprofits, schools, or government agencies in roles like teacher's aide, customer service, or health care support.\n\nYour parent must have family income at or below 125% of the federal poverty level and be legally authorized to work in the U.S. The program serves as a bridge to permanent employment, providing computer training and job readiness skills. There's a lifetime limit of 48 months across all providers, and enrollment isn't first-come, first-served — a Project Director reviews applications based on eligibility and program fit.\n\nIn Utah, the program is administered by Easterseals-Goodwill Northern Rocky Mountain, so availability depends on their service areas and current openings.",
+      "savingsRange": "",
+      "savingsSource": "Paid employment program",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Family income at 125% federal poverty level or below",
+          "Unemployed or facing job loss",
+          "Not exceeded 48-month lifetime limit"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be legally authorized to work in U.S.",
+          "Utah resident in served area",
+          "Cannot have exceeded 48-month lifetime participation limit",
+          "Must register with Utah State Workforce within two weeks"
+        ],
+        "povertyLevelReference": "125% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online or call (800) 771-2153 — processing time varies and enrollment isn't guaranteed even if eligible.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Check service area coverage",
+            "description": "Confirm your parent lives in an area served by Easterseals-Goodwill Northern Rocky Mountain in Utah."
+          },
+          {
+            "step": 2,
+            "title": "Gather income documentation",
+            "description": "Collect proof of all family income sources — the 125% poverty level limit is strictly enforced."
+          },
+          {
+            "step": 3,
+            "title": "Submit application",
+            "description": "Apply online at ipdcscsep.org or call (800) 771-2153. Include age verification, residency proof, and work authorization."
+          },
+          {
+            "step": 4,
+            "title": "Wait for Project Director review",
+            "description": "Applications are reviewed for suitability, not processed first-come, first-served. You may be placed on a waitlist."
+          }
+        ],
+        "processingTime": "Not specified — varies by Project Director review",
+        "waitlist": "Possible waitlist if no immediate openings after eligibility determination",
+        "tip": "Priority goes to veterans and their spouses first, then people over 65, so mention any military service.",
+        "urls": [
+          {
+            "label": "Online Application",
+            "url": "https://www.ipdcscsep.org/scsep-application"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Work Authorization",
+              "items": [
+                "Birth certificate or other age verification",
+                "Documents for I-9 work authorization verification",
+                "Proof of Utah residency in served area"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Documentation of all family income sources",
+                "Bank account information for direct deposit setup"
+              ]
+            },
+            {
+              "name": "Employment",
+              "items": [
+                "Proof of Utah State Workforce registration (or register within 2 weeks of enrollment)",
+                "Documentation of unemployment or pending job termination"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Enrollment isn't first-come, first-served. Even if your parent meets all requirements, the Project Director decides based on program suitability and available positions."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "The 48-month lifetime limit applies across ALL SCSEP providers nationwide — if your parent participated in another state, that time counts toward the limit."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What happens if my parent's income is just over 125% of the poverty level?",
+          "answer": "They won't qualify. The income limit is strict, and willful misreporting of income will disqualify them from the program."
+        },
+        {
+          "question": "Can my parent choose what type of work they do?",
+          "answer": "Not exactly. They'll work with host agencies like nonprofits, schools, or government offices in available positions. An Individual Employment Plan will be created based on their skills and interests, but they must accept assignments up to 20 hours per week."
+        },
+        {
+          "question": "What if my parent already used some SCSEP time in another state?",
+          "answer": "That counts toward the 48-month lifetime limit. The clock doesn't reset when moving to Utah — it's a total of 4 years across all SCSEP providers nationwide."
+        },
+        {
+          "question": "How much will my parent earn?",
+          "answer": "The research doesn't specify wage amounts. They'll be paid through direct deposit for up to 20 hours per week of community service work."
+        },
+        {
+          "question": "Is this program available everywhere in Utah?",
+          "answer": "No. It's only available in areas served by Easterseals-Goodwill Northern Rocky Mountain. You'll need to confirm your parent's location is covered when you call."
+        },
+        {
+          "question": "What if my parent was in the program before and left?",
+          "answer": "Re-enrollment is at the discretion of the program administrators. It's not automatic, even if they have time remaining on their 48-month limit."
+        }
+      ],
+      "phone": "(800) 771-2153",
+      "sourceUrl": "https://daas.utah.gov/wp-content/uploads/2024/05/Utah-SCSEP-Four-Year-State-Plan-2024-for-public-comment-1.pdf",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "utah-legal-services-seniors",
+      "name": "Utah Legal Services for Seniors",
+      "shortName": "Utah Legal Services",
+      "tagline": "Free legal help for seniors 60+ with Social Security appeals, Medicare problems, elder abuse, and estate planning.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Utah Legal Services main site; Salt Lake County Senior Citizen Law Center; Timpanogos Legal Center (Utah, Wasatch, Summit Counties)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and has low income, Utah Legal Services provides free attorneys for senior-specific legal problems. They handle Social Security appeals, Medicare claim denials, elder abuse cases, guardianship issues, and estate planning. Because these are specialized senior attorneys, they understand how legal problems intersect with aging — not just general legal advice.\n\nIncome must be at or below 125% of federal poverty guidelines ($1,133/month for a single person in 2024). In some cases with high medical expenses or disability costs, they accept income up to 200% of poverty guidelines ($1,813/month) with director approval. Your parent must also have very limited assets and the legal issue must relate to senior problems like benefits, housing, abuse protection, or end-of-life planning.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Income below $1,133/month (single)",
+          "Very limited assets",
+          "Senior-specific legal issues"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1133
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 1533
+          }
+        ],
+        "assetLimits": {
+          "individual": null,
+          "couple": null,
+          "countedAssets": [],
+          "exemptAssets": [],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Legal issue must relate to Social Security, Medicare, Medicaid, elder abuse, guardianship, housing, consumer problems, or estate planning"
+        ],
+        "povertyLevelReference": "125% FPL (up to 200% with hardship exceptions)"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call Utah Legal Services or your local office for intake screening — they'll schedule an attorney meeting if you qualify.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call for intake screening",
+            "description": "Contact Utah Legal Services main line or your regional office. They'll ask about income, assets, and the legal issue to determine eligibility."
+          },
+          {
+            "step": 2,
+            "title": "Submit financial documentation",
+            "description": "Provide proof of income, assets, household size, and any hardship documentation like medical expenses if income is above 125% poverty level."
+          },
+          {
+            "step": 3,
+            "title": "Meet with assigned attorney",
+            "description": "If approved during screening, they'll schedule you with a senior law attorney or volunteer for your specific legal issue."
+          }
+        ],
+        "processingTime": "Intake screening response sent after form submission",
+        "waitlist": null,
+        "tip": "If your parent's income is slightly over the limit but they have high medical expenses, ask about the hardship exception — they may still qualify.",
+        "urls": [
+          {
+            "label": "Utah Legal Services main site",
+            "url": "https://www.utahlegalservices.org/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "Local Offices",
+          "offices": [
+            {
+              "name": "Timpanogos Legal Center",
+              "type": "service-area",
+              "phone": "801-649-8895",
+              "address": "Serves Utah, Wasatch, and Summit Counties"
+            },
+            {
+              "name": "Salt Lake County Senior Citizen Law Center",
+              "type": "county",
+              "phone": null,
+              "address": "Salt Lake County"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Income up to 200% of poverty level requires Executive Director approval and documented hardship — don't assume automatic approval even with high medical expenses."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Asset limits are strict and often overlooked during initial screening. Even if income qualifies, significant savings or investments may disqualify your parent."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent's income is just over the $1,133 monthly limit?",
+          "answer": "They may still qualify if income is below $1,813/month and they have documented financial hardship like high medical expenses or disability-related costs. The Executive Director must approve these exceptions, so gather medical bills and expense documentation before applying."
+        },
+        {
+          "question": "Will they help with any legal problem or just certain issues?",
+          "answer": "Only senior-specific legal issues like Social Security appeals, Medicare problems, Medicaid applications, elder abuse, guardianship, powers of attorney, housing issues, consumer problems, and basic estate planning. They don't handle general legal matters unrelated to aging."
+        },
+        {
+          "question": "How much savings can my parent have and still qualify?",
+          "answer": "The program requires 'very limited assets' but doesn't publish specific dollar limits. Asset limits are strict and often disqualify people who meet the income requirements. Call for screening to get a definitive answer based on your parent's situation."
+        },
+        {
+          "question": "Is there a waiting list for attorneys?",
+          "answer": "The sources don't mention waiting lists, but some services are by appointment only. After intake screening, they'll schedule you with an attorney if you qualify. Availability may vary by region and type of legal issue."
+        },
+        {
+          "question": "Can they help if my parent lives in a rural area of Utah?",
+          "answer": "Yes, Utah Legal Services operates statewide, but attorney availability varies by region. Some areas are served through county contracts or volunteer attorneys. Call the main number and they'll connect you with the right regional office."
+        },
+        {
+          "question": "What's the difference between Utah Legal Services and a regular attorney?",
+          "answer": "These attorneys specialize in senior legal issues and understand how legal problems intersect with aging, Medicare, Social Security, and elder abuse. Because it's free for qualifying seniors, your parent won't pay attorney fees that could cost hundreds or thousands of dollars."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://www.utahlegalservices.org/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "utah-long-term-care-ombudsman",
+      "name": "Utah Long-Term Care Ombudsman Program",
+      "shortName": "Long-Term Care Ombudsman",
+      "tagline": "Free advocacy when your parent faces problems in their nursing home or assisted living facility.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "State-level program manager",
+            "type": "service-area"
+          },
+          {
+            "name": "11 local Area Agencies on Aging programs",
+            "type": "service-area"
+          },
+          {
+            "name": "Salt Lake County Aging and Adult Services",
+            "type": "service-area"
+          },
+          {
+            "name": "Mountain Association of Governments (Summit, Utah, Wasatch counties) - 801-229-3809",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is already living in a nursing home, assisted living, memory care, or other long-term care facility and facing problems with their care, the Utah Long-Term Care Ombudsman Program provides free advocacy. Because ombudsmen are trained in residents' rights and facility regulations, they can investigate complaints, mediate disputes, and advocate directly with facility staff on your parent's behalf.\n\nThis program serves any resident of a long-term care facility in Utah, regardless of age or income. Utah has approximately 50 ombudsmen (25 staff and 25 volunteers) working through 11 local programs across all counties. The service is completely confidential unless there's an immediate life-threatening situation.\n\nImportant: This program only helps people already in facilities. It does not help with finding, entering, or paying for long-term care.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Already residing in a long-term care facility",
+          "No age requirement",
+          "No income limits",
+          "Services also available for facility entry issues"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be a current resident of a nursing home, assisted living, skilled rehab, memory care, or small health care facility in Utah"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call your local Area Agency on Aging ombudsman program or file a complaint online — no paperwork required.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact your local ombudsman",
+            "description": "Call your county's Area Agency on Aging ombudsman program. Every Utah county is connected to one of 11 local programs."
+          },
+          {
+            "step": 2,
+            "title": "Describe the problem",
+            "description": "Explain the issue your parent is facing in their facility. You can call on behalf of your parent or they can call directly."
+          },
+          {
+            "step": 3,
+            "title": "Ombudsman investigates",
+            "description": "The ombudsman will visit the facility, speak with your parent and staff, and work to resolve the problem through advocacy and mediation."
+          }
+        ],
+        "processingTime": "Not specified",
+        "waitlist": null,
+        "tip": "You can file a complaint even if your parent hasn't asked you to — ombudsmen provide services 'on behalf of' residents when needed.",
+        "urls": [
+          {
+            "label": "File online complaint",
+            "url": "https://daas.utah.gov/long-term-care-ombudsman/"
+          },
+          {
+            "label": "Official program page",
+            "url": "https://daas.utah.gov/long-term-care-ombudsman/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "Local Ombudsman Programs",
+          "offices": [
+            {
+              "name": "Mountain Association of Governments",
+              "type": "service-area",
+              "phone": "801-229-3809",
+              "address": "Serves Summit, Utah, and Wasatch counties"
+            },
+            {
+              "name": "Salt Lake County Aging and Adult Services",
+              "type": "service-area",
+              "phone": "",
+              "address": "Serves Salt Lake County"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Ombudsmen advocate for residents but cannot enforce regulations or hold facilities accountable for compliance violations — they work through mediation and advocacy, not enforcement."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What kinds of problems can an ombudsman help with?",
+          "answer": "Ombudsmen investigate complaints about care quality, staff treatment, facility policies, billing issues, discharge concerns, and violations of residents' rights. They can mediate disputes between your parent and facility staff."
+        },
+        {
+          "question": "Will the facility know we filed a complaint?",
+          "answer": "The service is confidential, but ombudsmen need to visit facilities and speak with staff to investigate problems. They maintain confidentiality except in immediate life-threatening situations."
+        },
+        {
+          "question": "Can I call if my parent doesn't want me to get involved?",
+          "answer": "Yes. Ombudsmen provide services 'on behalf of' residents when needed, even if the resident hasn't directly requested help."
+        },
+        {
+          "question": "What if the ombudsman can't solve the problem?",
+          "answer": "Ombudsmen work through advocacy and mediation, not enforcement. If a facility violates regulations, they may refer you to the appropriate regulatory agency, but they cannot force compliance."
+        },
+        {
+          "question": "Does this cost anything?",
+          "answer": "No. All ombudsman services are completely free, whether provided by staff ombudsmen or trained volunteers."
+        },
+        {
+          "question": "Can an ombudsman help us find a facility for my parent?",
+          "answer": "The program primarily serves people already in facilities, but ombudsmen can provide some assistance to people attempting to enter a facility. For comprehensive facility search help, contact your local Area Agency on Aging directly."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://daas.utah.gov/long-term-care-ombudsman/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "utah-aging-waiver",
+      "name": "Utah Aging Waiver",
+      "shortName": "Aging Waiver",
+      "tagline": "Free in-home care services for seniors 65+ who need daily help with bathing, dressing, or medication management.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local Aging & Adult Services offices by county, in partnership with Utah Medicaid",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 65+ and needs significant daily help with tasks like bathing, dressing, or managing medications, the Utah Aging Waiver provides free in-home care services that would otherwise require nursing home placement. Because this waiver covers personal care, adult day care, home modifications, and medical equipment through one coordinated plan, your parent can stay home safely without you managing multiple providers.\n\nThis program serves Utah residents with very limited income ($1,330/month or less starting March 2026) and assets under $2,000. Your parent must pass a clinical assessment proving they need nursing home-level care — having dementia alone doesn't qualify, but needing physical help with 2+ daily activities does.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+",
+          "Income below $1,330/month (2026)",
+          "Assets under $2,000",
+          "Needs nursing home-level care",
+          "Utah resident"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 2000,
+          "couple": null,
+          "countedAssets": [
+            "Bank accounts",
+            "Stocks and bonds",
+            "Cash",
+            "Second vehicles"
+          ],
+          "exemptAssets": [
+            "Primary home (if equity under $730,000)",
+            "One vehicle of any value",
+            "Household items",
+            "Personal belongings",
+            "Burial plots up to $7,000 each",
+            "Life insurance face value $1,500 or less"
+          ],
+          "homeEquityCap": 730000
+        },
+        "functionalRequirement": "Must need nursing home-level care, proven by needing significant physical help with 2+ daily activities (bathing, dressing, toileting, transferring, mobility, eating) OR having poor orientation requiring nursing facility care OR having medical conditions that can't be safely managed without waiver services",
+        "otherRequirements": [
+          "Utah resident",
+          "U.S. citizen or qualified immigrant"
+        ],
+        "povertyLevelReference": "100% FPL"
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your county's Aging & Adult Services office for phone intake and assessment — processing time not specified by the state.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call your county office",
+            "description": "Contact your local Aging & Adult Services office for initial phone intake and to schedule assessment."
+          },
+          {
+            "step": 2,
+            "title": "Gather financial documents",
+            "description": "Collect proof of income, assets, bank statements, and medical records showing your parent's care needs."
+          },
+          {
+            "step": 3,
+            "title": "Complete clinical assessment",
+            "description": "A registered nurse will assess your parent using the InterRAI MDS-HC tool to determine if they meet nursing facility level of care."
+          },
+          {
+            "step": 4,
+            "title": "Work with case manager",
+            "description": "If approved, a case manager will create a personalized care plan and coordinate services."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Income limits update every March, not January like federal programs — check current year limits before applying.",
+        "urls": [
+          {
+            "label": "Utah Medicaid",
+            "url": "https://medicaid.utah.gov"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and savings",
+            "Stocks, bonds, and investments",
+            "Cash",
+            "Second vehicles",
+            "Property other than primary home"
+          ],
+          "excluded": [
+            "Primary home (if equity under $730,000 and you/spouse live there)",
+            "One vehicle of any value",
+            "Household furnishings and appliances",
+            "Personal effects and belongings",
+            "Burial plots and irrevocable burial trusts up to $7,000 each",
+            "Life insurance with face value $1,500 or less"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Driver's license or state ID",
+                "Proof of Utah residency",
+                "Social Security card or citizenship documents"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Bank statements (last 3 months)",
+                "Social Security award letter",
+                "Pension or retirement income statements",
+                "Property deeds or mortgage statements",
+                "Life insurance policies"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Medical records showing daily care needs",
+                "Doctor notes about bathing, dressing, or mobility assistance",
+                "Medication lists and management needs",
+                "Any nursing home assessments or recommendations"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Utah has a 60-month look-back period for asset transfers. If your parent gave away money or property for less than fair market value in the past 5 years, it could create a penalty period affecting eligibility."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Don't confuse this with Utah's New Choices Waiver, which has a higher income limit ($2,901/month) but serves a different population. Make sure you're applying for the right program."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house if she qualifies?",
+          "answer": "Yes, your parent can keep their primary home as long as the equity is under $730,000 and they (or their spouse) live there or intend to return. The home doesn't count toward the $2,000 asset limit."
+        },
+        {
+          "question": "Does my parent's dementia diagnosis automatically qualify them?",
+          "answer": "No, having dementia alone doesn't qualify. Your parent must need significant physical help with 2+ daily activities like bathing or dressing, OR have poor orientation requiring nursing facility care, OR have medical conditions that can't be safely managed without waiver services."
+        },
+        {
+          "question": "What if Dad's income is just over the $1,330 limit?",
+          "answer": "The state allows special deductions for living expenses that might bring his countable income below the limit. The exact deductions aren't specified in available information, so discuss this during your application assessment."
+        },
+        {
+          "question": "If my parents are married, does Mom's income count against Dad's application?",
+          "answer": "No, spousal income is exempt even if they live together. However, assets have separate rules — each spouse has their own $2,000 limit, but asset calculations for married couples can be complex."
+        },
+        {
+          "question": "What's the difference between this and regular Medicaid?",
+          "answer": "This waiver provides home-based services to keep your parent out of a nursing home. Regular Medicaid covers medical care but not the daily personal care, home modifications, or adult day care that this waiver provides."
+        },
+        {
+          "question": "How much care will my parent actually receive?",
+          "answer": "There are no fixed hour or dollar limits. Your parent's case manager creates a personalized care plan based on their specific needs, which could include personal care, respite care, adult day care, home modifications, medical equipment, and transportation."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://medicaid.utah.gov",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    }
+  ],
+  "stateOverview": {
+    "intro": "Utah offers 13 programs to help your aging parent — 9 provide direct financial benefits or services, 3 offer free resources and advocacy, and 1 provides employment support. You could access help with everything from $100-300/month toward groceries (Utah SNAP) to complete nursing home cost coverage (Utah Medicaid Program) to free home energy improvements (Utah Weatherization Assistance Program). Utah does not have PACE available, so seniors needing comprehensive medical and long-term care coordination must piece together separate programs.\n\nStart with programs that require qualification first — these provide the biggest financial impact but have income limits and waiting periods. Then explore Utah's free resources like legal help and Medicare counseling that are available regardless of your parent's income.",
+    "startHere": [
+      {
+        "name": "Utah Medicaid Program",
+        "programId": "utah-medicaid-program",
+        "why": "Covers the highest-cost senior expenses: nursing home, home care, and assisted living."
+      },
+      {
+        "name": "Medicare Savings Programs",
+        "programId": "medicare-savings-programs",
+        "why": "Can eliminate all Medicare premiums, deductibles, and copays if your parent qualifies."
+      },
+      {
+        "name": "Utah SHIP",
+        "programId": "utah-ship",
+        "why": "Free Medicare counseling helps you understand all available programs before applying."
+      },
+      {
+        "name": "Utah LIHEAP",
+        "programId": "utah-liheap",
+        "why": "Provides $190-850 toward utility bills with clear income limits you can check immediately."
+      }
+    ],
+    "byNeed": [
+      {
+        "need": "Help paying for home care or nursing home",
+        "programs": [
+          "Utah Medicaid Program",
+          "Utah Aging Waiver"
+        ],
+        "description": "Long-term care coverage and in-home services for daily help with bathing, dressing, and medication management."
+      },
+      {
+        "need": "Food and utility assistance",
+        "programs": [
+          "Utah SNAP",
+          "Utah LIHEAP",
+          "Utah Meals on Wheels"
+        ],
+        "description": "Monthly grocery assistance, utility bill help, and home-delivered meals for homebound seniors."
+      },
+      {
+        "need": "Medicare cost help",
+        "programs": [
+          "Medicare Savings Programs",
+          "Utah SHIP"
+        ],
+        "description": "Programs to pay Medicare costs and free counseling to navigate insurance options."
+      },
+      {
+        "need": "Home improvements and energy costs",
+        "programs": [
+          "Utah Weatherization Assistance Program",
+          "Utah LIHEAP"
+        ],
+        "description": "Free home energy improvements and direct utility bill assistance."
+      },
+      {
+        "need": "Caregiver support and advocacy",
+        "programs": [
+          "Utah Caregiver Support Program",
+          "Utah Legal Services for Seniors",
+          "Utah Long-Term Care Ombudsman Program"
+        ],
+        "description": "Respite care funding, free legal help, and advocacy for facility problems."
+      }
+    ],
+    "quickFacts": [
+      "Utah does not have PACE available — seniors needing comprehensive care coordination must use separate programs",
+      "Income limits vary widely: $1,956/month for LIHEAP vs $2,152/month for some programs",
+      "Most benefit programs require income verification, but resources like SHIP and legal services are free to all Utah seniors"
+    ],
+    "resourcesVsBenefits": "Benefits like Utah Medicaid and SNAP require income qualification and provide direct financial help or services. Resources like Utah SHIP (Medicare counseling), Utah Legal Services, and the Long-Term Care Ombudsman are free to all Utah seniors regardless of income — use these first to understand your parent's options before applying for qualified benefits."
+  }
+}

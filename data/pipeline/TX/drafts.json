@@ -1,0 +1,2213 @@
+{
+  "state": "TX",
+  "stateName": "Texas",
+  "draftedAt": "2026-04-10T18:59:34.942Z",
+  "total": 12,
+  "successful": 12,
+  "programs": [
+    {
+      "id": "tx-medicaid-buy-in-qmb-slmb-qi",
+      "name": "Medicaid Buy-In for Children (MBIC) / Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), Qualifying Individual (QI)",
+      "shortName": "Medicaid Buy-In Programs",
+      "tagline": "If your disabled child needs comprehensive health coverage or your parent struggles with Medicare costs, these programs provide full Medicaid benefits or pay Medicare premiums.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local HHSC offices statewide; call 2-1-1 for nearest",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If you have a disabled child whose family earns too much for regular Medicaid, or an elderly parent struggling with Medicare premiums and co-pays, these Texas programs can provide critical health coverage. MBIC (Medicaid Buy-In for Children) offers full Medicaid benefits for disabled children in families earning up to 300% of the federal poverty level — that's about $66,700 annually for a family of four. You'll pay a sliding-scale premium (typically $20-$40 monthly), but your child gets comprehensive coverage including doctor visits, prescriptions, dental care, therapies, and case management.\n\nFor elderly parents on Medicare, three related programs help with costs. QMB (Qualified Medicare Beneficiary) pays all Medicare premiums and cost-sharing for individuals with monthly income under $1,275. SLMB (Specified Low-Income Medicare Beneficiary) covers Medicare Part B premiums for those earning up to $1,526 monthly. QI (Qualifying Individual) also covers Part B premiums but has limited funding and potential waitlists.\n\nAll programs require Texas residency, citizenship or legal status, and specific asset limits — typically under $9,660 for individuals or $14,470 for couples, excluding your home and car. Because these programs have strict disability requirements (for children) and precise income thresholds (for Medicare beneficiaries), gather documentation carefully before applying.",
+      "savingsRange": "$1,500 – $4,000/year in 2026",
+      "savingsSource": "Medicare Part B premium ($174.70/month) plus potential cost-sharing savings for QMB; MBIC comprehensive coverage value varies by child's needs",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Disabled children 0-18 with family income up to 300% FPL",
+          "Elderly Medicare beneficiaries 65+",
+          "Income limits: $1,275-$1,718/month individual",
+          "Assets under $9,660 individual/$14,470 couple",
+          "Texas residents with citizenship/legal status"
+        ],
+        "ageRequirement": "0-18 for MBIC, 65+ for QMB/SLMB/QI",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 3913
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 5297
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 6681
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 8065
+          },
+          {
+            "householdSize": 5,
+            "monthlyLimit": 9449
+          },
+          {
+            "householdSize": 6,
+            "monthlyLimit": 10833
+          }
+        ],
+        "assetLimits": {
+          "individual": 9660,
+          "couple": 14470,
+          "countedAssets": [
+            "Cash",
+            "Bank accounts",
+            "Investments",
+            "Life insurance with cash value"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "One vehicle",
+            "Burial plots",
+            "Pre-paid burial contracts"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "MBIC requires disability meeting SSI criteria (child's condition significantly restricts daily activities and is expected to last 12+ months or result in death)",
+        "otherRequirements": [
+          "Texas residency",
+          "U.S. citizenship or legal immigrant status",
+          "Medicare enrollment (for QMB/SLMB/QI programs)",
+          "Unmarried status (for MBIC children)"
+        ],
+        "povertyLevelReference": "300% FPL for MBIC, 100-135% FPL for Medicare programs"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online at YourTexasBenefits.com or call 2-1-1 for help; processing takes 45-90 days depending on disability determination needs.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Gather required documents",
+            "description": "Collect disability determination letters, income proof, Medicare cards, bank statements, and residency documents before starting your application."
+          },
+          {
+            "step": 2,
+            "title": "Choose application method",
+            "description": "For MBIC: Download Form H1200-MBIC from www.hhsc.state.tx.us/Help/HealthCare/Children/MBIC.html. For QMB/SLMB/QI: Apply online at YourTexasBenefits.com or use Form H1200."
+          },
+          {
+            "step": 3,
+            "title": "Submit complete application",
+            "description": "Submit online, mail to HHSC, or get help by calling 2-1-1. Choose Option 2 and provide the head of household's Social Security number."
+          },
+          {
+            "step": 4,
+            "title": "Confirm receipt",
+            "description": "Call 2-1-1 within one week to verify your application was received. Processing can take 45-90 days, especially if disability determination is needed."
+          },
+          {
+            "step": 5,
+            "title": "Respond to requests promptly",
+            "description": "HHSC may request additional documentation. Respond within 10 days to avoid delays. Check your mail and YourTexasBenefits.com account regularly."
+          }
+        ],
+        "processingTime": "45-90 days, longer if disability determination needed for MBIC",
+        "waitlist": "QI program may have waitlists due to limited annual funding",
+        "tip": "For MBIC, have your child's SSI determination letter ready — this speeds up the disability verification process significantly.",
+        "urls": [
+          {
+            "label": "MBIC Application Form",
+            "url": "https://www.hhsc.state.tx.us/Help/HealthCare/Children/MBIC.html"
+          },
+          {
+            "label": "Your Texas Benefits Portal",
+            "url": "https://www.yourtexasbenefits.com"
+          },
+          {
+            "label": "Medicare Buy-In Programs Info",
+            "url": "https://www.hhs.texas.gov/services/medicare-medicaid"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Social Security cards for all household members",
+        "Child's disability determination letter or SSI award letter (for MBIC)",
+        "Medicare card showing Parts A and B (for QMB/SLMB/QI)",
+        "Proof of Texas residency (utility bill, lease agreement, or state-issued document)",
+        "Citizenship or immigration documents for all household members",
+        "Pay stubs from last 30 days or most recent tax return",
+        "Social Security award letters for all recipients",
+        "Bank statements for all accounts (last 3 months)",
+        "Investment account statements (stocks, bonds, annuities)",
+        "Life insurance policies showing cash values",
+        "Vehicle titles and registration documents",
+        "Property deeds or mortgage statements",
+        "Pre-need burial contracts or burial insurance policies",
+        "Documentation of employer-provided health insurance (for MBIC premium calculation)",
+        "Any legal guardianship or power of attorney documents"
+      ],
+      "contacts": [
+        {
+          "label": "Texas 2-1-1",
+          "phone": "2-1-1",
+          "description": "Free 24/7 helpline for application help and benefits information",
+          "hours": "24 hours, 7 days a week"
+        },
+        {
+          "label": "HHSC Benefits Hotline",
+          "phone": "(877) 541-7905",
+          "description": "Medicaid and health benefits questions",
+          "hours": "Mon-Fri 8am-6pm CT"
+        },
+        {
+          "label": "Medicare Rights Center",
+          "phone": "(800) 333-4114",
+          "description": "Free counseling on Medicare cost-sharing programs",
+          "hours": "Mon-Fri 9am-5pm ET"
+        }
+      ],
+      "applicationNotes": [
+        "MBIC applications require proof of SSI-level disability — having a diagnosis alone isn't sufficient, the child must meet functional limitation criteria",
+        "QI program funding is limited and allocated first-come, first-served each year — apply early in the calendar year for best chances",
+        "If your elderly parent has QMB coverage, healthcare providers cannot bill them for Medicare co-pays or deductibles — keep your approval letter handy",
+        "Premium amounts for MBIC vary based on family income and employer insurance availability — HHSC calculates this during approval process"
+      ],
+      "relatedPrograms": [
+        "Texas CHIP (Children's Health Insurance Program)",
+        "Medicaid for the Elderly and People with Disabilities (MEPD)",
+        "Medicare Savings Programs",
+        "SNAP (Supplemental Nutrition Assistance Program)"
+      ],
+      "contentSections": [
+        {
+          "type": "tier-comparison",
+          "title": "Medicare Cost-Sharing Program Comparison",
+          "content": {
+            "tiers": [
+              {
+                "name": "QMB (Qualified Medicare Beneficiary)",
+                "incomeLimit": "Up to $1,275/month individual, $1,724/month couple",
+                "benefits": "Pays Medicare Part A and B premiums, deductibles, co-insurance, and co-payments",
+                "note": "Most comprehensive coverage"
+              },
+              {
+                "name": "SLMB (Specified Low-Income Medicare Beneficiary)",
+                "incomeLimit": "Up to $1,526/month individual, $2,055/month couple",
+                "benefits": "Pays Medicare Part B premium only ($174.70/month in 2026)",
+                "note": "You pay co-pays and deductibles"
+              },
+              {
+                "name": "QI (Qualifying Individual)",
+                "incomeLimit": "Up to $1,718/month individual, $2,309/month couple",
+                "benefits": "Pays Medicare Part B premium only ($174.70/month in 2026)",
+                "note": "Limited funding - may have waitlist"
+              }
+            ]
+          }
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my disabled child get MBIC if our family income is $70,000 a year?",
+          "answer": "No, $70,000 exceeds the 300% federal poverty level limit for most family sizes. For a family of four, the limit is approximately $66,700 annually. However, income limits increase with larger household sizes, so check the current federal poverty guidelines if you have 5+ family members."
+        },
+        {
+          "question": "What happens if my parent's income is just over the QMB limit but they can't afford Medicare costs?",
+          "answer": "Check if they qualify for SLMB (income up to $1,526/month) or QI (up to $1,718/month), which at least cover the Medicare Part B premium. They may also qualify for Medicare's Extra Help program for prescription drug costs, which has higher income limits."
+        },
+        {
+          "question": "Does my parent's home count toward the $9,660 asset limit?",
+          "answer": "No, your parent's primary residence is exempt regardless of value, along with one vehicle, burial plots, and pre-paid burial contracts. Only countable assets like cash, bank accounts, and investments count toward the limit."
+        },
+        {
+          "question": "How long does the MBIC disability determination take?",
+          "answer": "If your child already receives SSI, approval is faster since disability is established. Without existing SSI, Texas must verify the disability meets SSI criteria, which can extend processing to 90 days or longer. Having comprehensive medical records ready helps speed this process."
+        },
+        {
+          "question": "Can I apply for multiple Medicare programs at the same time?",
+          "answer": "You should apply for the highest benefit level you think you qualify for. If approved for QMB, you automatically get the most comprehensive coverage. If denied, HHSC will consider you for SLMB or QI based on the same application."
+        },
+        {
+          "question": "What if my elderly parent lives in assisted living - can they still get these Medicare programs?",
+          "answer": "Yes, assisted living residents can qualify for QMB, SLMB, or QI since these are not considered institutional care. However, if your parent moves to a nursing home and gets Medicaid coverage there, they may lose these Medicare programs since Medicaid becomes primary."
+        },
+        {
+          "question": "Will getting MBIC affect my family's taxes or other benefits?",
+          "answer": "MBIC coverage itself doesn't count as taxable income. However, the program uses your adjusted gross income for eligibility, so significant income changes could affect renewal. Other means-tested benefits may consider MBIC coverage when determining eligibility, but this varies by program."
+        },
+        {
+          "question": "What happens if we move to another state while my child has MBIC?",
+          "answer": "MBIC coverage ends when you leave Texas since it's a state-specific program. Contact your new state's Medicaid office immediately to apply for similar coverage. Some states have different programs for disabled children, and you'll want continuous coverage during the transition."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "income-table",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "phone": "2-1-1",
+      "sourceUrl": "https://www.hhs.texas.gov/services/health/medicaid-chip/medicaid-chip-members/medicaid-buy-children-mbic",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-10"
+    },
+    {
+      "id": "tx-star-plus-medicaid-hcbs",
+      "name": "STAR+PLUS",
+      "shortName": "STAR+PLUS",
+      "tagline": "Comprehensive Medicaid coverage plus home care services for seniors at nursing home level of need",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "MCOs: Community First Health Plans, Molina Healthcare, Superior HealthPlan, Wellpoint/Anthem; local HHS offices via 211",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 65+ and needs daily help with basic activities like bathing, dressing, or medication management, STAR+PLUS provides comprehensive Medicaid coverage plus home and community-based services to help them avoid nursing home placement. The program covers all medical care (doctor visits, hospital, prescriptions, dental, vision), transportation to appointments, and home services like personal attendants, day programs, minor home modifications, and specialized medical equipment.\n\nIncome limit: $2,901/month per person (2025). Assets limited to $2,000 (your parent's home and one vehicle don't count). Because Texas requires nursing facility level of care assessment, your parent must need significant daily assistance — not just low income and age 65+. The catch: long waitlists of several years for home services, though basic Medicaid coverage can begin immediately upon approval.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+ or disabled 21+",
+          "Income below $2,901/month",
+          "Assets under $2,000",
+          "Needs nursing home level of care",
+          "Texas resident"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 2000,
+          "couple": 2000,
+          "countedAssets": [
+            "Bank accounts",
+            "Investments",
+            "Property other than primary home"
+          ],
+          "exemptAssets": [
+            "Primary home if equity ≤ $730,000",
+            "One vehicle",
+            "Personal belongings",
+            "Burial plots",
+            "Life insurance up to $1,500 face value"
+          ],
+          "homeEquityCap": 730000
+        },
+        "functionalRequirement": "Must need nursing facility level of care — daily assistance with bathing, dressing, medication management, or other activities of daily living. Requires physician-signed assessment and state approval.",
+        "otherRequirements": [
+          "Texas resident",
+          "Medicaid eligible",
+          "Cannot be enrolled in another Medicaid waiver",
+          "Must join interest list first due to waitlist"
+        ],
+        "povertyLevelReference": "300% of Federal Benefit Rate"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Join the interest list first by calling 2-1-1, then apply for Medicaid when invited — several years wait for home services.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Join the interest list",
+            "description": "Call 2-1-1 or (877) 541-7905 to get on the STAR+PLUS Home and Community-Based Services waitlist. This is required — you cannot apply directly."
+          },
+          {
+            "step": 2,
+            "title": "Wait for invitation",
+            "description": "Texas will contact you when services become available in your area. Wait times are typically several years, varying by region and priority level."
+          },
+          {
+            "step": 3,
+            "title": "Apply for Medicaid",
+            "description": "When invited, apply online at yourtexasbenefits.com, call 2-1-1, visit your local HHS office, or mail your application."
+          },
+          {
+            "step": 4,
+            "title": "Complete assessment",
+            "description": "Your chosen Managed Care Organization (MCO) will conduct the nursing facility level of care assessment to determine your service needs."
+          },
+          {
+            "step": 5,
+            "title": "Select MCO",
+            "description": "Choose from available plans in your area: Community First, Molina, Superior, or Wellpoint. Benefits and extras vary by plan."
+          }
+        ],
+        "processingTime": "Medicaid approval varies; HCBS assessment completed by MCO after Medicaid approval",
+        "waitlist": "Several years wait for home and community-based services invitation; wait times vary by region",
+        "tip": "Apply for basic Medicaid immediately if eligible — you'll get medical coverage while waiting for home services.",
+        "urls": [
+          {
+            "label": "Your Texas Benefits",
+            "url": "https://yourtexasbenefits.com"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Valid government-issued photo ID",
+        "Social Security card",
+        "Proof of Texas residency (utility bill, lease, or bank statement)",
+        "Social Security award letter or other income proof",
+        "Bank statements for all accounts (last 3 months)",
+        "Property deeds or tax statements",
+        "Vehicle titles and registration",
+        "Life insurance policies with face values",
+        "Pre-need burial contracts or irrevocable burial trusts",
+        "Medical records documenting need for daily assistance",
+        "Physician certification for nursing facility level of care",
+        "Medicare card (both parts) if applicable",
+        "Investment documents (stocks, bonds, annuities)",
+        "Disability determination letters if under 65"
+      ],
+      "contacts": [
+        {
+          "label": "Texas 2-1-1",
+          "phone": "2-1-1",
+          "description": "Interest list enrollment and general assistance",
+          "hours": "24 hours, 7 days a week"
+        },
+        {
+          "label": "HHSC Benefits Line",
+          "phone": "(877) 541-7905",
+          "description": "STAR+PLUS and Medicaid questions",
+          "hours": "Mon-Fri 8am-6pm CT"
+        }
+      ],
+      "applicationNotes": [
+        "Each spouse applies individually with the same $2,901 income limit — no household scaling",
+        "You can remain on other program interest lists while enrolled in STAR+PLUS",
+        "MCO selection matters — extras like Weight Watchers subscriptions vary by plan and county",
+        "Nursing home residents can transition to community services through STAR+PLUS"
+      ],
+      "relatedPrograms": [
+        "Community First Choice (CFC)",
+        "CLASS Waiver",
+        "SNAP (Food Benefits)",
+        "LIHEAP (Utility Assistance)"
+      ],
+      "contentSections": [
+        {
+          "type": "tier-comparison",
+          "title": "MCO Plan Differences",
+          "content": "Benefits vary by Managed Care Organization. Community First serves central Texas, while Superior operates in Dallas, Hidalgo, and Travis counties. Some plans offer extras like Weight Watchers subscriptions (Dallas/Hidalgo only), camp allowances, or additional asthma supplies. Ask about plan-specific benefits when choosing your MCO."
+        },
+        {
+          "type": "stat-callout",
+          "title": "Key Numbers",
+          "stats": [
+            {
+              "label": "Monthly Income Limit",
+              "value": "$2,901",
+              "note": "per person, 2025"
+            },
+            {
+              "label": "Asset Limit",
+              "value": "$2,000",
+              "note": "countable resources"
+            },
+            {
+              "label": "Home Equity Cap",
+              "value": "$730,000",
+              "note": "exempt if primary residence"
+            }
+          ]
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if it's worth more than $2,000?",
+          "answer": "Yes. The $2,000 asset limit doesn't include your parent's primary home as long as the equity is $730,000 or less and they live there or intend to return. The home is also exempt if a spouse or disabled child lives there."
+        },
+        {
+          "question": "How long is the waitlist really for home services?",
+          "answer": "Several years in most areas, though this varies by region and priority level. Crisis cases or those at immediate risk of nursing home placement may get expedited processing. You can apply for basic Medicaid coverage immediately while waiting for home services."
+        },
+        {
+          "question": "Can I apply for my parent who has dementia?",
+          "answer": "Yes. Family members can apply on behalf of aging parents, especially those with cognitive impairment. You may need to become an authorized representative through the application process or provide legal guardianship documentation."
+        },
+        {
+          "question": "What's the difference between the MCO plans?",
+          "answer": "All plans provide the same basic Medicaid and HCBS services, but extras vary. Some offer Weight Watchers subscriptions, camp allowances, or additional medical supplies. Service areas also differ — Community First serves central Texas while Superior operates in Dallas, Hidalgo, and Travis counties."
+        },
+        {
+          "question": "Can my parent have STAR+PLUS and Medicare at the same time?",
+          "answer": "Yes. STAR+PLUS works alongside Medicare coverage. The program coordinates with Medicare to cover gaps and provide additional services Medicare doesn't cover, like personal attendant services and minor home modifications."
+        },
+        {
+          "question": "What happens if my parent's income increases after enrollment?",
+          "answer": "Report income changes immediately to your MCO and local HHS office. If monthly income exceeds $2,901, your parent may lose STAR+PLUS eligibility. Some temporary increases may be exempt, so discuss the situation with your caseworker before assuming disqualification."
+        },
+        {
+          "question": "Can couples both be on STAR+PLUS?",
+          "answer": "Yes, but each spouse applies individually with the same $2,901 monthly income limit. There's no household scaling — both must meet individual income and asset requirements. Asset limits also apply individually at $2,000 each."
+        },
+        {
+          "question": "What if my parent needs nursing home care while on the waitlist?",
+          "answer": "STAR+PLUS covers nursing facility care immediately upon Medicaid approval — you don't need to wait for HCBS services. Your parent can later transition from nursing home to community services when home care slots become available."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "waitlist",
+        "eligibilityDisplay": "asset-focused",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "phone": "2-1-1",
+      "sourceUrl": "https://www.hhs.texas.gov/services/health/medicaid-chip/medicaid-chip-programs/services-people-who-are-older/starplus-home-community-based-services-hcbs-waiver",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-10"
+    },
+    {
+      "id": "tx-pace-eldercare",
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "shortName": "PACE",
+      "tagline": "All medical care, adult day center, and home support coordinated under one team — no copays if your parent has Medicaid.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Bienvivir (El Paso, TX service area)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 55+ and needs nursing home-level care but wants to stay in their home, PACE provides everything under one coordinated team: primary care, specialists, prescription drugs, adult day center with transportation, home care services, and respite care. Because all services are managed by a single provider, your parent won't need to coordinate between separate doctors, pharmacies, and care agencies — one team handles everything.\n\nYour parent must be certified by Texas as needing nursing home-level care (daily help with bathing, dressing, medication management, or mobility) and live in a PACE service area. Most participants have both Medicare and Medicaid, which covers all services with no copays. Private pay is possible if your parent doesn't qualify for Medicaid but needs comprehensive care coordination.\n\nPACE is only available in limited Texas areas. Currently, Bienvivir serves the El Paso region. If your parent lives outside these service areas, PACE is not available.",
+      "savingsRange": "",
+      "savingsSource": "Free comprehensive care coordination service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "State-certified need for nursing home level of care",
+          "Live in PACE service area",
+          "Able to live safely in community"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 2000,
+          "couple": null,
+          "countedAssets": [
+            "Bank accounts",
+            "Secondary properties",
+            "Investments"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "One vehicle",
+            "Personal belongings",
+            "Burial plots"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "Must be state-certified as needing nursing home level of care (requires assessment showing need for daily help with bathing, dressing, medication management, or mobility)",
+        "otherRequirements": [
+          "Live in the service area of a Texas PACE provider",
+          "Able to live safely in the community with PACE support",
+          "Cannot be enrolled in Medicare Advantage, Medicare prescription drug plan, or hospice"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your local PACE provider for intake assessment — they handle the entire enrollment process including state certification.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact PACE provider in your area",
+            "description": "Call Bienvivir at (915) 562-3444 ext. 1442 if in El Paso area. Provider will schedule initial assessment and explain services."
+          },
+          {
+            "step": 2,
+            "title": "Complete eligibility assessment",
+            "description": "Provider conducts comprehensive health and functional assessment to determine if your parent meets nursing home level of care criteria."
+          },
+          {
+            "step": 3,
+            "title": "State certification review",
+            "description": "Texas reviews assessment and certifies nursing home level of care requirement. Provider assists with this process."
+          },
+          {
+            "step": 4,
+            "title": "Finalize enrollment",
+            "description": "Once certified, provider coordinates Medicare/Medicaid enrollment if needed and schedules care team meeting to begin services."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": "Possible — some providers may have waitlists depending on capacity",
+        "tip": "PACE providers handle most of the paperwork and state certification process for you — they're motivated to help because they want to enroll eligible participants.",
+        "urls": [
+          {
+            "label": "Bienvivir eligibility form",
+            "url": "https://es.bienvivir.org/eligibility"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Valid government-issued photo ID or birth certificate for age verification",
+        "Proof of residency in PACE service area (utility bill, lease agreement, or voter registration)",
+        "Medicare card (both Part A and Part B)",
+        "Medicaid card if already enrolled",
+        "Complete medical records from primary care physician",
+        "Hospital discharge summaries from recent admissions",
+        "Current medication list with dosages and prescribing doctors",
+        "Documentation of current home care or adult day services",
+        "Assessment reports from physical therapy, occupational therapy, or speech therapy",
+        "Social Security award letter or other income documentation",
+        "Bank statements for all accounts (last 3 months) if applying for Medicaid",
+        "Life insurance policies with cash values",
+        "Property deeds or mortgage statements",
+        "Vehicle titles and registration"
+      ],
+      "contacts": [
+        {
+          "label": "Bienvivir PACE (El Paso)",
+          "phone": "(915) 562-3444 ext. 1442",
+          "description": "Intake and enrollment for El Paso area PACE services",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Texas 2-1-1",
+          "phone": "2-1-1",
+          "description": "Information about PACE and other senior care programs statewide",
+          "hours": "24 hours, 7 days a week"
+        },
+        {
+          "label": "CMS PACE Information",
+          "phone": "(800) 633-4227",
+          "description": "General Medicare and PACE program information",
+          "hours": "24 hours, 7 days a week"
+        }
+      ],
+      "applicationNotes": [
+        "Most participants are dually eligible for Medicare and Medicaid — the PACE provider can help determine Medicaid eligibility if your parent doesn't already have it",
+        "Your parent must disenroll from Medicare Advantage or Medicare prescription drug plans before starting PACE — the provider will guide you through this process",
+        "PACE providers conduct the nursing home level of care assessment as part of enrollment — you don't need to get this done separately",
+        "Private pay is possible if your parent needs comprehensive care coordination but doesn't qualify for Medicaid, though costs can be substantial"
+      ],
+      "relatedPrograms": [
+        "Texas Medicaid STAR+PLUS",
+        "Community Based Alternatives (CBA) Waiver",
+        "Texas Home and Community-based Services"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent keep seeing their current doctors under PACE?",
+          "answer": "No — PACE uses its own network of providers and care team. Your parent will be assigned new primary care physicians, specialists, and therapists within the PACE program. All care is coordinated through the PACE team to ensure comprehensive management."
+        },
+        {
+          "question": "What if my parent lives outside El Paso — are there other PACE programs in Texas?",
+          "answer": "Currently, Bienvivir in El Paso is the only active PACE provider we found in Texas. If your parent lives elsewhere in Texas, PACE is not available. Consider Texas Medicaid STAR+PLUS or Home and Community-based Services waivers as alternatives."
+        },
+        {
+          "question": "Can my parent try PACE and switch back to regular Medicare if they don't like it?",
+          "answer": "Yes — PACE enrollment is voluntary and your parent can disenroll at any time. They would return to original Medicare and could re-enroll in Medicare Advantage or prescription drug plans during the next open enrollment period."
+        },
+        {
+          "question": "How much does PACE cost if my parent has Medicare but not Medicaid?",
+          "answer": "PACE accepts private pay participants, but specific costs aren't published. The program is designed to be cost-neutral to nursing home care, so expect substantial monthly fees. Contact the provider directly at (915) 562-3444 ext. 1442 for pricing."
+        },
+        {
+          "question": "What happens if my parent's health improves and they no longer need nursing home level care?",
+          "answer": "PACE conducts regular reassessments. If your parent no longer meets the nursing home level of care criteria, they would need to transition out of PACE and return to regular Medicare. The care team helps plan this transition."
+        },
+        {
+          "question": "Can I apply for PACE while my parent is in the hospital?",
+          "answer": "Yes — hospital discharge planners often initiate PACE referrals for patients who need comprehensive care coordination upon discharge. This can help ensure continuity of care when leaving the hospital."
+        },
+        {
+          "question": "Does PACE provide transportation to medical appointments?",
+          "answer": "Yes — PACE includes transportation to the adult day health center and medical appointments within the program. This is part of the comprehensive service package with no additional charge for participants with Medicaid."
+        },
+        {
+          "question": "What if my parent needs emergency care or hospitalization while in PACE?",
+          "answer": "PACE covers all medical care including emergency services and hospitalizations. The PACE care team coordinates with hospitals and manages all aspects of emergency care to ensure continuity when your parent returns home."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "asset-focused",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "phone": "(915) 562-3444",
+      "sourceUrl": "https://www.cms.gov/medicare/medicaid-coordination/about/pace",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-10"
+    },
+    {
+      "id": "tx-snap-food-benefits",
+      "name": "Supplemental Nutrition Assistance Program (SNAP)",
+      "shortName": "SNAP Food Benefits",
+      "tagline": "Up to $298/month on an EBT card to help your parent buy groceries if they're 60+ with limited income",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local HHSC offices (locate via 211 or YourTexasBenefits.com)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and struggling to afford groceries on Social Security or a fixed income, SNAP provides monthly funds loaded onto an EBT card for food purchases. In Texas, seniors can receive up to $298/month for a single person ($516 for couples), with the average senior getting around $188/month.\n\nBecause your parent is 60+, they only need to pass the net income test (after deducting medical expenses over $35/month and high shelter costs), making qualification easier than for younger adults. Income limit: $1,255/month for one person or $1,703/month for two people after deductions. Social Security, pensions, and disability benefits count as income, but your parent can still qualify if they have significant medical or housing expenses.\n\nTexas requires an asset test ($2,000 limit for individuals), but this exempts their primary home, most vehicles, household goods, and some retirement savings. The EBT card works like a debit card at grocery stores but cannot be used for alcohol, tobacco, or hot prepared foods.",
+      "savingsRange": "$2,256 – $3,576/year",
+      "savingsSource": "Average senior benefit of $188/month to maximum benefit of $298/month",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Net income below $1,255/month (single)",
+          "Assets under $2,000",
+          "Texas resident",
+          "U.S. citizen or qualified immigrant"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1255
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 1703
+          }
+        ],
+        "assetLimits": {
+          "individual": 2000,
+          "couple": 2000,
+          "countedAssets": [
+            "Bank accounts",
+            "Cash",
+            "Stocks",
+            "Accessible retirement savings",
+            "Investment accounts"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "Most vehicles",
+            "Household goods",
+            "Life insurance (varies)",
+            "Income-producing property (sometimes)"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must live in Texas",
+          "Include all household members who share food",
+          "Medical expenses over $35/month are deductible for seniors"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online at YourTexasBenefits.com or call 2-1-1 for assistance — processing typically takes 30 days.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Start your application",
+            "description": "Apply online at YourTexasBenefits.com or call 2-1-1 to request a paper application be mailed to you."
+          },
+          {
+            "step": 2,
+            "title": "Gather required documents",
+            "description": "Collect proof of income (Social Security award letter, pension statements), bank statements, rent/mortgage documents, and medical expense receipts over $35/month."
+          },
+          {
+            "step": 3,
+            "title": "Submit application and documents",
+            "description": "Upload documents online, mail to your local HHSC office, or drop off in person. Call 2-1-1 to find your local office."
+          },
+          {
+            "step": 4,
+            "title": "Complete interview",
+            "description": "HHSC will schedule a phone interview to review your application, typically within 7-10 days of submission."
+          },
+          {
+            "step": 5,
+            "title": "Receive decision",
+            "description": "You'll get approval or denial within 30 days. If approved, your EBT card arrives by mail within 7-10 business days."
+          }
+        ],
+        "processingTime": "30 days standard, 7 days expedited if income under $150/month and assets under $100",
+        "waitlist": null,
+        "tip": "Seniors get expedited processing if facing immediate food insecurity — mention this during your interview if applicable.",
+        "urls": [
+          {
+            "label": "Apply Online",
+            "url": "https://www.yourtexasbenefits.com"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Valid photo ID (driver's license or state ID)",
+        "Social Security card",
+        "Social Security award letter or benefits statement",
+        "Pension or retirement income statements",
+        "Bank statements for all accounts (last 3 months)",
+        "Rent receipt or mortgage statement",
+        "Utility bills (electric, gas, water)",
+        "Medical expense receipts over $35/month (prescriptions, Medicare premiums, medical bills)",
+        "Proof of citizenship or qualified immigrant status",
+        "Vehicle titles and registration",
+        "Life insurance policies with cash values"
+      ],
+      "contacts": [
+        {
+          "label": "Texas 2-1-1",
+          "phone": "2-1-1",
+          "description": "Statewide helpline for SNAP applications and local office locations",
+          "hours": "24 hours, 7 days a week"
+        },
+        {
+          "label": "HHSC Customer Service",
+          "phone": "(877) 541-7905",
+          "description": "Questions about existing SNAP benefits and case status",
+          "hours": "Monday-Friday 8am-6pm CT"
+        }
+      ],
+      "applicationNotes": [
+        "Medical expense deductions are crucial for seniors — include Medicare premiums, prescription costs, and out-of-pocket medical bills over $35/month",
+        "If your parent lives with family but buys and prepares food separately, they can apply as a household of one",
+        "Expedited processing available if monthly income is under $150 and assets under $100, or if facing utility shutoff",
+        "Social Security and pension income count toward income limits, but high medical or shelter costs can reduce net income below limits"
+      ],
+      "relatedPrograms": [
+        "Low Income Home Energy Assistance Program (LIHEAP)",
+        "Medicaid for Seniors",
+        "Commodity Supplemental Food Program (CSFP)",
+        "Senior Farmers Market Nutrition Program"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if it's worth more than $2,000?",
+          "answer": "Yes, the primary home where your parent lives is completely exempt from SNAP asset limits, regardless of value. Texas only counts liquid assets like bank accounts, stocks, and accessible retirement savings toward the $2,000 limit."
+        },
+        {
+          "question": "Does Social Security income disqualify my parent from SNAP?",
+          "answer": "Not necessarily. Social Security counts as income, but seniors get to deduct medical expenses over $35/month and high shelter costs first. If your parent has significant medical bills or housing costs, their net income may fall below the $1,255/month limit even with Social Security."
+        },
+        {
+          "question": "Can I apply for SNAP on behalf of my elderly parent?",
+          "answer": "Yes, family members can apply as an authorized representative if your parent cannot apply themselves due to age, disability, or other barriers. You'll need to complete additional paperwork during the application process to establish this relationship."
+        },
+        {
+          "question": "What happens if my parent's income changes after approval?",
+          "answer": "Report income changes to HHSC within 10 days by calling (877) 541-7905 or logging into YourTexasBenefits.com. Benefits are recertified every 12 months for seniors, and HHSC will adjust the benefit amount based on new income information."
+        },
+        {
+          "question": "Can my parent use SNAP benefits to buy groceries online?",
+          "answer": "Yes, Texas participates in SNAP online purchasing. Your parent can use their EBT card to buy eligible groceries for delivery or pickup from participating retailers like Amazon, Walmart, and H-E-B through their websites or apps."
+        },
+        {
+          "question": "What if my parent owns a car worth more than $2,000?",
+          "answer": "One vehicle per household is exempt regardless of value if used for transportation. Additional vehicles may count toward the asset limit, but Texas has exceptions for work vehicles, vehicles needed for medical transportation, and vehicles being used to produce income."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "savings",
+        "eligibilityDisplay": "income-table",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "warm"
+      },
+      "phone": "2-1-1",
+      "sourceUrl": "https://www.yourtexasbenefits.com",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-10"
+    },
+    {
+      "id": "tx-liheap-energy-assistance",
+      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "shortName": "LIHEAP",
+      "tagline": "Get $1,000–12,300 paid directly to your parent's utility company to cover heating and cooling bills.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local CAAs via 211Texas.org or (877) 399-8939; full subrecipient list on TDHCA site",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent struggles to pay electric, gas, or propane bills on a fixed income, LIHEAP provides direct payments to utility companies. In Texas, this program is delivered through CEAP (Comprehensive Energy Assistance Program) and covers one-time payments of $1 to $12,300 for regular heating and cooling assistance, plus up to $2,400 in crisis situations like shutoff notices.\n\nYour parent qualifies if their household income is at or below 150% of the federal poverty level — that's $2,815/month for a single person or $3,681/month for a couple in 2025. There are no asset limits, and if they already receive SNAP, SSI, TANF, or certain veterans' benefits, they're automatically eligible. Because funding is limited and distributed through local agencies across all 254 Texas counties, expect to be placed on a waitlist after applying.\n\nThe program prioritizes elderly households, people with disabilities, families with young children, and anyone facing an energy crisis. Benefits are paid directly to the utility company, not to your parent, and may include weatherization services like insulation or heating system repairs.",
+      "savingsRange": "$1 – $12,300/year in 2026",
+      "savingsSource": "Texas Department of Housing and Community Affairs CEAP guidelines",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Household income at or below 150% FPL",
+          "Texas resident",
+          "U.S. citizen or qualified non-citizen",
+          "Priority for elderly/disabled"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2815
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 3681
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 4547
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 5414
+          },
+          {
+            "householdSize": 5,
+            "monthlyLimit": 6280
+          },
+          {
+            "householdSize": 6,
+            "monthlyLimit": 7146
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Texas resident with proof (utility bill, lease)",
+          "U.S. citizen or qualified non-citizen (lawful permanent resident, refugee)",
+          "Automatic eligibility if receiving SNAP, SSI, TANF, or certain veterans' benefits"
+        ],
+        "povertyLevelReference": "150% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call 2-1-1 to find your local Community Action Agency and get placed on the waitlist — processing time varies by region and funding availability.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local agency",
+            "description": "Call 2-1-1 or (877) 399-8939 to locate your Community Action Agency or CEAP provider. You can also search at 211Texas.org."
+          },
+          {
+            "step": 2,
+            "title": "Gather required documents",
+            "description": "Collect proof of income, identification, recent utility bills in the applicant's name, and proof of Texas residency before contacting the agency."
+          },
+          {
+            "step": 3,
+            "title": "Submit application",
+            "description": "Apply by phone, online, mail, or in-person through your local CAA. Each agency has different application methods and forms."
+          },
+          {
+            "step": 4,
+            "title": "Wait for caseworker contact",
+            "description": "You'll be placed on a waitlist. A caseworker will call when your turn arrives and funding is available for your area."
+          }
+        ],
+        "processingTime": "Varies by region; placed on waitlist after submission, caseworker calls when turn arrives",
+        "waitlist": "Yes, common; applications placed in line by site, funding-dependent",
+        "tip": "If you have an online account with your utility company (like Texas Gas Service), set it up before applying — it speeds up the documentation process.",
+        "urls": [
+          {
+            "label": "Find Local CEAP Agency",
+            "url": "https://211texas.org"
+          },
+          {
+            "label": "Official CEAP Information",
+            "url": "https://www.tdhca.texas.gov/comprehensive-energy-assistance-program-ceap"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Valid government-issued photo ID (Texas driver's license, passport, or state ID)",
+        "Proof of citizenship or legal residency status for all household members",
+        "Proof of income from last 30 days (pay stubs, Social Security award letter, pension statements)",
+        "Most recent electric bill in applicant's name",
+        "Most recent gas or propane bill in applicant's name",
+        "Proof of Texas residency (utility bill, lease agreement, or mortgage statement)",
+        "Names and dates of birth for all household members sharing the address",
+        "SNAP, SSI, TANF, or veterans' benefits award letters if applicable",
+        "Shutoff notice or past-due utility bill if applying for crisis assistance"
+      ],
+      "contacts": [
+        {
+          "label": "Texas 2-1-1",
+          "phone": "2-1-1",
+          "description": "Free statewide helpline to find your local CEAP agency",
+          "hours": "24 hours, 7 days a week"
+        },
+        {
+          "label": "LIHEAP National Helpline",
+          "phone": "(877) 399-8939",
+          "description": "Federal helpline for energy assistance programs",
+          "hours": "Mon-Fri 8am-6pm CT"
+        },
+        {
+          "label": "Travis County CEAP",
+          "phone": "(512) 584-4120",
+          "description": "Example local agency serving Austin area",
+          "hours": "Mon-Fri 8am-5pm CT"
+        }
+      ],
+      "applicationNotes": [
+        "Crisis cases with active disconnection notices may receive expedited processing, but you're still placed on a waitlist",
+        "Household size includes everyone living at the address who shares utility bills, not just family members",
+        "Benefits are paid directly to your utility company — you won't receive a check or cash payment",
+        "Funding runs out quickly each year, so apply as early as possible when applications open"
+      ],
+      "relatedPrograms": [
+        "Weatherization Assistance Program (WAP)",
+        "SNAP Food Benefits",
+        "Supplemental Security Income (SSI)",
+        "Medicaid"
+      ],
+      "contentSections": [
+        {
+          "type": "callout",
+          "title": "Crisis Assistance Available",
+          "content": "If your parent received a shutoff notice or is facing an energy emergency, mention this when applying. Crisis assistance provides up to $2,400 in emergency payments and may receive faster processing, though you'll still join a waitlist."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "How long is the waitlist really?",
+          "answer": "Wait times vary significantly by county and available funding. Some areas process applications within a few weeks, while others have waitlists lasting several months. Crisis cases with shutoff notices typically get priority, but even they face delays when funding is low."
+        },
+        {
+          "question": "Can I apply on behalf of my elderly parent?",
+          "answer": "Yes, family members can apply on behalf of elderly or disabled parents. You'll need to provide all required documentation and may need to sign as their authorized representative with the local Community Action Agency."
+        },
+        {
+          "question": "What if my parent's income is slightly over the limit?",
+          "answer": "If gross monthly income exceeds 150% of the federal poverty level ($2,815 for one person), they don't qualify. However, if they receive SNAP, SSI, TANF, or certain veterans' benefits, they're automatically eligible regardless of other income."
+        },
+        {
+          "question": "Can my parent get LIHEAP and apply for other energy programs at the same time?",
+          "answer": "Yes, LIHEAP doesn't prevent eligibility for other programs. They can also apply for the Weatherization Assistance Program, which provides free home energy improvements, and utility company assistance programs simultaneously."
+        },
+        {
+          "question": "What happens if my parent moves to a different county after applying?",
+          "answer": "Each county has its own Community Action Agency and waitlist. If your parent moves, they'll need to start over with a new application in their new county. Benefits don't transfer between agencies."
+        },
+        {
+          "question": "Does the program cover propane or only electric and gas?",
+          "answer": "LIHEAP covers all home heating and cooling costs, including propane, fuel oil, wood, coal, and electricity. You'll need to provide recent bills for whatever energy source your parent uses for heating or cooling."
+        },
+        {
+          "question": "What if my parent rents and utilities are included in rent?",
+          "answer": "If utilities are included in rent, your parent typically isn't eligible since they don't receive direct utility bills. However, some agencies may accept a landlord statement showing the utility portion of rent. Contact your local CAA to ask about their specific policy."
+        },
+        {
+          "question": "How often can my parent receive LIHEAP benefits?",
+          "answer": "Regular LIHEAP benefits are limited to once per federal fiscal year (October 1 to September 30). However, if they face a crisis like a shutoff notice, they may be eligible for additional crisis assistance funds in the same year."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "savings",
+        "eligibilityDisplay": "income-table",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "phone": "2-1-1",
+      "sourceUrl": "https://www.tdhca.texas.gov/comprehensive-energy-assistance-program-ceap",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-10"
+    },
+    {
+      "id": "tx-weatherization-assistance-program",
+      "name": "Weatherization Assistance Program",
+      "shortName": "Weatherization Assistance",
+      "tagline": "Free home energy efficiency improvements that can cut your parent's utility bills by hundreds of dollars annually.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "TDHCA subrecipients statewide (PDF list)[6].",
+            "type": "service-area"
+          },
+          {
+            "name": "Examples: TCOG (Sherman), SPCAA (South Plains), ATCog, Dallas County HHS, Austin Energy, CCSCT (Uvalde region counties), Oncor low-income weatherization[9].",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent's household income is at or below 200% of the federal poverty level, they may qualify for free home weatherization services that can significantly reduce monthly utility bills. The program provides a professional energy audit followed by improvements like insulation installation, air leak sealing, duct work repairs, and heating/cooling system tune-ups or replacements.\n\nBecause Texas administers this program through approximately 30 regional agencies rather than one state office, you'll need to contact the specific subrecipient that serves your parent's county. Priority goes to households with elderly residents, people with disabilities, or families with children under 6, though waitlists are common due to funding limits.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Household income at or below 200% federal poverty level",
+          "U.S. citizen or qualified alien status for all household members",
+          "Home must be primary residence",
+          "Single-family home, duplex, triplex, fourplex, or eligible mobile home"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Home must pass energy audit to confirm need for weatherization",
+          "Property must not have been weatherized in the last 10 years in some regions",
+          "Renters need landlord permission",
+          "Some regions have property value limits (e.g., $478,195 or less excluding land in Austin)",
+          "Mobile homes are excluded in some regions but allowed in others"
+        ],
+        "povertyLevelReference": "200% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact your regional subrecipient agency by phone or mail — processing times vary widely by region and funding availability.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your regional agency",
+            "description": "Texas divides weatherization by region. Examples: TCOG serves North Texas (800-677-8264 ext. 3530), Austin Energy serves Austin area (512-482-5346), CCSCT serves Uvalde region counties. Check the full subrecipient list at TDHCA's website."
+          },
+          {
+            "step": 2,
+            "title": "Gather income documentation",
+            "description": "Collect proof of income from the last 30 days only for all household members age 18 and older. This includes pay stubs, Social Security award letters, unemployment documents, pension letters. Bank statements and tax returns are not accepted."
+          },
+          {
+            "step": 3,
+            "title": "Submit application",
+            "description": "Complete your regional agency's specific application form. You can apply by mail, in-person, or online in some areas like Austin Energy. Include all required documentation for every household member."
+          },
+          {
+            "step": 4,
+            "title": "Wait for eligibility determination",
+            "description": "You'll receive an eligibility memo by mail after processing. Due to high demand, most regions have waitlists and use priority scoring that favors elderly, disabled, or families with young children."
+          }
+        ],
+        "processingTime": "Varies widely by region, number of clients, and funding availability — no fixed statewide timeline",
+        "waitlist": "Common due to funding limits; prioritization matrix used (e.g., points for elderly, disabled, children under 6)",
+        "tip": "Apply even if you think there might be a waitlist — priority scoring often helps elderly households move up the list faster.",
+        "urls": [
+          {
+            "label": "TDHCA Weatherization Program",
+            "url": "https://www.tdhca.texas.gov/weatherization-assistance-program"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Proof of income for all household members 18+ from last 30 days (pay stubs, Social Security award letters, unemployment documents, pension letters, workers comp, TANF)",
+        "Notarized Declaration of Income Statement if anyone had no income in the last 30 days",
+        "Birth certificates for all household members",
+        "Naturalization or citizenship certificates for non-U.S. born members",
+        "U.S. passports or other proof of citizenship/qualified alien status",
+        "Driver's license or state ID for all household members 18+",
+        "Current electric bill with 12-month usage history",
+        "Current gas or propane bill with 12-month usage history",
+        "Landlord Permission Form (completed and signed if renting)",
+        "Names and dates of birth for all household members",
+        "Proof of primary residence (lease agreement, property deed, or utility bills)"
+      ],
+      "contacts": [
+        {
+          "label": "TCOG (North Texas)",
+          "phone": "(800) 677-8264 ext. 3530",
+          "description": "Weatherization services for North Texas region",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Austin Energy",
+          "phone": "(512) 482-5346",
+          "description": "Austin area weatherization program",
+          "hours": "Mon-Fri business hours"
+        },
+        {
+          "label": "Texas 2-1-1",
+          "phone": "2-1-1",
+          "description": "Free helpline to find your regional weatherization agency",
+          "hours": "24 hours, 7 days a week"
+        }
+      ],
+      "applicationNotes": [
+        "You must contact the correct regional subrecipient for your county — the state does not accept direct applications",
+        "Income documentation is strictly limited to the last 30 days and gets annualized — older pay stubs or tax returns will not be accepted",
+        "Every household member needs citizenship verification, including children, which can delay applications if documents are missing",
+        "If your parent is elderly, disabled, or lives with young children, mention this when applying as it may improve their priority score"
+      ],
+      "relatedPrograms": [
+        "Low Income Home Energy Assistance Program (LIHEAP)",
+        "Comprehensive Energy Assistance Program (CEAP)",
+        "SNAP Food Benefits",
+        "Medicaid"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "What if my parent's mobile home isn't eligible in their region?",
+          "answer": "Mobile home eligibility varies by regional agency. Some exclude them entirely (like ATCog), while others include them. Call your regional subrecipient directly to confirm whether mobile homes qualify in your area, as this rule isn't consistent statewide."
+        },
+        {
+          "question": "Can I apply on behalf of my elderly parent?",
+          "answer": "Yes, family members can help with the application process. However, your parent will need to sign forms and provide their personal documentation. Some agencies may require your parent to be present for the initial energy audit scheduling."
+        },
+        {
+          "question": "How long is the waitlist really?",
+          "answer": "Waitlists vary dramatically by region and funding cycles. Some areas process applications within months, while others have year-long waits. However, households with elderly members, people with disabilities, or children under 6 get priority points that can significantly reduce wait times."
+        },
+        {
+          "question": "What if the landlord won't sign the permission form?",
+          "answer": "Landlord permission is required for renters, and there's no workaround if they refuse. Try explaining that weatherization improvements increase property value and reduce utility costs for tenants. Some landlords may be more willing if you provide details about the specific improvements planned."
+        },
+        {
+          "question": "Can my parent apply if they received weatherization services 8 years ago?",
+          "answer": "It depends on your region. Some areas require a 10-year gap between weatherization services, while others have different timeframes. Contact your regional agency with the approximate date of previous service to confirm eligibility."
+        },
+        {
+          "question": "What happens if the energy audit shows my parent's home doesn't need weatherization?",
+          "answer": "No services will be provided if the audit determines the home doesn't meet energy-savings requirements. The audit itself is free, but weatherization work only proceeds if it meets Department of Energy efficiency standards for cost-effectiveness."
+        },
+        {
+          "question": "Can my parent apply for both weatherization and LIHEAP at the same time?",
+          "answer": "Yes, these are separate programs and you can apply for both simultaneously. In fact, some regional agencies coordinate these services or may suggest applying for LIHEAP while on the weatherization waitlist for immediate utility bill help."
+        },
+        {
+          "question": "What if my parent's income includes irregular Social Security or pension payments?",
+          "answer": "You must document the exact income received in the 30 days prior to application, even if payments were irregular. The agency will annualize this amount. If a regular payment was missed in those 30 days, bring documentation showing the typical payment schedule."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "phone": "2-1-1",
+      "sourceUrl": "https://www.tdhca.texas.gov/weatherization-assistance-program",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-10"
+    },
+    {
+      "id": "tx-ship-medicare-counseling",
+      "name": "Texas State Health Insurance Assistance Program (SHIP)",
+      "shortName": "SHIP Medicare Help",
+      "tagline": "Free one-on-one help choosing Medicare plans and applying for prescription drug savings.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local SHIP sites via statewide network; contact 1-800-252-9240 for nearest",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is on Medicare or turning 65, Texas SHIP provides free counseling to help them choose the right health and prescription drug plans. Because Medicare has dozens of plan options that change every year, a trained counselor can review your parent's specific medications and doctors to find the plan that saves the most money.\n\nSHIP counselors also help apply for Medicare Savings Programs and Extra Help (Low-Income Subsidy) that can reduce prescription drug costs to $4-$10 per month. In Texas, this program is called the Health Information, Counseling, and Advocacy Program (HICAP). Anyone with Medicare can use this service regardless of income — no eligibility requirements beyond having Medicare.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Must have Medicare or be turning 65",
+          "No income or asset limits",
+          "Family caregivers can get help too"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be Medicare-eligible (typically age 65+ or under 65 with certain disabilities)",
+          "Family members and caregivers also eligible for counseling"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call 1-800-252-9240 to schedule free counseling — typically available within days.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the Texas SHIP hotline",
+            "description": "Call 1-800-252-9240 to find your nearest counselor and schedule an appointment. Available statewide through local community organizations."
+          },
+          {
+            "step": 2,
+            "title": "Gather your Medicare information",
+            "description": "Have your Medicare card, current health plan details, and list of medications ready for your counseling session."
+          },
+          {
+            "step": 3,
+            "title": "Meet with your counselor",
+            "description": "Counseling available in-person, by phone, or through group presentations. Sessions are free and confidential."
+          }
+        ],
+        "processingTime": "No formal application processing — counseling provided upon contact, typically immediate or by appointment",
+        "waitlist": null,
+        "tip": "Schedule counseling during Medicare Open Enrollment (October 15 - December 7) early, as this is the busiest time.",
+        "urls": [
+          {
+            "label": "Texas SHIP website",
+            "url": "https://www.shiphelp.org/ships/texas/"
+          }
+        ]
+      },
+      "documentsNeeded": null,
+      "contacts": [
+        {
+          "label": "Texas SHIP Hotline",
+          "phone": "(800) 252-9240",
+          "description": "Free Medicare counseling and plan comparison",
+          "hours": "Business hours (contact for local counselor availability)"
+        },
+        {
+          "label": "Medicare.gov",
+          "phone": "(800) 633-4227",
+          "description": "Official Medicare helpline",
+          "hours": "24 hours, 7 days a week"
+        }
+      ],
+      "applicationNotes": null,
+      "relatedPrograms": [
+        "Medicare Savings Program (QMB/SLMB)",
+        "Extra Help (Low-Income Subsidy)",
+        "Texas Medicaid"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can I get help even if my parent already has Medicare coverage?",
+          "answer": "Yes. SHIP counselors help review existing plans during Open Enrollment (October 15 - December 7) to see if switching could save money. They can also help apply for Extra Help or Medicare Savings Programs that reduce costs for current coverage."
+        },
+        {
+          "question": "What's the difference between SHIP and calling Medicare directly?",
+          "answer": "SHIP counselors are local, unbiased volunteers who don't sell insurance. Because they know Texas-specific programs and can meet in person, they often catch savings opportunities that Medicare's national hotline might miss. Both services are free."
+        },
+        {
+          "question": "Can a family member call on behalf of an elderly parent?",
+          "answer": "Yes, family caregivers can get counseling about Medicare options for their parents. However, the Medicare beneficiary will need to be present or give permission for plan enrollment changes."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": false,
+        "visualTone": "minimal"
+      },
+      "phone": "(800) 252-9240",
+      "sourceUrl": "https://www.shiphelp.org/ships/texas/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-10"
+    },
+    {
+      "id": "tx-meals-on-wheels",
+      "name": "Meals on Wheels",
+      "shortName": "Meals on Wheels",
+      "tagline": "Home-delivered meals and daily check-ins for homebound seniors 60+ across Texas.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Meals on Wheels Central Texas (Austin)",
+            "type": "service-area"
+          },
+          {
+            "name": "Meals on Wheels North Central Texas (Johnson/Ellis/Navarro)",
+            "type": "service-area"
+          },
+          {
+            "name": "Meals on Wheels of Tarrant County",
+            "type": "service-area"
+          },
+          {
+            "name": "Meals on Wheels East Texas",
+            "type": "service-area"
+          },
+          {
+            "name": "Meals on Wheels Senior Services of Rockwall County",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is homebound and struggling to prepare nutritious meals, Meals on Wheels delivers hot, ready-to-eat meals directly to their door on weekdays. Because volunteers also provide a brief safety check during each delivery, you get peace of mind knowing someone is checking on your parent daily. Many programs also offer frozen weekend meals and can tailor meals for specific medical conditions like diabetes or heart disease.\n\nThe program serves anyone 60+ who is primarily homebound and unable to prepare nutritious meals without consistent help. Because there are no income limits, your parent can qualify regardless of their financial situation — voluntary contributions are requested but no one is denied for inability to pay.\n\nMeals on Wheels operates through independent local providers across Texas, so you must contact the specific program serving your parent's area. Processing time varies from within a week to longer if there's a waitlist, depending on the local provider.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+ or disabled",
+          "Primarily homebound",
+          "Unable to prepare meals",
+          "Lives in service area",
+          "No income limits"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must be primarily homebound and unable to prepare nutritious meals without consistent daytime assistance",
+        "otherRequirements": [
+          "Must reside in the specific local program's delivery zone",
+          "Must be able to accept meals during delivery window (typically 10:30am-1:00pm)",
+          "Priority given to those with greatest economic/social need or severe disabilities"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact your local Meals on Wheels provider by phone or online referral form — anyone can refer including family members.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local provider",
+            "description": "Use the Meals on Wheels America finder at mealsonwheelsamerica.org/find-meals-and-services/ to locate the program serving your parent's area."
+          },
+          {
+            "step": 2,
+            "title": "Submit referral",
+            "description": "Call directly or complete online referral form. Examples: Tarrant County 817-336-0912, Rockwall County 972-771-9514. Provide basic info: health problems, date of birth, SSN, doctor info, emergency contacts."
+          },
+          {
+            "step": 3,
+            "title": "Schedule assessment",
+            "description": "A case manager or social worker will contact you to schedule an in-person home visit to assess your parent's needs and eligibility."
+          },
+          {
+            "step": 4,
+            "title": "Begin service",
+            "description": "If approved, meal delivery typically begins within days of the assessment, though some areas have waitlists."
+          }
+        ],
+        "processingTime": "Varies by location — some within a week, others longer if waitlist exists. Tarrant County schedules caseworker appointments within 2 working days.",
+        "waitlist": "Possible in some programs, leading to longer processing times",
+        "tip": "Anyone can make the referral — you don't need to wait for your parent to call themselves.",
+        "urls": [
+          {
+            "label": "Find Local Provider",
+            "url": "https://www.mealsonwheelsamerica.org/find-meals-and-services/"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Proof of age (birth certificate, driver's license, or state ID)",
+        "Proof of residence in the service area (utility bill or lease)",
+        "Medical information about dietary restrictions or special needs",
+        "Doctor's contact information",
+        "Emergency contact information",
+        "Social Security number"
+      ],
+      "contacts": [
+        {
+          "label": "Meals on Wheels America Finder",
+          "phone": null,
+          "description": "Online tool to find your local provider",
+          "hours": "Available 24/7 at mealsonwheelsamerica.org"
+        },
+        {
+          "label": "Tarrant County",
+          "phone": "(817) 336-0912",
+          "description": "Meals on Wheels of Tarrant County",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Rockwall County",
+          "phone": "(972) 771-9514",
+          "description": "Meals on Wheels Senior Services of Rockwall County",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Texas 2-1-1",
+          "phone": "2-1-1",
+          "description": "Can help locate your local Meals on Wheels provider",
+          "hours": "24 hours, 7 days a week"
+        }
+      ],
+      "applicationNotes": [
+        "Car ownership or ability to leave home easily may disqualify your parent from the program",
+        "Short-term service is available for recovery periods but typically limited to 6 weeks",
+        "Some programs offer trial meals for a fee if you want to skip the full assessment process",
+        "Priority is often given to those with the greatest need, including dementia or severe disabilities"
+      ],
+      "relatedPrograms": [
+        "SNAP (Food Stamps)",
+        "Senior Farmers Market Nutrition Program",
+        "Commodity Supplemental Food Program",
+        "Area Agency on Aging Services"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can I apply for my parent who lives in a different county than me?",
+          "answer": "Yes, but you must contact the Meals on Wheels provider that serves your parent's specific area, not yours. Each program only delivers within their designated service zone, so location determines which provider to call."
+        },
+        {
+          "question": "What if my parent can still drive but has trouble cooking?",
+          "answer": "Your parent may not qualify if they can easily leave home and access other meal options. The program prioritizes those who are homebound — meaning they rarely leave home without significant assistance or difficulty."
+        },
+        {
+          "question": "How long is the waitlist in most Texas areas?",
+          "answer": "Waitlist length varies dramatically by location and isn't publicly reported by most providers. Some areas start service within a week, while others have longer waits. Priority is given to those with the greatest need, so severe disabilities or dementia may move your parent up the list."
+        },
+        {
+          "question": "What happens if my parent can't afford the suggested donation?",
+          "answer": "No one is denied service for inability to pay. Donations are voluntary and requested to help sustain the program, but your parent will receive meals regardless of whether they can contribute financially."
+        },
+        {
+          "question": "Can my parent get meals temporarily while recovering from surgery?",
+          "answer": "Yes, many programs offer short-term service for recovery periods, typically limited to about 6 weeks. Contact your local provider to discuss temporary meal delivery options during your parent's recovery."
+        },
+        {
+          "question": "What if my parent has special dietary needs like diabetes?",
+          "answer": "Many programs can accommodate medical dietary restrictions and may offer medically-tailored meals. Provide information about your parent's health conditions and dietary needs during the referral process so they can plan appropriate meals."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "warm"
+      },
+      "phone": "2-1-1",
+      "sourceUrl": "https://www.mealsonwheelsamerica.org/find-meals-and-services/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-10"
+    },
+    {
+      "id": "tx-cba-waiver",
+      "name": "Community Based Alternatives (CBA) Waiver",
+      "shortName": "CBA Waiver",
+      "tagline": "Help your parent avoid nursing home placement and receive care at home through this Texas Medicaid waiver program",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local HHSC offices",
+            "type": "service-area"
+          },
+          {
+            "name": "STAR+PLUS MCOs (e.g., Superior HealthPlan, Molina)",
+            "type": "service-area"
+          },
+          {
+            "name": "Providers like Good Samaritan",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs nursing home-level care but wants to stay in their own home, the Community Based Alternatives (CBA) Waiver can make that possible. This Texas Medicaid program pays for personal care attendants, home modifications, respite care, and nursing services — essentially bringing nursing home services to your parent's house. Your parent must qualify for Medicaid and meet nursing facility level of care (meaning they need daily help with activities like bathing, dressing, or medication management).\n\nBecause this waiver covers comprehensive home care services under one coordinated plan, your parent won't need to piece together care from multiple providers — one team manages everything from personal attendants to therapy services. The total cost of your parent's service plan cannot exceed what Texas would pay for nursing home care, but there's no fixed dollar limit or hour cap — services are tailored to their specific needs.\n\nThere is a waitlist for this program. Wait times vary by region and your parent's priority level, with those at highest risk of nursing home placement typically served first. Income limit: $2,829/month for a single person (2025). Asset limit: $2,000 for an individual, $3,000 for a couple.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 21+",
+          "Income below $2,829/month",
+          "Assets under $2,000 individual",
+          "Needs nursing home level care",
+          "Texas resident"
+        ],
+        "ageRequirement": "21+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 2000,
+          "couple": 3000,
+          "countedAssets": [
+            "Bank accounts",
+            "Investments",
+            "Second vehicles",
+            "Second properties"
+          ],
+          "exemptAssets": [
+            "Primary home (if equity ≤$730,000)",
+            "One vehicle",
+            "Personal belongings",
+            "Burial plots"
+          ],
+          "homeEquityCap": 730000
+        },
+        "functionalRequirement": "Must meet nursing facility level of care criteria (needing daily assistance with bathing, dressing, eating, mobility, or medication management) and be at risk for nursing home placement",
+        "otherRequirements": [
+          "Must qualify for Medicaid",
+          "Must choose waiver services over nursing facility care",
+          "Cannot already be in a nursing facility",
+          "Texas resident"
+        ],
+        "povertyLevelReference": "300% of SSI"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply for Medicaid first through Your Texas Benefits online portal, then contact local providers for waiver services — total process typically takes 45 days.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Apply for Medicaid",
+            "description": "Visit yourtexasbenefits.com or call 2-1-1 to apply for Medicaid using Form H1200. You must qualify for Medicaid before accessing waiver services."
+          },
+          {
+            "step": 2,
+            "title": "Request waiver interest list",
+            "description": "Call HHSC at (877) 541-7905 or contact local providers to be added to the CBA waiver interest list. This step can be done simultaneously with Medicaid application."
+          },
+          {
+            "step": 3,
+            "title": "Complete functional assessment",
+            "description": "Once called from the waitlist, a clinical team will assess whether your parent meets nursing facility level of care requirements through in-person evaluation."
+          },
+          {
+            "step": 4,
+            "title": "Develop service plan",
+            "description": "If approved, work with the assigned care coordinator to create an individualized service plan that cannot exceed the cost of nursing home care."
+          }
+        ],
+        "processingTime": "Medicaid eligibility determination typically 45 days, but waiver interest list placement is immediate",
+        "waitlist": "Yes, waitlists are common and can extend from several months to multiple years depending on region and priority level",
+        "tip": "Apply to the interest list as soon as you think your parent might need services, even if they're not ready now — you can decline when called if the timing isn't right.",
+        "urls": [
+          {
+            "label": "Your Texas Benefits",
+            "url": "https://yourtexasbenefits.com"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Social Security cards for applicant and spouse",
+        "Medicare card (both parts A and B)",
+        "Proof of age (birth certificate or passport)",
+        "Proof of Texas residency (utility bill, lease, or state-issued document)",
+        "Most recent Social Security award letter",
+        "Pension or retirement income statements",
+        "Bank statements for all accounts (last 3 months)",
+        "Investment documents (stocks, bonds, annuities)",
+        "Property documents (deeds, tax statements)",
+        "Life insurance policies with face values",
+        "Vehicle titles and registration",
+        "Medical records showing functional limitations",
+        "Physician statement regarding need for nursing facility level of care",
+        "Proof of health insurance premiums paid",
+        "Pre-need burial contracts if applicable"
+      ],
+      "contacts": [
+        {
+          "label": "Texas 2-1-1",
+          "phone": "2-1-1",
+          "description": "Free 24/7 helpline for all social services including CBA waiver information",
+          "hours": "24 hours, 7 days a week"
+        },
+        {
+          "label": "HHSC Benefits Line",
+          "phone": "(877) 541-7905",
+          "description": "Medicaid and waiver program questions",
+          "hours": "Mon-Fri 8am-6pm CT"
+        }
+      ],
+      "applicationNotes": [
+        "You can apply for Medicaid and request waiver interest list placement simultaneously — don't wait for Medicaid approval to get on the waitlist",
+        "Wait times vary significantly by region — urban areas like Houston and Dallas typically have longer waits than rural areas",
+        "Priority is given to those at highest risk of nursing home placement — emergency situations may receive expedited consideration",
+        "Your parent cannot be enrolled in both CBA waiver and nursing facility care at the same time — it's an either/or choice"
+      ],
+      "relatedPrograms": [
+        "STAR+PLUS HCBS",
+        "Texas Home Living Waiver",
+        "Deaf-Blind Multiple Disabilities Waiver"
+      ],
+      "contentSections": [
+        {
+          "type": "stat-callout",
+          "title": "CBA Waiver At a Glance",
+          "stats": [
+            {
+              "label": "Income Limit (2025)",
+              "value": "$2,829/month",
+              "subtext": "For single person"
+            },
+            {
+              "label": "Asset Limit",
+              "value": "$2,000",
+              "subtext": "Individual ($3,000 couple)"
+            },
+            {
+              "label": "Service Areas",
+              "value": "Statewide",
+              "subtext": "Via STAR+PLUS regions"
+            }
+          ]
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if it's worth more than the asset limit?",
+          "answer": "Yes, your parent's primary home is exempt from the $2,000 asset limit as long as they live there or intend to return, and the home equity doesn't exceed $730,000. The home remains exempt even if your spouse or disabled child lives there."
+        },
+        {
+          "question": "How long is the waitlist really?",
+          "answer": "Wait times vary from several months to multiple years depending on your region and your parent's priority level. Urban areas like Houston and Dallas typically have longer waits than rural areas. Those at highest risk of immediate nursing home placement get priority."
+        },
+        {
+          "question": "Can I apply on behalf of my elderly parent?",
+          "answer": "Yes, you can apply as your parent's authorized representative if they cannot apply themselves due to physical or cognitive limitations. You'll need to complete additional paperwork establishing your authority to act on their behalf."
+        },
+        {
+          "question": "What if my parent's income is slightly over the $2,829 limit?",
+          "answer": "Your parent may still qualify through a Medicaid spend-down process, where they pay the excess income toward medical expenses each month. Contact HHSC at (877) 541-7905 to discuss spend-down options for your parent's specific situation."
+        },
+        {
+          "question": "Can my parent receive CBA waiver services and still live in assisted living?",
+          "answer": "Yes, CBA waiver services can be provided in various community settings including assisted living facilities, as long as your parent isn't in a nursing facility. The services complement rather than replace the assisted living care."
+        },
+        {
+          "question": "What happens if my parent's needs increase after they're enrolled?",
+          "answer": "The care coordinator will reassess your parent's needs and can modify the service plan accordingly, as long as the total cost doesn't exceed the nursing facility payment rate. Regular reassessments ensure services match current needs."
+        },
+        {
+          "question": "Can my parent choose their own personal care attendant?",
+          "answer": "In many cases, yes. Your parent may be able to hire family members or friends as personal attendants, though specific rules vary by the managed care organization. The attendant must meet training and background check requirements."
+        },
+        {
+          "question": "What if we move to a different part of Texas after enrollment?",
+          "answer": "Your parent can maintain CBA waiver services when moving within Texas, but you'll need to transfer to the new region's STAR+PLUS managed care organization. Contact your current care coordinator to initiate the transfer process before moving."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "waitlist",
+        "eligibilityDisplay": "asset-focused",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "phone": "2-1-1",
+      "sourceUrl": "https://www.hhs.texas.gov/services/long-term-care/home-community-based-care/community-based-alternatives-cba",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-10"
+    },
+    {
+      "id": "tx-community-caregiver-support",
+      "name": "Community Caregiver Support Program",
+      "shortName": "Caregiver Support",
+      "tagline": "Get help coordinating care for your aging parent through local support centers across Texas.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local Aging and Disability Resource Centers (ADRCs)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs help with daily tasks like bathing, meal preparation, or getting to appointments, Texas's community caregiver programs can connect you to local services and support. These programs work through your local Aging and Disability Resource Center (ADRC) to help older adults stay in their homes longer.\n\nThe main program, Community Care for Aged/Disabled (CCAD), provides non-medical support services for people who need help with everyday activities but don't qualify for full Medicaid. Income limits are $2,829/month for a single person and $5,658 for couples (2024 figures). Asset limits are $5,000 for individuals and $6,000 for couples.\n\nBecause services are coordinated through local ADRCs, your parent gets one point of contact instead of calling multiple agencies. Wait times and available services vary by region depending on local capacity.",
+      "savingsRange": "",
+      "savingsSource": "Free service coordination and connection to local resources",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Texas resident",
+          "Age 18+ with disability or daily care needs",
+          "Income under $2,829/month (single) or $5,658 (couple)",
+          "Assets under $5,000 (single) or $6,000 (couple)"
+        ],
+        "ageRequirement": "18+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 5000,
+          "couple": 6000,
+          "countedAssets": [
+            "Bank accounts",
+            "Stocks and bonds",
+            "Cash"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "One vehicle",
+            "Burial funds"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "Need help with daily activities like bathing, dressing, meal preparation, or household tasks",
+        "otherRequirements": [
+          "Texas residency required",
+          "Cannot be receiving Medicaid for the same services"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your local Aging and Disability Resource Center at 1-855-937-2372 to start the process.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the statewide ADRC line",
+            "description": "Call 1-855-937-2372 to be connected to your local Aging and Disability Resource Center. They'll assess your parent's needs over the phone."
+          },
+          {
+            "step": 2,
+            "title": "Complete intake assessment",
+            "description": "Answer questions about your parent's daily living needs, income, assets, and current living situation. This helps determine which services they qualify for."
+          },
+          {
+            "step": 3,
+            "title": "Provide required documentation",
+            "description": "Submit proof of income, Texas residency, and care needs. Your local ADRC will tell you exactly what documents they need."
+          },
+          {
+            "step": 4,
+            "title": "Wait for service coordination",
+            "description": "Your ADRC will match your parent with available local providers. Wait times vary by region and service type."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": "Varies by region and service type",
+        "tip": "Call early in the day (before 10am) when ADRC staff have more time for detailed conversations about your parent's specific needs.",
+        "urls": []
+      },
+      "documentsNeeded": [
+        "Valid government-issued photo ID for your parent",
+        "Proof of Texas residency (utility bill, lease, or driver's license)",
+        "Social Security award letter or pension statements",
+        "Bank statements for all accounts (last 3 months)",
+        "Medicare card and any other health insurance cards",
+        "List of current medications and medical conditions"
+      ],
+      "contacts": [
+        {
+          "label": "Aging and Disability Resource Centers",
+          "phone": "1-855-937-2372",
+          "description": "Statewide line connecting to local ADRCs for caregiver support services",
+          "hours": "Mon-Fri 8am-5pm CT"
+        },
+        {
+          "label": "Texas Health and Human Services",
+          "phone": "(877) 541-7905",
+          "description": "General benefits and Medicaid questions",
+          "hours": "Mon-Fri 8am-6pm CT"
+        }
+      ],
+      "applicationNotes": [
+        "Program names can be confusing — when you call, ask specifically about 'Community Care for Aged and Disabled' or 'CCAD' services",
+        "Some regions have immediate openings while others maintain waitlists — ask about current availability in your area",
+        "Income and asset limits are adjusted annually, so 2025 limits may be slightly higher than current figures"
+      ],
+      "relatedPrograms": [
+        "STAR+PLUS Medicaid Waiver",
+        "Community Attendant Services",
+        "Texas SNAP (food benefits)",
+        "LIHEAP (utility assistance)"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can I apply on behalf of my elderly parent?",
+          "answer": "Yes, adult children can initiate the application process by calling the ADRC. However, your parent will need to participate in the assessment interview, or you'll need legal authority (power of attorney) to act on their behalf. The ADRC staff will guide you through what's required."
+        },
+        {
+          "question": "What if my parent's income is slightly over the limit?",
+          "answer": "Income limits are $2,829/month for single people and $5,658 for couples in 2024. If your parent is over these amounts, they may still qualify for other programs like STAR+PLUS or private-pay services coordinated through the ADRC. Don't assume they're ineligible without calling."
+        },
+        {
+          "question": "How long is the waitlist really?",
+          "answer": "Wait times vary significantly by region and service type. Rural areas often have shorter waits but fewer service options. Urban areas may have longer waits but more providers. When you call your ADRC, ask for honest wait time estimates for the specific services your parent needs."
+        },
+        {
+          "question": "Can my parent get both this program and Medicaid services?",
+          "answer": "No, your parent cannot receive CCAD services and Medicaid services for the same needs. However, they might qualify for STAR+PLUS (Medicaid waiver) instead, which provides more comprehensive coverage. Your ADRC will help determine which program offers better benefits for your parent's situation."
+        },
+        {
+          "question": "What happens if my parent's needs change after enrollment?",
+          "answer": "The ADRC will reassess your parent's needs periodically, usually annually or when you request it. If their care needs increase, they may qualify for additional services or need to transition to a different program like STAR+PLUS. Call your ADRC whenever your parent's situation changes significantly."
+        },
+        {
+          "question": "Does my parent's house count toward the asset limit?",
+          "answer": "No, your parent's primary home is exempt from the $5,000 individual or $6,000 couple asset limits. One vehicle is also exempt. The limits apply mainly to bank accounts, investments, and cash. If your parent has significant non-exempt assets, ask the ADRC about spend-down options."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "asset-focused",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "warm"
+      },
+      "phone": "1-855-937-2372",
+      "sourceUrl": null,
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-10"
+    },
+    {
+      "id": "tx-legal-aid-seniors-aaa",
+      "name": "Legal Aid for Seniors through AAAs",
+      "shortName": "Legal Aid Services",
+      "tagline": "Free legal help for Texas seniors 60+ with Medicare, housing, and consumer issues through local Area Agencies on Aging.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "28 AAAs including Concho Valley AAA (San Angelo), West Central Texas AAA (Abilene), Capital Area AAA (Austin area), Area Agency on Aging of Central Texas (Belton)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and facing legal issues with Medicare benefits, nursing home complaints, or housing problems, Texas's 28 Area Agencies on Aging provide free legal counseling and advocacy. Because these services are provided through AAAs rather than traditional legal aid organizations, your parent can get help regardless of income level — though priority goes to those with the greatest need.\n\nThe program covers civil legal matters only: Medicare and Medicaid benefits counseling, ombudsman advocacy for nursing homes and assisted living facilities, consumer protection issues, and housing disputes. Your parent will get one-on-one counseling from trained staff, plus referrals to specialized legal aid organizations when needed. Because all 254 Texas counties are covered by the 28 regional AAAs, there's a local office that serves your parent's area.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Texas resident",
+          "Civil legal matters only",
+          "No income limits",
+          "All 254 counties covered"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Texas resident in county served by one of 28 AAAs",
+          "Civil legal matters only (no criminal or personal injury cases)",
+          "Priority given to those with functional impairment, isolation, or low income"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your local AAA directly for immediate counseling or referral — no forms required.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local AAA",
+            "description": "Texas has 28 regional AAAs covering all counties. Examples: Concho Valley AAA serves San Angelo area at (325) 223-5704, West Central Texas AAA serves Abilene area at (325) 672-8544, Capital Area AAA serves Austin area at (512) 916-6062."
+          },
+          {
+            "step": 2,
+            "title": "Call for intake screening",
+            "description": "Explain your parent's legal issue during the phone call. Staff will provide immediate counseling for benefits questions or nursing home advocacy, or refer to appropriate legal aid organizations for complex matters."
+          },
+          {
+            "step": 3,
+            "title": "Receive services or referral",
+            "description": "AAA staff provide direct ombudsman services and benefits counseling. For cases requiring legal representation, they refer to organizations like Legal Aid of NorthWest Texas (325) 677-8591 or Texas RioGrande Legal Aid (512) 374-2700."
+          }
+        ],
+        "processingTime": "Immediate counseling or referral upon contact",
+        "waitlist": null,
+        "tip": "Contact the AAA first, not the legal aid organizations directly — AAA staff can often resolve benefits and nursing home issues without needing a lawyer.",
+        "urls": [
+          {
+            "label": "Texas AAAs Directory",
+            "url": "https://texaslawhelp.org/article/area-agencies-on-aging-a-place-to-get-help"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Valid ID showing age 60+",
+        "Proof of Texas residency",
+        "Details of legal issue (Medicare statements, nursing home complaints, housing notices)",
+        "Income information if requesting priority services",
+        "Proof of participation in SNAP, Medicaid, or SSI for legal aid referrals",
+        "Any relevant legal documents related to the issue"
+      ],
+      "contacts": [
+        {
+          "label": "Concho Valley AAA",
+          "phone": "(325) 223-5704",
+          "description": "Serves San Angelo and surrounding counties",
+          "hours": "Business hours"
+        },
+        {
+          "label": "West Central Texas AAA",
+          "phone": "(325) 672-8544",
+          "description": "Serves Abilene and surrounding counties",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Capital Area AAA",
+          "phone": "(512) 916-6062",
+          "description": "Serves Austin area and surrounding counties",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Legal Aid of NorthWest Texas",
+          "phone": "(325) 677-8591",
+          "description": "Legal representation referrals for North/West Texas",
+          "hours": "Business hours"
+        }
+      ],
+      "applicationNotes": null,
+      "relatedPrograms": [
+        "SHIP (Medicare counseling)",
+        "Long-term Care Ombudsman",
+        "Texas Legal Aid",
+        "Benefits Outreach and Enrollment"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "What's the difference between AAA legal services and regular legal aid?",
+          "answer": "AAA legal services have no income limits and focus on counseling, benefits help, and nursing home advocacy. Traditional legal aid organizations like Legal Aid of NorthWest Texas require income below 125-200% of Federal Poverty Guidelines but provide full legal representation in court. AAAs often refer to legal aid when court representation is needed."
+        },
+        {
+          "question": "Can I call on behalf of my parent who has dementia?",
+          "answer": "Yes, family members and caregivers can contact AAAs on behalf of seniors. You'll need details about the legal issue and may need to provide documentation showing your authority to act (like power of attorney) depending on the situation."
+        },
+        {
+          "question": "Will my parent get priority if they're low-income?",
+          "answer": "Yes, AAAs prioritize services for seniors with the greatest need, including those with low income, functional impairments, social isolation, or high nutritional risk. However, services are available to all eligible seniors regardless of income level."
+        },
+        {
+          "question": "What if the legal issue involves criminal charges or a personal injury lawsuit?",
+          "answer": "AAAs only handle civil legal matters like benefits, housing, and consumer issues. For criminal defense or personal injury cases, they'll refer you to appropriate legal resources, but these fall outside their scope of services."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "minimal"
+      },
+      "phone": "(325) 223-5704",
+      "sourceUrl": "https://texaslawhelp.org/article/area-agencies-on-aging-a-place-to-get-help",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-10"
+    },
+    {
+      "id": "tx-ltc-ombudsman",
+      "name": "Long-Term Care Ombudsman Program",
+      "shortName": "LTC Ombudsman",
+      "tagline": "Free advocacy and complaint resolution when your parent faces problems in their nursing home or assisted living facility.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local programs via ltco.texas.gov 'Find an LTC Ombudsman' tool; examples: Cizik School of Nursing (Harris County)[3], Texoma COG[4]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent lives in a Texas nursing home or assisted living facility and faces problems with care, billing, or treatment, the Long-Term Care Ombudsman Program provides free advocacy to resolve complaints and protect their rights. Ombudsmen investigate issues like medication errors, dignity violations, financial exploitation, or discharge disputes — and they work independently from the facilities.\n\nThe service is completely free with no income limits or paperwork required. Family members of residents age 60+ can also receive assistance navigating facility issues. Because ombudsmen are trained advocates who know facility regulations, they can often resolve problems that families struggle with alone.\n\nEvery complaint is kept confidential, and ombudsmen can represent your parent in hearings, pursue remedies with facility management, and ensure access to medical records and inspection reports.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Resident of nursing home or assisted living in Texas",
+          "No age, income, or asset limits",
+          "Family members of residents 60+ also eligible",
+          "Free and confidential service"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be a resident of a nursing facility or assisted living facility in Texas, or a family member of a resident age 60+"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call 800-252-2412 to speak with a local ombudsman immediately — no application or paperwork required.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the statewide hotline",
+            "description": "Call 800-252-2412 to be connected with your local Long-Term Care Ombudsman. Available during business hours for immediate assistance."
+          },
+          {
+            "step": 2,
+            "title": "Provide facility and concern details",
+            "description": "Give the ombudsman your parent's name, facility name and location, and specific details about the problem or complaint."
+          },
+          {
+            "step": 3,
+            "title": "Ombudsman investigates",
+            "description": "The ombudsman will visit the facility, review records, interview staff, and work to resolve the issue while keeping your complaint confidential."
+          }
+        ],
+        "processingTime": "Immediate response for complaints and advocacy",
+        "waitlist": null,
+        "tip": "You can also find your local ombudsman online at ltco.texas.gov using the 'Find an LTC Ombudsman' tool if you prefer to contact them directly.",
+        "urls": [
+          {
+            "label": "Find Local Ombudsman",
+            "url": "https://ltco.texas.gov"
+          }
+        ]
+      },
+      "documentsNeeded": null,
+      "contacts": [
+        {
+          "label": "Statewide LTC Ombudsman Hotline",
+          "phone": "(800) 252-2412",
+          "description": "Connects you with local ombudsman for complaints and advocacy",
+          "hours": "Business hours, varies by local office"
+        },
+        {
+          "label": "Texas 2-1-1",
+          "phone": "2-1-1",
+          "description": "General helpline for all social services including LTC resources",
+          "hours": "24 hours, 7 days a week"
+        }
+      ],
+      "applicationNotes": null,
+      "relatedPrograms": [
+        "Texas Adult Protective Services",
+        "Medicaid Long-Term Care Services",
+        "Area Agency on Aging Services"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can I file a complaint on behalf of my parent who has dementia?",
+          "answer": "Yes, family members can file complaints and request ombudsman assistance for residents who cannot advocate for themselves. The ombudsman will still visit your parent and assess their situation directly, but they understand that family involvement is often necessary for residents with cognitive impairments."
+        },
+        {
+          "question": "Will the facility retaliate against my parent if I file a complaint?",
+          "answer": "Retaliation is illegal and ombudsmen specifically monitor for it. All complaints are kept confidential, and ombudsmen are trained to protect residents from reprisal. If retaliation occurs, contact your ombudsman immediately — they have authority to pursue remedies and escalate to regulatory agencies."
+        },
+        {
+          "question": "What if my parent wants to leave the facility but the facility won't discharge them?",
+          "answer": "Ombudsmen can help with discharge disputes and transfer issues. They know facility regulations about discharge procedures and can advocate for your parent's right to leave when medically appropriate. Call 800-252-2412 to discuss the specific circumstances."
+        },
+        {
+          "question": "Does the ombudsman program help with billing or payment disputes?",
+          "answer": "Yes, ombudsmen handle financial complaints including billing errors, unauthorized charges, and financial exploitation. They can review facility contracts and billing statements, and work with facility administration to resolve payment disputes."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": null,
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": false,
+        "visualTone": "minimal"
+      },
+      "phone": "(800) 252-2412",
+      "sourceUrl": "https://ltco.texas.gov",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-10"
+    }
+  ],
+  "stateOverview": {
+    "intro": "Texas offers 12 major programs to help your aging parent — 9 provide direct financial benefits or services, while 3 offer free guidance and advocacy. The financial help ranges from $298/month for groceries through SNAP to comprehensive healthcare coverage through STAR+PLUS that includes home care services. Free resources include one-on-one Medicare counseling, legal aid for seniors 60+, and nursing home advocacy. Most benefit programs have income limits around $2,000-3,000/month for a single person, but several valuable resources are available regardless of income. Start by checking if your parent qualifies for Medicaid programs — these provide the most comprehensive coverage and can coordinate multiple types of care under one system.",
+    "startHere": [
+      {
+        "name": "STAR+PLUS",
+        "programId": "star-plus",
+        "why": "Combines full healthcare coverage with home care services if your parent needs nursing home level care but wants to stay home."
+      },
+      {
+        "name": "SNAP",
+        "programId": "snap",
+        "why": "Quick way to reduce grocery costs by up to $298/month with relatively simple application process."
+      },
+      {
+        "name": "Texas SHIP",
+        "programId": "texas-ship",
+        "why": "Free expert help navigating Medicare options and finding prescription drug savings — no income requirements."
+      }
+    ],
+    "byNeed": [
+      {
+        "need": "Comprehensive health coverage and home care",
+        "programs": [
+          "STAR+PLUS",
+          "PACE",
+          "Community Based Alternatives (CBA) Waiver"
+        ],
+        "description": "Medicaid programs that provide full healthcare plus services to help your parent stay at home instead of moving to a nursing facility."
+      },
+      {
+        "need": "Help with daily expenses",
+        "programs": [
+          "SNAP",
+          "LIHEAP",
+          "Weatherization Assistance Program"
+        ],
+        "description": "Direct financial assistance for groceries, utility bills, and home energy efficiency improvements."
+      },
+      {
+        "need": "Medicare cost relief",
+        "programs": [
+          "QMB/SLMB/QI programs"
+        ],
+        "description": "Programs that pay Medicare premiums, deductibles, and copays for qualifying low-income seniors."
+      },
+      {
+        "need": "Daily support and meals",
+        "programs": [
+          "Meals on Wheels",
+          "Community Caregiver Support Program"
+        ],
+        "description": "Home-delivered meals and care coordination services for seniors who need daily assistance."
+      },
+      {
+        "need": "Free guidance and advocacy",
+        "programs": [
+          "Texas SHIP",
+          "Legal Aid for Seniors",
+          "Long-Term Care Ombudsman"
+        ],
+        "description": "Expert help with Medicare decisions, legal issues, and nursing home problems — available regardless of income."
+      }
+    ],
+    "quickFacts": [
+      "Texas uses YourTexasBenefits.com for SNAP and LIHEAP applications",
+      "PACE operates in limited Texas counties — availability depends on your parent's location",
+      "Most Medicaid waiver programs in Texas have waiting lists, so apply early even if your parent doesn't need services immediately"
+    ],
+    "resourcesVsBenefits": "Benefits like STAR+PLUS and SNAP require your parent to meet specific income and asset limits — typically around $2,000-3,000/month income for a single person. Resources like Texas SHIP Medicare counseling, legal aid through Area Agencies on Aging, and the Long-Term Care Ombudsman are free to all Texas seniors regardless of income, making them good starting points while you determine benefit eligibility."
+  }
+}

@@ -1,0 +1,797 @@
+{
+  "state": "VA",
+  "stateName": "Virginia",
+  "draftedAt": "2026-04-09T17:05:00.326Z",
+  "total": 5,
+  "successful": 5,
+  "programs": [
+    {
+      "id": "virginia-ccc-plus-waiver",
+      "name": "Commonwealth Coordinated Care Plus (CCC+) Waiver",
+      "shortName": "CCC+ Waiver",
+      "tagline": "If your parent needs daily help with bathing, dressing, or medication management, Virginia may pay for home care to keep them out of a nursing facility.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local Departments of Social Services (statewide)",
+            "type": "service-area"
+          },
+          {
+            "name": "Cover Virginia Call Center: 1-833-522-5582",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "The Commonwealth Coordinated Care Plus (CCC+) Waiver pays for home care services when your parent needs nursing facility-level care but wants to stay home. Because this waiver covers respite care, home modifications, assistive technology, and private duty nursing, your parent can receive comprehensive support without entering a nursing facility. Virginia provides up to 480 hours per year of respite care, up to $5,000 annually for home modifications and assistive technology, and up to 112 hours per week of private duty nursing when medically necessary. Your parent must be eligible for Virginia Medicaid and meet clinical requirements showing they need daily assistance with activities like bathing, dressing, toileting, or eating.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+ or disabled",
+          "Virginia Medicaid eligible",
+          "Needs daily help with bathing/dressing/eating",
+          "At risk of nursing facility placement"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must meet Nursing Facility Level of Care through Virginia Uniform Assessment, which evaluates your parent's ability to perform daily activities like bathing, dressing, toileting, eating, and mobility, plus any behavioral issues from dementia.",
+        "otherRequirements": [
+          "Virginia resident",
+          "Eligible for Virginia Medicaid",
+          "At imminent risk of nursing facility placement without waiver services"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Request screening through your local Department of Social Services — processing time not specified by the state.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Request LTSS Screening",
+            "description": "Contact your local Department of Social Services to request Long-Term Services and Supports screening. A Community Based Screening Team (social worker and health department nurse) will assess your parent's needs."
+          },
+          {
+            "step": 2,
+            "title": "Apply for Medicaid",
+            "description": "Apply online at CommonHelp.virginia.gov, call Cover Virginia at 1-833-522-5582, or visit your local DSS for a paper application. Include Appendix D specifically for long-term services."
+          },
+          {
+            "step": 3,
+            "title": "Complete Clinical Assessment",
+            "description": "The screening team will use the Virginia Uniform Assessment Instrument to determine if your parent meets Nursing Facility Level of Care requirements."
+          },
+          {
+            "step": 4,
+            "title": "Choose Services",
+            "description": "If approved, the screening team will help you find local providers for the services your parent needs."
+          }
+        ],
+        "processingTime": "Not specified by the state",
+        "waitlist": "No current waiting list",
+        "tip": "If your parent is in the hospital, ask the discharge planner to request the screening — this can speed up the process.",
+        "urls": [
+          {
+            "label": "Apply for Medicaid Online",
+            "url": "https://commonhelp.virginia.gov"
+          },
+          {
+            "label": "Official CCC+ Waiver Information",
+            "url": "https://www.dmas.virginia.gov/for-members/benefits-and-services/waivers/ccc-plus-waiver/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "A dementia diagnosis alone does not qualify your parent for this waiver. They must meet specific daily care requirements through the clinical assessment, regardless of their medical diagnosis."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Your parent must qualify for Virginia Medicaid first. If their income or assets are over Medicaid limits, they will be denied for the waiver. Spousal protections apply — only the applicant spouse's income counts toward eligibility."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent's income is just over the Medicaid limit?",
+          "answer": "Spousal impoverishment protections apply if your parent is married. Only the applicant spouse's income counts toward eligibility, and income can be transferred to the non-applicant spouse as a Spousal Income Allowance. Contact your local Department of Social Services for specific income limits and spousal protections."
+        },
+        {
+          "question": "Can my parent keep their house if they qualify?",
+          "answer": "Virginia Medicaid has asset exemptions including the family home, but specific dollar amounts aren't provided in state materials. Spousal asset protections also apply. Your local Department of Social Services can explain what assets count toward the limits."
+        },
+        {
+          "question": "How many hours of help can my parent get per week?",
+          "answer": "It depends on the service. Private duty nursing can be up to 112 hours per week if medically necessary. Respite care is limited to 480 hours per state fiscal year (July 1 to June 30), which averages about 9 hours per week."
+        },
+        {
+          "question": "What's the difference between this and other disability waivers?",
+          "answer": "CCC+ services are more limited than Developmental Disabilities waivers. Your parent can use CCC+ while on a DD waiver waiting list if they qualify for both programs."
+        },
+        {
+          "question": "Does my parent need to be at immediate risk of nursing home placement?",
+          "answer": "Yes. Your parent must be at imminent risk of nursing facility placement without waiver services. The clinical assessment will evaluate this risk based on their care needs and current support system."
+        },
+        {
+          "question": "What if we need home modifications that cost more than $5,000?",
+          "answer": "Environmental modifications are capped at $5,000 per person per calendar year through this waiver. You would need to find other funding sources or pay out-of-pocket for modifications exceeding this amount."
+        }
+      ],
+      "phone": "1-833-522-5582",
+      "sourceUrl": "https://www.dmas.virginia.gov/for-members/benefits-and-services/waivers/ccc-plus-waiver/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "virginia-adult-services-program",
+      "name": "Virginia Adult Services Program",
+      "shortName": "Adult Services",
+      "tagline": "If your parent needs help with daily tasks or is at risk of neglect, Virginia provides homemaker services, adult day care, and protective support.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local DSS offices",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your aging parent struggles with meal prep, housekeeping, or managing money — or if you're worried about their safety — Virginia's Adult Services Program provides homemaker services, companionship, and protective support. Because this program is designed for at-risk elderly and disabled adults, your parent doesn't need to meet strict income limits like Medicaid.\n\nThe program offers up to 15 hours per week of homemaker services in some counties, adult day center access, and Adult Protective Services if your parent faces abuse, neglect, or exploitation. Your local Department of Social Services will assess your parent's functional needs (like help with bathing, dressing, or medication management) and create a care plan.\n\nServices vary by county based on local funding and providers. Priority goes to adults who need protective services or have the greatest risk of harm.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+ (or 18+ if incapacitated)",
+          "Virginia resident",
+          "Needs help with daily tasks",
+          "At risk of neglect or exploitation"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must need help with Activities of Daily Living (ADLs) like bathing, dressing, or medication management, or Instrumental Activities of Daily Living (IADLs) like meal prep, housekeeping, or money management",
+        "otherRequirements": [
+          "Virginia resident",
+          "At risk of abuse, neglect, or exploitation OR need for protective services"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply at your local Department of Social Services office — eligibility decision within 45 days, services begin within 45 days if approved.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact your local DSS office",
+            "description": "Call or visit in person to request an Adult Services Application. Assistance is available to help you complete it."
+          },
+          {
+            "step": 2,
+            "title": "Complete functional assessment",
+            "description": "DSS will assess your parent's ability to perform daily tasks like bathing, cooking, and managing medications."
+          },
+          {
+            "step": 3,
+            "title": "Submit required documents",
+            "description": "Provide proof of income (pay stubs, benefits statements) and permission to contact other agencies if needed."
+          },
+          {
+            "step": 4,
+            "title": "Wait for approval",
+            "description": "You'll receive an eligibility decision within 45 days. If approved, services begin within another 45 days."
+          }
+        ],
+        "processingTime": "Eligibility decision within 45 days; services begin within 45 days if eligible",
+        "waitlist": "Services subject to availability and local funding",
+        "tip": "Apply even if your parent's income seems too high — this program doesn't have strict statewide income limits like Medicaid.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Financial",
+              "items": [
+                "Pay stubs from last 30 days",
+                "Social Security award letter",
+                "Pension or retirement income statements",
+                "Permission to contact other agencies (if applicable)"
+              ]
+            },
+            {
+              "name": "Personal",
+              "items": [
+                "Complete contact information",
+                "Medical documentation of functional needs (if available)",
+                "Information about current living situation"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Services depend on local funding and provider availability. Hours and services vary by county — some offer up to 15 hours per week, others may have longer wait times."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "You must report any changes in your parent's income or living situation within 10 days, or risk prosecution for providing inaccurate information."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What's the difference between this program and Medicaid home care?",
+          "answer": "Adult Services Program is separate from Medicaid and doesn't have the same strict income limits. However, services are limited by local funding and may have waiting lists. Medicaid waiver programs typically offer more comprehensive coverage but require meeting Medicaid financial eligibility."
+        },
+        {
+          "question": "Can my parent get both homemaker services and adult day care?",
+          "answer": "Yes, your parent can receive multiple services if they qualify and services are available in your county. The local DSS will create a care plan based on your parent's assessed needs and available resources."
+        },
+        {
+          "question": "What if my parent refuses help but I'm worried about their safety?",
+          "answer": "Adult Protective Services can investigate concerns about abuse, neglect, or exploitation even if your parent initially refuses help. Call your local DSS to report safety concerns — they'll assess the situation and determine appropriate interventions."
+        },
+        {
+          "question": "How many hours of homemaker services can my parent get?",
+          "answer": "Hours vary by county and available funding. Some counties like Lee County offer up to 15 hours per week, but your parent's specific allocation depends on their assessed needs and your local DSS resources."
+        },
+        {
+          "question": "What if our county has a waiting list for services?",
+          "answer": "Priority typically goes to adults at highest risk of harm or those needing protective services. Ask your local DSS about emergency or priority placement criteria, and whether other programs might be available while waiting."
+        },
+        {
+          "question": "Can undocumented immigrants apply for these services?",
+          "answer": "There's no citizenship requirement for Adult Services Program. Anyone can apply and must receive equal treatment regardless of national origin or immigration status."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://www.dss.virginia.gov/adults.cgi",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "virginia-insurance-counseling-assistance-program",
+      "name": "Virginia Insurance Counseling and Assistance Program (VICAP)",
+      "shortName": "VICAP",
+      "tagline": "Get free, unbiased help choosing the right Medicare plan for your parent — no sales pitches.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Department for Aging and Rehabilitative Services (DARS) - Main office: 1610 Forest Ave., Henrico, VA 23229",
+            "type": "service-area"
+          },
+          {
+            "name": "Alexandria DCHS-Aging and Adult Services Division: 4850 Mark Center Dr. 9th Floor, Alexandria, VA 22311",
+            "type": "service-area"
+          },
+          {
+            "name": "Fairfax County Family Services (Older Adults)",
+            "type": "service-area"
+          },
+          {
+            "name": "Local Area Agencies on Aging throughout Virginia (specific locations vary by county)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent has Medicare or is turning 65, VICAP provides free one-on-one counseling to help them choose the right Medicare plan. Because Medicare has dozens of plan options that change every year, VICAP counselors compare costs and coverage to find what works best for your parent's specific medications and doctors.\n\nVICAP counselors are trained and certified specifically for Medicare — they cannot sell insurance and receive no commissions. This means you get unbiased advice without sales pressure. Services include help with Medicare Parts A, B, and D, Medicare Advantage plans, Medigap supplements, and appeals if Medicare denies a claim.\n\nThe program serves any Medicare beneficiary in Virginia, including those under 65 with disabilities, plus their family members and caregivers.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Medicare beneficiary or turning 65 soon",
+          "Virginia resident",
+          "Family members and caregivers also eligible",
+          "No income limits"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be a Medicare beneficiary or soon-to-be eligible for Medicare",
+          "Families, friends, and caregivers of Medicare beneficiaries can also access services"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your local Area Agency on Aging — appointments are typically available within a week.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call your local Area Agency on Aging",
+            "description": "Use the statewide number (800) 552-3402 or your regional number. They'll connect you to a VICAP counselor in your area."
+          },
+          {
+            "step": 2,
+            "title": "Gather Medicare documents",
+            "description": "Have your parent's current Medicare card, prescription list, and preferred pharmacy name ready for the appointment."
+          },
+          {
+            "step": 3,
+            "title": "Schedule counseling session",
+            "description": "Sessions can be over the phone, in-person, or at group workshops. One-on-one counseling is confidential and tailored to your parent's specific needs."
+          },
+          {
+            "step": 4,
+            "title": "Get plan recommendations",
+            "description": "Your counselor will compare all available plans and help you enroll in the best option for your parent's situation."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Call during Medicare Annual Open Enrollment (October 15 – December 7) for plan changes effective January 1, but counseling is available year-round.",
+        "urls": [
+          {
+            "label": "Virginia Department for Aging and Rehabilitative Services",
+            "url": "https://dars.virginia.gov/aging/home-community/medicare-counseling/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "Contact Information by Region",
+          "offices": [
+            {
+              "name": "Statewide Toll-Free",
+              "type": "service-area",
+              "phone": "(800) 552-3402",
+              "address": "Available statewide"
+            },
+            {
+              "name": "Fairfax County Area",
+              "type": "service-area",
+              "phone": "(703) 324-5851",
+              "address": "Fairfax County Family Services"
+            },
+            {
+              "name": "Other Virginia Regions",
+              "type": "service-area",
+              "phone": "(540) 635-7141",
+              "address": "Regional offices throughout Virginia"
+            },
+            {
+              "name": "Alexandria Residents",
+              "type": "service-area",
+              "phone": "(800) 552-3402",
+              "address": "DCHS-Aging and Adult Services Division, 4850 Mark Center Dr. 9th Floor, Alexandria, VA 22311"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "VICAP counselors cannot sell insurance and receive no commissions — this guarantees unbiased advice focused on your parent's best interests, not a sales quota."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent already has a Medicare plan — can VICAP still help?",
+          "answer": "Yes. VICAP counselors can review your parent's current plan to see if it still meets their needs or if a different plan would save money or provide better coverage. Plans change every year, so an annual review is recommended."
+        },
+        {
+          "question": "Can VICAP help if Medicare denies my parent's claim or medication?",
+          "answer": "Yes. VICAP provides appeals assistance and can help you understand why a claim was denied and how to challenge the decision. They'll guide you through the appeals process step by step."
+        },
+        {
+          "question": "My parent has both Medicare and Medicaid — is VICAP still useful?",
+          "answer": "Absolutely. If your parent has both Medicare and Medicaid, they may qualify for special Dual Eligible Special Needs Plans (D-SNPs) that provide extra benefits. VICAP counselors specialize in helping dual-eligible beneficiaries find these enhanced plans."
+        },
+        {
+          "question": "Does VICAP cost anything or try to sell insurance?",
+          "answer": "VICAP is completely free and confidential. Counselors are prohibited from selling insurance or receiving commissions. Their only goal is helping your parent find the best Medicare coverage for their situation."
+        },
+        {
+          "question": "Can I get help for my parent if I don't live in Virginia?",
+          "answer": "Yes, as long as your parent lives in Virginia and has Medicare. Family members and caregivers can access VICAP services even if they live out of state. You can call on your parent's behalf or participate in counseling sessions with them."
+        },
+        {
+          "question": "What should my parent bring to a VICAP appointment?",
+          "answer": "Bring their current Medicare card, a list of all medications with dosages, their preferred pharmacy name, and information about any current supplemental insurance. If they have Medicaid or receive Extra Help, bring that information too."
+        }
+      ],
+      "phone": "(800) 552-3402",
+      "sourceUrl": "https://dars.virginia.gov/aging/home-community/medicare-counseling/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "virginia-seniornavigator",
+      "name": "SeniorNavigator",
+      "shortName": "SeniorNavigator",
+      "tagline": "Free search tool to find over 27,000 local programs for health, housing, transportation, and financial help in Virginia.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Searchable local providers including government agencies, nonprofits, geriatricians; Henrico Area Mental Health & Developmental Services partnership",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If you're trying to find help for your aging parent in Virginia — whether they need meal delivery, transportation to doctor appointments, or help paying utilities — SeniorNavigator can save you hours of research. This free online tool searches over 27,000 programs across Virginia, showing you exactly what's available in your parent's city or county, including eligibility requirements and how to apply.\n\nBecause SeniorNavigator covers everything from health and housing to financial planning and technology support, you can search once and see all available options instead of calling dozens of agencies. The platform includes specialized sections for seniors, people with disabilities, veterans, and family caregivers, plus an 'Ask an Expert' feature for personalized advice.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Available to all Virginia residents",
+          "No income limits",
+          "Covers seniors, caregivers, veterans",
+          "Search by city or county"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be a Virginia resident to access Virginia-specific programs"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "online",
+        "summary": "Visit virginianavigator.org and search by topic and your parent's city or county — results appear immediately.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Go to virginianavigator.org",
+            "description": "Choose the senior portal or general search based on your parent's needs."
+          },
+          {
+            "step": 2,
+            "title": "Enter location and topic",
+            "description": "Search by your parent's city or county, then select categories like health, housing, or transportation."
+          },
+          {
+            "step": 3,
+            "title": "Review program details",
+            "description": "Each listing shows eligibility requirements, costs, intake process, and contact information."
+          },
+          {
+            "step": 4,
+            "title": "Contact programs directly",
+            "description": "Call or apply to the specific programs that match your parent's needs — each has its own application process."
+          }
+        ],
+        "processingTime": "Immediate access to directory",
+        "waitlist": null,
+        "tip": "Use the specialized caregiver portal for resources specifically designed for family members helping aging parents.",
+        "urls": [
+          {
+            "label": "SeniorNavigator Main Site",
+            "url": "https://www.virginianavigator.org/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "SeniorNavigator is a search tool, not a direct service. After finding programs that fit your parent's needs, you'll need to contact each program separately to apply. Some may have waitlists or additional requirements not shown in the directory."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Does using SeniorNavigator guarantee my parent will get services?",
+          "answer": "No. SeniorNavigator helps you find programs, but each program has its own application process, eligibility requirements, and potentially waitlists. You'll need to contact programs directly to apply."
+        },
+        {
+          "question": "How current is the information in SeniorNavigator?",
+          "answer": "The platform is regularly updated, but program details like income limits or available slots can change. Always confirm current eligibility and availability when you contact a program directly."
+        },
+        {
+          "question": "Can I search for programs in multiple counties if my parent is considering moving?",
+          "answer": "Yes. You can search by different cities or counties to compare what services are available in each area, which can help with relocation decisions."
+        },
+        {
+          "question": "What if I can't find what I'm looking for in the search results?",
+          "answer": "Use the 'Ask an Expert' feature for personalized advice. The experts can suggest programs you might have missed or alternative resources that could meet your parent's needs."
+        },
+        {
+          "question": "Are the programs listed on SeniorNavigator free?",
+          "answer": "Not necessarily. The directory includes both free and fee-based services. Each program listing shows cost information, including sliding-scale fees where available."
+        },
+        {
+          "question": "Can I use this tool if my parent lives in assisted living?",
+          "answer": "Yes. Many programs serve people in all living situations, including assisted living residents. The directory will show which programs are available regardless of housing type."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://www.virginianavigator.org/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "virginia-scsep-employment",
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "shortName": "SCSEP Employment",
+      "tagline": "Part-time paid job training for unemployed adults 55+ with incomes under $16,988/year (single person).",
+      "programType": "employment",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "DARS: dars.virginia.gov/aging/senior-employment-program/[7]",
+            "type": "service-area"
+          },
+          {
+            "name": "Northern Virginia SCSEP: vcwnorthern.com/scsep/, 571-363-7688[4]",
+            "type": "service-area"
+          },
+          {
+            "name": "Span Center (Richmond): (804) 343-3000[8]",
+            "type": "service-area"
+          },
+          {
+            "name": "WWRC: sharepoint.wwrc.net (Ability is Ageless)[1]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 55+ and unemployed with limited income, SCSEP provides part-time paid work experience at community organizations like libraries, schools, and senior centers. Your parent earns minimum wage for up to 20 hours per week while learning job skills and computer training. Because this is temporary job training (not permanent employment), the goal is helping your parent transition to a regular unsubsidized job. Income must be at or below 125% of the federal poverty level — $16,988/year for a single person in Northern Virginia (2023 figures). Your parent cannot be working any paid hours to qualify, and must live in the service area of a local SCSEP provider.",
+      "savingsRange": "",
+      "savingsSource": "Paid job training program",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Unemployed (no paid hours)",
+          "Income under $16,988/year (single)",
+          "US work authorization"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1416
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 1907
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 2399
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 2891
+          },
+          {
+            "householdSize": 5,
+            "monthlyLimit": 3382
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be completely unemployed (any paid work disqualifies)",
+          "Must live in program service area",
+          "Must be authorized to work in the US",
+          "Must demonstrate low employment prospects and need job skills training"
+        ],
+        "povertyLevelReference": "125% FPL"
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your local SCSEP provider to complete an enrollment packet over the phone or in-person.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local provider",
+            "description": "Northern Virginia: Call 571-363-7688. Richmond area: Call Span Center at (804) 343-3000. Other areas: Visit dars.virginia.gov/aging/senior-employment-program/ to find your regional office."
+          },
+          {
+            "step": 2,
+            "title": "Gather required documents",
+            "description": "You'll need two forms of ID, Social Security card, utility bill, benefit letters, and bank statements (see document list below)."
+          },
+          {
+            "step": 3,
+            "title": "Complete enrollment packet",
+            "description": "Staff will review eligibility and complete your application over the phone or at their office."
+          },
+          {
+            "step": 4,
+            "title": "Wait for placement",
+            "description": "If eligible and positions are available, you'll be matched with a community service site for your job training."
+          }
+        ],
+        "processingTime": "Not specified — if eligible and no waitlist, enrollment happens promptly",
+        "waitlist": "Possible waitlist depending on local availability. Apply now to get on file as positions fluctuate.",
+        "tip": "Veterans, adults 65+, and those with disabilities get priority service, but this doesn't guarantee immediate placement.",
+        "urls": [
+          {
+            "label": "DARS Statewide Program",
+            "url": "https://dars.virginia.gov/aging/senior-employment-program/"
+          },
+          {
+            "label": "Northern Virginia SCSEP",
+            "url": "https://vcwnorthern.com/scsep/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits by Household Size (125% Federal Poverty Level)",
+          "rows": [
+            {
+              "householdSize": 1,
+              "annualLimit": 16988,
+              "monthlyLimit": 1416
+            },
+            {
+              "householdSize": 2,
+              "annualLimit": 22888,
+              "monthlyLimit": 1907
+            },
+            {
+              "householdSize": 3,
+              "annualLimit": 28788,
+              "monthlyLimit": 2399
+            },
+            {
+              "householdSize": 4,
+              "annualLimit": 34688,
+              "monthlyLimit": 2891
+            },
+            {
+              "householdSize": 5,
+              "annualLimit": 40588,
+              "monthlyLimit": 3382
+            }
+          ],
+          "footnote": "2023 figures for Northern Virginia. Add $5,900 per additional household member. Figures adjust annually with federal poverty guidelines."
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Two forms of ID (one must be photo ID like driver's license or passport)",
+                "Social Security card (both sides)",
+                "Utility bill with current name and address"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Benefit award letters (Social Security, SSI, SSDI if applicable)",
+                "SNAP letter (if applicable)",
+                "Last 3 months bank statements (if no work in 6 months) OR last 6 months bank statements plus pay stubs"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "You must be completely unemployed to qualify. Working even a few hours per week disqualifies you from SCSEP."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Regular Social Security retirement benefits count toward your income limit, but SSI and SSDI disability benefits do not count."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent work while in SCSEP?",
+          "answer": "No. Your parent must be completely unemployed to qualify for SCSEP. Any paid work, even part-time, disqualifies them from the program."
+        },
+        {
+          "question": "Does Social Security count toward the income limit?",
+          "answer": "Regular Social Security retirement benefits count toward the $16,988 income limit. However, SSI and SSDI disability benefits do not count as income for SCSEP eligibility."
+        },
+        {
+          "question": "How long can my parent stay in the program?",
+          "answer": "SCSEP is temporary job training, not permanent employment. The goal is to help your parent gain skills and find regular unsubsidized employment. The program averages 20 hours per week, up to 29 hours maximum."
+        },
+        {
+          "question": "What kind of work will my parent do?",
+          "answer": "SCSEP places participants at nonprofit organizations and public agencies like senior centers, libraries, schools, and hospitals. Common roles include clerical work, teacher's aide, librarian assistant, childcare support, customer service, and maintenance."
+        },
+        {
+          "question": "What if there's a waitlist in our area?",
+          "answer": "Apply now even if there's a waitlist. Positions fluctuate as people find permanent jobs or leave the program. Veterans, adults 65+, disabled individuals, and those in rural areas get priority service."
+        },
+        {
+          "question": "How much will my parent earn?",
+          "answer": "Participants earn at least federal minimum wage, or the higher state or local minimum wage if applicable. This is paid as a training stipend for up to 29 hours per week, averaging 20 hours."
+        }
+      ],
+      "phone": "571-363-7688",
+      "sourceUrl": "https://dars.virginia.gov/aging/senior-employment-program/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    }
+  ],
+  "stateOverview": {
+    "intro": "Virginia offers 5 key programs to help your aging parent stay independent and get the support they need. These range from paid home care services that can keep your parent out of a nursing facility, to free help navigating Medicare, to part-time employment for active seniors. Three programs provide direct benefits or services, while two offer free resources and guidance available to any Virginia family.\n\nStart by identifying your parent's most pressing need — whether that's daily care assistance, Medicare confusion, or finding local resources. Each program has different eligibility rules, but several offer immediate help regardless of income.",
+    "startHere": [
+      {
+        "name": "Commonwealth Coordinated Care Plus (CCC+) Waiver",
+        "programId": "ccc-plus-waiver",
+        "why": "Pays for home care if your parent needs daily help with bathing, dressing, or medication management — potentially saving thousands in nursing home costs."
+      },
+      {
+        "name": "SeniorNavigator",
+        "programId": "senior-navigator",
+        "why": "Free search tool with over 27,000 local Virginia programs — your fastest way to find help in your parent's specific area."
+      },
+      {
+        "name": "Virginia Insurance Counseling and Assistance Program (VICAP)",
+        "programId": "vicap",
+        "why": "Get unbiased Medicare help without sales pressure — especially valuable during open enrollment or if your parent's health needs have changed."
+      }
+    ],
+    "byNeed": [
+      {
+        "need": "Help with daily care at home",
+        "programs": [
+          "Commonwealth Coordinated Care Plus (CCC+) Waiver",
+          "Virginia Adult Services Program"
+        ],
+        "description": "Both programs provide hands-on support to help your parent stay safely at home instead of moving to a facility."
+      },
+      {
+        "need": "Understanding Medicare options",
+        "programs": [
+          "Virginia Insurance Counseling and Assistance Program (VICAP)"
+        ],
+        "description": "Free, unbiased counseling to help choose the right Medicare plan without sales pitches."
+      },
+      {
+        "need": "Finding local resources and programs",
+        "programs": [
+          "SeniorNavigator"
+        ],
+        "description": "Search tool covering health, housing, transportation, and financial assistance across Virginia."
+      },
+      {
+        "need": "Income and employment for active seniors",
+        "programs": [
+          "Senior Community Service Employment Program (SCSEP)"
+        ],
+        "description": "Part-time paid job training for unemployed adults 55+ with low incomes."
+      }
+    ],
+    "quickFacts": [
+      "SeniorNavigator covers over 27,000 programs across Virginia — making it your most comprehensive starting point",
+      "SCSEP income limit is $16,988/year for a single person (2024)",
+      "Both major home care programs require clinical assessments to determine if your parent needs daily assistance"
+    ],
+    "resourcesVsBenefits": "Virginia offers both qualification-based benefits and free resources. Programs like CCC+ Waiver and SCSEP require meeting specific income or care-level requirements and provide direct financial assistance or services. Meanwhile, SeniorNavigator and VICAP are free resources available to any Virginia family regardless of income — use these first to understand your options and get unbiased guidance."
+  }
+}

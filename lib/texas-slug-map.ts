@@ -35,7 +35,7 @@ export function getTexasOldId(newSlug: string): string | undefined {
 
 /** Build the URL for a state listing page. */
 export function buildStateUrl(stateId: string): string {
-  return stateId === "texas" ? "/texas/benefits" : `/waiver-library/${stateId}`;
+  return stateId === "texas" ? "/texas/benefits" : `/senior-benefits/${stateId}`;
 }
 
 /** Build the URL for a program detail page. */
@@ -44,5 +44,5 @@ export function buildProgramUrl(stateId: string, programId: string): string {
     const newSlug = TX_OLD_TO_NEW[programId];
     if (newSlug) return `/texas/benefits/${newSlug}`;
   }
-  return `/waiver-library/${stateId}/${programId}`;
+  return `/senior-benefits/${stateId}/${programId}`;
 }

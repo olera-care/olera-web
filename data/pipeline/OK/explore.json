@@ -1,0 +1,126 @@
+{
+  "entity": "Oklahoma",
+  "entitySlug": "oklahoma",
+  "state": "OK",
+  "stateName": "Oklahoma",
+  "isRegion": false,
+  "exploredAt": "2026-04-09T15:59:38.488Z",
+  "programCount": 16,
+  "programs": [
+    {
+      "name": "Oklahoma Medicaid SoonerCare",
+      "what_it_does": "Provides health coverage to eligible low-income seniors and disabled individuals, including doctor visits, hospital care, and long-term services. In Oklahoma, it is administered as SoonerCare with specific eligibility for aged, blind, and disabled (ABD) categories.",
+      "who_its_for": "Seniors aged 65+ or disabled individuals with low income and assets meeting state Medicaid thresholds.",
+      "official_url": "https://oklahoma.gov/ohca",
+      "benefit_value": "Varies by eligibility; covers medical costs up to full scope for qualified seniors."
+    },
+    {
+      "name": "Home and Community-Based Services (HCBS) Waivers (ADvantage Waiver)",
+      "what_it_does": "Offers in-home services like personal care and homemaker assistance to prevent nursing home placement. Administered through Oklahoma's ADvantage Waiver program under Title III and Medicaid.",
+      "who_its_for": "Seniors 65+ needing nursing home level care but able to remain safely at home.",
+      "official_url": "https://oklahoma.gov/okdhs/services/aging.html",
+      "benefit_value": "Personal care hours, adult day care, and other services tailored to individual needs."
+    },
+    {
+      "name": "Programs of All-Inclusive Care for the Elderly (PACE)",
+      "what_it_does": "Integrates Medicare and Medicaid to provide comprehensive medical and social services in community settings. Oklahoma has four PACE centers delivering holistic care through interdisciplinary teams.",
+      "who_its_for": "Individuals 55+ in service areas needing nursing home-level care but able to live safely in the community.",
+      "official_url": "https://oklahoma.gov/ohca/individuals/programs-of-all-inclusive-care-for-the-elderly-pace.html",
+      "benefit_value": "Full coverage of primary, acute, long-term care, and supportive services at no additional cost for dually eligible."
+    },
+    {
+      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "what_it_does": "Pays Medicare premiums, deductibles, and copayments for low-income beneficiaries. Known as Medicare Savings Program in Oklahoma, including Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), and Qualifying Individual (QI).",
+      "who_its_for": "Medicare enrollees with limited income and resources (e.g., QMB up to 100% FPL).",
+      "official_url": "https://oklahoma.gov/okdhs/services/aging/medicare.html",
+      "benefit_value": "QMB covers Part A/B premiums/costs; SLMB/QI cover Part B premiums up to $40.90/month (2026 rates)."
+    },
+    {
+      "name": "Supplemental Nutrition Assistance Program (SNAP)",
+      "what_it_does": "Provides monthly benefits via EBT card to purchase food at approved retailers. Federal program administered by Oklahoma DHS for eligible seniors.",
+      "who_its_for": "Low-income seniors 60+ or households meeting income limits (e.g., 130-200% FPL with deductions).",
+      "official_url": "https://oklahoma.gov/okdhs/services/snap.html",
+      "benefit_value": "Average $200-300/month per eligible senior household."
+    },
+    {
+      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "what_it_does": "Offers grants to help pay heating/cooling bills and crisis assistance. Administered statewide for low-income households including seniors.",
+      "who_its_for": "Low-income households (at or below 150% FPL) with seniors, disabled, or children.",
+      "official_url": "https://oklahoma.gov/okdhs/services/liheap.html",
+      "benefit_value": "One-time grants averaging $300-500 per household."
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "what_it_does": "Provides free home energy efficiency improvements like insulation and sealing. Federal program run through Oklahoma agencies targeting vulnerable residents.",
+      "who_its_for": "Low-income households (200% FPL or below) with elderly or disabled members prioritized.",
+      "official_url": "https://oklahoma.gov/okcommerce/programs/weatherization.html",
+      "benefit_value": "Free upgrades reducing energy bills by 20-30% long-term."
+    },
+    {
+      "name": "State Health Insurance Assistance Program (SHIP)",
+      "what_it_does": "Offers free counseling on Medicare options, appeals, and fraud prevention. Administered by Oklahoma Insurance Department as Medicare Assistance Program.",
+      "who_its_for": "Oklahoma Medicare beneficiaries 65+, caregivers, and families seeking guidance.",
+      "official_url": "https://www.oid.ok.gov/consumers/information-for-seniors/",
+      "benefit_value": "Free one-on-one counseling; toll-free help at 800-763-2828."
+    },
+    {
+      "name": "Home-Delivered Meals (Meals on Wheels)",
+      "what_it_does": "Delivers nutritious meals to homebound seniors to promote independence. Provided through Area Agencies on Aging under Older Americans Act Title III.",
+      "who_its_for": "Homebound seniors 60+ unable to prepare meals, often low-income or disabled.",
+      "official_url": "https://oklahoma.gov/okdhs/services/aging/titleiii.html",
+      "benefit_value": "5-7 meals/week meeting 1/3 daily nutrition requirements; suggested donation."
+    },
+    {
+      "name": "Respite Voucher Program",
+      "what_it_does": "Provides vouchers for caregivers to pay respite providers for short-term relief. Funded under Title III caregiver support through Area Agencies on Aging.",
+      "who_its_for": "Family caregivers of seniors 60+ or disabled adults needing breaks.",
+      "official_url": "https://oklahoma.gov/okdhs/services/aging/titleiii.html",
+      "benefit_value": "Vouchers up to $20-25/hour for respite services."
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "what_it_does": "Offers part-time paid training and employment in community service roles. Federal program available through Oklahoma aging services.",
+      "who_its_for": "Unemployed low-income seniors 55+ seeking work experience.",
+      "official_url": "https://oklahoma.gov/okdhs/services/aging/scsep.html",
+      "benefit_value": "Minimum wage part-time work (20 hrs/week) with training."
+    },
+    {
+      "name": "Legal Assistance for Seniors (Legal Aid Services of Oklahoma)",
+      "what_it_does": "Provides free legal help for issues like housing, benefits, and abuse. Delivered via Area Agencies on Aging partnerships under Title III.",
+      "who_its_for": "Low-income seniors 60+ facing civil legal problems.",
+      "official_url": "https://oklahoma.gov/okdhs/services/aging/titleiii.html",
+      "benefit_value": "Free consultations and representation valued at $200+/hour."
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "what_it_does": "Advocates for residents in nursing homes and assisted living against abuse/neglect. Operated statewide through Area Agencies on Aging.",
+      "who_its_for": "Seniors in long-term care facilities and their families.",
+      "official_url": "https://oklahoma.gov/okdhs/services/aging/ombudsman.html",
+      "benefit_value": "Free advocacy resolving 80%+ of complaints without litigation."
+    },
+    {
+      "name": "ADvantage Waiver Program",
+      "what_it_does": "Provides Home and Community-Based Services (HCBS) to prevent nursing home placement for elderly or disabled individuals. Services include personal care, assisted living, adult day health care, home modifications, and meals.[2]",
+      "who_its_for": "Oklahoma residents aged 65+ or disabled adults 21-64 at risk of institutionalization; excludes those with developmental disabilities involving cognitive impairment.[2]",
+      "whats_unique": "Oklahoma's state Medicaid waiver program offering a specific package of long-term HCBS tailored to state needs, transitioning nursing home residents back home.[2]",
+      "official_url": "https://www.medicaidplanningassistance.org/oklahoma-advantage-waiver/",
+      "benefit_value": "Varies by need; includes in-home care, modifications like ramps, and assisted living services without fixed dollar amount.[2]"
+    },
+    {
+      "name": "Oklahoma Chore Services (Older Americans Act Title III)",
+      "what_it_does": "Offers chore services like heavy housework, yard work, and sidewalk maintenance to help seniors stay in their homes. Provides up to $150 annually for materials and supplies.[3]",
+      "who_its_for": "Oklahomans aged 60+ with difficulty in Instrumental Activities of Daily Living, prioritizing low-income, rural, minority, or disabled individuals.[3]",
+      "whats_unique": "State-administered OAA program with specific $150 annual materials allowance for chores, targeted via Area Agencies on Aging.[3]",
+      "official_url": "https://oklahoma.gov/okdhs/services/cap/older-americans-act.html",
+      "benefit_value": "Up to $150 per year for chore materials; service hours based on assessed needs.[3]"
+    },
+    {
+      "name": "Senior Farmers’ Market Nutrition Program (SFMNP)",
+      "what_it_does": "Provides financial support to buy fresh produce from local Oklahoma farmers’ markets. Helps low-income seniors access nutritious foods.[1]",
+      "who_its_for": "Low-income seniors eligible through state programs, typically 60+.[1]",
+      "whats_unique": "Oklahoma-specific implementation of federal SFMNP focused on state farmers’ markets for direct produce purchase vouchers.[1]",
+      "official_url": "https://myeasywireless.com/senior-benefits-in-oklahoma/",
+      "benefit_value": "Vouchers for fresh produce; exact amount varies by state allocation (federal base program).[1]"
+    }
+  ]
+}

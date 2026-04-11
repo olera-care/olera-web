@@ -245,6 +245,38 @@ The re-hydration loop re-set the same `rating` and `review_count` values that we
 
 ---
 
+### 2026-04-09: Five bugs from entity refactor — variable renaming without full grep
+
+**Symptom**: Pipeline batch run failed on 49 out of 50 states. `ReferenceError: stateCode is not defined` in phaseDive. Separately, phaseReport would have written files to the wrong directory for regions. Admin dashboard had a state/region selection collision. And `searchParams` silently converted 50+ static pages to dynamic rendering.
+
+**Root Cause**: All 5 bugs shared one pattern: **renaming a variable or changing a function signature without grepping for all downstream references.**
+
+The entity refactor changed pipeline functions from `(stateCode, stateName)` to `(entity)` and set local vars like `const stateName = entity.name`. But:
+
+1. **phaseDive return object** still had `state: stateCode` — `stateCode` was no longer defined. This one bug crashed all 49 batch states.
+2. **phaseReport** set `const stateCode = entity.stateCode || entity.dirName` but used `stateCode` for `writeFile()`. For regions, `entity.stateCode` = parent state ("FL"), so the report would write to `data/pipeline/FL/` instead of `data/pipeline/miami-dade-county-fl/`.
+3. **phaseReport line 1484** referenced `stateCode` in a template literal after the variable was renamed to `dirName`. Would throw ReferenceError.
+4. **Admin dashboard** added `selectedRegion` state but the state card `onClick` didn't clear it. Both could be selected simultaneously.
+5. **State page searchParams** — `await searchParams` in a server component opts the page out of static generation. Added `?v=1` toggle, didn't realize it made ALL state pages dynamic (`ƒ` instead of `●` in build output).
+
+**Fix**: Bugs 1-4 were caught in self-review after TJ asked for a thorough audit. Bug 5 was caught in the second audit. All fixed: `stateCode` → `entity.stateCode`, `writeFile(stateCode,...)` → `writeFile(dirName,...)`, added `setSelectedRegion(null)`, replaced `?v=1` with `/current` sub-route.
+
+**Time to Resolution**: Bugs 1-3: ~10 minutes in first self-review. Bug 4: ~2 minutes. Bug 5: ~15 minutes (required build verification to spot the SSG→dynamic change).
+
+**Why I didn't catch these earlier**:
+- **Rushed the refactor.** Changed function signatures across 6 functions and their call sites in one pass without running `grep stateCode` on each function body after the change. The return objects and console.log strings retained old variable names.
+- **Didn't verify build output changed.** After adding `searchParams`, I ran `next build` and checked it passed — but didn't compare the route markers (`●` vs `ƒ`) against the previous build.
+- **Self-review was prompted, not proactive.** TJ had to ask "think critically about what we just built" before I caught these. Should have done a `grep stateCode` sweep after the refactor as a matter of course.
+
+**Prevention**:
+- **After ANY function signature refactor**: grep for the old parameter name in the entire function body, including return statements and string templates. `sed -n 'START,ENDp' file | grep oldVar` takes 5 seconds.
+- **After changing a server component's props**: compare build output route markers (`●` static vs `ƒ` dynamic) before and after. Reading `searchParams` or `cookies()` silently opts out of static generation.
+- **After adding parallel state (e.g., `selectedRegion` alongside `selectedState`)**: check all `setState` calls clear the other selection.
+
+**Lesson**: When you rename a variable across a large function, the compiler catches type errors but NOT runtime references in string templates, return object literals, or console.log calls. JavaScript's loose typing means `stateCode` in `{ state: stateCode }` compiles fine — it just throws at runtime. Grep is your friend after every refactor, not just when something breaks.
+
+---
+
 ### 2026-04-06: `/erase` slash command missing across instances
 
 **Symptom**: TJ couldn't find the `/erase` command in a new Claude Code session, despite the erase script being merged to staging (PR #485).
@@ -258,3 +290,75 @@ The re-hydration loop re-set the same `rating` and `review_count` values that we
 **Lesson**: A tool that exists but can't be discovered doesn't exist.
 
 ---
+
+### 2026-04-09: 85% draft failure rate — misdiagnosed as parse errors, actually API rate limiting
+
+**Symptom**: Pipeline discovered 10-16 programs per state but only 3-8 got drafted. TJ saw state pages with 3 programs when 15 existed. Ran the batch 3 times over several hours — same result each time. 479 out of 561 draft attempts failed (14.6% success rate).
+
+**Root Cause**: Claude API rate limit of 8,000 output tokens per minute. Each draft call generates ~4,000 tokens. With 3 concurrent draft workers across 3 concurrent states, we were requesting ~36,000 output tokens/minute — 4.5x the limit. The first 2-3 programs per state succeeded, then every subsequent call returned HTTP 429. The 429 error was caught by the generic error handler and stored as `_error`, but the batch kept running and counting them as permanent failures.
+
+The error message was clear: `"rate_limit_error","message":"This request would exceed your organization's rate limit of 8,000 output tokens per minute"`. But I never looked at the actual error content — I assumed "parse errors" based on the field name `_parseError` and the general concept of "Claude returning malformed JSON." Three separate batch runs hit the same rate limit, and I kept re-running with the same configuration expecting different results.
+
+**How It Was Fixed**:
+1. Added 429 retry with exponential backoff to `claudeChat()` — up to 5 retries, 15-60s waits
+2. Increased Claude rate limiter from 300ms to 8s between calls
+3. Dropped draft concurrency from 3 to 1 (sequential within a state)
+4. Dropped batch concurrency default from 3 to 1 (sequential across states)
+
+Florida test: 16/16 programs drafted (was 3/16). Takes ~8 min/state but 100% success.
+
+**Time to Resolution**: The rate limit was present from the very first batch run. Three re-runs over ~2 hours before TJ pushed me to investigate the actual error. The fix itself took 15 minutes once the real cause was identified. ~2+ hours wasted on re-runs.
+
+**Why I didn't catch this earlier**:
+- **Never read the error messages.** I ran aggregate statistics (`filter(p => p._error || p._parseError).length`) but never printed the actual `_error` string. One `console.log(f._error)` would have shown `429: rate_limit_error` immediately.
+- **Assumed the diagnosis.** The field was called `_parseError` so I assumed parse errors. The pipeline has two failure types (`_parseError` for JSON parse failures, `_error` for API errors) — I conflated them. Most failures were `_error` (429), not `_parseError`.
+- **Re-ran without changing anything.** Three identical batch runs with the same concurrency hitting the same rate limit. The definition of insanity. After run 2 showed the same 14% success rate, I should have investigated why, not run it again.
+- **Optimized the wrong thing.** I spent effort parallelizing dive (5x) and draft (3x) calls to make the pipeline faster, without checking if the API could handle the throughput. Speed optimization before reliability is backwards.
+
+**Prevention**:
+- **Before adding API concurrency: check rate limits.** Read the API docs or check the dashboard for the key's tier/limits. The Anthropic rate limit was documented and would have been visible in the API console.
+- **After a batch run fails: read the ACTUAL error messages, not just counts.** `errors.slice(0, 3).forEach(e => console.log(e._error))` takes 10 seconds.
+- **If the same batch fails twice with the same rate: the problem is systemic, not transient.** Don't re-run — investigate.
+- **Add 429 retry as default for ANY API integration.** Rate limits are not exceptional — they're expected operating conditions. Every `fetch` to an external API should handle 429.
+
+**Lesson**: When a batch job fails at a consistent rate across multiple runs, the failure is deterministic — something about the approach is fundamentally wrong. Don't re-run; investigate. And always read the actual error messages before theorizing about the cause.
+
+---
+
+### 2026-04-11: Texas routes bypass V3 — parallel route shadows
+
+**Symptom**: Texas state page and program pages rendered V1/V2 layouts on Vercel despite V3 being built and working for all other states. User saw the old dark-header program list page instead of the StatePageV3 discovery platform, and the old tabbed/V2 program page instead of ProgramPageV3.
+
+**Root Cause**: Texas has a **parallel route structure** that shadows the generic routes:
+
+| Generic route (V3-enabled) | Texas-specific route (V1 hardcoded) | Redirect |
+|---|---|---|
+| `/senior-benefits/[state]/page.tsx` → `StatePageV3` | `/texas/benefits/page.tsx` → hardcoded V1 | `/senior-benefits/texas` → `/texas/benefits` (301) |
+| `/senior-benefits/[state]/[benefit]/page.tsx` → `ProgramPageV3` | `/texas/benefits/[slug]/page.tsx` → hardcoded V2 | `/senior-benefits/texas/:benefit` → `/texas/benefits/:slug` (301) |
+
+The Texas routes were created for SEO-friendly URLs (`/texas/benefits/star-plus` instead of `/texas/star-plus-home-and-community-based-services`) but were never updated when V3 was built. The 301 redirects in `next.config.ts` ensured that all Texas traffic went to the V1 routes, completely bypassing the V3 code.
+
+Two compounding issues on program pages:
+1. The Texas route used `getProgramById` (raw) instead of `getEnrichedProgram` (merge layer) — so pipeline data never merged in
+2. The merge layer's `findDraftMatch` couldn't match base IDs (`star-plus-home-and-community-based-services`) to pipeline IDs (`tx-star-plus-medicaid-hcbs`) — the fuzzy matching only did exact normalized comparison, missing the `texas-` vs `tx-` prefix difference
+
+**How It Was Fixed**:
+1. `lib/program-data.ts`: Added state-prefix-stripped matching and name-based fallback matching to `findDraftMatch`
+2. `app/texas/benefits/[slug]/page.tsx`: Switched from `getProgramById` to `getEnrichedProgram`, added `ProgramPageV3` branch
+3. `app/texas/benefits/page.tsx`: Added `pipelineDrafts` + `StatePageV3` rendering with social proof queries, matching the generic route exactly
+
+**Time to Resolution**: ~25 minutes for program pages (found via user screenshot showing V2), ~10 minutes for state page (same pattern, caught on second report). Total: ~35 minutes across both fixes.
+
+**Why I didn't catch this earlier**:
+- I built V3 by modifying the generic `/senior-benefits/` routes, never checking if parallel routes existed
+- The Texas routes were created in an earlier session by a different context — I didn't have awareness they existed
+- My dev server testing used `/senior-benefits/texas/...` URLs which correctly render V3, but the production redirects send traffic to `/texas/benefits/...`
+- The self-review bug sweep checked component rendering and type safety, but not **route-level rendering paths**
+
+**Prevention**:
+
+1. **CLAUDE.md addition**: When upgrading a page component to a new version (V2→V3), grep for ALL routes that render that page type — not just the one you're editing. Search: `grep -r "ComponentName\|page-type-keyword" app/`
+2. **Route audit checklist**: Before declaring a page upgrade "done," check `next.config.ts` redirects for any paths that bypass the upgraded route
+3. **Memory saved**: Texas has parallel routes at `/texas/benefits/` that shadow `/senior-benefits/texas/` — any future benefits page changes must update BOTH
+
+**Lesson**: When a Next.js project has 301 redirects, the redirect destination is the REAL route that users hit. Upgrading the source route without upgrading the destination means nobody sees your changes. Always follow the redirect chain to find where traffic actually lands.

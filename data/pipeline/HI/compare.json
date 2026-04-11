@@ -1,0 +1,523 @@
+{
+  "state": "HI",
+  "stateName": "Hawaii",
+  "comparedAt": "2026-04-09T12:54:33.952Z",
+  "total": 21,
+  "newPrograms": 20,
+  "withDiffs": 1,
+  "withNovelFields": 1,
+  "benefitTypes": {
+    "service": 13,
+    "financial": 3,
+    "in_kind": 2,
+    "employment": 2,
+    "advocacy": 1
+  },
+  "variationPatterns": {
+    "program_category": 1,
+    "priority_tier and individual need. Priority given to those with greatest economic or social need, at risk for institutional placement, low-income, minority, limited English proficiency, or residing in rural areas[1][7]": 1,
+    "not_applicable": 7,
+    "priority_tier": 6,
+    "household_size": 1,
+    "provider|region": 1,
+    "region": 1,
+    "Individual assessment determines which services are appropriate based on needs and eligibility[2]": 1,
+    "program_type_and_functional_need": 1,
+    "fixed": 1
+  },
+  "novelFieldSummary": {
+    "asset_limits": {
+      "count": 1,
+      "programs": [
+        "Home and Community Services (Statewide via EOA)"
+      ],
+      "note": "Our model has no asset limit fields"
+    },
+    "regional_variations": {
+      "count": 1,
+      "programs": [
+        "Home and Community Services (Statewide via EOA)"
+      ],
+      "note": "Program varies by region — our model doesn't capture this"
+    },
+    "waitlist": {
+      "count": 1,
+      "programs": [
+        "Home and Community Services (Statewide via EOA)"
+      ],
+      "note": "Has waitlist info — our model has no wait time field"
+    },
+    "documents_required": {
+      "count": 1,
+      "programs": [
+        "Home and Community Services (Statewide via EOA)"
+      ],
+      "note": "Has document checklist — our model doesn't store per-program documents"
+    }
+  },
+  "comparisons": [
+    {
+      "name": "Med-QUEST (Medicaid for seniors/disabled)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Med-QUEST is Hawaii's Medicaid program with multiple sub-programs (QUEST Integration, Nursing Home Medicaid, Regular Medicaid) that have different eligibility criteria. For seniors and disabled individuals, eligibility is based on age/disability status PLUS income/asset limits PLUS functional need for care. Asset limits apply only to those 65+ or disabled; they do not apply to younger adults. Long-term care requires demonstration of nursing home level of care or ADL need, not just financial qualification. Income limits are expressed as percentages of Federal Poverty Level (FPL) and vary by household size and program category.",
+      "gotchas": [
+        "Asset limits apply differently by age: They apply to seniors/disabled but NOT to adults under 65[4]",
+        "For long-term care, you must contribute 'nearly all' monthly income to care costs — this is not a simple income cutoff[5]",
+        "Functional/medical need is required: You must demonstrate need for nursing home level of care or ADL assistance; income/assets alone don't qualify you[5]",
+        "Multiple program categories exist (QUEST Integration, Nursing Home Medicaid, Regular Medicaid) with different eligibility rules — don't assume one category applies[1][5]",
+        "If you think you're over income or asset limits, you should still apply — the program may have exceptions or alternative pathways[1]",
+        "For COFA citizens, only certain groups qualify (children under 19, blind, disabled, 65+, pregnant women); working-age adults without disabilities do not qualify[2]",
+        "The 1100B form is specifically required for those 65+, disabled, blind, or receiving SSI/Social Security — don't miss this[2]",
+        "Search results do not provide 2026 income limit dollar amounts; families should verify current limits at mybenefits.hawaii.gov or call 1-877-628-5076"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "program_category",
+      "officialSource": "medquest.hawaii.gov[7]"
+    },
+    {
+      "name": "Kūpuna Care Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Kupuna Care is a state/county-funded gap-filling program designed specifically for frail older adults who do NOT qualify for Medicaid but need long-term care support. It differs fundamentally from OAA Title III (federal program) by requiring demonstrated functional need and excluding those with Medicaid eligibility. The program has two distinct service delivery models: traditional service delivery or participant-directed services[2]. Eligibility determination is individualized through in-home assessment rather than formulaic income/asset limits. Regional implementation through county Area Agencies on Aging means application processes and service availability may vary by county, though statewide coordination occurs through the Executive Office on Aging.",
+      "gotchas": [
+        "Medicaid exclusion: If the care recipient qualifies for Medicaid or other comparable government/private home- and community-based care services, they are ineligible for Kupuna Care[1][3]. This is the primary disqualifier.",
+        "Institutional placement barrier: Cannot reside in any long-term care facility, intermediate care facility, skilled nursing facility, or adult residential care home[3][6].",
+        "Functional needs requirement: Having low income alone is insufficient; applicant must have documented functional limitations in ADLs or IADLs substantiated through in-home assessment[1][2].",
+        "Cost-sharing applies: Unlike OAA Title III (federal program with no cost), Kupuna Care uses income-based cost-sharing; families should expect to pay based on ability to pay[1].",
+        "Employed caregiver program is separate: The Kupuna Caregivers Program (for employed caregivers working 30+ hours/week) is distinct from the main Kupuna Care program and has different eligibility rules[6].",
+        "Limited funding history: As of 2018, the Kupuna Caregivers Program had only $600,000 available until June 30, 2018, suggesting funding constraints[6].",
+        "Voluntary contributions encouraged: While services are provided, the program welcomes voluntary contributions to sustain services for others[3]."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier and individual need. Priority given to those with greatest economic or social need, at risk for institutional placement, low-income, minority, limited English proficiency, or residing in rural areas[1][7]",
+      "officialSource": "https://health.hawaii.gov (Executive Office on Aging); Hawaii Revised Statutes § 349-17"
+    },
+    {
+      "name": "Sage PLUS Program (PACE equivalent)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Counseling program (SHIP/Sage PLUS), not comprehensive care like PACE; no income/asset tests specific to it; data limited and dated; statewide but service-area restricted",
+      "gotchas": [
+        "Not a direct PACE equivalent providing comprehensive care/services like medical care or long-term support—it's counseling/assistance for Medicare[1][7][8]",
+        "Requires active enrollment/application, no automatic[1]",
+        "Volunteer-based, so availability may vary[1]",
+        "Does not provide financial aid or in-kind services; focuses on education/counseling[8]",
+        "Search results from 2013 PDF; eligibility/enrollment rules may have updated[1]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://www.hawaiiship.org[7]"
+    },
+    {
+      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Tiered by income (QMB <100% FPL, SLMB 100-120%, QI 120-135%); Hawaii has elevated income limits vs. mainland; QI funding capped first-come; benefits are premium/deductible payments, not direct services; statewide but local offices",
+      "gotchas": [
+        "Income/resource limits higher in Hawaii than mainland but still strict; outdated sources list old figures (e.g., 2021 $1,094)—verify current[1][5].",
+        "QI requires annual reapplication and may run out of funds[1][6].",
+        "QMB protects from provider billing (no balance billing), but providers must bill Medicare first[7].",
+        "Automatic Extra Help/LIS eligibility often missed[6].",
+        "Working income may allow higher qualification[6].",
+        "Assets include spouse's even if not applying[2]."
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://medquest.hawaii.gov/content/medquest/en/members-applicants/get-started/programs.html"
+    },
+    {
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Benefits scale by household size and net income after elderly-specific deductions (medical/shelter); BBCE waives asset/gross tests for most; 2025 work changes impact pre-65 'gray zone' adults; statewide but rural access varies.",
+      "gotchas": [
+        "Hawaii's BBCE expands eligibility beyond federal (200% FPL gross, no asset test)—many elders qualify despite higher income.",
+        "2025 federal changes (One Big Beautiful Bill Act) may impose work requirements on 50-64 year olds (20 hrs/week), risking 16,570 HI elders off program.",
+        "Medical deductions (> $35/month) and shelter costs often missed, increasing benefits.",
+        "Low senior participation (~50% eligible enroll); ESAP simplifies for 60+ but adoption unclear.",
+        "Household must include food-sharing members; college students/special rules apply."
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "household_size",
+      "officialSource": "https://humanservices.hawaii.gov/bessd/snap/"
+    },
+    {
+      "name": "Low Income Home Energy Assistance Program (LIHEAP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Administered by county/island agencies with varying application windows, methods, and intake limits; income at 150% FPG or 60% SMI; automatic qualifiers for SSI/SNAP/TANF; priority for crisis vs. non-crisis.",
+      "gotchas": [
+        "One type of assistance per program year (Oct 1-Sep 30); cannot receive both EC and ECI.",
+        "Must have active residential utility account for EC.",
+        "Limited spots/funds; first-come, first-served, cycles fill quickly (e.g., first 20/month in Hawaii County).",
+        "Oahu in-person only (no mail/email).",
+        "EC applications only June 1-30; crisis year-round but limited.",
+        "All adults must sign; proof required for every household member."
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://humanservices.hawaii.gov/bessd/ (state DHS Benefit Employment & Support Services Division); island providers like https://hceoc.net/energy/liheap/, www.hcapweb.org/liheap/, https://www.hawaiianelectric.com/billing-and-payment/payment-assistance/low-income-programs/h-heap"
+    },
+    {
+      "name": "Weatherization Assistance Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "County-specific providers with localized application processes and offices; income at fixed 200% FPG Hawaii-adjusted; automatic eligibility via TANF/SSI/LIHEAP/HUD; priority-based access with funding caps leading to waitlists; measures from state priority list varying by home type.",
+      "gotchas": [
+        "Limited funding means not all applicants approved; apply early[2].",
+        "Priority tiers mean elderly may wait if higher priority (e.g., children/disabilities) backlog[1][4].",
+        "Must verify current 200% FPG for Hawaii (higher than continental US); tables vary slightly by provider/year[6][7].",
+        "Homeownership not required but landlord approval needed for rentals; some measures require existing electric water heater[6].",
+        "Eligibility expires after 12 months if work not started[3].",
+        "Coordination with LIHEAP may provide extras but separate eligibility check[4]."
+      ],
+      "benefitType": "in_kind",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://labor.hawaii.gov/ocs/service-programs-index/weatherization-assistance-program/[4]"
+    },
+    {
+      "name": "Hawaii SHIP (State Health Insurance Assistance Program)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "no income/asset test; counseling-only service for Medicare navigation; volunteer-delivered statewide via phone/virtual; not a benefits-paying program",
+      "gotchas": [
+        "Not a financial aid or insurance program—provides counseling only, no direct payments or coverage; volunteer-based so availability may depend on counselor schedules; people may confuse with income-based health coverage programs like QUEST (unrelated state SHIP in older docs)[1][6][7]",
+        "Services are free but require contacting via helpline/website—no walk-ins without arrangement[10]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://www.hawaiiship.org[3]"
+    },
+    {
+      "name": "Home-Delivered Meals (via Kūpuna Aging in Place grantees)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Decentralized via HCF grantees and county providers (16 nonprofits statewide); no uniform income table or assets; eligibility/assessment via local Aging offices; Oahu-heavy examples; varies by specific nonprofit (e.g., frozen vs. hot meals, delivery frequency)",
+      "gotchas": [
+        "Not a single centralized program—services via multiple KAP grantees/providers with varying delivery types (frozen vs. hot), areas, and contacts; must contact specific provider or county office[1][2][5].",
+        "Free meals depend on qualifying through resource centers/insurance; otherwise paid (credit/debit, check, SNAP EBT)[1].",
+        "Someone must be home for deliveries (Mon-Fri, 8:30am-1pm)[1].",
+        "Professional referral often required; apply for insurance/grocery services first[7].",
+        "KAP focuses on 65+ low/moderate-income, but Meals on Wheels often 60+[1][5]."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "provider|region",
+      "officialSource": "https://www.hawaiicommunityfoundation.org/strengthening/kupuna-aging-in-place (HCF KAP grants); county Elderly Affairs sites[5]"
+    },
+    {
+      "name": "Caregiver Support (via Executive Office on Aging)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Administered statewide via 4 county AAAs with local contacts; no income/asset dollar limits specified; eligibility expands for special populations like grandparents 55+; distinguishes federal OAA FCSP (free/priority) from state Kupuna Care (needs/cost-share).",
+      "gotchas": [
+        "Two tracks: Federal OAA Title III (no cost, age 60+, priority-based) vs. state Kupuna Care (functional needs, cost-sharing, excludes Medicaid-eligible).[2]",
+        "Must contact local AAA; no centralized online form mentioned.",
+        "Special populations (e.g., 55+ caregivers for disabled adults/children) expand eligibility beyond standard 60+ care recipient.[1]",
+        "Voluntary contributions encouraged for OAA services.[2]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://health.hawaii.gov/eoa/"
+    },
+    {
+      "name": "Retired Senior Volunteer Program (RSVP, related to SCSEP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "County-operated with local operators; priority tiers for enrollment; income at 125% FPL (household-based); paid training not pure volunteer; separate from unpaid RSVP programs",
+      "gotchas": [
+        "RSVP and SCSEP are distinct: pure RSVP (e.g., Honolulu, Hawaii County) is unpaid volunteer matching (age 55+, no income/unemployment req); SCSEP is paid training (strict eligibility); query links them but they differ",
+        "Funding fluctuations may cause pauses/slowdowns (noted in 2025)",
+        "Must be unemployed at enrollment; post-training, seek unsubsidized work",
+        "Annual recertification required",
+        "Limited positions; waitlists common"
+      ],
+      "benefitType": "employment",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://labor.hawaii.gov/wdd/job-seekers/scsep/"
+    },
+    {
+      "name": "Senior Legal Helpline (via Area Agencies on Aging)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "no income test for seniors 60+ on hotline in priority cases; phone-based only with toll-free access for islands; tied to Legal Aid Society, not direct AAA staffing; eligibility flexible for elders vs. strict for general clients",
+      "gotchas": [
+        "Income eligibility is 125% FPL for full services, but seniors 60+ get hotline access even if over limit for priority issues (foreclosure, benefits loss); limited to phone advice, not full representation; potential conflicts of interest block service; not all calls result in ongoing help due to staff/resources."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://ittakesanohana.org/wp-content/uploads/2011/01/LASH-Facts-About-LASH.pdf"
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program (LTCOP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "no income/asset test; advocacy-only for LTC facility residents; volunteer-driven with statewide access but Oahu-focused staffing; not a qualification-based benefit program",
+      "gotchas": [
+        "Not a direct service provider like healthcare or financial aid—focuses on advocacy, complaint resolution, and information only; often confused with volunteer recruitment; requires facility residency (not for home-based care); confidentiality rules limit disclosure without consent; people miss that it's free and accessible to anyone advocating for a resident[3][6][7]"
+      ],
+      "benefitType": "advocacy",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://health.hawaii.gov/eoa/home/long-term-care-ombudsman-program/"
+    },
+    {
+      "name": "Kahi Malama – A Place of Caring",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "County-specific ADRC under Area Agency on Aging; no strict income/asset tests, focuses on resource coordination for Big Island residents age 60+; dual offices (Hilo/Kona) with island-wide service",
+      "gotchas": [
+        "Limited to Hawaii County (Big Island), not statewide—families on Oahu, Maui, Kauai must use local AAAs[8]",
+        "Primarily an information/referral hub (ADRC), not direct service provider—connects to other programs like Medicaid waivers or chore services[8]",
+        "May prioritize Native Hawaiians via related Title VI funding, though open to all[3][8]",
+        "No detailed financial caps listed, but links to means-tested programs like Med-QUEST[1]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "region",
+      "officialSource": "https://hcoahawaii.org"
+    },
+    {
+      "name": "Elderly Affairs Division (EAD) / Honolulu ADRC",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "This program's eligibility and benefits are highly individualized. There are no published income/asset limits, no published service hour maximums, and no published waitlist information. Eligibility determination requires both phone screening AND in-home assessment. Services vary by individual need rather than by tier or priority level. The program is strictly county-based, with Honolulu County served by EAD and other counties served by separate agencies. Functional impairment thresholds are specific (cognitive impairment OR 2+ ADL/IADL limitations) but application of these thresholds requires professional assessment.",
+      "gotchas": [
+        "This program is COUNTY-SPECIFIC: Honolulu EAD only serves Honolulu County. Families in other Hawaii counties must contact their respective county's Area Agency on Aging[1][7]",
+        "Income and asset limits are NOT disclosed in public materials — families must call to learn if they qualify financially[2]",
+        "Functional impairment requirement is strict: applicants must have cognitive impairment OR be unable to perform at least TWO ADLs/IADLs. Single impairment may not qualify[2][3]",
+        "Comparable services disqualify: if someone already receives similar government or private services, they cannot access Kupuna Care[1][3]",
+        "Institutional residents are ineligible: anyone in a nursing home, assisted living, or similar facility cannot use this program[1]",
+        "In-home assessment is required: initial phone screening is just the first step; formal eligibility confirmation requires an in-home evaluation[2]",
+        "Home Delivered Meals has additional restrictions: recipients must be unable to leave home due to illness, disability, or frailty — not just unable to cook[2]",
+        "Home modification program requires homeownership: housing assistance for modifications is only available to those who own their homes[4]",
+        "No online application available: despite having a website, EAD requires phone contact to initiate the application process[2]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "Individual assessment determines which services are appropriate based on needs and eligibility[2]",
+      "officialSource": "elderlyaffairs.com (Honolulu County) and hawaiiadrc.org (statewide ADRC)"
+    },
+    {
+      "name": "Kaua'i Agency on Elderly Affairs",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Kaua'i Agency on Elderly Affairs administers two distinct programs (OAA Title III and Kupuna Care) with overlapping but different eligibility criteria. Eligibility is functional-need-based rather than income-based for Kupuna Care, though income affects cost-sharing. No published income thresholds, asset limits, or specific service hour/dollar amounts are available in public sources. Application is phone-based with in-home assessment required. This is a county-restricted program with no statewide availability.",
+      "gotchas": [
+        "Two separate programs with different eligibility: OAA Title III is open to all 60+ with priority for those with greatest economic/social need[2], while Kupuna Care requires documented functional limitations (cognitive impairment or ADL/IADL limitations)[1][2]",
+        "Kupuna Care has cost-sharing based on income and ability to pay, unlike Title III which is free[2]",
+        "Applicants must not be covered by comparable government or private services — this can disqualify those with existing Medicaid, VA benefits, or private insurance coverage for similar services[1]",
+        "Applicants cannot be residing in any institution, including long-term care facilities, SNFs, ARCHs, hospitals, or foster family homes[1][3]",
+        "No published income or asset limits are available — these are determined individually during assessment[2]",
+        "Processing timeline and waitlist status are not publicly disclosed",
+        "If applicant has cognitive limitations, a Power of Attorney or caregiver must initiate the call — applicants cannot self-refer in all cases[2]",
+        "This is a county-specific office; residents of other Hawaiian counties must contact their respective county Area Agency on Aging"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "program_type_and_functional_need",
+      "officialSource": "https://www.kauai.gov/Government/Departments-Agencies/Agency-on-Elderly-Affairs and https://kauaiadrc.org"
+    },
+    {
+      "name": "Home and Community Services (Statewide via EOA)",
+      "isNew": false,
+      "existingId": "home-and-community-based-services-hcbs-waiver",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$1500",
+          "found": "$1,530",
+          "source": "https://medquest.hawaii.gov/"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$10,000 – $30,000/year",
+          "found": "Long-term care services in home or community settings to avoid institutionalization, including assistance at home, adult day care, community care foster family homes (CCFFH), assisted living residences (but not Expanded Adult Residential Care Homes, which are private pay only). Delivered via managed care system through one administering agency. Specific hours, dollar amounts, or per diem rates not detailed beyond CCFFH room/board from SSI (all but $75 PNA).[3]",
+          "source": "https://medquest.hawaii.gov/"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://medquest.hawaii.gov/"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "≤$2,000 for a single applicant (countable assets); ≤$3,000 for household of 2. Applies to HCBS waivers and nursing home Medicaid via Med-QUEST. Specific countable vs. exempt assets not detailed (e.g., primary home often exempt in Medicaid LTC, but not specified here).[2][3][10]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Services via one administering agency statewide, but potential regional differences in providers, wait times, or access not detailed. No EOA-specific regional info found.[3]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Possible enrollment cap for HCBS, leading to waiting lists.[3]",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of income, assets, citizenship/eligible immigrant status, Social Security Number (or certification without), evidence of functional needs (ADLs/IADLs assessment).[1][2]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Eligibility / benefits via Med-QUEST HCBS waivers / managed care (NFLOC required); no dedicated EOA program details in sources—likely Medicaid Home and Community Based Services statewide; asset/income strict with care cost offsets; waitlists possible; no household income table or EOA-specific application.",
+      "gotchas": [
+        "Tied to Med-QUEST Medicaid; must first qualify for Medicaid and NFLOC—not automatic for elderly.",
+        "Income over limits must pay toward care costs; SSI has PNA deduction only.",
+        "Possible waitlists due to enrollment caps.",
+        "No specific 'EOA' details found; may refer to Elderly Outreach or area agency, but program appears as statewide HCBS under Med-QUEST managed care.",
+        "Excludes certain settings like Expanded Adult Residential Care Homes.",
+        "Functional assessment required beyond financial eligibility.[2][3]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://medquest.hawaii.gov/"
+    },
+    {
+      "name": "Transportation Friends for Kupuna (TFK)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "TFK is a volunteer-based peer support program, not a means-tested benefit program. No income/asset limits are published. Eligibility focuses on functional need (mobility/cognitive issues) and social isolation (living alone with minimal support). Services are free but dependent on volunteer availability. Program requires advance notice (1-2 weeks) and is geographically restricted to Oahu. Catholic Charities Hawaii screens and trains volunteers (age 55+) to serve clients (age 60+).",
+      "gotchas": [
+        "Program is Oahu-only — families on other islands need to contact different providers[3]",
+        "Clients must provide 1-2 weeks advance notice for appointments; this is not an emergency transportation service[2]",
+        "Gender matching is enforced: female volunteers paired with female clients, male with male[1]",
+        "No income or asset limits are publicly specified, but eligibility screening exists — call to confirm qualification[2]",
+        "Professional referral may be required in some cases; check with program before applying[3]",
+        "Services depend on volunteer availability — not guaranteed same-day or next-day service[2]"
+      ],
+      "benefitType": "in_kind",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://www.kanuhawaii.org/need/transportation-friends-for-kupuna/"
+    },
+    {
+      "name": "Senior Companion Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Dual structure: recruits low-income senior volunteers (55+/60+) with stipends to serve frail elders (60+); statewide but Oahu-centric contact; no detailed income tables or processing times; volunteer-focused eligibility dominates sources.",
+      "gotchas": [
+        "Program serves **two groups**: (1) low-income seniors volunteering as companions (55+/60+), (2) frail elders receiving services (60+). Families apply to **receive services**, not become volunteers.",
+        "No specific income/asset dollar amounts or tables provided; must contact program for current ACTION/CNCS guidelines.",
+        "Services limited to companionship/personal assistance, not full healthcare or attendant care.",
+        "Availability depends on funds and volunteer recruitment.",
+        "Age discrepancy in sources: companions 55+ or 60+, clients 60+."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://humanservices.hawaii.gov/senior-companion-program/"
+    },
+    {
+      "name": "Foster Grandparent Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Volunteer employment program for seniors serving special needs children; income-tested with annual federal poverty-based thresholds (no fixed table in sources); statewide but Oahu-centric contact; rules dated (1990s) but site reflects federal updates (age 55+)",
+      "gotchas": [
+        "This is a volunteer program for low-income seniors (55+) to serve children—not direct services or stipends for elderly loved ones; families apply for child to receive grandparent volunteer support, not for grandparent qualification[1][3]",
+        "Age conflict in rules (60+ in regulations vs. 55+ on state site and federal); use 55+ as current standard[1][3][8]",
+        "Income guidelines revised annually—must confirm current levels and 20% excess allowance[1]",
+        "Commitment is 15-20 hours/week serving children with special needs, not flexible caregiving for family[3]",
+        "Services for children 21 or younger (exceptions for developmental disabilities); not for adult care[2][3]"
+      ],
+      "benefitType": "employment",
+      "benefitVariesBy": "fixed",
+      "officialSource": "https://humanservices.hawaii.gov/foster-grandparent-program/[3]"
+    },
+    {
+      "name": "Memory Mentor Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Volunteer-driven in-home support program with minimal formal eligibility tests; no income/asset requirements specified, focused on isolation and memory loss[4]",
+      "gotchas": [
+        "Program is volunteer-based with limited services focused on basic in-home support, not comprehensive care or medical services[4]",
+        "Not a government program; run by nonprofit Catholic Charities, so availability may depend on volunteer capacity[4]",
+        "No mention of formal application forms or processing timelines—simple phone intake[4]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "No dedicated .gov URL; primary contact via Catholic Charities Hawaiʻi (not a .gov site)"
+    }
+  ]
+}

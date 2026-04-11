@@ -2,12 +2,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getStateById, getProgramById } from "@/data/waiver-library";
+import { getEnrichedProgram } from "@/lib/program-data";
 import { Breadcrumb } from "@/components/waiver-library/Breadcrumb";
 import { ServiceAreasMap } from "@/components/waiver-library/ServiceAreasMapLoader";
 import { ExpandableText } from "@/components/waiver-library/ExpandableText";
 import { FaqAccordion } from "@/components/waiver-library/FaqAccordion";
 import { CityBadge } from "@/components/waiver-library/CityBadge";
 import { getCategory } from "@/lib/waiver-category";
+import { ProgramPageV3 } from "@/components/waiver-library/ProgramPageV3";
+import { getRelatedArticles } from "@/lib/content";
 import { TX_NEW_TO_OLD, TX_OLD_TO_NEW } from "@/lib/texas-slug-map";
 
 interface Props {
@@ -23,7 +26,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const oldId = TX_NEW_TO_OLD[slug];
   if (!oldId) return {};
   const state = getStateById("texas");
-  const program = getProgramById("texas", oldId);
+  const program = getEnrichedProgram("texas", oldId);
   if (!state || !program) return {};
   const title = `${program.name} | Texas | Benefits Hub | Olera`;
   const description = `${program.tagline} Learn about eligibility, home care benefits, and how to apply for ${program.shortName} in Texas.`;
@@ -47,10 +50,26 @@ export default async function TexasBenefitPage({ params }: Props) {
   if (!oldId) notFound();
 
   const state = getStateById("texas");
-  const program = getProgramById("texas", oldId);
+  const program = getEnrichedProgram("texas", oldId);
 
   if (!state || !program) {
     notFound();
+  }
+
+  // Pipeline-enriched programs get the V3 layout
+  if (program.programType) {
+    const careTypes = ["senior-care", "home-care", "medicaid"];
+    const articles = await getRelatedArticles("", careTypes, 2, "texas")
+      .then((a) => a.map((art) => ({
+        slug: art.slug,
+        title: art.title,
+        cover_image_url: art.cover_image_url,
+        reading_time_minutes: art.reading_time ? parseInt(art.reading_time) || null : null,
+        section: art.section,
+      })))
+      .catch(() => []);
+
+    return <ProgramPageV3 program={program} state={state} relatedArticles={articles} />;
   }
 
   const FEDERAL_KEYWORDS = [
@@ -100,7 +119,7 @@ export default async function TexasBenefitPage({ params }: Props) {
             <Breadcrumb
               variant="dark"
               items={[
-                { label: "Benefits Hub", href: "/waiver-library" },
+                { label: "Benefits Hub", href: "/senior-benefits" },
                 { label: "Texas", href: "/texas/benefits" },
                 { label: program.shortName, current: true },
                 { label: "Document Checklist", href: `/texas/benefits/${slug}/checklist` },

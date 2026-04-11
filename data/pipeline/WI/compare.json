@@ -1,0 +1,287 @@
+{
+  "state": "WI",
+  "stateName": "Wisconsin",
+  "comparedAt": "2026-04-09T17:37:33.524Z",
+  "total": 5,
+  "newPrograms": 2,
+  "withDiffs": 3,
+  "withNovelFields": 3,
+  "benefitTypes": {
+    "financial": 1,
+    "advocacy": 1,
+    "employment": 1,
+    "service": 2
+  },
+  "variationPatterns": {
+    "priority_tier": 3,
+    "not_applicable": 1,
+    "region": 1
+  },
+  "novelFieldSummary": {
+    "asset_limits": {
+      "count": 3,
+      "programs": [
+        "SeniorCare",
+        "Family Care",
+        "IRIS (Include, Respect, I Self-Direct)"
+      ],
+      "note": "Our model has no asset limit fields"
+    },
+    "documents_required": {
+      "count": 3,
+      "programs": [
+        "SeniorCare",
+        "Family Care",
+        "IRIS (Include, Respect, I Self-Direct)"
+      ],
+      "note": "Has document checklist — our model doesn't store per-program documents"
+    },
+    "regional_variations": {
+      "count": 2,
+      "programs": [
+        "Family Care",
+        "IRIS (Include, Respect, I Self-Direct)"
+      ],
+      "note": "Program varies by region — our model doesn't capture this"
+    },
+    "waitlist": {
+      "count": 2,
+      "programs": [
+        "Family Care",
+        "IRIS (Include, Respect, I Self-Direct)"
+      ],
+      "note": "Has waitlist info — our model has no wait time field"
+    }
+  },
+  "comparisons": [
+    {
+      "name": "SeniorCare",
+      "isNew": false,
+      "existingId": "wisconsin-seniorcare",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$2825",
+          "found": "$25,536",
+          "source": "https://www.dhs.wisconsin.gov/seniorcare/index.htm"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$1,000 – $5,000/year",
+          "found": "Prescription drugs and vaccines at participating pharmacies. Covers most FDA-approved drugs (generics preferred; prior authorization may be required for some). Coordinates with other insurance including Medicare Part D. Copays/deductibles by level:\n- **Level 1**: No deductible/spenddown; $5 generic, $15 brand-name per prescription; $0 vaccines.\n- **Level 2A**: $500 deductible/person (pay SeniorCare rate until met), then $5/$15 copays.\n- **Level 2B**: $850 deductible/person (pay SeniorCare rate until met), then $5/$15 copays.\n- **Level 3**: Monthly spenddown (income over 240% FPL), then $850 deductible/person (pay SeniorCare rate until met), then $5/$15 copays.[1][2][5]",
+          "source": "https://www.dhs.wisconsin.gov/seniorcare/index.htm"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.dhs.wisconsin.gov/seniorcare/index.htm"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits or tests apply.[2][3]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Social Security number",
+            "Proof of income (e.g., tax returns, pay stubs)",
+            "Proof of residency",
+            "$30 enrollment fee",
+            "Other insurance info if applicable"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Tiered by income level with specific deductibles/copays scaling by FPL percentage; no assets test; statewide with pharmacy-based delivery; annual fee and renewal; spousal income aggregation unique for single applicants",
+      "gotchas": [
+        "Cannot enroll if on full-benefit Medicaid/BadgerCare Plus (check exceptions carefully)",
+        "Income includes spousal income for married couples even if only one applies",
+        "Must renew annually and pay $30 fee or lose coverage",
+        "Level 3 requires ongoing monthly spenddown calculation (not one-time)",
+        "Coverage starts month AFTER approval, not immediately",
+        "Older sources [4][6] show outdated FPL figures; always check current at official site",
+        "Coordinates as secondary payer with Medicare/other insurance—may affect out-of-pocket"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.dhs.wisconsin.gov/seniorcare/index.htm"
+    },
+    {
+      "name": "Elder Benefit Specialist (EBS) Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "no income/asset test; statewide via decentralized local ADRC/county offices; advocacy-focused, not entitlement program",
+      "gotchas": [
+        "Services are assistance/advocacy only, not direct benefits or cash; free but donations encouraged (never required); family/friends/caregivers can participate with permission; not for selling products—unbiased; supervised by attorneys but not full legal representation unless referred."
+      ],
+      "benefitType": "advocacy",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://www.dhs.wisconsin.gov/benefit-specialists/ebs.htm"
+    },
+    {
+      "name": "Wisconsin Senior Employment Program (WISE)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Statewide but regionally administered via multiple workforce boards and subgrantees; priority tiers affect access; income test at 125% poverty (varies by household size annually); no asset test; part-time hours fixed at ~20/week",
+      "gotchas": [
+        "Enrollment priority given to veterans/qualified spouses, then those over 65—others may face lower priority[2]",
+        "Temporary/part-time training (not permanent jobs); goal is transition to unsubsidized employment[1][2][6]",
+        "Income limit strictly ≤125% poverty level (family income, not individual)[1][2][6]",
+        "Must be actively unemployed and seeking work; not for current employees[1][4]",
+        "Regional providers differ—contact local office, as no centralized statewide application[1][3][5]",
+        "Paid at minimum wage, not higher despite experience[2][4]"
+      ],
+      "benefitType": "employment",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.dhs.wisconsin.gov/publications/p00409-2024-2027.pdf (Wisconsin SCSEP State Plan 2024-2027); https://www.wisconsinjobcenter.org/ow/ (DWD Job Center)"
+    },
+    {
+      "name": "Family Care",
+      "isNew": false,
+      "existingId": "family-care-iris-and-partnership-waivers",
+      "existingVerified": null,
+      "diffsFound": 4,
+      "diffs": [
+        {
+          "field": "min_age",
+          "ours": "65",
+          "found": "65 or older, or 18-64 with physical, intellectual, or developmental disability[1][2][3][4][8]",
+          "source": "https://www.dhs.wisconsin.gov/familycare/apply.htm[4]"
+        },
+        {
+          "field": "income_limit",
+          "ours": "$2901",
+          "found": "$2,000",
+          "source": "https://www.dhs.wisconsin.gov/familycare/apply.htm[4]"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$10,000 – $30,000/year",
+          "found": "Home and Community Based Services (HCBS) via managed care organizations (CMOs), including personal care, respite care, home modifications, assisted living, memory care, and long-term care support instead of institutional care; no fixed dollar amounts or hours specified, tailored to assessed needs[2][3][7]",
+          "source": "https://www.dhs.wisconsin.gov/familycare/apply.htm[4]"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.dhs.wisconsin.gov/familycare/apply.htm[4]"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Medicaid asset limits apply (e.g., typically less than $2,000 for single applicants); exemptions include primary residence and personal vehicle[2]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Varies by county/service area (different CMOs like Community Care, Anthem, My Choice Wisconsin); options depend on location; different providers and enrollment processes[1][4][5][8]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "No waitlists for program participation[3]",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Income and asset documentation for Medicaid financial assessment[2][4]",
+            "Proof of residency and disability/age[1][2]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Regionally restricted to participating counties with varying CMOs/providers; eligibility ties directly to Medicaid financial rules plus mandatory functional screen; no waitlists but not statewide; benefits via managed care HCBS waiver",
+      "gotchas": [
+        "Not statewide—must live in a participating county/region; check local availability[1][3][4]",
+        "Requires both financial Medicaid eligibility AND functional screening (NFLOC via LTC FS)—many miss the functional need assessment[1][2][3][4]",
+        "Enrollment through specific CMOs available in your area; choose during process[4][5]",
+        "Medicare beneficiaries may still qualify if meeting criteria, but must meet Medicaid rules[9]",
+        "Persons with disabilities enrolled before 65 can continue post-65[3]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "region",
+      "officialSource": "https://www.dhs.wisconsin.gov/familycare/apply.htm[4]"
+    },
+    {
+      "name": "IRIS (Include, Respect, I Self-Direct)",
+      "isNew": false,
+      "existingId": "family-care-iris-and-partnership-waivers",
+      "existingVerified": null,
+      "diffsFound": 4,
+      "diffs": [
+        {
+          "field": "min_age",
+          "ours": "65",
+          "found": "18",
+          "source": "https://www.dhs.wisconsin.gov/iris/index.htm"
+        },
+        {
+          "field": "income_limit",
+          "ours": "$2901",
+          "found": "$3,525",
+          "source": "https://www.dhs.wisconsin.gov/iris/index.htm"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$10,000 – $30,000/year",
+          "found": "Self-directed Medicaid long-term care supports and services within an individualized budget (amount based on functional needs from LTC FS); covers DHS-approved services like personal care, goods/supports for daily living, adult day care; participant chooses/manages services, hires providers[3][5][6]. No fixed dollar amounts or hours specified; budget varies by assessed needs.",
+          "source": "https://www.dhs.wisconsin.gov/iris/index.htm"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.dhs.wisconsin.gov/iris/index.htm"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Follows Medicaid asset rules; home equity limit of $750,000 if living in home or intent to return (2025). Exemptions include: home if applicant lives there or has intent to return (equity ≤$750,000), spouse lives in home, minor child (<18) lives in home, disabled child lives in home[2].",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered through local ADRCs/ADRS (county/tribal variations in offices/providers); different Fiscal Employer Agents and IRIS Consultant Agencies available by region; wait times may vary by demand[3][5]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Not mentioned; may exist due to program caps (inferred from waiver nature, but not explicit)",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of residency, citizenship/immigration status, income, assets (e.g., home equity docs), SSN, medical support/third-party liability info; specifics determined by Medicaid agency[1][3]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Self-directed budget model varies by functional assessment (LTC FS) and priority tier; county-based ADRC administration with regional providers/agents; no standalone income/asset limits (uses Medicaid); setting-restricted",
+      "gotchas": [
+        "Must live in eligible community setting (own home/residential); ineligible if in nursing facility or certain residential facilities[1][6]",
+        "Self-direction responsibilities: participant manages budget, hires/fires providers, follows rules; FEA handles payroll but not service provision[3][6]",
+        "Financial eligibility ties to Medicaid (may require cost-sharing); pre-existing Medicaid speeds process[1][3]",
+        "Functional screen required for NH/ICF-IID level of care; not just any disability[1][2]",
+        "All providers must enroll with ForwardHealth Portal[4]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.dhs.wisconsin.gov/iris/index.htm"
+    }
+  ]
+}

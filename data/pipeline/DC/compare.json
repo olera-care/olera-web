@@ -1,0 +1,101 @@
+{
+  "state": "DC",
+  "stateName": "District of Columbia",
+  "comparedAt": "2026-04-09T17:43:15.157Z",
+  "total": 4,
+  "newPrograms": 4,
+  "withDiffs": 0,
+  "withNovelFields": 0,
+  "benefitTypes": {
+    "service": 3,
+    "in_kind": 1
+  },
+  "variationPatterns": {
+    "priority_tier": 2,
+    "falls_risk_level": 1,
+    "region": 1
+  },
+  "novelFieldSummary": {},
+  "comparisons": [
+    {
+      "name": "Elderly and Persons with Physical Disabilities (EPD) Waiver Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Income fixed at 300% SSI (individual, updates yearly); assets strictly $4,000 individual (no household variation specified); requires physician-signed POF + Liberty assessment for NFLOC; waitlisted; DC-only[1][2][4][5]",
+      "gotchas": [
+        "Must be Medicaid-eligible (or meet spend-down), but can apply without prior Medicaid[6]",
+        "Requires NFLOC via specific assessment (score ≥9 on scale) and POF—application incomplete without them[1][2][8]",
+        "Assets fixed at $4,000 individual limit; income at 300% SSI (updates annually—check current)[1][2][4]",
+        "Waitlist is first-come, first-served; services in home/assisted living only, no room/board[3][4][5]",
+        "DACL MES coordinates but ESA determines eligibility[1][2]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://dacl.dc.gov/service/epd-waiver[1]"
+    },
+    {
+      "name": "Safe at Home Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "This program has two distinct income tiers: base eligibility at 80% AMI and expanded eligibility at 100% AMI (with cost-share component added May 2019). Benefits scale by falls risk level, not household size. The program has a two-episode lifetime limit per client. A significant portion of applications are rejected for incomplete documentation, suggesting applicants should prepare thoroughly before calling. The program refers higher-cost projects to a separate DHCD program, creating a potential gap in understanding where responsibility lies.",
+      "gotchas": [
+        "High rate of ineligible applications (60%) due to incomplete documentation — ensure all required proof is gathered before applying[4]",
+        "Income limits have changed over time; verify current thresholds with DACL as sources show conflicting figures ($72,550–$99,600 for individuals depending on cost-share tier)[2][4][6]",
+        "Clients can only be considered for eligibility for two episodes (two separate modification projects)[4]",
+        "Projects exceeding $6,000 or high-risk clients are automatically referred to a different program (DHCD Single Family Residential Rehabilitation), not handled by Safe at Home[4]",
+        "Disability proof is required for applicants under 60, but waived entirely for those 60+[1]",
+        "Property owner permission is required for renters; this must be documented[1]",
+        "Program focuses on fall prevention specifically — modifications must address falls risk, not general accessibility[2][4]",
+        "Grants are exempt from District income taxation[1]"
+      ],
+      "benefitType": "in_kind",
+      "benefitVariesBy": "falls_risk_level",
+      "officialSource": "https://dacl.dc.gov/service/safe-home"
+    },
+    {
+      "name": "DACL Benefits Assistance",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Assistance program for EPD Waiver enrollment; eligibility mirrors EPD (individual asset/income caps, no household table); requires provider POF and external assessment; DC-wide via DACL/ADRC.",
+      "gotchas": [
+        "Primarily assistance enrolling in EPD Waiver, Medicaid, SNAP—not direct benefits; requires separate Medicaid eligibility and spend-down if income over limit.",
+        "Must have nursing home level of care need; face-to-face assessment by Liberty Healthcare required.",
+        "Income/asset limits outdated in sources (2021-2023); verify current figures as they tie to SSI (300% SSI).",
+        "Countable assets exclude $10,000 burial but include most financial accounts."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://dacl.dc.gov/service/benefits-assistance"
+    },
+    {
+      "name": "DC Senior Centers",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Decentralized network of centers/providers under D.C. Office on Aging, no uniform income/asset test for core social services, varies by provider (e.g., dementia exclusion, language-specific), employment/nutrition/waiver programs have stricter financial/functional criteria.",
+      "gotchas": [
+        "Not a single centralized program—network of independent centers with varying eligibility (e.g., no dementia at some); often confused with employment training (SCSEP, age 55+, job-focused) or Medicaid waivers; many free but some sliding scale/voluntary fees; priority for most-in-need in some services; must confirm center-specific rules as no uniform application.[1][4][5][9]",
+        "Medical/functional needs assessed for advanced services, not automatic.",
+        "Targeted groups like Hispanic seniors at Vida may have cultural/language focus others lack."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "region",
+      "officialSource": "https://dcoa.dc.gov/ (D.C. Office on Aging primary site; specific centers via provider sites)"
+    }
+  ]
+}

@@ -1,0 +1,343 @@
+{
+  "state": "KY",
+  "stateName": "Kentucky",
+  "draftedAt": "2026-04-09T09:33:47.512Z",
+  "total": 2,
+  "successful": 2,
+  "programs": [
+    {
+      "id": "kentucky-pace-senior-community-care",
+      "name": "Senior CommUnity Care of Kentucky (PACE)",
+      "shortName": "Kentucky PACE",
+      "tagline": "All medical care, medications, and home services coordinated under one program for parents who need nursing home-level care but want to stay home.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Louisville: 960 S 4th St, Louisville KY 40203; (502) 676-7515",
+            "type": "service-area"
+          },
+          {
+            "name": "Northern KY: 47 Cavalier Blvd., Suite 140, Florence, KY 41042; (859) 970-2450",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs nursing home-level care but wants to stay at home, Kentucky PACE provides all their medical care, medications, therapies, and home services under one coordinated program. Because PACE becomes your parent's sole healthcare provider, they won't need to coordinate between separate doctors, specialists, and services — one interdisciplinary team manages everything from primary care to prescription drugs to transportation.\n\nPACE is only available in specific Kentucky counties: Jefferson County (Louisville area) and Boone, Kenton, and Campbell Counties (Northern Kentucky). Your parent must be 55+ and certified by the state to need nursing home level of care, but still be able to live safely in the community with PACE services. Parents with both Medicare and Medicaid get 100% coverage, while those with Medicare-only pay fees.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Need nursing home level of care",
+          "Can live safely at home with services",
+          "Must live in Jefferson, Boone, Kenton, or Campbell County"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must be certified by the state to need nursing home level of care (a clinical assessment of whether your parent needs daily help with bathing, dressing, medication management, or other activities of daily living)",
+        "otherRequirements": [
+          "Must reside in Jefferson County (Louisville) or Boone, Kenton, Campbell Counties (Northern KY)",
+          "Must be able to live safely in the community at enrollment time with PACE services"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call your local PACE center to start the eligibility assessment — processing time varies by individual situation.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call your local PACE center",
+            "description": "Louisville: (502) 676-7515. Northern KY: (859) 970-2450. They'll explain the program and schedule an initial assessment."
+          },
+          {
+            "step": 2,
+            "title": "Complete eligibility assessment",
+            "description": "PACE staff will evaluate whether your parent meets nursing home level of care requirements and can live safely in the community."
+          },
+          {
+            "step": 3,
+            "title": "Verify Medicaid eligibility (if applicable)",
+            "description": "If your parent has Medicaid, call (800) 807-1301 or visit KYHealth-Net to confirm current eligibility status."
+          },
+          {
+            "step": 4,
+            "title": "Attend enrollment meeting",
+            "description": "Review all services, payment structure, and complete enrollment paperwork at the PACE center."
+          }
+        ],
+        "processingTime": "Not specified",
+        "waitlist": null,
+        "tip": "Visit the PACE center in person to see the adult day services and meet staff before enrolling — this helps you understand what your parent's daily experience will be like.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "PACE Centers",
+          "offices": [
+            {
+              "name": "Louisville PACE Center",
+              "type": "service-area",
+              "phone": "(502) 676-7515",
+              "address": "960 S 4th St, Louisville KY 40203"
+            },
+            {
+              "name": "Northern Kentucky PACE Center",
+              "type": "service-area",
+              "phone": "(859) 970-2450",
+              "address": "47 Cavalier Blvd., Suite 140, Florence, KY 41042"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Insurance",
+              "items": [
+                "Medicare card",
+                "Medicaid card (if your parent has Medicaid)",
+                "Any supplemental insurance cards"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Current medication list",
+                "Recent medical records or hospital discharge summaries",
+                "Documentation of current healthcare needs"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Once your parent enrolls in PACE, all non-emergency medical care must go through PACE providers to be covered. They cannot use other doctors or specialists outside the PACE network."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent has Medicare but not Medicaid?",
+          "answer": "Your parent can still enroll in PACE, but they'll pay monthly fees instead of getting 100% coverage. The PACE center can explain the specific fee structure during your enrollment meeting."
+        },
+        {
+          "question": "Can my parent keep seeing their current doctors?",
+          "answer": "No. PACE becomes your parent's sole healthcare provider. They must use PACE doctors, specialists, and services for all non-emergency care to maintain coverage."
+        },
+        {
+          "question": "What happens if my parent needs to go to the hospital?",
+          "answer": "PACE covers all hospital care, but the PACE team coordinates and manages the hospitalization. Your parent will typically return to PACE services after discharge rather than other providers."
+        },
+        {
+          "question": "Does my parent have to attend the adult day services?",
+          "answer": "Adult day services are part of PACE, but attendance requirements vary by individual care plan. The PACE team works with you and your parent to determine the right level of participation."
+        },
+        {
+          "question": "What if we move to a different county in Kentucky?",
+          "answer": "PACE is only available in Jefferson County and Boone, Kenton, Campbell Counties. If your parent moves outside these areas, they'll lose PACE coverage and need to find other healthcare providers."
+        },
+        {
+          "question": "Can my parent disenroll from PACE if they don't like it?",
+          "answer": "Yes, your parent can disenroll from PACE, but they'll need to arrange new Medicare and Medicaid providers since PACE becomes their sole source of coverage during enrollment."
+        }
+      ],
+      "phone": "(502) 676-7515",
+      "sourceUrl": "https://chfs.ky.gov/agencies/dail/Pages/pace.aspx",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "kentucky-grandparent-caregiver-program",
+      "name": "Kentucky Family Caregiver Program (Grandparents Raising Grandchildren)",
+      "shortName": "Grandparent Caregiver Program",
+      "tagline": "If you're raising your grandchild, Kentucky provides support services and grants for clothing, school supplies, and respite care.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local Area Agencies on Aging and Independent Living",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If you're a Kentucky grandparent raising your grandchild because the parents can't, this program connects you with support groups, counseling, and practical help. You'll get assistance accessing services your family needs, plus training on navigating the system.\n\nIf your household income is at or below 150% of the federal poverty level, you may also qualify for grants or vouchers per grandchild each year. These cover clothing, school supplies, respite care, legal services, and medical expenses that aren't covered elsewhere. The grandchild must be 18 or younger, live in your home, and neither parent can live with you.",
+      "savingsRange": "",
+      "savingsSource": "Free service with potential grants for qualifying families",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Kentucky resident",
+          "Raising grandchild (blood/marriage/adoption)",
+          "Grandchild 18 or younger",
+          "Parents don't live in home",
+          "Not receiving Kinship Care payments"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be primary caregiver for grandchild related by blood, marriage, or adoption",
+          "Grandchild must live in your home",
+          "Neither parent can reside in the household",
+          "Cannot be receiving monthly Kinship Care payments"
+        ],
+        "povertyLevelReference": "150% FPL (for financial assistance only)"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact your local Area Agency on Aging — no forms required to start, and processing time varies by region.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local Area Agency on Aging",
+            "description": "Visit chfs.ky.gov to locate your regional office, or call them directly to get connected to your local coordinator."
+          },
+          {
+            "step": 2,
+            "title": "Schedule an intake appointment",
+            "description": "Your coordinator will assess your situation and explain which services you qualify for — both free support services and potential grants."
+          },
+          {
+            "step": 3,
+            "title": "Gather relationship and income documentation",
+            "description": "Bring proof of your relationship to the grandchild, household income, and confirmation that parents don't live in your home."
+          },
+          {
+            "step": 4,
+            "title": "Complete program enrollment",
+            "description": "Your coordinator will help you access immediate services and apply for any grants or vouchers your family qualifies for."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Even if your income is too high for grants, you still qualify for free support services like counseling and resource navigation.",
+        "urls": [
+          {
+            "label": "Kentucky Family Caregiver Program",
+            "url": "https://prd.webapps.chfs.ky.gov/kyfaces/Kinship/KFCP"
+          },
+          {
+            "label": "Find Local Agency",
+            "url": "https://chfs.ky.gov/agencies/dail/Pages/caregiversupport.aspx"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Relationship Proof",
+              "items": [
+                "Birth certificate showing grandparent-grandchild relationship",
+                "Marriage certificate (if related through marriage)",
+                "Adoption papers (if applicable)"
+              ]
+            },
+            {
+              "name": "Household Information",
+              "items": [
+                "Proof of Kentucky residency",
+                "Documentation that parents don't live in the home",
+                "Grandchild's birth certificate or school records showing age"
+              ]
+            },
+            {
+              "name": "Financial (for grants only)",
+              "items": [
+                "Household income documentation for all adults",
+                "Confirmation you're not receiving Kinship Care payments"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "You cannot receive both this program's financial assistance and Kinship Care payments at the same time. Compare both programs to see which provides more support for your situation."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if I'm already getting Kinship Care payments?",
+          "answer": "You cannot receive both financial benefits at the same time. However, you may still qualify for the free support services like counseling and resource navigation. Compare both programs to see which provides more total value for your family."
+        },
+        {
+          "question": "Can the grandchild's parent visit or stay temporarily?",
+          "answer": "Parents cannot reside in the household to qualify, but the program doesn't specify restrictions on visits. Check with your local coordinator about temporary stays or frequent visits that might affect eligibility."
+        },
+        {
+          "question": "What if my income is just over 150% of the poverty level?",
+          "answer": "You'll still qualify for all the free services — support groups, counseling, training, and help accessing other resources. Only the grants and vouchers have income limits."
+        },
+        {
+          "question": "Do I qualify if I adopted my grandchild or if they're my step-grandchild?",
+          "answer": "Yes, you qualify if the grandchild is related by blood, marriage, or adoption. This includes step-grandchildren and legally adopted grandchildren."
+        },
+        {
+          "question": "How much are the grants worth each year?",
+          "answer": "The program doesn't publish specific dollar amounts. Your local coordinator will explain what grants and vouchers are available based on your needs and their current funding."
+        },
+        {
+          "question": "What if I'm raising multiple grandchildren?",
+          "answer": "You can receive separate grants or vouchers per grandchild per fiscal year, as long as each child meets the age and residency requirements and your household qualifies financially."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://chfs.ky.gov/agencies/dail/Pages/caregiversupport.aspx",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    }
+  ],
+  "stateOverview": {
+    "intro": "Kentucky offers 2 key programs for family caregivers, ranging from comprehensive medical care coordination to support for grandparents raising grandchildren. These are qualification-based benefit programs that provide direct services and financial assistance if your situation meets specific criteria. Both programs focus on keeping families together and providing wraparound support rather than simple cash payments.",
+    "startHere": [
+      {
+        "name": "Senior CommUnity Care of Kentucky (PACE)",
+        "programId": "senior-community-care-kentucky-pace",
+        "why": "Covers all medical care, medications, and home services under one coordinated program if your parent needs nursing home-level care."
+      },
+      {
+        "name": "Kentucky Family Caregiver Program (Grandparents Raising Grandchildren)",
+        "programId": "kentucky-family-caregiver-program-grandparents-raising-grandchildren",
+        "why": "Provides direct support services and grants for clothing, school supplies, and respite care if you're raising your grandchild."
+      }
+    ],
+    "byNeed": [
+      {
+        "need": "Comprehensive medical care coordination",
+        "programs": [
+          "Senior CommUnity Care of Kentucky (PACE)"
+        ],
+        "description": "All-in-one medical care, medications, and home services for parents who need nursing home-level care."
+      },
+      {
+        "need": "Support for grandparents raising grandchildren",
+        "programs": [
+          "Kentucky Family Caregiver Program (Grandparents Raising Grandchildren)"
+        ],
+        "description": "Direct services and grants for basic needs when you're the primary caregiver for your grandchild."
+      }
+    ],
+    "quickFacts": [
+      "Kentucky's PACE program coordinates all medical care under one team to eliminate provider coordination for high-need seniors",
+      "The state provides specific support for grandparents who have become primary caregivers for their grandchildren",
+      "Both available programs focus on comprehensive support services rather than simple cash assistance"
+    ],
+    "resourcesVsBenefits": "Kentucky's available programs are qualification-based benefits that require meeting specific criteria — like needing nursing home-level care for PACE or being a grandparent raising a grandchild for the Family Caregiver Program. Both provide comprehensive services and support rather than universal resources available to all caregivers."
+  }
+}

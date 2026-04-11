@@ -1,0 +1,2151 @@
+{
+  "state": "IL",
+  "stateName": "Illinois",
+  "draftedAt": "2026-04-09T13:20:40.642Z",
+  "total": 12,
+  "successful": 12,
+  "programs": [
+    {
+      "id": "illinois-medicaid-seniors-disabled",
+      "name": "Medical Assistance (Medicaid) for Seniors/Disabled",
+      "shortName": "Illinois Medicaid",
+      "tagline": "Free health coverage including doctor visits, prescriptions, and nursing home care for your parent if they're 65+ or disabled.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local DHS FRCs statewide; CCUs for waivers via HFS contracts.",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 65+ or disabled with limited income, Illinois Medicaid covers all their medical expenses — doctor visits, hospital stays, prescriptions, and long-term care. Because this program has multiple pathways with different rules, your parent might qualify even if their income seems too high.\n\nThe main program for seniors 65+ (Aid to the Aged, Blind, and Disabled) requires income at or below $1,304/month for a single person and assets under $17,500. But if your parent's income is higher, they may still qualify through a \"spenddown\" process where their medical bills count toward meeting the income limit.\n\nIf your parent needs nursing home care or wants to stay home with help, Medicaid covers both options. The Persons who are Elderly Waiver pays for in-home personal care, adult day care, and home modifications — but requires a clinical assessment proving they need nursing home level care.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+ or disabled",
+          "Income below $1,304/month (single)",
+          "Assets under $17,500",
+          "Illinois resident"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1304
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 1763
+          }
+        ],
+        "assetLimits": {
+          "individual": 17500,
+          "couple": 17500,
+          "countedAssets": [
+            "Bank accounts",
+            "Investments",
+            "Second home or property"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "One vehicle",
+            "Personal belongings",
+            "Burial plots",
+            "ABLE accounts",
+            "Most retirement accounts"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "For home care services: Must need nursing home level care (daily help with bathing, dressing, or medication management)",
+        "otherRequirements": [
+          "U.S. citizen or qualified non-citizen (lawfully present 5+ years)",
+          "Not receiving Medicare if under 65"
+        ],
+        "povertyLevelReference": "100% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online at abe.illinois.gov — takes 45 days to process, or 90 days if disability determination is needed.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Start online application",
+            "description": "Go to abe.illinois.gov and create an account. This is the fastest way to apply for all Illinois benefits at once."
+          },
+          {
+            "step": 2,
+            "title": "Gather required documents",
+            "description": "You'll need proof of income (Social Security award letters, bank statements), ID documents, and medical records if applying for disability."
+          },
+          {
+            "step": 3,
+            "title": "Submit application",
+            "description": "Complete the online form or call 1-800-843-6154 for phone assistance. You can also visit your local DHS office."
+          },
+          {
+            "step": 4,
+            "title": "For home care services",
+            "description": "If your parent needs in-home help, contact the Community Care Unit for a Determination of Need assessment after applying for basic Medicaid."
+          }
+        ],
+        "processingTime": "45 days for seniors; 90 days if disability determination needed",
+        "waitlist": "Possible waitlist for home care services due to enrollment caps",
+        "tip": "Even if your parent's income is over the limit, apply anyway — medical bills can help them qualify through spenddown.",
+        "urls": [
+          {
+            "label": "Apply Online",
+            "url": "https://abe.illinois.gov/abe/"
+          },
+          {
+            "label": "Find Local Office",
+            "url": "https://www.dhs.state.il.us/page.aspx?item=117422"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits by Household Size (2025)",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 1304,
+              "yearlyLimit": 15648
+            },
+            {
+              "householdSize": 2,
+              "monthlyLimit": 1763,
+              "yearlyLimit": 21156
+            }
+          ],
+          "footnote": "Limits increase annually each April"
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and savings",
+            "Stocks, bonds, and investments",
+            "Second home or rental property",
+            "Cash value of life insurance over $1,500"
+          ],
+          "excluded": [
+            "Primary home (no value limit)",
+            "One vehicle of any value",
+            "Personal belongings and household items",
+            "Burial plots and prepaid funeral contracts",
+            "ABLE accounts for disabled individuals",
+            "Most retirement accounts (401k, IRA)"
+          ]
+        },
+        {
+          "type": "tier-comparison",
+          "heading": "Program Pathways",
+          "tiers": [
+            {
+              "name": "AABD (Ages 65+)",
+              "description": "Main program for seniors",
+              "incomeLimit": "$1,304/month single",
+              "coverage": "Full Medicaid + long-term care options"
+            },
+            {
+              "name": "ACA Adults (19-64, Disabled)",
+              "description": "For disabled adults under 65",
+              "incomeLimit": "$1,396/month single",
+              "coverage": "Full Medicaid, no asset limits, cannot have Medicare"
+            },
+            {
+              "name": "Working Disabled (HBWD)",
+              "description": "For working disabled individuals",
+              "incomeLimit": "$3,541/month single",
+              "coverage": "Full Medicaid with premium payment required"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Birth certificate or other proof of age",
+                "Social Security card",
+                "Proof of Illinois residency"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Social Security award letter",
+                "Bank statements (last 3 months)",
+                "Pension or retirement income statements",
+                "Property deeds or mortgage statements"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Disability determination from Social Security (if applicable)",
+                "Recent medical records (for home care services)",
+                "Doctor's statement of disability (if not receiving SSI/SSDI)"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Home care services through the Persons who are Elderly Waiver often have waitlists due to enrollment caps. Apply for basic Medicaid first, then request the waiver assessment."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If your parent's income is over the limit, they may still qualify through \"spenddown\" — their monthly medical bills count toward meeting the income requirement."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if they qualify for Medicaid?",
+          "answer": "Yes, your parent can keep their primary home regardless of value. However, Illinois may recover long-term care costs from the estate after death through estate recovery."
+        },
+        {
+          "question": "What if my parent's income is just over the $1,304 limit?",
+          "answer": "They may still qualify through spenddown. If their monthly medical bills plus the income limit exceed their actual income, they can get coverage. For example, if they earn $1,500/month and have $200+ in medical bills, they could qualify."
+        },
+        {
+          "question": "Does my parent need to choose between Medicare and Medicaid?",
+          "answer": "No, if your parent is 65+ they can have both. Medicaid will cover Medicare premiums, deductibles, and services Medicare doesn't cover. If they're under 65 and disabled, they typically can't get both through the ACA Adults pathway."
+        },
+        {
+          "question": "How long does it take to get home care services approved?",
+          "answer": "Basic Medicaid approval takes 45 days. Home care services require an additional clinical assessment (Determination of Need) and may have waitlists. Start with the basic Medicaid application first."
+        },
+        {
+          "question": "What happens if my parent needs nursing home care?",
+          "answer": "Medicaid covers nursing home costs in full once approved. Your parent contributes their income except for a small personal needs allowance (around $30-60/month). No waitlist for nursing home coverage."
+        },
+        {
+          "question": "Can my parent work and still receive Medicaid?",
+          "answer": "Yes, through the HBWD (Home and Community Based Services Waiver for Working Disabled) pathway, disabled individuals can earn up to $3,541/month and keep Medicaid by paying a premium. This is only for people 16-64 who are disabled."
+        }
+      ],
+      "phone": "1-800-843-6154",
+      "sourceUrl": "https://www.illinois.gov/hfs/MedicalClients/Pages/medicalprograms.aspx",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "illinois-home-services-program-hsp-waiver",
+      "name": "Home Services Program (HSP) Waiver",
+      "shortName": "HSP Waiver",
+      "tagline": "Get paid help with daily care at home for your disabled adult child under 60 instead of nursing home placement.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local DRS offices; managed care organizations like Health Choice Illinois",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your adult child (under 60) has a severe disability and needs daily help with bathing, dressing, or medication management, Illinois's Home Services Program may pay for personal care at home instead of nursing home placement. Because this waiver covers the cost of home-based services up to what a nursing home would cost, your family member can stay home while getting professional care.\n\nTo qualify, your adult child must score 29 or higher on Illinois's clinical assessment (Determination of Need score), have less than $17,500 in countable assets, and meet Medicaid financial criteria. The program provides personal assistance with daily living tasks, with services planned by a case manager to match your family member's specific needs at a cost no higher than institutional care.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Under age 60 at application",
+          "Severe disability lasting 12+ months",
+          "DON assessment score 29+",
+          "Assets under $17,500",
+          "At risk of nursing home placement"
+        ],
+        "ageRequirement": "Under 60",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 17500,
+          "couple": null,
+          "countedAssets": [
+            "Bank accounts",
+            "Investments",
+            "Second vehicles"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "One car",
+            "ABLE account"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "Must score 29 or higher on Determination of Need assessment (measures ability to safely perform daily activities like bathing, dressing, medication management)",
+        "otherRequirements": [
+          "U.S. citizen or legal resident",
+          "Illinois resident",
+          "At imminent risk of nursing facility placement",
+          "Physician certification that care can be safely provided at home"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online through the DHS website or contact your local DRS office; processing time not specified.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Submit initial referral",
+            "description": "Complete online referral at DHS website or call your local DRS office to request HSP services"
+          },
+          {
+            "step": 2,
+            "title": "Schedule DON assessment",
+            "description": "Meet with HSP counselor for in-person clinical assessment to determine your Determination of Need score (must be 29 or higher)"
+          },
+          {
+            "step": 3,
+            "title": "Complete Medicaid application",
+            "description": "Apply for Medicaid or provide proof of cooperation with Medicaid process (current eligibility not required for interim services)"
+          },
+          {
+            "step": 4,
+            "title": "Provide required documentation",
+            "description": "Submit proof of citizenship, residency, assets, and physician certification that home care is safe and appropriate"
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "You can receive interim services while your Medicaid application is being processed — you don't need to wait for Medicaid approval to start.",
+        "urls": [
+          {
+            "label": "Apply online at DHS",
+            "url": "https://www.dhs.state.il.us/page.aspx?item=29738"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and savings over $17,500",
+            "Investments and stocks",
+            "Second cars or recreational vehicles",
+            "Property other than primary home"
+          ],
+          "excluded": [
+            "Primary home (where your adult child lives)",
+            "One car for transportation",
+            "ABLE account funds",
+            "Household goods and personal belongings"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Proof of U.S. citizenship or legal residency",
+                "Proof of Illinois residency (utility bill, lease)"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Bank statements for all accounts",
+                "Asset documentation (car titles, investment accounts)",
+                "Medicaid application or proof of current coverage"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Physician certification that care can be safely provided at home",
+                "Medical records documenting severe disability lasting 12+ months"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Age matters: Your adult child must be under 60 at the time of application. The only exceptions are specialized HIV/AIDS and brain injury waivers that accept applicants of any age."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Family members can be paid caregivers under this program, except spouses, parents of minor children, or minor children of the recipient."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my adult child keep their apartment if they qualify for HSP?",
+          "answer": "Yes. Your primary home is exempt from the $17,500 asset limit, and the whole point of HSP is to provide care at home instead of in a nursing facility."
+        },
+        {
+          "question": "What if my adult child's care needs cost more than a nursing home?",
+          "answer": "HSP will not cover costs that exceed what institutional care would cost. Services are limited to being cost-neutral with nursing home placement."
+        },
+        {
+          "question": "Can I get paid to care for my adult child through this program?",
+          "answer": "Yes, family members can be paid caregivers, but spouses, parents of minor children, or minor children of the recipient cannot be paid through HSP."
+        },
+        {
+          "question": "What happens if my adult child doesn't score 29 on the assessment?",
+          "answer": "They won't qualify for HSP services. The Determination of Need score of 29 or higher is required and measures their ability to safely perform daily activities without assistance."
+        },
+        {
+          "question": "Do we need to be on Medicaid already to apply?",
+          "answer": "No. You need to apply for Medicaid or cooperate with the Medicaid application process, but your adult child can receive interim HSP services while the Medicaid application is being processed."
+        },
+        {
+          "question": "What's the difference between DRS-HSP and Health Choice Illinois?",
+          "answer": "These are just different ways Illinois administers the same HSP services. About 30% of participants get services through DRS-HSP directly, while 70% get them through managed care organizations like Health Choice Illinois."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://www.dhs.state.il.us/page.aspx?item=29738",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "illinois-pace-comprehensive-care",
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "shortName": "PACE Illinois",
+      "tagline": "Complete medical care, adult day programs, and home services—all coordinated under one team for parents who qualify for nursing home care but want to stay home.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Designated PACE organizations in West Chicago, South Chicago, Southern Cook County, Peoria, East St. Louis (3 operational as of July 2024; 2 more by Q1 2025; full list at HFS site).",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 55+ and needs nursing home-level care but wants to stay in their own home, PACE provides everything under one roof: primary care, adult day programs, home care, medications, transportation, and emergency services. Your parent gets all medical care at a PACE center during the day, plus home services as needed—no juggling multiple doctors or programs.\n\nBecause PACE covers all medical care under one program, your parent won't need to coordinate between separate providers—one team manages everything from routine checkups to hospital stays. You must live in specific zip codes in West Chicago, South Chicago, Southern Cook County, Peoria, or East St. Louis areas.\n\nPACE launched in Illinois in 2024 with only 16 participants across 3 centers as of mid-2024, so expect waitlists. Your parent must qualify for nursing home level of care through a clinical assessment but be able to live safely at home with support.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Live in PACE service zip codes only",
+          "Qualify for nursing home level of care",
+          "Able to live safely at home with support",
+          "Cannot be on Medicare Advantage or hospice"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must score 29+ on Determination of Need assessment—a clinical evaluation of whether your parent needs daily help with bathing, dressing, medication management, or other nursing home-level care",
+        "otherRequirements": [
+          "Live in specific PACE service zip codes in West Chicago, South Chicago, Southern Cook County, Peoria, or East St. Louis",
+          "Not enrolled in Medicare Advantage, Medicare prescription drug plan, or hospice",
+          "Able to live safely in the community with PACE services"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Start with Illinois Department of Aging's Community Care Unit for clinical assessment, then PACE center handles final enrollment—processing time not specified but expect delays due to limited capacity.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Check if you live in a PACE service area",
+            "description": "Search your zip code at hfs.illinois.gov/medicalproviders/pace.html to confirm eligibility in West Chicago, South Chicago, Southern Cook County, Peoria, or East St. Louis regions."
+          },
+          {
+            "step": 2,
+            "title": "Contact Community Care Unit for assessment",
+            "description": "Call Illinois Department of Aging's local Community Care Unit to schedule Determination of Need assessment. You need to score 29+ to qualify for nursing home level of care."
+          },
+          {
+            "step": 3,
+            "title": "Complete clinical assessment",
+            "description": "CCU evaluates your parent's ability to perform daily activities like bathing, dressing, medication management. They determine if your parent meets nursing facility level of care."
+          },
+          {
+            "step": 4,
+            "title": "Apply directly to PACE center",
+            "description": "If you pass the DON assessment, contact the PACE organization in your service area to complete enrollment agreement and final determination."
+          }
+        ],
+        "processingTime": "Not specified",
+        "waitlist": "Possible due to limited enrollment—only 16 participants as of mid-2024 across 3 organizations",
+        "tip": "Apply early and expect delays—this is a brand new program in Illinois with very limited capacity",
+        "urls": [
+          {
+            "label": "Find PACE programs by zip code",
+            "url": "https://hfs.illinois.gov/medicalproviders/pace.html"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Photo ID showing age 55+",
+                "Proof of address in PACE service zip code",
+                "Medicare card",
+                "Medicaid card (if applicable)"
+              ]
+            },
+            {
+              "name": "Medical Information",
+              "items": [
+                "List of current medications",
+                "Recent medical records",
+                "Documentation of daily care needs (bathing, dressing, medication management)",
+                "Current doctor contact information"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "PACE is only available in specific zip codes in 5 Illinois regions. Check your exact zip code first—even neighboring areas may not qualify. With only 16 participants statewide as of 2024, expect significant waitlists."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Enrolling in PACE means your parent must leave Medicare Advantage, Medicare Part D, or hospice care. PACE becomes their complete healthcare coverage—make sure you understand this full switch before applying."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent keep their regular doctor if they join PACE?",
+          "answer": "No. PACE provides all medical care through their own team of doctors at the PACE center. Your parent will get a new primary care doctor and care team who coordinate everything from routine visits to hospital stays."
+        },
+        {
+          "question": "What if my parent lives just outside the PACE service area?",
+          "answer": "They cannot qualify. PACE is limited to specific zip codes in only 5 Illinois regions: West Chicago, South Chicago, Southern Cook County, Peoria, and East St. Louis. Check the exact zip code list at hfs.illinois.gov/medicalproviders/pace.html."
+        },
+        {
+          "question": "How much does PACE cost if my parent has Medicare and Medicaid?",
+          "answer": "PACE is free if your parent has both Medicare and Medicaid. Most PACE participants are dual eligible. Private pay is available but costs are not publicly listed—contact the PACE center directly for pricing."
+        },
+        {
+          "question": "Can my parent leave PACE if they don't like it?",
+          "answer": "Yes, your parent can disenroll at any time and return to regular Medicare/Medicaid. However, they may need to wait for Medicare open enrollment periods to rejoin Medicare Advantage plans."
+        },
+        {
+          "question": "What happens if my parent needs to go to the hospital?",
+          "answer": "PACE covers all hospital stays and coordinates the care. The PACE team works with hospitals and handles discharge planning. Your parent returns to PACE services after hospital treatment."
+        },
+        {
+          "question": "How long are the waitlists for PACE in Illinois?",
+          "answer": "Wait times are not specified, but with only 16 participants statewide as of 2024 and limited PACE centers, expect significant delays. The program is brand new in Illinois and still expanding capacity."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://hfs.illinois.gov/medicalproviders/pace.html",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "illinois-medicare-assistance-qmb-slmb-qi",
+      "name": "Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), Qualifying Individual (QI)",
+      "shortName": "Medicare Assistance Programs",
+      "tagline": "Illinois programs that can save your parent $1,000+ per year on Medicare premiums and out-of-pocket costs.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local Illinois Department of Human Services (DHS) Family Community Resource Center (FCRC) — specific locations not listed in search results",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent struggles to afford Medicare premiums or copays, three Illinois programs can help reduce their costs. These programs pay Medicare premiums and out-of-pocket expenses for people with limited income and savings. QMB provides the most help (covering all Medicare premiums, deductibles, and copays), SLMB covers Medicare Part B premiums only, and QI covers Part B premiums for those with slightly higher incomes. Because these are tiered programs, if your parent doesn't qualify for QMB due to income, they may still qualify for SLMB or QI. Your parent must already have Medicare Part A to be eligible.",
+      "savingsRange": "$1,000 – $3,000/year in 2026",
+      "savingsSource": "Medicare Part B premiums ($174.90/month) plus deductibles and copays for QMB",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Must have Medicare Part A",
+          "Income below $1,596/month (varies by program)",
+          "Assets below $9,950 (individual)",
+          "Illinois resident"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1330
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 1803
+          }
+        ],
+        "assetLimits": {
+          "individual": 9950,
+          "couple": 14910,
+          "countedAssets": [],
+          "exemptAssets": [],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must have Medicare Part A",
+          "Must be Illinois resident",
+          "Must have Social Security number",
+          "Cannot be age 22-64 in certain DHS facilities"
+        ],
+        "povertyLevelReference": "100% FPL (QMB), 120% FPL (SLMB)"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply by phone at 1-800-843-6154 or visit your local DHS office; processing time not specified.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Gather required documents",
+            "description": "Collect your parent's Medicare card, income proof (Social Security statements, pension statements), asset proof (bank statements), and Social Security number documentation."
+          },
+          {
+            "step": 2,
+            "title": "Apply for QMB first",
+            "description": "Start with QMB since it provides the most benefits. If income is too high, the caseworker will check SLMB eligibility, then QI if needed."
+          },
+          {
+            "step": 3,
+            "title": "Submit application",
+            "description": "Call 1-800-843-6154 or visit your local Family Community Resource Center. Use form HFS 3352 for all three programs."
+          },
+          {
+            "step": 4,
+            "title": "Wait for determination",
+            "description": "Benefits start the month after approval. SLMB may be backdated up to 3 months, but QMB cannot be backdated."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": "QI-1 is awarded first-come, first-served with limited annual spots",
+        "tip": "Apply early in the year for QI since spots are limited and awarded first-come, first-served.",
+        "urls": [
+          {
+            "label": "Illinois HFS QMB Information",
+            "url": "https://hfs.illinois.gov/info/brochures-and-forms/brochures/hfs3352.html"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits by Program (2026)",
+          "rows": [
+            {
+              "program": "QMB (most benefits)",
+              "individual": "$1,330",
+              "couple": "$1,803",
+              "note": "100% Federal Poverty Level"
+            },
+            {
+              "program": "SLMB (Part B premiums only)",
+              "individual": "$1,596",
+              "couple": "$2,164",
+              "note": "120% Federal Poverty Level"
+            },
+            {
+              "program": "QI (Part B premiums, limited spots)",
+              "individual": "Above SLMB limits",
+              "couple": "Above SLMB limits",
+              "note": "Exact 2026 limits not specified"
+            }
+          ],
+          "footnote": "2026 limits; updated each April. Income excludes first $20/month, first $65 of wages, half of wages above $65, food stamps, and other specified exclusions."
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Asset details not specified in research data"
+          ],
+          "excluded": [
+            "Asset exemptions not specified in research data"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Medicare",
+              "items": [
+                "Copy of Medicare card",
+                "Letter showing Medicare eligibility"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Proof of income (Social Security statements, pension statements)",
+                "Proof of assets (bank statements, investment accounts)",
+                "Social Security number documentation"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "QI spots are limited and awarded first-come, first-served each year. Apply early in January if your parent's income is above SLMB limits but you think they might qualify for QI."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Income limits change every April. If your parent was denied before, reapply after April when new limits take effect — they may now qualify."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What's the difference between QMB, SLMB, and QI?",
+          "answer": "QMB provides the most help — it covers all Medicare premiums, deductibles, and copays. SLMB only covers Medicare Part B premiums. QI also covers Part B premiums but has limited spots available each year and is for people with slightly higher incomes."
+        },
+        {
+          "question": "Can my parent apply for all three programs at once?",
+          "answer": "No, these are tiered programs. Apply for QMB first since it provides the most benefits. If your parent's income is too high for QMB, they'll automatically be considered for SLMB, then QI if needed."
+        },
+        {
+          "question": "Will this affect my parent's Medicare Advantage plan?",
+          "answer": "These programs only apply to Original Medicare (Parts A and B). They don't affect Medicare Advantage (Part C) or Medigap plans, though having QMB, SLMB, or QI may make your parent eligible for special Medicare Advantage plans."
+        },
+        {
+          "question": "What if my parent's income is just over the limit?",
+          "answer": "Income limits change every April, so reapply then. Also, the program excludes certain income from calculations — the first $20/month of any income, the first $65 of wages, and half of wages above $65 don't count toward the limit."
+        },
+        {
+          "question": "When do benefits start after approval?",
+          "answer": "Benefits start the month after approval. SLMB can be backdated up to 3 months from when you applied, but QMB cannot be backdated. Apply as soon as possible to avoid delays."
+        },
+        {
+          "question": "Does my parent need to reapply every year?",
+          "answer": "Yes, you must reapply or verify eligibility annually. This is especially important for QI since spots are limited each year and awarded first-come, first-served."
+        }
+      ],
+      "phone": "1-800-843-6154",
+      "sourceUrl": "https://hfs.illinois.gov/info/brochures-and-forms/brochures/hfs3352.html",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "illinois-snap-food-benefits",
+      "name": "Supplemental Nutrition Assistance Program (SNAP)",
+      "shortName": "SNAP Benefits",
+      "tagline": "Get $100–400/month toward groceries if your parent is 60+ on a fixed income.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local IDHS Family Community Resource Centers (find via dhs.state.il.us)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and struggling with grocery costs, SNAP can provide $100–400/month loaded onto an EBT card for food purchases. Because seniors have higher income limits (200% of Federal Poverty Level) and special deductions for medical expenses, many qualify even if they receive Social Security or pensions.\n\nThe benefit amount depends on household size and income after deductions. A single person earning $1,255/month (gross income limit) might receive $200–300/month in benefits after accounting for medical expenses over $35/month and other deductions. Only about half of eligible seniors currently participate, often because they don't realize they qualify or miss claiming medical expense deductions that significantly increase benefits.",
+      "savingsRange": "$1,200 – $4,800/year in 2026",
+      "savingsSource": "Monthly benefits of $100–400 based on household size and income calculations",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Income below $1,255/month (single)",
+          "Illinois resident",
+          "U.S. citizen or qualified immigrant"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1255
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 1703
+          }
+        ],
+        "assetLimits": {
+          "individual": 4500,
+          "couple": 4500,
+          "countedAssets": [
+            "Cash",
+            "Bank accounts",
+            "Non-exempt property"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "Retirement savings",
+            "Most vehicles"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Illinois resident",
+          "Social Security number",
+          "Must buy/prepare food with household members"
+        ],
+        "povertyLevelReference": "200% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online at the Illinois DHS website — typically takes 30 days to process, or 7 days if expedited.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Gather documents",
+            "description": "Collect ID, Social Security card, income statements, and medical expense receipts over $35/month"
+          },
+          {
+            "step": 2,
+            "title": "Complete application",
+            "description": "Apply online at dhs.state.il.us or call your local IDHS office at 1-800-843-6154"
+          },
+          {
+            "step": 3,
+            "title": "Phone interview",
+            "description": "Complete required phone interview with caseworker to verify information"
+          },
+          {
+            "step": 4,
+            "title": "Receive EBT card",
+            "description": "If approved, benefits load monthly onto Illinois Link card for grocery purchases"
+          }
+        ],
+        "processingTime": "Typically 30 days; expedited within 7 days if very low income/no assets",
+        "waitlist": null,
+        "tip": "Don't forget medical expenses over $35/month — this deduction can significantly increase your parent's benefit amount.",
+        "urls": [
+          {
+            "label": "Apply Online",
+            "url": "https://www.dhs.state.il.us/page.aspx?item=30357"
+          },
+          {
+            "label": "Eligibility Calculator",
+            "url": "https://fscalc.dhs.illinois.gov/FSCalc/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits by Household Size",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 1255,
+              "annualLimit": 15060
+            },
+            {
+              "householdSize": 2,
+              "monthlyLimit": 1703,
+              "annualLimit": 20440
+            }
+          ],
+          "footnote": "2025 limits for households with elderly (60+) members at 200% Federal Poverty Level"
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Cash and checking/savings accounts",
+            "Non-exempt property and investments"
+          ],
+          "excluded": [
+            "Primary home (any value)",
+            "Retirement savings (401k, IRA, pensions)",
+            "Most vehicles",
+            "Household goods and personal belongings"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Driver's license or state ID",
+                "Social Security card",
+                "Birth certificate"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Social Security/pension statements",
+                "Bank statements",
+                "Medical bills and receipts over $35/month",
+                "Rent/mortgage and utility bills"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Seniors often miss deducting medical expenses over $35/month, which can significantly increase benefits. Include prescription costs, medical transport, and health insurance premiums."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my mom keep her house and still qualify?",
+          "answer": "Yes. Your primary home doesn't count toward the $4,500 asset limit, regardless of its value. Retirement savings like 401(k)s and IRAs are also exempt."
+        },
+        {
+          "question": "Does Social Security count as income?",
+          "answer": "Yes, Social Security and pension income count toward the income limit. However, seniors get a 20% deduction on earned income and can deduct medical expenses over $35/month, which often reduces countable income significantly."
+        },
+        {
+          "question": "What if Dad lives with us but buys his own groceries?",
+          "answer": "If your dad buys and prepares food separately, he can apply as a one-person household. But if he shares meals or grocery shopping with your family, the entire household's income counts toward eligibility."
+        },
+        {
+          "question": "How much will Mom actually get per month?",
+          "answer": "It depends on her net income after deductions. A single person with $1,000 gross monthly income might get $200-300/month after medical expense deductions. Use Illinois's online calculator for a personalized estimate."
+        },
+        {
+          "question": "What can't she buy with SNAP benefits?",
+          "answer": "SNAP covers most groceries but not alcohol, tobacco, hot prepared foods, vitamins, or non-food items like soap or paper products. She can use it at most grocery stores and many farmers markets."
+        },
+        {
+          "question": "How often does she need to reapply?",
+          "answer": "If all adults in the household are 60+ or disabled, she may qualify for simplified recertification with longer periods between reviews. Otherwise, recertification is typically required every 12-24 months."
+        }
+      ],
+      "phone": "1-800-843-6154",
+      "sourceUrl": "https://www.dhs.state.il.us/page.aspx?item=30357",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "illinois-home-weatherization-assistance-program",
+      "name": "Illinois Home Weatherization Assistance Program (IHWAP)",
+      "shortName": "Home Weatherization",
+      "tagline": "If your parent's home needs insulation, heating repairs, or energy improvements, they may qualify for up to $20,000 in free weatherization services.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local CAAs; contact 1-877-411-WARM (9276) for county-specific agency",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent struggles with high heating bills or lives in a drafty home, Illinois may cover major weatherization improvements at no cost. Because IHWAP provides comprehensive energy services — from attic insulation to HVAC replacement — your parent could see their utility bills drop significantly while living in a more comfortable home. The program covers up to $20,000 in energy improvements plus $4,000 in health and safety upgrades per home.\n\nYour parent qualifies if their household income is at or below 200% of the federal poverty level — $31,300/year for a single person in 2026. Because the program prioritizes households with seniors 60+, disabled members, or young children, your parent may receive faster service if they're elderly or have health conditions.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Income below $31,300/year (single person)",
+          "Home not weatherized in last 15 years",
+          "Priority for seniors 60+",
+          "Home must be structurally sound"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2608
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 3525
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 4442
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 5358
+          },
+          {
+            "householdSize": 5,
+            "monthlyLimit": 6275
+          },
+          {
+            "householdSize": 6,
+            "monthlyLimit": 7192
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Home must be structurally sound",
+          "Not served by IHWAP in last 15 years",
+          "For renters: landlord consent required",
+          "Multi-family buildings: 66% of units must be income-eligible"
+        ],
+        "povertyLevelReference": "200% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call 1-877-411-WARM to find your local agency, then complete a pre-application online — full processing takes several months.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local Community Action Agency",
+            "description": "Call 1-877-411-WARM (9276) to get connected to the agency serving your parent's county."
+          },
+          {
+            "step": 2,
+            "title": "Complete pre-application",
+            "description": "Submit basic information online through DCEO or directly with your local agency."
+          },
+          {
+            "step": 3,
+            "title": "Submit full application if pre-approved",
+            "description": "Provide income documentation, utility bills, and proof of home ownership or lease with landlord consent."
+          },
+          {
+            "step": 4,
+            "title": "Home assessment",
+            "description": "If approved, a contractor will assess your parent's home to determine needed improvements."
+          }
+        ],
+        "processingTime": "Pre-application review takes several months; full application processing after approval",
+        "waitlist": "Priority households served first; non-priority may wait or not receive services in the application year",
+        "tip": "Apply early in the year — funding is limited and priority goes to seniors, disabled individuals, and families with young children.",
+        "urls": [
+          {
+            "label": "Illinois DCEO Weatherization",
+            "url": "https://dceo.illinois.gov/communityservices/homeweatherization.html"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits by Household Size (2026)",
+          "rows": [
+            {
+              "householdSize": 1,
+              "annualLimit": 31300,
+              "monthlyLimit": 2608
+            },
+            {
+              "householdSize": 2,
+              "annualLimit": 42300,
+              "monthlyLimit": 3525
+            },
+            {
+              "householdSize": 3,
+              "annualLimit": 53300,
+              "monthlyLimit": 4442
+            },
+            {
+              "householdSize": 4,
+              "annualLimit": 64300,
+              "monthlyLimit": 5358
+            },
+            {
+              "householdSize": 5,
+              "annualLimit": 75300,
+              "monthlyLimit": 6275
+            },
+            {
+              "householdSize": 6,
+              "annualLimit": 86300,
+              "monthlyLimit": 7192
+            }
+          ],
+          "footnote": "Add $11,000 per additional household member. Based on 200% Federal Poverty Level."
+        },
+        {
+          "type": "tier-comparison",
+          "heading": "Service Coverage Limits",
+          "tiers": [
+            {
+              "name": "Energy Improvements",
+              "description": "Air sealing, insulation, HVAC repair/replacement, water heater work",
+              "incomeLimit": "200% FPL",
+              "coverage": "Up to $15,000-$20,000 per home"
+            },
+            {
+              "name": "Health & Safety",
+              "description": "Ventilation, moisture control, electrical safety measures",
+              "incomeLimit": "200% FPL",
+              "coverage": "Up to $3,500-$4,000 additional"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "Required Documents",
+          "categories": [
+            {
+              "name": "Identity & Household",
+              "items": [
+                "Driver's license or ID (head of household)",
+                "Social Security cards for all household members"
+              ]
+            },
+            {
+              "name": "Income Verification",
+              "items": [
+                "Gross income proof for all adults (last 90 days)",
+                "Automatic if received LIHEAP, SSI, or USDA assistance (last 12 months)"
+              ]
+            },
+            {
+              "name": "Home & Utilities",
+              "items": [
+                "Most recent gas and electric bills",
+                "Proof of ownership (deed, tax bill, mortgage) OR lease with landlord consent"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Funding is limited each year. Priority goes to households with seniors 60+, disabled members, or children under 5. Non-priority households may wait until the next funding year or not receive services at all."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If your parent received LIHEAP energy assistance, SSI, or USDA food assistance in the last 12 months, they automatically qualify income-wise — no need to provide additional income documentation."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent's home was weatherized 10 years ago by a different program?",
+          "answer": "They must wait 15 years from their last IHWAP weatherization service. Other programs don't count toward this restriction, but you'll need to verify when and what type of weatherization was done."
+        },
+        {
+          "question": "Can my parent apply if they rent their home?",
+          "answer": "Yes, but the landlord must give written consent for the improvements. The program works for single-family rentals or multi-family buildings where at least 66% of units have income-eligible tenants."
+        },
+        {
+          "question": "What if my parent's income is just over the $31,300 limit?",
+          "answer": "Some funding may be available at 150% poverty level ($23,475 for single person) or through different income calculations. Contact your local agency to check — income limits can vary slightly by funding source."
+        },
+        {
+          "question": "How long will my parent wait for the actual work to be done?",
+          "answer": "After approval, scheduling depends on contractor availability and local demand. Priority households (seniors 60+) typically get faster service, but the entire process from application to completion can take 6-12 months."
+        },
+        {
+          "question": "What happens if the home assessment finds it needs structural repairs first?",
+          "answer": "The home must be structurally sound before weatherization work begins. IHWAP doesn't cover major structural repairs, so your parent would need to complete those first through other resources."
+        },
+        {
+          "question": "Will this affect my parent's property taxes or home value?",
+          "answer": "Weatherization improvements may increase home value, which could affect property taxes. However, many improvements (like insulation) aren't visible assessments. Check with your local tax assessor about energy efficiency exemptions."
+        }
+      ],
+      "phone": "1-877-411-9276",
+      "sourceUrl": "https://dceo.illinois.gov/communityservices/homeweatherization.html",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "illinois-ship-medicare-counseling",
+      "name": "Senior Health Insurance Program (SHIP)",
+      "shortName": "SHIP Counseling",
+      "tagline": "Free one-on-one help navigating Medicare options and spotting coverage gaps.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Administered by Illinois Department on Aging (IDoA), One Natural Resources Way Suite 100, Springfield, IL 62702",
+            "type": "service-area"
+          },
+          {
+            "name": "Services delivered through Area Agency on Aging (AAA) network — specific office locations available at https://ilaging.illinois.gov/ship.html",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is on Medicare and you're confused by supplement plans, Part D coverage, or claims issues, SHIP provides free one-on-one counseling with certified advisors. Because SHIP counselors don't sell insurance and aren't affiliated with any company, they'll give you unbiased advice about Medicare Advantage, Medigap, and prescription drug plans.\n\nSHIP counselors also screen for money-saving programs like Extra Help for prescription costs and Medicare Savings Programs that can reduce premiums. All services are confidential and by appointment only — call 1-800-252-8966 to schedule.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Medicare beneficiary",
+          "Any age if on Medicare",
+          "Caregivers also eligible",
+          "No income limits"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be a Medicare beneficiary or caregiver of a Medicare beneficiary",
+          "Services available by appointment only"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call 1-800-252-8966 to schedule your free counseling appointment.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call to schedule",
+            "description": "Call 1-800-252-8966 or email Aging.SHIP@illinois.gov to schedule your counseling session"
+          },
+          {
+            "step": 2,
+            "title": "Gather documents",
+            "description": "Bring Medicare cards, current insurance policies, and income information if you want screening for Extra Help programs"
+          },
+          {
+            "step": 3,
+            "title": "Meet with counselor",
+            "description": "Attend your one-on-one session to review options, compare plans, or get help filing claims"
+          }
+        ],
+        "processingTime": "Appointment required; processing time not specified",
+        "waitlist": null,
+        "tip": "Bring all current insurance documents to your appointment so the counselor can compare your options side-by-side.",
+        "urls": [
+          {
+            "label": "SHIP Website",
+            "url": "https://ilaging.illinois.gov/ship.html"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "SHIP is not insurance — it's a free counseling service. Counselors don't sell policies and can't enroll you directly in programs, but they'll help you apply."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "SHIP counselors can analyze your current Medicare Supplement and Part D plans to see if you're overpaying or missing better coverage options."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can SHIP help if Mom already has Medicare Advantage?",
+          "answer": "Yes. SHIP counselors can review her current plan, explain what's covered, help with claims issues, and show her other options during open enrollment."
+        },
+        {
+          "question": "Will they try to sell us insurance?",
+          "answer": "No. SHIP counselors are certified and independent — they don't work for insurance companies and cannot sell policies. Their only job is to help you understand your options."
+        },
+        {
+          "question": "What if Dad's income is too high for Extra Help?",
+          "answer": "SHIP will still provide free counseling about all Medicare options. They screen for Extra Help and Medicare Savings Programs, but the main counseling service has no income limits."
+        },
+        {
+          "question": "Can SHIP help file Medicare claims that were denied?",
+          "answer": "Yes. SHIP counselors help organize and file Medicare and Medicare Supplement claims, including appeals for denied claims."
+        },
+        {
+          "question": "How long does a counseling session take?",
+          "answer": "Session length isn't specified, but counselors provide thorough one-on-one help. Plan to bring all insurance documents so they can do a complete review of your options."
+        },
+        {
+          "question": "Is there a SHIP office near us?",
+          "answer": "SHIP operates through Area Agency on Aging offices statewide. Call 1-800-252-8966 and they'll connect you with your local office for an in-person appointment."
+        }
+      ],
+      "phone": "1-800-252-8966",
+      "sourceUrl": "https://ilaging.illinois.gov/ship.html",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "illinois-community-care-home-delivered-meals",
+      "name": "Community Care Program Home Delivered Meals",
+      "shortName": "CCP Meal Delivery",
+      "tagline": "Get nutritious meals delivered to your parent's door if they need help with daily care and are at risk of nursing facility placement.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local Care Coordination Units (CCUs) and nutrition providers via Illinois Department on Aging AAA map",
+            "type": "service-area"
+          },
+          {
+            "name": "Examples: DuPage Senior Citizens Council, Meals on Wheels Northern Illinois, Grundy County Health Department",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and struggling with daily care tasks like bathing or medication management, they may qualify for home-delivered meals through Illinois' Community Care Program. This provides at least 5 nutritious meals per week (Monday-Friday, some providers offer weekends) delivered directly to their door, along with a safety check and conversation with the delivery person.\n\nBecause this program is designed for seniors at risk of nursing facility placement, your parent must undergo a clinical assessment (Determination of Need) and score at least 29 points to qualify. The program also has strict financial limits: monthly income below the federal poverty level for free services, and non-exempt assets of $17,500 or less.\n\nMeals may include culturally tailored options like Kosher, Halal, Korean, South Asian, or Latino/Hispanic cuisine depending on your local provider. Because services vary by region, you'll work through your local Area Agency on Aging to get started.",
+      "savingsRange": "",
+      "savingsSource": "Free service for qualifying households",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "DON assessment score 29+",
+          "Assets under $17,500",
+          "At risk for nursing facility placement",
+          "Illinois resident"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 17500,
+          "couple": null,
+          "countedAssets": [
+            "Bank accounts",
+            "Stocks and bonds",
+            "Recreational vehicles"
+          ],
+          "exemptAssets": [
+            "Home and furnishings",
+            "Personal clothing and effects",
+            "Cars (not recreational vehicles)",
+            "Prepaid burial plan",
+            "Burial plots and markers"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "Must score at least 29 on Determination of Need (DON) assessment, which evaluates whether your parent needs daily help with activities like bathing, dressing, or medication management",
+        "otherRequirements": [
+          "Illinois resident",
+          "U.S. citizen or eligible non-citizen",
+          "Must apply for Medicaid if eligible",
+          "At risk for nursing facility placement"
+        ],
+        "povertyLevelReference": "100% FPL"
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Contact your local Care Coordination Unit for an in-home assessment — processing time not specified.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local Care Coordination Unit",
+            "description": "Use the Illinois Department on Aging map at https://ilaging.illinois.gov/programs/nutrition/nutrition.html or search at https://services.ageoptions.org/"
+          },
+          {
+            "step": 2,
+            "title": "Request Determination of Need assessment",
+            "description": "Call your local CCU to schedule an in-home clinical assessment. You cannot apply directly to meal providers."
+          },
+          {
+            "step": 3,
+            "title": "Gather required documents",
+            "description": "Prepare proof of income, assets, residency, and citizenship/immigration status for the assessment."
+          },
+          {
+            "step": 4,
+            "title": "Complete DON assessment",
+            "description": "Assessor will evaluate your parent's need for long-term care. Must score 29+ to qualify for services."
+          },
+          {
+            "step": 5,
+            "title": "Apply for Medicaid if eligible",
+            "description": "You must apply for and enroll in Medicaid as part of the CCP process, even if just for the meal service."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "If your parent is in a Managed Care Organization (MCO), contact their MCO case manager instead of the local CCU for assessment and referral.",
+        "urls": [
+          {
+            "label": "Find Local Care Coordination Unit",
+            "url": "https://services.ageoptions.org/"
+          },
+          {
+            "label": "Illinois Area Agency on Aging Map",
+            "url": "https://ilaging.illinois.gov/programs/nutrition/nutrition.html"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts Toward $17,500",
+          "included": [
+            "Bank accounts and savings",
+            "Stocks and bonds",
+            "Recreational vehicles (RVs, boats)",
+            "Investment accounts",
+            "Second homes or rental property"
+          ],
+          "excluded": [
+            "Primary home and furnishings",
+            "Personal clothing and effects",
+            "Cars (not recreational vehicles)",
+            "Prepaid burial plan",
+            "Burial plots and markers"
+          ]
+        },
+        {
+          "type": "tier-comparison",
+          "heading": "Cost Structure",
+          "tiers": [
+            {
+              "name": "Free Services",
+              "description": "Monthly income below federal poverty level",
+              "incomeLimit": "Under 100% FPL",
+              "coverage": "No cost for meals and delivery"
+            },
+            {
+              "name": "Fee-Based Services",
+              "description": "Monthly income above federal poverty level",
+              "incomeLimit": "Above 100% FPL",
+              "coverage": "Cost based on need level, service costs, and CCP fee schedules (contact CCU for specific amounts)"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring for Assessment",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Social Security card",
+                "Driver's license or state ID",
+                "Proof of citizenship or eligible immigration status"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Bank statements (all accounts)",
+                "Social Security award letter",
+                "Pension or retirement income statements",
+                "Investment account statements",
+                "Property tax bills"
+              ]
+            },
+            {
+              "name": "Residency",
+              "items": [
+                "Utility bill or lease agreement",
+                "Property tax statement",
+                "Mortgage statement"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "This is not the same as regular senior nutrition programs. CCP Home Delivered Meals requires a full long-term care assessment and Medicaid application, even if you only want meal delivery."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Regional providers offer different culturally tailored meals (Kosher, Halal, Korean, etc.) and delivery schedules. Ask your local CCU what options are available in your area."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my mom's income is just over the federal poverty level?",
+          "answer": "She can still receive meals, but there will be a cost based on her income level, the services she needs, and local fee schedules. The exact amount varies — contact your local Care Coordination Unit for specific pricing."
+        },
+        {
+          "question": "Can Dad keep his house and car if he qualifies?",
+          "answer": "Yes. The primary home and furnishings don't count toward the $17,500 asset limit, and neither do regular cars (but recreational vehicles like RVs do count)."
+        },
+        {
+          "question": "What if the assessment shows Mom doesn't need nursing facility level care?",
+          "answer": "If she scores below 29 on the Determination of Need assessment, she won't qualify for CCP meals. However, she may qualify for other senior nutrition programs that don't have the same care requirements."
+        },
+        {
+          "question": "How many meals will my parent receive each week?",
+          "answer": "At least 5 meals per week (Monday-Friday). Some local providers also offer weekend meals or dinners — this varies by region and your parent's assessed need level."
+        },
+        {
+          "question": "Does my parent have to apply for Medicaid even if they just want meals?",
+          "answer": "Yes. Applying for and enrolling in Medicaid (if eligible) is required for all CCP services, including home-delivered meals. This is part of the program's comprehensive approach to long-term care."
+        },
+        {
+          "question": "What happens during the safety check with meal delivery?",
+          "answer": "The delivery person will check on your parent's wellbeing and have a brief conversation. This provides peace of mind and helps identify if your parent needs additional assistance or emergency help."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://ilaging.illinois.gov/programs/ccp.html",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "illinois-community-care-program",
+      "name": "Community Care Program (CCP) - Illinois",
+      "shortName": "Illinois CCP",
+      "tagline": "Get free in-home care services for your parent who's at risk of needing nursing home placement.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false
+      },
+      "intro": "If your parent is 60+ and struggling to live safely at home, Illinois Community Care Program provides free in-home services to prevent nursing home placement. Your parent can receive personal care (bathing, dressing), housekeeping, meal preparation, medication reminders, and transportation to appointments — all at no cost.\n\nThis isn't for all seniors — your parent must be assessed as needing long-term care and at risk for nursing facility placement. Because the program operates through local Area Agencies on Aging, services are tailored to your parent's specific needs and what's available in your county.\n\nYour parent can keep their home and one vehicle, but non-exempt assets must stay below $17,500. Income limits vary and are checked against multiple Medicaid programs, so you'll need to call to determine eligibility.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Illinois resident",
+          "At risk for nursing home placement",
+          "Assets under $17,500 (excluding home/car)"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 17500,
+          "couple": null,
+          "countedAssets": [
+            "Savings accounts",
+            "Investments",
+            "Additional vehicles"
+          ],
+          "exemptAssets": [
+            "Primary residence",
+            "One vehicle",
+            "Personal furnishings"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "Must be assessed as needing long-term care and at risk for nursing facility placement through a Determination of Need (DON) assessment",
+        "otherRequirements": [
+          "U.S. citizen or eligible non-citizen",
+          "Illinois resident"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call the Illinois Department on Aging Senior HelpLine at (800) 252-8966 — processing time varies by county.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the Senior HelpLine",
+            "description": "Call (800) 252-8966 to speak with a counselor who will check initial eligibility and connect you to your local Area Agency on Aging."
+          },
+          {
+            "step": 2,
+            "title": "Complete intake with local agency",
+            "description": "Your local Area Agency on Aging will schedule an intake appointment to gather documentation and assess your parent's needs."
+          },
+          {
+            "step": 3,
+            "title": "Schedule DON assessment",
+            "description": "A clinical assessor will evaluate whether your parent is at risk for nursing facility placement and determine what services are needed."
+          },
+          {
+            "step": 4,
+            "title": "Receive care plan",
+            "description": "If approved, you'll receive an individualized care plan outlining which services your parent will receive and when they'll start."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Have your parent's financial information ready when you call — the intake process will be faster if you can provide asset and income details upfront.",
+        "urls": [
+          {
+            "label": "Illinois Department on Aging CCP Page",
+            "url": "https://ilaging.illinois.gov/programs/ccp.html"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Family members cannot be hired as paid caregivers if they have power of attorney over your parent or share bank accounts. This financial separation requirement disqualifies many family caregiving arrangements."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "The $17,500 asset limit only counts non-exempt assets. Your parent can keep their home, one car, and personal belongings without these counting toward the limit."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house if she qualifies for CCP?",
+          "answer": "Yes. The primary residence doesn't count toward the $17,500 asset limit, so your mom can own her home and still qualify for services."
+        },
+        {
+          "question": "What if my parent doesn't need nursing home level care yet?",
+          "answer": "They won't qualify. CCP specifically requires that your parent be assessed as at risk for nursing facility placement through the Determination of Need assessment. This isn't for general aging support."
+        },
+        {
+          "question": "Can I get paid to care for my parent through this program?",
+          "answer": "Only if you don't have power of attorney over your parent and don't share bank accounts. The program prohibits financial mingling between family caregivers and participants."
+        },
+        {
+          "question": "What's the income limit for CCP?",
+          "answer": "There's no single income limit. Eligibility is checked against multiple Medicaid programs with different thresholds. Call (800) 252-8966 to find out if your parent's income qualifies."
+        },
+        {
+          "question": "How much will my parent pay for these services?",
+          "answer": "Usually nothing, but costs can be determined during the assessment process. Ask your local Area Agency on Aging about any potential costs when you apply."
+        },
+        {
+          "question": "What if we live in a rural area — are services still available?",
+          "answer": "Yes, CCP operates statewide through local Area Agencies on Aging. However, available services may vary by county — some offer companion programs while others don't."
+        }
+      ],
+      "phone": "(800) 252-8966",
+      "sourceUrl": "https://ilaging.illinois.gov/programs/ccp.html",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "illinois-scsep-senior-employment",
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "shortName": "SCSEP",
+      "tagline": "If your parent is 55+ and unemployed, they can earn minimum wage while training for permanent employment.",
+      "programType": "employment",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Area Agencies on Aging (local)",
+            "type": "service-area"
+          },
+          {
+            "name": "Illinois Department on Aging",
+            "type": "service-area"
+          },
+          {
+            "name": "National contractors like CWI Works, Goodwill, National Able",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 55+ and struggling to find work, SCSEP provides part-time paid training positions while they search for permanent employment. Your parent will work 20 hours per week at minimum wage ($8.25+ per hour in Illinois) in community organizations like schools, hospitals, or senior centers while receiving job counseling and skills training.\n\nThis is temporary training, not permanent employment — the goal is helping your parent develop skills and experience to land an unsubsidized job. Because SCSEP combines paid work experience with personalized employment counseling, your parent gets both income and professional support during their job search.\n\nTo qualify, your parent's household income must be at or below 125% of the federal poverty level — about $19,563 annually for a single person in 2025. Veterans and adults over 65 get priority enrollment, which may create waitlists in some areas.",
+      "savingsRange": "$3,432 - $8,580/year",
+      "savingsSource": "20 hours/week at Illinois minimum wage ($8.25/hour) for 52 weeks",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Income at or below 125% poverty level",
+          "Currently unemployed",
+          "Actively seeking work",
+          "U.S. resident in Illinois"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1630
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2200
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be unemployed and actively seeking employment",
+          "Must be capable of performing community service tasks",
+          "Must be U.S. resident in service area with available funding"
+        ],
+        "povertyLevelReference": "125% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact your local Area Agency on Aging or call the Illinois Senior HelpLine — processing time varies by local availability.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact your local Area Agency on Aging",
+            "description": "Find your local office through the Illinois Department on Aging or call the Senior HelpLine for referral to SCSEP providers in your area."
+          },
+          {
+            "step": 2,
+            "title": "Gather required documents",
+            "description": "Collect proof of age, income (last 3 months), unemployment status, and Illinois residency before your appointment."
+          },
+          {
+            "step": 3,
+            "title": "Complete eligibility assessment",
+            "description": "Meet with SCSEP staff to verify income is at or below 125% poverty level and discuss employment goals."
+          },
+          {
+            "step": 4,
+            "title": "Develop Individual Employment Plan",
+            "description": "Work with counselors to create your personalized plan for skills training and job search activities."
+          },
+          {
+            "step": 5,
+            "title": "Begin community service placement",
+            "description": "Start your 20-hour/week paid training position at a local nonprofit or government agency."
+          }
+        ],
+        "processingTime": "Varies by local availability and waitlist",
+        "waitlist": "May exist due to limited funding and slots — varies by region and provider",
+        "tip": "Veterans and adults over 65 get priority enrollment, so mention veteran status when calling.",
+        "urls": [
+          {
+            "label": "Illinois Department on Aging SCSEP page",
+            "url": "https://ilaging.illinois.gov/programs/employ.html"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits by Household Size (125% Federal Poverty Level)",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 1630,
+              "annualLimit": 19563
+            },
+            {
+              "householdSize": 2,
+              "monthlyLimit": 2200,
+              "annualLimit": 26397
+            }
+          ],
+          "footnote": "2025 federal poverty guidelines; limits updated annually"
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Age",
+              "items": [
+                "Birth certificate or driver's license",
+                "Social Security card"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Income records for last 3 months (Social Security statements, pension records, etc.)",
+                "Unemployment documentation"
+              ]
+            },
+            {
+              "name": "Residency",
+              "items": [
+                "Utility bill or lease showing Illinois address",
+                "Veteran status documentation (if applicable)"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Waitlists may exist due to limited slots. Veterans and adults over 65 get priority enrollment, which can delay placement for others."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "This is temporary training, not permanent employment. The program is designed to help your parent transition to unsubsidized work within a limited time period."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "How long can my parent stay in the SCSEP program?",
+          "answer": "SCSEP is temporary training, not permanent employment. The program has duration limits designed to help participants transition to unsubsidized jobs, though specific time limits vary by individual circumstances and local provider policies."
+        },
+        {
+          "question": "What if my parent's Social Security puts them just over the income limit?",
+          "answer": "Income limits are strict — household income must be at or below 125% of poverty level. For a single person in 2025, that's $1,630 per month or $19,563 annually. If your parent exceeds this limit, they won't qualify for SCSEP."
+        },
+        {
+          "question": "Can my retired parent join SCSEP for extra income?",
+          "answer": "No. SCSEP requires participants to be unemployed and actively seeking permanent employment. This isn't supplemental income for retirees — it's job training for people who need and want to work."
+        },
+        {
+          "question": "What kind of work will my parent do in their SCSEP placement?",
+          "answer": "Participants work in community organizations like schools, hospitals, senior centers, or government offices. Tasks vary but focus on building transferable job skills while providing valuable community service."
+        },
+        {
+          "question": "Does SCSEP provide job placement assistance after training?",
+          "answer": "Yes. SCSEP includes personalized employment counseling, resume writing help, interview training, and job search assistance. The goal is helping participants find unsubsidized employment after their training period."
+        },
+        {
+          "question": "What if there's no SCSEP availability in our area?",
+          "answer": "Availability depends on local funding and provider capacity. Contact multiple providers — Illinois has 7 state sub-grantees through Area Agencies on Aging plus 7 national contractors like Goodwill and National Able."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://ilaging.illinois.gov/programs/employ.html",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "illinois-long-term-care-ombudsman",
+      "name": "Illinois Long-Term Care Ombudsman Program (LTCOP)",
+      "shortName": "Long-Term Care Ombudsman",
+      "tagline": "Free advocate to resolve complaints if your parent lives in a nursing home or assisted living facility.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Office of State Long Term Care Ombudsman (state-level oversight)",
+            "type": "service-area"
+          },
+          {
+            "name": "Multiple Regional Long-Term Care Ombudsman Programs (county-based)",
+            "type": "service-area"
+          },
+          {
+            "name": "Example: DuPage County Long-Term Care Ombudsman Program",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent lives in a nursing home or assisted living facility in Illinois, you have the right to free advocacy when problems arise. The Long-Term Care Ombudsman Program provides trained advocates who investigate complaints, educate families about resident rights, and work directly with facilities to resolve issues affecting your parent's health, safety, or welfare.\n\nThis isn't financial assistance — it's legal advocacy. Because ombudsmen are mandated by federal and state law, facilities must allow them access and cannot retaliate against residents who file complaints. The program serves all long-term care residents age 60+ regardless of income, and family members can request help even if the resident cannot speak for themselves.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Lives in nursing home or assisted living",
+          "No income limits",
+          "Family members can also request help"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be current, prospective, or former resident of a long-term care facility",
+          "Family members and facility staff can also access services"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call your regional ombudsman office directly — no application needed, just intake through phone or in-person contact.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the Senior HelpLine",
+            "description": "Call 1-800-252-8966 to be connected to your regional ombudsman program based on where your parent's facility is located."
+          },
+          {
+            "step": 2,
+            "title": "Describe the situation",
+            "description": "Explain the specific problem or concern affecting your parent's care, safety, or rights in the facility."
+          },
+          {
+            "step": 3,
+            "title": "Ombudsman investigates",
+            "description": "The ombudsman will visit the facility, interview your parent and staff, and work to resolve the issue directly with facility management."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "You can text your zip code to 898211 in DuPage County for immediate contact information, or call during business hours for faster response.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "This program only helps with facility-related issues — not financial assistance for long-term care costs. If you need help paying for care, look into Medicaid or other financial programs."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Regional programs vary in capacity and response times. Contact your specific county's ombudsman program directly rather than going through the state office for faster service."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can I file a complaint even if my parent doesn't want me to?",
+          "answer": "Yes, family members can request ombudsman services independently. The ombudsman will work to respect your parent's wishes while addressing safety concerns."
+        },
+        {
+          "question": "What if the facility retaliates against my parent for filing a complaint?",
+          "answer": "Retaliation is illegal. Ombudsmen are federally mandated advocates — facilities must allow them access and cannot punish residents for complaints. Report any retaliation immediately."
+        },
+        {
+          "question": "How long does it take to resolve a complaint?",
+          "answer": "Response times vary by region and complaint complexity. The ombudsman should contact you within a few business days to begin investigation, but resolution depends on the specific issue."
+        },
+        {
+          "question": "Does this cost anything?",
+          "answer": "No. The program is completely free regardless of your parent's income or assets, and there are no forms to fill out — just call and describe the problem."
+        },
+        {
+          "question": "What types of problems can the ombudsman help with?",
+          "answer": "Any issue affecting your parent's health, safety, welfare, or rights in the facility — including poor care, medication errors, abuse, financial exploitation, or violations of resident rights."
+        },
+        {
+          "question": "Can the ombudsman help if we're just considering placing my parent in a facility?",
+          "answer": "Yes, ombudsmen can provide information about resident rights and help families evaluate facilities before placement decisions are made."
+        }
+      ],
+      "phone": "1-800-252-8966",
+      "sourceUrl": "https://ilga.gov/Documents/legislation/ilcs/documents/002001050K4.04.htm",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "illinois-legal-assistance-seniors",
+      "name": "Legal Assistance for Seniors",
+      "shortName": "Legal Assistance",
+      "tagline": "Free legal help for parents 60+ facing housing, benefits, or consumer protection issues.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local AAAs via state map[7]",
+            "type": "service-area"
+          },
+          {
+            "name": "Prairie State Legal Services[3][8]",
+            "type": "service-area"
+          },
+          {
+            "name": "Legal Aid Chicago[4]",
+            "type": "service-area"
+          },
+          {
+            "name": "Center for Disability & Elder Law (Chicago/Cook)[1]",
+            "type": "service-area"
+          },
+          {
+            "name": "Land of Lincoln Legal Assistance Foundation (Southern IL)[8]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and facing legal problems with housing, benefits, debt collectors, or needs help with wills or powers of attorney, they may qualify for free legal help from attorneys and legal staff. This isn't a single program but a statewide network of legal aid providers funded through Illinois Area Agencies on Aging.\n\nThe attorneys can represent your parent in court, provide legal advice, or help with documents like wills and powers of attorney. Because these programs prioritize seniors and low-income households, your parent may qualify even if their income is slightly above typical poverty guidelines — providers assess each case individually considering medical expenses and other costs.\n\nAvailability is limited and varies by region. Some providers may need to turn people away or refer them elsewhere when resources are stretched thin.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Limited income and assets",
+          "Illinois resident",
+          "Civil legal issues only"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Illinois resident",
+          "Legal issue must match provider's case types (housing, benefits, consumer protection, guardianship, wills)",
+          "U.S. citizen, permanent resident, or qualifying immigration status for some providers"
+        ],
+        "povertyLevelReference": "125-200% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact your local provider directly — no central application exists.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local provider",
+            "description": "Use the Illinois Department on Aging map tool to find your Area Agency on Aging, or contact the regional legal aid provider for your area directly."
+          },
+          {
+            "step": 2,
+            "title": "Call or apply online",
+            "description": "Most providers offer phone intake or online applications. Have your legal documents, proof of income, and proof of age ready."
+          },
+          {
+            "step": 3,
+            "title": "Complete screening",
+            "description": "Provider will assess your parent's eligibility, including income, assets, and whether their legal issue matches the types of cases they handle."
+          },
+          {
+            "step": 4,
+            "title": "Get assigned or referred",
+            "description": "If accepted, your parent gets assigned to an attorney or legal staff member. If not eligible or no capacity, they may refer you to other resources."
+          }
+        ],
+        "processingTime": "Screening occurs upon contact",
+        "waitlist": null,
+        "tip": "Have all legal documents and court papers ready when you call — providers need to understand the legal issue immediately to determine if they can help.",
+        "urls": [
+          {
+            "label": "Find Local Provider (State Map)",
+            "url": "https://ilaging.illinois.gov/programs/legalassistance.html"
+          },
+          {
+            "label": "Prairie State Legal Services (Northern IL)",
+            "url": "https://pslegal.org/How-To-Get-Started"
+          },
+          {
+            "label": "Center for Disability & Elder Law (Chicago/Cook)",
+            "url": "https://www.cdelaw.org/how-to-qualify-request-help"
+          },
+          {
+            "label": "Legal Aid Chicago",
+            "url": "https://legalaidchicago.org/get-help/am-i-eligible-for-legal-aid/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "This isn't one program but a network of different legal aid organizations across Illinois. Each has different eligibility rules and available resources. You may be turned away due to limited capacity or if your parent's legal issue doesn't match what they handle."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Income slightly above poverty guidelines doesn't automatically disqualify your parent. Providers consider medical expenses, taxes, and other costs when assessing eligibility — always call to check."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What types of legal issues do they help with?",
+          "answer": "Civil legal matters like housing problems (evictions, repairs), government benefits appeals, consumer protection (debt collectors, scams), guardianship proceedings, wills, and powers of attorney. They don't handle criminal cases or personal injury lawsuits."
+        },
+        {
+          "question": "My parent's income is just over the poverty line — can they still qualify?",
+          "answer": "Possibly. Providers typically accept households up to 125-200% of Federal Poverty Level, but they assess each case individually. High medical expenses or other costs may help your parent qualify even with higher income."
+        },
+        {
+          "question": "What if the local provider can't help my parent?",
+          "answer": "Limited resources mean providers sometimes can't take new cases or don't handle certain legal issues. They should refer you to other resources, including Illinois Legal Aid Online tools or private attorneys who offer reduced fees."
+        },
+        {
+          "question": "Does my parent need to be a U.S. citizen?",
+          "answer": "Most providers accept U.S. citizens, permanent residents, and people with certain other immigration statuses. Requirements vary by provider and funding source, so call your local office to confirm."
+        },
+        {
+          "question": "How much legal help will my parent actually get?",
+          "answer": "Depends on the case complexity and provider capacity. Could range from a single consultation and advice to full court representation. Providers prioritize seniors and those with the greatest need."
+        },
+        {
+          "question": "Can they help with estate planning documents like wills?",
+          "answer": "Yes, many providers help seniors create basic wills, powers of attorney, and advance directives. This is often a priority service for seniors even when other legal services have waiting lists."
+        }
+      ],
+      "phone": "800-642-5570",
+      "sourceUrl": "https://ilaging.illinois.gov/programs/legalassistance.html",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    }
+  ],
+  "stateOverview": {
+    "intro": "Illinois offers 12 programs that can save your parent hundreds to thousands of dollars monthly or connect them with free care services. Seven provide direct financial benefits or services—from $100–400/month in grocery assistance through SNAP to complete medical care coordination through PACE. Four offer free resources like Medicare counseling and legal help that don't require income qualification. If your parent is struggling with medical bills, daily care needs, or living on a fixed income, multiple Illinois programs may apply. Start by checking the highest-impact benefits first, then layer on free resources for additional support.",
+    "startHere": [
+      {
+        "name": "Medical Assistance (Medicaid) for Seniors/Disabled",
+        "programId": "medical-assistance-seniors-disabled",
+        "why": "Covers all medical costs including prescriptions and nursing home care—potentially saving thousands monthly."
+      },
+      {
+        "name": "SNAP (Food Assistance)",
+        "programId": "snap",
+        "why": "Immediate monthly grocery money ($100–400) with relatively simple qualification if your parent is 60+ on fixed income."
+      },
+      {
+        "name": "Medicare Cost-Saving Programs (QMB/SLMB/QI)",
+        "programId": "medicare-cost-saving-programs",
+        "why": "Can save $1,000+ annually on Medicare premiums and out-of-pocket costs."
+      },
+      {
+        "name": "Community Care Program",
+        "programId": "community-care-program",
+        "why": "Free in-home care services to help your parent avoid nursing home placement."
+      }
+    ],
+    "byNeed": [
+      {
+        "need": "Help with medical bills and healthcare costs",
+        "programs": [
+          "Medical Assistance (Medicaid) for Seniors/Disabled",
+          "Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), Qualifying Individual (QI)",
+          "Senior Health Insurance Program (SHIP)"
+        ],
+        "description": "Cover all medical expenses, reduce Medicare costs, or get free help navigating insurance options."
+      },
+      {
+        "need": "Daily care and support at home",
+        "programs": [
+          "Program of All-Inclusive Care for the Elderly (PACE)",
+          "Community Care Program (CCP) - Illinois",
+          "Home Services Program (HSP) Waiver"
+        ],
+        "description": "Get coordinated care, free in-home services, or paid help to keep your parent safely at home."
+      },
+      {
+        "need": "Food and nutrition assistance",
+        "programs": [
+          "Supplemental Nutrition Assistance Program (SNAP)",
+          "Community Care Program Home Delivered Meals"
+        ],
+        "description": "Monthly grocery money or delivered meals for parents who need nutrition support."
+      },
+      {
+        "need": "Home repairs and utilities",
+        "programs": [
+          "Illinois Home Weatherization Assistance Program (IHWAP)"
+        ],
+        "description": "Up to $20,000 in free home energy improvements, insulation, and heating repairs."
+      },
+      {
+        "need": "Free advice and advocacy",
+        "programs": [
+          "Legal Assistance for Seniors",
+          "Illinois Long-Term Care Ombudsman Program (LTCOP)"
+        ],
+        "description": "Free legal help for housing and benefits issues, or advocacy if your parent lives in a care facility."
+      },
+      {
+        "need": "Employment for active seniors",
+        "programs": [
+          "Senior Community Service Employment Program (SCSEP)"
+        ],
+        "description": "Minimum wage training positions for unemployed parents 55+ seeking permanent work."
+      }
+    ],
+    "quickFacts": [
+      "Illinois has both statewide programs (like SNAP and Medicaid) and locally-administered programs (like weatherization assistance)",
+      "Most income-based programs use similar income limits—around $2,152/month for a single person varies by program",
+      "Several programs specifically target parents at risk of nursing home placement, offering alternatives to keep them home",
+      "Free resources like SHIP counseling and legal assistance are available regardless of your parent's income"
+    ],
+    "resourcesVsBenefits": "Benefits like Medicaid, SNAP, and weatherization assistance require your parent to meet specific income and asset limits, but provide direct financial help or services. Resources like Medicare counseling through SHIP, legal assistance, and ombudsman services are free to all Illinois seniors regardless of income—use these even if your parent doesn't qualify for income-based benefits."
+  }
+}

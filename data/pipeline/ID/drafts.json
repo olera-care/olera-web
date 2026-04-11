@@ -1,0 +1,2285 @@
+{
+  "state": "ID",
+  "stateName": "Idaho",
+  "draftedAt": "2026-04-09T13:13:13.224Z",
+  "total": 13,
+  "successful": 13,
+  "programs": [
+    {
+      "id": "idaho-medicaid-aged-blind-disabled",
+      "name": "Idaho Medicaid Aged, Blind, and Disabled (ABD) Program",
+      "shortName": "Idaho ABD Medicaid",
+      "tagline": "Full Medicaid coverage plus optional cash assistance for your parent if they're 65+, blind, or disabled with limited income.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false
+      },
+      "intro": "If your parent is 65 or older, blind, or disabled and lives on a fixed income, Idaho's ABD program provides complete Medicaid health coverage — including long-term care services like in-home assistance. Income limit: $1,047/month for a single person in 2026. Your parent may also qualify for a small monthly cash payment if they receive SSI (Supplemental Security Income). Because ABD covers all medical services under one Medicaid program, your parent won't need to juggle multiple insurance plans or worry about gaps in coverage. The program includes everything from doctor visits to prescription drugs to nursing home care if needed.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+, blind, or disabled",
+          "Income below $1,047/month",
+          "Idaho resident",
+          "Meet functional assessment for long-term care"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1047
+          }
+        ],
+        "assetLimits": {
+          "individual": null,
+          "couple": null,
+          "countedAssets": [],
+          "exemptAssets": [
+            "Home (if equity under $752,000)",
+            "Home if spouse lives there",
+            "Home if disabled/blind child lives there"
+          ],
+          "homeEquityCap": 752000
+        },
+        "functionalRequirement": "For long-term care services: must need daily help with activities like bathing, dressing, eating, or toileting (assessed through Nursing Facility Level of Care evaluation)",
+        "otherRequirements": [
+          "Live in Idaho",
+          "U.S. citizen or eligible non-citizen",
+          "SSI recipient (for cash assistance portion only)"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "online",
+        "summary": "Apply online through Idaho Department of Health and Welfare — processing time not specified.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Gather required documents",
+            "description": "Collect proof of income, assets, residency, and citizenship. If applying for long-term care services, you'll also need medical documentation."
+          },
+          {
+            "step": 2,
+            "title": "Complete online application",
+            "description": "Visit the Idaho DHW website and fill out the ABD application. Choose whether you're applying for Medicaid only or both Medicaid and cash assistance."
+          },
+          {
+            "step": 3,
+            "title": "Submit functional assessment (if needed)",
+            "description": "For long-term care services, your parent will need a Uniform Assessment Instrument (UAI) evaluation to determine if they meet Nursing Facility Level of Care."
+          },
+          {
+            "step": 4,
+            "title": "Follow up on approval",
+            "description": "Idaho DHW will review the application and contact you if additional information is needed."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Apply for ABD Medicaid even if your parent doesn't receive SSI — the cash assistance requires SSI, but Medicaid coverage doesn't.",
+        "urls": [
+          {
+            "label": "Apply for ABD Cash Assistance",
+            "url": "https://healthandwelfare.idaho.gov/services-programs/financial-assistance/apply-aabd-cash"
+          },
+          {
+            "label": "Apply for ABD Medicaid",
+            "url": "https://healthandwelfare.idaho.gov/services-programs/medicaid-health/medicaid-workers-disabilities"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits by Household Size",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 1047,
+              "annualLimit": 12564
+            }
+          ],
+          "footnote": "2026 limits. Couple limits not specified in available sources."
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and savings",
+            "Investments and stocks",
+            "Second homes or rental properties"
+          ],
+          "excluded": [
+            "Primary home (if equity under $752,000)",
+            "Home where spouse lives",
+            "Home where disabled or blind child of any age lives",
+            "Home where child under 21 lives"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Driver's license or state ID",
+                "Social Security card",
+                "Proof of Idaho residency",
+                "Citizenship or immigration documents"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Bank statements (last 3 months)",
+                "Social Security award letter",
+                "SSI documentation (if applying for cash assistance)",
+                "Proof of any other income"
+              ]
+            },
+            {
+              "name": "Medical (for long-term care)",
+              "items": [
+                "Doctor's assessment of daily living needs",
+                "Documentation of bathing, dressing, mobility assistance needs",
+                "Cognitive assessment (if dementia or memory issues)"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Your parent can qualify for ABD Medicaid without receiving SSI. The cash assistance portion requires SSI, but full Medicaid coverage is available with just the income and functional requirements."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house if she qualifies for ABD?",
+          "answer": "Yes, as long as the home equity is under $752,000. The home is completely exempt if you, a spouse, a disabled child of any age, or a child under 21 lives there."
+        },
+        {
+          "question": "What's the difference between ABD Medicaid and regular Medicaid?",
+          "answer": "ABD Medicaid includes long-term care services like in-home assistance and nursing home care. Regular Medicaid typically doesn't cover these services. ABD is specifically designed for people 65+, blind, or disabled who need comprehensive health coverage."
+        },
+        {
+          "question": "Does Dad need to receive SSI to get ABD benefits?",
+          "answer": "Only for the cash assistance portion. Your dad can get full ABD Medicaid coverage based on income limits ($1,047/month) and functional needs, even without SSI."
+        },
+        {
+          "question": "What if Mom's income is slightly over $1,047 per month?",
+          "answer": "She won't qualify for ABD, but she may qualify for other Idaho Medicaid programs or Medicare assistance. The income limit is firm for this program."
+        },
+        {
+          "question": "How do they determine if Dad needs long-term care services?",
+          "answer": "Idaho uses a Uniform Assessment Instrument (UAI) that evaluates daily activities like bathing, dressing, eating, and toileting, plus cognitive issues. A dementia diagnosis alone isn't enough — he must need daily assistance with these activities."
+        },
+        {
+          "question": "Can Mom get ABD if she's in assisted living?",
+          "answer": "Yes, but the cash assistance amount varies based on living arrangements. The Medicaid coverage remains the same regardless of where she lives."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://healthandwelfare.idaho.gov/services-programs/financial-assistance/about-aabd-cash-assistance",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "idaho-aged-disabled-waiver",
+      "name": "Idaho Aged and Disabled Waiver",
+      "shortName": "Aged & Disabled Waiver",
+      "tagline": "Get care at home instead of a nursing facility — services like personal care, meal delivery, and home modifications.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Idaho Department of Health and Welfare (DHW) or contractors",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs nursing home-level care but wants to stay home, Idaho's Aged and Disabled Waiver can make that possible. The program provides personal care, homemaker services, meal delivery, home modifications, and other support services — all designed to keep your parent safely at home instead of moving to a nursing facility.\n\nYour parent must be 65+ (or disabled and 18+), meet Medicaid income and asset limits, and qualify for nursing facility level of care through a functional assessment. Because this waiver has strict financial limits — assets must be under $2,000 for a single person — it's primarily for parents with very limited resources who need significant daily help with activities like bathing, dressing, or medication management.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+ or disabled 18+",
+          "Assets under $2,000",
+          "Need nursing home-level care",
+          "Qualify for Medicaid",
+          "Idaho resident"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 2000,
+          "couple": null,
+          "countedAssets": [
+            "Bank accounts",
+            "Investments",
+            "Second vehicles",
+            "Property other than primary home"
+          ],
+          "exemptAssets": [
+            "Primary home (if equity under $752,000)",
+            "Household furnishings and appliances",
+            "Personal effects",
+            "One vehicle"
+          ],
+          "homeEquityCap": 752000
+        },
+        "functionalRequirement": "Must need nursing facility level of care — daily help with bathing, dressing, mobility, eating, or toileting, evaluated through clinical assessment",
+        "otherRequirements": [
+          "Idaho resident",
+          "U.S. citizen or eligible non-citizen",
+          "Eligible for Medicaid under Aid to the Aged, Blind, and Disabled"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply for Medicaid first, then request a functional assessment — processing time varies.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Apply for Medicaid",
+            "description": "Submit Medicaid application under Aid to the Aged, Blind, and Disabled (AABD) through Idaho Department of Health and Welfare — online, phone, or in-person"
+          },
+          {
+            "step": 2,
+            "title": "Complete functional assessment",
+            "description": "Once Medicaid-eligible, request nursing facility level of care assessment using the Uniform Assessment Instrument — conducted by phone or in-person"
+          },
+          {
+            "step": 3,
+            "title": "Get service plan",
+            "description": "If approved for nursing facility level of care, work with case manager to develop individualized service plan based on your parent's specific needs"
+          }
+        ],
+        "processingTime": "Not specified",
+        "waitlist": "May have waitlist — check current status when applying",
+        "tip": "Apply for Medicaid first — you cannot get waiver services without Medicaid eligibility under the AABD category",
+        "urls": [
+          {
+            "label": "Idaho Medicaid Application",
+            "url": "https://healthandwelfare.idaho.gov"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and savings",
+            "Investments and stocks",
+            "Second vehicles",
+            "Property other than primary home",
+            "Life insurance with cash value over $1,500"
+          ],
+          "excluded": [
+            "Primary home (if equity under $752,000 and intent to return)",
+            "Household furnishings and appliances",
+            "Personal effects and clothing",
+            "One vehicle of any value",
+            "Burial funds up to $1,500"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Proof of Idaho residency",
+                "U.S. citizenship or immigration documents",
+                "Birth certificate or proof of age",
+                "Disability diagnosis (if under 65)"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Bank statements for all accounts",
+                "Property deeds and mortgage statements",
+                "Vehicle titles and registrations",
+                "Income verification (Social Security, pensions)",
+                "Recent tax returns"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Asset transfers in the past 5 years can create penalty periods that delay eligibility. If your parent gave away money or property below fair market value, report it during application — hiding transfers will cause bigger problems later."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Your parent can choose between waiver services at home or moving to a nursing facility — both are covered under this program, so location preference matters during planning."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house if she qualifies?",
+          "answer": "Yes, if the home equity is under $752,000 and she intends to return home, or if a spouse or disabled child lives there. The house doesn't count toward the $2,000 asset limit."
+        },
+        {
+          "question": "What if Dad gave money to his grandchildren last year?",
+          "answer": "Any gifts or transfers below fair market value in the past 60 months can create penalty periods that delay eligibility. You'll need to report all transfers during the application — it's better to be upfront than hide them."
+        },
+        {
+          "question": "How is 'nursing facility level of care' determined?",
+          "answer": "A clinical assessor evaluates your parent's ability to perform daily activities like bathing, dressing, eating, and toileting, plus cognitive functioning. They use a standardized assessment tool to determine if your parent needs the level of care provided in nursing facilities."
+        },
+        {
+          "question": "What's the difference between this and regular Medicaid?",
+          "answer": "Regular Medicaid covers medical care. This waiver provides additional home and community services — like personal care, homemaker help, and meal delivery — specifically to keep people out of nursing facilities."
+        },
+        {
+          "question": "Can Mom get services right away after approval?",
+          "answer": "Not necessarily — many waiver programs have waitlists. Check current wait times when you apply, and ask about emergency or urgent need provisions if your parent's situation is critical."
+        },
+        {
+          "question": "What if her income is just over the Medicaid limit?",
+          "answer": "She won't qualify for this waiver since Medicaid eligibility is required first. However, ask about spend-down options or other programs that might help with care costs."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://healthandwelfare.idaho.gov/services-programs/medicaid-health/about-medicaid-elderly-or-adults-disabilities",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "idaho-pace-care",
+      "name": "Program of All-Inclusive Care for the Elderly (PACE) - Idaho PACE",
+      "shortName": "Idaho PACE",
+      "tagline": "Complete medical and social care at one location for parents who need nursing home-level care but want to stay home.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Specific Idaho PACE centers not listed; check state resources for locations",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 55+ and needs nursing home-level care but wants to stay at home, PACE provides everything under one roof — primary care, specialists, hospital care, prescription drugs, transportation, personal care, and social services. Because PACE covers all medical and social needs through one coordinated team, your parent won't need to manage multiple doctors, insurance claims, or care providers.\n\nPACE is free for parents who qualify for Medicaid. Non-Medicaid participants pay a monthly premium (typically $7,000+ per month). Your parent must live in a PACE service area in Idaho and be certified as needing nursing facility level of care — meaning they need daily help with activities like bathing, dressing, or medication management.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Lives in PACE service area",
+          "Needs nursing home-level care",
+          "Can safely live in community with support"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 2000,
+          "couple": null,
+          "countedAssets": [
+            "Bank accounts",
+            "Stocks and bonds",
+            "Cash"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "One vehicle",
+            "Personal belongings"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "Must be certified as needing Nursing Facility Level of Care (NFLOC) — a clinical assessment showing your parent needs daily assistance with activities like bathing, dressing, eating, or medication management",
+        "otherRequirements": [
+          "Must live in Idaho PACE service area",
+          "Must be able to live safely at home or in assisted living with PACE support"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact your local PACE center for assessment — processing time varies by location and waitlist status.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local PACE center",
+            "description": "Confirm PACE is available in your parent's area. Service areas are limited in Idaho."
+          },
+          {
+            "step": 2,
+            "title": "Request initial assessment",
+            "description": "Call the PACE center to schedule a comprehensive evaluation of your parent's medical and social needs."
+          },
+          {
+            "step": 3,
+            "title": "Complete NFLOC certification",
+            "description": "Idaho will assess whether your parent meets nursing facility level of care requirements through medical evaluation."
+          },
+          {
+            "step": 4,
+            "title": "Submit documentation",
+            "description": "Provide proof of age, residency, medical records, and Medicaid/Medicare information if applicable."
+          }
+        ],
+        "processingTime": "Not specified — varies by location",
+        "waitlist": "Possible waitlists due to capped financing, varying by location and capacity",
+        "tip": "Start the process early — PACE has limited slots and waitlists are common.",
+        "urls": [
+          {
+            "label": "National PACE Association Map",
+            "url": "https://www.medicaid.gov/medicaid/long-term-services-supports/program-of-all-inclusive-care-for-elderly"
+          },
+          {
+            "label": "Idaho Medicaid",
+            "url": "https://medicaid.idaho.gov"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Eligibility",
+              "items": [
+                "Proof of age (birth certificate or driver's license)",
+                "Proof of Idaho residency in PACE service area",
+                "Medicare card if enrolled",
+                "Medicaid card if enrolled"
+              ]
+            },
+            {
+              "name": "Medical Records",
+              "items": [
+                "Recent medical records from all doctors",
+                "Current medication list",
+                "Hospital discharge summaries",
+                "Assessment records from other care providers"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "PACE is not available statewide in Idaho. You must live in a specific PACE service area, and waitlists are common due to limited capacity."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If your parent doesn't qualify for Medicaid, they can still use PACE but will pay the full monthly premium, typically $7,000 or more per month."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house if she qualifies for PACE?",
+          "answer": "Yes. PACE is designed to help people stay in their homes or community settings like assisted living. The primary home doesn't count toward asset limits for Medicaid eligibility."
+        },
+        {
+          "question": "What if Dad's income is too high for Medicaid but he needs PACE services?",
+          "answer": "He can still enroll in PACE by paying the full monthly premium out-of-pocket, typically $7,000+ per month. PACE itself has no income limits."
+        },
+        {
+          "question": "Does PACE replace Mom's current Medicare and doctors?",
+          "answer": "Yes. When your parent enrolls in PACE, it becomes their sole source of Medicare and Medicaid services. They'll need to switch to PACE doctors and providers."
+        },
+        {
+          "question": "How long is the waitlist for PACE in Idaho?",
+          "answer": "Waitlist times vary by location and aren't specified. PACE programs have funding caps, so availability depends on your local center's capacity."
+        },
+        {
+          "question": "What happens if Dad needs to move to a different city after enrolling?",
+          "answer": "He can only continue PACE if moving to another area with a PACE program. If no PACE is available in the new location, he'll need to disenroll and find other care."
+        },
+        {
+          "question": "Can Mom use PACE if she lives in assisted living?",
+          "answer": "Yes, as long as she can live safely in the community with PACE support. PACE serves people in their homes, assisted living facilities, and adult family homes."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://www.medicaid.gov/medicaid/long-term-services-supports/program-of-all-inclusive-care-for-elderly",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "idaho-medicare-savings-programs",
+      "name": "Medicare Savings Programs (Qualified Medicare Beneficiary - QMB, Specified Low-Income Medicare Beneficiary - SLMB, Qualifying Individual - QI)",
+      "shortName": "Medicare Savings Programs",
+      "tagline": "If your parent has Medicare and limited income, Idaho can pay their Medicare premiums and out-of-pocket costs — saving up to $4,800+ per year.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Idaho Dept. of Health & Welfare regional offices (e.g., Boise, regional hubs via healthandwelfare.idaho.gov/locations)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent has Medicare and earns less than $1,816/month, Idaho's Medicare Savings Programs can eliminate their Medicare costs. Because these programs pay Medicare premiums, deductibles, and copays directly to providers, your parent keeps more of their monthly income for food and housing.\n\nThere are three tiers based on income. The most comprehensive (QMB) covers all Medicare out-of-pocket costs for people earning up to $1,350/month. Because QMB also auto-enrolls your parent in Extra Help for prescription drugs, they'll pay maximum $12.65 per medication instead of full price.\n\nThe catch: QI (the highest income tier) has limited federal funding and operates first-come, first-served. If you qualify, apply immediately.",
+      "savingsRange": "$1,800 – $4,800+/year in 2026",
+      "savingsSource": "Medicare Part B premiums ($174.70/month) plus deductibles and copays",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Has Medicare Part A",
+          "Income below $1,816/month (single)",
+          "Assets under $9,950 (single)",
+          "Idaho resident"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1816
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2455
+          }
+        ],
+        "assetLimits": {
+          "individual": 9950,
+          "couple": 14910,
+          "countedAssets": [
+            "Bank accounts",
+            "Stocks",
+            "Bonds"
+          ],
+          "exemptAssets": [
+            "Home",
+            "One car",
+            "Burial plots",
+            "Personal belongings",
+            "Life insurance (up to certain value)"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be enrolled in Medicare Part A",
+          "U.S. citizen or qualified immigrant",
+          "Must reside in Idaho"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online at Idaho Health & Welfare or call 208-334-5500 — processing typically takes 45 days.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Gather Medicare card and financial documents",
+            "description": "You'll need proof of Medicare enrollment, 3 months of income statements, and bank account balances."
+          },
+          {
+            "step": 2,
+            "title": "Apply through Idaho Medicaid system",
+            "description": "Use the online portal at healthandwelfare.idaho.gov or call your regional office for a Medicare Savings Program application."
+          },
+          {
+            "step": 3,
+            "title": "Submit within 30 days of starting application",
+            "description": "Incomplete applications may be denied. If applying for QI, submit immediately due to limited funding."
+          },
+          {
+            "step": 4,
+            "title": "Follow up if no response in 45 days",
+            "description": "Contact the office where you applied to check status."
+          }
+        ],
+        "processingTime": "Typically 45 days",
+        "waitlist": "QI tier has limited federal funding and operates first-come, first-served with priority to previous recipients",
+        "tip": "If your parent is married, Idaho's Community Property Method may allow one spouse to qualify using individual income limits instead of couple limits.",
+        "urls": [
+          {
+            "label": "Apply Online",
+            "url": "https://healthandwelfare.idaho.gov/services-programs/medicaid-health/medicare-savings-program"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "tier-comparison",
+          "heading": "Program Tiers",
+          "tiers": [
+            {
+              "name": "QMB (Qualified Medicare Beneficiary)",
+              "description": "Most comprehensive coverage",
+              "incomeLimit": "Up to $1,350/month (single), $1,824/month (couple)",
+              "coverage": "Pays all Medicare Part A & B premiums, deductibles, copays, and coinsurance. Providers cannot bill you. Auto-qualifies for Extra Help (prescription drug copays ≤$12.65)."
+            },
+            {
+              "name": "SLMB (Specified Low-Income Medicare Beneficiary)",
+              "description": "Premium assistance only",
+              "incomeLimit": "Up to $1,616/month (single), $2,184/month (couple)",
+              "coverage": "Pays Medicare Part B premiums only ($174.70/month in 2026). Auto-qualifies for Extra Help for prescriptions."
+            },
+            {
+              "name": "QI (Qualifying Individual)",
+              "description": "Limited funding - apply early",
+              "incomeLimit": "Up to $1,816/month (single), $2,455/month (couple)",
+              "coverage": "Pays Medicare Part B premiums only. Auto-qualifies for Extra Help. Must reapply annually. First-come, first-served."
+            }
+          ]
+        },
+        {
+          "type": "income-table",
+          "heading": "Income Limits by Household Size",
+          "rows": [
+            {
+              "tier": "QMB",
+              "single": 1350,
+              "couple": 1824
+            },
+            {
+              "tier": "SLMB",
+              "single": 1616,
+              "couple": 2184
+            },
+            {
+              "tier": "QI",
+              "single": 1816,
+              "couple": 2455
+            }
+          ],
+          "footnote": "2026 limits, updated annually April 1"
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts (checking, savings)",
+            "Stocks and bonds",
+            "Investment accounts"
+          ],
+          "excluded": [
+            "Primary home",
+            "One car",
+            "Burial plots",
+            "Personal belongings",
+            "Life insurance (up to certain value)"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Medicare Enrollment",
+              "items": [
+                "Medicare card (Part A required)",
+                "Social Security award letter"
+              ]
+            },
+            {
+              "name": "Financial Records",
+              "items": [
+                "3 months of pay stubs or Social Security statements",
+                "Bank statements (all accounts)",
+                "Investment account statements"
+              ]
+            },
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Driver's license or state ID",
+                "Utility bill showing Idaho address"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "QI has limited federal funding and may run out. If your parent qualifies, apply immediately. Priority goes to people who had it the previous year."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Income and asset limits change every April 1. If your parent was denied in the past, they may now qualify with updated limits."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if they qualify?",
+          "answer": "Yes. Your parent's primary home doesn't count toward the asset limits, regardless of value. They can also keep one car and personal belongings."
+        },
+        {
+          "question": "What if Mom's income is just over the QMB limit?",
+          "answer": "She may still qualify for SLMB (income up to $1,616/month) or QI (up to $1,816/month). These cover Medicare Part B premiums and provide Extra Help for prescriptions, saving $1,800+ per year."
+        },
+        {
+          "question": "My parents are married but only Dad has Medicare. Can he qualify using single-person limits?",
+          "answer": "Possibly. Idaho uses the Community Property Method, which may allow one spouse to qualify using individual income limits instead of couple limits. Apply and let them determine the best calculation method."
+        },
+        {
+          "question": "Will providers still bill my parent if they have QMB?",
+          "answer": "They shouldn't. Providers cannot bill QMB recipients for Medicare-covered services. If this happens, contact Idaho Health & Welfare immediately — it's not allowed."
+        },
+        {
+          "question": "How often does my parent need to reapply?",
+          "answer": "QMB and SLMB: Usually annual renewals. QI: Must reapply every year and has limited funding, so reapply early. All programs will send renewal notices."
+        },
+        {
+          "question": "What's Extra Help and why does it matter?",
+          "answer": "Extra Help dramatically reduces prescription drug costs. With it, your parent pays maximum $12.65 per medication instead of full price. All three Medicare Savings Programs automatically qualify your parent for this benefit."
+        }
+      ],
+      "phone": "208-334-5500",
+      "sourceUrl": "https://healthandwelfare.idaho.gov/services-programs/medicaid-health/medicare-savings-program",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "idaho-snap-food-benefits",
+      "name": "Supplemental Nutrition Assistance Program (SNAP)",
+      "shortName": "SNAP Food Benefits",
+      "tagline": "Get $100-300 monthly for groceries if your parent is on a fixed income — Idaho has expanded eligibility for seniors.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local Idaho DHW offices",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and struggling to afford groceries, SNAP provides monthly money on an EBT card for food purchases. Unlike most states, Idaho has no gross income limit for seniors — only net income matters after deductions for medical expenses and housing costs.\n\nYour parent gets a monthly EBT card loaded with benefits based on household size and income. A typical senior household receives $100-300 monthly, but the amount depends on income after deductions. Because Idaho expanded eligibility rules for seniors, many parents who were previously denied may now qualify.\n\nThe card works like a debit card at grocery stores and can even pay for Meals on Wheels delivery. Benefits are certified for up to 24 months if all household members are 60+ or disabled, so your parent won't need to reapply frequently.",
+      "savingsRange": "$1,200 – $3,600/year in 2026",
+      "savingsSource": "Estimated from typical monthly benefits of $100-300 for seniors",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Idaho resident",
+          "Net income below limits after deductions",
+          "Assets under $5,000",
+          "U.S. citizen or legal immigrant"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1255
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 1704
+          }
+        ],
+        "assetLimits": {
+          "individual": 5000,
+          "couple": 5000,
+          "countedAssets": [
+            "Bank accounts",
+            "Cash",
+            "Savings"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "Retirement savings",
+            "One vehicle"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must live in Idaho",
+          "Household includes people who buy and prepare food together",
+          "No work requirements if all household members are 60+ or disabled"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online at Idaho DHW website or call regional offices — processing time not specified but expedited available for urgent cases.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Gather required documents",
+            "description": "Collect ID, proof of income, housing costs, and monthly expenses. Medical expenses over $35/month are especially important for seniors as they increase benefits."
+          },
+          {
+            "step": 2,
+            "title": "Submit application",
+            "description": "Apply online at healthandwelfare.idaho.gov or call your regional DHW office. An authorized representative can apply on your parent's behalf."
+          },
+          {
+            "step": 3,
+            "title": "Complete phone interview",
+            "description": "DHW will schedule a phone interview to review the application and verify information. Phone interviews are specifically allowed for elderly applicants."
+          },
+          {
+            "step": 4,
+            "title": "Receive EBT card",
+            "description": "If approved, benefits are loaded monthly on an EBT card that works at grocery stores and for Meals on Wheels purchases."
+          }
+        ],
+        "processingTime": "Not specified by Idaho DHW — expedited processing available for urgent cases",
+        "waitlist": null,
+        "tip": "Medical expenses over $35/month reduce countable income and increase benefits — bring all prescription receipts and medical bills.",
+        "urls": [
+          {
+            "label": "Apply Online",
+            "url": "https://healthandwelfare.idaho.gov/services-programs/food-assistance/apply-snap"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Net Income Limits After Deductions",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 1255,
+              "note": "Approximate limit after deductions"
+            },
+            {
+              "householdSize": 2,
+              "monthlyLimit": 1704,
+              "note": "Add ~$449 per additional person"
+            }
+          ],
+          "footnote": "2025-2026 limits. Idaho has no gross income limit for households with members 60+ — only net income after deductions matters."
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and savings",
+            "Cash on hand",
+            "Investments and stocks"
+          ],
+          "excluded": [
+            "Primary home (any value)",
+            "Retirement savings accounts",
+            "One vehicle per household member",
+            "Household goods and personal belongings"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Driver's license or state ID",
+                "Immigration documents if applicable"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Social Security award letters",
+                "Pension statements",
+                "Bank statements",
+                "Medical bills and prescription receipts over $35/month",
+                "Rent/mortgage statements",
+                "Utility bills"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "64% of eligible Idaho seniors aren't enrolled in SNAP. Idaho expanded eligibility by removing gross income limits for seniors — many parents who were previously denied may now qualify."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Will my mom's Social Security count against her for SNAP?",
+          "answer": "Yes, Social Security and pensions count as income. However, Idaho has no gross income limit for seniors 60+ — only net income after deductions matters. Medical expenses over $35/month and high housing costs can significantly reduce countable income."
+        },
+        {
+          "question": "Can Mom use SNAP benefits for Meals on Wheels delivery?",
+          "answer": "Yes, SNAP EBT cards can pay for Meals on Wheels in Idaho, even if your parent lives in senior housing. This makes the program especially valuable for parents who have difficulty grocery shopping."
+        },
+        {
+          "question": "What if my parent's income is just over the limit?",
+          "answer": "Medical expenses over $35/month and shelter costs above half of income are deducted before calculating eligibility. If your parent has high medical or housing costs, they may still qualify even with higher Social Security payments."
+        },
+        {
+          "question": "How long do SNAP benefits last before reapplying?",
+          "answer": "If all household members are 60+ or disabled, benefits are certified for up to 24 months in Idaho. Your parent won't need to reapply frequently, reducing paperwork burden."
+        },
+        {
+          "question": "Can I apply for SNAP on behalf of my parent?",
+          "answer": "Yes, Idaho allows authorized representatives to apply for elderly applicants. You can complete the application and participate in the required phone interview on your parent's behalf."
+        },
+        {
+          "question": "Will owning a home disqualify my parent from SNAP?",
+          "answer": "No, the primary home doesn't count toward the $5,000 asset limit regardless of value. Retirement savings and one vehicle per household member are also exempt."
+        }
+      ],
+      "phone": "211",
+      "sourceUrl": "https://healthandwelfare.idaho.gov/services-programs/food-assistance",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "idaho-energy-assistance-liheap",
+      "name": "Idaho Energy Assistance (LIHEAP)",
+      "shortName": "Idaho Energy Assistance",
+      "tagline": "If your parent struggles with heating bills in Idaho, they may qualify for $400–$1,800/year toward utility costs.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true
+      },
+      "intro": "If your parent's heating bills are straining their budget, Idaho Energy Assistance (LIHEAP) provides direct payments to utility companies to help cover heating costs. Because this program pays utilities directly, your parent doesn't handle the money — it goes straight toward reducing their heating bill.\n\nBenefit amounts range from $400–$1,800 per year based on household income, location in Idaho, and heating costs. Income must be at or below 150% of the Federal Poverty Level. Because funding is extremely limited and distributed first-come, first-serve, families with elderly members can apply starting in October, while other families must wait until November.\n\nThis is heating assistance only — Idaho does not offer cooling assistance through this program. Crisis assistance is available year-round for heating emergencies like broken furnaces or utility shutoff notices.",
+      "savingsRange": "$400 – $1,800/year",
+      "savingsSource": "Direct utility bill payments",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Income at or below 150% Federal Poverty Level",
+          "Must live in Idaho",
+          "Must have heating expenses",
+          "U.S. citizen or permanent resident required"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must live in Idaho",
+          "Must have heating expenses with proof of heating bill",
+          "At least one household member must be U.S. citizen or lawful permanent resident",
+          "Roommates sharing utilities count as one household"
+        ],
+        "povertyLevelReference": "150% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply through your local Community Action Agency office — processing takes 7–30 days.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local Community Action Agency",
+            "description": "Every Idaho county has a local office. Contact Idaho Department of Health and Welfare or check Idaho Power's assistance page to find yours."
+          },
+          {
+            "step": 2,
+            "title": "Gather required documents",
+            "description": "You'll need proof of identity, residency, most recent utility bills, and income documentation for every household member."
+          },
+          {
+            "step": 3,
+            "title": "Submit application early",
+            "description": "If your parent is elderly, disabled, or has children under 6, apply in October. All other families can apply starting in November. Funding runs out fast."
+          },
+          {
+            "step": 4,
+            "title": "Wait for processing",
+            "description": "Applications are processed in 7–30 days. If approved, payments go directly to the utility company."
+          }
+        ],
+        "processingTime": "7–30 days",
+        "waitlist": "No formal waitlist; funding distributed first-come, first-serve and may run out before season ends",
+        "tip": "Apply as early as possible when your application window opens — funding is extremely limited.",
+        "urls": [
+          {
+            "label": "Idaho Health and Welfare",
+            "url": "https://healthandwelfare.idaho.gov/services-programs/financial-assistance/home-heating-and-utility-assistance/about-heating-assistance"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Proof of identity for all household members",
+                "Proof of Idaho residency",
+                "Social Security cards for everyone in household",
+                "Birth dates for all household members",
+                "Citizenship or legal status documentation"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Most recent heating bill with account number",
+                "Most recent electric bill with account number",
+                "Gross income from previous month for every household member",
+                "Completed and signed Energy Assistance application"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Funding is extremely limited. Applications may close early if money runs out, even during the official application season. Priority families (elderly, disabled, children under 6) can apply in October — everyone else must wait until November."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Idaho offers heating assistance only — no cooling assistance. If your parent needs help with air conditioning costs, this program cannot help."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent's income is just over the 150% Federal Poverty Level limit?",
+          "answer": "Unfortunately, income limits are strict. However, contact your local Community Action Agency — they may know of other utility assistance programs in your area that have different income requirements."
+        },
+        {
+          "question": "Can my parent get help with both heating and electric bills?",
+          "answer": "Yes, but this program focuses on heating costs. You'll need to provide both heating and electric bills with account numbers, and the benefit amount depends on your parent's heating expenses specifically."
+        },
+        {
+          "question": "What counts as an emergency for crisis assistance?",
+          "answer": "Crisis assistance covers heating emergencies like broken furnaces, utility shutoff notices, or running out of fuel. This is available year-round, separate from the seasonal heating assistance program."
+        },
+        {
+          "question": "If my parent lives with roommates, how does that affect eligibility?",
+          "answer": "If roommates share the same utility bill, they're counted as one household for LIHEAP purposes, even if they don't share other expenses. This affects both income calculations and benefit amounts."
+        },
+        {
+          "question": "How much will my parent actually receive?",
+          "answer": "Benefit amounts range from $400–$1,800 per year, calculated based on household income, location in Idaho, fuel type, and heating area. Each application is calculated individually — there's no standard amount."
+        },
+        {
+          "question": "Does the money go directly to my parent?",
+          "answer": "No, LIHEAP payments go directly to the utility company to pay down your parent's heating bill. Your parent won't receive cash — the benefit reduces what they owe for utilities."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://healthandwelfare.idaho.gov/services-programs/financial-assistance/home-heating-and-utility-assistance/about-heating-assistance",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "idaho-weatherization-assistance-program",
+      "name": "Weatherization Assistance Program (WAP)",
+      "shortName": "Weatherization Assistance",
+      "tagline": "Free home energy improvements that could save your parent hundreds annually on heating bills.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Idaho Department of Health and Welfare (state administrator)",
+            "type": "service-area"
+          },
+          {
+            "name": "Local Community Action Agencies (regional administrators)",
+            "type": "service-area"
+          },
+          {
+            "name": "Idaho Power (for electrically-heated homes in service territory)",
+            "type": "service-area"
+          },
+          {
+            "name": "SEICAA (Southeastern Idaho)",
+            "type": "service-area"
+          },
+          {
+            "name": "EICAP (Eastern Idaho)",
+            "type": "service-area"
+          },
+          {
+            "name": "Community Action Partnership (multiple regions)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent struggles with high heating bills, Weatherization Assistance provides free home improvements that reduce energy costs — insulation, window repairs, heating system fixes, and weather-stripping. Because the program covers all materials and labor at no cost, your parent keeps 100% of the energy savings for years to come.\n\nYour parent qualifies if their income falls below specific limits (ranging from $2,146/month for one person to over $5,000/month for larger households) and they haven't received weatherization services in the past 15 years. The program prioritizes seniors, families with children, and people with disabilities, but wait times can stretch up to 3 years depending on your region and available funding.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Income limits vary by region",
+          "Home not weatherized in past 15 years",
+          "Must be homeowner or have landlord permission",
+          "Idaho resident"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2146
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2903
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 3660
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 4416
+          },
+          {
+            "householdSize": 5,
+            "monthlyLimit": 5173
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "One household member must be US citizen or lawful permanent resident",
+          "Home must not have received weatherization services in past 15 years",
+          "Weatherization work must be cost-effective (savings exceed work cost)",
+          "For renters: written landlord permission required"
+        ],
+        "povertyLevelReference": "150% FPL"
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your local Community Action Agency to apply — processing can take months to years due to waitlists.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local Community Action Agency",
+            "description": "Contact information varies by region — Idaho Power customers call a different number than other areas."
+          },
+          {
+            "step": 2,
+            "title": "Gather required documents",
+            "description": "Proof of identity, income verification, utility bills, and homeownership or landlord permission."
+          },
+          {
+            "step": 3,
+            "title": "Complete phone or in-person application",
+            "description": "Agency will verify income and home eligibility requirements."
+          },
+          {
+            "step": 4,
+            "title": "Wait for energy audit scheduling",
+            "description": "If qualified, you'll be placed on a waiting list for home energy assessment."
+          },
+          {
+            "step": 5,
+            "title": "Schedule weatherization work",
+            "description": "After audit determines cost-effectiveness, work is scheduled based on priority and funding availability."
+          }
+        ],
+        "processingTime": "Wait times can exceed 3 years in some regions after qualification",
+        "waitlist": "Yes. After qualifying for energy assistance, applicants are placed on a waiting list for weatherization services. Wait times depend on available funding and household priority level.",
+        "tip": "Apply as soon as possible — funding is first-come, first-served and wait times are extensive.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits by Household Size",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 2146,
+              "annualLimit": 25752
+            },
+            {
+              "householdSize": 2,
+              "monthlyLimit": 2903,
+              "annualLimit": 34836
+            },
+            {
+              "householdSize": 3,
+              "monthlyLimit": 3660,
+              "annualLimit": 43920
+            },
+            {
+              "householdSize": 4,
+              "monthlyLimit": 4416,
+              "annualLimit": 53004
+            },
+            {
+              "householdSize": 5,
+              "monthlyLimit": 5173,
+              "annualLimit": 62076
+            }
+          ],
+          "footnote": "2026 limits for Idaho Power customers. Other Community Action Agencies may use different thresholds."
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Proof of identity for household members",
+                "Proof of homeownership OR written landlord permission"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Recent pay stubs, tax returns, or benefit statements",
+                "Utility bills showing energy expenses"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "county-directory",
+          "heading": "Regional Administrators",
+          "offices": [
+            {
+              "name": "SEICAA",
+              "type": "service-area",
+              "phone": "Contact local office",
+              "address": "Southeastern Idaho"
+            },
+            {
+              "name": "EICAP",
+              "type": "service-area",
+              "phone": "Contact local office",
+              "address": "Eastern Idaho"
+            },
+            {
+              "name": "Idaho Power Weatherization",
+              "type": "service-area",
+              "phone": "Contact for electrically-heated homes",
+              "address": "Idaho Power service territory"
+            },
+            {
+              "name": "Community Action Partnership",
+              "type": "service-area",
+              "phone": "Contact local office",
+              "address": "Multiple regions statewide"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Wait times can exceed 3 years after qualification. This program requires patience — apply early and consider other energy assistance programs while waiting."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If your parent's home was weatherized more than 15 years ago, they are permanently ineligible for repeat services. Check records before applying."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if Mom's house was weatherized 20 years ago?",
+          "answer": "She's permanently ineligible. Homes that received weatherization services in the past 15 years cannot receive services again, even if the work was minimal or ineffective."
+        },
+        {
+          "question": "Can Dad get weatherization if he rents his apartment?",
+          "answer": "Yes, but his landlord must provide written permission and may need to contribute to the cost. For Idaho Power's program, landlords must help pay a portion of the work."
+        },
+        {
+          "question": "What if Mom's income is just over the limit with one agency?",
+          "answer": "Try other Community Action Agencies in your area. Income limits vary significantly by administrator — EICAP allows up to $43,150 annually for one person, while Idaho Power uses $25,752."
+        },
+        {
+          "question": "How much will this actually save on energy bills?",
+          "answer": "Savings amounts aren't guaranteed and depend on your parent's current energy usage and what improvements are made. The program only proceeds if projected savings exceed the cost of work."
+        },
+        {
+          "question": "Can Mom apply if she heats with natural gas instead of electricity?",
+          "answer": "Depends on your local agency. Idaho Power's program only covers electrically-heated homes, but other Community Action Agencies may accept different heating sources."
+        },
+        {
+          "question": "What happens if Mom's income changes while she's on the waitlist?",
+          "answer": "Her income will be re-verified before services begin. If she hasn't reapplied within the past year, she'll need to provide new income documentation to maintain eligibility."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://healthandwelfare.idaho.gov/services-programs/financial-assistance/home-heating-and-utility-assistance/about-weatherization",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "idaho-shiba-insurance-advisors",
+      "name": "Senior Health Insurance Benefits Advisors (SHIBA)",
+      "shortName": "SHIBA Advisors",
+      "tagline": "Free Medicare counseling to help your parent navigate insurance options and avoid costly mistakes.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Primary office: Idaho Department of Insurance, 700 West State St., 3rd Floor, Boise ID 83720; local counselors in every county",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is confused by Medicare options, prescription drug plans, or Medigap insurance, Idaho's SHIBA program provides free one-on-one counseling to help them make informed decisions. Because Medicare has dozens of plan options that change every year, these trained advisors can help your parent compare costs and coverage without the sales pressure of insurance agents.\n\nSHIBA counselors are available in every Idaho county and can meet by phone, email, or in person. They provide unbiased information about Medicare Parts A, B, and D, Medicare Advantage plans, Medigap policies, and Medicare Savings Programs that can reduce premiums and copays. No income limits apply — any Medicare beneficiary, senior, or disabled person can access this free service.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Medicare beneficiary, senior, or disabled citizen",
+          "No income or asset limits",
+          "Available statewide"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be seeking health insurance counseling"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call 1-800-247-4422 for immediate assistance — no application needed.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact SHIBA",
+            "description": "Call 1-800-247-4422, fill out the online form at doi.idaho.gov/shiba, or email Shannon.Hohl@doi.idaho.gov"
+          },
+          {
+            "step": 2,
+            "title": "Schedule counseling",
+            "description": "Set up a phone, email, or in-person session with a local counselor in your parent's county"
+          },
+          {
+            "step": 3,
+            "title": "Prepare for session",
+            "description": "Have your parent's Medicare card and current insurance information ready, plus any specific questions about coverage"
+          }
+        ],
+        "processingTime": "Appointments available upon contact",
+        "waitlist": null,
+        "tip": "Call before Medicare Open Enrollment (October 15 - December 7) when counselors are busiest.",
+        "urls": [
+          {
+            "label": "Online Contact Form",
+            "url": "https://doi.idaho.gov/shiba/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "SHIBA counselors don't sell insurance or recommend specific agents — they provide unbiased information only. This means you can trust their advice isn't influenced by sales commissions."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What's the difference between SHIBA and talking to an insurance agent?",
+          "answer": "SHIBA counselors are volunteers who don't sell insurance or earn commissions. Insurance agents can only show you their company's plans, while SHIBA counselors can compare all available options in your area and help you understand Medicare Savings Programs that agents might not mention."
+        },
+        {
+          "question": "Can SHIBA help if my parent already has Medicare coverage?",
+          "answer": "Yes. SHIBA counselors can review your parent's current coverage, help them understand their benefits, assist with claims issues, and recommend changes during Open Enrollment if they're paying too much or missing coverage they need."
+        },
+        {
+          "question": "Will my parent need to bring documents to the counseling session?",
+          "answer": "Not for the initial conversation, but having their Medicare card, current insurance cards, and a list of medications will help the counselor provide more personalized advice about plan options and costs."
+        },
+        {
+          "question": "Can SHIBA help with Medicare Savings Programs that reduce premiums?",
+          "answer": "Yes. SHIBA counselors can explain QMB, SLMB, and QI programs that help pay Medicare premiums and deductibles if your parent has limited income. They can also provide information about prescription assistance programs."
+        },
+        {
+          "question": "Is there a local counselor in my parent's area?",
+          "answer": "Idaho has trained SHIBA counselors in every county. When you call 1-800-247-4422, they'll connect you with someone familiar with the insurance options and resources available in your parent's specific area."
+        }
+      ],
+      "phone": "1-800-247-4422",
+      "sourceUrl": "https://doi.idaho.gov/shiba/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "idaho-home-delivered-meals-title-iii-c2",
+      "name": "Home-Delivered Meals (Title III-C-2)",
+      "shortName": "Home-Delivered Meals",
+      "tagline": "Free daily meals delivered to your parent's door if they're 60+ and can't easily cook or shop for themselves.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Southwest Idaho Area Agency on Aging (example); contact Idaho Commission on Aging for full AAA list",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60 or older and struggles to prepare meals due to frailty, disability, or isolation, they may qualify for free home-delivered meals through Idaho's Title III-C-2 program. This federally-funded service provides nutritionally balanced meals that meet one-third of daily nutritional needs, typically delivered Monday through Friday during lunch hours. The program prioritizes seniors with the greatest social and economic need, including those with low incomes, minorities, and adults 75+, but has no strict income limits. Because meals are delivered directly to your parent's home, they also receive regular wellness checks from the delivery person — an important safety feature for isolated seniors.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Frail, homebound, or unable to cook",
+          "No income limits",
+          "Priority for low-income seniors"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must be frail, homebound, isolated, disabled, or unable to prepare meals or participate in congregate meal programs",
+        "otherRequirements": [
+          "Must live in service area of local Area Agency on Aging",
+          "Spouses of any age and disabled persons under 60 living with eligible senior also qualify"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Contact your local Area Agency on Aging by phone for an assessment — processing time varies by region and demand.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local Area Agency on Aging",
+            "description": "Idaho has 7 regional AAAs. Contact the Idaho Commission on Aging to identify which AAA serves your parent's area."
+          },
+          {
+            "step": 2,
+            "title": "Call for initial screening",
+            "description": "The AAA will conduct a phone screening to determine if your parent meets the frailty or homebound criteria."
+          },
+          {
+            "step": 3,
+            "title": "Complete assessment",
+            "description": "A care coordinator or nutrition provider will conduct an in-home or phone assessment using the standardized Home-Delivered Meals Referral Form."
+          },
+          {
+            "step": 4,
+            "title": "Wait for placement",
+            "description": "Your parent will be placed on the delivery schedule based on priority tier and local capacity. Higher-need seniors get priority."
+          }
+        ],
+        "processingTime": "Not specified — varies by local demand and capacity",
+        "waitlist": "Possible due to prioritization system and funding limitations — varies by AAA region",
+        "tip": "Your parent doesn't need to be strictly homebound — being frail or unable to cook safely also qualifies them.",
+        "urls": [
+          {
+            "label": "Idaho Commission on Aging",
+            "url": "https://aging.idaho.gov/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "tier-comparison",
+          "heading": "Priority Tiers",
+          "tiers": [
+            {
+              "name": "Highest Priority",
+              "description": "Greatest social and economic need",
+              "incomeLimit": "At or below poverty level",
+              "coverage": "First placed on delivery schedule"
+            },
+            {
+              "name": "High Priority",
+              "description": "Age 75+ or minority status",
+              "incomeLimit": "No specific limit",
+              "coverage": "Second priority for placement"
+            },
+            {
+              "name": "Standard Priority",
+              "description": "Age 60+ meeting functional criteria",
+              "incomeLimit": "No income test required",
+              "coverage": "Served based on capacity after higher tiers"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Prepare for Assessment",
+          "categories": [
+            {
+              "name": "Residency",
+              "items": [
+                "Proof of address in the AAA service area",
+                "Driver's license or state ID"
+              ]
+            },
+            {
+              "name": "Assessment Information",
+              "items": [
+                "Description of physical limitations affecting cooking",
+                "Current health conditions or medications",
+                "Transportation barriers to grocery shopping"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "This program is separate from Medicare or Medicaid meal benefits. Your parent can receive these meals regardless of their health insurance status, and voluntary donations are encouraged but never required."
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Each of Idaho's 7 regional AAAs operates independently with different providers and wait times. Priority goes to seniors with greatest need, which may create waitlists in high-demand areas."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent's income is too high for other programs — can they still get meals?",
+          "answer": "Yes. This program has no income test or cutoff. While priority goes to low-income seniors, anyone 60+ who meets the functional criteria (frail, homebound, or unable to cook) can qualify regardless of income."
+        },
+        {
+          "question": "Can my parent get meals if they live in assisted living or senior housing?",
+          "answer": "It depends on their individual need and the local AAA's policies. They must still meet the frailty or inability to prepare meals criteria, even in senior housing."
+        },
+        {
+          "question": "What happens if my parent is temporarily hospitalized?",
+          "answer": "Meal delivery typically stops during hospitalization. Contact your local AAA to pause and restart service. The program also provides emergency shelf-stable meals twice per year for situations like power outages."
+        },
+        {
+          "question": "Does my 58-year-old disabled father qualify if he lives with my 65-year-old mother?",
+          "answer": "Yes. Disabled persons under 60 qualify if they live with an eligible person 60 or older. Both can receive meals if they meet the functional requirements."
+        },
+        {
+          "question": "How much should my parent donate for the meals?",
+          "answer": "Donations are completely voluntary and confidential. There's no suggested amount, and inability to donate never affects eligibility or service quality."
+        },
+        {
+          "question": "What if my parent needs meals on weekends too?",
+          "answer": "Most programs deliver Monday-Friday lunch only, though this varies by local provider. Some areas may offer weekend meals or additional daily meals based on capacity and funding."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://aging.idaho.gov/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "idaho-family-caregiver-support-program",
+      "name": "National Family Caregiver Support Program (NFCSP, Title III-E)",
+      "shortName": "Family Caregiver Support",
+      "tagline": "Free respite care, caregiver training, and support groups if you're caring for a parent 60+ or someone with dementia.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local Area Agencies on Aging; Idaho Commission on Aging",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If you're providing unpaid care for a parent 60+ or someone with Alzheimer's or dementia (any age), Idaho's Family Caregiver Support Program provides free respite care, caregiver training, support groups, and other services to help you manage caregiving demands. The program prioritizes caregivers with the greatest social and economic need, and those caring for people with severe disabilities.\n\nThis is not a program that pays you directly for caregiving — it provides support services to help you continue caring at home. Services are delivered through your local Area Agency on Aging and vary by region: Boise offers in-person training and respite grants, Northern Idaho focuses on telehealth services, Eastern Idaho provides hospital integration and end-of-life workshops, and Southern Idaho uses mobile units with prioritized respite care.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Unpaid family caregiver",
+          "Care recipient 60+ or has dementia",
+          "Caregiver 18+ (or 55+ for relative caregivers)",
+          "No income limits"
+        ],
+        "ageRequirement": "18+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be providing unpaid care to eligible family member",
+          "Priority given to caregivers with greatest social and economic need"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact your local Area Agency on Aging through 211 — no formal application required.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call 2-1-1",
+            "description": "Dial 211 to connect with your local Area Agency on Aging. They'll assess your caregiving situation and needs."
+          },
+          {
+            "step": 2,
+            "title": "Complete intake assessment",
+            "description": "Your local agency will use the AAA National Family Caregiver Support Program Worksheet to determine which services you need most."
+          },
+          {
+            "step": 3,
+            "title": "Get matched with services",
+            "description": "Based on your priority tier and regional availability, you'll be connected with respite care, training, support groups, or other services."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Priority is given to caregivers with the greatest need, so be honest about your challenges and stress level during the assessment.",
+        "urls": [
+          {
+            "label": "Idaho Family Caregiver Support Program",
+            "url": "https://aging.idaho.gov/stay-at-home/national-family-caregiver-support-program/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "tier-comparison",
+          "heading": "Regional Service Variations",
+          "tiers": [
+            {
+              "name": "Boise Region",
+              "description": "Full in-person caregiver training programs and respite care grants",
+              "incomeLimit": "No income limit",
+              "coverage": "In-person training, respite grants, support groups"
+            },
+            {
+              "name": "Northern Idaho",
+              "description": "Telehealth-focused services for remote caregivers",
+              "incomeLimit": "No income limit",
+              "coverage": "Virtual training, telehealth support, online resources"
+            },
+            {
+              "name": "Eastern Idaho",
+              "description": "Hospital-integrated services with end-of-life support",
+              "incomeLimit": "No income limit",
+              "coverage": "Hospital coordination, end-of-life workshops, medical integration"
+            },
+            {
+              "name": "Southern Idaho",
+              "description": "Mobile services with priority respite for rural areas",
+              "incomeLimit": "No income limit",
+              "coverage": "Mobile units, prioritized respite care, rural outreach"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "This program does not provide direct payments to family caregivers. If you need paid caregiver support, ask about Idaho's Certified Family Home Program or Medicaid waiver services."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Will this program pay me for taking care of my mom?",
+          "answer": "No. NFCSP provides free support services like respite care and training, but does not pay family caregivers directly. For paid caregiver programs, ask your Area Agency on Aging about Medicaid waiver services."
+        },
+        {
+          "question": "My dad is 58 but has early-onset Alzheimer's. Does he qualify?",
+          "answer": "Yes. The program covers caregivers of people with Alzheimer's or dementia at any age, not just those 60+."
+        },
+        {
+          "question": "What if our income is too high for other programs?",
+          "answer": "NFCSP has no income limits. While priority goes to those with greatest economic need, higher-income caregivers can still access services based on availability."
+        },
+        {
+          "question": "How much respite care can I get?",
+          "answer": "The amount varies by region and your priority level. Southern Idaho prioritizes respite care, while Boise offers respite grants. Your local Area Agency on Aging will determine what's available."
+        },
+        {
+          "question": "I live in rural Idaho. Can I still get services?",
+          "answer": "Yes. Southern Idaho uses mobile units to reach rural caregivers, and Northern Idaho offers telehealth services. Contact 211 to see what's available in your area."
+        },
+        {
+          "question": "Do I need to be related to the person I'm caring for?",
+          "answer": "Yes, you must be a family caregiver. This includes spouses, adult children, grandparents, and other relatives providing unpaid care."
+        }
+      ],
+      "phone": "2-1-1",
+      "sourceUrl": "https://aging.idaho.gov/stay-at-home/national-family-caregiver-support-program/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "idaho-scsep-employment",
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "shortName": "SCSEP",
+      "tagline": "Paid part-time work training to help your parent (55+) build skills and find permanent employment.",
+      "programType": "employment",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Easterseals-Goodwill (primary Idaho provider)",
+            "type": "service-area"
+          },
+          {
+            "name": "Contact via (208) 454-8555 or www.esgw.org/scsep for local offices",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 55+ and struggling to find work on a limited income, SCSEP provides paid part-time training positions while they search for permanent employment. Your parent earns at least $7.25/hour (Idaho minimum wage) for an average 20 hours per week while working at local nonprofits or government agencies. Because SCSEP combines paid work experience with job placement assistance, your parent builds skills and earns income during the 6-12 month training period.\n\nTo qualify, your parent's household income must be at or below 125% of the federal poverty level — about $19,000/year for a single person or $25,500 for a couple in 2025. Veterans, people over 65, those with disabilities, and rural residents get priority for the limited slots available. The program is administered statewide by Easterseals-Goodwill, but waitlists are possible due to funding limits.",
+      "savingsRange": "$580 – $1,160/month",
+      "savingsSource": "Based on 20 hours/week at $7.25/hour minimum wage",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Unemployed",
+          "Income at 125% poverty level",
+          "U.S. citizen or work authorized"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1583
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2125
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be unemployed",
+          "U.S. citizen or authorized to work",
+          "Must actively seek permanent employment during training"
+        ],
+        "povertyLevelReference": "125% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online at www.esgw.org/scsep or call (208) 454-8555 — processing time varies but waitlists are possible.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact Easterseals-Goodwill Idaho",
+            "description": "Call (208) 454-8555 or visit www.esgw.org/scsep to check slot availability in your area."
+          },
+          {
+            "step": 2,
+            "title": "Complete intake interview",
+            "description": "Discuss your parent's work history, skills, and employment goals with a program coordinator."
+          },
+          {
+            "step": 3,
+            "title": "Submit required documents",
+            "description": "Provide proof of age, income, unemployment status, and Social Security number."
+          },
+          {
+            "step": 4,
+            "title": "Wait for placement",
+            "description": "If accepted, you'll be matched with a community service assignment based on skills and location."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": "Possible due to limited slots/funding; varies by demand and region",
+        "tip": "Veterans and people over 65 get priority — mention this when calling if it applies to your parent.",
+        "urls": [
+          {
+            "label": "Idaho SCSEP Application",
+            "url": "https://www.esgw.org/scsep"
+          },
+          {
+            "label": "National Program Information",
+            "url": "https://www.dol.gov/agencies/eta/seniors"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits by Household Size (125% Federal Poverty Level)",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 1583,
+              "annualLimit": 19000
+            },
+            {
+              "householdSize": 2,
+              "monthlyLimit": 2125,
+              "annualLimit": 25500
+            }
+          ],
+          "footnote": "2025 estimates. Contact (208) 454-8555 for current limits by household size."
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Driver's license or state ID",
+                "Social Security number"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Tax returns (most recent)",
+                "Pay stubs if any recent work",
+                "Benefit statements (Social Security, unemployment, etc.)",
+                "Proof of unemployment status"
+              ]
+            },
+            {
+              "name": "Military",
+              "items": [
+                "Veteran discharge papers (DD-214) if applicable"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Limited slots may create waitlists. Call (208) 454-8555 before gathering documents to check current availability in your area."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "This is a bridge to permanent work, not a permanent job. Your parent must actively search for unsubsidized employment during the 6-12 month training period."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "How much will my parent earn during the training?",
+          "answer": "At least $7.25/hour (Idaho minimum wage) for an average 20 hours per week, which equals about $580/month. Some positions may pay higher if the local minimum wage is higher."
+        },
+        {
+          "question": "What happens after the 6-12 month training ends?",
+          "answer": "Your parent must transition to unsubsidized employment. SCSEP provides job placement assistance, but there's no guarantee of permanent work. The goal is to use the training period to build skills and find regular employment."
+        },
+        {
+          "question": "Will this training income affect my parent's other benefits?",
+          "answer": "SCSEP wages count as income and may affect benefits like SNAP or Medicaid. Check with those programs before starting to understand the impact."
+        },
+        {
+          "question": "What if my parent's income is just over the 125% poverty limit?",
+          "answer": "They won't qualify. The income limit is firm — about $19,000/year for a single person in 2025. This includes all household income, not just your parent's."
+        },
+        {
+          "question": "Can my parent choose what type of work they do?",
+          "answer": "SCSEP tries to match assignments with your parent's skills and interests, but options depend on available positions at local nonprofits and government agencies. They can't guarantee specific job types."
+        },
+        {
+          "question": "Is there a waitlist for this program?",
+          "answer": "Possibly. Funding limits the number of available slots, and demand varies by region. Call (208) 454-8555 to check current availability before applying."
+        }
+      ],
+      "phone": "(208) 454-8555",
+      "sourceUrl": "https://www.dol.gov/agencies/eta/seniors",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "idaho-long-term-care-ombudsman",
+      "name": "Long-Term Care Ombudsman Program (Title III-B & VII)",
+      "shortName": "LTC Ombudsman",
+      "tagline": "Free advocacy when your parent faces problems in their nursing home or assisted living facility.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "State Ombudsman: Idaho Commission on Aging.",
+            "type": "service-area"
+          },
+          {
+            "name": "Regional: Area Agencies on Aging (e.g., South Central Idaho at College of Southern Idaho).",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent lives in a nursing home, assisted living, or other long-term care facility in Idaho and faces problems with their care, safety, or rights, the Long-Term Care Ombudsman provides free advocacy. These trained advocates investigate complaints, mediate disputes with facility staff, and work to resolve issues like inadequate care, billing problems, or violations of your parent's rights.\n\nThe program serves all Idaho residents age 60+ in long-term care facilities, regardless of income. Ombudsmen visit facilities at least quarterly, attend resident council meetings, and can respond immediately to urgent safety concerns. Because this is confidential advocacy, your parent (or you, acting on their behalf) can file complaints without fear of retaliation from the facility.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Lives in Idaho LTC facility",
+          "No income limits",
+          "No asset limits"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be a resident of a long-term care facility in Idaho (nursing home, assisted living, skilled nursing, or residential care facility)"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your regional Area Agency on Aging — no forms required, and urgent issues get immediate response.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call your regional ombudsman",
+            "description": "Contact the State Ombudsman at Idaho Commission on Aging or your local Area Agency on Aging. No application needed."
+          },
+          {
+            "step": 2,
+            "title": "Describe the problem",
+            "description": "Provide details about the complaint, your parent's information, and the facility name. You can file complaints verbally."
+          },
+          {
+            "step": 3,
+            "title": "Ombudsman investigates",
+            "description": "The advocate will investigate the issue and work with facility staff to resolve problems while maintaining confidentiality."
+          }
+        ],
+        "processingTime": "Immediate response for urgent issues; investigation timelines vary but aimed at prompt resolution",
+        "waitlist": null,
+        "tip": "You don't need to prove the complaint is valid — ombudsmen investigate all concerns and mediate solutions.",
+        "urls": [
+          {
+            "label": "Idaho Commission on Aging Ombudsman Program",
+            "url": "https://aging.idaho.gov/ombudsman-program/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "Regional Contacts",
+          "offices": [
+            {
+              "name": "South Central Idaho (College of Southern Idaho)",
+              "type": "service-area",
+              "phone": "208-736-2122 or 1-800-574-8656",
+              "address": "Covers 11 skilled nursing and 39 assisted living facilities"
+            },
+            {
+              "name": "State Ombudsman",
+              "type": "service-area",
+              "phone": "Contact Idaho Commission on Aging",
+              "address": "Statewide coordination"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "This program only provides advocacy for facility residents — if your parent receives home care, ombudsman services are limited and not federally mandated."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can I file a complaint if my parent doesn't want to cause trouble with the facility?",
+          "answer": "Yes. Ombudsman services are confidential, and facilities cannot retaliate against residents for filing complaints. The ombudsman works to resolve issues diplomatically without creating conflict."
+        },
+        {
+          "question": "What types of problems can the ombudsman help with?",
+          "answer": "Issues with resident care quality, safety concerns, billing disputes, rehabilitation services, inappropriate use of restraints, violations of resident rights, and problems with facility policies. They cannot provide direct healthcare or financial aid."
+        },
+        {
+          "question": "How quickly will someone respond to my complaint?",
+          "answer": "Urgent safety issues get immediate response. Other complaints are investigated promptly, though specific timelines aren't guaranteed. The goal is quick resolution through mediation."
+        },
+        {
+          "question": "Do I need to provide documentation when I call?",
+          "answer": "No documents required. Just provide details about the problem, your parent's name, and the facility name. The ombudsman will gather additional information during their investigation."
+        },
+        {
+          "question": "Can I report problems online?",
+          "answer": "No — families must call during business hours. Online reporting is only available for mandated reporters like healthcare professionals, not for family members."
+        },
+        {
+          "question": "What if my parent lives in assisted living instead of a nursing home?",
+          "answer": "The program covers all long-term care facilities including assisted living, skilled nursing, residential care facilities, and nursing homes throughout Idaho."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://aging.idaho.gov/ombudsman-program/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "idaho-home-choice",
+      "name": "Idaho Home Choice",
+      "shortName": "Home Choice",
+      "tagline": "Help your parent transition from nursing facility back to home with continued Medicaid services.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false
+      },
+      "intro": "If your parent is currently in a nursing facility and wants to move back home or to another community setting, Idaho Home Choice can help make that transition possible while keeping their Medicaid long-term care services. This program is specifically designed for people who have been in a nursing facility or intermediate care facility for at least 45 consecutive days and are Medicaid-eligible.\n\nBecause Idaho Home Choice provides Home and Community-Based Services (HCBS), your parent can receive the same level of care support they need but in their preferred setting — whether that's their own home, an adult family home, or assisted living. The program ensures continuity of care during and after the transition, so they won't lose access to essential services.\n\nYour parent must qualify for either the Aged and Disabled Waiver or Developmental Disability Waiver and meet Nursing Facility Level of Care requirements (a clinical assessment confirming they need daily help with activities like bathing, dressing, or medication management).",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Currently in nursing facility 45+ days",
+          "Medicaid eligible at discharge",
+          "Idaho resident",
+          "Qualifies for Aged/Disabled or DD Waiver"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 3002
+          }
+        ],
+        "assetLimits": {
+          "individual": 2000,
+          "couple": null,
+          "countedAssets": [
+            "Bank accounts",
+            "Investments",
+            "Second vehicles"
+          ],
+          "exemptAssets": [
+            "Primary home (if spouse or disabled child lives there)",
+            "One vehicle",
+            "Personal belongings",
+            "Burial funds up to $1,500"
+          ],
+          "homeEquityCap": 752000
+        },
+        "functionalRequirement": "Must meet Nursing Facility Level of Care (clinical assessment showing need for daily help with bathing, dressing, medication management, or other essential activities)",
+        "otherRequirements": [
+          "Lived at least 45 consecutive days in nursing facility or ICF/ID",
+          "Moving to a qualified residence",
+          "Idaho resident"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "in-person",
+        "summary": "Program staff will contact eligible Medicaid participants directly while they're in the nursing facility — no separate application needed.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Wait for contact from program staff",
+            "description": "Idaho Home Choice staff will reach out to you directly if your parent is Medicaid-eligible and has been in a nursing facility for 45+ consecutive days."
+          },
+          {
+            "step": 2,
+            "title": "Confirm waiver qualification",
+            "description": "Staff will verify your parent qualifies for either the Aged and Disabled Waiver or Developmental Disability Waiver."
+          },
+          {
+            "step": 3,
+            "title": "Plan the transition",
+            "description": "Work with staff to identify a qualified residence and arrange for continued HCBS services in the community setting."
+          },
+          {
+            "step": 4,
+            "title": "Complete discharge planning",
+            "description": "Coordinate with facility and program staff to ensure seamless transition of care services."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Start conversations about discharge planning early — Medicaid eligibility must be confirmed at the time of discharge, not just admission.",
+        "urls": [
+          {
+            "label": "Idaho Home Choice Official Page",
+            "url": "https://healthandwelfare.idaho.gov/services-programs/medicaid-health/idaho-home-choice"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits for Medicaid Long-Term Care",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 3002,
+              "annualLimit": 36024
+            }
+          ],
+          "footnote": "2026 limits. Married couples have different rules — contact program for details."
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and savings",
+            "Stocks, bonds, and investments",
+            "Second vehicles",
+            "Real estate other than primary home"
+          ],
+          "excluded": [
+            "Primary home (if spouse, child under 21, or disabled child lives there)",
+            "One vehicle for transportation",
+            "Personal belongings and household goods",
+            "Burial funds up to $1,500 per person"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Have Ready",
+          "categories": [
+            {
+              "name": "Medicaid Verification",
+              "items": [
+                "Current Medicaid card",
+                "Proof of 45+ day nursing facility stay",
+                "Waiver qualification documentation"
+              ]
+            },
+            {
+              "name": "Residency Plans",
+              "items": [
+                "Information about intended qualified residence",
+                "Idaho residency documentation"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "This program is only for people currently in nursing facilities or ICF/ID facilities — it's not a way to get HCBS services for someone living in the community."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Your parent must be Medicaid-eligible at the time of discharge, not just when they entered the facility. Income and asset rules may have changed, so verify eligibility before planning the transition."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if they qualify for Idaho Home Choice?",
+          "answer": "Yes, if your parent's home has equity under $752,000 (2026 limit) and either a spouse, child under 21, or disabled child lives there. If none of these apply, the state may place a lien on the home to recover costs after your parent passes away."
+        },
+        {
+          "question": "What if my parent was private-pay in the nursing facility but now needs Medicaid?",
+          "answer": "They can still qualify if they meet Medicaid income and asset limits at the time of discharge and have been in the facility for 45+ consecutive days. The program staff will help verify Medicaid eligibility during discharge planning."
+        },
+        {
+          "question": "Can my parent move to assisted living through this program?",
+          "answer": "Yes, as long as the assisted living facility is considered a 'qualified residence' and your parent continues to meet waiver requirements. The program supports transitions to various community settings, not just private homes."
+        },
+        {
+          "question": "What happens if my parent doesn't qualify for the Aged and Disabled Waiver?",
+          "answer": "They must qualify for either the Aged and Disabled Waiver or Developmental Disability Waiver to use Idaho Home Choice. If they don't qualify for either waiver, they cannot participate in this transition program."
+        },
+        {
+          "question": "How long does my parent have to have been in the nursing facility?",
+          "answer": "Your parent must have lived at least 45 consecutive days in the nursing facility or intermediate care facility. Shorter stays, even if recent, don't qualify for this program."
+        },
+        {
+          "question": "What if my parent's income is just over $3,002 per month?",
+          "answer": "They may still qualify if they establish a Qualified Income Trust (Miller Trust) to reduce their countable income to the limit. This is a common strategy for people whose income slightly exceeds Medicaid limits."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://healthandwelfare.idaho.gov/services-programs/medicaid-health/idaho-home-choice",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    }
+  ],
+  "stateOverview": {
+    "intro": "Idaho offers 13 programs that can provide thousands of dollars in annual savings and support for your aging parent — from $100-300 monthly in grocery assistance to complete medical care coordination. Ten of these are financial benefits your parent may qualify for based on income or health needs, while three are free resources available to any Idaho family navigating senior care challenges. If your parent is 65+ with limited income (typically under $2,152/month), multiple programs can stack together — Medicaid coverage plus home care services plus utility assistance plus meal delivery. Start by checking the highest-impact programs first, then layer in additional support as needed.",
+    "startHere": [
+      {
+        "name": "Idaho Medicaid Aged, Blind, and Disabled (ABD) Program",
+        "programId": "idaho-medicaid-abd",
+        "why": "Covers all medical costs plus optional cash assistance — the foundation that makes other programs possible."
+      },
+      {
+        "name": "Medicare Savings Programs (QMB, SLMB, QI)",
+        "programId": "idaho-medicare-savings",
+        "why": "Can save your parent $4,800+ per year on Medicare premiums and out-of-pocket costs."
+      },
+      {
+        "name": "Idaho Aged and Disabled Waiver",
+        "programId": "idaho-aged-disabled-waiver",
+        "why": "Provides personal care, meal delivery, and home modifications to keep your parent safely at home."
+      },
+      {
+        "name": "Supplemental Nutrition Assistance Program (SNAP)",
+        "programId": "idaho-snap",
+        "why": "Idaho has expanded eligibility for seniors, providing $100-300 monthly for groceries."
+      }
+    ],
+    "byNeed": [
+      {
+        "need": "Complete medical and long-term care coverage",
+        "programs": [
+          "Idaho Medicaid Aged, Blind, and Disabled (ABD) Program",
+          "Program of All-Inclusive Care for the Elderly (PACE) - Idaho PACE"
+        ],
+        "description": "Full healthcare coverage for parents with limited income or those needing nursing home-level care."
+      },
+      {
+        "need": "Help staying safely at home",
+        "programs": [
+          "Idaho Aged and Disabled Waiver",
+          "Idaho Home Choice",
+          "Home-Delivered Meals (Title III-C-2)"
+        ],
+        "description": "Services like personal care, meal delivery, and transitions from nursing facilities back to home."
+      },
+      {
+        "need": "Lower monthly bills",
+        "programs": [
+          "Medicare Savings Programs (QMB, SLMB, QI)",
+          "Supplemental Nutrition Assistance Program (SNAP)",
+          "Idaho Energy Assistance (LIHEAP)",
+          "Weatherization Assistance Program (WAP)"
+        ],
+        "description": "Monthly assistance for Medicare costs, groceries, and heating bills plus free home energy improvements."
+      },
+      {
+        "need": "Support for you as the caregiver",
+        "programs": [
+          "National Family Caregiver Support Program (NFCSP, Title III-E)",
+          "Senior Health Insurance Benefits Advisors (SHIBA)"
+        ],
+        "description": "Free respite care, caregiver training, and expert Medicare guidance to reduce your stress."
+      },
+      {
+        "need": "Advocacy when problems arise",
+        "programs": [
+          "Long-Term Care Ombudsman Program (Title III-B & VII)",
+          "Senior Community Service Employment Program (SCSEP)"
+        ],
+        "description": "Free help resolving nursing home issues and paid work opportunities for active seniors 55+."
+      }
+    ],
+    "quickFacts": [
+      "Most Idaho benefit programs use the same income limit: $2,152/month for a single person in 2024",
+      "Idaho has expanded SNAP eligibility specifically for seniors on fixed incomes",
+      "Multiple programs can be combined — your parent may qualify for Medicaid, home care services, and utility assistance simultaneously",
+      "Free resources like SHIBA Medicare counseling and ombudsman advocacy are available regardless of income"
+    ],
+    "resourcesVsBenefits": "In Idaho, benefits like Medicaid coverage and SNAP food assistance require your parent to meet specific income or health criteria — typically income below $2,152/month for a single person. However, resources like Senior Health Insurance Benefits Advisors (SHIBA) Medicare counseling and Long-Term Care Ombudsman advocacy are completely free to any Idaho family, regardless of income or assets, because they're designed to help everyone navigate complex systems and resolve problems."
+  }
+}

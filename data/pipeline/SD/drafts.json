@@ -1,0 +1,807 @@
+{
+  "state": "SD",
+  "stateName": "South Dakota",
+  "draftedAt": "2026-04-09T09:42:24.260Z",
+  "total": 16,
+  "successful": 4,
+  "programs": [
+    {
+      "id": "south-dakota-medicaid-seniors-disabled",
+      "name": "South Dakota Medicaid for Seniors/Disabled",
+      "shortName": "SD Medicaid",
+      "tagline": "If your parent needs nursing home care or long-term support at home, South Dakota Medicaid can cover services Medicare doesn't pay for.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local Department of Social Services (DSS) offices statewide",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 65+ or disabled and needs nursing home care or daily help at home, South Dakota Medicaid covers long-term care services that Medicare doesn't pay for — including nursing home stays, home health aides, personal care attendants, and home modifications to help your parent live safely at home. This program fills the gap when your parent needs ongoing daily care but doesn't qualify for full Medicare coverage.\n\nTo qualify, your parent must meet both financial limits and clinical requirements. They need a medical assessment showing they require \"Nursing Home Level of Care\" (meaning they need daily help with bathing, dressing, medication management, or similar tasks). The income limits are higher than regular Medicaid because this program recognizes that long-term care is expensive — up to $2,901/month for a single person in 2026.\n\nIf your parent receives SSI, they automatically qualify financially, but still need the medical assessment for long-term care services. The program also protects spouses from impoverishment — if only one spouse needs care, the healthy spouse can keep up to $148,620 in assets and the family home.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+ or disabled",
+          "Income below $2,901/month (single)",
+          "Assets below $2,000 (single)",
+          "Needs daily care assistance",
+          "South Dakota resident"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2901
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 5802
+          }
+        ],
+        "assetLimits": {
+          "individual": 2000,
+          "couple": 4000,
+          "countedAssets": [
+            "Bank accounts",
+            "Stocks and bonds",
+            "Second vehicles",
+            "Income-producing property"
+          ],
+          "exemptAssets": [
+            "Primary home (up to $713,000 equity)",
+            "One vehicle",
+            "Personal belongings",
+            "Burial plots",
+            "Life insurance under $1,500 face value",
+            "Irrevocable burial trusts"
+          ],
+          "homeEquityCap": 713000
+        },
+        "functionalRequirement": "Must need Nursing Home Level of Care (clinical assessment showing you need daily help with bathing, dressing, medication management, or similar basic activities)",
+        "otherRequirements": [
+          "South Dakota resident",
+          "U.S. citizen or qualified immigrant",
+          "Valid Social Security Number"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online at dss.sd.gov/applyonline or call 1-855-256-6742 — processing takes 45 days for most applications.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Gather financial documents",
+            "description": "Collect 3 months of bank statements, Social Security award letters, and proof of any other income or assets"
+          },
+          {
+            "step": 2,
+            "title": "Submit Medicaid application",
+            "description": "Apply online at dss.sd.gov/applyonline, call 1-855-256-6742, or visit your local DSS office"
+          },
+          {
+            "step": 3,
+            "title": "Complete medical assessment",
+            "description": "DSS will arrange for a clinical evaluation to determine if your parent meets Nursing Home Level of Care requirements"
+          },
+          {
+            "step": 4,
+            "title": "Interview with caseworker",
+            "description": "Discuss your parent's care needs and living situation with DSS staff to determine appropriate services"
+          }
+        ],
+        "processingTime": "45 days for most applications; 90 days if disability determination required",
+        "waitlist": null,
+        "tip": "If your parent receives SSI, mention this upfront — they automatically meet the financial requirements and can skip some income verification steps.",
+        "urls": [
+          {
+            "label": "Apply Online",
+            "url": "http://dss.sd.gov/applyonline"
+          },
+          {
+            "label": "Medicaid Eligibility Info",
+            "url": "https://dss.sd.gov/economicassistance/medical_eligibility.aspx"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits for Long-Term Care Medicaid",
+          "rows": [
+            {
+              "category": "Single person",
+              "monthlyLimit": "$2,901",
+              "yearlyLimit": "$34,812"
+            },
+            {
+              "category": "Married couple (both applying)",
+              "monthlyLimit": "$5,802",
+              "yearlyLimit": "$69,624"
+            },
+            {
+              "category": "Married couple (one applying)",
+              "monthlyLimit": "$2,901 for applicant",
+              "yearlyLimit": "Spousal protections apply"
+            }
+          ],
+          "footnote": "2026 limits. Community spouse can keep additional income and assets under spousal impoverishment rules."
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and savings",
+            "Stocks, bonds, and investments",
+            "Second vehicles",
+            "Income-producing property",
+            "Cash value of life insurance over $1,500"
+          ],
+          "excluded": [
+            "Primary home (up to $713,000 equity if intent to return)",
+            "One vehicle for transportation",
+            "Personal belongings and household items",
+            "Burial plots and irrevocable burial trusts",
+            "Life insurance with face value under $1,500"
+          ]
+        },
+        {
+          "type": "tier-comparison",
+          "heading": "Medicaid Coverage Tiers",
+          "tiers": [
+            {
+              "name": "Regular Medicaid",
+              "description": "Basic medical coverage",
+              "incomeLimit": "Up to 138% FPL (~$2,163/month)",
+              "coverage": "Doctor visits, hospital stays, prescriptions"
+            },
+            {
+              "name": "Long-Term Care Medicaid",
+              "description": "Comprehensive long-term support",
+              "incomeLimit": "Up to $2,901/month",
+              "coverage": "Nursing home care, home health aides, personal care, home modifications, plus all regular medical"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Birth certificate",
+                "Social Security card",
+                "Photo ID",
+                "Proof of South Dakota residency"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "3 months of bank statements",
+                "Social Security award letter",
+                "Pay stubs or pension statements",
+                "Property deeds",
+                "Life insurance policies"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Medical records showing need for daily care",
+                "Disability determination (if under 65)",
+                "Current medication list",
+                "Recent hospital or nursing home records"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If your parent's income is slightly over the limit, they may still qualify through a \"spend-down\" process — paying their excess income toward medical bills until they meet the monthly limit."
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "You must present your Medicaid card for services or providers may deny coverage. Keep the card current and notify DSS of any address changes immediately."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house if she qualifies for Medicaid long-term care?",
+          "answer": "Yes, if your mom intends to return home or if a spouse/disabled child lives there. The home is exempt up to $713,000 in equity value. If she permanently moves to a nursing home with no intent to return, the state may place a lien on the home to recover costs after death."
+        },
+        {
+          "question": "What if Dad's income is just over the $2,901 limit?",
+          "answer": "He may still qualify through \"spend-down\" — paying his excess monthly income toward medical bills until he reaches the limit. For example, if his income is $3,200, he'd pay $299 toward medical costs each month to qualify."
+        },
+        {
+          "question": "My parents are married but only Mom needs nursing home care. Will Dad lose everything?",
+          "answer": "No. Spousal impoverishment rules protect the healthy spouse. Dad can keep up to $148,620 in assets (2026 limit) plus the home and one car. He can also keep enough income to live on — these protections prevent the healthy spouse from becoming impoverished."
+        },
+        {
+          "question": "Does this cover care at home or just nursing homes?",
+          "answer": "Both. South Dakota Medicaid covers nursing home care, but also home-based services like personal care attendants, home health aides, and home modifications to help your parent live safely at home. The goal is to provide care in the least restrictive setting."
+        },
+        {
+          "question": "My parent receives SSI. Do they automatically qualify?",
+          "answer": "They automatically meet the financial requirements, but still need a medical assessment to qualify for long-term care services. SSI recipients get regular Medicaid automatically, but need to prove they require \"Nursing Home Level of Care\" for enhanced services."
+        },
+        {
+          "question": "How long does the medical assessment take?",
+          "answer": "The overall application process takes 45 days for most cases, 90 days if disability determination is needed. The medical assessment is part of this timeline — DSS will arrange for a clinical evaluation to determine if your parent needs daily care assistance."
+        }
+      ],
+      "phone": "1-855-256-6742",
+      "sourceUrl": "https://dss.sd.gov/economicassistance/medical_eligibility.aspx",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "south-dakota-hope-waiver",
+      "name": "HOPE Waiver (Home & Community-Based Options and Person Centered Excellence)",
+      "shortName": "HOPE Waiver",
+      "tagline": "Get in-home care, respite services, and meals for your parent instead of nursing home placement — if they qualify for nursing facility level care.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false
+      },
+      "intro": "If your parent needs daily help with bathing, dressing, or medication management but wants to stay home, South Dakota's HOPE Waiver can provide in-home care services, respite care, adult day programs, and meals. Because this waiver covers people who qualify for nursing facility level care, your parent must need significant daily assistance to be eligible.\n\nThe program serves people 65+ or adults with qualifying Social Security disabilities. Income limit: $2,901/month for single applicants (2025). Your parent can have up to $2,000 in countable assets. The program is capped at 1,834 people statewide, so availability varies.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+ or disabled",
+          "Income below $2,901/month",
+          "Assets under $2,000",
+          "Needs nursing facility level care",
+          "South Dakota resident"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2901
+          }
+        ],
+        "assetLimits": {
+          "individual": 2000,
+          "couple": 2000,
+          "countedAssets": [
+            "Cash in checking/savings accounts",
+            "Accessible financial resources"
+          ],
+          "exemptAssets": [
+            "Primary home (if living in it or intend to return)",
+            "Home where spouse or disabled child lives"
+          ],
+          "homeEquityCap": 730000
+        },
+        "functionalRequirement": "Must need nursing facility level care (daily help with bathing, dressing, medication management, or similar personal care needs)",
+        "otherRequirements": [
+          "South Dakota resident",
+          "Cannot currently live in nursing facility or hospital",
+          "Must receive at least one waiver service monthly"
+        ],
+        "povertyLevelReference": "300% Federal Benefit Rate"
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call Dakota at Home at (833) 663-9673 — they handle the entire application process including assessments.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call Dakota at Home",
+            "description": "Call (833) 663-9673 to start your application and schedule initial assessment."
+          },
+          {
+            "step": 2,
+            "title": "Complete assessment",
+            "description": "LTSS Case Management Specialist evaluates your parent's functional needs using the Home Care Assessment tool."
+          },
+          {
+            "step": 3,
+            "title": "Financial eligibility review",
+            "description": "SD DSS Long Term Care Benefits Specialist reviews income and assets against program limits."
+          },
+          {
+            "step": 4,
+            "title": "Care plan development",
+            "description": "If approved, team creates Individual Support Plan based on your parent's specific needs."
+          }
+        ],
+        "processingTime": "Not specified — ask when you call",
+        "waitlist": "Program capped at 1,834 people statewide — verify current availability when applying",
+        "tip": "Have your parent's Social Security income, bank statements, and medical information ready when you call.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "2025 Income Limits",
+          "rows": [
+            {
+              "householdSize": "Single applicant",
+              "monthlyLimit": "$2,901",
+              "yearlyLimit": "$34,812"
+            },
+            {
+              "householdSize": "Married (each spouse evaluated separately)",
+              "monthlyLimit": "$2,901 per person",
+              "yearlyLimit": "$34,812 per person"
+            }
+          ],
+          "footnote": "2025 limits based on 300% Federal Benefit Rate. Limits adjust annually in January."
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts Toward $2,000 Limit",
+          "included": [
+            "Cash in checking and savings accounts",
+            "Stocks, bonds, mutual funds",
+            "Additional properties or land",
+            "Vehicles beyond one car"
+          ],
+          "excluded": [
+            "Primary home (if your parent lives there or intends to return)",
+            "Home where spouse, minor child, or disabled child lives",
+            "One vehicle",
+            "Personal belongings and household items",
+            "Burial funds up to certain limits"
+          ]
+        },
+        {
+          "type": "tier-comparison",
+          "heading": "Available Services Through HOPE Waiver",
+          "tiers": [
+            {
+              "name": "In-Home Services",
+              "description": "Personal care assistance, homemaker services, medication management help",
+              "incomeLimit": "Same eligibility for all services",
+              "coverage": "Based on individual assessment and care plan"
+            },
+            {
+              "name": "Respite & Caregiver Support",
+              "description": "Temporary care relief for family caregivers, caregiver training and support",
+              "incomeLimit": "Same eligibility for all services",
+              "coverage": "Hours determined by support plan"
+            },
+            {
+              "name": "Community Services",
+              "description": "Adult day services, nutrition/meals, transportation assistance, assisted living",
+              "incomeLimit": "Same eligibility for all services",
+              "coverage": "Service mix tailored to individual needs"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Gather Before Calling",
+          "categories": [
+            {
+              "name": "Financial Information",
+              "items": [
+                "Social Security award letters",
+                "Bank statements for all accounts",
+                "Pension or retirement income documentation",
+                "Property deeds and mortgage information"
+              ]
+            },
+            {
+              "name": "Medical Information",
+              "items": [
+                "List of current medications",
+                "Recent hospital or nursing home stays",
+                "Physician contact information",
+                "Documentation of daily care needs"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "The HOPE Waiver is capped at 1,834 people statewide. Even if your parent qualifies, they may be placed on a waitlist. Apply as early as possible if your parent's care needs are increasing."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Your parent cannot be living in a nursing facility when they apply — this program is specifically designed to help people avoid nursing home placement by providing services at home or in community settings."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if they qualify for the HOPE Waiver?",
+          "answer": "Yes, your parent's home is exempt from the $2,000 asset limit if they live in it or intend to return. However, home equity cannot exceed $730,000 (2025 limit). If your parent's home equity is higher, they may not qualify."
+        },
+        {
+          "question": "What if my parent's income is just over $2,901 per month?",
+          "answer": "They will not qualify. The income limit is strictly enforced at $2,901/month for 2025. However, if your parent is married, only the applicant spouse's income counts toward the limit — the other spouse's income is not included."
+        },
+        {
+          "question": "How do they determine if my parent needs 'nursing facility level care'?",
+          "answer": "A specialist will assess your parent using the Home Care Assessment tool, evaluating their ability to handle daily activities like bathing, dressing, medication management, and mobility. They must need significant daily assistance to qualify."
+        },
+        {
+          "question": "What happens if my parent gets approved but then doesn't use any services for a month?",
+          "answer": "They will lose eligibility. Your parent must receive at least one waiver service every month to stay in the program. Passive enrollment without using services is not allowed."
+        },
+        {
+          "question": "Can my parent choose which services they receive through the waiver?",
+          "answer": "Services are determined through an Individual Support Plan based on your parent's assessed needs. While the plan is personalized, services must match their level of care requirements as determined by the assessment."
+        },
+        {
+          "question": "What if there's a waitlist — how long might we wait?",
+          "answer": "Wait times are not specified because they depend on when current participants leave the program. The program is capped at 1,834 people statewide. Contact Dakota at Home at (833) 663-9673 to ask about current availability in your area."
+        }
+      ],
+      "phone": "(833) 663-9673",
+      "sourceUrl": "https://dss.sd.gov",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "south-dakota-pace-elderly-care",
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "shortName": "PACE",
+      "tagline": "All-in-one medical care and support services that let your parent stay home instead of moving to a nursing home.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false
+      },
+      "intro": "PACE is not currently available in South Dakota. This comprehensive program coordinates all medical care, daily support, and social services through one team — letting people who qualify for nursing home care stay in their own homes instead. Because PACE covers everything from doctor visits to meals to transportation under one program, your parent wouldn't need to coordinate between separate providers or worry about coverage gaps. The program serves people 55+ who need nursing home level of care (daily help with bathing, dressing, or medication management) but can live safely at home with support. While South Dakota has conducted feasibility studies for PACE, no providers currently operate in the state.",
+      "savingsRange": "",
+      "savingsSource": "Free service coordination",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Need nursing home level of care",
+          "Live in PACE service area",
+          "Not available in South Dakota"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must be certified by the state as needing nursing home level of care (a clinical assessment of whether your parent needs daily help with bathing, dressing, or medication management)",
+        "otherRequirements": [
+          "Live in a PACE service area near a PACE center",
+          "Able to live safely in the community with PACE support"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "PACE is not currently available in South Dakota — no application process exists in the state.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Check availability",
+            "description": "PACE has no active providers in South Dakota. You would need to move to a state with PACE centers."
+          },
+          {
+            "step": 2,
+            "title": "Contact other states",
+            "description": "If considering relocation, find PACE providers at cms.gov/medicare/medicaid-coordination/about/pace"
+          },
+          {
+            "step": 3,
+            "title": "Explore alternatives",
+            "description": "Contact South Dakota Department of Human Services at 605-773-3165 for similar home and community-based services available in the state"
+          }
+        ],
+        "processingTime": "Not applicable — program not available in South Dakota",
+        "waitlist": null,
+        "tip": "Focus on South Dakota's home and community-based waiver programs, which provide similar support to help your parent stay home.",
+        "urls": [
+          {
+            "label": "National PACE information",
+            "url": "https://www.cms.gov/medicare/medicaid-coordination/about/pace"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "PACE is not available in South Dakota. The state has conducted feasibility studies but no PACE centers currently operate here. Look into South Dakota's home and community-based waiver programs for similar support services."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Why isn't PACE available in South Dakota?",
+          "answer": "PACE requires approved providers and designated service areas. South Dakota has conducted feasibility studies for PACE but no organizations have established operational programs yet."
+        },
+        {
+          "question": "What similar programs does South Dakota offer?",
+          "answer": "South Dakota offers home and community-based waiver programs through Medicaid that provide similar support services to help people avoid nursing home placement. Contact the Department of Human Services for details."
+        },
+        {
+          "question": "Could we move to a state with PACE?",
+          "answer": "Yes, but your parent would need to live in the specific PACE service area and near a PACE center. They'd also need to re-establish residency and go through that state's assessment process."
+        },
+        {
+          "question": "If PACE comes to South Dakota, how would it work?",
+          "answer": "PACE would become your parent's sole source of Medicare and Medicaid services if they're dually eligible. They could disenroll anytime, but while enrolled, all care would go through the PACE team."
+        },
+        {
+          "question": "Who typically uses PACE?",
+          "answer": "Most PACE participants are dually eligible for Medicare and Medicaid and need nursing home level of care. About 95% of participants live in the community rather than nursing homes."
+        }
+      ],
+      "phone": "605-773-3165",
+      "sourceUrl": "https://dhs.sd.gov",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "south-dakota-medicare-savings-programs",
+      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "shortName": "Medicare Savings Programs",
+      "tagline": "If your parent's Medicare premiums and medical bills are overwhelming, these programs can pay $2,200+ annually in Medicare costs.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Statewide DSS offices; local SHIINE counselors",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent struggles to pay Medicare premiums, deductibles, or copays, South Dakota's Medicare Savings Programs can help. These programs pay your parent's Medicare Part B premium ($185/month in 2026) and may cover all Medicare deductibles and copays depending on which program they qualify for.\n\nThere are three programs with different income limits: QMB provides the most help (covering all Medicare costs), while SLMB and QI cover premiums only. Because your parent automatically qualifies for Extra Help with prescription drug costs once enrolled, they'll pay no more than $12.65 per medication.\n\nIncome limits range from $1,350/month for individuals (QMB) up to approximately $1,715/month (QI). Your parent must already have Medicare Part A or B to qualify.",
+      "savingsRange": "$2,220 – $4,500/year in 2026",
+      "savingsSource": "Medicare Part B premiums ($185/month = $2,220/year) plus potential deductibles and copays",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Has Medicare Part A or B",
+          "Income below $1,715/month (varies by program)",
+          "Assets under $9,950 (individual) or $14,910 (couple)",
+          "South Dakota resident"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1350
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 1824
+          }
+        ],
+        "assetLimits": {
+          "individual": 9950,
+          "couple": 14910,
+          "countedAssets": [
+            "Checking and savings accounts",
+            "Certificates of deposit"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "One car",
+            "Burial plots",
+            "Irrevocable burial trusts"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be entitled to or receiving Medicare Part A and/or B",
+          "U.S. citizen or qualified immigrant",
+          "Must reside in South Dakota"
+        ],
+        "povertyLevelReference": "100-135% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call DSS at 1-877-999-5612 to start your application — processing typically takes 45 days.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Gather required documents",
+            "description": "Collect Medicare card, Social Security number, bank statements, and proof of income from the past month."
+          },
+          {
+            "step": 2,
+            "title": "Contact DSS or download application",
+            "description": "Call 1-877-999-5612 for phone application or download the Medicare Savings Programs application from the DSS website."
+          },
+          {
+            "step": 3,
+            "title": "Submit completed application",
+            "description": "Mail or deliver application with documents to your local DSS office, or complete over the phone."
+          },
+          {
+            "step": 4,
+            "title": "Wait for determination",
+            "description": "DSS will review your application and notify you of the decision. If approved, benefits typically start the month after approval."
+          }
+        ],
+        "processingTime": "Approximately 45 days",
+        "waitlist": "QI program has first-come, first-served enrollment with possible waitlist if funding is exhausted",
+        "tip": "If your parent's income seems too high, apply anyway — South Dakota uses income disregards (like a $20 monthly deduction) that might make them eligible.",
+        "urls": [
+          {
+            "label": "Download Application Form",
+            "url": "https://dss.sd.gov/formsandpubs/docs/MEDELGBLTY/270Medicaresavingsapplication.pdf"
+          },
+          {
+            "label": "DSS Medicare Savings Info",
+            "url": "https://dss.sd.gov/medicaid/Eligibility/default.aspx"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "tier-comparison",
+          "heading": "Three Program Levels",
+          "tiers": [
+            {
+              "name": "QMB (Qualified Medicare Beneficiary)",
+              "description": "Most comprehensive coverage",
+              "incomeLimit": "$1,350/month individual, $1,824/month couple",
+              "coverage": "Pays Medicare Part A and B premiums, deductibles, coinsurance, and copays"
+            },
+            {
+              "name": "SLMB (Specified Low-Income Medicare Beneficiary)",
+              "description": "Premium assistance only",
+              "incomeLimit": "Approximately $1,526/month individual (higher than QMB)",
+              "coverage": "Pays Medicare Part B premiums only ($185/month in 2026)"
+            },
+            {
+              "name": "QI (Qualifying Individual)",
+              "description": "Premium assistance with annual reapplication",
+              "incomeLimit": "Up to $1,715/month individual, $2,400/month couple",
+              "coverage": "Pays Medicare Part B premiums only, requires yearly reapplication"
+            }
+          ]
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Checking and savings account balances",
+            "Certificates of deposit",
+            "Cash on hand"
+          ],
+          "excluded": [
+            "Your parent's primary home (any value)",
+            "One car (any value)",
+            "Burial plots for immediate family",
+            "Irrevocable burial trusts",
+            "Personal belongings and household items"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Medicare",
+              "items": [
+                "Social Security number or immigrant documentation",
+                "Medicare card or proof of Medicare entitlement",
+                "ID and proof of South Dakota residency"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Bank statements from all accounts",
+                "Proof of income (Social Security statements, paystubs, pension statements)",
+                "Documentation of any other resources or investments"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "QI program has limited federal funding and uses first-come, first-served enrollment. If you think your parent qualifies, apply early in the year. QI also requires annual reapplication — mark your calendar."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Income and asset limits change every year. Even if your parent didn't qualify last year, they might qualify now. Call DSS at 1-877-999-5612 to check current limits before assuming they're ineligible."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent's income is just over the limit?",
+          "answer": "Apply anyway. South Dakota uses income 'disregards' — they subtract $20 from monthly income before checking eligibility. Other disregards may apply depending on your parent's situation. The worst that can happen is they say no."
+        },
+        {
+          "question": "Can my parent keep their house if they qualify?",
+          "answer": "Yes. Your parent's primary home doesn't count toward the asset limit, regardless of its value. They can also keep one car of any value, burial plots, and personal belongings."
+        },
+        {
+          "question": "Will this affect my parent's other benefits?",
+          "answer": "No, Medicare Savings Programs won't reduce Social Security, Medicare, or other benefits. In fact, your parent automatically qualifies for Extra Help with prescription drug costs, which can save hundreds more per year."
+        },
+        {
+          "question": "What's the difference between the three programs?",
+          "answer": "QMB covers all Medicare costs but has the lowest income limit ($1,350/month). SLMB and QI only cover the $185/month Part B premium but allow higher incomes. QI requires reapplying every year and has limited funding."
+        },
+        {
+          "question": "How long does it take to get approved?",
+          "answer": "Typically 45 days from when DSS receives your complete application. If approved, benefits usually start the month after approval. For QI, apply early in the year since funding can run out."
+        },
+        {
+          "question": "What if my parent lives in assisted living or a nursing home?",
+          "answer": "They can still qualify for Medicare Savings Programs. The income and asset limits are the same regardless of where they live. These programs help with Medicare costs, which are separate from long-term care costs."
+        }
+      ],
+      "phone": "1-877-999-5612",
+      "sourceUrl": "https://dss.sd.gov/medicaid/Eligibility/default.aspx",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "name": "SNAP/Food Assistance (Senior Box Program/CSFP)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Low Income Energy Assistance Program (LIEAP)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Weatherization Assistance",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Senior Health Information and Insurance Education (SHIINE)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Meals on Wheels",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Respite Care/Caregiver Support (HOPE Waiver & Family Support 360)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Legal Aid for Seniors",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Long-Term Care Ombudsman",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Senior Companions of South Dakota",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "60's Plus Dining",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Senior Box Program (CSFP)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    }
+  ],
+  "stateOverview": null
+}

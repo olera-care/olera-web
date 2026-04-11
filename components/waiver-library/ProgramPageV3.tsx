@@ -580,22 +580,22 @@ function QuickEligibilityCheck({ elig }: { elig: StructuredEligibility }) {
   };
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-5 md:p-6">
-      <p className="font-semibold text-gray-900 mb-1">Quick eligibility check</p>
-      <p className="text-sm text-gray-500 mb-4">Enter basic info for a rough estimate — not a guarantee.</p>
-      <div className="flex flex-col sm:flex-row gap-3 mb-4">
+    <div className="rounded-2xl bg-vanilla-200/60 border border-vanilla-300/50 p-6 md:p-8">
+      <p className="text-xl font-bold text-gray-900 mb-5">Check if you qualify</p>
+      <div className="flex flex-col sm:flex-row gap-3 mb-3">
         <div className="flex-1">
-          <label htmlFor="elig-age" className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1 block">Age</label>
-          <input id="elig-age" type="number" value={age} onChange={(e) => { setAge(e.target.value); setResult(null); }} placeholder="65" className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400" />
+          <label htmlFor="elig-age" className="text-sm text-gray-600 mb-1.5 block">Your age</label>
+          <input id="elig-age" type="number" value={age} onChange={(e) => { setAge(e.target.value); setResult(null); }} placeholder="65" className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm focus:border-primary-300 focus:ring-1 focus:ring-primary-200 outline-none transition-colors" />
         </div>
         <div className="flex-1">
-          <label htmlFor="elig-income" className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1 block">Monthly income</label>
-          <input id="elig-income" type="text" value={income} onChange={(e) => { setIncome(e.target.value); setResult(null); }} placeholder="$2,000" className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400" />
+          <label htmlFor="elig-income" className="text-sm text-gray-600 mb-1.5 block">Monthly income</label>
+          <input id="elig-income" type="text" value={income} onChange={(e) => { setIncome(e.target.value); setResult(null); }} placeholder="$2,000" className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm focus:border-primary-300 focus:ring-1 focus:ring-primary-200 outline-none transition-colors" />
         </div>
         <div className="flex items-end">
-          <button onClick={handleCheck} disabled={!age || !income} className="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors whitespace-nowrap">Check</button>
+          <button onClick={handleCheck} disabled={!age || !income} className="px-6 py-2.5 rounded-lg bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors whitespace-nowrap">Check</button>
         </div>
       </div>
+      <p className="text-xs text-gray-400">Rough estimate — not a guarantee.</p>
       {result === "likely" && (
         <div className="flex items-start gap-2.5 p-3 rounded-lg bg-emerald-50 border border-emerald-200/50">
           <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" weight="fill" />

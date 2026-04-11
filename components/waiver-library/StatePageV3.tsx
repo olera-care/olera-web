@@ -208,10 +208,9 @@ function InlineBenefitsCheck({ programs, stateId, stateName }: { programs: Waive
 
   return (
     <div className="rounded-2xl bg-vanilla-200/60 border border-vanilla-300/50 p-6 md:p-8">
-      <p className="text-base font-bold text-gray-900 mb-1">Quick eligibility check</p>
-      <p className="text-sm text-gray-500 mb-5">See which {stateName} programs may apply to your family.</p>
+      <p className="text-xl font-bold text-gray-900 mb-5">See what you qualify for</p>
 
-      <div className="flex flex-col sm:flex-row gap-3 mb-4">
+      <div className="flex flex-col sm:flex-row gap-3 mb-3">
         {/* Age */}
         <div className="flex-1">
           <label className="text-sm text-gray-600 mb-1.5 block">Loved one&apos;s age</label>
@@ -220,7 +219,7 @@ function InlineBenefitsCheck({ programs, stateId, stateName }: { programs: Waive
             placeholder="e.g. 72"
             value={age}
             onChange={(e) => { setAge(e.target.value); setSubmitted(false); }}
-            className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white focus:border-primary-300 focus:ring-1 focus:ring-primary-200 outline-none transition-colors"
+            className="w-full px-4 py-2.5 text-sm rounded-lg border border-gray-200 bg-white focus:border-primary-300 focus:ring-1 focus:ring-primary-200 outline-none transition-colors"
           />
         </div>
 
@@ -230,7 +229,7 @@ function InlineBenefitsCheck({ programs, stateId, stateName }: { programs: Waive
           <select
             value={medicaid}
             onChange={(e) => { setMedicaid(e.target.value as typeof medicaid); setSubmitted(false); }}
-            className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white focus:border-primary-300 focus:ring-1 focus:ring-primary-200 outline-none transition-colors"
+            className="w-full px-4 py-2.5 text-sm rounded-lg border border-gray-200 bg-white focus:border-primary-300 focus:ring-1 focus:ring-primary-200 outline-none transition-colors"
           >
             <option value="">Select...</option>
             <option value="yes">Yes</option>
@@ -244,7 +243,7 @@ function InlineBenefitsCheck({ programs, stateId, stateName }: { programs: Waive
           <button
             onClick={() => setSubmitted(true)}
             disabled={!hasInput}
-            className={`px-5 py-2 text-sm font-medium rounded-lg transition-colors ${
+            className={`px-6 py-2.5 text-sm font-semibold rounded-lg transition-colors ${
               hasInput
                 ? "bg-gray-900 text-white hover:bg-gray-800"
                 : "bg-gray-100 text-gray-400 cursor-not-allowed"
@@ -254,6 +253,7 @@ function InlineBenefitsCheck({ programs, stateId, stateName }: { programs: Waive
           </button>
         </div>
       </div>
+      <p className="text-xs text-gray-400">Rough estimate based on basic eligibility criteria.</p>
 
       {/* Results */}
       {submitted && hasInput && (

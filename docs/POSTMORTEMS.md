@@ -324,3 +324,41 @@ Florida test: 16/16 programs drafted (was 3/16). Takes ~8 min/state but 100% suc
 **Lesson**: When a batch job fails at a consistent rate across multiple runs, the failure is deterministic — something about the approach is fundamentally wrong. Don't re-run; investigate. And always read the actual error messages before theorizing about the cause.
 
 ---
+
+### 2026-04-11: Texas routes bypass V3 — parallel route shadows
+
+**Symptom**: Texas state page and program pages rendered V1/V2 layouts on Vercel despite V3 being built and working for all other states. User saw the old dark-header program list page instead of the StatePageV3 discovery platform, and the old tabbed/V2 program page instead of ProgramPageV3.
+
+**Root Cause**: Texas has a **parallel route structure** that shadows the generic routes:
+
+| Generic route (V3-enabled) | Texas-specific route (V1 hardcoded) | Redirect |
+|---|---|---|
+| `/senior-benefits/[state]/page.tsx` → `StatePageV3` | `/texas/benefits/page.tsx` → hardcoded V1 | `/senior-benefits/texas` → `/texas/benefits` (301) |
+| `/senior-benefits/[state]/[benefit]/page.tsx` → `ProgramPageV3` | `/texas/benefits/[slug]/page.tsx` → hardcoded V2 | `/senior-benefits/texas/:benefit` → `/texas/benefits/:slug` (301) |
+
+The Texas routes were created for SEO-friendly URLs (`/texas/benefits/star-plus` instead of `/texas/star-plus-home-and-community-based-services`) but were never updated when V3 was built. The 301 redirects in `next.config.ts` ensured that all Texas traffic went to the V1 routes, completely bypassing the V3 code.
+
+Two compounding issues on program pages:
+1. The Texas route used `getProgramById` (raw) instead of `getEnrichedProgram` (merge layer) — so pipeline data never merged in
+2. The merge layer's `findDraftMatch` couldn't match base IDs (`star-plus-home-and-community-based-services`) to pipeline IDs (`tx-star-plus-medicaid-hcbs`) — the fuzzy matching only did exact normalized comparison, missing the `texas-` vs `tx-` prefix difference
+
+**How It Was Fixed**:
+1. `lib/program-data.ts`: Added state-prefix-stripped matching and name-based fallback matching to `findDraftMatch`
+2. `app/texas/benefits/[slug]/page.tsx`: Switched from `getProgramById` to `getEnrichedProgram`, added `ProgramPageV3` branch
+3. `app/texas/benefits/page.tsx`: Added `pipelineDrafts` + `StatePageV3` rendering with social proof queries, matching the generic route exactly
+
+**Time to Resolution**: ~25 minutes for program pages (found via user screenshot showing V2), ~10 minutes for state page (same pattern, caught on second report). Total: ~35 minutes across both fixes.
+
+**Why I didn't catch this earlier**:
+- I built V3 by modifying the generic `/senior-benefits/` routes, never checking if parallel routes existed
+- The Texas routes were created in an earlier session by a different context — I didn't have awareness they existed
+- My dev server testing used `/senior-benefits/texas/...` URLs which correctly render V3, but the production redirects send traffic to `/texas/benefits/...`
+- The self-review bug sweep checked component rendering and type safety, but not **route-level rendering paths**
+
+**Prevention**:
+
+1. **CLAUDE.md addition**: When upgrading a page component to a new version (V2→V3), grep for ALL routes that render that page type — not just the one you're editing. Search: `grep -r "ComponentName\|page-type-keyword" app/`
+2. **Route audit checklist**: Before declaring a page upgrade "done," check `next.config.ts` redirects for any paths that bypass the upgraded route
+3. **Memory saved**: Texas has parallel routes at `/texas/benefits/` that shadow `/senior-benefits/texas/` — any future benefits page changes must update BOTH
+
+**Lesson**: When a Next.js project has 301 redirects, the redirect destination is the REAL route that users hit. Upgrading the source route without upgrading the destination means nobody sees your changes. Always follow the redirect chain to find where traffic actually lands.

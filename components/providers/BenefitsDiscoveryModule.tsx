@@ -48,15 +48,11 @@ function shortSavings(savingsRange?: string): string | null {
 }
 
 /** Extract a short plain-language description from the tagline.
- *  Takes the first clause (before period or non-numeric comma), capped at ~55 chars. */
+ *  Takes the first clause (before first period or non-numeric comma).
+ *  CSS truncate handles overflow — no JS character limit needed. */
 function plainDescription(tagline?: string): string | null {
   if (!tagline) return null;
-  const firstClause = tagline.split(/\.\s|,\s(?![0-9])/)[0];
-  if (firstClause.length <= 55) return firstClause;
-  // Cut at last word boundary within 55 chars
-  const trimmed = firstClause.slice(0, 55);
-  const lastSpace = trimmed.lastIndexOf(" ");
-  return lastSpace > 20 ? trimmed.slice(0, lastSpace) : trimmed;
+  return tagline.split(/\.\s|,\s(?![0-9])/)[0];
 }
 
 export default function BenefitsDiscoveryModule({

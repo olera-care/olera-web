@@ -84,12 +84,11 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 - All 50 states + DC explored and researched
 
 ### What's next
-1. **Program page v3 iteration** — apply same design energy as state page. Component vocabulary built (tabs, checklist, step journey). Needs: deeper interactive elements (calculators, maps), Chantel-depth content, Phosphor icons where appropriate, category pills, typography pass for readability.
-2. **Admin review guide** — embed quality-check directions directly in the admin dashboard (tooltip or inline). State page review: check intro accuracy, "Where to start" picks, numbers. Program page review: spot-check 1 eligibility number against .gov source, verify phone/URL works, check FAQ relevance. The key: spot-check 2-3 facts per page, not verify everything. Make reviewing a 2-minute task, not an overwhelming audit.
+1. **Program page polish iteration** — TJ reviewing the single-scroll redesign on Vercel. May need further adjustments to spacing, section ordering, or visual treatments based on feedback.
+2. **Admin review guide** — embed quality-check directions directly in the admin dashboard (tooltip or inline).
 3. **Re-run v3 pipeline on all states** — SD + TX validated, full batch for v3-quality content
 4. Apply approved MI drafts
 5. Review draft quality with Chantel
-6. **Phosphor Icons already handled** — installed + MCP configured. Icons being used on archetype cards. Keep organic blob/underline SVGs as brand elements.
 
 ### Other active work (different branches)
 - Homepage de-jank + mega menu (`gifted-rosalind`) — ready for QA
@@ -111,6 +110,10 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 ## Decisions Made
 
 | Date | Decision | Rationale |
+| 2026-04-11 | Program page: tabs → single scroll | Tabs are an app pattern, not a content pattern. Airbnb listings, Apple product pages, Claude.ai — all single scrolls with visual rhythm. Tabs hide content from crawlers (SEO), force users to hunt across views, and create a "dashboard" feel instead of a "guide" feel. Single scroll with sticky section nav gives wayfinding without hiding content. |
+| 2026-04-11 | Eligibility check as the hook, phone CTA as the action | Caregivers arrive in research mode ("does my parent qualify?"). The eligibility check answers that in 10 seconds. THEN the phone CTA hits — they have a reason to call. Hook → motivation → action, not cold CTA. |
+| 2026-04-11 | Document checklist: gradient fade, not full collapse | Showing 3 items + gradient fade previews enough to be useful without overwhelming. Full collapse risks users missing the checklist entirely. Full expand is one click away. |
+| 2026-04-11 | How to Apply gets background shift | Two white content zones back-to-back (Eligibility → Apply) bleed together visually. Subtle `bg-vanilla-200/30` on the Apply zone signals "new territory" like the warm contact block does. |
 | 2026-04-10 | State page evolves from article to discovery platform | Current page is a well-designed article but fundamentally passive. The TripAdvisor/GetYourGuide model (category entry, visual cards, curated picks, interactive tools, social proof) applied to senior benefits — but NOT visual-heavy like travel. Olera's version: editorial warmth meets interactive purpose. "Something in between that transcends both." |
 | 2026-04-10 | Archetype-based entry is always visible | 3-4 situation cards ("My parent needs help at home", "We're going broke on facility costs", etc.) that filter/reorder the page. Not a quiz or flow — a gentle "What brought you here?" Like Airbnb's category bar. Always present, not a one-time orientation. |
 | 2026-04-10 | State pages first, then program pages | State page is the entry point — the discovery layer. Once that's nailed, program page improvements follow naturally. The program page component vocabulary is already built. |
@@ -214,6 +217,54 @@ The deep dive. Restrained, lets content breathe. Reads like a well-researched ar
 ---
 
 ## Session Log
+
+### 2026-04-11 (Session 73) — Program Page Single-Scroll Redesign + Texas Route Fix
+
+**Branch:** `eager-ride` | **Latest: `f63ab28d`**
+
+**Program page v3 iteration** (initial pass):
+- Typography pass: bumped all text sizes, gray-400→500 for readability
+- Phosphor icons throughout: CheckCircle, FileText, Clock, HourglassHigh, Globe, etc.
+- Quick eligibility check widget: 2-field form (age + income), client-side matching
+- Related programs as clickable links via `findProgramSlug()` fuzzy matching
+- Share button (Web Share + clipboard feedback) + print checklist button
+- Processing time/waitlist as distinct visual cards (amber waitlist styling)
+
+**Self-review bug sweep (3 bugs caught):**
+1. `w-4.5 h-4.5` invalid Tailwind class on Clock/HourglassHigh icons
+2. Label/input association missing on eligibility check (a11y)
+3. No clipboard copy feedback on share button
+
+**Texas route fix (post-mortem documented):**
+- Root cause: Texas has parallel routes (`/texas/benefits/` and `/texas/benefits/[slug]/`) that shadow generic `/senior-benefits/` routes via 301 redirects. These routes were hardcoded V1/V2 pages that never got V3.
+- Fixed `lib/program-data.ts`: added state-prefix-stripped matching + name-based fallback to `findDraftMatch` (handles `texas-snap` vs `tx-snap` ID mismatch)
+- Fixed `app/texas/benefits/[slug]/page.tsx`: switched to `getEnrichedProgram` + `ProgramPageV3`
+- Fixed `app/texas/benefits/page.tsx`: wired to `pipelineDrafts` + `StatePageV3`
+- Added prevention rules to CLAUDE.md + memory
+
+**Program page redesign — tabs → single scroll (TJ design direction):**
+- TJ: "tabs don't feel like the most awesome experience" — tabs are for apps, not content pages
+- Killed tabs entirely. Page is now one continuous scroll with visual rhythm
+- Section order: hero → eligibility check → intro → what's covered (icon grid) → stat band → eligibility details → how to apply → service areas map → contact block → related programs → FAQs
+- Sticky horizontal section nav (pill bar, IntersectionObserver tracking, smooth scroll)
+- "What's covered" icon grid: Phosphor icons extracted from intro text (medical, dental, transport, etc.)
+- Contact block: warm vanilla background, elevated prominence
+- Resource/navigator programs keep one-pager layout
+
+**Taste pass (from /ui-critique):**
+- Killed redundant at-a-glance pills (eligibility info showed twice)
+- Document checklist: gradient fade collapse (show 3 + "Show all 14 documents")
+- Moved dark stat band between Eligibility and How to Apply (visual break)
+- How to Apply zone gets `bg-vanilla-200/30` background for zone contrast
+- Stronger section headings: SectionLabel above ("ELIGIBILITY DETAILS" / "APPLICATION PROCESS")
+
+**Post-mortem:** Texas parallel routes (documented in `docs/POSTMORTEMS.md`, CLAUDE.md, memory)
+
+**Build:** Clean (tsc --noEmit passes). Pushed to Vercel.
+
+**Commits:** `e99b4cf7` → `92c32678` → `5d46950e` → `eed9f9a2` → `feea4db3` → `f63ab28d`
+
+---
 
 ### 2026-04-10 (Session 72) — ProgramPageV3 + Pipeline v3 + Admin UX
 

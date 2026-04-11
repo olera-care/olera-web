@@ -83,16 +83,12 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 - Michigan: 16 programs drafted + state overview. MI Choice as live test.
 - All 50 states + DC explored and researched
 
-### What's next (in progress)
-1. **Inline benefits check** — 3-field form (age, ZIP, Medicaid) embedded in state page with instant "Your loved one may qualify for X of Y programs" result. Highest-impact missing piece — turns the page from content to tool.
-2. **Spend-down calculator link** — add to "Help paying for care" archetype response. We have `/benefits/spend-down-calculator`, it's just not referenced on the state page.
-3. **"Families are asking" social proof** — Supabase query for state-filtered answered questions from provider_questions. Real questions from real families.
-
-### What's next (after state page)
-4. **Program page v3 iteration** — deeper interactive elements (calculators, maps), Chantel-depth content via v3 pipeline
-5. **Re-run v3 pipeline on all states** — SD + TX validated, full batch for v3-quality content
-6. Apply approved MI drafts
-7. Review draft quality with Chantel
+### What's next
+1. **Replace hand-drawn SVG icons with Phosphor Icons** — `@phosphor-icons/react` installed, `better-icons` MCP server configured (system-wide in `~/.claude.json`). Restart Claude Code to activate MCP, then search for production icons by description. Replace archetype card icons, keep organic blob/underline SVGs as-is (those are unique brand elements, not icons).
+2. **Program page v3 iteration** — apply same design energy to program pages. Component vocabulary built (tabs, checklist, step journey). Needs: Phosphor icons, deeper interactive elements (calculators, maps), Chantel-depth content via v3 pipeline.
+3. **Re-run v3 pipeline on all states** — SD + TX validated, full batch for v3-quality content
+4. Apply approved MI drafts
+5. Review draft quality with Chantel
 
 ### Other active work (different branches)
 - Homepage de-jank + mega menu (`gifted-rosalind`) — ready for QA
@@ -294,7 +290,20 @@ The deep dive. Restrained, lets content breathe. Reads like a well-researched ar
 - "Where to start" + "Browse by need" pills now find programs across both waiver-library and pipeline via findProgramByName()
 - Fixed startHere programId mismatch (LLM generates short slugs like "mi-options" but actual draft ID is "michigan-mi-options-counseling")
 
-**Commits:** `3a3bd30c` → ... → `0fb5f0ac` → `ae6b89c0` → `a4d1a251` → `e485b3f5` → ... → `87c13ccf`
+**Final session work (after cleanup pass):**
+- Inline benefits check: 2-field form (age + Medicaid), instant client-side matching
+- Spend-down calculator link in "paying for care" archetype response
+- "Families are asking" social proof: Supabase query with provider slug lookup, clickable (opens provider page in new tab)
+- Removed "Browse by need" section (redundant with archetype panel + directory)
+- Provider bridge simplified: 4 boxed cards → 1 line + pill links
+- Social proof simplified: killed card wrappers + avatar circles → clean text
+- Program directory: killed white card wrapper, compact rows with right-aligned savings
+- Response panel redesign: teal left border, serif message, sorted by savings, hierarchy
+- Typography pass: all text bumped for readability (text-xs→sm, text-sm→base, gray-400→500)
+- Dead code cleanup: removed ~120 lines of unused Browse by need SVGs/functions
+- Phosphor Icons installed (`@phosphor-icons/react`), better-icons MCP server configured system-wide
+
+**Commits:** `3a3bd30c` → ... → `f8a2889a`
 
 **Self-review bugs caught (session total: 14):**
 - 6 in ProgramPageV3 (crash on null phone, duplicate FAQs, duplicate savings, checklist state loss, empty stateId, stale SEO metadata)

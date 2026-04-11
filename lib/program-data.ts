@@ -28,20 +28,61 @@ function normalizeId(id: string): string {
   return id.toLowerCase().replace(/[^a-z0-9]/g, "");
 }
 
+// Strip state name or abbreviation prefix from a normalized ID
+// e.g., "texassnapfoodbenefits" → "snapfoodbenefits", "txsnapfoodbenefits" → "snapfoodbenefits"
+function stripStatePrefix(normalizedId: string, stateAbbrev: string): string {
+  const abbrevLower = stateAbbrev.toLowerCase();
+  // Find the full state name from abbreviation (reverse lookup)
+  const fullName = Object.entries(STATE_ABBREVS).find(([, v]) => v === stateAbbrev)?.[0]?.replace(/-/g, "") || "";
+
+  if (fullName && normalizedId.startsWith(fullName)) return normalizedId.slice(fullName.length);
+  if (normalizedId.startsWith(abbrevLower)) return normalizedId.slice(abbrevLower.length);
+  return normalizedId;
+}
+
 function findDraftMatch(stateAbbrev: string, programId: string): PipelineDraft | undefined {
   const stateDrafts = pipelineDrafts[stateAbbrev];
   if (!stateDrafts?.programs) return undefined;
 
   const normalizedTarget = normalizeId(programId);
 
-  // Exact ID match first
+  // 1. Exact ID match
   const exact = stateDrafts.programs.find((d) => d.id === programId);
   if (exact) return exact;
 
-  // Normalized fuzzy match
-  return stateDrafts.programs.find(
+  // 2. Normalized ID match
+  const normalized = stateDrafts.programs.find(
     (d) => normalizeId(d.id) === normalizedTarget
   );
+  if (normalized) return normalized;
+
+  // 3. State-prefix-stripped match (handles "texas-snap" vs "tx-snap")
+  const strippedTarget = stripStatePrefix(normalizedTarget, stateAbbrev);
+  const prefixMatch = stateDrafts.programs.find(
+    (d) => stripStatePrefix(normalizeId(d.id), stateAbbrev) === strippedTarget
+  );
+  if (prefixMatch) return prefixMatch;
+
+  // 4. Name-based match (handles completely different IDs like
+  //    "star-plus-home-and-community-based-services" vs "tx-star-plus-medicaid-hcbs")
+  // Try to find the base program name from waiver-library and match against draft names
+  const state = getStateById(
+    Object.entries(STATE_ABBREVS).find(([, v]) => v === stateAbbrev)?.[0] || ""
+  );
+  const baseProgram = state?.programs.find((p) => p.id === programId);
+  if (baseProgram) {
+    const baseName = normalizeId(baseProgram.name);
+    const baseShort = normalizeId(baseProgram.shortName || "");
+    return stateDrafts.programs.find((d) => {
+      const draftName = normalizeId(d.name);
+      const draftShort = normalizeId(d.shortName || "");
+      return draftName === baseName || draftShort === baseShort
+        || (baseShort && draftName.includes(baseShort))
+        || (draftShort && baseName.includes(draftShort));
+    });
+  }
+
+  return undefined;
 }
 
 /**

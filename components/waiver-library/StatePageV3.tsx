@@ -5,6 +5,7 @@ import type { StateData, WaiverProgram } from "@/data/waiver-library";
 import type { PipelineStateOverview } from "@/data/pipeline-drafts";
 import { useState, useRef } from "react";
 import { useSavedPrograms, type SaveProgramData } from "@/hooks/use-saved-programs";
+import { getCategory, type Category } from "@/lib/waiver-category";
 import { House, CurrencyDollar, Compass, HandHeart, BookmarkSimple, ShareNetwork, Calculator, ArrowRight, CaretRight } from "@phosphor-icons/react";
 import { ProgramIcon } from "@/lib/program-icon";
 
@@ -317,16 +318,11 @@ interface StatePageV3Props {
   familyQuestions?: FamilyQuestion[];
 }
 
-const typeLabels: Record<string, { label: string; description: string; emoji: string }> = {
-  benefit: { label: "Benefits", description: "Programs that provide financial help or services", emoji: "✦" },
-  resource: { label: "Resources", description: "Free guidance available to any senior", emoji: "◇" },
-  navigator: { label: "Navigators", description: "Tools that help you find and apply for programs", emoji: "↗" },
-  employment: { label: "Employment", description: "Job training and income support", emoji: "◆" },
-};
 
 export function StatePageV3({ state, overview, pipelinePrograms = [], familyQuestions = [] }: StatePageV3Props) {
   const [activeArchetype, setActiveArchetype] = useState<ArchetypeId>(null);
   const [showAll, setShowAll] = useState(false);
+  const [categoryFilter, setCategoryFilter] = useState<Category | "all">("all");
   const responseRef = useRef<HTMLDivElement>(null);
   const programs = state.programs;
 
@@ -347,19 +343,10 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
     return null;
   }
 
-  // Group programs by type
-  const grouped = programs.reduce<Record<string, WaiverProgram[]>>((acc, p) => {
-    const type = p.programType || "benefit";
-    if (!acc[type]) acc[type] = [];
-    acc[type].push(p);
-    return acc;
-  }, {});
-  const groupOrder = ["benefit", "resource", "navigator", "employment"];
-  const activeGroups = groupOrder.filter((t) => grouped[t]?.length);
 
   // Compute stats
-  const benefitCount = grouped.benefit?.length || 0;
-  const resourceCount = (grouped.resource?.length || 0) + (grouped.navigator?.length || 0);
+  const benefitCount = programs.filter((p) => (p.programType || "benefit") === "benefit").length;
+  const resourceCount = programs.filter((p) => p.programType === "resource" || p.programType === "navigator").length;
   const savingsPrograms = programs.filter((p) => p.savingsRange);
   const topSavings = savingsPrograms.length > 0
     ? savingsPrograms.reduce((best, p) => {
@@ -720,69 +707,93 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
           </section>
         )}
 
-        {/* ─── All programs ─── */}
+        {/* ─── All programs with category pills ─── */}
         <section className="max-w-2xl mx-auto px-6 lg:px-8">
           <SectionLabel>All {programs.length} programs</SectionLabel>
-          <div className="space-y-8">
-            {activeGroups.map((type) => {
-              const group = grouped[type];
-              const info = typeLabels[type] || typeLabels.benefit;
-              const displayItems = showAll ? group : group.slice(0, type === "benefit" ? 6 : 4);
-              const hasMore = !showAll && group.length > displayItems.length;
+
+          {/* Category filter pills */}
+          <div className="flex flex-wrap gap-2 mb-6">
+            {([
+              { id: "all" as const, label: "All" },
+              { id: "health" as const, label: "Health Coverage" },
+              { id: "financial" as const, label: "Financial Help" },
+              { id: "food" as const, label: "Food & Nutrition" },
+              { id: "caregiver" as const, label: "Caregiver Support" },
+            ] as const).map((cat) => {
+              const isActive = categoryFilter === cat.id;
+              const count = cat.id === "all"
+                ? programs.length
+                : programs.filter((p) => getCategory(p) === cat.id).length;
+
+              if (cat.id !== "all" && count === 0) return null;
 
               return (
-                <div key={type}>
-                  <p className="text-sm font-medium text-gray-500 mb-3">
-                    {info.label} <span className="text-gray-400">{group.length}</span>
-                  </p>
-                  <div>
-                    {displayItems.map((program) => {
-                      const highlighted = isProgramHighlighted(program);
-                      return (
-                        <Link
-                          key={program.id}
-                          href={`/senior-benefits/${state.id}/${program.id}`}
-                          className={`group flex items-start justify-between gap-4 py-3.5 border-b border-gray-100 last:border-0 transition-opacity ${
-                            highlighted ? "opacity-100" : "opacity-30"
-                          }`}
-                        >
-                          <div className="flex items-start gap-2.5 min-w-0">
-                            {program.icon && (
-                              <ProgramIcon
-                                iconName={program.icon}
-                                programType={program.programType}
-                                size={16}
-                                weight="duotone"
-                                className="text-gray-400 shrink-0 mt-0.5"
-                              />
-                            )}
-                            <div className="min-w-0">
-                            <p className="text-base font-medium text-gray-900 group-hover:text-primary-700 transition-colors leading-snug">
-                              {program.name}
-                            </p>
-                            <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">
-                              {program.tagline || program.description}
-                            </p>
-                            </div>
-                          </div>
-                          <span className="text-sm text-gray-500 shrink-0 mt-0.5">
-                            {program.savingsRange ? program.savingsRange.match(/\$[\d,]+/)?.[0] || program.savingsRange : "Free"}
-                          </span>
-                        </Link>
-                      );
-                    })}
-                  </div>
+                <button
+                  key={cat.id}
+                  onClick={() => setCategoryFilter(cat.id)}
+                  className={`text-sm font-medium px-4 py-2 rounded-full transition-colors ${
+                    isActive
+                      ? "bg-gray-900 text-white"
+                      : "bg-white text-gray-600 border border-gray-200 hover:border-gray-300 hover:text-gray-900"
+                  }`}
+                >
+                  {cat.label}
+                  {!isActive && <span className="text-gray-400 ml-1.5">{count}</span>}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Filtered program list */}
+          <div>
+            {(() => {
+              const filtered = categoryFilter === "all"
+                ? programs
+                : programs.filter((p) => getCategory(p) === categoryFilter);
+
+              const displayed = showAll ? filtered : filtered.slice(0, 8);
+              const hasMore = !showAll && filtered.length > 8;
+
+              return (
+                <>
+                  {displayed.map((program) => {
+                    const highlighted = isProgramHighlighted(program);
+                    return (
+                      <Link
+                        key={program.id}
+                        href={`/senior-benefits/${state.id}/${program.id}`}
+                        className={`group flex items-start justify-between gap-4 py-4 border-b border-gray-100 last:border-0 transition-opacity ${
+                          highlighted ? "opacity-100" : "opacity-30"
+                        }`}
+                      >
+                        <div className="min-w-0">
+                          <p className="text-base font-medium text-gray-900 group-hover:text-primary-700 transition-colors leading-snug">
+                            {program.name}
+                          </p>
+                          <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">
+                            {program.tagline || program.description}
+                          </p>
+                        </div>
+                        <span className="text-sm font-medium text-gray-500 shrink-0 mt-0.5 tabular-nums">
+                          {program.savingsRange ? program.savingsRange.match(/\$[\d,]+/)?.[0] || program.savingsRange : "Free"}
+                        </span>
+                      </Link>
+                    );
+                  })}
                   {hasMore && (
                     <button
                       onClick={() => setShowAll(true)}
-                      className="mt-3 text-sm font-medium text-primary-600 hover:text-primary-500 transition-colors"
+                      className="mt-4 text-sm font-medium text-primary-600 hover:text-primary-500 transition-colors"
                     >
-                      Show all {group.length} {info.label.toLowerCase()} &rarr;
+                      Show all {filtered.length} programs →
                     </button>
                   )}
-                </div>
+                  {displayed.length === 0 && (
+                    <p className="text-sm text-gray-400 py-4">No programs in this category.</p>
+                  )}
+                </>
               );
-            })}
+            })()}
           </div>
         </section>
 

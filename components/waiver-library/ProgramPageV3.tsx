@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import type {
   WaiverProgram,
   StateData,
@@ -12,7 +12,8 @@ import type {
 import { ServiceAreasMap } from "@/components/waiver-library/ServiceAreasMapLoader";
 import { CityBadge } from "@/components/waiver-library/CityBadge";
 import { useSavedPrograms } from "@/hooks/use-saved-programs";
-import { Vault, Phone, Info, CaretDown, ArrowSquareOut, BookmarkSimple, CheckCircle, FileText, Clock, HourglassHigh, MapPin, ArrowsClockwise, Globe, ShareNetwork, Printer, Check } from "@phosphor-icons/react";
+import { Vault, Phone, Info, CaretDown, ArrowSquareOut, BookmarkSimple, CheckCircle, FileText, Clock, HourglassHigh, MapPin, ArrowsClockwise, Globe, ShareNetwork, Printer, Check, Stethoscope, House as HouseIcon, Wheelchair, Tooth, Eye, Car, FirstAid, Pill, HandCoins, Wrench, Users, Heart } from "@phosphor-icons/react";
+import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
 import { ProgramIcon } from "@/lib/program-icon";
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -512,194 +513,6 @@ function RenderContentSection({ section }: { section: ContentSection }) {
   return null;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// Tab system — the structural backbone. Adapts based on program type.
-// ═══════════════════════════════════════════════════════════════════════════════
-
-type TabId = "about" | "eligibility" | "apply" | "resources";
-
-interface TabDef {
-  id: TabId;
-  label: string;
-}
-
-function getAvailableTabs(program: WaiverProgram): TabDef[] {
-  const type = program.programType || "benefit";
-  const complexity = program.complexity || "medium";
-
-  // Resources and navigators: just About + Resources
-  if (type === "resource" || type === "navigator") {
-    return [
-      { id: "about", label: "About" },
-      { id: "resources", label: "Resources" },
-    ];
-  }
-
-  // Simple benefits: About + How to Apply + Resources
-  if (complexity === "simple") {
-    return [
-      { id: "about", label: "About" },
-      { id: "apply", label: "How to Apply" },
-      { id: "resources", label: "Resources" },
-    ];
-  }
-
-  // Deep/medium benefits + employment: all 4 tabs
-  return [
-    { id: "about", label: "About" },
-    { id: "eligibility", label: "Eligibility" },
-    { id: "apply", label: "How to Apply" },
-    { id: "resources", label: "Resources" },
-  ];
-}
-
-function TabNavigation({
-  tabs,
-  activeTab,
-  onTabChange,
-}: {
-  tabs: TabDef[];
-  activeTab: TabId;
-  onTabChange: (tab: TabId) => void;
-}) {
-  // Don't render tabs if there's only one
-  if (tabs.length <= 1) return null;
-
-  return (
-    <div className="sticky top-0 z-30 bg-vanilla-100/95 backdrop-blur-sm border-b border-gray-200">
-      <nav className="max-w-2xl mx-auto px-6 lg:px-8">
-        <div className="flex gap-0 -mb-px">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => onTabChange(tab.id)}
-              className={`relative px-4 py-3 text-sm font-medium transition-colors ${
-                activeTab === tab.id
-                  ? "text-gray-900"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              {tab.label}
-              {activeTab === tab.id && (
-                <span className="absolute bottom-0 left-2 right-2 h-0.5 bg-gray-900 rounded-full" />
-              )}
-            </button>
-          ))}
-        </div>
-      </nav>
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// Tab content renderers
-// ═══════════════════════════════════════════════════════════════════════════════
-
-function AboutTab({ program, state }: { program: WaiverProgram; state: StateData }) {
-  const intent = program.layoutIntent;
-
-  // Build stats for the bold moment — layoutIntent guides what to feature
-  const stats: { value: string; label: string }[] = [];
-  const highlight = intent?.aboutHighlight;
-
-  if (highlight === "waitlist" && program.applicationGuide?.waitlist) {
-    // Waitlist is the defining feature — lead with it
-    const wlMatch = program.applicationGuide.waitlist.match(/\d+/);
-    if (wlMatch) stats.push({ value: wlMatch[0] + "+", label: "month typical wait" });
-  }
-  if (program.savingsRange && highlight !== "waitlist") {
-    const match = program.savingsRange.match(/\$[\d,]+/);
-    if (match) stats.push({ value: match[0] + "+", label: "potential savings" });
-  }
-  if (program.serviceAreas && program.serviceAreas.length > 0) {
-    stats.push({ value: String(program.serviceAreas.length), label: "service areas" });
-  }
-  // Coverage highlight: count what's included
-  if (highlight === "coverage" && program.contentSections) {
-    const coverageSection = program.contentSections.find(
-      (s) => s.type === "tier-comparison" || (s.type === "prose" && s.heading?.toString().toLowerCase().includes("cover"))
-    );
-    if (coverageSection && "tiers" in coverageSection) {
-      const tiers = coverageSection.tiers as unknown[];
-      stats.push({ value: String(tiers.length), label: "coverage tiers" });
-    }
-  }
-
-  // Collect callouts from content sections
-  const callouts = program.contentSections?.filter((s) => s.type === "callout") || [];
-  const nonCallouts = program.contentSections?.filter((s) => s.type !== "callout") || [];
-
-  return (
-    <>
-      {/* Intro prose — focused reading width */}
-      {program.intro && (
-        <section className="max-w-2xl mx-auto px-6 lg:px-8">
-          <div className="text-lg text-gray-600 leading-relaxed space-y-4">
-            {program.intro.split("\n\n").map((para, i) => (
-              <p key={i}>{para}</p>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Stat callout — the bold moment. Wider than prose. */}
-      {stats.length > 0 && (
-        <section className="max-w-3xl mx-auto px-6 lg:px-8 mt-10">
-          <StatCallout stats={stats} />
-          {/* Savings source attribution — quiet, below the dark band */}
-          {program.savingsRange && program.savingsSource && program.savingsSource !== "Free service" && (
-            <p className="text-xs text-gray-400 mt-2">Source: {program.savingsSource}</p>
-          )}
-        </section>
-      )}
-
-      {/* Savings as text only when there's no stat callout to show it */}
-      {stats.length === 0 && program.savingsRange && (
-        <section className="max-w-2xl mx-auto px-6 lg:px-8 mt-6">
-          <p className="text-sm text-gray-500">
-            Estimated savings: <span className="font-medium text-gray-700">{program.savingsRange}</span>
-            {program.savingsSource && program.savingsSource !== "Free service" && (
-              <span className="text-xs text-gray-400 ml-1.5">({program.savingsSource})</span>
-            )}
-          </p>
-        </section>
-      )}
-
-      <WavyDivider className="my-10 max-w-3xl mx-auto px-6" />
-
-      {/* Content sections — non-callout ones (tier comparisons, prose, etc.) */}
-      {nonCallouts.length > 0 && (
-        <section className="max-w-2xl mx-auto px-6 lg:px-8 space-y-8">
-          {nonCallouts.map((section, i) => (
-            <div key={i}>
-              <RenderContentSection section={section} />
-            </div>
-          ))}
-        </section>
-      )}
-
-      {/* Things to know — merged callouts */}
-      {callouts.length > 0 && (
-        <section className="max-w-2xl mx-auto px-6 lg:px-8 mt-10">
-          <SectionLabel>Things to know</SectionLabel>
-          <div className="text-sm text-gray-700 leading-relaxed space-y-3">
-            {callouts.map((section, i) => (
-              <p key={i}>{"text" in section ? String(section.text) : ""}</p>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* FAQs */}
-      {program.faqs && program.faqs.length > 0 && (
-        <section className="max-w-2xl mx-auto px-6 lg:px-8 mt-12">
-          <FaqSection faqs={program.faqs} />
-        </section>
-      )}
-    </>
-  );
-}
-
 // --- Quick Eligibility Check (interactive) ---
 
 function QuickEligibilityCheck({ elig }: { elig: StructuredEligibility }) {
@@ -712,7 +525,6 @@ function QuickEligibilityCheck({ elig }: { elig: StructuredEligibility }) {
     const incomeNum = parseInt(income.replace(/[,$]/g, ""));
     if (isNaN(ageNum) || isNaN(incomeNum)) return;
 
-    // Parse age requirement
     const ageReq = elig.ageRequirement;
     let ageOk = true;
     if (ageReq) {
@@ -720,7 +532,6 @@ function QuickEligibilityCheck({ elig }: { elig: StructuredEligibility }) {
       if (ageMatch && ageNum < parseInt(ageMatch[1])) ageOk = false;
     }
 
-    // Check income against table (use household size 1 as default)
     let incomeOk = true;
     let incomeUnknown = false;
     if (elig.incomeTable && elig.incomeTable.length > 0) {
@@ -731,19 +542,14 @@ function QuickEligibilityCheck({ elig }: { elig: StructuredEligibility }) {
         incomeUnknown = true;
       }
     } else {
-      // Try to parse from summary
       const incomeLine = elig.summary.find((s) => /income|below|\$/i.test(s));
       if (incomeLine) {
         const limitMatch = incomeLine.match(/\$[\d,]+/);
         if (limitMatch) {
           const limit = parseInt(limitMatch[0].replace(/[,$]/g, ""));
           incomeOk = incomeNum <= limit;
-        } else {
-          incomeUnknown = true;
-        }
-      } else {
-        incomeUnknown = true;
-      }
+        } else { incomeUnknown = true; }
+      } else { incomeUnknown = true; }
     }
 
     if (!ageOk) setResult("unlikely");
@@ -756,41 +562,19 @@ function QuickEligibilityCheck({ elig }: { elig: StructuredEligibility }) {
     <div className="rounded-2xl border border-gray-200 bg-white p-5 md:p-6">
       <p className="font-semibold text-gray-900 mb-1">Quick eligibility check</p>
       <p className="text-sm text-gray-500 mb-4">Enter basic info for a rough estimate — not a guarantee.</p>
-
       <div className="flex flex-col sm:flex-row gap-3 mb-4">
         <div className="flex-1">
           <label htmlFor="elig-age" className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1 block">Age</label>
-          <input
-            id="elig-age"
-            type="number"
-            value={age}
-            onChange={(e) => { setAge(e.target.value); setResult(null); }}
-            placeholder="65"
-            className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400"
-          />
+          <input id="elig-age" type="number" value={age} onChange={(e) => { setAge(e.target.value); setResult(null); }} placeholder="65" className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400" />
         </div>
         <div className="flex-1">
           <label htmlFor="elig-income" className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1 block">Monthly income</label>
-          <input
-            id="elig-income"
-            type="text"
-            value={income}
-            onChange={(e) => { setIncome(e.target.value); setResult(null); }}
-            placeholder="$2,000"
-            className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400"
-          />
+          <input id="elig-income" type="text" value={income} onChange={(e) => { setIncome(e.target.value); setResult(null); }} placeholder="$2,000" className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400" />
         </div>
         <div className="flex items-end">
-          <button
-            onClick={handleCheck}
-            disabled={!age || !income}
-            className="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
-          >
-            Check
-          </button>
+          <button onClick={handleCheck} disabled={!age || !income} className="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors whitespace-nowrap">Check</button>
         </div>
       </div>
-
       {result === "likely" && (
         <div className="flex items-start gap-2.5 p-3 rounded-lg bg-emerald-50 border border-emerald-200/50">
           <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" weight="fill" />
@@ -822,226 +606,82 @@ function QuickEligibilityCheck({ elig }: { elig: StructuredEligibility }) {
   );
 }
 
-function EligibilityTab({ program }: { program: WaiverProgram }) {
-  const elig = program.structuredEligibility;
-  if (!elig) {
-    return (
-      <section className="max-w-2xl mx-auto px-6 lg:px-8">
-        <p className="text-gray-500">Eligibility details are being researched for this program.</p>
-      </section>
-    );
+// ═══════════════════════════════════════════════════════════════════════════════
+// Coverage grid — "What's included" icon grid, extracted from intro/description
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const COVERAGE_ICONS: Record<string, PhosphorIcon> = {
+  medical: Stethoscope,
+  doctor: Stethoscope,
+  hospital: FirstAid,
+  home: HouseIcon,
+  attendant: Users,
+  personal: Users,
+  dental: Tooth,
+  vision: Eye,
+  transport: Car,
+  prescription: Pill,
+  equipment: Wheelchair,
+  modification: Wrench,
+  respite: Heart,
+  financial: HandCoins,
+};
+
+function extractCoverageItems(program: WaiverProgram): { label: string; icon: PhosphorIcon }[] {
+  // Parse coverage from intro + description + content sections
+  const text = `${program.intro || ""} ${program.description || ""}`.toLowerCase();
+  const items: { label: string; icon: PhosphorIcon }[] = [];
+  const seen = new Set<string>();
+
+  const patterns: [RegExp, string, string][] = [
+    [/doctor visit|medical care|physician/i, "Doctor visits", "medical"],
+    [/hospital/i, "Hospital care", "hospital"],
+    [/personal attendant|attendant service|in-home care/i, "Personal attendants", "attendant"],
+    [/home modification|adaptive aid|home repair/i, "Home modifications", "modification"],
+    [/dental/i, "Dental care", "dental"],
+    [/vision/i, "Vision care", "vision"],
+    [/transport/i, "Transportation", "transport"],
+    [/prescription|medication/i, "Prescriptions", "prescription"],
+    [/medical equipment|wheelchair|durable medical/i, "Medical equipment", "equipment"],
+    [/day program|adult day/i, "Day programs", "home"],
+    [/respite/i, "Respite care", "respite"],
+  ];
+
+  for (const [regex, label, iconKey] of patterns) {
+    if (regex.test(text) && !seen.has(iconKey)) {
+      seen.add(iconKey);
+      items.push({ label, icon: COVERAGE_ICONS[iconKey] || Stethoscope });
+    }
   }
 
+  return items;
+}
+
+function CoverageGrid({ items }: { items: { label: string; icon: PhosphorIcon }[] }) {
+  if (items.length === 0) return null;
   return (
-    <>
-      {/* Quick eligibility check */}
-      <section className="max-w-3xl mx-auto px-6 lg:px-8 mb-10">
-        <QuickEligibilityCheck elig={elig} />
-      </section>
-
-      {/* Summary bullets */}
-      <section className="max-w-2xl mx-auto px-6 lg:px-8">
-        <SectionLabel>Who qualifies</SectionLabel>
-        <ul className="space-y-2.5">
-          {elig.summary.map((s, i) => (
-            <li key={i} className="flex items-start gap-2.5 text-gray-700">
-              <CheckCircle className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" weight="fill" />
-              <span className="leading-relaxed">{s}</span>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      {/* Income table — wider, it's the bold moment of this tab */}
-      {elig.incomeTable && elig.incomeTable.filter((r) => typeof r.monthlyLimit === "number" && typeof r.householdSize === "number").length > 0 && (
-        <section className="max-w-3xl mx-auto px-6 lg:px-8 mt-10">
-          <IncomeTable
-            rows={elig.incomeTable.filter((r) => typeof r.monthlyLimit === "number" && typeof r.householdSize === "number")}
-            heading="Income limits by household size"
-            footnote={elig.povertyLevelReference || undefined}
-          />
-        </section>
-      )}
-
-      {/* Asset limits */}
-      {elig.assetLimits && (
-        <section className="max-w-2xl mx-auto px-6 lg:px-8 mt-8">
-          <SectionLabel>Asset limits</SectionLabel>
-          <AssetLimitsDisplay limits={elig.assetLimits} />
-        </section>
-      )}
-
-      {/* Functional requirement */}
-      {elig.functionalRequirement && (
-        <section className="max-w-2xl mx-auto px-6 lg:px-8 mt-8">
-          <SectionLabel>Medical / functional requirement</SectionLabel>
-          <div className="p-4 rounded-xl bg-primary-50/40 border-l-2 border-primary-400">
-            <p className="text-sm text-gray-700 leading-relaxed">{elig.functionalRequirement}</p>
+    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+      {items.map((item, i) => {
+        const Icon = item.icon;
+        return (
+          <div key={i} className="flex items-center gap-2.5 p-3 rounded-xl bg-white border border-gray-100">
+            <div className="w-8 h-8 rounded-lg bg-primary-50 flex items-center justify-center shrink-0">
+              <Icon className="w-4 h-4 text-primary-600" weight="duotone" />
+            </div>
+            <span className="text-sm text-gray-700 leading-snug">{item.label}</span>
           </div>
-        </section>
-      )}
-
-      {/* Other requirements */}
-      {elig.otherRequirements && elig.otherRequirements.length > 0 && (
-        <section className="max-w-2xl mx-auto px-6 lg:px-8 mt-8">
-          <SectionLabel>Other requirements</SectionLabel>
-          <ul className="space-y-2">
-            {elig.otherRequirements.map((r, i) => (
-              <li key={i} className="text-sm text-gray-600 flex items-start gap-2.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-gray-300 shrink-0 mt-2" />
-                <span className="leading-relaxed">{r}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-    </>
+        );
+      })}
+    </div>
   );
 }
 
-function HowToApplyTab({ program, state }: { program: WaiverProgram; state: StateData }) {
-  const guide = program.applicationGuide;
-
-  // Use pipeline documentsNeeded if available, else try contentSections for documents type
-  const documents = (program).documentsNeeded || [];
-  const applicationNotes = (program).applicationNotes || [];
-
-  return (
-    <>
-      {/* Application summary */}
-      {guide && (
-        <section className="max-w-2xl mx-auto px-6 lg:px-8">
-          <p className="text-lg text-gray-600 leading-relaxed">{guide.summary}</p>
-          {guide.tip && (
-            <div className="mt-4 flex items-start gap-2.5 p-3.5 rounded-lg bg-primary-50/40 border-l-2 border-primary-400">
-              <Info className="w-4 h-4 text-primary-500 shrink-0 mt-0.5" />
-              <p className="text-sm text-gray-700 leading-relaxed">{guide.tip}</p>
-            </div>
-          )}
-        </section>
-      )}
-
-      {/* Document checklist — wider, it's a tool */}
-      {documents.length > 0 && (
-        <section className="max-w-3xl mx-auto px-6 lg:px-8 mt-10">
-          <SectionLabel>Documents you&apos;ll need</SectionLabel>
-          <DocumentChecklist documents={documents} programName={program.name} />
-        </section>
-      )}
-
-      {/* Application notes / warnings */}
-      {applicationNotes.length > 0 && (
-        <section className="max-w-2xl mx-auto px-6 lg:px-8 mt-8">
-          <ApplicationNotes notes={applicationNotes} />
-        </section>
-      )}
-
-      <WavyDivider className="my-10 max-w-3xl mx-auto px-6" />
-
-      {/* Step journey */}
-      {guide?.steps && guide.steps.length > 0 && (
-        <section className="max-w-2xl mx-auto px-6 lg:px-8">
-          <SectionLabel>Steps to apply</SectionLabel>
-          <StepJourney steps={guide.steps} />
-        </section>
-      )}
-
-      {/* Processing time / waitlist */}
-      {(guide?.processingTime || guide?.waitlist) && (
-        <section className="max-w-3xl mx-auto px-6 lg:px-8 mt-8">
-          <div className={`grid gap-3 ${guide.processingTime && guide.waitlist ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"}`}>
-            {guide.processingTime && (
-              <div className="rounded-xl border border-gray-200 bg-white p-4 flex items-start gap-3">
-                <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
-                  <Clock className="w-5 h-5 text-gray-500" />
-                </div>
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-0.5">Processing time</p>
-                  <p className="text-sm text-gray-700 leading-relaxed">{guide.processingTime}</p>
-                </div>
-              </div>
-            )}
-            {guide.waitlist && (
-              <div className="rounded-xl border border-amber-200/60 bg-amber-50/40 p-4 flex items-start gap-3">
-                <div className="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
-                  <HourglassHigh className="w-5 h-5 text-amber-600" />
-                </div>
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-amber-700 mb-0.5">Waitlist</p>
-                  <p className="text-sm text-gray-700 leading-relaxed">{guide.waitlist}</p>
-                </div>
-              </div>
-            )}
-          </div>
-        </section>
-      )}
-
-      {/* Application URLs */}
-      {guide?.urls && guide.urls.length > 0 && (
-        <section className="max-w-2xl mx-auto px-6 lg:px-8 mt-6">
-          <div className="flex flex-wrap gap-3">
-            {guide.urls.map((u, i) => (
-              <a
-                key={i}
-                href={u.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors"
-              >
-                {u.label}
-                <ArrowSquareOut className="w-3.5 h-3.5" />
-              </a>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Service areas map — full-width moment */}
-      {program.serviceAreas && program.serviceAreas.length > 0 && (
-        <section className="max-w-5xl mx-auto px-6 lg:px-8 mt-12">
-          <SectionLabel>Service areas</SectionLabel>
-          <div className="rounded-2xl border border-gray-200 overflow-hidden bg-white">
-            <div className="grid grid-cols-1 lg:grid-cols-2">
-              <div className="p-6">
-                <div className="grid gap-2 grid-cols-1 sm:grid-cols-2">
-                  {program.serviceAreas.map((area) => (
-                    <div key={area.name} className="py-2">
-                      <CityBadge name={area.name} />
-                      <p className="text-sm text-gray-500 mt-1">{area.description}</p>
-                    </div>
-                  ))}
-                </div>
-                {program.phone && (
-                  <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
-                    <p className="text-sm text-gray-500">Don&apos;t see your area?</p>
-                    <a href={`tel:${program.phone}`} className="text-sm font-medium text-primary-600 hover:text-primary-500 transition-colors">
-                      Call {program.phone}
-                    </a>
-                  </div>
-                )}
-              </div>
-              <div className="border-t lg:border-t-0 lg:border-l border-gray-200 bg-gray-50">
-                <ServiceAreasMap
-                  stateId={state.id}
-                  areas={program.serviceAreas}
-                  mapPins={program.mapPins}
-                  programName={program.name}
-                  noWrapper
-                />
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
-
-    </>
-  );
-}
+// ═══════════════════════════════════════════════════════════════════════════════
+// Utility: find related program slugs for linking
+// ═══════════════════════════════════════════════════════════════════════════════
 
 function findProgramSlug(name: string, state: StateData): string | null {
   const needle = name.toLowerCase().replace(/[^a-z0-9]/g, "");
-  // Search waiver-library programs
   for (const p of state.programs) {
     const pName = p.name.toLowerCase().replace(/[^a-z0-9]/g, "");
     const pShort = (p.shortName || "").toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -1052,206 +692,140 @@ function findProgramSlug(name: string, state: StateData): string | null {
   return null;
 }
 
-function ResourcesTab({ program, state }: { program: WaiverProgram; state: StateData }) {
-  const contacts = (program).contacts || [];
-  const relatedPrograms = (program).relatedPrograms || [];
-
-  return (
-    <>
-      {/* Primary contacts — front and center */}
-      {contacts.length > 0 && (
-        <section className="max-w-3xl mx-auto px-6 lg:px-8">
-          <SectionLabel>Key contacts</SectionLabel>
-          <ContactCards contacts={contacts} />
-        </section>
-      )}
-
-      {/* Simple phone fallback if no structured contacts */}
-      {contacts.length === 0 && program.phone && (
-        <section className="max-w-2xl mx-auto px-6 lg:px-8">
-          <SectionLabel>Contact</SectionLabel>
-          <a
-            href={`tel:${program.phone}`}
-            className="inline-flex items-center gap-2 text-lg font-semibold text-primary-600 hover:text-primary-500 transition-colors"
-          >
-            <Phone className="w-5 h-5" />
-            {program.phone}
-          </a>
-        </section>
-      )}
-
-      {/* Official source */}
-      {program.sourceUrl && (
-        <section className="max-w-2xl mx-auto px-6 lg:px-8 mt-8">
-          <SectionLabel>Official source</SectionLabel>
-          <a
-            href={program.sourceUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 hover:text-primary-500 underline underline-offset-2 decoration-primary-200 transition-colors"
-          >
-            <Globe className="w-4 h-4" /> Visit official program page
-          </a>
-          {program.lastVerifiedDate && (
-            <p className="text-xs text-gray-400 mt-1">
-              Last verified {program.lastVerifiedDate}
-            </p>
-          )}
-        </section>
-      )}
-
-      {/* Application forms */}
-      {program.forms && program.forms.length > 0 && (
-        <section className="max-w-2xl mx-auto px-6 lg:px-8 mt-8">
-          <SectionLabel>Application forms</SectionLabel>
-          <div className="space-y-2">
-            {program.forms.map((form) => (
-              <a
-                key={form.id}
-                href={form.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block p-3 rounded-lg border border-gray-200 bg-white hover:border-primary-300 hover:shadow-sm transition-all group"
-              >
-                <p className="font-medium text-sm text-gray-900 group-hover:text-primary-700 transition-colors flex items-center gap-1.5">
-                  <FileText className="w-4 h-4 text-gray-400 group-hover:text-primary-500 transition-colors" />
-                  {form.name}
-                </p>
-                {form.description && (
-                  <p className="text-xs text-gray-500 mt-0.5">{form.description}</p>
-                )}
-              </a>
-            ))}
-          </div>
-        </section>
-      )}
-
-      <WavyDivider className="my-10 max-w-3xl mx-auto px-6" />
-
-      {/* Related programs */}
-      {relatedPrograms.length > 0 && (
-        <section className="max-w-2xl mx-auto px-6 lg:px-8">
-          <SectionLabel>Related programs</SectionLabel>
-          <div className="flex flex-wrap gap-2">
-            {relatedPrograms.map((name, i) => {
-              const slug = findProgramSlug(name, state);
-              if (slug) {
-                return (
-                  <Link
-                    key={i}
-                    href={`/senior-benefits/${state.id}/${slug}`}
-                    className="text-sm font-medium text-primary-700 bg-primary-50 px-3 py-1.5 rounded-full hover:bg-primary-100 transition-colors"
-                  >
-                    {name}
-                  </Link>
-                );
-              }
-              return (
-                <span
-                  key={i}
-                  className="text-sm font-medium text-gray-600 bg-gray-100 px-3 py-1.5 rounded-full"
-                >
-                  {name}
-                </span>
-              );
-            })}
-          </div>
-        </section>
-      )}
-
-    </>
-  );
-}
-
 // ═══════════════════════════════════════════════════════════════════════════════
 // Resource One-Pager — for simple programs (hotlines, counseling, companion)
-// No tabs. Just what it is, who to call, where to go.
+// No sections. Just what it is, who to call, where to go.
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function ResourceOnePager({ program, state }: { program: WaiverProgram; state: StateData }) {
+function ResourceOnePager({ program }: { program: WaiverProgram }) {
   const contacts = (program).contacts || [];
 
   return (
-    <div className="pb-20">
-      <div className="max-w-2xl mx-auto px-6 lg:px-8 space-y-8">
-        {/* Intro */}
-        {program.intro && (
-          <div className="text-lg text-gray-600 leading-relaxed space-y-4">
-            {program.intro.split("\n\n").map((para, i) => (
-              <p key={i}>{para}</p>
-            ))}
-          </div>
-        )}
+    <div className="space-y-8">
+      {program.intro && (
+        <div className="text-lg text-gray-600 leading-relaxed space-y-4">
+          {program.intro.split("\n\n").map((para, i) => (
+            <p key={i}>{para}</p>
+          ))}
+        </div>
+      )}
 
-        {/* Phone CTA — prominent */}
-        {(program.phone || contacts.length > 0) && (
-          <div className="rounded-2xl bg-primary-50/60 border border-primary-200/50 p-6">
-            {contacts.length > 0 ? (
-              <div className="space-y-4">
-                {contacts.map((c, i) => (
-                  <div key={i}>
-                    <p className="text-sm font-medium text-gray-900">{c.label}</p>
-                    {c.phone && (
-                      <a
-                        href={`tel:${c.phone.replace(/[^\d+]/g, "")}`}
-                        className="text-2xl font-bold text-primary-700 hover:text-primary-600 font-serif transition-colors"
-                      >
-                        {c.phone}
-                      </a>
-                    )}
-                    {c.hours && <p className="text-xs text-gray-500 mt-0.5">{c.hours}</p>}
-                    {c.description && <p className="text-sm text-gray-600 mt-1">{c.description}</p>}
-                  </div>
-                ))}
-              </div>
-            ) : program.phone ? (
-              <div>
-                <p className="text-sm font-medium text-gray-900 mb-1">Call for help</p>
-                <a
-                  href={`tel:${program.phone}`}
-                  className="text-2xl font-bold text-primary-700 hover:text-primary-600 font-serif transition-colors"
-                >
-                  {program.phone}
-                </a>
-              </div>
-            ) : null}
-          </div>
-        )}
+      {(program.phone || contacts.length > 0) && (
+        <div className="rounded-2xl bg-primary-50/60 border border-primary-200/50 p-6">
+          {contacts.length > 0 ? (
+            <div className="space-y-4">
+              {contacts.map((c, i) => (
+                <div key={i}>
+                  <p className="text-sm font-medium text-gray-900">{c.label}</p>
+                  {c.phone && (
+                    <a href={`tel:${c.phone.replace(/[^\d+]/g, "")}`} className="text-2xl font-bold text-primary-700 hover:text-primary-600 font-serif transition-colors">
+                      {c.phone}
+                    </a>
+                  )}
+                  {c.hours && <p className="text-xs text-gray-500 mt-0.5">{c.hours}</p>}
+                  {c.description && <p className="text-sm text-gray-600 mt-1">{c.description}</p>}
+                </div>
+              ))}
+            </div>
+          ) : program.phone ? (
+            <div>
+              <p className="text-sm font-medium text-gray-900 mb-1">Call for help</p>
+              <a href={`tel:${program.phone}`} className="text-2xl font-bold text-primary-700 hover:text-primary-600 font-serif transition-colors">
+                {program.phone}
+              </a>
+            </div>
+          ) : null}
+        </div>
+      )}
 
-        {/* Content sections */}
-        {program.contentSections && program.contentSections.length > 0 && (
-          <div className="space-y-6">
-            {program.contentSections.map((section, i) => (
-              <RenderContentSection key={i} section={section} />
-            ))}
-          </div>
-        )}
+      {program.contentSections && program.contentSections.length > 0 && (
+        <div className="space-y-6">
+          {program.contentSections.map((section, i) => (
+            <RenderContentSection key={i} section={section} />
+          ))}
+        </div>
+      )}
 
-        {/* Source */}
-        {program.sourceUrl && (
-          <div className="text-sm">
-            <a
-              href={program.sourceUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary-600 hover:text-primary-500 font-medium underline underline-offset-2 decoration-primary-200 transition-colors"
-            >
-              Official source &#8599;
-            </a>
-          </div>
-        )}
+      {program.sourceUrl && (
+        <div className="text-sm">
+          <a href={program.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-500 font-medium underline underline-offset-2 decoration-primary-200 transition-colors inline-flex items-center gap-1.5">
+            <Globe className="w-4 h-4" /> Official source
+          </a>
+        </div>
+      )}
 
-        {/* FAQs */}
-        {program.faqs && program.faqs.length > 0 && (
-          <FaqSection faqs={program.faqs} />
-        )}
-      </div>
+      {program.faqs && program.faqs.length > 0 && (
+        <FaqSection faqs={program.faqs} />
+      )}
     </div>
   );
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// Main component — the orchestrator
+// Section nav — sticky horizontal wayfinding (not tabs, no content hiding)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+interface NavSection {
+  id: string;
+  label: string;
+}
+
+function SectionNav({ sections, activeId }: { sections: NavSection[]; activeId: string }) {
+  return (
+    <div className="sticky top-0 z-30 bg-vanilla-100/95 backdrop-blur-sm border-b border-gray-200/60">
+      <nav className="max-w-3xl mx-auto px-6 lg:px-8">
+        <div className="flex gap-1 py-2 overflow-x-auto scrollbar-hide -mx-1">
+          {sections.map((s) => (
+            <a
+              key={s.id}
+              href={`#${s.id}`}
+              onClick={(e) => {
+                e.preventDefault();
+                document.getElementById(s.id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+              className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+                activeId === s.id
+                  ? "bg-gray-900 text-white"
+                  : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+              }`}
+            >
+              {s.label}
+            </a>
+          ))}
+        </div>
+      </nav>
+    </div>
+  );
+}
+
+function useSectionObserver(sectionIds: string[]): string {
+  const [activeId, setActiveId] = useState(sectionIds[0] || "");
+
+  useEffect(() => {
+    const observers: IntersectionObserver[] = [];
+
+    for (const id of sectionIds) {
+      const el = document.getElementById(id);
+      if (!el) continue;
+
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) setActiveId(id);
+        },
+        { rootMargin: "-80px 0px -60% 0px", threshold: 0 }
+      );
+      observer.observe(el);
+      observers.push(observer);
+    }
+
+    return () => observers.forEach((o) => o.disconnect());
+  }, [sectionIds]);
+
+  return activeId;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Main component — single-scroll page. No tabs. Each section earns its space.
 // ═══════════════════════════════════════════════════════════════════════════════
 
 interface RelatedArticle {
@@ -1271,29 +845,14 @@ interface ProgramPageV3Props {
 function BookmarkButton({ program, state }: { program: WaiverProgram; state: StateData }) {
   const { isSaved, toggleSave } = useSavedPrograms();
   const saved = isSaved(program.id);
-
   return (
     <button
-      onClick={() =>
-        toggleSave({
-          programId: program.id,
-          stateId: state.id,
-          name: program.name,
-          shortName: program.shortName,
-          programType: program.programType,
-          savingsRange: program.savingsRange || undefined,
-        })
-      }
+      onClick={() => toggleSave({ programId: program.id, stateId: state.id, name: program.name, shortName: program.shortName, programType: program.programType, savingsRange: program.savingsRange || undefined })}
       className="group p-2 -m-2 rounded-lg hover:bg-gray-100 transition-colors"
       aria-label={saved ? "Remove from saved programs" : "Save this program"}
       title={saved ? "Saved" : "Save program"}
     >
-      <BookmarkSimple
-        className={`w-5 h-5 transition-colors duration-150 ${
-          saved ? "text-primary-600" : "text-gray-300 group-hover:text-gray-400"
-        }`}
-        weight={saved ? "fill" : "regular"}
-      />
+      <BookmarkSimple className={`w-5 h-5 transition-colors duration-150 ${saved ? "text-primary-600" : "text-gray-300 group-hover:text-gray-400"}`} weight={saved ? "fill" : "regular"} />
     </button>
   );
 }
@@ -1302,65 +861,85 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
   const programType = program.programType || "benefit";
   const isFederal = program.geographicScope?.type === "federal";
   const isResource = programType === "resource" || programType === "navigator";
-
-  const tabs = getAvailableTabs(program);
-  const [activeTab, setActiveTab] = useState<TabId>(tabs[0].id);
   const [copied, setCopied] = useState(false);
+
+  const elig = program.structuredEligibility;
+  const guide = program.applicationGuide;
+  const documents = program.documentsNeeded || [];
+  const applicationNotes = program.applicationNotes || [];
+  const contacts = program.contacts || [];
+  const relatedPrograms = program.relatedPrograms || [];
+  const coverageItems = extractCoverageItems(program);
+
+  // Build section nav items based on available data
+  const navSections: NavSection[] = [];
+  if (!isResource) {
+    navSections.push({ id: "overview", label: "Overview" });
+    if (elig) navSections.push({ id: "eligibility", label: "Eligibility" });
+    if (guide) navSections.push({ id: "how-to-apply", label: "How to Apply" });
+    if (contacts.length > 0 || program.phone || program.sourceUrl) navSections.push({ id: "contact", label: "Contact" });
+    if (program.faqs && program.faqs.length > 0) navSections.push({ id: "faq", label: "FAQ" });
+  }
+  const sectionIds = navSections.map((s) => s.id);
+  const activeSection = useSectionObserver(sectionIds);
+
+  // Build stats for the dark band
+  const stats: { value: string; label: string }[] = [];
+  const intent = program.layoutIntent;
+  if (intent?.aboutHighlight === "waitlist" && guide?.waitlist) {
+    const wlMatch = guide.waitlist.match(/\d+/);
+    if (wlMatch) stats.push({ value: wlMatch[0] + "+", label: "month typical wait" });
+  }
+  if (program.savingsRange && intent?.aboutHighlight !== "waitlist") {
+    const match = program.savingsRange.match(/\$[\d,]+/);
+    if (match) stats.push({ value: match[0] + "+", label: "potential savings" });
+  }
+  if (program.serviceAreas && program.serviceAreas.length > 0) {
+    stats.push({ value: String(program.serviceAreas.length), label: "service areas" });
+  }
 
   return (
     <div className="bg-vanilla-100 min-h-screen">
-      {/* Structured data for FAQs */}
+      {/* Structured data */}
       {program.faqs && program.faqs.length > 0 && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "FAQPage",
-              mainEntity: program.faqs.map((faq) => ({
-                "@type": "Question",
-                name: faq.question,
-                acceptedAnswer: { "@type": "Answer", text: faq.answer },
-              })),
-            }),
-          }}
-        />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ "@context": "https://schema.org", "@type": "FAQPage", mainEntity: program.faqs.map((faq) => ({ "@type": "Question", name: faq.question, acceptedAnswer: { "@type": "Answer", text: faq.answer } })) }) }} />
       )}
 
-      {/* ─── Page header ─── */}
-      <header className="relative pt-6 pb-8 md:pt-8 md:pb-10 overflow-hidden">
+      {/* ─── 1. Hero ─── */}
+      <header className="relative pt-6 pb-10 md:pt-8 md:pb-14 overflow-hidden">
         <HeaderAccent />
         <div className="relative max-w-2xl mx-auto px-6 lg:px-8">
-          {/* Breadcrumb */}
           <nav className="flex items-center gap-1.5 text-sm text-gray-400 mb-6">
             <Link href="/senior-benefits" className="hover:text-gray-600 transition-colors">Benefits Hub</Link>
-            <span>&#8250;</span>
+            <span>›</span>
             <Link href={`/senior-benefits/${state.id}`} className="hover:text-gray-600 transition-colors">{state.name}</Link>
-            <span>&#8250;</span>
+            <span>›</span>
             <span className="text-gray-600">{program.shortName}</span>
           </nav>
 
-          {/* Badges + icon */}
-          <div className="flex items-center gap-2.5 mb-3">
-            <ProgramIcon
-              iconName={program.icon}
-              programType={programType}
-              size={20}
-              weight="duotone"
-              className="text-primary-500"
-            />
-            <TypeBadge type={programType} />
-            <ScopeBadge scope={isFederal ? "Federal" : "State"} />
-          </div>
-
-          {/* Title + actions */}
           <div className="flex items-start justify-between gap-4">
-            <h1 className="text-display-xs md:text-display-sm font-bold text-gray-900 font-serif leading-tight">
-              <span className="relative inline">
-                {program.name}
-              </span>
-            </h1>
-            <div className="flex items-center gap-1 shrink-0">
+            <div>
+              <h1 className="text-display-sm md:text-display-md font-bold text-gray-900 font-serif leading-tight">
+                <span className="relative inline">
+                  {program.shortName || program.name}
+                  <HandDrawnUnderline />
+                </span>
+              </h1>
+              {program.tagline && program.tagline !== program.description && (
+                <p className="mt-4 text-lg text-gray-500 leading-relaxed max-w-xl">{program.tagline}</p>
+              )}
+              {program.savingsRange ? (
+                <p className="mt-3 text-sm text-gray-500">
+                  Estimated savings: <span className="font-semibold text-gray-700">{program.savingsRange}</span>
+                  {program.savingsSource && program.savingsSource !== "Free service" && (
+                    <span className="text-gray-400 ml-1">({program.savingsSource})</span>
+                  )}
+                </p>
+              ) : program.savingsSource === "Free service" ? (
+                <p className="mt-3 text-sm font-medium text-emerald-600">Free — no cost to you</p>
+              ) : null}
+            </div>
+            <div className="flex items-center gap-1 shrink-0 mt-2">
               <button
                 onClick={() => {
                   if (typeof navigator !== "undefined" && navigator.share) {
@@ -1371,86 +950,358 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
                     setTimeout(() => setCopied(false), 2000);
                   }
                 }}
-                className="group p-2 -m-1 rounded-lg hover:bg-gray-100 transition-colors relative"
+                className="group p-2 -m-1 rounded-lg hover:bg-gray-100 transition-colors"
                 aria-label="Share this program"
                 title={copied ? "Link copied!" : "Share"}
               >
-                {copied ? (
-                  <Check className="w-5 h-5 text-emerald-500 transition-colors" weight="bold" />
-                ) : (
-                  <ShareNetwork className="w-5 h-5 text-gray-300 group-hover:text-gray-400 transition-colors" />
-                )}
+                {copied ? <Check className="w-5 h-5 text-emerald-500" weight="bold" /> : <ShareNetwork className="w-5 h-5 text-gray-300 group-hover:text-gray-400 transition-colors" />}
               </button>
               <BookmarkButton program={program} state={state} />
             </div>
           </div>
-
-          {/* Tagline */}
-          {program.tagline && program.tagline !== program.description && (
-            <p className="mt-3 text-lg text-gray-500 leading-relaxed">{program.tagline}</p>
-          )}
-
-          {/* Free service badge */}
-          {!program.savingsRange && program.savingsSource === "Free service" && (
-            <p className="mt-2 text-sm text-gray-500">Free — no cost to you</p>
-          )}
         </div>
       </header>
 
-      {/* ─── Tab navigation ─── */}
-      {!isResource && <TabNavigation tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />}
+      {/* ─── Section nav ─── */}
+      {navSections.length > 0 && <SectionNav sections={navSections} activeId={activeSection} />}
 
-      {/* ─── Tab content ─── */}
-      <main className="pt-8 pb-20">
+      <main className="pb-24 pt-8">
         {isResource ? (
-          <ResourceOnePager program={program} state={state} />
+          <div className="max-w-2xl mx-auto px-6 lg:px-8">
+            <ResourceOnePager program={program} />
+          </div>
         ) : (
           <>
-            {/* Render all tabs, hide inactive with CSS to preserve state (document checklist etc.) */}
-            <div className={activeTab === "about" ? "" : "hidden"}><AboutTab program={program} state={state} /></div>
-            {tabs.some((t) => t.id === "eligibility") && (
-              <div className={activeTab === "eligibility" ? "" : "hidden"}><EligibilityTab program={program} /></div>
+            {/* ─── 2. Quick eligibility check ─── */}
+            {elig && (
+              <section id="overview" className="max-w-3xl mx-auto px-6 lg:px-8 mb-16 scroll-mt-20">
+                <QuickEligibilityCheck elig={elig} />
+              </section>
             )}
-            {tabs.some((t) => t.id === "apply") && (
-              <div className={activeTab === "apply" ? "" : "hidden"}><HowToApplyTab program={program} state={state} /></div>
+
+            {/* ─── 3. At-a-glance strip ─── */}
+            {elig && (
+              <section className="max-w-3xl mx-auto px-6 lg:px-8 mb-16">
+                <div className="flex flex-wrap gap-3">
+                  {elig.summary.slice(0, 5).map((s, i) => (
+                    <div key={i} className="flex items-center gap-2 px-3.5 py-2 rounded-full bg-white border border-gray-200 text-sm text-gray-700">
+                      <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" weight="fill" />
+                      {s}
+                    </div>
+                  ))}
+                </div>
+              </section>
             )}
-            {tabs.some((t) => t.id === "resources") && (
-              <div className={activeTab === "resources" ? "" : "hidden"}><ResourcesTab program={program} state={state} /></div>
+
+            {/* ─── 4. Intro prose ─── */}
+            {program.intro && (
+              <section className="max-w-2xl mx-auto px-6 lg:px-8 mb-16">
+                <div className="text-lg text-gray-600 leading-relaxed space-y-4">
+                  {program.intro.split("\n\n").map((para, i) => (
+                    <p key={i}>{para}</p>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* ─── 5. What's covered (icon grid + prose context) ─── */}
+            {coverageItems.length > 0 && (
+              <section className="max-w-3xl mx-auto px-6 lg:px-8 mb-16">
+                <SectionLabel>What&apos;s covered</SectionLabel>
+                <CoverageGrid items={coverageItems} />
+                {/* Content sections that aren't callouts — tier comparisons, prose expansions */}
+                {program.contentSections && program.contentSections.filter((s) => s.type !== "callout").length > 0 && (
+                  <div className="mt-8 max-w-2xl space-y-6">
+                    {program.contentSections.filter((s) => s.type !== "callout").map((section, i) => (
+                      <RenderContentSection key={i} section={section} />
+                    ))}
+                  </div>
+                )}
+              </section>
+            )}
+
+            {/* ─── 6. Dark stat band ─── */}
+            {stats.length > 0 && (
+              <section className="max-w-4xl mx-auto px-6 lg:px-8 mb-16">
+                <StatCallout stats={stats} />
+                {program.savingsRange && program.savingsSource && program.savingsSource !== "Free service" && (
+                  <p className="text-xs text-gray-400 mt-2">Source: {program.savingsSource}</p>
+                )}
+              </section>
+            )}
+
+            <WavyDivider className="my-16 max-w-3xl mx-auto px-6" />
+
+            {/* ─── 7. Eligibility details ─── */}
+            {elig && (
+              <section id="eligibility" className="max-w-2xl mx-auto px-6 lg:px-8 mb-16 space-y-10 scroll-mt-20">
+                <div>
+                  <SectionHeading>Eligibility</SectionHeading>
+                  <p className="text-gray-500 mt-1">Full requirements for this program.</p>
+                </div>
+
+                {/* Income table — wider */}
+                {elig.incomeTable && elig.incomeTable.filter((r) => typeof r.monthlyLimit === "number" && typeof r.householdSize === "number").length > 0 && (
+                  <div className="max-w-3xl">
+                    <IncomeTable
+                      rows={elig.incomeTable.filter((r) => typeof r.monthlyLimit === "number" && typeof r.householdSize === "number")}
+                      heading="Income limits by household size"
+                      footnote={elig.povertyLevelReference || undefined}
+                    />
+                  </div>
+                )}
+
+                {/* Asset limits */}
+                {elig.assetLimits && (
+                  <div>
+                    <SectionLabel>Asset limits</SectionLabel>
+                    <AssetLimitsDisplay limits={elig.assetLimits} />
+                  </div>
+                )}
+
+                {/* Functional requirement */}
+                {elig.functionalRequirement && (
+                  <div>
+                    <SectionLabel>Medical / functional requirement</SectionLabel>
+                    <div className="p-4 rounded-xl bg-primary-50/40 border-l-2 border-primary-400">
+                      <p className="text-sm text-gray-700 leading-relaxed">{elig.functionalRequirement}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Other requirements */}
+                {elig.otherRequirements && elig.otherRequirements.length > 0 && (
+                  <div>
+                    <SectionLabel>Other requirements</SectionLabel>
+                    <ul className="space-y-2">
+                      {elig.otherRequirements.map((r, i) => (
+                        <li key={i} className="text-sm text-gray-600 flex items-start gap-2.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-gray-300 shrink-0 mt-2" />
+                          <span className="leading-relaxed">{r}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </section>
+            )}
+
+            {/* ─── 8. How to apply ─── */}
+            {guide && (
+              <section id="how-to-apply" className="max-w-2xl mx-auto px-6 lg:px-8 mb-16 space-y-10 scroll-mt-20">
+                <div>
+                  <SectionHeading>How to apply</SectionHeading>
+                  <p className="text-lg text-gray-600 leading-relaxed mt-2">{guide.summary}</p>
+                  {guide.tip && (
+                    <div className="mt-4 flex items-start gap-2.5 p-3.5 rounded-lg bg-primary-50/40 border-l-2 border-primary-400">
+                      <Info className="w-4 h-4 text-primary-500 shrink-0 mt-0.5" />
+                      <p className="text-sm text-gray-700 leading-relaxed">{guide.tip}</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Document checklist — wider, it's a tool */}
+                {documents.length > 0 && (
+                  <div className="max-w-3xl">
+                    <SectionLabel>Documents you&apos;ll need</SectionLabel>
+                    <DocumentChecklist documents={documents} programName={program.name} />
+                  </div>
+                )}
+
+                {/* Application notes */}
+                {applicationNotes.length > 0 && (
+                  <ApplicationNotes notes={applicationNotes} />
+                )}
+
+                {/* Step journey */}
+                {guide.steps && guide.steps.length > 0 && (
+                  <div>
+                    <SectionLabel>Steps to apply</SectionLabel>
+                    <StepJourney steps={guide.steps} />
+                  </div>
+                )}
+
+                {/* Processing time / waitlist */}
+                {(guide.processingTime || guide.waitlist) && (
+                  <div className={`grid gap-3 max-w-3xl ${guide.processingTime && guide.waitlist ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"}`}>
+                    {guide.processingTime && (
+                      <div className="rounded-xl border border-gray-200 bg-white p-4 flex items-start gap-3">
+                        <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+                          <Clock className="w-5 h-5 text-gray-500" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-0.5">Processing time</p>
+                          <p className="text-sm text-gray-700 leading-relaxed">{guide.processingTime}</p>
+                        </div>
+                      </div>
+                    )}
+                    {guide.waitlist && (
+                      <div className="rounded-xl border border-amber-200/60 bg-amber-50/40 p-4 flex items-start gap-3">
+                        <div className="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+                          <HourglassHigh className="w-5 h-5 text-amber-600" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-wide text-amber-700 mb-0.5">Waitlist</p>
+                          <p className="text-sm text-gray-700 leading-relaxed">{guide.waitlist}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Application URLs */}
+                {guide.urls && guide.urls.length > 0 && (
+                  <div className="flex flex-wrap gap-3">
+                    {guide.urls.map((u, i) => (
+                      <a key={i} href={u.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors">
+                        {u.label}
+                        <ArrowSquareOut className="w-3.5 h-3.5" />
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </section>
+            )}
+
+            {/* Service areas map — widest moment */}
+            {program.serviceAreas && program.serviceAreas.length > 0 && (
+              <section className="max-w-5xl mx-auto px-6 lg:px-8 mb-16">
+                <SectionLabel>Service areas</SectionLabel>
+                <div className="rounded-2xl border border-gray-200 overflow-hidden bg-white">
+                  <div className="grid grid-cols-1 lg:grid-cols-2">
+                    <div className="p-6">
+                      <div className="grid gap-2 grid-cols-1 sm:grid-cols-2">
+                        {program.serviceAreas.map((area) => (
+                          <div key={area.name} className="py-2">
+                            <CityBadge name={area.name} />
+                            <p className="text-sm text-gray-500 mt-1">{area.description}</p>
+                          </div>
+                        ))}
+                      </div>
+                      {program.phone && (
+                        <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
+                          <p className="text-sm text-gray-500">Don&apos;t see your area?</p>
+                          <a href={`tel:${program.phone}`} className="text-sm font-medium text-primary-600 hover:text-primary-500 transition-colors">Call {program.phone}</a>
+                        </div>
+                      )}
+                    </div>
+                    <div className="border-t lg:border-t-0 lg:border-l border-gray-200 bg-gray-50">
+                      <ServiceAreasMap stateId={state.id} areas={program.serviceAreas} mapPins={program.mapPins} programName={program.name} noWrapper />
+                    </div>
+                  </div>
+                </div>
+              </section>
+            )}
+
+            <WavyDivider className="my-16 max-w-3xl mx-auto px-6" />
+
+            {/* ─── 9. Contact block — warm, prominent ─── */}
+            {(contacts.length > 0 || program.phone || program.sourceUrl) && (
+              <section id="contact" className="max-w-3xl mx-auto px-6 lg:px-8 mb-16 scroll-mt-20">
+                <div className="rounded-2xl bg-vanilla-200/60 border border-vanilla-300/50 p-6 md:p-8 space-y-6">
+                  {contacts.length > 0 ? (
+                    <div>
+                      <SectionLabel>Get in touch</SectionLabel>
+                      <ContactCards contacts={contacts} />
+                    </div>
+                  ) : program.phone ? (
+                    <div>
+                      <SectionLabel>Contact</SectionLabel>
+                      <a href={`tel:${program.phone}`} className="inline-flex items-center gap-2 text-xl font-semibold text-primary-600 hover:text-primary-500 transition-colors">
+                        <Phone className="w-5 h-5" />
+                        {program.phone}
+                      </a>
+                    </div>
+                  ) : null}
+
+                  {program.sourceUrl && (
+                    <div>
+                      <a href={program.sourceUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 hover:text-primary-500 underline underline-offset-2 decoration-primary-200 transition-colors">
+                        <Globe className="w-4 h-4" /> Visit official program page
+                      </a>
+                      {program.lastVerifiedDate && (
+                        <p className="text-xs text-gray-400 mt-1">Last verified {program.lastVerifiedDate}</p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Application forms */}
+                  {program.forms && program.forms.length > 0 && (
+                    <div>
+                      <SectionLabel>Application forms</SectionLabel>
+                      <div className="space-y-2">
+                        {program.forms.map((form) => (
+                          <a key={form.id} href={form.url} target="_blank" rel="noopener noreferrer" className="block p-3 rounded-lg border border-gray-200 bg-white hover:border-primary-300 hover:shadow-sm transition-all group">
+                            <p className="font-medium text-sm text-gray-900 group-hover:text-primary-700 transition-colors flex items-center gap-1.5">
+                              <FileText className="w-4 h-4 text-gray-400 group-hover:text-primary-500 transition-colors" />
+                              {form.name}
+                            </p>
+                            {form.description && <p className="text-xs text-gray-500 mt-0.5 pl-5.5">{form.description}</p>}
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </section>
+            )}
+
+            {/* ─── 10. Related programs ─── */}
+            {relatedPrograms.length > 0 && (
+              <section className="max-w-2xl mx-auto px-6 lg:px-8 mb-16">
+                <SectionLabel>Related programs</SectionLabel>
+                <div className="flex flex-wrap gap-2">
+                  {relatedPrograms.map((name, i) => {
+                    const slug = findProgramSlug(name, state);
+                    return slug ? (
+                      <Link key={i} href={`/senior-benefits/${state.id}/${slug}`} className="text-sm font-medium text-primary-700 bg-primary-50 px-3 py-1.5 rounded-full hover:bg-primary-100 transition-colors">
+                        {name}
+                      </Link>
+                    ) : (
+                      <span key={i} className="text-sm font-medium text-gray-600 bg-gray-100 px-3 py-1.5 rounded-full">{name}</span>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
+
+            {/* ─── 11. Things to know (callouts) ─── */}
+            {program.contentSections && program.contentSections.filter((s) => s.type === "callout").length > 0 && (
+              <section className="max-w-2xl mx-auto px-6 lg:px-8 mb-16">
+                <SectionLabel>Things to know</SectionLabel>
+                <div className="text-sm text-gray-700 leading-relaxed space-y-3">
+                  {program.contentSections.filter((s) => s.type === "callout").map((section, i) => (
+                    <p key={i}>{"text" in section ? String(section.text) : ""}</p>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* ─── 12. FAQs ─── */}
+            {program.faqs && program.faqs.length > 0 && (
+              <section id="faq" className="max-w-2xl mx-auto px-6 lg:px-8 mb-16 scroll-mt-20">
+                <FaqSection faqs={program.faqs} />
+              </section>
             )}
           </>
         )}
-        {/* Related Articles — shows when articles are available for this state/topic */}
+
+        {/* ─── 13. Related articles ─── */}
         {relatedArticles && relatedArticles.length > 0 && (
-          <section className="max-w-3xl mx-auto px-6 lg:px-8 mt-16 pt-10 border-t border-gray-200">
+          <section className="max-w-3xl mx-auto px-6 lg:px-8 pt-10 border-t border-gray-200">
             <SectionLabel>Related articles</SectionLabel>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               {relatedArticles.map((article) => {
-                const href = article.section
-                  ? `/${article.section}/${article.slug}`
-                  : `/research-and-press/${article.slug}`;
+                const href = article.section ? `/${article.section}/${article.slug}` : `/research-and-press/${article.slug}`;
                 return (
-                  <Link
-                    key={article.slug}
-                    href={href}
-                    className="group block"
-                  >
+                  <Link key={article.slug} href={href} className="group block">
                     {article.cover_image_url && (
                       <div className="rounded-xl overflow-hidden mb-3">
-                        <img
-                          src={article.cover_image_url}
-                          alt={article.title}
-                          className="w-full aspect-[3/2] object-cover group-hover:opacity-90 transition-opacity"
-                        />
+                        <img src={article.cover_image_url} alt={article.title} className="w-full aspect-[3/2] object-cover group-hover:opacity-90 transition-opacity" />
                       </div>
                     )}
-                    <h3 className="text-sm font-semibold text-gray-900 group-hover:text-primary-600 transition-colors leading-snug">
-                      {article.title}
-                    </h3>
-                    {article.reading_time_minutes && (
-                      <p className="text-xs text-gray-400 mt-1">
-                        {article.reading_time_minutes} min read
-                      </p>
-                    )}
+                    <h3 className="text-sm font-semibold text-gray-900 group-hover:text-primary-600 transition-colors leading-snug">{article.title}</h3>
+                    {article.reading_time_minutes && <p className="text-xs text-gray-400 mt-1">{article.reading_time_minutes} min read</p>}
                   </Link>
                 );
               })}

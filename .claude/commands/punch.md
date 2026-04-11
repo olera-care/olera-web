@@ -165,6 +165,77 @@ For each change, state:
 
 ---
 
+## Painting Outside the Lines — The Implementation Toolkit
+
+The principles above tell you WHAT to fix. This section tells you HOW — the concrete moves that create visual rhythm and prevent the "same-width same-background same-weight" monotony that makes pages feel like templates.
+
+### The Core Idea
+
+A page that uses the same max-width, same background, and same text weight for every section is a wall. People don't read walls — they bounce. "Painting outside the lines" means each section deliberately differs from the one before it: width, background, density, visual treatment. The page CHANGES SHAPE as you scroll. That shape change is what makes scrolling feel like progression, not repetition.
+
+### Width Variation (this IS painting outside the lines)
+
+Don't set one `max-w-3xl` and stick with it. Vary width by content purpose:
+
+| Content type | Width | Why |
+|---|---|---|
+| Focused prose | `max-w-2xl` | Readable line length, intimate |
+| Interactive tools (tables, checklists, forms) | `max-w-3xl` | Tools need space to breathe |
+| Hero / stat moments | `max-w-4xl` | Commands attention through scale |
+| Maps, grids, visual layouts | `max-w-5xl` | Spatial content needs room |
+| Dark band / full-bleed moment | `max-w-none` | Scroll-stopping break |
+
+The width change between sections IS the visual interest. When you go from `max-w-2xl` prose to a `max-w-4xl` stat moment back to `max-w-2xl`, the page breathes.
+
+### Background Shifts Between Zones
+
+Alternate between these to prevent content zones from bleeding together:
+
+| Zone feel | Treatment |
+|---|---|
+| Default content | `bg-vanilla-100` (the warm cream base) |
+| Active/interactive zone | `bg-vanilla-200/30` or `bg-vanilla-200/40` |
+| Floating card/tool | `bg-white` with `border border-gray-200 rounded-2xl` |
+| Bold moment | `bg-gray-900` with white text (use sparingly — one per page) |
+| Warm/inviting zone (contact, CTA) | `bg-vanilla-200/60` or `bg-primary-50/40` |
+
+### Organic Visual Elements (the "human designed this" signals)
+
+Use these SPARINGLY — one per scroll-height. They're scanning aids, not decoration.
+
+- **Hand-drawn underline** on a key headline — organic SVG path, teal, slightly imperfect. Says "this word matters."
+- **Wavy dividers** between major zones — `<svg>` stroke path, not `<hr>`. Signals "new chapter." Only between the 2-3 biggest zone transitions, not between every section.
+- **Organic blob illustrations** — teal (#96c8c8) + warm amber (#e9bd91) at 8-12% opacity, positioned absolutely. Atmospheric, not literal.
+- **Floating dots/circles** — tiny SVG circles near organic shapes. 3-5px, low opacity. The "a human designed this" detail.
+
+### Typography Scale Shifts
+
+Bold pages have DRAMATIC jumps between text sizes:
+
+| Element | Scale | Notes |
+|---|---|---|
+| Page title | `display-sm` / `display-md` | Serif. The biggest thing on the page. |
+| Section heading | `text-2xl` / `text-3xl` | Serif. Marks a zone transition. |
+| Section label (above heading) | `text-xs uppercase tracking-wide` | Quiet, structural. "ELIGIBILITY DETAILS" |
+| Body prose | `text-base` / `text-lg` | Readable, not cramped. |
+| Quiet metadata | `text-sm text-gray-500` | Dates, sources, footnotes. |
+| Hero number | `display-xs` / `display-sm` | Serif. When a number IS the message. |
+
+The jump from `text-xs` label to `text-3xl` heading to `text-lg` body creates rhythm. Uniform sizing creates monotony.
+
+### Section Spacing
+
+| Transition | Spacing |
+|---|---|
+| Between major zones (eligibility → apply) | `mb-16` (64px) minimum |
+| Between items within a zone | `space-y-10` (40px) |
+| Between sibling elements (label → content) | `mb-3` (12px) |
+| After a wavy divider | `my-16` (64px each side) |
+
+Generous spacing = confidence. Cramped spacing = anxiety.
+
+---
+
 ## Quick Reference: Common Punches
 
 | Symptom | Punch | Principle |

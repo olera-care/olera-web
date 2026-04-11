@@ -539,85 +539,87 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
             })}
           </div>
 
-          {/* ─── Archetype Response Panel — matching programs shown RIGHT HERE ─── */}
+          {/* ─── Archetype Response Panel ─── */}
           <div ref={responseRef}>
             {selectedArchetype && (() => {
               const matchingPrograms = programs.filter((p) => programMatchesArchetype(p, selectedArchetype));
-              const displayPrograms = matchingPrograms.slice(0, 4);
+              // Sort by savings (highest first) so the most impactful program leads
+              const sorted = [...matchingPrograms].sort((a, b) => {
+                const aVal = parseInt(a.savingsRange?.match(/[\d,]+/)?.[0]?.replace(",", "") || "0");
+                const bVal = parseInt(b.savingsRange?.match(/[\d,]+/)?.[0]?.replace(",", "") || "0");
+                return bVal - aVal;
+              });
+              const displayPrograms = sorted.slice(0, 4);
 
               return (
-                <div className="mt-5 p-5 md:p-6 bg-white rounded-2xl border border-gray-200 shadow-sm">
-                  {/* Response message */}
-                  <p className="text-sm text-gray-600 leading-relaxed mb-5">
+                <div className="mt-5 pl-5 border-l-2 border-primary-300">
+                  {/* Response message — warm, confident */}
+                  <p className="text-base text-gray-700 leading-relaxed font-serif mb-5">
                     {archetypeResponses[selectedArchetype.id!] || ""}
                   </p>
 
-                  {/* Matching program cards */}
-                  {displayPrograms.length > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {displayPrograms.map((program) => (
+                  {/* Matching programs — clean list, not boxed cards */}
+                  {displayPrograms.length > 0 && (
+                    <div className="space-y-3 mb-5">
+                      {displayPrograms.map((program, idx) => (
                         <Link
                           key={program.id}
                           href={`/senior-benefits/${state.id}/${program.id}`}
-                          className="group flex items-start justify-between gap-3 p-3.5 rounded-xl border border-gray-100 hover:border-primary-200 hover:shadow-sm transition-all"
+                          className="group block py-3 border-b border-gray-100 last:border-0"
                         >
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <p className="text-sm font-semibold text-gray-900 group-hover:text-primary-700 transition-colors leading-snug truncate">
-                                {program.shortName || program.name}
-                              </p>
-                              {program.programType && <TypeBadge type={program.programType} />}
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2">
+                                <p className={`text-sm font-semibold group-hover:text-primary-700 transition-colors leading-snug ${idx === 0 ? "text-gray-900" : "text-gray-700"}`}>
+                                  {program.shortName || program.name}
+                                </p>
+                                {program.programType && <TypeBadge type={program.programType} />}
+                              </div>
+                              <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{program.tagline || program.description}</p>
                             </div>
-                            <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">
-                              {program.tagline || program.description}
-                            </p>
-                            {program.savingsRange && (
-                              <p className="text-xs text-emerald-600 font-medium mt-1.5">
-                                Saves up to {program.savingsRange}
-                              </p>
+                            {program.savingsRange ? (
+                              <span className={`text-xs font-semibold shrink-0 ${idx === 0 ? "text-emerald-600" : "text-gray-400"}`}>
+                                {program.savingsRange.match(/\$[\d,]+/)?.[0] || program.savingsRange}
+                              </span>
+                            ) : (
+                              <span className="text-xs text-gray-300 shrink-0">Free</span>
                             )}
                           </div>
-                          <svg className="w-4 h-4 text-gray-300 group-hover:text-primary-400 shrink-0 mt-1 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
-                          </svg>
                         </Link>
                       ))}
                     </div>
-                  ) : (
-                    <p className="text-sm text-gray-400">No exact matches found. Browse all {programs.length} programs below.</p>
                   )}
 
-                  {/* Contextual tools — spend-down calculator for "paying" archetype */}
+                  {displayPrograms.length === 0 && (
+                    <p className="text-sm text-gray-400 mb-5">No exact matches found. Browse all {programs.length} programs below.</p>
+                  )}
+
+                  {/* Contextual tool — spend-down calculator for "paying" archetype */}
                   {selectedArchetype.id === "paying" && (
                     <Link
                       href="/benefits/spend-down-calculator"
-                      className="flex items-center gap-3 mt-4 p-3 rounded-xl bg-vanilla-200/60 border border-vanilla-300/30 hover:border-primary-200 transition-colors group"
+                      className="flex items-center gap-3 mb-5 p-3 rounded-xl bg-amber-50/50 hover:bg-amber-50 transition-colors group"
                     >
-                      <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
-                        <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                        </svg>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 group-hover:text-primary-700 transition-colors">Spend-down calculator</p>
-                        <p className="text-xs text-gray-500">Will your loved one&apos;s assets affect Medicaid eligibility?</p>
-                      </div>
-                      <svg className="w-4 h-4 text-gray-300 group-hover:text-primary-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
+                      <svg className="w-4 h-4 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                       </svg>
+                      <p className="text-sm text-gray-700 group-hover:text-gray-900 transition-colors">
+                        <span className="font-medium">Spend-down calculator</span>
+                        <span className="text-gray-400"> — check if assets affect eligibility</span>
+                      </p>
                     </Link>
                   )}
 
-                  {/* Footer: count + show all */}
-                  <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
-                    <p className="text-xs text-gray-400">
-                      {matchingPrograms.length} of {programs.length} programs match
-                    </p>
+                  {/* Footer */}
+                  <div className="flex items-center gap-3 text-xs">
+                    <span className="text-gray-400">
+                      Showing {matchingPrograms.length} of {programs.length} programs
+                    </span>
                     <button
                       onClick={() => setActiveArchetype(null)}
-                      className="text-xs text-gray-500 hover:text-gray-700 font-medium transition-colors"
+                      className="text-primary-600 hover:text-primary-500 font-medium transition-colors"
                     >
-                      Show all programs
+                      See all {programs.length} →
                     </button>
                   </div>
                 </div>

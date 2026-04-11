@@ -58,14 +58,22 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { state: stateId } = await params;
   const state = getStateById(stateId);
   if (!state || state.programs.length === 0) return {};
-  const title = `${state.name} Benefits | Benefits Hub | Olera`;
+
+  // Use pipeline intro (richer, keyword-dense) over scaffold description
+  const stateDrafts = pipelineDrafts[state.abbreviation];
+  const pipelineIntro = stateDrafts?.stateOverview?.intro;
+  const description = pipelineIntro
+    ? pipelineIntro.split(/[.!?]\s/)[0] + "." // First sentence
+    : state.description;
+
+  const title = `Senior Benefits in ${state.name} — ${state.programs.length} Programs | Olera`;
   return {
     title,
-    description: state.description,
+    description,
     alternates: { canonical: `/senior-benefits/${stateId}` },
     openGraph: {
       title,
-      description: state.description,
+      description,
       url: `/senior-benefits/${stateId}`,
       siteName: "Olera",
       type: "website",
@@ -136,7 +144,33 @@ export default async function StatePage({ params }: Props) {
       // Silent — social proof is nice-to-have, not critical
     }
 
-    return <StatePageV3 state={state} overview={stateDrafts.stateOverview} pipelinePrograms={pipelinePrograms} familyQuestions={familyQuestions} />;
+    // Structured data for SEO
+    const breadcrumbJsonLd = {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Benefits Hub", item: "https://olera.care/senior-benefits" },
+        { "@type": "ListItem", position: 2, name: state.name, item: `https://olera.care/senior-benefits/${stateId}` },
+      ],
+    };
+
+    const faqJsonLd = stateDrafts.stateOverview.quickFacts?.length ? {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: stateDrafts.stateOverview.quickFacts.map((fact) => ({
+        "@type": "Question",
+        name: fact.split("—")[0]?.trim() || fact.slice(0, 80),
+        acceptedAnswer: { "@type": "Answer", text: fact },
+      })),
+    } : null;
+
+    return (
+      <>
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
+        {faqJsonLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />}
+        <StatePageV3 state={state} overview={stateDrafts.stateOverview} pipelinePrograms={pipelinePrograms} familyQuestions={familyQuestions} />
+      </>
+    );
   }
 
   const faqs = STATE_FAQS[stateId] ?? [];

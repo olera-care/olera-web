@@ -121,9 +121,9 @@ const archetypeIcons: Record<string, React.ReactNode> = {
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gray-500 mb-4">
+    <h2 className="text-xs font-semibold uppercase tracking-[0.08em] text-gray-500 mb-4">
       {children}
-    </p>
+    </h2>
   );
 }
 

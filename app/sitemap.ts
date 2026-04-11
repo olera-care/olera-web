@@ -6,6 +6,7 @@ import {
   cityToSlug,
 } from "@/lib/power-pages";
 import { allStates } from "@/data/waiver-library";
+import { pipelineDrafts } from "@/data/pipeline-drafts";
 import { buildStateUrl, buildProgramUrl } from "@/lib/texas-slug-map";
 
 const SITE_URL = "https://olera.care";
@@ -126,7 +127,10 @@ export default async function sitemap({
               priority: 0.4,
             });
           }
+          // Waiver-library programs
+          const wlIds = new Set<string>();
           for (const program of state.programs ?? []) {
+            wlIds.add(program.id);
             const programUrl = buildProgramUrl(state.id, program.id);
             entries.push({
               url: `${SITE_URL}${programUrl}`,
@@ -143,6 +147,19 @@ export default async function sitemap({
             if (program.forms?.length > 0) {
               entries.push({
                 url: `${SITE_URL}${programUrl}/forms`,
+                lastModified: new Date(),
+                changeFrequency: "monthly",
+                priority: 0.4,
+              });
+            }
+          }
+
+          // Pipeline-only programs (not in waiver-library)
+          const drafts = pipelineDrafts[state.abbreviation]?.programs || [];
+          for (const draft of drafts) {
+            if (!wlIds.has(draft.id)) {
+              entries.push({
+                url: `${SITE_URL}/senior-benefits/${state.id}/${draft.id}`,
                 lastModified: new Date(),
                 changeFrequency: "monthly",
                 priority: 0.4,

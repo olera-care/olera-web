@@ -749,118 +749,59 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
           </div>
         </section>
 
-        {/* ─── Browse by what you need (hidden when archetype active — response panel + directory handle it) ─── */}
-        {!activeArchetype && overview.byNeed && overview.byNeed.length > 0 && (
-          <section className="max-w-3xl mx-auto px-6 lg:px-8">
-            <SectionLabel>Browse by what you need</SectionLabel>
-            <div className="space-y-6">
-              {overview.byNeed.map((group, i) => {
-                const icon = getNeedIcon(group.need);
-                const highlighted = !selectedArchetype || needMatchesArchetype(group.need, selectedArchetype);
+        <WavyDivider className="my-14 max-w-3xl mx-auto px-6" />
 
-                return (
-                  <div
-                    key={i}
-                    className={`flex items-start gap-4 p-5 rounded-2xl bg-white border border-gray-100 transition-opacity duration-200 ${
-                      highlighted ? "opacity-100" : "opacity-40"
-                    }`}
-                  >
-                    <div className="shrink-0 mt-0.5">{icon}</div>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-semibold text-gray-900 leading-snug">{group.need}</p>
-                      <p className="text-sm text-gray-500 mt-1 leading-relaxed">{group.description}</p>
-                      <div className="flex flex-wrap gap-2 mt-3">
-                        {group.programs.map((name, j) => {
-                          const match = findProgramByName(name);
-                          return match ? (
-                            <Link
-                              key={j}
-                              href={`/senior-benefits/${state.id}/${match.id}`}
-                              className="text-xs font-medium text-primary-700 hover:text-primary-500 bg-primary-50 hover:bg-primary-100 px-3 py-1.5 rounded-full transition-colors"
-                            >
-                              {match.program?.shortName || match.program?.name || name}
-                            </Link>
-                          ) : (
-                            <span key={j} className="text-xs text-gray-400 bg-gray-50 px-3 py-1.5 rounded-full">{name}</span>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-        )}
-
-        {!activeArchetype && <WavyDivider className="my-16 max-w-3xl mx-auto px-6" />}
-
-        {/* ─── Provider bridge ─── */}
-        <section className="max-w-3xl mx-auto px-6 lg:px-8 mb-16">
-          <SectionLabel>Find care providers in {state.name}</SectionLabel>
-          <p className="text-sm text-gray-500 mb-5 -mt-2">
-            These programs pay for services. Here are providers who deliver them.
+        {/* ─── Provider bridge — minimal, Perena-style ─── */}
+        <section className="max-w-2xl mx-auto px-6 lg:px-8 mb-14">
+          <p className="text-sm text-gray-500 mb-4">
+            These programs pay for care services.{" "}
+            <Link
+              href={`/browse?location=${encodeURIComponent(state.name)}`}
+              className="text-primary-600 hover:text-primary-500 font-medium transition-colors"
+            >
+              Find providers in {state.name} →
+            </Link>
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="flex flex-wrap gap-2">
             {[
-              { label: "Home Care", desc: "Non-medical help at home", type: "home-care" },
-              { label: "Home Health", desc: "Skilled nursing at home", type: "home-health" },
-              { label: "Assisted Living", desc: "Residential care communities", type: "assisted-living" },
-              { label: "Nursing Homes", desc: "24/7 skilled nursing", type: "nursing-homes" },
+              { label: "Home Care", type: "home-care" },
+              { label: "Home Health", type: "home-health" },
+              { label: "Assisted Living", type: "assisted-living" },
+              { label: "Nursing Homes", type: "nursing-homes" },
             ].map((cat) => (
               <Link
                 key={cat.type}
                 href={`/browse?type=${cat.type}&location=${encodeURIComponent(state.name)}`}
-                className="group flex items-center gap-3 p-4 rounded-xl bg-white border border-gray-200 hover:border-primary-300 hover:shadow-sm transition-all"
+                className="text-xs font-medium text-gray-600 hover:text-primary-700 bg-white hover:bg-primary-50 border border-gray-200 hover:border-primary-200 px-3 py-1.5 rounded-full transition-colors"
               >
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gray-900 group-hover:text-primary-700 transition-colors">{cat.label}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">{cat.desc}</p>
-                </div>
-                <svg className="w-4 h-4 text-gray-300 group-hover:text-primary-500 shrink-0 transition-all group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
-                </svg>
+                {cat.label}
               </Link>
             ))}
           </div>
-          <Link
-            href={`/browse?location=${encodeURIComponent(state.name)}`}
-            className="inline-flex items-center gap-1.5 mt-4 text-sm font-medium text-primary-600 hover:text-primary-500 transition-colors"
-          >
-            Browse all providers in {state.name}
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-            </svg>
-          </Link>
         </section>
 
-        {/* ─── Families are asking — social proof ─── */}
+        {/* ─── Families are asking — clean, no card wrappers ─── */}
         {familyQuestions.length > 0 && (
-          <section className="max-w-2xl mx-auto px-6 lg:px-8 mb-16">
-            <SectionLabel>Families in {state.name} are asking</SectionLabel>
-            <div className="space-y-4">
+          <section className="max-w-2xl mx-auto px-6 lg:px-8 mb-14">
+            <SectionLabel>Families are asking</SectionLabel>
+            <div className="space-y-6">
               {familyQuestions.slice(0, 3).map((q, i) => (
-                <div key={i} className="p-4 rounded-xl bg-white border border-gray-100">
-                  <p className="text-sm font-medium text-gray-900 leading-snug">&ldquo;{q.question}&rdquo;</p>
-                  <p className="text-sm text-gray-600 mt-2 leading-relaxed line-clamp-3">{q.answer}</p>
-                  <div className="flex items-center gap-2 mt-3">
-                    <div className="w-5 h-5 rounded-full bg-primary-100 flex items-center justify-center">
-                      <span className="text-[10px] font-bold text-primary-700">{q.providerName.charAt(0)}</span>
-                    </div>
-                    <p className="text-xs text-gray-400">
-                      Answered by <span className="text-gray-600 font-medium">{q.providerName}</span>
-                    </p>
-                  </div>
+                <div key={i} className="pb-6 border-b border-gray-100 last:border-0 last:pb-0">
+                  <p className="text-sm font-medium text-gray-900 leading-snug">{q.question}</p>
+                  <p className="text-sm text-gray-500 mt-2 leading-relaxed line-clamp-3">{q.answer}</p>
+                  <p className="text-xs text-gray-400 mt-2">
+                    — {q.providerName}
+                  </p>
                 </div>
               ))}
             </div>
           </section>
         )}
 
-        {/* ─── All programs directory ─── */}
+        {/* ─── All programs ─── */}
         <section className="max-w-2xl mx-auto px-6 lg:px-8">
           <SectionLabel>All {programs.length} programs</SectionLabel>
-          <div className="space-y-10">
+          <div className="space-y-8">
             {activeGroups.map((type) => {
               const group = grouped[type];
               const info = typeLabels[type] || typeLabels.benefit;
@@ -869,42 +810,31 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
 
               return (
                 <div key={type}>
-                  <div className="flex items-center gap-2.5 mb-1">
-                    <span className="text-primary-400 text-sm">{info.emoji}</span>
-                    <h2 className="text-base font-semibold text-gray-900">{info.label}</h2>
-                    <span className="text-xs text-gray-400 font-medium">{group.length}</span>
-                  </div>
-                  <p className="text-sm text-gray-400 mb-3">{info.description}</p>
-                  <div className="bg-white rounded-xl border border-gray-100 px-3">
+                  <p className="text-xs font-medium text-gray-400 mb-3">
+                    {info.label} <span className="text-gray-300">{group.length}</span>
+                  </p>
+                  <div>
                     {displayItems.map((program) => {
                       const highlighted = isProgramHighlighted(program);
                       return (
                         <Link
                           key={program.id}
                           href={`/senior-benefits/${state.id}/${program.id}`}
-                          className={`group flex items-center gap-3 py-4 border-b border-gray-100 last:border-0 transition-all -mx-1 px-1 rounded-lg ${
-                            highlighted ? "opacity-100 hover:bg-vanilla-50/50" : "opacity-35"
+                          className={`group flex items-start justify-between gap-4 py-3.5 border-b border-gray-100 last:border-0 transition-opacity ${
+                            highlighted ? "opacity-100" : "opacity-30"
                           }`}
                         >
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="text-sm font-medium text-gray-900 group-hover:text-primary-700 transition-colors leading-snug">
-                                {program.name}
-                              </span>
-                            </div>
-                            <p className="text-sm text-gray-500 leading-relaxed mt-0.5 line-clamp-1">
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-gray-900 group-hover:text-primary-700 transition-colors leading-snug">
+                              {program.name}
+                            </p>
+                            <p className="text-xs text-gray-400 mt-0.5 line-clamp-1">
                               {program.tagline || program.description}
                             </p>
-                            {program.savingsRange && (
-                              <p className="text-xs text-emerald-600 font-medium mt-1">
-                                Saves up to {program.savingsRange}
-                              </p>
-                            )}
                           </div>
-                          <SaveButton program={program} stateId={state.id} />
-                          <svg className="w-4 h-4 text-gray-300 group-hover:text-primary-500 shrink-0 transition-all group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
-                          </svg>
+                          <span className="text-xs text-gray-400 shrink-0 mt-0.5">
+                            {program.savingsRange ? program.savingsRange.match(/\$[\d,]+/)?.[0] || program.savingsRange : "Free"}
+                          </span>
                         </Link>
                       );
                     })}

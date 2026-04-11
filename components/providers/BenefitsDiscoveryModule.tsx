@@ -18,14 +18,12 @@ export interface BenefitsProgram {
 }
 
 interface BenefitsDiscoveryModuleProps {
-  providerName: string;
-  stateId: string;       // slug (e.g., "texas")
-  stateName: string;     // display (e.g., "Texas")
-  topPrograms: BenefitsProgram[];   // Top 3 by savings
-  allPrograms: BenefitsProgram[];   // All programs for screener
+  stateId: string;
+  stateName: string;
+  topPrograms: BenefitsProgram[];
+  allPrograms: BenefitsProgram[];
 }
 
-/** Build the correct benefits URL for a state — Texas uses parallel routes */
 function benefitsUrl(stateId: string): string {
   if (stateId === "texas") return "/texas/benefits";
   return `/senior-benefits/${stateId}`;
@@ -36,7 +34,6 @@ function programUrl(stateId: string, programId: string): string {
   return `/senior-benefits/${stateId}/${programId}`;
 }
 
-/** Extract the upper-bound dollar amount for display: "$20,000 – $50,000/year in 2026" → "$50,000" */
 function extractTopSavings(savingsRange?: string): string | null {
   if (!savingsRange) return null;
   const matches = savingsRange.match(/\$[\d,]+/g);
@@ -44,7 +41,6 @@ function extractTopSavings(savingsRange?: string): string | null {
   return matches[matches.length - 1];
 }
 
-/** Shorten savings for compact display: "$20,000 – $50,000/year in 2026" → "Up to $50,000/yr" */
 function shortSavings(savingsRange?: string): string | null {
   const top = extractTopSavings(savingsRange);
   if (!top) return null;
@@ -52,7 +48,6 @@ function shortSavings(savingsRange?: string): string | null {
 }
 
 export default function BenefitsDiscoveryModule({
-  providerName,
   stateId,
   stateName,
   topPrograms,
@@ -63,27 +58,19 @@ export default function BenefitsDiscoveryModule({
   const [medicaid, setMedicaid] = useState<"yes" | "no" | "not-sure" | "">("");
   const [submitted, setSubmitted] = useState(false);
 
-  // Screener matching (same logic as InlineBenefitsCheck)
   const matchingPrograms = useMemo(() => {
     if (!submitted || (!age && !medicaid)) return [];
     return allPrograms.filter((p) => {
       const ageNum = parseInt(age);
-
-      // Age check
       if (ageNum && p.structuredEligibility?.ageRequirement) {
         const ageReq = parseInt(p.structuredEligibility.ageRequirement);
         if (ageReq && ageNum < ageReq) return false;
       }
-
-      // Medicaid check — if "no", exclude Medicaid-dependent programs
       if (medicaid === "no") {
         const nameAndTag = `${p.name} ${p.tagline || ""}`.toLowerCase();
         if (nameAndTag.includes("medicaid") && !nameAndTag.includes("savings")) return false;
       }
-
-      // Resources/navigators available to everyone
       if (p.programType === "resource" || p.programType === "navigator") return true;
-
       return true;
     });
   }, [submitted, age, medicaid, allPrograms]);
@@ -94,66 +81,53 @@ export default function BenefitsDiscoveryModule({
   const heroSavings = extractTopSavings(topPrograms[0]?.savingsRange);
 
   return (
-    <div className="rounded-2xl bg-vanilla-200/40 border border-vanilla-300/40 p-6 md:p-8">
-      {/* ── The Hook: headline with number ── */}
-      <p className="text-xl md:text-2xl font-bold text-gray-900 font-serif">
-        {stateName} families save up to {heroSavings || "thousands"}/yr on care
-      </p>
-      <p className="text-sm text-gray-500 mt-1.5 mb-6">
-        {allPrograms.length} programs that could help with services like {providerName}&apos;s
+    <div>
+      {/* ── Headline — like "Families are asking" ── */}
+      <h2 className="text-2xl font-bold text-gray-900 font-display">
+        Your family may qualify for help
+      </h2>
+      <p className="text-sm text-gray-500 mt-1 mb-6">
+        {stateName} has {allPrograms.length} programs — families save up to {heroSavings || "thousands"}/yr
       </p>
 
-      {/* Top programs — first card is hero, rest are compact */}
-      <div className="space-y-2.5 mb-6">
-        {topPrograms.map((p, i) => {
+      {/* ── Program rows — clean like Q&A suggestion cards ── */}
+      <div className="space-y-2 mb-6">
+        {topPrograms.map((p) => {
           const savings = shortSavings(p.savingsRange);
-          const isHero = i === 0;
-
           return (
             <Link
               key={p.id}
               href={programUrl(stateId, p.id)}
-              className={`flex items-center justify-between gap-4 rounded-xl border px-4 transition-all group ${
-                isHero
-                  ? "bg-white border-primary-200 py-4 shadow-sm hover:shadow-md"
-                  : "bg-white border-vanilla-300/50 py-3 hover:border-primary-200 hover:shadow-sm"
-              }`}
+              className="flex items-center justify-between gap-4 rounded-xl bg-gray-50 hover:bg-gray-100 px-4 py-3.5 transition-colors group"
             >
-              <p className={`font-semibold text-gray-900 group-hover:text-primary-700 transition-colors truncate ${
-                isHero ? "text-base" : "text-sm"
-              }`}>
+              <span className="text-sm font-medium text-gray-900 group-hover:text-gray-700 truncate">
                 {p.shortName || p.name}
-              </p>
-              {savings && (
-                <span className={`font-bold whitespace-nowrap ${
-                  isHero ? "text-base text-primary-700" : "text-sm text-gray-600"
-                }`}>
-                  {savings}
-                </span>
-              )}
+              </span>
+              <span className="flex items-center gap-2 shrink-0">
+                {savings && (
+                  <span className="text-sm text-gray-500">{savings}</span>
+                )}
+                <ArrowRight className="w-3.5 h-3.5 text-gray-400 group-hover:text-gray-600 transition-colors" />
+              </span>
             </Link>
           );
         })}
       </div>
 
-      {/* ── The Screener ── */}
+      {/* ── Screener ── */}
       {!showScreener ? (
         <button
           onClick={() => setShowScreener(true)}
-          className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gray-900 text-white font-semibold text-sm hover:bg-gray-800 transition-colors"
+          className="w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-gray-900 text-white font-semibold text-sm hover:bg-gray-800 transition-colors"
         >
           <MagnifyingGlass className="w-4 h-4" weight="bold" />
-          See which programs your family qualifies for
+          Check if your family qualifies
         </button>
       ) : (
-        <div className="border-t border-vanilla-300/50 pt-5">
-          <p className="text-base font-semibold text-gray-900 mb-4">Quick eligibility check</p>
-
-          <div className="flex flex-col sm:flex-row gap-3 mb-3">
+        <div className="mt-2">
+          <div className="flex flex-col sm:flex-row gap-3 mb-2">
             <div className="flex-1">
-              <label htmlFor="benefits-age" className="text-sm text-gray-600 mb-1.5 block">
-                Loved one&apos;s age
-              </label>
+              <label htmlFor="benefits-age" className="text-xs text-gray-500 mb-1 block">Age</label>
               <input
                 id="benefits-age"
                 type="number"
@@ -163,11 +137,8 @@ export default function BenefitsDiscoveryModule({
                 className="w-full px-4 py-2.5 text-sm rounded-lg border border-gray-200 bg-white focus:border-primary-300 focus:ring-1 focus:ring-primary-200 outline-none transition-colors"
               />
             </div>
-
             <div className="flex-1">
-              <label htmlFor="benefits-medicaid" className="text-sm text-gray-600 mb-1.5 block">
-                On Medicaid?
-              </label>
+              <label htmlFor="benefits-medicaid" className="text-xs text-gray-500 mb-1 block">On Medicaid?</label>
               <select
                 id="benefits-medicaid"
                 value={medicaid}
@@ -180,7 +151,6 @@ export default function BenefitsDiscoveryModule({
                 <option value="not-sure">Not sure</option>
               </select>
             </div>
-
             <div className="flex items-end">
               <button
                 onClick={() => setSubmitted(true)}
@@ -195,15 +165,13 @@ export default function BenefitsDiscoveryModule({
               </button>
             </div>
           </div>
-          <p className="text-xs text-gray-400">Rough estimate based on basic eligibility criteria.</p>
+          <p className="text-xs text-gray-400">Rough estimate — not a guarantee.</p>
 
-          {/* ── Results ── */}
           {submitted && hasInput && (
-            <div className="pt-4 mt-4 border-t border-vanilla-300/50">
+            <div className="pt-4 mt-4 border-t border-gray-100">
               <p className="text-base text-gray-700">
                 Your loved one may qualify for{" "}
                 <span className="font-bold text-gray-900">{matchingPrograms.length} of {allPrograms.length} programs</span>
-                {" "}in {stateName}.
               </p>
               {matchingPrograms.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-3">
@@ -226,16 +194,14 @@ export default function BenefitsDiscoveryModule({
         </div>
       )}
 
-      {/* View all link */}
-      <div className="mt-4 pt-4 border-t border-vanilla-300/50">
-        <Link
-          href={benefitsUrl(stateId)}
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 hover:text-primary-500 transition-colors"
-        >
-          View all {stateName} benefits programs
-          <ArrowRight className="w-3.5 h-3.5" />
-        </Link>
-      </div>
+      {/* View all — quiet */}
+      <Link
+        href={benefitsUrl(stateId)}
+        className="inline-flex items-center gap-1.5 mt-4 text-sm text-primary-600 hover:text-primary-500 transition-colors"
+      >
+        View all {stateName} programs
+        <ArrowRight className="w-3 h-3" />
+      </Link>
     </div>
   );
 }

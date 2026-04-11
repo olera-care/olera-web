@@ -943,7 +943,6 @@ export default async function ProviderPage({
               {hasBenefitsData && benefitsData && (
                 <div id="benefits" className="py-8 scroll-mt-20 border-t border-gray-200">
                   <BenefitsDiscoveryModule
-                    providerName={profile.display_name}
                     stateId={benefitsData.stateId}
                     stateName={benefitsData.stateName}
                     topPrograms={benefitsData.programs.map((p) => ({

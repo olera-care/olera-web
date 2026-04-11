@@ -147,6 +147,9 @@ export interface WaiverProgram {
     visualTone?: "editorial" | "warm" | "minimal"; // How much design energy to apply
   } | null;
 
+  // Pipeline v3: Program icon (Phosphor icon name)
+  icon?: string | null;
+
   // Pipeline v2: Content lifecycle
   contentStatus?: ContentStatus;
   draftedAt?: string;

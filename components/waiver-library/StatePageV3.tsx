@@ -5,6 +5,8 @@ import type { StateData, WaiverProgram } from "@/data/waiver-library";
 import type { PipelineStateOverview } from "@/data/pipeline-drafts";
 import { useState, useRef } from "react";
 import { useSavedPrograms, type SaveProgramData } from "@/hooks/use-saved-programs";
+import { House, CurrencyDollar, Compass, HandHeart, BookmarkSimple, ShareNetwork, Calculator, ArrowRight, CaretRight } from "@phosphor-icons/react";
+import { ProgramIcon } from "@/lib/program-icon";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Archetypes — the conceptual backbone. Each archetype maps a family situation
@@ -104,35 +106,12 @@ function HandDrawnUnderline() {
   );
 }
 
-// Archetype icons — organic, warm, hand-drawn feel
+// Archetype icons — Phosphor icons in the Olera teal palette
 const archetypeIcons: Record<string, React.ReactNode> = {
-  home: (
-    <svg viewBox="0 0 32 32" fill="none" className="w-8 h-8" aria-hidden="true">
-      <path d="M6 18l10-9 10 9" stroke="#417272" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M9 16v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9" stroke="#417272" strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M14 12l-1-3" stroke="#e9bd91" strokeWidth="1.5" strokeLinecap="round" />
-    </svg>
-  ),
-  paying: (
-    <svg viewBox="0 0 32 32" fill="none" className="w-8 h-8" aria-hidden="true">
-      <circle cx="16" cy="16" r="10" stroke="#417272" strokeWidth="2" />
-      <path d="M16 10v12M13 13c0-1.5 1.5-2.5 3-2.5s3 .8 3 2.5-1.5 2.5-3 2.5-3 .8-3 2.5 1.5 2.5 3 2.5 3-1 3-2.5" stroke="#417272" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  ),
-  start: (
-    <svg viewBox="0 0 32 32" fill="none" className="w-8 h-8" aria-hidden="true">
-      <circle cx="16" cy="14" r="9" stroke="#417272" strokeWidth="2" />
-      <path d="M16 23v4" stroke="#417272" strokeWidth="2" strokeLinecap="round" />
-      <path d="M16 10v2M16 15v1" stroke="#417272" strokeWidth="2" strokeLinecap="round" />
-      <circle cx="24" cy="7" r="1.5" fill="#e9bd91" opacity="0.6" />
-    </svg>
-  ),
-  caregiver: (
-    <svg viewBox="0 0 32 32" fill="none" className="w-8 h-8" aria-hidden="true">
-      <path d="M16 26s-8-5.5-8-11a5 5 0 0110 0 5 5 0 0110 0c0 5.5-8 11-8 11z" stroke="#417272" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx="25" cy="8" r="1.5" fill="#e9bd91" opacity="0.6" />
-    </svg>
-  ),
+  home: <House size={32} weight="duotone" color="#417272" aria-hidden="true" />,
+  paying: <CurrencyDollar size={32} weight="duotone" color="#417272" aria-hidden="true" />,
+  start: <Compass size={32} weight="duotone" color="#417272" aria-hidden="true" />,
+  caregiver: <HandHeart size={32} weight="duotone" color="#417272" aria-hidden="true" />,
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -168,15 +147,10 @@ function SaveButton({ program, stateId }: { program: WaiverProgram; stateId: str
       className="p-1.5 -m-1 rounded-lg hover:bg-gray-100 transition-colors"
       aria-label={saved ? "Saved" : "Save program"}
     >
-      <svg
-        className={`w-4 h-4 transition-colors ${saved ? "text-primary-600 fill-primary-600" : "text-gray-300 hover:text-gray-400"}`}
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        strokeWidth={saved ? 0 : 1.5}
-        fill={saved ? "currentColor" : "none"}
-      >
-        <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
-      </svg>
+      <BookmarkSimple
+        className={`w-4 h-4 transition-colors ${saved ? "text-primary-600" : "text-gray-300 hover:text-gray-400"}`}
+        weight={saved ? "fill" : "regular"}
+      />
     </button>
   );
 }
@@ -309,9 +283,7 @@ function InlineBenefitsCheck({ programs, stateId, stateName }: { programs: Waive
             className="inline-flex items-center gap-1.5 mt-3 text-sm font-medium text-primary-600 hover:text-primary-500 transition-colors"
           >
             Get a detailed assessment
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-            </svg>
+            <ArrowRight className="w-3 h-3" />
           </Link>
         </div>
       )}
@@ -538,9 +510,7 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
                       href="/benefits/spend-down-calculator"
                       className="flex items-center gap-3 mb-5 p-3 rounded-xl bg-amber-50/50 hover:bg-amber-50 transition-colors group"
                     >
-                      <svg className="w-4 h-4 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                      </svg>
+                      <Calculator className="w-4 h-4 text-amber-600 shrink-0" />
                       <p className="text-sm text-gray-700 group-hover:text-gray-900 transition-colors">
                         <span className="font-medium">Spend-down calculator</span>
                         <span className="text-gray-400"> — check if assets affect eligibility</span>
@@ -621,9 +591,7 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
                     </p>
                     <div className="flex items-center gap-1 mt-3 text-xs font-medium text-primary-600 opacity-0 group-hover:opacity-100 transition-opacity">
                       Learn more
-                      <svg className="w-3 h-3 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
+                      <CaretRight className="w-3 h-3 transition-transform group-hover:translate-x-0.5" />
                     </div>
                   </Link>
                 );
@@ -778,13 +746,24 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
                             highlighted ? "opacity-100" : "opacity-30"
                           }`}
                         >
-                          <div className="min-w-0">
+                          <div className="flex items-start gap-2.5 min-w-0">
+                            {program.icon && (
+                              <ProgramIcon
+                                iconName={program.icon}
+                                programType={program.programType}
+                                size={16}
+                                weight="duotone"
+                                className="text-gray-400 shrink-0 mt-0.5"
+                              />
+                            )}
+                            <div className="min-w-0">
                             <p className="text-base font-medium text-gray-900 group-hover:text-primary-700 transition-colors leading-snug">
                               {program.name}
                             </p>
                             <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">
                               {program.tagline || program.description}
                             </p>
+                            </div>
                           </div>
                           <span className="text-sm text-gray-500 shrink-0 mt-0.5">
                             {program.savingsRange ? program.savingsRange.match(/\$[\d,]+/)?.[0] || program.savingsRange : "Free"}
@@ -824,9 +803,7 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
               }}
               className="text-sm font-medium text-primary-600 hover:text-primary-500 transition-colors flex items-center gap-1.5"
             >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-              </svg>
+              <ShareNetwork className="w-3.5 h-3.5" />
               Share with a family member
             </button>
           </div>

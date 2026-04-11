@@ -113,6 +113,7 @@ export function getEnrichedProgram(
       relatedPrograms: draft.relatedPrograms,
       regionalApplications: draft.regionalApplications,
       layoutIntent: draft.layoutIntent as WaiverProgram["layoutIntent"],
+      icon: draft.icon,
     };
   }
 
@@ -147,6 +148,7 @@ export function getEnrichedProgram(
     relatedPrograms: baseProgram.relatedPrograms || draft.relatedPrograms,
     regionalApplications: baseProgram.regionalApplications || draft.regionalApplications,
     layoutIntent: baseProgram.layoutIntent || draft.layoutIntent as WaiverProgram["layoutIntent"],
+    icon: baseProgram.icon || draft.icon,
     // Use pipeline name/tagline only if base is clearly a scaffold
     tagline: baseProgram.tagline?.length > 50 ? baseProgram.tagline : (draft.tagline || baseProgram.tagline),
   };

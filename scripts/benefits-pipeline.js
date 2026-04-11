@@ -1161,6 +1161,56 @@ You must also decide which VISUAL COMPONENTS best serve this specific program. T
 
 Choose components that match THIS program's data — don't force components where data is thin.
 
+You must also choose an ICON that represents this program's primary purpose. Pick ONE from this menu:
+- "House" — home care, aging in place, home modifications
+- "HouseLine" — housing assistance, rent help, shelter
+- "CurrencyDollar" — financial benefits, savings programs, cash assistance
+- "Coins" — supplemental income, stipends, small financial aid
+- "HandCoins" — financial counseling, money management, spend-down
+- "Money" — cost coverage, payment programs, reimbursement
+- "Wallet" — budgeting, financial planning, asset management
+- "Bank" — banking, institutional financial services
+- "HandHeart" — caregiver support, respite, emotional support
+- "Heart" — general wellness, emotional health, companionship
+- "Stethoscope" — medical care, health services, clinical programs
+- "Pill" — prescription assistance, medication programs, pharmacy
+- "FirstAid" — emergency care, urgent health needs, crisis
+- "Hospital" — facility-based care, inpatient, institutional
+- "Wheelchair" — disability services, mobility assistance, ADA
+- "Bed" — nursing home, long-term facility care, residential
+- "BowlFood" — food assistance, meals, nutrition programs (SNAP, MOW)
+- "Bread" — food banks, pantries, commodity food programs
+- "Lightning" — energy assistance, utilities, weatherization (LIHEAP)
+- "Thermometer" — heating/cooling assistance, seasonal energy
+- "Drop" — water assistance, utility programs
+- "ShieldCheck" — insurance, coverage verification, protection programs
+- "Scales" — legal aid, advocacy, rights protection
+- "Gavel" — legal services, elder law, guardianship
+- "GraduationCap" — education, training, employment programs
+- "Briefcase" — employment, job placement, vocational rehab
+- "Bus" — transportation assistance, transit, ride programs
+- "Truck" — delivery services, supply programs
+- "Phone" — hotlines, information lines, phone-based services
+- "Compass" — navigation, counseling, options exploration (SHIP, SHINE)
+- "Signpost" — wayfinding, referral services, care coordination
+- "Lightbulb" — information, education, awareness programs
+- "Users" — group programs, support groups, community services
+- "UsersThree" — family services, multi-person programs
+- "MapPin" — location-specific, regional offices, area agencies
+- "Buildings" — assisted living, facility-based community programs
+- "Lifebuoy" — safety net programs, emergency assistance
+- "Star" — quality programs, excellence, top-rated services
+- "Certificate" — certification, accreditation, standards programs
+- "Calendar" — enrollment periods, seasonal programs, scheduling
+- "Clock" — time-limited programs, temporary assistance, waitlists
+- "FileText" — application-heavy programs, paperwork, documentation
+- "ListChecks" — multi-requirement programs, compliance, checklists
+- "Leaf" — environmental, green energy, sustainability programs
+- "Gift" — benefit programs with one-time grants or awards
+- "Megaphone" — outreach, awareness campaigns, public programs
+- "CheckCircle" — verification, eligibility confirmation, approval
+Pick the one icon that BEST represents what this program does for families. When in doubt, match the program type: benefits→CurrencyDollar, resources→Compass, navigators→Signpost, employment→Briefcase.
+
 Generate the complete page content as a JSON object matching this exact structure:
 
 {
@@ -1244,6 +1294,8 @@ Generate the complete page content as a JSON object matching this exact structur
     "hasDocumentChecklist": <true if documentsNeeded has 4+ items>,
     "visualTone": <"editorial" for deep programs (full design energy), "warm" for medium programs (some visual elements), "minimal" for simple resources>
   },
+
+  "icon": "<Phosphor icon name from the menu above — e.g., 'House', 'CurrencyDollar', 'BowlFood'. Pick the one that best represents this program's purpose.>",
 
   "phone": "<primary contact phone from research or null>",
   "sourceUrl": "<primary official .gov URL>",

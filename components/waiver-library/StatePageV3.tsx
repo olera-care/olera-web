@@ -413,7 +413,7 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
         {/* ─── Archetype Entry — "What's your situation?" ─── */}
         <section className="max-w-4xl mx-auto px-6 lg:px-8 -mt-2 mb-10">
           <p className="text-base text-gray-500 mb-4">What brought you here?</p>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 items-stretch">
             {ARCHETYPES.map((arch) => {
               const isActive = activeArchetype === arch.id;
               return (
@@ -429,19 +429,19 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
                       }, 50);
                     }
                   }}
-                  className={`text-left p-4 rounded-2xl border transition-all duration-200 group ${
+                  className={`text-left p-4 rounded-2xl border transition-all duration-200 group flex flex-col ${
                     isActive
                       ? "bg-white border-primary-300 shadow-md ring-1 ring-primary-200"
                       : "bg-white/60 border-gray-200 hover:border-gray-300 hover:bg-white hover:shadow-sm"
                   }`}
                 >
-                  <div className={`mb-2.5 transition-opacity ${isActive ? "opacity-100" : "opacity-60 group-hover:opacity-80"}`}>
+                  <div className={`mb-2.5 transition-opacity shrink-0 ${isActive ? "opacity-100" : "opacity-60 group-hover:opacity-80"}`}>
                     {archetypeIcons[arch.id!]}
                   </div>
                   <p className={`text-base font-semibold leading-snug transition-colors ${isActive ? "text-gray-900" : "text-gray-700"}`}>
                     {arch.title}
                   </p>
-                  <p className="text-sm text-gray-500 mt-1 leading-relaxed">
+                  <p className="text-sm text-gray-500 mt-1 leading-relaxed flex-1">
                     {arch.subtitle}
                   </p>
                 </button>

@@ -276,6 +276,9 @@ function AssetLimitsDisplay({ limits }: { limits: NonNullable<StructuredEligibil
 
 function DocumentChecklist({ documents, heading, programName }: { documents: string[]; heading?: string; programName?: string }) {
   const [checked, setChecked] = useState<Set<number>>(new Set());
+  const [expanded, setExpanded] = useState(false);
+  const PREVIEW_COUNT = 3;
+  const needsCollapse = documents.length > PREVIEW_COUNT + 1;
 
   const toggle = (i: number) => {
     setChecked((prev) => {
@@ -287,6 +290,7 @@ function DocumentChecklist({ documents, heading, programName }: { documents: str
   };
 
   const progress = documents.length > 0 ? Math.round((checked.size / documents.length) * 100) : 0;
+  const visibleDocs = needsCollapse && !expanded ? documents.slice(0, PREVIEW_COUNT) : documents;
 
   return (
     <div>
@@ -323,28 +327,45 @@ function DocumentChecklist({ documents, heading, programName }: { documents: str
         </button>
       </div>
 
-      <div className="rounded-xl border border-gray-200 bg-white divide-y divide-gray-100">
-        {documents.map((doc, i) => (
-          <label
-            key={i}
-            className="flex items-start gap-3 px-4 py-3 cursor-pointer hover:bg-vanilla-50/50 transition-colors"
-          >
-            <input
-              type="checkbox"
-              checked={checked.has(i)}
-              onChange={() => toggle(i)}
-              className="mt-0.5 w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500/20"
-            />
-            <span
-              className={`text-sm leading-relaxed transition-colors ${
-                checked.has(i) ? "text-gray-400 line-through" : "text-gray-700"
-              }`}
+      <div className="relative">
+        <div className="rounded-xl border border-gray-200 bg-white divide-y divide-gray-100">
+          {visibleDocs.map((doc, i) => (
+            <label
+              key={i}
+              className="flex items-start gap-3 px-4 py-3 cursor-pointer hover:bg-vanilla-50/50 transition-colors"
             >
-              {doc}
-            </span>
-          </label>
-        ))}
+              <input
+                type="checkbox"
+                checked={checked.has(i)}
+                onChange={() => toggle(i)}
+                className="mt-0.5 w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500/20"
+              />
+              <span
+                className={`text-sm leading-relaxed transition-colors ${
+                  checked.has(i) ? "text-gray-400 line-through" : "text-gray-700"
+                }`}
+              >
+                {doc}
+              </span>
+            </label>
+          ))}
+        </div>
+
+        {/* Gradient fade overlay when collapsed */}
+        {needsCollapse && !expanded && (
+          <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-vanilla-100 via-vanilla-100/80 to-transparent rounded-b-xl pointer-events-none" />
+        )}
       </div>
+
+      {/* Show all / collapse toggle */}
+      {needsCollapse && (
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="mt-3 text-sm font-medium text-primary-600 hover:text-primary-500 transition-colors"
+        >
+          {expanded ? "Show less" : `Show all ${documents.length} documents`}
+        </button>
+      )}
 
       {progress === 100 && (
         <p className="text-sm text-emerald-600 font-medium mt-3 flex items-center gap-1.5">
@@ -979,21 +1000,7 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
               </section>
             )}
 
-            {/* ─── 3. At-a-glance strip ─── */}
-            {elig && (
-              <section className="max-w-3xl mx-auto px-6 lg:px-8 mb-16">
-                <div className="flex flex-wrap gap-3">
-                  {elig.summary.slice(0, 5).map((s, i) => (
-                    <div key={i} className="flex items-center gap-2 px-3.5 py-2 rounded-full bg-white border border-gray-200 text-sm text-gray-700">
-                      <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" weight="fill" />
-                      {s}
-                    </div>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {/* ─── 4. Intro prose ─── */}
+            {/* ─── 3. Intro prose ─── */}
             {program.intro && (
               <section className="max-w-2xl mx-auto px-6 lg:px-8 mb-16">
                 <div className="text-lg text-gray-600 leading-relaxed space-y-4">
@@ -1020,23 +1027,14 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
               </section>
             )}
 
-            {/* ─── 6. Dark stat band ─── */}
-            {stats.length > 0 && (
-              <section className="max-w-4xl mx-auto px-6 lg:px-8 mb-16">
-                <StatCallout stats={stats} />
-                {program.savingsRange && program.savingsSource && program.savingsSource !== "Free service" && (
-                  <p className="text-xs text-gray-400 mt-2">Source: {program.savingsSource}</p>
-                )}
-              </section>
-            )}
-
             <WavyDivider className="my-16 max-w-3xl mx-auto px-6" />
 
-            {/* ─── 7. Eligibility details ─── */}
+            {/* ─── 6. Eligibility details ─── */}
             {elig && (
               <section id="eligibility" className="max-w-2xl mx-auto px-6 lg:px-8 mb-16 space-y-10 scroll-mt-20">
                 <div>
-                  <SectionHeading>Eligibility</SectionHeading>
+                  <SectionLabel>Eligibility details</SectionLabel>
+                  <SectionHeading>Do you qualify?</SectionHeading>
                   <p className="text-gray-500 mt-1">Full requirements for this program.</p>
                 </div>
 
@@ -1086,10 +1084,23 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
               </section>
             )}
 
-            {/* ─── 8. How to apply ─── */}
+            {/* ─── Dark stat band — visual break between eligibility and apply ─── */}
+            {stats.length > 0 && (
+              <section className="max-w-4xl mx-auto px-6 lg:px-8 mb-16">
+                <StatCallout stats={stats} />
+                {program.savingsRange && program.savingsSource && program.savingsSource !== "Free service" && (
+                  <p className="text-xs text-gray-400 mt-2">Source: {program.savingsSource}</p>
+                )}
+              </section>
+            )}
+
+            {/* ─── 7. How to apply — background shift for zone change ─── */}
             {guide && (
-              <section id="how-to-apply" className="max-w-2xl mx-auto px-6 lg:px-8 mb-16 space-y-10 scroll-mt-20">
+              <section id="how-to-apply" className="scroll-mt-20 mb-16">
+                <div className="bg-vanilla-200/30 py-14">
+                  <div className="max-w-2xl mx-auto px-6 lg:px-8 space-y-10">
                 <div>
+                  <SectionLabel>Application process</SectionLabel>
                   <SectionHeading>How to apply</SectionHeading>
                   <p className="text-lg text-gray-600 leading-relaxed mt-2">{guide.summary}</p>
                   {guide.tip && (
@@ -1160,6 +1171,8 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
                     ))}
                   </div>
                 )}
+                  </div>
+                </div>
               </section>
             )}
 

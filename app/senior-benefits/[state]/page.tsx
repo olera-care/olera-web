@@ -93,12 +93,12 @@ export default async function StatePage({ params }: Props) {
 
     // Fetch recent answered questions (social proof)
     // Uses a simple query — no cross-table join to avoid Supabase typed client issues with hyphenated table names
-    let familyQuestions: { question: string; answer: string; providerName: string; answeredAt: string }[] = [];
+    let familyQuestions: { question: string; answer: string; providerName: string; answeredAt: string; providerSlug?: string }[] = [];
     try {
       const supabase = await createClient();
       const { data } = await supabase
         .from("provider_questions")
-        .select("question, answer, answered_at, answered_by")
+        .select("question, answer, answered_at, answered_by, provider_id")
         .eq("status", "answered")
         .eq("is_public", true)
         .not("answer", "is", null)
@@ -106,6 +106,21 @@ export default async function StatePage({ params }: Props) {
         .limit(6);
 
       if (data) {
+        // Look up provider slugs for linking
+        const providerIds = data.map((q) => q.provider_id).filter(Boolean);
+        let slugMap: Record<string, string> = {};
+        if (providerIds.length > 0) {
+          const { data: providers } = await supabase
+            .from("olera-providers")
+            .select("provider_id, slug")
+            .in("provider_id", providerIds);
+          if (providers) {
+            for (const p of providers) {
+              if (p.slug) slugMap[p.provider_id] = p.slug;
+            }
+          }
+        }
+
         familyQuestions = data
           .filter((q) => q.question && q.answer)
           .slice(0, 3)
@@ -114,6 +129,7 @@ export default async function StatePage({ params }: Props) {
             answer: q.answer!,
             providerName: q.answered_by || "Care provider",
             answeredAt: q.answered_at || "",
+            providerSlug: q.provider_id ? slugMap[q.provider_id] : undefined,
           }));
       }
     } catch {

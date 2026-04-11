@@ -398,6 +398,7 @@ interface FamilyQuestion {
   answer: string;
   providerName: string;
   answeredAt: string;
+  providerSlug?: string;
 }
 
 interface StatePageV3Props {
@@ -785,15 +786,31 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
           <section className="max-w-2xl mx-auto px-6 lg:px-8 mb-14">
             <SectionLabel>Families are asking</SectionLabel>
             <div className="space-y-6">
-              {familyQuestions.slice(0, 3).map((q, i) => (
-                <div key={i} className="pb-6 border-b border-gray-100 last:border-0 last:pb-0">
-                  <p className="text-sm font-medium text-gray-900 leading-snug">{q.question}</p>
-                  <p className="text-sm text-gray-500 mt-2 leading-relaxed line-clamp-3">{q.answer}</p>
-                  <p className="text-xs text-gray-400 mt-2">
-                    — {q.providerName}
-                  </p>
-                </div>
-              ))}
+              {familyQuestions.slice(0, 3).map((q, i) => {
+                const content = (
+                  <>
+                    <p className="text-sm font-medium text-gray-900 leading-snug group-hover:text-primary-700 transition-colors">{q.question}</p>
+                    <p className="text-sm text-gray-500 mt-2 leading-relaxed line-clamp-3">{q.answer}</p>
+                    <p className="text-xs text-gray-400 mt-2">— {q.providerName}</p>
+                  </>
+                );
+
+                return q.providerSlug ? (
+                  <a
+                    key={i}
+                    href={`/provider/${q.providerSlug}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group block pb-6 border-b border-gray-100 last:border-0 last:pb-0"
+                  >
+                    {content}
+                  </a>
+                ) : (
+                  <div key={i} className="group pb-6 border-b border-gray-100 last:border-0 last:pb-0">
+                    {content}
+                  </div>
+                );
+              })}
             </div>
           </section>
         )}

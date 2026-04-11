@@ -47,6 +47,18 @@ function shortSavings(savingsRange?: string): string | null {
   return `Up to ${top}/yr`;
 }
 
+/** Extract a short plain-language description from the tagline.
+ *  Takes the first clause (before period or non-numeric comma), capped at ~55 chars. */
+function plainDescription(tagline?: string): string | null {
+  if (!tagline) return null;
+  const firstClause = tagline.split(/\.\s|,\s(?![0-9])/)[0];
+  if (firstClause.length <= 55) return firstClause;
+  // Cut at last word boundary within 55 chars
+  const trimmed = firstClause.slice(0, 55);
+  const lastSpace = trimmed.lastIndexOf(" ");
+  return lastSpace > 20 ? trimmed.slice(0, lastSpace) : trimmed;
+}
+
 export default function BenefitsDiscoveryModule({
   stateId,
   stateName,
@@ -90,19 +102,25 @@ export default function BenefitsDiscoveryModule({
         {stateName} has {allPrograms.length} programs — families save up to {heroSavings || "thousands"}/yr
       </p>
 
-      {/* ── Program rows — clean like Q&A suggestion cards ── */}
+      {/* ── Program rows ── */}
       <div className="space-y-2 mb-6">
         {topPrograms.map((p) => {
           const savings = shortSavings(p.savingsRange);
+          const desc = plainDescription(p.tagline);
           return (
             <Link
               key={p.id}
               href={programUrl(stateId, p.id)}
               className="flex items-center justify-between gap-4 rounded-xl bg-gray-50 hover:bg-gray-100 px-4 py-3.5 transition-colors group"
             >
-              <span className="text-sm font-medium text-gray-900 group-hover:text-gray-700 truncate">
-                {p.shortName || p.name}
-              </span>
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-gray-900 group-hover:text-gray-700 truncate">
+                  {p.shortName || p.name}
+                </p>
+                {desc && (
+                  <p className="text-xs text-gray-500 mt-0.5 truncate">{desc}</p>
+                )}
+              </div>
               <span className="flex items-center gap-2 shrink-0">
                 {savings && (
                   <span className="text-sm text-gray-500">{savings}</span>

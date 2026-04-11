@@ -107,20 +107,20 @@ function HandDrawnUnderline() {
 // Archetype icons — organic, warm, hand-drawn feel
 const archetypeIcons: Record<string, React.ReactNode> = {
   home: (
-    <svg viewBox="0 0 32 32" fill="none" className="w-7 h-7" aria-hidden="true">
+    <svg viewBox="0 0 32 32" fill="none" className="w-8 h-8" aria-hidden="true">
       <path d="M6 18l10-9 10 9" stroke="#417272" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M9 16v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9" stroke="#417272" strokeWidth="1.5" strokeLinecap="round" />
       <path d="M14 12l-1-3" stroke="#e9bd91" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   ),
   paying: (
-    <svg viewBox="0 0 32 32" fill="none" className="w-7 h-7" aria-hidden="true">
+    <svg viewBox="0 0 32 32" fill="none" className="w-8 h-8" aria-hidden="true">
       <circle cx="16" cy="16" r="10" stroke="#417272" strokeWidth="2" />
       <path d="M16 10v12M13 13c0-1.5 1.5-2.5 3-2.5s3 .8 3 2.5-1.5 2.5-3 2.5-3 .8-3 2.5 1.5 2.5 3 2.5 3-1 3-2.5" stroke="#417272" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   ),
   start: (
-    <svg viewBox="0 0 32 32" fill="none" className="w-7 h-7" aria-hidden="true">
+    <svg viewBox="0 0 32 32" fill="none" className="w-8 h-8" aria-hidden="true">
       <circle cx="16" cy="14" r="9" stroke="#417272" strokeWidth="2" />
       <path d="M16 23v4" stroke="#417272" strokeWidth="2" strokeLinecap="round" />
       <path d="M16 10v2M16 15v1" stroke="#417272" strokeWidth="2" strokeLinecap="round" />
@@ -128,7 +128,7 @@ const archetypeIcons: Record<string, React.ReactNode> = {
     </svg>
   ),
   caregiver: (
-    <svg viewBox="0 0 32 32" fill="none" className="w-7 h-7" aria-hidden="true">
+    <svg viewBox="0 0 32 32" fill="none" className="w-8 h-8" aria-hidden="true">
       <path d="M16 26s-8-5.5-8-11a5 5 0 0110 0 5 5 0 0110 0c0 5.5-8 11-8 11z" stroke="#417272" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
       <circle cx="25" cy="8" r="1.5" fill="#e9bd91" opacity="0.6" />
     </svg>
@@ -141,7 +141,7 @@ const archetypeIcons: Record<string, React.ReactNode> = {
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gray-400 mb-5">
+    <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gray-500 mb-4">
       {children}
     </p>
   );
@@ -233,13 +233,13 @@ function InlineBenefitsCheck({ programs, stateId, stateName }: { programs: Waive
 
   return (
     <div className="rounded-2xl bg-vanilla-200/60 border border-vanilla-300/50 p-6 md:p-8">
-      <p className="text-sm font-semibold text-gray-900 mb-1">Quick eligibility check</p>
+      <p className="text-base font-bold text-gray-900 mb-1">Quick eligibility check</p>
       <p className="text-sm text-gray-500 mb-5">See which {stateName} programs may apply to your family.</p>
 
       <div className="flex flex-col sm:flex-row gap-3 mb-4">
         {/* Age */}
         <div className="flex-1">
-          <label className="text-xs text-gray-500 mb-1 block">Loved one&apos;s age</label>
+          <label className="text-sm text-gray-600 mb-1.5 block">Loved one&apos;s age</label>
           <input
             type="number"
             placeholder="e.g. 72"
@@ -251,7 +251,7 @@ function InlineBenefitsCheck({ programs, stateId, stateName }: { programs: Waive
 
         {/* Medicaid */}
         <div className="flex-1">
-          <label className="text-xs text-gray-500 mb-1 block">On Medicaid?</label>
+          <label className="text-sm text-gray-600 mb-1.5 block">On Medicaid?</label>
           <select
             value={medicaid}
             onChange={(e) => { setMedicaid(e.target.value as typeof medicaid); setSubmitted(false); }}
@@ -283,7 +283,7 @@ function InlineBenefitsCheck({ programs, stateId, stateName }: { programs: Waive
       {/* Results */}
       {submitted && hasInput && (
         <div className="pt-4 border-t border-vanilla-300/50">
-          <p className="text-sm text-gray-700">
+          <p className="text-base text-gray-700">
             Your loved one may qualify for{" "}
             <span className="font-bold text-gray-900">{matchingPrograms.length} of {programs.length} programs</span>
             {" "}in {stateName}.
@@ -306,7 +306,7 @@ function InlineBenefitsCheck({ programs, stateId, stateName }: { programs: Waive
           )}
           <Link
             href="/benefits/finder"
-            className="inline-flex items-center gap-1.5 mt-3 text-xs font-medium text-primary-600 hover:text-primary-500 transition-colors"
+            className="inline-flex items-center gap-1.5 mt-3 text-sm font-medium text-primary-600 hover:text-primary-500 transition-colors"
           >
             Get a detailed assessment
             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -440,7 +440,7 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
 
         {/* ─── Archetype Entry — "What's your situation?" ─── */}
         <section className="max-w-4xl mx-auto px-6 lg:px-8 -mt-2 mb-10">
-          <p className="text-sm text-gray-500 mb-4">What brought you here?</p>
+          <p className="text-base text-gray-500 mb-4">What brought you here?</p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {ARCHETYPES.map((arch) => {
               const isActive = activeArchetype === arch.id;
@@ -466,10 +466,10 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
                   <div className={`mb-2.5 transition-opacity ${isActive ? "opacity-100" : "opacity-60 group-hover:opacity-80"}`}>
                     {archetypeIcons[arch.id!]}
                   </div>
-                  <p className={`text-sm font-semibold leading-snug transition-colors ${isActive ? "text-gray-900" : "text-gray-700"}`}>
+                  <p className={`text-base font-semibold leading-snug transition-colors ${isActive ? "text-gray-900" : "text-gray-700"}`}>
                     {arch.title}
                   </p>
-                  <p className="text-xs text-gray-400 mt-1 leading-relaxed">
+                  <p className="text-sm text-gray-500 mt-1 leading-relaxed">
                     {arch.subtitle}
                   </p>
                 </button>
@@ -492,7 +492,7 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
               return (
                 <div className="mt-5 pl-5 border-l-2 border-primary-300">
                   {/* Response message — warm, confident */}
-                  <p className="text-base text-gray-700 leading-relaxed font-serif mb-5">
+                  <p className="text-lg text-gray-700 leading-relaxed font-serif mb-5">
                     {archetypeResponses[selectedArchetype.id!] || ""}
                   </p>
 
@@ -508,19 +508,19 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
                           <div className="flex items-start justify-between gap-3">
                             <div className="min-w-0">
                               <div className="flex items-center gap-2">
-                                <p className={`text-sm font-semibold group-hover:text-primary-700 transition-colors leading-snug ${idx === 0 ? "text-gray-900" : "text-gray-700"}`}>
+                                <p className={`text-base font-semibold group-hover:text-primary-700 transition-colors leading-snug ${idx === 0 ? "text-gray-900" : "text-gray-700"}`}>
                                   {program.shortName || program.name}
                                 </p>
                                 {program.programType && <TypeBadge type={program.programType} />}
                               </div>
-                              <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{program.tagline || program.description}</p>
+                              <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">{program.tagline || program.description}</p>
                             </div>
                             {program.savingsRange ? (
-                              <span className={`text-xs font-semibold shrink-0 ${idx === 0 ? "text-emerald-600" : "text-gray-400"}`}>
+                              <span className={`text-sm font-semibold shrink-0 ${idx === 0 ? "text-emerald-600" : "text-gray-500"}`}>
                                 {program.savingsRange.match(/\$[\d,]+/)?.[0] || program.savingsRange}
                               </span>
                             ) : (
-                              <span className="text-xs text-gray-300 shrink-0">Free</span>
+                              <span className="text-sm text-gray-400 shrink-0">Free</span>
                             )}
                           </div>
                         </Link>
@@ -549,8 +549,8 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
                   )}
 
                   {/* Footer */}
-                  <div className="flex items-center gap-3 text-xs">
-                    <span className="text-gray-400">
+                  <div className="flex items-center gap-3 text-sm">
+                    <span className="text-gray-500">
                       Showing {matchingPrograms.length} of {programs.length} programs
                     </span>
                     <button
@@ -691,7 +691,7 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
 
         {/* ─── Provider bridge — minimal, Perena-style ─── */}
         <section className="max-w-2xl mx-auto px-6 lg:px-8 mb-14">
-          <p className="text-sm text-gray-500 mb-4">
+          <p className="text-base text-gray-500 mb-4">
             These programs pay for care services.{" "}
             <Link
               href={`/browse?location=${encodeURIComponent(state.name)}`}
@@ -710,7 +710,7 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
               <Link
                 key={cat.type}
                 href={`/browse?type=${cat.type}&location=${encodeURIComponent(state.name)}`}
-                className="text-xs font-medium text-gray-600 hover:text-primary-700 bg-white hover:bg-primary-50 border border-gray-200 hover:border-primary-200 px-3 py-1.5 rounded-full transition-colors"
+                className="text-sm font-medium text-gray-600 hover:text-primary-700 bg-white hover:bg-primary-50 border border-gray-200 hover:border-primary-200 px-3.5 py-2 rounded-full transition-colors"
               >
                 {cat.label}
               </Link>
@@ -726,9 +726,9 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
               {familyQuestions.slice(0, 3).map((q, i) => {
                 const content = (
                   <>
-                    <p className="text-sm font-medium text-gray-900 leading-snug group-hover:text-primary-700 transition-colors">{q.question}</p>
+                    <p className="text-base font-semibold text-gray-900 leading-snug group-hover:text-primary-700 transition-colors">{q.question}</p>
                     <p className="text-sm text-gray-500 mt-2 leading-relaxed line-clamp-3">{q.answer}</p>
-                    <p className="text-xs text-gray-400 mt-2">— {q.providerName}</p>
+                    <p className="text-sm text-gray-400 mt-2">— {q.providerName}</p>
                   </>
                 );
 
@@ -764,8 +764,8 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
 
               return (
                 <div key={type}>
-                  <p className="text-xs font-medium text-gray-400 mb-3">
-                    {info.label} <span className="text-gray-300">{group.length}</span>
+                  <p className="text-sm font-medium text-gray-500 mb-3">
+                    {info.label} <span className="text-gray-400">{group.length}</span>
                   </p>
                   <div>
                     {displayItems.map((program) => {
@@ -779,14 +779,14 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
                           }`}
                         >
                           <div className="min-w-0">
-                            <p className="text-sm font-medium text-gray-900 group-hover:text-primary-700 transition-colors leading-snug">
+                            <p className="text-base font-medium text-gray-900 group-hover:text-primary-700 transition-colors leading-snug">
                               {program.name}
                             </p>
-                            <p className="text-xs text-gray-400 mt-0.5 line-clamp-1">
+                            <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">
                               {program.tagline || program.description}
                             </p>
                           </div>
-                          <span className="text-xs text-gray-400 shrink-0 mt-0.5">
+                          <span className="text-sm text-gray-500 shrink-0 mt-0.5">
                             {program.savingsRange ? program.savingsRange.match(/\$[\d,]+/)?.[0] || program.savingsRange : "Free"}
                           </span>
                         </Link>

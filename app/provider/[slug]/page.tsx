@@ -534,7 +534,10 @@ export default async function ProviderPage({
         savingsRange: p.savingsRange,
         programType: p.programType,
         structuredEligibility: p.structuredEligibility
-          ? { ageRequirement: p.structuredEligibility.ageRequirement }
+          ? {
+              ageRequirement: p.structuredEligibility.ageRequirement,
+              incomeTable: p.structuredEligibility.incomeTable,
+            }
           : undefined,
       }));
   }
@@ -943,6 +946,7 @@ export default async function ProviderPage({
               {hasBenefitsData && benefitsData && (
                 <div id="benefits" className="py-8 scroll-mt-20 border-t border-gray-200">
                   <BenefitsDiscoveryModule
+                    providerState={profile.state!}
                     stateId={benefitsData.stateId}
                     stateName={benefitsData.stateName}
                     topPrograms={benefitsData.programs.map((p) => ({

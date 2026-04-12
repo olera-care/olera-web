@@ -2,7 +2,6 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   ArrowRight,
   ArrowLeft,
@@ -169,7 +168,6 @@ export default function BenefitsDiscoveryModule({
   topPrograms,
   allPrograms,
 }: BenefitsDiscoveryModuleProps) {
-  const router = useRouter();
   const [step, setStep] = useState<Step>("care-need");
   const [careNeed, setCareNeed] = useState<CareNeed | null>(null);
   const [age, setAge] = useState("");
@@ -189,13 +187,18 @@ export default function BenefitsDiscoveryModule({
   if (topPrograms.length === 0) return null;
 
   // ─── Handle save submission ───────────────────────────────────────────
-  // Await the save + setSession before navigating. Earlier attempt at
-  // optimistic navigation caused a race condition: the welcome page would
-  // mount BEFORE setSession wrote cookies, so the profile fetch 401'd and
-  // the welcome page got stuck in the unauthenticated generic state.
+  // IMPORTANT: We use window.location.href (full page reload) instead of
+  // router.push (client-side nav). Reason: the Supabase browser client is
+  // a module-level singleton that was initialized on the provider page
+  // BEFORE any auth cookies existed. When the server writes session cookies
+  // via Set-Cookie headers on our POST response, the browser stores them,
+  // but the stale Supabase client singleton never re-reads them because
+  // client-side navigation keeps the same React root + same module state.
   //
-  // Phase 1 API speed-ups (parallelization + fire-and-forget email) already
-  // dropped the API time to ~700-1500ms, which is acceptable with a spinner.
+  // Full page reload throws away the singleton, fresh page load re-reads
+  // cookies from scratch, AuthProvider sees the session, welcome page
+  // renders the personalized state. ~500ms extra vs router.push but it
+  // actually works.
   async function handleSave() {
     setSaveError(null);
     if (!firstName.trim() || !email.trim() || !email.includes("@")) {
@@ -204,15 +207,7 @@ export default function BenefitsDiscoveryModule({
     }
     setSaving(true);
 
-    // Client-side timing for diagnostics
-    const t0 = performance.now();
-    const logStep = (label: string) => {
-      console.log(`[benefits-save-timings] ${label}: ${Math.round(performance.now() - t0)}ms`);
-    };
-    console.log("[benefits-save-timings] --- START ---");
-
     try {
-      logStep("before_fetch");
       const res = await fetch("/api/benefits/save-results", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -235,21 +230,16 @@ export default function BenefitsDiscoveryModule({
           matchCount: matchingPrograms.length,
         }),
       });
-      logStep("fetch_done");
       const data = await res.json();
-      logStep("json_parsed");
       if (!res.ok) {
         setSaveError(data?.error || "Something went wrong. Please try again.");
         setSaving(false);
         return;
       }
-      // Session cookies are already set by the server response.
-      // No client-side setSession needed — that call was adding 5-6 seconds
-      // because it was making a network round trip to Supabase to verify
-      // tokens we already knew were valid.
-      logStep("before_navigate");
-      router.push(`/welcome?from=benefits&matches=${data.matchCount || matchingPrograms.length}`);
-      logStep("navigate_called");
+      // Full-page navigation so the browser re-reads the session cookies
+      // the server just wrote. router.push keeps the stale Supabase client
+      // singleton and the welcome page gets stuck on the skeleton.
+      window.location.href = `/welcome?from=benefits&matches=${data.matchCount || matchingPrograms.length}`;
     } catch (err) {
       console.error("[BenefitsDiscoveryModule] Save failed:", err);
       setSaveError("Network error. Please try again.");

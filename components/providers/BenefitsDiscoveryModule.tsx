@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   ArrowRight,
   ArrowLeft,
@@ -9,7 +10,6 @@ import {
   Coin,
   Brain,
   HandHeart,
-  CheckCircle,
   Spinner,
 } from "@phosphor-icons/react";
 import { createClient } from "@/lib/supabase/client";
@@ -161,7 +161,7 @@ function filterPrograms(
 // Main component
 // ═══════════════════════════════════════════════════════════════════════════
 
-type Step = "hook" | "care-need" | "age" | "financial" | "results" | "save" | "saved";
+type Step = "hook" | "care-need" | "age" | "financial" | "results" | "save";
 
 export default function BenefitsDiscoveryModule({
   providerState,
@@ -170,6 +170,7 @@ export default function BenefitsDiscoveryModule({
   topPrograms,
   allPrograms,
 }: BenefitsDiscoveryModuleProps) {
+  const router = useRouter();
   const [step, setStep] = useState<Step>("hook");
   const [careNeed, setCareNeed] = useState<CareNeed | null>(null);
   const [age, setAge] = useState("");
@@ -179,7 +180,6 @@ export default function BenefitsDiscoveryModule({
   const [email, setEmail] = useState("");
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [savedResult, setSavedResult] = useState<{ matchCount: number } | null>(null);
 
   // Live match count (based on whatever's been answered so far)
   const matchingPrograms = useMemo(
@@ -236,12 +236,11 @@ export default function BenefitsDiscoveryModule({
           refresh_token: data.session.refreshToken,
         });
       }
-      setSavedResult({ matchCount: data.matchCount || matchingPrograms.length });
-      setStep("saved");
+      // Redirect to welcome page in fresh-from-benefits state
+      router.push(`/welcome?from=benefits&matches=${data.matchCount || matchingPrograms.length}`);
     } catch (err) {
       console.error("[BenefitsDiscoveryModule] Save failed:", err);
       setSaveError("Network error. Please try again.");
-    } finally {
       setSaving(false);
     }
   }
@@ -567,11 +566,11 @@ export default function BenefitsDiscoveryModule({
           onClick={() => setStep("save")}
           className="w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-gray-900 text-white font-semibold text-sm hover:bg-gray-800 transition-colors"
         >
-          Save these to your profile
+          Save my matches and find providers who accept them
           <ArrowRight className="w-4 h-4" weight="bold" />
         </button>
         <p className="text-xs text-gray-400 mt-3 text-center">
-          Come back anytime — we&apos;ll keep your results up to date.
+          We&apos;ll set up your dashboard with your benefits, providers in your area, and next steps.
         </p>
       </div>
     );
@@ -583,10 +582,10 @@ export default function BenefitsDiscoveryModule({
       <div>
         <StepHeader onBack={() => setStep("results")} />
         <h2 className="text-2xl font-bold text-gray-900 font-display">
-          Don&apos;t lose this.
+          One last step.
         </h2>
         <p className="text-sm text-gray-500 mt-1 mb-6">
-          You just built a personalized view of your family&apos;s benefits. Save it so you can come back anytime — and we&apos;ll let you know if programs change.
+          We&apos;ll save your matches and use what you told us to find providers in {stateName} who accept these programs.
         </p>
 
         <div className="space-y-3 mb-4">
@@ -632,56 +631,18 @@ export default function BenefitsDiscoveryModule({
           {saving ? (
             <>
               <Spinner className="w-4 h-4 animate-spin" weight="bold" />
-              Saving...
+              Setting up your dashboard...
             </>
           ) : (
             <>
-              Save my results
+              Save and find providers
               <ArrowRight className="w-4 h-4" weight="bold" />
             </>
           )}
         </button>
         <p className="text-xs text-gray-400 mt-3 text-center">
-          No password needed. We&apos;ll send a link you can use anytime.
+          No password needed. We&apos;ll send a link so you can come back anytime.
         </p>
-      </div>
-    );
-  }
-
-  // ─── Saved (success state) ────────────────────────────────────────────
-  if (step === "saved") {
-    return (
-      <div>
-        <div className="flex items-start gap-3 mb-5">
-          <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
-            <CheckCircle className="w-6 h-6 text-emerald-600" weight="fill" />
-          </div>
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 font-display">
-              Saved to your profile
-            </h2>
-            <p className="text-sm text-gray-500 mt-1">
-              We sent a link to {email} so you can come back anytime.
-            </p>
-          </div>
-        </div>
-
-        <div className="rounded-xl bg-gray-50 p-5 mb-4">
-          <p className="text-sm text-gray-700">
-            <span className="font-bold text-gray-900">{savedResult?.matchCount || matchingPrograms.length} {(savedResult?.matchCount || matchingPrograms.length) === 1 ? "program" : "programs"}</span> saved for {firstName}.
-            {" "}Check your email to pick up where you left off.
-          </p>
-        </div>
-
-        <Link
-          href={benefitsUrl(stateId)}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 text-sm text-primary-600 hover:text-primary-500 transition-colors"
-        >
-          View all {stateName} programs
-          <ArrowRight className="w-3 h-3" />
-        </Link>
       </div>
     );
   }

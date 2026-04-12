@@ -467,12 +467,13 @@ export function slackBenefitsCompleted(opts: {
   const situation = situationParts.length > 0 ? situationParts.join(", ") : "situation details unknown";
 
   // Match summary
+  const programWord = opts.matchCount === 1 ? "program" : "programs";
   const matchLine = opts.topProgramName && opts.topSavings
-    ? `${opts.matchCount} programs saved • Top: *${opts.topProgramName}* (${opts.topSavings})`
-    : `${opts.matchCount} programs saved`;
+    ? `${opts.matchCount} ${programWord} saved • Top: *${opts.topProgramName}* (${opts.topSavings})`
+    : `${opts.matchCount} ${programWord} saved`;
 
   return {
-    text: `Benefits intake completed: ${opts.familyName} (${opts.matchCount} matches)`,
+    text: `Benefits intake completed: ${opts.familyName} (${opts.matchCount} ${opts.matchCount === 1 ? "match" : "matches"})`,
     blocks: [
       {
         type: "header",

@@ -69,16 +69,22 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Server configuration error." }, { status: 500 });
   }
 
-  // Block provider emails from being used as family accounts
-  const { data: existingProviderProfile } = await db
-    .from("business_profiles")
-    .select("id, type")
-    .eq("email", normalizedEmail)
-    .in("type", ["organization", "caregiver", "student"])
-    .limit(1)
-    .maybeSingle();
+  // Check if already authenticated AND check provider email block in parallel
+  // (the provider check only matters if the user is anonymous — we'll skip it for logged-in users)
+  const serverSupabase = await createServerClient();
+  const [{ data: { user: currentUser } }, { data: existingProviderProfile }] = await Promise.all([
+    serverSupabase.auth.getUser(),
+    db.from("business_profiles")
+      .select("id, type")
+      .eq("email", normalizedEmail)
+      .in("type", ["organization", "caregiver", "student"])
+      .limit(1)
+      .maybeSingle(),
+  ]);
 
-  if (existingProviderProfile) {
+  // Block provider emails (only matters for new user creation; logged-in users with
+  // existing accounts have already been validated)
+  if (!currentUser && existingProviderProfile) {
     return NextResponse.json(
       {
         error: "This email is linked to a provider account. Please use a different email.",
@@ -87,10 +93,6 @@ export async function POST(req: Request) {
       { status: 409 }
     );
   }
-
-  // Check if already authenticated
-  const serverSupabase = await createServerClient();
-  const { data: { user: currentUser } } = await serverSupabase.auth.getUser();
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -284,28 +286,36 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Failed to create profile." }, { status: 500 });
     }
     familyProfileId = newProfile.id;
-
-    // Set as active profile on the account so the portal uses it
-    await db.from("accounts").update({ active_profile_id: familyProfileId }).eq("id", accountId);
   }
 
   // ═══════════════════════════════════════════════════════════════════
-  // 4. Batch-save matching programs to saved_programs
+  // 4. Parallelize: set active profile + batch-save matching programs
+  //    Both depend on familyProfileId/userId but not on each other.
   // ═══════════════════════════════════════════════════════════════════
-  if (matchedPrograms.length > 0) {
-    const inserts = matchedPrograms.map((p) => ({
-      user_id: userId,
-      program_id: p.programId,
-      state_id: p.stateId,
-      name: p.name,
-      short_name: p.shortName || null,
-      program_type: p.programType || null,
-      savings_range: p.savingsRange || null,
-    }));
-    const { error: saveErr } = await db
-      .from("saved_programs")
-      .upsert(inserts, { onConflict: "user_id,program_id", ignoreDuplicates: true });
-    if (saveErr) console.error("[save-results] Failed to batch save programs:", saveErr);
+  const programInserts = matchedPrograms.map((p) => ({
+    user_id: userId,
+    program_id: p.programId,
+    state_id: p.stateId,
+    name: p.name,
+    short_name: p.shortName || null,
+    program_type: p.programType || null,
+    savings_range: p.savingsRange || null,
+  }));
+
+  const isNewProfile = !existingFamilyProfile;
+  const [, savedProgramsResult] = await Promise.all([
+    // Set active profile only if we just created one
+    isNewProfile
+      ? db.from("accounts").update({ active_profile_id: familyProfileId }).eq("id", accountId)
+      : Promise.resolve(null),
+    // Batch save programs (skip if empty)
+    matchedPrograms.length > 0
+      ? db.from("saved_programs").upsert(programInserts, { onConflict: "user_id,program_id", ignoreDuplicates: true })
+      : Promise.resolve({ error: null }),
+  ]);
+
+  if (savedProgramsResult && "error" in savedProgramsResult && savedProgramsResult.error) {
+    console.error("[save-results] Failed to batch save programs:", savedProgramsResult.error);
   }
 
   // ═══════════════════════════════════════════════════════════════════
@@ -327,17 +337,20 @@ export async function POST(req: Request) {
   });
 
   // ═══════════════════════════════════════════════════════════════════
-  // 6. Send magic link email so they can come back (fire-and-forget)
+  // 6. Send magic link email — TRULY fire-and-forget so the response
+  //    doesn't wait on Resend (~500-1500ms) or another generateLink (~200-400ms)
   // ═══════════════════════════════════════════════════════════════════
   if (isNewUser) {
-    try {
-      const { data: linkData } = await authClient.auth.admin.generateLink({
-        type: "magiclink",
-        email: normalizedEmail,
-        options: { redirectTo: `${siteUrl}/portal` },
-      });
-      const actionLink = linkData?.properties?.action_link;
-      if (actionLink) {
+    (async () => {
+      try {
+        const { data: linkData } = await authClient.auth.admin.generateLink({
+          type: "magiclink",
+          email: normalizedEmail,
+          options: { redirectTo: `${siteUrl}/portal` },
+        });
+        const actionLink = linkData?.properties?.action_link;
+        if (!actionLink) return;
+
         const emailLogId = await reserveEmailLogId({
           to: normalizedEmail,
           subject: "Your Olera benefits results are saved",
@@ -367,11 +380,10 @@ export async function POST(req: Request) {
           `,
           emailLogId: emailLogId ?? undefined,
         });
+      } catch (emailErr) {
+        console.error("[save-results] Failed to send welcome email:", emailErr);
       }
-    } catch (emailErr) {
-      console.error("[save-results] Failed to send welcome email:", emailErr);
-      // Non-fatal — save succeeded
-    }
+    })();
   }
 
   // ═══════════════════════════════════════════════════════════════════

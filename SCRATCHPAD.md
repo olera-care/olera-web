@@ -86,7 +86,7 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 - All 50 states + DC explored and researched
 
 ### What's next
-1. **Save-to-profile flow** for benefits module — batch-save matching programs. Deferred until saved programs system is more built out.
+1. **Test the 4-step intake flow end-to-end on Vercel** — verify new-user and existing-user paths, session tokens, magic link email, care seeker profile writes
 2. **Add `plainLabel` to pipeline prompt** — auto-generate a 4-5 word plain-English label per program (e.g., "Help paying for home care") so provider page descriptions are human-first, not tagline-derived.
 3. **Re-run v3 pipeline on all states** — SD + TX validated, full batch for v3-quality content. Benefits module dynamically reflects whatever's in the library.
 4. **Admin review guide** — embed quality-check directions directly in the admin dashboard.
@@ -114,6 +114,12 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 ## Decisions Made
 
 | Date | Decision | Rationale |
+| 2026-04-11 | Benefits intake = progressive conversation, not a form | The Q&A section generates content but doesn't convert. The benefits module has a unique advantage: the information exchange IS the product. "We can't tell you if you qualify without knowing your situation" isn't a gate — it's the truth. Each question visibly refines results. Email at the end feels earned, not extractive. Replaced 2-field screener with 4-step flow. |
+| 2026-04-11 | Step order: care situation → age → financial → results → save | Original plan was age-first (easy warm-up, always filters). Flipped after pushback: typing a number is MORE friction than tapping a card, and care situation mirrors the caregiver's actual mental state ("I need help with X"). More empathetic, less form-like. |
+| 2026-04-11 | Care need: 4 UI categories collapse 7 PrimaryNeeds | Seven granular needs is too many for a 4-step flow. Collapsed into: Staying at home (personalCare + householdTasks + mobilityHelp), Paying for care (financialHelp), Memory & health care (memoryCare + healthManagement), Companionship (companionship). UI stays simple, data stays compatible with existing FamilyMetadata + benefits intake enums. |
+| 2026-04-11 | Results reveal is ungated — save is post-value | Show matches fully before asking for name+email. Gating results turns it back into a lead form. Value first, email second. Same philosophy as Q&A post-submit state. |
+| 2026-04-11 | Single API endpoint, not batch-save hook | The /api/benefits/save-results route handles everything atomically: auth user creation, account row, family profile, batch saved_programs, activity log, magic link email, session tokens. Cleaner than orchestrating 4 client calls and matches the guest-first pattern of /api/connections/request. |
+| 2026-04-11 | Care seeker profile IS the benefits profile | Reuses existing FamilyMetadata fields (age, care_needs, income_range, medicaid_status, benefits_results) and existing PrimaryNeed/IncomeRange/MedicaidStatus enums. No new schema — intake writes to the same place the connection flow and benefits finder would write to. One care seeker profile, multiple entry points. |
 | 2026-04-11 | Benefits module matches Q&A section pattern — no container | The Q&A section works because it's content on the page, not a widget. "Families are asking" + clean rows + one input. The benefits module initially had a vanilla container with bordered cards inside (nested boxes = UI kit smell). Stripped to match: bold headline + gray program rows + one black CTA. Module should feel like part of the page, not a dropped-in component. |
 | 2026-04-11 | Program rows: name + plain description, not name alone | "STAR+PLUS Waiver" means nothing to a caregiver. The Q&A works because every line is plain English. Program rows now show the name (bold, for people who recognize it) + a plain-language description extracted from the tagline (gray, for everyone else). CSS truncate handles overflow — no JS character truncation (which leaves dangling words like "or", "if", "that"). |
 | 2026-04-11 | Benefits module data flows server → client via props | The waiver-library + pipeline-drafts data is ~100K+ lines. Importing it in a "use client" component would bundle it all into client JS. Instead, the server component prepares minimal `BenefitsProgram` objects (id, name, shortName, tagline, savingsRange, ageRequirement) and passes them as props. |
@@ -227,6 +233,58 @@ The deep dive. Restrained, lets content breathe. Reads like a well-researched ar
 ---
 
 ## Session Log
+
+### 2026-04-11 (Session 75) — Benefits Module: Conversion Flow + Care Seeker Profile Integration
+
+**Branch:** `fond-hypatia` (continues from session 74) | **PR:** #536 | **Latest:** `a5129804`
+
+**The pivot:** After session 74's benefits module looked and felt great but didn't convert, TJ flagged the gap: it's a dead end. The Q&A section has the same issue but it's OK because Q&A generates UGC. Benefits needs to actually capture the user because the information exchange IS the product — "we can't tell you if you qualify without knowing your situation" is a natural, non-forced reason to collect data.
+
+**What was built:** Replaced the 2-field screener with a 4-step guided conversation:
+
+1. **Care situation** (tap one of 4 cards) — Staying at home / Paying for care / Memory & health / Companionship
+2. **Age** (type a number)
+3. **Financial** (Medicaid pills + income bracket pills)
+4. **Results reveal** — personalized matches with "based on X, Y, Z" context. Ungated. Clickable (new tab).
+5. **Save** — First name + email. "Don't lose this" framing. Earned, not extractive.
+
+Step order was flipped mid-design: care situation first (tap = less friction than typing, more empathetic mirroring of caregiver mindset).
+
+**Backend: `POST /api/benefits/save-results`** (new):
+- Resolves user (already authenticated → use, else create new auth user, else lookup existing by email via magic link + verifyOtp)
+- Creates accounts row (user_id + display_name + onboarding_completed — no email column, mirroring `/api/connections/request`)
+- Resolves or creates family business_profile with intake metadata (age, care_needs, income_range, medicaid_status, benefits_results blob)
+- Sets `active_profile_id` on account
+- Batch-upserts matching programs to `saved_programs` with `onConflict: "user_id,program_id"`
+- Logs `seeker_activity` event `"profile_enriched"` with `source: "benefits_intake"`
+- Sends branded magic link welcome email for new users via Resend
+- Returns session tokens so client logs in instantly via `supabase.auth.setSession()`
+
+**Care seeker profile integration:** No new schema. Reuses existing `FamilyMetadata` fields and existing `PrimaryNeed`/`IncomeRange`/`MedicaidStatus` enums from `lib/types/benefits.ts`. UI's 4 care need categories expand to the 7 granular needs when stored, so the data is compatible with connection flow + benefits finder.
+
+**Files changed:**
+- `app/api/benefits/save-results/route.ts` (new, ~390 lines)
+- `components/providers/BenefitsDiscoveryModule.tsx` (major rewrite — 4-step state machine, ~680 lines)
+- `app/provider/[slug]/page.tsx` (pass `providerState` prop, include `incomeTable` in minimal program shape)
+
+**Self-review bugs caught and fixed (4 real bugs before TJ tested):**
+1. **CRITICAL**: `accounts` table has no `email` column — my insert would've failed for every new user. Fixed to use `{user_id, display_name, onboarding_completed}` like `/api/connections/request`.
+2. **CRITICAL**: `seeker_activity.event_type` CHECK constraint only allows 5 values — `"benefits_intake_completed"` would've been rejected. Changed to `"profile_enriched"` with `source: "benefits_intake"` in metadata.
+3. **CRITICAL**: Duplicate profile bug — my original flow created profile with `account_id: null` intending the auth callback to claim it, but the callback doesn't look up by email — it creates a brand new profile on magic-link click. Would've orphaned all intake data. Fixed by creating the account inline so the callback sees it exists and skips duplicate creation.
+4. `.single()` instead of `.maybeSingle()` on initial account lookup — swallowed "not found" errors. Fixed.
+
+**Design iterations with TJ (5 rounds):**
+1. Program rows too busy — stripped to Q&A-style clean rows
+2. Program names alone (STAR+PLUS Waiver) meaningless — added plain-language descriptions
+3. Module didn't close the loop — pivoted to progressive intake + save
+4. Care need grouping (4 UI categories → 7 granular needs) — TJ confirmed
+5. Step order (age first → care situation first) — TJ flipped it, correctly
+
+**Build:** Clean (0 type errors). Pushed to Vercel for testing.
+
+**Commits:** `e610064a` (initial 4-step flow) → `91a74bfd` (scratchpad save) → `a5129804` (4 bug fixes)
+
+---
 
 ### 2026-04-11 (Session 74) — Provider Page Benefits Discovery Module
 

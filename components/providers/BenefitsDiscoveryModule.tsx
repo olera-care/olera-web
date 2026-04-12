@@ -161,7 +161,7 @@ function filterPrograms(
 // Main component
 // ═══════════════════════════════════════════════════════════════════════════
 
-type Step = "hook" | "care-need" | "age" | "financial" | "results" | "save";
+type Step = "care-need" | "age" | "financial" | "results" | "save";
 
 export default function BenefitsDiscoveryModule({
   providerState,
@@ -171,7 +171,7 @@ export default function BenefitsDiscoveryModule({
   allPrograms,
 }: BenefitsDiscoveryModuleProps) {
   const router = useRouter();
-  const [step, setStep] = useState<Step>("hook");
+  const [step, setStep] = useState<Step>("care-need");
   const [careNeed, setCareNeed] = useState<CareNeed | null>(null);
   const [age, setAge] = useState("");
   const [medicaid, setMedicaid] = useState<MedicaidStatus>("");
@@ -188,8 +188,6 @@ export default function BenefitsDiscoveryModule({
   );
 
   if (topPrograms.length === 0) return null;
-
-  const heroSavings = extractTopSavings(topPrograms[0]?.savingsRange);
 
   // ─── Handle save submission ───────────────────────────────────────────
   async function handleSave() {
@@ -249,68 +247,19 @@ export default function BenefitsDiscoveryModule({
   // RENDER — state machine
   // ═════════════════════════════════════════════════════════════════════
 
-  // ─── Hook (initial state) ─────────────────────────────────────────────
-  if (step === "hook") {
-    return (
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900 font-display">
-          Your family may qualify for help
-        </h2>
-        <p className="text-sm text-gray-500 mt-1 mb-6">
-          {stateName} has {allPrograms.length} programs — families save up to {heroSavings || "thousands"}/yr
-        </p>
-
-        <div className="space-y-2 mb-6">
-          {topPrograms.map((p) => {
-            const savings = shortSavings(p.savingsRange);
-            const desc = plainDescription(p.tagline);
-            return (
-              <Link
-                key={p.id}
-                href={programUrl(stateId, p.id)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-between gap-4 rounded-xl bg-gray-50 hover:bg-gray-100 px-4 py-3.5 transition-colors group"
-              >
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-gray-900 group-hover:text-gray-700 truncate">
-                    {p.shortName || p.name}
-                  </p>
-                  {desc && <p className="text-xs text-gray-500 mt-0.5 truncate">{desc}</p>}
-                </div>
-                <span className="flex items-center gap-2 shrink-0">
-                  {savings && <span className="text-sm text-gray-500">{savings}</span>}
-                  <ArrowRight className="w-3.5 h-3.5 text-gray-400 group-hover:text-gray-600 transition-colors" />
-                </span>
-              </Link>
-            );
-          })}
-        </div>
-
-        <button
-          onClick={() => setStep("care-need")}
-          className="w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-gray-900 text-white font-semibold text-sm hover:bg-gray-800 transition-colors"
-        >
-          See what your family qualifies for
-          <ArrowRight className="w-4 h-4" weight="bold" />
-        </button>
-
-        <Link
-          href={benefitsUrl(stateId)}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 mt-4 text-sm text-primary-600 hover:text-primary-500 transition-colors"
-        >
-          View all {stateName} programs
-          <ArrowRight className="w-3 h-3" />
-        </Link>
-      </div>
-    );
-  }
-
   // ─── Progress indicator + back button wrapper ─────────────────────────
-  const currentStepNum = step === "care-need" ? 1 : step === "age" ? 2 : step === "financial" ? 3 : step === "results" ? 4 : 5;
+  // Step 5 (save) starts EMPTY and fills as the user types — see render block.
+  // Steps 1-4 are binary (filled when entered).
+  const baseStepNum = step === "care-need" ? 1 : step === "age" ? 2 : step === "financial" ? 3 : step === "results" ? 4 : step === "save" ? 4 : 1;
   const totalSteps = 5;
+  // For step 5: compute partial fill based on form completeness
+  const saveProgress = (() => {
+    if (step !== "save") return 0;
+    let p = 0;
+    if (firstName.trim().length > 0) p += 0.5;
+    if (email.trim().length > 0 && email.includes("@")) p += 0.5;
+    return p;
+  })();
 
   const StepHeader = ({ onBack }: { onBack?: () => void }) => (
     <div className="flex items-center gap-3 mb-6">
@@ -324,31 +273,58 @@ export default function BenefitsDiscoveryModule({
         </button>
       )}
       <div className="flex-1 flex items-center gap-1.5">
-        {Array.from({ length: totalSteps }).map((_, i) => (
-          <div
-            key={i}
-            className={`h-1 flex-1 rounded-full transition-colors ${
-              i < currentStepNum ? "bg-gray-900" : "bg-gray-200"
-            }`}
-          />
-        ))}
+        {Array.from({ length: totalSteps }).map((_, i) => {
+          // Steps 1-4: binary filled when index < baseStepNum
+          // Step 5 (the last segment): partial fill driven by saveProgress
+          //  - On step "save": empty until user types; pulses softly when empty
+          //  - On step "results" and earlier: empty
+          const isLastSegment = i === totalSteps - 1;
+          if (isLastSegment) {
+            const fill = step === "save" ? saveProgress * 100 : 0;
+            const isPulsing = step === "save" && saveProgress === 0;
+            return (
+              <div key={i} className="h-1 flex-1 rounded-full bg-gray-200 overflow-hidden relative">
+                <div
+                  className={`h-full bg-gray-900 rounded-full transition-all duration-300 ${isPulsing ? "animate-pulse opacity-60" : ""}`}
+                  style={{ width: isPulsing ? "12%" : `${fill}%` }}
+                />
+              </div>
+            );
+          }
+          return (
+            <div
+              key={i}
+              className={`h-1 flex-1 rounded-full transition-colors ${
+                i < baseStepNum ? "bg-gray-900" : "bg-gray-200"
+              }`}
+            />
+          );
+        })}
       </div>
     </div>
   );
 
-  // ─── Step 1: Care need ────────────────────────────────────────────────
+  // ─── Step 1: Care need (first sequence — entry point) ───────────────
   if (step === "care-need") {
+    // Build typographic support strip — top programs by savings, name only
+    const stripPrograms = topPrograms
+      .concat(allPrograms.filter((p) => !topPrograms.find((t) => t.id === p.id)))
+      .slice(0, 8)
+      .map((p) => p.shortName || p.name);
+    const remainingCount = Math.max(0, allPrograms.length - stripPrograms.length);
+
     return (
       <div>
-        <StepHeader onBack={() => setStep("hook")} />
+        <StepHeader />
         <h2 className="text-2xl font-bold text-gray-900 font-display">
-          What kind of help are they looking for?
+          What kind of help is your family looking for?
         </h2>
         <p className="text-sm text-gray-500 mt-1 mb-6">
-          Pick the one that fits best — we&apos;ll tailor the results.
+          {stateName} has {allPrograms.length} programs that may help. Pick the one that fits best.
         </p>
 
-        <div className="space-y-2 mb-4">
+        {/* Care need cards — the main visual focal point */}
+        <div className="space-y-2 mb-10">
           {CARE_NEED_OPTIONS.map((opt) => {
             const Icon = opt.icon;
             const isSelected = careNeed === opt.value;
@@ -357,7 +333,6 @@ export default function BenefitsDiscoveryModule({
                 key={opt.value}
                 onClick={() => {
                   setCareNeed(opt.value);
-                  // Auto-advance
                   setTimeout(() => setStep("age"), 180);
                 }}
                 className={`w-full flex items-center gap-3 rounded-xl px-4 py-3.5 text-left transition-all ${
@@ -379,6 +354,36 @@ export default function BenefitsDiscoveryModule({
               </button>
             );
           })}
+        </div>
+
+        {/* ── Typographic support strip — Perena-style ─────────────────
+            Quiet evidence that real programs exist behind the cards.
+            No pills, no chrome, just typography. */}
+        <div className="border-t border-gray-100 pt-5">
+          <div className="flex items-baseline justify-between mb-2">
+            <p className="text-[11px] font-medium tracking-[0.1em] text-gray-400 uppercase">
+              Programs
+            </p>
+            <Link
+              href={benefitsUrl(stateId)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[11px] tracking-wide text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              Browse all →
+            </Link>
+          </div>
+          <p className="text-xs text-gray-500 leading-relaxed">
+            {stripPrograms.map((name, i) => (
+              <span key={i}>
+                {i > 0 && <span className="text-gray-300"> · </span>}
+                <span className="text-gray-600">{name}</span>
+              </span>
+            ))}
+            {remainingCount > 0 && (
+              <span className="text-gray-400"> · +{remainingCount} more</span>
+            )}
+          </p>
         </div>
       </div>
     );
@@ -635,7 +640,7 @@ export default function BenefitsDiscoveryModule({
             </>
           ) : (
             <>
-              Save and find providers
+              Apply for benefits
               <ArrowRight className="w-4 h-4" weight="bold" />
             </>
           )}

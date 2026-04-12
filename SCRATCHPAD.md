@@ -246,6 +246,60 @@ The deep dive. Restrained, lets content breathe. Reads like a well-researched ar
 
 ## Session Log
 
+### 2026-04-12 (Session 77) — Benefits Save Latency Debugging (IN PROGRESS, STUCK)
+
+**Branch:** `fond-hypatia` | **PR:** #536 | **Latest:** `15d658e4`
+
+**The problem:** User clicks "Apply for benefits" on the provider page, sees a ~6-10 second spinner before the welcome page loads. Multiple rounds of debugging to pinpoint where the seconds are going.
+
+**The investigation path (chronological):**
+
+1. **First assumption:** API route is slow. Added server-side timing instrumentation to `/api/benefits/save-results`. Vercel logs showed **server is fast** — ~900ms total, `create_user: 430ms`, no single step dominates.
+
+2. **Second attempt:** Optimistic navigation (fire-and-forget fetch + immediate `router.push`). **Reverted** because it caused a race: welcome page mounted before `setSession` wrote cookies, profile fetch 401'd, welcome page stuck in generic state.
+
+3. **Third:** Added CLIENT-side timing with `performance.now()` markers in `BenefitsDiscoveryModule.handleSave`. Log file from the user revealed the smoking gun:
+   ```
+   before_set_session: 1363ms
+   set_session_done:   7311ms  ← 5.9 SECONDS on client-side setSession
+   ```
+
+4. **Fourth (current attempt):** Moved `setSession` to the SERVER side. The theory: `supabase.auth.setSession()` internally calls `GET /auth/v1/user` to verify tokens. From the user's browser (Brave + residential network) this was taking 6 seconds. From Vercel → Supabase (same region, no shields) it should be ~200-300ms. Used `createSSRServerClient` from `@supabase/ssr` with a cookie writer attached to `NextResponse`, so cookies are set via `Set-Cookie` headers on the response.
+
+**The current state (STUCK):**
+
+After the server-side setSession fix, user tested and the welcome page is now showing the **generic state** instead of the benefits intake state. Screenshot shows "Welcome to Olera" + "Complete your profile 0%" + "Providers near you" — the classic not-authenticated view.
+
+**What this means:** The cookies from the server-side Set-Cookie headers are NOT being picked up by the browser's Supabase client when the welcome page mounts. Several possibilities:
+
+1. **Cookies aren't being set** — `response.cookies.set()` in Next.js API route may have some quirk
+2. **Browser client caches session state** — when `createBrowserClient` was first initialized on the provider page, it may have cached `session = null` in GoTrueClient's in-memory state. Even though `document.cookie` now contains the new session, `getSession()` might return the cached null value instead of re-reading cookies.
+3. **Cookie format mismatch** — the SSR server client and browser client might expect different cookie encoding (base64url vs plain JSON vs chunked)
+4. **Path/domain mismatch** — the cookies being set might have a path/domain that doesn't match what the browser client reads
+
+**What was NOT tested yet:** Did the server-side `setSession` itself succeed? The response should include `Set-Cookie` headers with names like `sb-{ref}-auth-token`. Need to check Vercel logs for the `write_session_cookies` timing AND check browser DevTools → Application → Cookies to see if the cookies are actually set.
+
+**Files changed in this debugging session:**
+- `app/api/benefits/save-results/route.ts` — added timing logs, added server-side setSession via createSSRServerClient
+- `components/providers/BenefitsDiscoveryModule.tsx` — added client-side timing logs, removed client-side setSession call
+- `components/welcome/WelcomeClient.tsx` — added welcome_mounted/welcome_activeProfile_ready timing logs
+
+**Next steps when debugging resumes:**
+
+1. **Check if cookies are actually being set.** Open DevTools → Application → Cookies → select the Vercel preview domain. After clicking "Apply for benefits", look for `sb-*-auth-token` cookies. If they don't exist, `createSSRServerClient.auth.setSession()` isn't writing them (either the cookie writer callback isn't firing, or the server-side setSession itself is failing).
+
+2. **Check the new `write_session_cookies` server timing.** If it's fast (<500ms), server-side setSession IS completing. If it's missing or also slow, server-side setSession has the same issue.
+
+3. **Fallback option A:** Manually construct the cookie with the known Supabase cookie format. Bypass `setSession` entirely. Write `sb-{ref}-auth-token` cookie with a JSON-encoded session object.
+
+4. **Fallback option B:** Return tokens in JSON body (as before) AND call `setSession` client-side (slow) but trigger the navigation first so the user PERCEIVES it as fast. This reintroduces the race condition we fought earlier. Need a different way to signal "auth in progress" to the welcome page.
+
+5. **Fallback option C:** Skip the whole auth flow — return a magic link in the response body and have the client navigate to it. Supabase's hash-fragment flow handles token delivery. The AuthProvider already has code for this at line 307: `if (window.location.hash.includes("access_token"))`. But this causes a full-page reload, not a client-side navigation.
+
+**Build:** Clean (0 type errors). Pushed. Commits: `6de542ae` (server timing) → `c2cef300` (client timing) → `b75bf028` (server-side setSession) → `15d658e4` (log cleanup).
+
+---
+
 ### 2026-04-12 (Session 76) — Closing the Conversion Loop: Welcome Page + Lead with Strongest Screen
 
 **Branch:** `fond-hypatia` | **PR:** #536 | **Latest:** `c47f07c2`

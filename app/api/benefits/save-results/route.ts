@@ -47,12 +47,19 @@ interface SaveResultsPayload {
 }
 
 export async function POST(req: Request) {
+  const t0 = Date.now();
+  const timings: Record<string, number> = {};
+  const mark = (label: string) => {
+    timings[label] = Date.now() - t0;
+  };
+
   let payload: SaveResultsPayload;
   try {
     payload = await req.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
   }
+  mark("parse_body");
 
   const { careNeed, age, medicaidStatus, incomeRange, stateCode, firstName, email, matchedPrograms, matchCount } = payload;
 
@@ -82,6 +89,7 @@ export async function POST(req: Request) {
       .limit(1)
       .maybeSingle(),
   ]);
+  mark("parallel_auth_and_provider_check");
 
   // Block provider emails (only matters for new user creation; logged-in users with
   // existing accounts have already been validated)
@@ -128,11 +136,13 @@ export async function POST(req: Request) {
     if (account) accountId = account.id;
   } else {
     // Try to create user
+    const tCreate = Date.now();
     const { data: newUser, error: createUserErr } = await authClient.auth.admin.createUser({
       email: normalizedEmail,
       email_confirm: false,
       user_metadata: { full_name: displayName },
     });
+    timings["create_user"] = Date.now() - tCreate;
 
     if (!createUserErr && newUser?.user) {
       userId = newUser.user.id;
@@ -163,16 +173,20 @@ export async function POST(req: Request) {
 
     // For new users, also generate a magic link + session so they're logged in instantly
     if (isNewUser && userId) {
+      const tLink = Date.now();
       const { data: linkData } = await authClient.auth.admin.generateLink({
         type: "magiclink",
         email: normalizedEmail,
         options: { redirectTo: `${siteUrl}/portal` },
       });
+      timings["generate_link_new"] = Date.now() - tLink;
       if (linkData?.properties?.hashed_token) {
+        const tVerify = Date.now();
         const { data: verifyData } = await authClient.auth.verifyOtp({
           token_hash: linkData.properties.hashed_token,
           type: "magiclink",
         });
+        timings["verify_otp_new"] = Date.now() - tVerify;
         if (verifyData?.session) {
           accessToken = verifyData.session.access_token;
           refreshToken = verifyData.session.refresh_token;
@@ -180,6 +194,7 @@ export async function POST(req: Request) {
       }
     }
   }
+  mark("auth_resolved");
 
   if (!userId) {
     return NextResponse.json({ error: "Failed to resolve user." }, { status: 500 });
@@ -216,6 +231,7 @@ export async function POST(req: Request) {
       accountId = newAccount.id;
     }
   }
+  mark("account_resolved");
 
   // ═══════════════════════════════════════════════════════════════════
   // 3. Resolve or create family profile, merge intake metadata
@@ -288,6 +304,7 @@ export async function POST(req: Request) {
     }
     familyProfileId = newProfile.id;
   }
+  mark("profile_resolved");
 
   // ═══════════════════════════════════════════════════════════════════
   // 4. Parallelize: set active profile + batch-save matching programs
@@ -318,6 +335,7 @@ export async function POST(req: Request) {
   if (savedProgramsResult && "error" in savedProgramsResult && savedProgramsResult.error) {
     console.error("[save-results] Failed to batch save programs:", savedProgramsResult.error);
   }
+  mark("saved_programs_done");
 
   // ═══════════════════════════════════════════════════════════════════
   // 5. Log seeker activity event + fire Slack alert (fire-and-forget)
@@ -429,6 +447,12 @@ export async function POST(req: Request) {
   // ═══════════════════════════════════════════════════════════════════
   // 7. Return session tokens so client can log in instantly
   // ═══════════════════════════════════════════════════════════════════
+  mark("response_ready");
+  console.log("[save-results][timings]", JSON.stringify({
+    total_ms: Date.now() - t0,
+    isNewUser,
+    ...timings,
+  }));
   return NextResponse.json({
     success: true,
     profileId: familyProfileId,

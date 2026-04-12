@@ -432,3 +432,78 @@ export function slackProviderAction(opts: {
     ],
   };
 }
+
+export function slackBenefitsCompleted(opts: {
+  familyName: string;
+  email: string;
+  stateCode: string | null;
+  careNeedLabel: string | null;
+  age: number | null;
+  medicaidStatus: string | null;
+  incomeRange: string | null;
+  matchCount: number;
+  topProgramName: string | null;
+  topSavings: string | null;
+  isNewUser: boolean;
+}): { text: string; blocks: SlackBlock[] } {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+
+  // Build the situation line — humanize the numbers
+  const situationParts: string[] = [];
+  if (opts.age) situationParts.push(`age ${opts.age}`);
+  if (opts.medicaidStatus === "alreadyHas") situationParts.push("on Medicaid");
+  else if (opts.medicaidStatus === "doesNotHave") situationParts.push("not on Medicaid");
+  else if (opts.medicaidStatus === "applying") situationParts.push("applying for Medicaid");
+  if (opts.incomeRange && opts.incomeRange !== "preferNotToSay") {
+    const incomeLabels: Record<string, string> = {
+      under1500: "under $1,500/mo",
+      under2500: "$1,500–$2,500/mo",
+      under4000: "$2,500–$4,000/mo",
+      over4000: "over $4,000/mo",
+    };
+    const label = incomeLabels[opts.incomeRange];
+    if (label) situationParts.push(label);
+  }
+  const situation = situationParts.length > 0 ? situationParts.join(", ") : "situation details unknown";
+
+  // Match summary
+  const matchLine = opts.topProgramName && opts.topSavings
+    ? `${opts.matchCount} programs saved • Top: *${opts.topProgramName}* (${opts.topSavings})`
+    : `${opts.matchCount} programs saved`;
+
+  return {
+    text: `Benefits intake completed: ${opts.familyName} (${opts.matchCount} matches)`,
+    blocks: [
+      {
+        type: "header",
+        text: { type: "plain_text", text: "🎯 Benefits Intake Completed", emoji: true },
+      },
+      {
+        type: "section",
+        fields: [
+          { type: "mrkdwn", text: `*Family:*\n${opts.familyName}${opts.isNewUser ? " (new user)" : ""}` },
+          { type: "mrkdwn", text: `*Email:*\n${opts.email}` },
+          ...(opts.stateCode
+            ? [{ type: "mrkdwn", text: `*State:*\n${opts.stateCode}` }]
+            : []),
+          ...(opts.careNeedLabel
+            ? [{ type: "mrkdwn", text: `*Care need:*\n${opts.careNeedLabel}` }]
+            : []),
+        ],
+      },
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: `*Situation:* ${situation}\n*Matches:* ${matchLine}`,
+        },
+      },
+      {
+        type: "context",
+        elements: [
+          { type: "mrkdwn", text: `<${siteUrl}/admin/activity?actor=families&event_type=benefits_completed|View in Activity Center>` },
+        ],
+      },
+    ],
+  };
+}

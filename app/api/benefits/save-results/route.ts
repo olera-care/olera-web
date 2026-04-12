@@ -4,6 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import { getSiteUrl } from "@/lib/site-url";
 import { generateUniqueSlugFromName } from "@/lib/slug";
+import { sendSlackAlert, slackBenefitsCompleted } from "@/lib/slack";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getAdminClient(): any {
@@ -319,22 +320,61 @@ export async function POST(req: Request) {
   }
 
   // ═══════════════════════════════════════════════════════════════════
-  // 5. Log seeker activity event (fire-and-forget)
+  // 5. Log seeker activity event + fire Slack alert (fire-and-forget)
   // ═══════════════════════════════════════════════════════════════════
   db.from("seeker_activity").insert({
     profile_id: familyProfileId,
-    event_type: "profile_enriched", // closest match in the CHECK constraint
+    event_type: "benefits_completed",
     metadata: {
-      source: "benefits_intake",
       match_count: matchCount,
       programs_saved: matchedPrograms.length,
       state: stateAbbrev,
       care_need: careNeed,
       is_new_user: isNewUser,
+      top_program: matchedPrograms[0]?.shortName || matchedPrograms[0]?.name || null,
+      top_savings: matchedPrograms[0]?.savingsRange || null,
     },
   }).then(({ error }: { error: { message: string } | null }) => {
-    if (error) console.error("[seeker_activity] benefits intake enrichment insert failed:", error);
+    if (error) console.error("[seeker_activity] benefits_completed insert failed:", error);
   });
+
+  // Fire Slack alert for real-time visibility
+  if (matchCount > 0) {
+    // Map careNeed to display label (mirrors the UI categories)
+    const careNeedLabels: Record<string, string> = {
+      stayingAtHome: "Staying at home",
+      payingForCare: "Paying for care",
+      memoryHealth: "Memory & health care",
+      companionship: "Companionship & support",
+    };
+    const careNeedLabel = careNeed ? careNeedLabels[careNeed] || null : null;
+
+    // Extract top savings as "Up to $X/yr" from the range string
+    const topSavingsRaw = matchedPrograms[0]?.savingsRange;
+    const topSavings = (() => {
+      if (!topSavingsRaw) return null;
+      const matches = topSavingsRaw.match(/\$[\d,]+/g);
+      if (!matches || matches.length === 0) return null;
+      return `up to ${matches[matches.length - 1]}/yr`;
+    })();
+
+    const alert = slackBenefitsCompleted({
+      familyName: displayName,
+      email: normalizedEmail,
+      stateCode: stateAbbrev,
+      careNeedLabel,
+      age: age || null,
+      medicaidStatus: medicaidStatus || null,
+      incomeRange: incomeRange || null,
+      matchCount,
+      topProgramName: matchedPrograms[0]?.shortName || matchedPrograms[0]?.name || null,
+      topSavings,
+      isNewUser,
+    });
+    sendSlackAlert(alert.text, alert.blocks).catch((err) => {
+      console.error("[save-results] Slack alert failed:", err);
+    });
+  }
 
   // ═══════════════════════════════════════════════════════════════════
   // 6. Send magic link email — TRULY fire-and-forget so the response

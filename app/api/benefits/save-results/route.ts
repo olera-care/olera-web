@@ -115,12 +115,12 @@ export async function POST(req: Request) {
   if (currentUser) {
     userId = currentUser.id;
 
-    // Find their account
+    // Find their account (if it exists — may be null for fresh auth users)
     const { data: account } = await db
       .from("accounts")
       .select("id")
       .eq("user_id", userId)
-      .single();
+      .maybeSingle();
 
     if (account) accountId = account.id;
   } else {
@@ -183,7 +183,9 @@ export async function POST(req: Request) {
   }
 
   // ═══════════════════════════════════════════════════════════════════
-  // 2. Resolve account: if not found, create one
+  // 2. Ensure an `accounts` row exists for this userId.
+  //    Mirror /api/connections/request: create with user_id, display_name,
+  //    onboarding_completed. No email column on accounts.
   // ═══════════════════════════════════════════════════════════════════
   if (!accountId) {
     const { data: existingAccount } = await db
@@ -197,7 +199,11 @@ export async function POST(req: Request) {
     } else {
       const { data: newAccount, error: accountErr } = await db
         .from("accounts")
-        .insert({ user_id: userId, email: normalizedEmail, display_name: displayName })
+        .insert({
+          user_id: userId,
+          display_name: displayName,
+          onboarding_completed: false,
+        })
         .select("id")
         .single();
       if (accountErr || !newAccount) {
@@ -226,6 +232,7 @@ export async function POST(req: Request) {
     },
   };
 
+  // Look up family profile by account_id
   const { data: existingFamilyProfile } = await db
     .from("business_profiles")
     .select("id, metadata")
@@ -277,6 +284,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Failed to create profile." }, { status: 500 });
     }
     familyProfileId = newProfile.id;
+
+    // Set as active profile on the account so the portal uses it
+    await db.from("accounts").update({ active_profile_id: familyProfileId }).eq("id", accountId);
   }
 
   // ═══════════════════════════════════════════════════════════════════
@@ -303,8 +313,9 @@ export async function POST(req: Request) {
   // ═══════════════════════════════════════════════════════════════════
   db.from("seeker_activity").insert({
     profile_id: familyProfileId,
-    event_type: "benefits_intake_completed",
+    event_type: "profile_enriched", // closest match in the CHECK constraint
     metadata: {
+      source: "benefits_intake",
       match_count: matchCount,
       programs_saved: matchedPrograms.length,
       state: stateAbbrev,
@@ -312,7 +323,7 @@ export async function POST(req: Request) {
       is_new_user: isNewUser,
     },
   }).then(({ error }: { error: { message: string } | null }) => {
-    if (error) console.error("[seeker_activity] benefits_intake_completed insert failed:", error);
+    if (error) console.error("[seeker_activity] benefits intake enrichment insert failed:", error);
   });
 
   // ═══════════════════════════════════════════════════════════════════

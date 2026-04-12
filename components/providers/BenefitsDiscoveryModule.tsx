@@ -528,55 +528,74 @@ export default function BenefitsDiscoveryModule({
         )}
 
         {matchingPrograms.length === 0 ? (
-          <div className="rounded-xl bg-gray-50 p-5 mb-6">
-            <p className="text-sm text-gray-700">
-              No exact matches based on what you shared. But don&apos;t give up — there may be other programs we can help you find. Try browsing all {stateName} programs or adjusting your answers.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-2 mb-6">
-            {matchingPrograms.slice(0, 4).map((p) => {
-              const savings = shortSavings(p.savingsRange);
-              const desc = plainDescription(p.tagline);
-              return (
-                <Link
-                  key={p.id}
-                  href={programUrl(stateId, p.id)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-between gap-4 rounded-xl bg-gray-50 hover:bg-gray-100 px-4 py-3.5 transition-colors group"
-                >
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-gray-900 group-hover:text-gray-700 truncate">
-                      {p.shortName || p.name}
-                    </p>
-                    {desc && <p className="text-xs text-gray-500 mt-0.5 truncate">{desc}</p>}
-                  </div>
-                  <span className="flex items-center gap-2 shrink-0">
-                    {savings && <span className="text-sm text-gray-500">{savings}</span>}
-                    <ArrowRight className="w-3.5 h-3.5 text-gray-400 group-hover:text-gray-600 transition-colors" />
-                  </span>
-                </Link>
-              );
-            })}
-            {matchingPrograms.length > 4 && (
-              <p className="text-xs text-gray-400 pl-4 pt-1">
-                + {matchingPrograms.length - 4} more {matchingPrograms.length - 4 === 1 ? "match" : "matches"}
+          <>
+            <div className="rounded-xl bg-gray-50 p-5 mb-6">
+              <p className="text-sm text-gray-700">
+                No exact matches based on what you shared. But don&apos;t give up — there may be other programs we can help you find.
               </p>
-            )}
-          </div>
-        )}
+            </div>
+            <Link
+              href={benefitsUrl(stateId)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-gray-900 text-white font-semibold text-sm hover:bg-gray-800 transition-colors"
+            >
+              Browse all {stateName} programs
+              <ArrowRight className="w-4 h-4" weight="bold" />
+            </Link>
+            <button
+              onClick={() => setStep("care-need")}
+              className="w-full mt-3 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              Adjust my answers
+            </button>
+          </>
+        ) : (
+          <>
+            <div className="space-y-2 mb-6">
+              {matchingPrograms.slice(0, 4).map((p) => {
+                const savings = shortSavings(p.savingsRange);
+                const desc = plainDescription(p.tagline);
+                return (
+                  <Link
+                    key={p.id}
+                    href={programUrl(stateId, p.id)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between gap-4 rounded-xl bg-gray-50 hover:bg-gray-100 px-4 py-3.5 transition-colors group"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-gray-900 group-hover:text-gray-700 truncate">
+                        {p.shortName || p.name}
+                      </p>
+                      {desc && <p className="text-xs text-gray-500 mt-0.5 truncate">{desc}</p>}
+                    </div>
+                    <span className="flex items-center gap-2 shrink-0">
+                      {savings && <span className="text-sm text-gray-500">{savings}</span>}
+                      <ArrowRight className="w-3.5 h-3.5 text-gray-400 group-hover:text-gray-600 transition-colors" />
+                    </span>
+                  </Link>
+                );
+              })}
+              {matchingPrograms.length > 4 && (
+                <p className="text-xs text-gray-400 pl-4 pt-1">
+                  + {matchingPrograms.length - 4} more {matchingPrograms.length - 4 === 1 ? "match" : "matches"}
+                </p>
+              )}
+            </div>
 
-        <button
-          onClick={() => setStep("save")}
-          className="w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-gray-900 text-white font-semibold text-sm hover:bg-gray-800 transition-colors"
-        >
-          Save my matches and find providers who accept them
-          <ArrowRight className="w-4 h-4" weight="bold" />
-        </button>
-        <p className="text-xs text-gray-400 mt-3 text-center">
-          We&apos;ll set up your dashboard with your benefits, providers in your area, and next steps.
-        </p>
+            <button
+              onClick={() => setStep("save")}
+              className="w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-gray-900 text-white font-semibold text-sm hover:bg-gray-800 transition-colors"
+            >
+              Save my matches and find providers who accept them
+              <ArrowRight className="w-4 h-4" weight="bold" />
+            </button>
+            <p className="text-xs text-gray-400 mt-3 text-center">
+              We&apos;ll set up your dashboard with your benefits, providers in your area, and next steps.
+            </p>
+          </>
+        )}
       </div>
     );
   }

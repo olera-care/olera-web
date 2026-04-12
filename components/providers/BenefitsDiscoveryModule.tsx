@@ -190,10 +190,14 @@ export default function BenefitsDiscoveryModule({
   if (topPrograms.length === 0) return null;
 
   // ─── Handle save submission ───────────────────────────────────────────
-  // Optimistic navigation: fire the save in the background and immediately
-  // redirect to /welcome. The user lands on their dashboard while the API
-  // is still working. The welcome page picks up the session once it's set.
-  function handleSave() {
+  // Await the save + setSession before navigating. Earlier attempt at
+  // optimistic navigation caused a race condition: the welcome page would
+  // mount BEFORE setSession wrote cookies, so the profile fetch 401'd and
+  // the welcome page got stuck in the unauthenticated generic state.
+  //
+  // Phase 1 API speed-ups (parallelization + fire-and-forget email) already
+  // dropped the API time to ~700-1500ms, which is acceptable with a spinner.
+  async function handleSave() {
     setSaveError(null);
     if (!firstName.trim() || !email.trim() || !email.includes("@")) {
       setSaveError("Please enter your name and a valid email.");
@@ -201,47 +205,49 @@ export default function BenefitsDiscoveryModule({
     }
     setSaving(true);
 
-    // Fire the save in the background — don't await
-    const supabase = createClient();
-    fetch("/api/benefits/save-results", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        careNeed,
-        age: age ? parseInt(age) : null,
-        medicaidStatus: medicaid || null,
-        incomeRange: incomeRange || null,
-        stateCode: providerState,
-        firstName: firstName.trim(),
-        email: email.trim().toLowerCase(),
-        matchedPrograms: matchingPrograms.map((p) => ({
-          programId: p.id,
-          stateId,
-          name: p.name,
-          shortName: p.shortName,
-          programType: p.programType,
-          savingsRange: p.savingsRange,
-        })),
-        matchCount: matchingPrograms.length,
-      }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        // Set session tokens so the user is logged in. The welcome page's
-        // useAuth hook will pick this up via onAuthStateChange.
-        if (data?.session?.accessToken && data?.session?.refreshToken) {
-          return supabase.auth.setSession({
-            access_token: data.session.accessToken,
-            refresh_token: data.session.refreshToken,
-          });
-        }
-      })
-      .catch((err) => {
-        console.error("[BenefitsDiscoveryModule] Background save failed:", err);
+    try {
+      const res = await fetch("/api/benefits/save-results", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          careNeed,
+          age: age ? parseInt(age) : null,
+          medicaidStatus: medicaid || null,
+          incomeRange: incomeRange || null,
+          stateCode: providerState,
+          firstName: firstName.trim(),
+          email: email.trim().toLowerCase(),
+          matchedPrograms: matchingPrograms.map((p) => ({
+            programId: p.id,
+            stateId,
+            name: p.name,
+            shortName: p.shortName,
+            programType: p.programType,
+            savingsRange: p.savingsRange,
+          })),
+          matchCount: matchingPrograms.length,
+        }),
       });
-
-    // Navigate immediately — don't wait for the API
-    router.push(`/welcome?from=benefits&matches=${matchingPrograms.length}`);
+      const data = await res.json();
+      if (!res.ok) {
+        setSaveError(data?.error || "Something went wrong. Please try again.");
+        setSaving(false);
+        return;
+      }
+      // Set session tokens BEFORE navigating so the welcome page sees them
+      if (data?.session?.accessToken && data?.session?.refreshToken) {
+        const supabase = createClient();
+        await supabase.auth.setSession({
+          access_token: data.session.accessToken,
+          refresh_token: data.session.refreshToken,
+        });
+      }
+      router.push(`/welcome?from=benefits&matches=${data.matchCount || matchingPrograms.length}`);
+    } catch (err) {
+      console.error("[BenefitsDiscoveryModule] Save failed:", err);
+      setSaveError("Network error. Please try again.");
+      setSaving(false);
+    }
   }
 
   // ═════════════════════════════════════════════════════════════════════

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
+import { createServerClient as createSSRServerClient } from "@supabase/ssr";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import { getSiteUrl } from "@/lib/site-url";
 import { generateUniqueSlugFromName } from "@/lib/slug";
@@ -445,21 +446,57 @@ export async function POST(req: Request) {
   }
 
   // ═══════════════════════════════════════════════════════════════════
-  // 7. Return session tokens so client can log in instantly
+  // 7. Write session cookies to the response so the client is instantly
+  //    authenticated without a client-side setSession() network call.
+  //
+  //    Client-side setSession() hits the Supabase auth endpoint to verify
+  //    the token (via GET /auth/v1/user). From the user's browser this
+  //    can take 5-6 seconds (Brave shields, regional latency, etc). By
+  //    doing it server-side we leverage the fast Vercel↔Supabase region
+  //    path and the cookies are already set when the welcome page loads.
   // ═══════════════════════════════════════════════════════════════════
-  mark("response_ready");
-  console.log("[save-results][timings]", JSON.stringify({
-    total_ms: Date.now() - t0,
-    isNewUser,
-    ...timings,
-  }));
-  return NextResponse.json({
+  const response = NextResponse.json({
     success: true,
     profileId: familyProfileId,
     userId,
     isNewUser,
     matchCount,
     programsSaved: matchedPrograms.length,
-    session: accessToken && refreshToken ? { accessToken, refreshToken } : null,
   });
+
+  if (accessToken && refreshToken) {
+    const tCookies = Date.now();
+    try {
+      const cookieWriter = createSSRServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          cookies: {
+            getAll: () => [],
+            setAll: (cookiesToSet: { name: string; value: string; options: Record<string, unknown> }[]) => {
+              cookiesToSet.forEach((c) => {
+                response.cookies.set(c.name, c.value, c.options);
+              });
+            },
+          },
+        }
+      );
+      await cookieWriter.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      });
+      timings["write_session_cookies"] = Date.now() - tCookies;
+    } catch (err) {
+      console.error("[save-results] Failed to write session cookies:", err);
+      timings["write_session_cookies"] = Date.now() - tCookies;
+    }
+  }
+
+  mark("response_ready");
+  console.log("[save-results][timings]", JSON.stringify({
+    total_ms: Date.now() - t0,
+    isNewUser,
+    ...timings,
+  }));
+  return response;
 }

@@ -12,7 +12,6 @@ import {
   HandHeart,
   Spinner,
 } from "@phosphor-icons/react";
-import { createClient } from "@/lib/supabase/client";
 
 /** Minimal program shape passed from server — keeps client bundle small */
 export interface BenefitsProgram {
@@ -244,18 +243,10 @@ export default function BenefitsDiscoveryModule({
         setSaving(false);
         return;
       }
-      // Set session tokens BEFORE navigating so the welcome page sees them
-      if (data?.session?.accessToken && data?.session?.refreshToken) {
-        const supabase = createClient();
-        logStep("before_set_session");
-        await supabase.auth.setSession({
-          access_token: data.session.accessToken,
-          refresh_token: data.session.refreshToken,
-        });
-        logStep("set_session_done");
-      } else {
-        logStep("no_session_tokens_in_response");
-      }
+      // Session cookies are already set by the server response.
+      // No client-side setSession needed — that call was adding 5-6 seconds
+      // because it was making a network round trip to Supabase to verify
+      // tokens we already knew were valid.
       logStep("before_navigate");
       router.push(`/welcome?from=benefits&matches=${data.matchCount || matchingPrograms.length}`);
       logStep("navigate_called");

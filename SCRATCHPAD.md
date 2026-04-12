@@ -268,7 +268,11 @@ The deep dive. Restrained, lets content breathe. Reads like a well-researched ar
 
 **The current state (STUCK):**
 
-After the server-side setSession fix, user tested and the welcome page is now showing the **generic state** instead of the benefits intake state. Screenshot shows "Welcome to Olera" + "Complete your profile 0%" + "Providers near you" — the classic not-authenticated view.
+After the server-side setSession fix, the welcome page is **stuck on the shimmering skeleton** that I built for the race window. Specifically:
+- URL has `?from=benefits` so `isFreshFromBenefits = true`
+- `activeProfile.metadata.benefits_results` never loads, so `hasBenefitsIntake = false`
+- The conditional `isFreshFromBenefits && !hasBenefitsIntake` stays true forever → skeleton renders forever
+- The greeting "Welcome to Olera" shows above the stuck skeleton (the page subtitle is hidden for intake users only when `hasBenefitsIntake` is true, which never happens)
 
 **What this means:** The cookies from the server-side Set-Cookie headers are NOT being picked up by the browser's Supabase client when the welcome page mounts. Several possibilities:
 

@@ -27,7 +27,9 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 
 ## Current Focus
 
-**Benefits Pipeline v3** (branch: `eager-ride`) — discovery platform state pages + tabbed program pages + Chantel-depth content.
+**Provider Page Benefits Module** (branch: `fond-hypatia`, PR #536) — bridging provider discovery and benefits discovery.
+
+**Benefits Pipeline v3** (branch: `eager-ride`, merged) — discovery platform state pages + tabbed program pages + Chantel-depth content.
 
 ### What's shipped (v3 — Session 72, Apr 10)
 - **StatePageV3** (`components/waiver-library/StatePageV3.tsx`): Full redesign from editorial article to discovery platform
@@ -84,13 +86,15 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 - All 50 states + DC explored and researched
 
 ### What's next
-1. **`/punch` the program page** — apply the newly created skill to STAR+PLUS. The single-scroll structure is right but needs more Wispr Flow/Perena energy: bolder headlines, more width variation, warmer zones, organic touches.
-2. **Admin review guide** — embed quality-check directions directly in the admin dashboard (tooltip or inline).
-3. **Re-run v3 pipeline on all states** — SD + TX validated, full batch for v3-quality content
-4. Apply approved MI drafts
-5. Review draft quality with Chantel
+1. **Save-to-profile flow** for benefits module — batch-save matching programs. Deferred until saved programs system is more built out.
+2. **Add `plainLabel` to pipeline prompt** — auto-generate a 4-5 word plain-English label per program (e.g., "Help paying for home care") so provider page descriptions are human-first, not tagline-derived.
+3. **Re-run v3 pipeline on all states** — SD + TX validated, full batch for v3-quality content. Benefits module dynamically reflects whatever's in the library.
+4. **Admin review guide** — embed quality-check directions directly in the admin dashboard.
+5. Apply approved MI drafts
+6. Review draft quality with Chantel
 
 ### Other active work (different branches)
+- Provider page benefits module (`fond-hypatia`, PR #536) — in testing on Vercel
 - Homepage de-jank + mega menu (`gifted-rosalind`) — ready for QA
 - Provider page CTA redesign (`fine-dijkstra`) — testing on Vercel
 - User account separation (PR #463) — ready for merge
@@ -110,6 +114,10 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 ## Decisions Made
 
 | Date | Decision | Rationale |
+| 2026-04-11 | Benefits module matches Q&A section pattern — no container | The Q&A section works because it's content on the page, not a widget. "Families are asking" + clean rows + one input. The benefits module initially had a vanilla container with bordered cards inside (nested boxes = UI kit smell). Stripped to match: bold headline + gray program rows + one black CTA. Module should feel like part of the page, not a dropped-in component. |
+| 2026-04-11 | Program rows: name + plain description, not name alone | "STAR+PLUS Waiver" means nothing to a caregiver. The Q&A works because every line is plain English. Program rows now show the name (bold, for people who recognize it) + a plain-language description extracted from the tagline (gray, for everyone else). CSS truncate handles overflow — no JS character truncation (which leaves dangling words like "or", "if", "that"). |
+| 2026-04-11 | Benefits module data flows server → client via props | The waiver-library + pipeline-drafts data is ~100K+ lines. Importing it in a "use client" component would bundle it all into client JS. Instead, the server component prepares minimal `BenefitsProgram` objects (id, name, shortName, tagline, savingsRange, ageRequirement) and passes them as props. |
+| 2026-04-11 | ApplicationNotes: compact list, not amber alert cards | 4 separate amber callout cards with left borders and info icons made notes look like warnings. They're side notes. Now renders as "GOOD TO KNOW" section label + compact bulleted list with small amber dots. System-wide change — all program pages. |
 | 2026-04-11 | Program page: tabs → single scroll | Tabs are an app pattern, not a content pattern. Airbnb listings, Apple product pages, Claude.ai — all single scrolls with visual rhythm. Tabs hide content from crawlers (SEO), force users to hunt across views, and create a "dashboard" feel instead of a "guide" feel. Single scroll with sticky section nav gives wayfinding without hiding content. |
 | 2026-04-11 | Eligibility check as the hook, phone CTA as the action | Caregivers arrive in research mode ("does my parent qualify?"). The eligibility check answers that in 10 seconds. THEN the phone CTA hits — they have a reason to call. Hook → motivation → action, not cold CTA. |
 | 2026-04-11 | Document checklist: gradient fade, not full collapse | Showing 3 items + gradient fade previews enough to be useful without overwhelming. Full collapse risks users missing the checklist entirely. Full expand is one click away. |
@@ -219,6 +227,51 @@ The deep dive. Restrained, lets content breathe. Reads like a well-researched ar
 ---
 
 ## Session Log
+
+### 2026-04-11 (Session 74) — Provider Page Benefits Discovery Module
+
+**Branch:** `fond-hypatia` (from staging) | **PR:** #536 | **Latest:** `43ab1729`
+
+**What was built:** A benefits discovery module on provider detail pages that bridges provider discovery and benefits discovery. Sits between Q&A and Care Services sections.
+
+**Architecture:**
+- `components/providers/BenefitsDiscoveryModule.tsx` (new, "use client") — the module component
+- `lib/program-data.ts` — added `getStateSlug()`, `getTopProgramsForState()`, `parseSavingsUpper()`
+- `app/provider/[slug]/page.tsx` — server-side data prep + conditional render + section nav integration
+- `components/waiver-library/ProgramPageV3.tsx` — punched ApplicationNotes component
+
+**Module flow:**
+1. **Hook** (zero interaction): headline "Your family may qualify for help", subtext with program count + top savings, 3 program rows (name + plain description + savings + arrow)
+2. **Screener** (one click to reveal): black CTA → age + Medicaid form (same logic as InlineBenefitsCheck)
+3. **Results**: matching program count + clickable pills
+4. **Footer**: "View all {state} programs →" link
+
+**Design iterations (3 rounds with TJ):**
+1. First version had vanilla container + bordered cards + Heart icon + coin icons + taglines truncating to "..." — too busy, UI kit smell
+2. TJ: "look at the Q&A section — clarity and focus, not gibberish words and template containers". Stripped to match Q&A pattern: no container, gray rows, bold headline, one CTA
+3. TJ: "program names alone aren't ridiculously easy to understand". Added plain-language descriptions extracted from taglines below each program name
+
+**Self-review bugs caught:**
+1. `plainDescription()` JS truncation at 55 chars left dangling words ("for adults 65+ or", "medical costs if"). Fixed by removing JS truncation — first-clause extraction gives complete phrases, CSS `truncate` handles overflow
+2. Section nav "Benefits" pill was unconditional — fixed to only show when state has benefits data (`hasBenefitsData`)
+3. First version imported heavy data modules in client component — refactored to pass minimal props from server
+
+**Punch: ApplicationNotes (system-wide):**
+- 4 amber alert cards → compact "Good to know" section label + bulleted list with amber dots
+- Affects all program pages across all states
+
+**Data verified via tsx tests:**
+- TX: 3 top programs (STAR+PLUS $50K, PACE $35K, SNAP $21K), 27 total
+- MI: 1 top program (MI Choice Waiver), 19 total
+- CA, FL, NY, OH, etc.: all return valid data
+- Invalid state → null → module doesn't render
+- DB confirmed: all providers store 2-letter state codes
+
+**Build:** Clean (0 type errors). Pushed to Vercel for testing.
+
+**Commits:** `20e0b1ba` → `fbc9bb16` → `8bfe8245` → `315616f0` → `43ab1729`
+
+---
 
 ### 2026-04-11 (Session 73) — Program Page Single-Scroll Redesign + Texas Route Fix
 

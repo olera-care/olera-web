@@ -86,8 +86,9 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 - All 50 states + DC explored and researched
 
 ### What's next
-1. **Test the new flow on Vercel** — care-need cards as entry point, typographic strip, loss-aversion progress bar, save → welcome page redirect, welcome page personalized state
-2. **Add `plainLabel` to pipeline prompt** — auto-generate a 4-5 word plain-English label per program (e.g., "Help paying for home care") so provider page descriptions are human-first, not tagline-derived.
+1. **Test the punched welcome page on Vercel** — verify hero card warm vanilla, personalized headline, matches section "Next:" treatment, action steps + pre-footer hidden for intake users
+2. **Fix profile completeness for intake users** (deferred bug) — currently shows ~24% because checks don't count `state`, `income_range`, `medicaid_status`. Fix would either add new field checks OR write `care_types`/`payment_methods` from the intake API.
+3. **Add `plainLabel` to pipeline prompt** — auto-generate a 4-5 word plain-English label per program (e.g., "Help paying for home care") so provider page descriptions are human-first, not tagline-derived.
 3. **Re-run v3 pipeline on all states** — SD + TX validated, full batch for v3-quality content. Benefits module dynamically reflects whatever's in the library.
 4. **Admin review guide** — embed quality-check directions directly in the admin dashboard.
 5. Apply approved MI drafts
@@ -114,6 +115,10 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 ## Decisions Made
 
 | Date | Decision | Rationale |
+| 2026-04-12 | Welcome page is two pages spliced together — hide the generic onboarding for intake users | The welcome page combines a personalized dashboard (top) with generic onboarding (bottom: "Complete profile", "Go live", "Find senior care by city" grid). For users who just completed the benefits intake, the bottom half is irrelevant noise. Cleaner fix than a full restructure: hide the action steps section + pre-footer for intake users only. Same shell, different surface area. Generic users still see the onboarding. |
+| 2026-04-12 | Optimistic navigation beats waiting for the API | The save flow had ~2-4 second wait on a "Setting up your dashboard..." spinner because the API ran 11+ sequential operations including a 500-1500ms Resend email send. Two parallel fixes: (1) speed up the API with parallelization + truly fire-and-forget email, (2) navigate to /welcome IMMEDIATELY without awaiting the fetch. Click feels instant. The existing fresh-from-benefits skeleton on the welcome page covers the auth-resolution gap. Risk accepted: failed background saves leave the user on a stuck skeleton. Refresh escapes. Server state stays consistent. |
+| 2026-04-12 | The "Next: ..." line on benefit cards is an offer, not a TODO | Original treatment was a quiet gray text line below the program name. Read like a checklist item the eye glides over. Punched: separated by a border, paired with a small dark circle arrow icon. Now visually distinct — reads as "here's what to do next" not "here's another thing on your list." |
+| 2026-04-12 | Personalized hero headline must use match count, not generic "Welcome" | Original hero said "Welcome to Olera" — duplicated the page-level subtitle and didn't honor the moment. Now: "{name}, your family may qualify for N programs" — uses the actual match count, addresses by first name, names what just happened. Falls back to "Welcome, {name}" only when matchCount === 0 (rare edge case). Big serif, font-display. |
 | 2026-04-12 | Lead with the strongest screen — care-need cards become the entry point | The most visually rich and engaging element in the entire flow was buried at step 1 of the questionnaire, behind a comparatively quiet "hook" intro screen. The conversion gate was weaker than the screen behind it. Pivot: collapse hook + care-need into one first screen. Tapping a card auto-advances to step 2. Result: 5 perceived steps → 4. The user perceives one fewer step AND the strongest screen does the work of getting them in. |
 | 2026-04-12 | Typographic support strip beats pills/cards/chrome | The strip below the care-need cards proves real programs exist behind them — but it can't compete visually with the cards themselves. Pills are overdone and look like a UI mess. Studied Wispr Flow (testimonial cards) + Perena (token detail page typography). Landed on Perena editorial style: quiet uppercase "PROGRAMS" label + flowing program names separated by middle-dots, no boxes, no chrome. Typography doing the work — feels like a credit line, not a feature list. |
 | 2026-04-12 | Save step progress bar fills as user types (loss aversion) | When the user lands on the save step, the bar shows 4/5 filled — the 5th segment is empty and softly pulsing. As they type their name, it fills to 50%. Valid email = 100%. The empty pulsing segment is a literal visual "you're not done yet." Leaving means leaving with visible incompleteness. Telegram/Robinhood-style live progress, applied to the moment that matters most for conversion. |
@@ -315,6 +320,67 @@ Round 2 (architectural review of save-results route):
 **Conversion estimate:** Started at 4/10 (initial save module). After welcome page integration: 6-7/10. After leading with the strongest screen + typographic strip + loss-aversion progress bar: TBD pending TJ test, but the architectural fix is the right move.
 
 **Commits:** `e610064a` → `91a74bfd` → `a5129804` → `2c20944e` → `eb0429f0` → `c47f07c2`
+
+---
+
+**SESSION 76 CONTINUATION — Speed + Welcome Page Punch**
+
+After the initial test, TJ flagged: (1) the "Setting up your dashboard..." spinner takes too long, (2) the welcome page itself feels generic for someone who just completed the intake. Two more arcs:
+
+**Phase 1 — API speed-ups** (`app/api/benefits/save-results/route.ts`):
+- Parallelized `getUser()` with the provider-email block check (`Promise.all`)
+- Skipped provider-email check entirely for already-authenticated users (already validated at signin)
+- Moved welcome email send from "awaited fire-and-forget" to TRULY fire-and-forget (wrapped in IIFE) — biggest win, drops Resend's 500-1500ms from response path
+- Parallelized `active_profile_id` update with `saved_programs` upsert after profile creation
+- Estimated savings: 700-2000ms per request (mostly from email)
+
+**Phase 2 — Optimistic navigation** (`components/providers/BenefitsDiscoveryModule.tsx`):
+- Click "Apply for benefits" → `router.push("/welcome?from=benefits")` IMMEDIATELY
+- Fetch fires in the background (detached promise via .then chain)
+- The existing fresh-from-benefits skeleton on the welcome page already covers the auth-resolution gap
+- Singleton supabase client guarantees `setSession` from the detached promise affects the same client the welcome page uses
+- Risk accepted: if the background save fails (rare), user lands on welcome page in a confused state (skeleton stuck). Refresh escapes. Server state stays consistent.
+- Result: click feels instant; ~1s of skeleton; then personalized hero appears
+
+**`/pre-test` slash command** (`.claude/commands/pre-test.md`):
+- Codifies the bug-sweep pattern that's caught real issues in sessions 75-76
+- Includes the mental model (assume bugs, look for them, don't hallucinate), checklist of common bug classes, reference list of past bugs caught
+- Now invokable as `/pre-test` after any session before user testing
+
+**Welcome page punch** (`components/welcome/WelcomeClient.tsx` + `components/shared/ConditionalFooter.tsx`):
+
+Killed the noise:
+- `ConditionalFooter`: added `/welcome` to `hidePrefooter` list (was showing the generic "Find senior care by city" grid)
+- Hidden the action steps section ("Complete profile", "Go live", "Explore benefits") for benefits intake users — they're on a different journey
+- Hidden the page-level "Welcome to Olera" subtitle for intake users (was duplicating the hero card headline)
+
+Punched the hero card:
+- Warm `bg-vanilla-100` background instead of cold white
+- Personalized headline: "{name}, your family may qualify for N programs" — uses match count + addresses by name
+- Bigger serif (`text-2xl sm:text-3xl font-display`)
+- Killed the weak stats row (2 programs / 6+ providers nearby) — they were whispers competing with the headline
+
+Punched the matches section:
+- Section title now serif "Your matches" (was "Your benefits matches")
+- Cards have more breathing room (p-5, space-y-3), stronger hover state (border-gray-900 + shadow)
+- Program name bumped to `text-base font-semibold`
+- "Next: ..." line now visually distinct — separated by border, paired with a small dark circle arrow icon. Reads as an offer, not a TODO
+
+**Self-review bugs (this continuation):**
+- Round 1 (post-API rewrite): no bugs found — clean review
+- Round 2 (post-zero-matches edge case): caught **1 bug** — save button shown when matchingPrograms.length === 0 would create confusing welcome page state. Replaced with "Browse all programs" CTA + "Adjust my answers" link.
+- Round 3 (welcome page punch): no bugs found — clean review (UI polish only, no schema changes)
+
+**Profile completeness bug noted but deferred:** an intake user shows ~24% profile complete because the completeness checks don't count `state`, `income_range`, `medicaid_status`. Real bug, but no longer visible to intake users (action steps card is hidden for them now). Deferred for a separate fix.
+
+**Files changed (continuation):**
+- `app/api/benefits/save-results/route.ts` — speed optimizations
+- `components/providers/BenefitsDiscoveryModule.tsx` — optimistic navigation, zero-match edge case fix
+- `components/welcome/WelcomeClient.tsx` — punch + hide sections for intake users
+- `components/shared/ConditionalFooter.tsx` — hide pre-footer on /welcome
+- `.claude/commands/pre-test.md` — NEW slash command
+
+**Continuation commits:** `81d52274` (speed) → `5b035bae` (zero-match fix) → `e76aa457` (pre-test command) → `a051e4d8` (welcome page punch)
 
 ---
 

@@ -1200,6 +1200,26 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
                 </div>
               </div>
             </section>
+          ) : isFreshFromBenefits && !hasBenefitsIntake ? (
+            /* Skeleton while auth resolves — prevents flash of generic
+               fresh-state card for users who just completed the intake */
+            <section className="pb-10">
+              <div className="rounded-2xl border border-gray-200/60 p-5 sm:p-6 animate-pulse">
+                <div className="h-5 w-32 bg-gray-100 rounded-full mb-4" />
+                <div className="h-6 w-48 bg-gray-100 rounded-md" />
+                <div className="h-3 w-72 bg-gray-100 rounded-md mt-3" />
+                <div className="flex gap-5 mt-5">
+                  <div className="space-y-1.5">
+                    <div className="h-7 w-10 bg-gray-100 rounded" />
+                    <div className="h-3 w-20 bg-gray-100 rounded" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <div className="h-7 w-12 bg-gray-100 rounded" />
+                    <div className="h-3 w-24 bg-gray-100 rounded" />
+                  </div>
+                </div>
+              </div>
+            </section>
           ) : hasBenefitsIntake ? (
             /* ============================================================
                BENEFITS INTAKE CARD — for users who completed the benefits
@@ -1289,65 +1309,89 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
               Only shown for users who completed the benefits intake.
               Pulled live from the program library so updates flow through.
               ============================================================ */}
-          {hasBenefitsIntake && enrichedPrograms.length > 0 && (
+          {hasBenefitsIntake && (enrichedLoading || enrichedPrograms.length > 0) && (
             <section className="pb-8">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-text-md font-medium text-gray-900">Your benefits matches</h2>
-                <Link
-                  href="/portal/benefits"
-                  className="text-text-xs text-gray-500 hover:text-gray-700 transition-colors"
-                >
-                  View all →
-                </Link>
-              </div>
-              <div className="space-y-2">
-                {enrichedPrograms.slice(0, 4).map((p) => {
-                  const programHref = p.stateId === "texas"
-                    ? `/texas/benefits/${p.id}`
-                    : `/senior-benefits/${p.stateId}/${p.id}`;
+                {enrichedPrograms.length > 0 && benefitsAnswers?.stateCode && (() => {
+                  // Map state code → slug for the benefits page link
+                  const stateSlugMap: Record<string, string> = {
+                    AL: "alabama", AK: "alaska", AZ: "arizona", AR: "arkansas", CA: "california",
+                    CO: "colorado", CT: "connecticut", DE: "delaware", FL: "florida", GA: "georgia",
+                    HI: "hawaii", ID: "idaho", IL: "illinois", IN: "indiana", IA: "iowa",
+                    KS: "kansas", KY: "kentucky", LA: "louisiana", ME: "maine", MD: "maryland",
+                    MA: "massachusetts", MI: "michigan", MN: "minnesota", MS: "mississippi", MO: "missouri",
+                    MT: "montana", NE: "nebraska", NV: "nevada", NH: "new-hampshire", NJ: "new-jersey",
+                    NM: "new-mexico", NY: "new-york", NC: "north-carolina", ND: "north-dakota",
+                    OH: "ohio", OK: "oklahoma", OR: "oregon", PA: "pennsylvania", RI: "rhode-island",
+                    SC: "south-carolina", SD: "south-dakota", TN: "tennessee", TX: "texas",
+                    UT: "utah", VT: "vermont", VA: "virginia", WA: "washington", WV: "west-virginia",
+                    WI: "wisconsin", WY: "wyoming", DC: "district-of-columbia",
+                  };
+                  const slug = stateSlugMap[benefitsAnswers.stateCode];
+                  if (!slug) return null;
+                  const href = slug === "texas" ? "/texas/benefits" : `/senior-benefits/${slug}`;
                   return (
                     <Link
-                      key={p.id}
-                      href={programHref}
+                      href={href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-start justify-between gap-4 p-4 rounded-2xl border border-gray-100 hover:border-gray-200 transition-colors group"
+                      className="text-text-xs text-gray-500 hover:text-gray-700 transition-colors"
                     >
-                      <div className="min-w-0 flex-1">
-                        <p className="text-text-sm font-semibold text-gray-900 truncate">{p.shortName}</p>
-                        {p.description && (
-                          <p className="text-text-xs text-gray-500 mt-0.5 truncate">{p.description}</p>
-                        )}
-                        {p.nextStep && (
-                          <p className="text-text-xs text-gray-700 mt-2">
-                            <span className="text-gray-400">Next: </span>{p.nextStep}
-                          </p>
-                        )}
-                      </div>
-                      <div className="flex flex-col items-end gap-1 shrink-0">
-                        {p.savingsRange && (
-                          <span className="text-text-xs font-medium text-gray-600 whitespace-nowrap">
-                            {(() => {
-                              const matches = p.savingsRange.match(/\$[\d,]+/g);
-                              return matches ? `Up to ${matches[matches.length - 1]}/yr` : p.savingsRange;
-                            })()}
-                          </span>
-                        )}
-                        <svg className="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </div>
+                      View all →
                     </Link>
                   );
-                })}
-                {enrichedLoading && enrichedPrograms.length === 0 && (
-                  <div className="space-y-2">
-                    {[1, 2, 3].map((i) => (
-                      <div key={i} className="h-20 rounded-2xl border border-gray-100 bg-gray-50/50 animate-pulse" />
-                    ))}
-                  </div>
-                )}
+                })()}
               </div>
+              {enrichedLoading && enrichedPrograms.length === 0 ? (
+                <div className="space-y-2">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="h-20 rounded-2xl border border-gray-100 bg-gray-50/50 animate-pulse" />
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {enrichedPrograms.slice(0, 4).map((p) => {
+                    const programHref = p.stateId === "texas"
+                      ? `/texas/benefits/${p.id}`
+                      : `/senior-benefits/${p.stateId}/${p.id}`;
+                    return (
+                      <Link
+                        key={p.id}
+                        href={programHref}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-start justify-between gap-4 p-4 rounded-2xl border border-gray-100 hover:border-gray-200 transition-colors group"
+                      >
+                        <div className="min-w-0 flex-1">
+                          <p className="text-text-sm font-semibold text-gray-900 truncate">{p.shortName}</p>
+                          {p.description && (
+                            <p className="text-text-xs text-gray-500 mt-0.5 truncate">{p.description}</p>
+                          )}
+                          {p.nextStep && (
+                            <p className="text-text-xs text-gray-700 mt-2">
+                              <span className="text-gray-400">Next: </span>{p.nextStep}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex flex-col items-end gap-1 shrink-0">
+                          {p.savingsRange && (
+                            <span className="text-text-xs font-medium text-gray-600 whitespace-nowrap">
+                              {(() => {
+                                const matches = p.savingsRange.match(/\$[\d,]+/g);
+                                return matches ? `Up to ${matches[matches.length - 1]}/yr` : p.savingsRange;
+                              })()}
+                            </span>
+                          )}
+                          <svg className="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
             </section>
           )}
 

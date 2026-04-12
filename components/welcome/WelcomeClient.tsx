@@ -364,6 +364,18 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
   const searchParams = useSearchParams();
   const { account, activeProfile, refreshAccountData, user, isLoading: authLoading } = useAuth();
 
+  // Benefits intake diagnostic: log when we mount + how long until activeProfile loads
+  useEffect(() => {
+    if (searchParams.get("from") === "benefits") {
+      console.log("[benefits-save-timings] welcome_mounted (page-side)");
+    }
+  }, [searchParams]);
+  useEffect(() => {
+    if (searchParams.get("from") === "benefits" && activeProfile) {
+      console.log("[benefits-save-timings] welcome_activeProfile_ready");
+    }
+  }, [searchParams, activeProfile]);
+
   // URL params for instant connection (from guest connection flow)
   const connectionIdParam = searchParams.get("connection");
   const providerSlugParam = searchParams.get("provider");

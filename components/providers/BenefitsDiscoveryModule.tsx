@@ -205,7 +205,15 @@ export default function BenefitsDiscoveryModule({
     }
     setSaving(true);
 
+    // Client-side timing for diagnostics
+    const t0 = performance.now();
+    const logStep = (label: string) => {
+      console.log(`[benefits-save-timings] ${label}: ${Math.round(performance.now() - t0)}ms`);
+    };
+    console.log("[benefits-save-timings] --- START ---");
+
     try {
+      logStep("before_fetch");
       const res = await fetch("/api/benefits/save-results", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -228,7 +236,9 @@ export default function BenefitsDiscoveryModule({
           matchCount: matchingPrograms.length,
         }),
       });
+      logStep("fetch_done");
       const data = await res.json();
+      logStep("json_parsed");
       if (!res.ok) {
         setSaveError(data?.error || "Something went wrong. Please try again.");
         setSaving(false);
@@ -237,12 +247,18 @@ export default function BenefitsDiscoveryModule({
       // Set session tokens BEFORE navigating so the welcome page sees them
       if (data?.session?.accessToken && data?.session?.refreshToken) {
         const supabase = createClient();
+        logStep("before_set_session");
         await supabase.auth.setSession({
           access_token: data.session.accessToken,
           refresh_token: data.session.refreshToken,
         });
+        logStep("set_session_done");
+      } else {
+        logStep("no_session_tokens_in_response");
       }
+      logStep("before_navigate");
       router.push(`/welcome?from=benefits&matches=${data.matchCount || matchingPrograms.length}`);
+      logStep("navigate_called");
     } catch (err) {
       console.error("[BenefitsDiscoveryModule] Save failed:", err);
       setSaveError("Network error. Please try again.");

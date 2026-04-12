@@ -1035,13 +1035,15 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
           {/* ============================================================
               HEADER — Bold greeting, Airbnb "Trips" energy
               ============================================================ */}
-          <section className="pt-10 sm:pt-14 pb-8">
+          <section className={hasBenefitsIntake ? "pt-10 sm:pt-14 pb-4" : "pt-10 sm:pt-14 pb-8"}>
             <p className="text-text-sm text-gray-400 tracking-wide">
               {greeting}
             </p>
-            <h1 className="mt-1 text-[28px] sm:text-[32px] font-semibold text-gray-900 leading-tight tracking-tight">
-              {subtitle}
-            </h1>
+            {!hasBenefitsIntake && (
+              <h1 className="mt-1 text-[28px] sm:text-[32px] font-semibold text-gray-900 leading-tight tracking-tight">
+                {subtitle}
+              </h1>
+            )}
           </section>
 
           {/* ============================================================
@@ -1223,47 +1225,33 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
           ) : hasBenefitsIntake ? (
             /* ============================================================
                BENEFITS INTAKE CARD — for users who completed the benefits
-               intake on a provider page. Shows their situation summary +
-               match count + a CTA back to keep going.
+               intake on a provider page. Personalized situation summary,
+               warm vanilla background, names what just happened.
                ============================================================ */
-            <section className="pb-10">
-              <div className="rounded-2xl border border-gray-200/60 overflow-hidden">
-                <div className="p-5 sm:p-6">
-                  {/* Fresh celebration badge — only on fresh-from-benefits */}
-                  {isFreshFromBenefits && (
-                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 mb-4">
-                      <div className="w-4 h-4 rounded-full bg-emerald-100 flex items-center justify-center">
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-600">
-                          <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                      </div>
-                      <span className="text-[12px] font-medium text-emerald-700">Your matches are saved</span>
-                    </div>
-                  )}
-
-                  <h2 className="text-text-lg font-semibold text-gray-900">
-                    {isFreshFromBenefits ? "Welcome to Olera" : "Your benefits matches"}
-                  </h2>
-                  <p className="mt-1.5 text-text-sm text-gray-500 leading-relaxed">
-                    {isFreshFromBenefits
-                      ? `Based on what you told us, ${benefitsAnswers?.age ? `age ${benefitsAnswers.age}, ` : ""}${careNeedLabel ? `${careNeedLabel}` : ""}${benefitsAnswers?.stateCode ? ` in ${benefitsAnswers.stateCode}` : ""}.`
-                      : `${benefitsMatchCount} ${benefitsMatchCount === 1 ? "program" : "programs"} matched to your family's situation.`}
-                  </p>
-
-                  {/* Quick stats */}
-                  <div className="flex items-center gap-5 mt-5">
-                    <div>
-                      <p className="text-2xl font-bold text-gray-900 tabular-nums">{benefitsMatchCount}</p>
-                      <p className="text-text-xs text-gray-500 mt-0.5">{benefitsMatchCount === 1 ? "program matched" : "programs matched"}</p>
-                    </div>
-                    {matches.length > 0 && (
-                      <div>
-                        <p className="text-2xl font-bold text-gray-900 tabular-nums">{matches.length}+</p>
-                        <p className="text-text-xs text-gray-500 mt-0.5">providers nearby</p>
-                      </div>
-                    )}
+            <section className="pb-8">
+              <div className="rounded-2xl bg-vanilla-100 border border-vanilla-200/60 p-5 sm:p-7">
+                {/* Fresh celebration badge — only on fresh-from-benefits */}
+                {isFreshFromBenefits && (
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-100/70 mb-4">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-700">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    <span className="text-[12px] font-medium text-emerald-800">Your matches are saved</span>
                   </div>
-                </div>
+                )}
+
+                <h2 className="text-2xl sm:text-3xl font-semibold font-display text-gray-900 leading-tight">
+                  {benefitsMatchCount > 0
+                    ? `${userName ? `${userName}, your` : "Your"} family may qualify for ${benefitsMatchCount} ${benefitsMatchCount === 1 ? "program" : "programs"}`
+                    : userName ? `Welcome, ${userName}` : "Welcome to Olera"}
+                </h2>
+                <p className="mt-2 text-text-sm text-gray-600 leading-relaxed">
+                  Based on what you told us
+                  {benefitsAnswers?.age ? ` — age ${benefitsAnswers.age}` : ""}
+                  {careNeedLabel ? `, ${careNeedLabel}` : ""}
+                  {benefitsAnswers?.stateCode ? ` in ${benefitsAnswers.stateCode}` : ""}
+                  .
+                </p>
               </div>
             </section>
           ) : !isConnected && !allStepsComplete ? (
@@ -1310,9 +1298,9 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
               Pulled live from the program library so updates flow through.
               ============================================================ */}
           {hasBenefitsIntake && (enrichedLoading || enrichedPrograms.length > 0) && (
-            <section className="pb-8">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-text-md font-medium text-gray-900">Your benefits matches</h2>
+            <section className="pb-10">
+              <div className="flex items-baseline justify-between mb-5">
+                <h2 className="text-xl font-semibold font-display text-gray-900">Your matches</h2>
                 {enrichedPrograms.length > 0 && benefitsAnswers?.stateCode && (() => {
                   // Map state code → slug for the benefits page link
                   const stateSlugMap: Record<string, string> = {
@@ -1344,13 +1332,13 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
                 })()}
               </div>
               {enrichedLoading && enrichedPrograms.length === 0 ? (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {[1, 2, 3].map((i) => (
-                    <div key={i} className="h-20 rounded-2xl border border-gray-100 bg-gray-50/50 animate-pulse" />
+                    <div key={i} className="h-24 rounded-2xl border border-gray-100 bg-gray-50/50 animate-pulse" />
                   ))}
                 </div>
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {enrichedPrograms.slice(0, 4).map((p) => {
                     const programHref = p.stateId === "texas"
                       ? `/texas/benefits/${p.id}`
@@ -1361,32 +1349,36 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
                         href={programHref}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-start justify-between gap-4 p-4 rounded-2xl border border-gray-100 hover:border-gray-200 transition-colors group"
+                        className="block p-5 rounded-2xl bg-white border border-gray-200 hover:border-gray-900 hover:shadow-sm transition-all group"
                       >
-                        <div className="min-w-0 flex-1">
-                          <p className="text-text-sm font-semibold text-gray-900 truncate">{p.shortName}</p>
-                          {p.description && (
-                            <p className="text-text-xs text-gray-500 mt-0.5 truncate">{p.description}</p>
-                          )}
-                          {p.nextStep && (
-                            <p className="text-text-xs text-gray-700 mt-2">
-                              <span className="text-gray-400">Next: </span>{p.nextStep}
-                            </p>
-                          )}
-                        </div>
-                        <div className="flex flex-col items-end gap-1 shrink-0">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-base font-semibold text-gray-900">{p.shortName}</p>
+                            {p.description && (
+                              <p className="text-text-xs text-gray-500 mt-1 line-clamp-1">{p.description}</p>
+                            )}
+                          </div>
                           {p.savingsRange && (
-                            <span className="text-text-xs font-medium text-gray-600 whitespace-nowrap">
+                            <span className="text-text-xs font-semibold text-gray-700 whitespace-nowrap shrink-0">
                               {(() => {
                                 const matches = p.savingsRange.match(/\$[\d,]+/g);
                                 return matches ? `Up to ${matches[matches.length - 1]}/yr` : p.savingsRange;
                               })()}
                             </span>
                           )}
-                          <svg className="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                          </svg>
                         </div>
+                        {p.nextStep && (
+                          <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100">
+                            <div className="w-5 h-5 rounded-full bg-gray-900 flex items-center justify-center shrink-0">
+                              <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                              </svg>
+                            </div>
+                            <p className="text-text-xs font-medium text-gray-900 truncate">
+                              {p.nextStep}
+                            </p>
+                          </div>
+                        )}
                       </Link>
                     );
                   })}
@@ -1400,7 +1392,10 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
 
           {/* ============================================================
               ACTION STEPS — Clean, flat list. No timeline chrome.
+              Hidden for benefits intake users — they're on a different
+              journey and the generic onboarding actions are noise.
               ============================================================ */}
+          {!hasBenefitsIntake && (
           <section className="pb-12">
               <div className="space-y-3">
                 {/* Card 1: Profile */}
@@ -1553,6 +1548,7 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
                 )}
               </div>
           </section>
+          )}
 
           {/* ============================================================
               PROVIDER RECOMMENDATIONS — Full width, aligned with main card

@@ -86,7 +86,7 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 - All 50 states + DC explored and researched
 
 ### What's next
-1. **Test the 4-step intake flow end-to-end on Vercel** — verify new-user and existing-user paths, session tokens, magic link email, care seeker profile writes
+1. **Test the new flow on Vercel** — care-need cards as entry point, typographic strip, loss-aversion progress bar, save → welcome page redirect, welcome page personalized state
 2. **Add `plainLabel` to pipeline prompt** — auto-generate a 4-5 word plain-English label per program (e.g., "Help paying for home care") so provider page descriptions are human-first, not tagline-derived.
 3. **Re-run v3 pipeline on all states** — SD + TX validated, full batch for v3-quality content. Benefits module dynamically reflects whatever's in the library.
 4. **Admin review guide** — embed quality-check directions directly in the admin dashboard.
@@ -114,6 +114,13 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 ## Decisions Made
 
 | Date | Decision | Rationale |
+| 2026-04-12 | Lead with the strongest screen — care-need cards become the entry point | The most visually rich and engaging element in the entire flow was buried at step 1 of the questionnaire, behind a comparatively quiet "hook" intro screen. The conversion gate was weaker than the screen behind it. Pivot: collapse hook + care-need into one first screen. Tapping a card auto-advances to step 2. Result: 5 perceived steps → 4. The user perceives one fewer step AND the strongest screen does the work of getting them in. |
+| 2026-04-12 | Typographic support strip beats pills/cards/chrome | The strip below the care-need cards proves real programs exist behind them — but it can't compete visually with the cards themselves. Pills are overdone and look like a UI mess. Studied Wispr Flow (testimonial cards) + Perena (token detail page typography). Landed on Perena editorial style: quiet uppercase "PROGRAMS" label + flowing program names separated by middle-dots, no boxes, no chrome. Typography doing the work — feels like a credit line, not a feature list. |
+| 2026-04-12 | Save step progress bar fills as user types (loss aversion) | When the user lands on the save step, the bar shows 4/5 filled — the 5th segment is empty and softly pulsing. As they type their name, it fills to 50%. Valid email = 100%. The empty pulsing segment is a literal visual "you're not done yet." Leaving means leaving with visible incompleteness. Telegram/Robinhood-style live progress, applied to the moment that matters most for conversion. |
+| 2026-04-12 | Welcome page must adapt to user journey state, not be one-size-fits-all | The existing welcome page already had multiple states (fresh connection, returning user, fresh state). Adding "post-benefits-intake" as another state was the right move — same shell, smarter content. New signal: `metadata.benefits_results`. Same architecture pattern that the connection flow uses. Generic users still see the existing welcome — only intake users see the personalized variant. |
+| 2026-04-12 | Save flow redirects to welcome page, not inline success state | The save step used to show a success state inline on the provider page. Pivoted to redirect to `/welcome?from=benefits` so the personalized welcome page becomes the conversion destination. Mirrors the connection flow's `?connection=` pattern. This makes the welcome page the place where the value loop closes. |
+| 2026-04-12 | Live next-step data on welcome page, not hardcoded | New `/api/saved-programs/enriched` endpoint joins user's saved_programs with live data from `getEnrichedProgram()`. Each match card shows `applicationGuide.steps[0].title` as the next step. When the pipeline updates a program, the welcome page reflects it on the next page load. Zero hardcoded program data on the welcome page. |
+| 2026-04-12 | "Apply for benefits" beats "Save and find providers" as save button copy | "Save and find providers" is descriptive but flat. "Apply for benefits" is action-oriented — it's the BIG promise. Sounds like doing something real, not bookkeeping. The other candidates (Show me my providers, Get my matches, Continue) all felt either too narrow or too generic. |
 | 2026-04-11 | Benefits intake = progressive conversation, not a form | The Q&A section generates content but doesn't convert. The benefits module has a unique advantage: the information exchange IS the product. "We can't tell you if you qualify without knowing your situation" isn't a gate — it's the truth. Each question visibly refines results. Email at the end feels earned, not extractive. Replaced 2-field screener with 4-step flow. |
 | 2026-04-11 | Step order: care situation → age → financial → results → save | Original plan was age-first (easy warm-up, always filters). Flipped after pushback: typing a number is MORE friction than tapping a card, and care situation mirrors the caregiver's actual mental state ("I need help with X"). More empathetic, less form-like. |
 | 2026-04-11 | Care need: 4 UI categories collapse 7 PrimaryNeeds | Seven granular needs is too many for a 4-step flow. Collapsed into: Staying at home (personalCare + householdTasks + mobilityHelp), Paying for care (financialHelp), Memory & health care (memoryCare + healthManagement), Companionship (companionship). UI stays simple, data stays compatible with existing FamilyMetadata + benefits intake enums. |
@@ -233,6 +240,83 @@ The deep dive. Restrained, lets content breathe. Reads like a well-researched ar
 ---
 
 ## Session Log
+
+### 2026-04-12 (Session 76) — Closing the Conversion Loop: Welcome Page + Lead with Strongest Screen
+
+**Branch:** `fond-hypatia` | **PR:** #536 | **Latest:** `c47f07c2`
+
+**The conversion problem TJ identified:** Session 75's benefits module looked great but didn't convert. The save step was a dead end — caregivers got the value (saw their matches) and bounced. The save button "Save these to your profile" was archive-action energy. The welcome page they would land on was generic. The whole loop was broken.
+
+**Two big architectural decisions came out of this session:**
+
+1. **The welcome page must deliver on the promise made on the provider page.** When a caregiver completes the intake and lands on /welcome, the page should immediately reflect what they told us — situation summary, their matches, providers filtered to their state + care category. Not a generic "Finding Care Made Simple" hero.
+
+2. **Lead with the strongest screen.** The care-need cards (icons + 4 big tappable options) are the most visually rich and engaging element in the entire flow. Burying them behind a quieter "hook" intro screen meant the conversion gate was weaker than the screen behind it. **Pivot:** care-need cards become the very first thing on the provider page. No more "click to start" intermediate.
+
+**What was built:**
+
+**Welcome page integration** (`components/welcome/WelcomeClient.tsx`):
+- New detection signal: `hasBenefitsIntake` reads `activeProfile.metadata.benefits_results`
+- New URL signal: `?from=benefits` triggers fresh celebration banner
+- New benefits hero card variant: "Welcome to Olera" + "Your matches are saved" badge + situation summary ("Based on age 72, staying at home in TX") + match count + provider count
+- New "Your benefits matches" section: top 4 saved programs with name + plain description + **live next step** ("Next: Join the interest list") + savings range. Pulled live from program library — pipeline updates flow through automatically.
+- Providers section now filters by state + care category for intake users (e.g. "Home Care in TX" instead of generic "Providers near you")
+- Provider category filter uses `ilike` to handle multi-category strings ("Memory Care | Assisted Living")
+
+**New API endpoint** (`app/api/saved-programs/enriched/route.ts`):
+- Returns user's saved_programs joined with live data from `getEnrichedProgram()`
+- Server-only, cookie auth (RLS-protected, not service role)
+- Returns: name, shortName, plain description, savings range, **next step** from `applicationGuide.steps[0].title`
+- Falls back to saved snapshot if program not found in library (for renamed/removed programs)
+
+**Provider page module rewrite** (`components/providers/BenefitsDiscoveryModule.tsx`):
+- **Collapsed hook + care-need into ONE first screen.** Care-need cards lead. No more 3-program-row hook intermediate.
+- Headline: "What kind of help is your family looking for?"
+- Subtext: "Texas has 27 programs that may help. Pick the one that fits best."
+- New typographic support strip (Perena/Wispr Flow style): quiet uppercase "PROGRAMS" label + flowing list of program names separated by middle-dots, "+ N more" hint, small "Browse all →" link. No pills, no chrome, no boxes — typography doing the work.
+- Step 5 (save) progress bar segment now starts EMPTY and fills as user types name + email. Empty segment pulses softly. Loss aversion through visible incompleteness.
+- Save button: "Save and find providers" → **"Apply for benefits"**
+- After save, redirect to `/welcome?from=benefits&matches=N` (replaces inline success state)
+- Result: 5 perceived steps → 4 (cards → age → financial → results → save)
+
+**Self-review bugs caught and fixed (3 rounds):**
+
+Round 1 (welcome page integration):
+1. **Race condition flash** — wrong card showed for ~200-500ms before auth resolved on welcome page. Added skeleton during auth resolution window.
+2. **Unreachable skeleton** in matches section — parent gated on `length > 0` so the `length === 0` skeleton never rendered. Restructured.
+3. **Broken `/portal/benefits` link** — would 404. Replaced with state-aware link to `/texas/benefits` or `/senior-benefits/{slug}`.
+
+Round 2 (architectural review of save-results route):
+1. CRITICAL: `accounts` table has no `email` column — my insert would fail. Fixed.
+2. CRITICAL: `seeker_activity.event_type` CHECK constraint rejected `"benefits_intake_completed"`. Changed to `"profile_enriched"`.
+3. CRITICAL: Duplicate profile bug — auth callback would create a second family profile. Fixed by creating account inline.
+4. `.single()` instead of `.maybeSingle()` on initial account lookup.
+
+**Design iterations with TJ (many rounds — this was a long session):**
+
+1. CTA "Save and find providers" → too transactional. Discussed options.
+2. Welcome page concept: "Care plan" framing → too abstract. Pivot to "Save my matches and find providers who accept them."
+3. Welcome page fully personalized vs minimal: chose **medium scope** — augment existing welcome, don't rebuild.
+4. The 4/10 conversion estimate prompted the deeper rethink: not just about copy, about WHERE the save moment lives.
+5. "Apply for benefits" copy locked in for both the save button and (later) considered for the hook CTA.
+6. Pivot moment: TJ pointed out that step 5 isn't the most important screen — the FIRST screen is. If users don't start, save copy doesn't matter. The strongest visual element (care-need cards) was buried at step 1, not the entry point.
+7. Typographic strip design: discussed pills vs chrome vs typography. Studied Wispr Flow + Perena reference screenshots. Landed on flowing middle-dot-separated names — Perena editorial style.
+8. Progress bar on save step: should fill as user types (loss aversion through visible incompleteness).
+
+**Files changed (3 commits):**
+- `app/api/benefits/save-results/route.ts` — bug fixes
+- `app/api/saved-programs/enriched/route.ts` — NEW
+- `components/providers/BenefitsDiscoveryModule.tsx` — major restructure
+- `components/welcome/WelcomeClient.tsx` — benefits intake state added
+- `app/provider/[slug]/page.tsx` — pass providerState prop, include incomeTable
+
+**Build:** Clean (0 type errors). Pushed to Vercel.
+
+**Conversion estimate:** Started at 4/10 (initial save module). After welcome page integration: 6-7/10. After leading with the strongest screen + typographic strip + loss-aversion progress bar: TBD pending TJ test, but the architectural fix is the right move.
+
+**Commits:** `e610064a` → `91a74bfd` → `a5129804` → `2c20944e` → `eb0429f0` → `c47f07c2`
+
+---
 
 ### 2026-04-11 (Session 75) — Benefits Module: Conversion Flow + Care Seeker Profile Integration
 

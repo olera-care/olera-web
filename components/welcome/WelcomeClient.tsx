@@ -385,12 +385,64 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
   // hasInitialized removed — page renders immediately without auth gate
   const [preAuthPage, setPreAuthPage] = useState<string | null>(null);
 
+  // ─── Benefits intake state ─────────────────────────────────────────
+  // Detects users who completed the benefits intake on a provider page
+  // and adapts the welcome UI to show their personalized matches.
+  const familyMetadata = (activeProfile?.metadata || {}) as FamilyMetadata;
+  const hasBenefitsIntake = !!familyMetadata.benefits_results;
+  const isFreshFromBenefits = searchParams.get("from") === "benefits";
+  const benefitsAnswers = familyMetadata.benefits_results?.answers as
+    | { careNeed?: string; age?: number; medicaidStatus?: string; incomeRange?: string; stateCode?: string }
+    | undefined;
+  const benefitsMatchCount = familyMetadata.benefits_results?.matchCount || 0;
+
+  // Map careNeed → display label and provider category filter
+  const careNeedLabel = (() => {
+    switch (benefitsAnswers?.careNeed) {
+      case "stayingAtHome": return "staying at home";
+      case "payingForCare": return "paying for care";
+      case "memoryHealth": return "memory & health care";
+      case "companionship": return "companionship support";
+      default: return null;
+    }
+  })();
+  const careNeedProviderCategory = (() => {
+    // Map intake care need → olera-providers.provider_category for filtering
+    switch (benefitsAnswers?.careNeed) {
+      case "stayingAtHome": return "Home Care (Non-medical)";
+      case "memoryHealth": return "Memory Care";
+      default: return null;
+    }
+  })();
+
+  // Enriched saved programs (live data, not snapshot)
+  type EnrichedSavedProgram = {
+    id: string; stateId: string; name: string; shortName: string;
+    tagline: string | null; savingsRange?: string;
+    nextStep: string | null; description: string | null;
+  };
+  const [enrichedPrograms, setEnrichedPrograms] = useState<EnrichedSavedProgram[]>([]);
+  const [enrichedLoading, setEnrichedLoading] = useState(false);
+
+  useEffect(() => {
+    if (!hasBenefitsIntake || !user) return;
+    setEnrichedLoading(true);
+    fetch("/api/saved-programs/enriched")
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data?.programs)) setEnrichedPrograms(data.programs);
+      })
+      .catch((err) => console.error("[welcome] Failed to load enriched programs:", err))
+      .finally(() => setEnrichedLoading(false));
+  }, [hasBenefitsIntake, user]);
+
   // Fetch providers client-side (non-blocking, below the fold)
   useEffect(() => {
     async function fetchProviders() {
       try {
         const supabase = createClient();
         const userCity = activeProfile?.city || null;
+        const userState = activeProfile?.state || benefitsAnswers?.stateCode || null;
         if (userCity) setCity(userCity);
 
         const query = supabase
@@ -404,12 +456,36 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
           .order("provider_name", { ascending: true })
           .limit(6);
 
-        if (userCity) query.eq("city", userCity);
+        // Benefits intake users: filter by state + care category for relevance
+        if (hasBenefitsIntake && userState) {
+          query.eq("state", userState);
+          if (careNeedProviderCategory) {
+            // ilike with wildcards handles "Home Care (Non-medical)" matching
+            // both standalone and pipe-separated multi-category strings
+            query.ilike("provider_category", `%${careNeedProviderCategory}%`);
+          }
+        } else if (userCity) {
+          query.eq("city", userCity);
+        }
+
         const { data } = await query;
         if (data?.length) {
           setMatches(data as MatchProvider[]);
+        } else if (hasBenefitsIntake && userState) {
+          // Benefits intake fallback: drop care category filter, keep state
+          const { data: stateOnly } = await supabase
+            .from("olera-providers")
+            .select("provider_id, provider_name, provider_logo, provider_images, provider_category, city, state, google_rating")
+            .eq("deleted", false)
+            .eq("state", userState)
+            .not("google_rating", "is", null)
+            .gte("google_rating", 4.0)
+            .not("provider_images", "is", null)
+            .order("google_rating", { ascending: false })
+            .limit(6);
+          if (stateOnly?.length) setMatches(stateOnly as MatchProvider[]);
         } else if (userCity) {
-          // Fallback to national if city has no results
+          // Generic fallback: national top 6
           const { data: national } = await supabase
             .from("olera-providers")
             .select("provider_id, provider_name, provider_logo, provider_images, provider_category, city, state, google_rating")
@@ -429,9 +505,9 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
       }
     }
     fetchProviders();
-  // Re-fetch when profile loads (may have city now)
+  // Re-fetch when profile loads (may have city now) or intake state changes
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeProfile?.city]);
+  }, [activeProfile?.city, activeProfile?.state, hasBenefitsIntake, careNeedProviderCategory]);
 
   // Profile wizard state
   const [profileWizardOpen, setProfileWizardOpen] = useState(false);
@@ -959,13 +1035,15 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
           {/* ============================================================
               HEADER — Bold greeting, Airbnb "Trips" energy
               ============================================================ */}
-          <section className="pt-10 sm:pt-14 pb-8">
+          <section className={hasBenefitsIntake ? "pt-10 sm:pt-14 pb-4" : "pt-10 sm:pt-14 pb-8"}>
             <p className="text-text-sm text-gray-400 tracking-wide">
               {greeting}
             </p>
-            <h1 className="mt-1 text-[28px] sm:text-[32px] font-semibold text-gray-900 leading-tight tracking-tight">
-              {subtitle}
-            </h1>
+            {!hasBenefitsIntake && (
+              <h1 className="mt-1 text-[28px] sm:text-[32px] font-semibold text-gray-900 leading-tight tracking-tight">
+                {subtitle}
+              </h1>
+            )}
           </section>
 
           {/* ============================================================
@@ -1124,6 +1202,58 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
                 </div>
               </div>
             </section>
+          ) : isFreshFromBenefits && !hasBenefitsIntake ? (
+            /* Skeleton while auth resolves — prevents flash of generic
+               fresh-state card for users who just completed the intake */
+            <section className="pb-10">
+              <div className="rounded-2xl border border-gray-200/60 p-5 sm:p-6 animate-pulse">
+                <div className="h-5 w-32 bg-gray-100 rounded-full mb-4" />
+                <div className="h-6 w-48 bg-gray-100 rounded-md" />
+                <div className="h-3 w-72 bg-gray-100 rounded-md mt-3" />
+                <div className="flex gap-5 mt-5">
+                  <div className="space-y-1.5">
+                    <div className="h-7 w-10 bg-gray-100 rounded" />
+                    <div className="h-3 w-20 bg-gray-100 rounded" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <div className="h-7 w-12 bg-gray-100 rounded" />
+                    <div className="h-3 w-24 bg-gray-100 rounded" />
+                  </div>
+                </div>
+              </div>
+            </section>
+          ) : hasBenefitsIntake ? (
+            /* ============================================================
+               BENEFITS INTAKE CARD — for users who completed the benefits
+               intake on a provider page. Personalized situation summary,
+               warm vanilla background, names what just happened.
+               ============================================================ */
+            <section className="pb-8">
+              <div className="rounded-2xl bg-vanilla-100 border border-vanilla-200/60 p-5 sm:p-7">
+                {/* Fresh celebration badge — only on fresh-from-benefits */}
+                {isFreshFromBenefits && (
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-100/70 mb-4">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-700">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    <span className="text-[12px] font-medium text-emerald-800">Your matches are saved</span>
+                  </div>
+                )}
+
+                <h2 className="text-2xl sm:text-3xl font-semibold font-display text-gray-900 leading-tight">
+                  {benefitsMatchCount > 0
+                    ? `${userName ? `${userName}, your` : "Your"} family may qualify for ${benefitsMatchCount} ${benefitsMatchCount === 1 ? "program" : "programs"}`
+                    : userName ? `Welcome, ${userName}` : "Welcome to Olera"}
+                </h2>
+                <p className="mt-2 text-text-sm text-gray-600 leading-relaxed">
+                  Based on what you told us
+                  {benefitsAnswers?.age ? ` — age ${benefitsAnswers.age}` : ""}
+                  {careNeedLabel ? `, ${careNeedLabel}` : ""}
+                  {benefitsAnswers?.stateCode ? ` in ${benefitsAnswers.stateCode}` : ""}
+                  .
+                </p>
+              </div>
+            </section>
           ) : !isConnected && !allStepsComplete ? (
             /* ============================================================
                FRESH STATE CARD — Welcome card for new users without connection
@@ -1162,12 +1292,110 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
             </section>
           ) : null}
 
+          {/* ============================================================
+              YOUR BENEFITS MATCHES — list of saved programs with next steps
+              Only shown for users who completed the benefits intake.
+              Pulled live from the program library so updates flow through.
+              ============================================================ */}
+          {hasBenefitsIntake && (enrichedLoading || enrichedPrograms.length > 0) && (
+            <section className="pb-10">
+              <div className="flex items-baseline justify-between mb-5">
+                <h2 className="text-xl font-semibold font-display text-gray-900">Your matches</h2>
+                {enrichedPrograms.length > 0 && benefitsAnswers?.stateCode && (() => {
+                  // Map state code → slug for the benefits page link
+                  const stateSlugMap: Record<string, string> = {
+                    AL: "alabama", AK: "alaska", AZ: "arizona", AR: "arkansas", CA: "california",
+                    CO: "colorado", CT: "connecticut", DE: "delaware", FL: "florida", GA: "georgia",
+                    HI: "hawaii", ID: "idaho", IL: "illinois", IN: "indiana", IA: "iowa",
+                    KS: "kansas", KY: "kentucky", LA: "louisiana", ME: "maine", MD: "maryland",
+                    MA: "massachusetts", MI: "michigan", MN: "minnesota", MS: "mississippi", MO: "missouri",
+                    MT: "montana", NE: "nebraska", NV: "nevada", NH: "new-hampshire", NJ: "new-jersey",
+                    NM: "new-mexico", NY: "new-york", NC: "north-carolina", ND: "north-dakota",
+                    OH: "ohio", OK: "oklahoma", OR: "oregon", PA: "pennsylvania", RI: "rhode-island",
+                    SC: "south-carolina", SD: "south-dakota", TN: "tennessee", TX: "texas",
+                    UT: "utah", VT: "vermont", VA: "virginia", WA: "washington", WV: "west-virginia",
+                    WI: "wisconsin", WY: "wyoming", DC: "district-of-columbia",
+                  };
+                  const slug = stateSlugMap[benefitsAnswers.stateCode];
+                  if (!slug) return null;
+                  const href = slug === "texas" ? "/texas/benefits" : `/senior-benefits/${slug}`;
+                  return (
+                    <Link
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-text-xs text-gray-500 hover:text-gray-700 transition-colors"
+                    >
+                      View all →
+                    </Link>
+                  );
+                })()}
+              </div>
+              {enrichedLoading && enrichedPrograms.length === 0 ? (
+                <div className="space-y-3">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="h-24 rounded-2xl border border-gray-100 bg-gray-50/50 animate-pulse" />
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {enrichedPrograms.slice(0, 4).map((p) => {
+                    const programHref = p.stateId === "texas"
+                      ? `/texas/benefits/${p.id}`
+                      : `/senior-benefits/${p.stateId}/${p.id}`;
+                    return (
+                      <Link
+                        key={p.id}
+                        href={programHref}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block p-5 rounded-2xl bg-white border border-gray-200 hover:border-gray-900 hover:shadow-sm transition-all group"
+                      >
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-base font-semibold text-gray-900">{p.shortName}</p>
+                            {p.description && (
+                              <p className="text-text-xs text-gray-500 mt-1 line-clamp-1">{p.description}</p>
+                            )}
+                          </div>
+                          {p.savingsRange && (
+                            <span className="text-text-xs font-semibold text-gray-700 whitespace-nowrap shrink-0">
+                              {(() => {
+                                const matches = p.savingsRange.match(/\$[\d,]+/g);
+                                return matches ? `Up to ${matches[matches.length - 1]}/yr` : p.savingsRange;
+                              })()}
+                            </span>
+                          )}
+                        </div>
+                        {p.nextStep && (
+                          <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100">
+                            <div className="w-5 h-5 rounded-full bg-gray-900 flex items-center justify-center shrink-0">
+                              <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                              </svg>
+                            </div>
+                            <p className="text-text-xs font-medium text-gray-900 truncate">
+                              {p.nextStep}
+                            </p>
+                          </div>
+                        )}
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+          )}
+
           {/* Confetti celebration */}
           {showCelebration && <ConfettiCelebration />}
 
           {/* ============================================================
               ACTION STEPS — Clean, flat list. No timeline chrome.
+              Hidden for benefits intake users — they're on a different
+              journey and the generic onboarding actions are noise.
               ============================================================ */}
+          {!hasBenefitsIntake && (
           <section className="pb-12">
               <div className="space-y-3">
                 {/* Card 1: Profile */}
@@ -1320,6 +1548,7 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
                 )}
               </div>
           </section>
+          )}
 
           {/* ============================================================
               PROVIDER RECOMMENDATIONS — Full width, aligned with main card
@@ -1329,7 +1558,11 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
               {/* Section header */}
               <div className="flex items-center justify-between mb-5">
                 <h2 className="text-text-md font-medium text-gray-900">
-                  {allStepsComplete ? 'Recommended for you' : 'Providers near you'}
+                  {hasBenefitsIntake && benefitsAnswers?.stateCode
+                    ? (careNeedProviderCategory
+                        ? `${careNeedProviderCategory.replace(" (Non-medical)", "")} in ${benefitsAnswers.stateCode}`
+                        : `Providers in ${benefitsAnswers.stateCode}`)
+                    : allStepsComplete ? 'Recommended for you' : 'Providers near you'}
                 </h2>
                 <div className="flex items-center gap-1.5">
                   <button

@@ -435,16 +435,16 @@ function ContactCards({ contacts }: { contacts: { label: string; description?: s
 
 function ApplicationNotes({ notes }: { notes: string[] }) {
   return (
-    <div className="space-y-2.5">
-      {notes.map((note, i) => (
-        <div
-          key={i}
-          className="flex items-start gap-3 p-3.5 rounded-lg bg-amber-50/60 border-l-2 border-amber-400"
-        >
-          <Info className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-          <p className="text-sm text-gray-700 leading-relaxed">{note}</p>
-        </div>
-      ))}
+    <div>
+      <SectionLabel>Good to know</SectionLabel>
+      <ul className="space-y-2.5">
+        {notes.map((note, i) => (
+          <li key={i} className="flex items-start gap-2.5 text-sm text-gray-600 leading-relaxed">
+            <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
+            {note}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

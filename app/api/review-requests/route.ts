@@ -21,6 +21,9 @@ interface EmailLogRow {
   } | null;
 }
 
+// Free credit limit for review requests (lifetime, not monthly)
+const FREE_REVIEW_CREDITS = 3;
+
 /**
  * GET /api/review-requests
  *
@@ -54,7 +57,7 @@ export async function GET() {
 
     const { data: profile } = await db
       .from("business_profiles")
-      .select("id")
+      .select("id, metadata")
       .eq("account_id", account.id)
       .in("type", ["organization", "caregiver"])
       .single();
@@ -62,6 +65,11 @@ export async function GET() {
     if (!profile) {
       return NextResponse.json({ error: "No provider profile found" }, { status: 400 });
     }
+
+    // Get access tier info
+    const metadata = (profile.metadata || {}) as Record<string, unknown>;
+    const isPaid = !!(metadata.medjobs_subscription_active as boolean);
+    const reviewCreditsUsed = (metadata.reviews_credits_used as number) || 0;
 
     // Fetch review request emails for this provider
     const { data: emails, error: emailsError } = await db
@@ -87,7 +95,12 @@ export async function GET() {
       status: email.status,
     }));
 
-    return NextResponse.json({ requests });
+    return NextResponse.json({
+      requests,
+      is_paid: isPaid,
+      credits_used: reviewCreditsUsed,
+      credits_remaining: isPaid ? Infinity : Math.max(FREE_REVIEW_CREDITS - reviewCreditsUsed, 0),
+    });
   } catch (err) {
     console.error("Review requests GET error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
@@ -152,13 +165,45 @@ export async function POST(request: NextRequest) {
 
     const { data: profile } = await db
       .from("business_profiles")
-      .select("id, display_name, slug")
+      .select("id, display_name, slug, metadata")
       .eq("account_id", account.id)
       .in("type", ["organization", "caregiver"])
       .single();
 
     if (!profile?.slug) {
       return NextResponse.json({ error: "No provider profile found" }, { status: 400 });
+    }
+
+    // Check access tier for review requests
+    const metadata = (profile.metadata || {}) as Record<string, unknown>;
+    const isPaid = !!(metadata.medjobs_subscription_active as boolean);
+    const reviewCreditsUsed = (metadata.reviews_credits_used as number) || 0;
+
+    // If not paid and at/over limit, require upgrade
+    if (!isPaid && reviewCreditsUsed >= FREE_REVIEW_CREDITS) {
+      return NextResponse.json(
+        {
+          error: "Review request limit reached",
+          upgrade_required: true,
+          credits_used: reviewCreditsUsed,
+        },
+        { status: 402 }
+      );
+    }
+
+    // Check if this batch would exceed the limit (prevent batch bypass)
+    const clientsWithEmail = clients.filter((c) => c.email);
+    if (!isPaid && reviewCreditsUsed + clientsWithEmail.length > FREE_REVIEW_CREDITS) {
+      const creditsRemaining = FREE_REVIEW_CREDITS - reviewCreditsUsed;
+      return NextResponse.json(
+        {
+          error: `You can only send ${creditsRemaining} more free request${creditsRemaining === 1 ? "" : "s"}. Upgrade to Pro for unlimited requests.`,
+          upgrade_required: true,
+          credits_used: reviewCreditsUsed,
+          credits_remaining: creditsRemaining,
+        },
+        { status: 402 }
+      );
     }
 
     // Use request origin for correct preview/staging URLs, fallback to env variable
@@ -243,11 +288,32 @@ export async function POST(request: NextRequest) {
 
     const sentCount = results.filter((r) => r.status === "sent").length;
 
+    // Increment review credits used (only for non-paid providers, and only for actually sent emails)
+    if (!isPaid && sentCount > 0) {
+      const newCreditsUsed = reviewCreditsUsed + sentCount;
+      try {
+        await db
+          .from("business_profiles")
+          .update({
+            metadata: {
+              ...metadata,
+              reviews_credits_used: newCreditsUsed,
+            },
+          })
+          .eq("id", profile.id);
+      } catch (creditErr) {
+        // Non-blocking — don't fail the request if credit tracking fails
+        console.error("Failed to update review credits:", creditErr);
+      }
+    }
+
     return NextResponse.json({
       success: true,
       sent: sentCount,
       total: clients.length,
       results,
+      credits_used: isPaid ? 0 : reviewCreditsUsed + sentCount,
+      credits_remaining: isPaid ? Infinity : Math.max(FREE_REVIEW_CREDITS - (reviewCreditsUsed + sentCount), 0),
     });
   } catch (err) {
     console.error("Review requests POST error:", err);

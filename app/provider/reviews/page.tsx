@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import ReviewUpgradeModal from "@/components/provider/ReviewUpgradeModal";
 
 // ── Types ──
 
@@ -151,10 +152,14 @@ function SendRequestForm({
   onSuccess,
   providerSlug,
   remainingRequests,
+  creditsUsed,
+  onUpgradeRequired,
 }: {
   onSuccess?: () => void;
   providerSlug?: string;
   remainingRequests: number;
+  creditsUsed: number;
+  onUpgradeRequired: () => void;
 }) {
   const [clientName, setClientName] = useState("");
   const [email, setEmail] = useState("");
@@ -197,6 +202,11 @@ function SendRequestForm({
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
+        // Handle 402 - upgrade required
+        if (res.status === 402 && data.upgrade_required) {
+          onUpgradeRequired();
+          return;
+        }
         throw new Error(data.error || "Failed to send request");
       }
 
@@ -353,15 +363,19 @@ function SendRequestForm({
         {/* Remaining requests - only show when low */}
         {remainingRequests <= 3 && remainingRequests > 0 && (
           <p className="text-center text-xs text-amber-600 font-medium">
-            {remainingRequests} free request{remainingRequests === 1 ? "" : "s"} remaining this month
+            {remainingRequests} free request{remainingRequests === 1 ? "" : "s"} remaining
           </p>
         )}
 
         {/* At limit message */}
         {isAtLimit && (
-          <p className="text-center text-xs text-gray-500">
-            You&apos;ve reached your monthly limit. Resets on the 1st.
-          </p>
+          <button
+            type="button"
+            onClick={onUpgradeRequired}
+            className="text-center text-xs text-primary-600 hover:text-primary-700 font-medium w-full"
+          >
+            Upgrade to Pro for unlimited requests
+          </button>
         )}
       </div>
 
@@ -474,7 +488,9 @@ export default function ProviderReviewsPage() {
   const [requests, setRequests] = useState<SentRequest[]>([]);
   const [isLoadingRequests, setIsLoadingRequests] = useState(true);
   const [requestsError, setRequestsError] = useState<string | null>(null);
-  const [remainingRequests, setRemainingRequests] = useState(10);
+  const [remainingRequests, setRemainingRequests] = useState(3);
+  const [creditsUsed, setCreditsUsed] = useState(0);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   // Fetch provider slug
   useEffect(() => {
@@ -491,7 +507,7 @@ export default function ProviderReviewsPage() {
     })();
   }, []);
 
-  // Fetch requests and compute remaining
+  // Fetch requests and credits info
   const fetchRequests = useCallback(async () => {
     setIsLoadingRequests(true);
     try {
@@ -502,15 +518,11 @@ export default function ProviderReviewsPage() {
       setRequests(reqs);
       setRequestsError(null);
 
-      // Count this month's requests
-      const now = new Date();
-      const thisMonthCount = reqs.filter((r: SentRequest) => {
-        const sentDate = new Date(r.sentAt);
-        return sentDate.getMonth() === now.getMonth() && sentDate.getFullYear() === now.getFullYear();
-      }).length;
-
-      const monthlyLimit = 10; // TODO: fetch from subscription tier
-      setRemainingRequests(Math.max(monthlyLimit - thisMonthCount, 0));
+      // Use credits info from API (lifetime limit, not monthly)
+      const used = data.credits_used ?? 0;
+      const remaining = data.is_paid ? Infinity : (data.credits_remaining ?? 3);
+      setCreditsUsed(used);
+      setRemainingRequests(remaining);
     } catch (err) {
       console.error("Failed to fetch sent requests:", err);
       setRequestsError("Failed to load sent requests");
@@ -605,6 +617,8 @@ export default function ProviderReviewsPage() {
                   onSuccess={handleSendSuccess}
                   providerSlug={providerSlug || undefined}
                   remainingRequests={remainingRequests}
+                  creditsUsed={creditsUsed}
+                  onUpgradeRequired={() => setShowUpgradeModal(true)}
                 />
               )}
               {activeTab === "sent_requests" && (
@@ -628,6 +642,14 @@ export default function ProviderReviewsPage() {
           </div>
         </div>
       </div>
+
+      {/* Upgrade Modal */}
+      {showUpgradeModal && (
+        <ReviewUpgradeModal
+          creditsUsed={creditsUsed}
+          onClose={() => setShowUpgradeModal(false)}
+        />
+      )}
     </>
   );
 }

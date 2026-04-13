@@ -15,6 +15,12 @@ interface SentRequest {
   status: string;
 }
 
+interface ReviewStats {
+  totalSent: number;
+  thisMonth: number;
+  monthlyLimit: number;
+}
+
 // ── Helpers ──
 
 function formatDate(dateStr: string): string {
@@ -31,7 +37,7 @@ function formatDate(dateStr: string): string {
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-// Avatar gradient (deterministic by name) - matches connections page
+// Avatar gradient (deterministic by name)
 const AVATAR_GRADIENTS = [
   "from-rose-100 to-pink-50",
   "from-sky-100 to-blue-50",
@@ -66,19 +72,10 @@ function MailIcon({ className = "w-5 h-5" }: { className?: string }) {
   );
 }
 
-
 function CheckCircleIcon({ className = "w-5 h-5" }: { className?: string }) {
   return (
     <svg className={className} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-    </svg>
-  );
-}
-
-function PlayIcon({ className = "w-8 h-8" }: { className?: string }) {
-  return (
-    <svg className={className} fill="currentColor" viewBox="0 0 24 24">
-      <path d="M8 5.14v14l11-7-11-7z" />
     </svg>
   );
 }
@@ -91,12 +88,6 @@ function SparklesIcon({ className = "w-5 h-5" }: { className?: string }) {
   );
 }
 
-// ── Default message ──
-
-const DEFAULT_MESSAGE = "Hi, we'd love to hear about your experience with us. Would you take a moment to leave a review? It helps other families find quality care.";
-
-// ── Copy Link Icon ──
-
 function LinkIcon({ className = "w-5 h-5" }: { className?: string }) {
   return (
     <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
@@ -105,33 +96,141 @@ function LinkIcon({ className = "w-5 h-5" }: { className?: string }) {
   );
 }
 
+function TrendingUpIcon({ className = "w-5 h-5" }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941" />
+    </svg>
+  );
+}
+
+function StarIcon({ className = "w-5 h-5" }: { className?: string }) {
+  return (
+    <svg className={className} fill="currentColor" viewBox="0 0 24 24">
+      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+    </svg>
+  );
+}
+
+function ClockIcon({ className = "w-5 h-5" }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+    </svg>
+  );
+}
+
+// ── Default message ──
+
+const DEFAULT_MESSAGE = "Hi, we'd love to hear about your experience with us. Would you take a moment to leave a review? It helps other families find quality care.";
+
+// ── Stats Header ──
+
+function StatsHeader({ stats, isLoading }: { stats: ReviewStats; isLoading: boolean }) {
+  const usagePercent = stats.monthlyLimit > 0 ? Math.min((stats.thisMonth / stats.monthlyLimit) * 100, 100) : 0;
+  const remaining = Math.max(stats.monthlyLimit - stats.thisMonth, 0);
+
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6 animate-pulse">
+        {[0, 1, 2, 3].map((i) => (
+          <div key={i} className="bg-white rounded-xl border border-gray-100 p-4 h-20" />
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+      {/* Total Sent */}
+      <div className="bg-white rounded-xl border border-gray-200/60 p-4 shadow-[0_2px_8px_rgb(0,0,0,0.04)]">
+        <div className="flex items-center gap-2 text-gray-500 mb-1">
+          <MailIcon className="w-4 h-4" />
+          <span className="text-xs font-medium">Total Sent</span>
+        </div>
+        <p className="text-2xl font-bold text-gray-900">{stats.totalSent}</p>
+      </div>
+
+      {/* This Month */}
+      <div className="bg-white rounded-xl border border-gray-200/60 p-4 shadow-[0_2px_8px_rgb(0,0,0,0.04)]">
+        <div className="flex items-center gap-2 text-gray-500 mb-1">
+          <TrendingUpIcon className="w-4 h-4" />
+          <span className="text-xs font-medium">This Month</span>
+        </div>
+        <p className="text-2xl font-bold text-gray-900">{stats.thisMonth}</p>
+      </div>
+
+      {/* Usage - with progress bar */}
+      <div className="bg-white rounded-xl border border-gray-200/60 p-4 shadow-[0_2px_8px_rgb(0,0,0,0.04)] col-span-2 lg:col-span-1">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs font-medium text-gray-500">Monthly Usage</span>
+          <span className="text-xs font-semibold text-gray-700">{stats.thisMonth}/{stats.monthlyLimit}</span>
+        </div>
+        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all duration-500 ${
+              usagePercent >= 90 ? "bg-amber-500" : "bg-primary-500"
+            }`}
+            style={{ width: `${usagePercent}%` }}
+          />
+        </div>
+        {remaining <= 3 && remaining > 0 && (
+          <p className="text-xs text-amber-600 mt-1.5 font-medium">{remaining} requests remaining</p>
+        )}
+      </div>
+
+      {/* Pro tip / upgrade hint */}
+      <div className="bg-gradient-to-br from-primary-50 to-primary-100/50 rounded-xl border border-primary-200/40 p-4 col-span-2 lg:col-span-1">
+        <div className="flex items-start gap-2">
+          <StarIcon className="w-4 h-4 text-primary-600 mt-0.5 shrink-0" />
+          <div>
+            <p className="text-xs font-semibold text-primary-900">Pro tip</p>
+            <p className="text-xs text-primary-700 mt-0.5 leading-relaxed">
+              Providers with 10+ reviews see 3x more inquiries
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Send Request Form ──
 
-function SendRequestForm({ onSuccess, providerSlug }: { onSuccess?: () => void; providerSlug?: string }) {
+function SendRequestForm({
+  onSuccess,
+  providerSlug,
+  stats,
+}: {
+  onSuccess?: () => void;
+  providerSlug?: string;
+  stats: ReviewStats;
+}) {
   const [clientName, setClientName] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState(DEFAULT_MESSAGE);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successName, setSuccessName] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [linkCopied, setLinkCopied] = useState(false);
 
-  // Auto-dismiss success message after 3 seconds
+  const isAtLimit = stats.thisMonth >= stats.monthlyLimit;
+
+  // Auto-dismiss success after 4 seconds
   useEffect(() => {
-    if (successMessage) {
-      const timer = setTimeout(() => {
-        setSuccessMessage(null);
-      }, 3000);
+    if (showSuccess) {
+      const timer = setTimeout(() => setShowSuccess(false), 4000);
       return () => clearTimeout(timer);
     }
-  }, [successMessage]);
+  }, [showSuccess]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!clientName.trim() || !email.trim() || !message.trim() || isSubmitting) return;
+    if (!clientName.trim() || !email.trim() || !message.trim() || isSubmitting || isAtLimit) return;
 
     setIsSubmitting(true);
-    setSuccessMessage(null);
+    setShowSuccess(false);
     setErrorMessage(null);
 
     try {
@@ -151,14 +250,13 @@ function SendRequestForm({ onSuccess, providerSlug }: { onSuccess?: () => void; 
         throw new Error(data.error || "Failed to send request");
       }
 
-      // Check if the email actually sent successfully
       const failedResults = data.results?.filter((r: { status: string }) => r.status === "failed") || [];
       if (failedResults.length > 0) {
-        const errorMsg = failedResults[0]?.error || "Failed to send email";
-        throw new Error(errorMsg);
+        throw new Error(failedResults[0]?.error || "Failed to send email");
       }
 
-      setSuccessMessage(`Request sent to ${clientName}`);
+      setSuccessName(clientName);
+      setShowSuccess(true);
       setClientName("");
       setEmail("");
       setMessage(DEFAULT_MESSAGE);
@@ -178,7 +276,6 @@ function SendRequestForm({ onSuccess, providerSlug }: { onSuccess?: () => void; 
       setLinkCopied(true);
       setTimeout(() => setLinkCopied(false), 2000);
     } catch {
-      // Fallback
       const textArea = document.createElement("textarea");
       textArea.value = link;
       textArea.style.position = "fixed";
@@ -192,25 +289,48 @@ function SendRequestForm({ onSuccess, providerSlug }: { onSuccess?: () => void; 
     }
   };
 
+  // Success celebration state
+  if (showSuccess) {
+    return (
+      <div className="text-center py-8 animate-fade-in">
+        <div className="relative w-16 h-16 mx-auto mb-4 animate-success-bounce">
+          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/25">
+            <CheckCircleIcon className="w-8 h-8 text-white" />
+          </div>
+          <div className="absolute -top-1 -right-1 w-3 h-3 bg-amber-400 rounded-full" />
+          <div className="absolute -bottom-0.5 -left-1 w-2 h-2 bg-primary-400 rounded-full" />
+        </div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-1">Request sent!</h3>
+        <p className="text-sm text-gray-500 mb-4">
+          {successName} will receive your review request shortly.
+        </p>
+        <button
+          type="button"
+          onClick={() => setShowSuccess(false)}
+          className="text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors"
+        >
+          Send another request
+        </button>
+      </div>
+    );
+  }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
-      {/* Success message - auto-dismisses */}
-      {successMessage && (
-        <div
-          className="flex items-center gap-3 p-4 bg-success-50 border border-success-100 rounded-xl text-success-700 text-[15px] animate-fade-in"
-          role="status"
-        >
-          <CheckCircleIcon className="w-5 h-5 shrink-0 text-success-600" />
-          <span className="font-medium">{successMessage}</span>
+      {/* At limit warning */}
+      {isAtLimit && (
+        <div className="flex items-center gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 text-sm">
+          <ClockIcon className="w-5 h-5 shrink-0 text-amber-600" />
+          <div>
+            <p className="font-semibold">Monthly limit reached</p>
+            <p className="text-amber-700 mt-0.5">You&apos;ve used all {stats.monthlyLimit} requests this month. Resets on the 1st.</p>
+          </div>
         </div>
       )}
 
       {/* Error message */}
       {errorMessage && (
-        <div
-          className="flex items-center gap-3 p-4 bg-error-50 border border-error-100 rounded-xl text-error-700 text-[15px]"
-          role="alert"
-        >
+        <div className="flex items-center gap-3 p-4 bg-error-50 border border-error-100 rounded-xl text-error-700 text-sm" role="alert">
           <svg className="w-5 h-5 shrink-0 text-error-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
           </svg>
@@ -218,10 +338,10 @@ function SendRequestForm({ onSuccess, providerSlug }: { onSuccess?: () => void; 
         </div>
       )}
 
-      {/* Client Name + Email - side by side */}
+      {/* Client Name + Email */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label htmlFor="clientName" className="block text-[15px] font-medium text-gray-700 mb-2">
+          <label htmlFor="clientName" className="block text-sm font-medium text-gray-700 mb-1.5">
             Client name
           </label>
           <input
@@ -230,13 +350,14 @@ function SendRequestForm({ onSuccess, providerSlug }: { onSuccess?: () => void; 
             value={clientName}
             onChange={(e) => setClientName(e.target.value)}
             placeholder="Jane Smith"
-            className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-white text-gray-900 text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-300 transition-all min-h-[52px]"
+            disabled={isAtLimit}
+            className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-900 text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-300 transition-all duration-200 disabled:bg-gray-50 disabled:cursor-not-allowed"
             required
             autoComplete="off"
           />
         </div>
         <div>
-          <label htmlFor="email" className="block text-[15px] font-medium text-gray-700 mb-2">
+          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">
             Email address
           </label>
           <input
@@ -245,19 +366,17 @@ function SendRequestForm({ onSuccess, providerSlug }: { onSuccess?: () => void; 
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="jane@example.com"
-            className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-white text-gray-900 text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-300 transition-all min-h-[52px]"
+            disabled={isAtLimit}
+            className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-900 text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-300 transition-all duration-200 disabled:bg-gray-50 disabled:cursor-not-allowed"
             required
             autoComplete="off"
           />
         </div>
       </div>
-      <p className="text-sm text-gray-500 -mt-2">
-        We&apos;ll send your review request to this email.
-      </p>
 
       {/* Message */}
       <div>
-        <label htmlFor="message" className="block text-[15px] font-medium text-gray-700 mb-2">
+        <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1.5">
           Your message
         </label>
         <textarea
@@ -266,16 +385,17 @@ function SendRequestForm({ onSuccess, providerSlug }: { onSuccess?: () => void; 
           onChange={(e) => setMessage(e.target.value)}
           rows={4}
           placeholder="Write a personal message..."
-          className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-white text-gray-900 text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-300 transition-all resize-none leading-relaxed"
+          disabled={isAtLimit}
+          className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-900 text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-300 transition-all duration-200 resize-y min-h-[120px] leading-relaxed disabled:bg-gray-50 disabled:cursor-not-allowed"
           required
         />
       </div>
 
-      {/* Submit */}
+      {/* Submit button */}
       <button
         type="submit"
-        disabled={!clientName.trim() || !email.trim() || !message.trim() || isSubmitting}
-        className="w-full py-4 rounded-xl bg-primary-600 text-white text-[15px] font-semibold hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-primary-300 focus:ring-offset-2 shadow-sm hover:shadow min-h-[52px]"
+        disabled={!clientName.trim() || !email.trim() || !message.trim() || isSubmitting || isAtLimit}
+        className="w-full py-4 rounded-2xl bg-gray-900 text-white text-[15px] font-semibold hover:bg-gray-800 disabled:bg-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 shadow-[0_4px_12px_rgb(0,0,0,0.15)] hover:shadow-[0_6px_16px_rgb(0,0,0,0.2)] disabled:shadow-none"
       >
         {isSubmitting ? (
           <span className="inline-flex items-center justify-center gap-2">
@@ -283,23 +403,26 @@ function SendRequestForm({ onSuccess, providerSlug }: { onSuccess?: () => void; 
             Sending...
           </span>
         ) : (
-          "Send request"
+          <span className="inline-flex items-center justify-center gap-2">
+            <MailIcon className="w-5 h-5" />
+            Send review request
+          </span>
         )}
       </button>
 
-      {/* Direct link option for clients without email */}
+      {/* Direct link option */}
       {providerSlug && (
-        <div className="pt-2 text-center">
+        <div className="flex items-center justify-center pt-2">
           <button
             type="button"
             onClick={handleCopyLink}
-            className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all duration-200"
           >
             <LinkIcon className="w-4 h-4" />
             {linkCopied ? (
-              <span className="text-success-600 font-medium">Link copied!</span>
+              <span className="text-emerald-600 font-medium">Link copied!</span>
             ) : (
-              <span>Client doesn&apos;t have email? Copy direct link</span>
+              <span>Copy direct review link</span>
             )}
           </button>
         </div>
@@ -310,39 +433,17 @@ function SendRequestForm({ onSuccess, providerSlug }: { onSuccess?: () => void; 
 
 // ── Sent Requests List ──
 
-function SentRequestsList({ refreshKey }: { refreshKey: number }) {
-  const [requests, setRequests] = useState<SentRequest[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    setIsLoading(true);
-    (async () => {
-      try {
-        const res = await fetch("/api/review-requests");
-        if (!res.ok) throw new Error("Failed to fetch");
-        const data = await res.json();
-        setRequests(data.requests || []);
-        setError(null);
-      } catch (err) {
-        console.error("Failed to fetch sent requests:", err);
-        setError("Failed to load sent requests");
-      } finally {
-        setIsLoading(false);
-      }
-    })();
-  }, [refreshKey]);
-
+function SentRequestsList({ requests, isLoading, error }: { requests: SentRequest[]; isLoading: boolean; error: string | null }) {
   if (isLoading) {
     return (
       <div className="space-y-3" role="status" aria-label="Loading sent requests">
         {[0, 1, 2].map((i) => (
-          <div key={i} className="animate-pulse bg-white rounded-xl border border-gray-100 p-4">
+          <div key={i} className="animate-pulse bg-gray-50 rounded-xl p-4">
             <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-full bg-warm-100" />
+              <div className="w-11 h-11 rounded-full bg-gray-200" />
               <div className="flex-1">
-                <div className="h-4 w-32 bg-warm-100 rounded mb-2" />
-                <div className="h-3 w-48 bg-warm-50 rounded" />
+                <div className="h-4 w-32 bg-gray-200 rounded mb-2" />
+                <div className="h-3 w-48 bg-gray-100 rounded" />
               </div>
             </div>
           </div>
@@ -354,7 +455,7 @@ function SentRequestsList({ refreshKey }: { refreshKey: number }) {
   if (error) {
     return (
       <div className="text-center py-12" role="alert">
-        <p className="text-gray-500 text-[15px]">{error}</p>
+        <p className="text-gray-500 text-sm">{error}</p>
       </div>
     );
   }
@@ -362,11 +463,11 @@ function SentRequestsList({ refreshKey }: { refreshKey: number }) {
   if (requests.length === 0) {
     return (
       <div className="text-center py-16 px-6">
-        <div className="w-16 h-16 rounded-full bg-vanilla-100 flex items-center justify-center mx-auto mb-4">
-          <MailIcon className="w-7 h-7 text-gray-400" />
+        <div className="w-14 h-14 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto mb-4">
+          <MailIcon className="w-6 h-6 text-gray-400" />
         </div>
-        <h3 className="text-lg font-display font-bold text-gray-900 mb-2">No requests sent yet</h3>
-        <p className="text-[15px] text-gray-500 leading-relaxed max-w-xs mx-auto">
+        <h3 className="text-base font-semibold text-gray-900 mb-1">No requests sent yet</h3>
+        <p className="text-sm text-gray-500 leading-relaxed max-w-xs mx-auto">
           When you send review requests, they&apos;ll appear here so you can track them.
         </p>
       </div>
@@ -374,17 +475,17 @@ function SentRequestsList({ refreshKey }: { refreshKey: number }) {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       {requests.map((request, idx) => (
         <div
           key={request.id}
-          className="bg-white rounded-xl border border-gray-100 p-4 hover:border-gray-200 hover:shadow-xs transition-all"
-          style={{ animation: `fadeIn 0.2s ease-out ${idx * 50}ms both` }}
+          className="bg-gray-50/50 hover:bg-gray-50 rounded-xl p-4 transition-all duration-200"
+          style={{ animation: `fadeIn 0.2s ease-out ${idx * 40}ms both` }}
         >
           <div className="flex items-start gap-3">
             {/* Avatar */}
-            <div className={`w-11 h-11 rounded-full bg-gradient-to-br ${avatarGradient(request.clientName)} flex items-center justify-center shrink-0 ring-2 ring-white shadow-sm`}>
-              <span className="text-sm font-bold text-gray-600">
+            <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${avatarGradient(request.clientName)} flex items-center justify-center shrink-0`}>
+              <span className="text-sm font-semibold text-gray-600">
                 {getInitials(request.clientName)}
               </span>
             </div>
@@ -392,28 +493,30 @@ function SentRequestsList({ refreshKey }: { refreshKey: number }) {
             {/* Info */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-semibold text-gray-900 text-[15px]">
+                <span className="font-medium text-gray-900 text-sm">
                   {request.clientName}
                 </span>
-                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${
+                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
                   request.status === "sent"
-                    ? "bg-success-50 text-success-700"
+                    ? "bg-emerald-100 text-emerald-700"
+                    : request.status === "clicked"
+                    ? "bg-blue-100 text-blue-700"
+                    : request.status === "reviewed"
+                    ? "bg-amber-100 text-amber-700"
                     : "bg-gray-100 text-gray-600"
                 }`}>
-                  {request.status === "sent" ? "Sent" : request.status}
+                  {request.status === "sent" && "Sent"}
+                  {request.status === "clicked" && "Clicked"}
+                  {request.status === "reviewed" && "Reviewed"}
+                  {!["sent", "clicked", "reviewed"].includes(request.status) && request.status}
                 </span>
               </div>
-              <p className="text-sm text-gray-500 mt-0.5 truncate">
+              <p className="text-xs text-gray-500 mt-0.5 truncate">
                 {request.recipient}
               </p>
-              <div className="flex items-center gap-3 mt-2.5 text-xs text-gray-400">
-                <span className="inline-flex items-center gap-1.5">
-                  <MailIcon className="w-3.5 h-3.5" />
-                  {request.deliveryMethod === "email" ? "Email" : "SMS"}
-                </span>
-                <span className="w-1 h-1 rounded-full bg-gray-300" />
-                <span>{formatDate(request.sentAt)}</span>
-              </div>
+              <p className="text-xs text-gray-400 mt-1.5">
+                {formatDate(request.sentAt)}
+              </p>
             </div>
           </div>
         </div>
@@ -436,64 +539,46 @@ function TipsPanel() {
     },
     {
       title: "Keep it simple",
-      description: "One click to review. No account needed for your client.",
+      description: "One click to review. We help them write it.",
     },
   ];
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-xs overflow-hidden">
-      {/* Video placeholder */}
-      <div className="aspect-video bg-gradient-to-br from-primary-50 via-vanilla-50 to-warm-50 flex items-center justify-center relative group cursor-pointer">
-        <div className="w-16 h-16 rounded-full bg-white/95 shadow-lg flex items-center justify-center group-hover:scale-105 transition-transform">
-          <PlayIcon className="w-7 h-7 text-primary-600 ml-0.5" />
+    <div className="bg-white rounded-2xl border border-gray-200/60 shadow-[0_4px_24px_rgb(0,0,0,0.04)] overflow-hidden">
+      {/* Stats highlight */}
+      <div className="bg-gradient-to-br from-primary-500 to-primary-600 p-5 text-white">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+            <TrendingUpIcon className="w-5 h-5" />
+          </div>
+          <div>
+            <p className="text-2xl font-bold">3x</p>
+            <p className="text-sm text-primary-100">more inquiries</p>
+          </div>
         </div>
-        <div className="absolute bottom-3 left-3 right-3">
-          <p className="text-xs font-medium text-gray-600 bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 inline-block shadow-xs">
-            Learn how to get more reviews
-          </p>
-        </div>
+        <p className="text-sm text-primary-100 leading-relaxed">
+          Providers with 10+ Google reviews see significantly more family inquiries.
+        </p>
       </div>
 
       {/* Tips */}
       <div className="p-5">
         <div className="flex items-center gap-2 mb-4">
-          <SparklesIcon className="w-5 h-5 text-primary-600" />
-          <h3 className="font-display font-bold text-gray-900">Tips for success</h3>
+          <SparklesIcon className="w-4 h-4 text-primary-600" />
+          <h3 className="font-semibold text-gray-900 text-sm">Tips for success</h3>
         </div>
         <div className="space-y-4">
           {tips.map((tip, i) => (
             <div key={i} className="flex gap-3">
-              <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center shrink-0 mt-0.5">
+              <div className="w-5 h-5 rounded-full bg-primary-100 flex items-center justify-center shrink-0 mt-0.5">
                 <span className="text-xs font-bold text-primary-700">{i + 1}</span>
               </div>
               <div>
-                <p className="font-semibold text-gray-900 text-[15px]">{tip.title}</p>
-                <p className="text-sm text-gray-500 mt-0.5 leading-relaxed">{tip.description}</p>
+                <p className="font-medium text-gray-900 text-sm">{tip.title}</p>
+                <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{tip.description}</p>
               </div>
             </div>
           ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ── Loading Skeleton ──
-
-function ReviewsSkeleton() {
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
-        <div className="animate-pulse">
-          <div className="mb-6 lg:mb-8">
-            <div className="h-8 w-32 bg-warm-100 rounded-lg mb-2" />
-            <div className="h-4 w-64 bg-warm-50 rounded" />
-          </div>
-          <div className="h-12 w-64 bg-vanilla-100 border border-warm-100/60 rounded-xl mb-6" />
-          <div className="lg:grid lg:grid-cols-[1fr,340px] lg:gap-8">
-            <div className="bg-white rounded-2xl border border-warm-100/60 p-6 h-80" />
-            <div className="hidden lg:block bg-white rounded-2xl border border-warm-100/60 h-96" />
-          </div>
         </div>
       </div>
     </div>
@@ -504,10 +589,14 @@ function ReviewsSkeleton() {
 
 export default function ProviderReviewsPage() {
   const [activeTab, setActiveTab] = useState<TabFilter>("send_request");
-  const [refreshKey, setRefreshKey] = useState(0);
   const [providerSlug, setProviderSlug] = useState<string | null>(null);
+  const [requests, setRequests] = useState<SentRequest[]>([]);
+  const [isLoadingRequests, setIsLoadingRequests] = useState(true);
+  const [requestsError, setRequestsError] = useState<string | null>(null);
+  const [stats, setStats] = useState<ReviewStats>({ totalSent: 0, thisMonth: 0, monthlyLimit: 10 });
+  const [isLoadingStats, setIsLoadingStats] = useState(true);
 
-  // Fetch provider slug for direct link feature
+  // Fetch provider slug
   useEffect(() => {
     (async () => {
       try {
@@ -517,19 +606,54 @@ export default function ProviderReviewsPage() {
           setProviderSlug(data.profile?.slug || null);
         }
       } catch {
-        // Silently fail - direct link will just be unavailable
+        // Silently fail
       }
     })();
   }, []);
 
-  // Callback to refresh sent requests list after sending
-  const handleSendSuccess = useCallback(() => {
-    setRefreshKey((k) => k + 1);
+  // Fetch requests and compute stats
+  const fetchRequests = useCallback(async () => {
+    setIsLoadingRequests(true);
+    try {
+      const res = await fetch("/api/review-requests");
+      if (!res.ok) throw new Error("Failed to fetch");
+      const data = await res.json();
+      const reqs = data.requests || [];
+      setRequests(reqs);
+      setRequestsError(null);
+
+      // Compute stats from requests
+      const now = new Date();
+      const thisMonthRequests = reqs.filter((r: SentRequest) => {
+        const sentDate = new Date(r.sentAt);
+        return sentDate.getMonth() === now.getMonth() && sentDate.getFullYear() === now.getFullYear();
+      });
+
+      setStats({
+        totalSent: reqs.length,
+        thisMonth: thisMonthRequests.length,
+        monthlyLimit: 10, // TODO: fetch from subscription tier
+      });
+    } catch (err) {
+      console.error("Failed to fetch sent requests:", err);
+      setRequestsError("Failed to load sent requests");
+    } finally {
+      setIsLoadingRequests(false);
+      setIsLoadingStats(false);
+    }
   }, []);
 
-  const TABS: { id: TabFilter; label: string }[] = [
-    { id: "send_request", label: "Send request" },
-    { id: "sent_requests", label: "Sent requests" },
+  useEffect(() => {
+    fetchRequests();
+  }, [fetchRequests]);
+
+  const handleSendSuccess = useCallback(() => {
+    fetchRequests();
+  }, [fetchRequests]);
+
+  const TABS: { id: TabFilter; label: string; count?: number }[] = [
+    { id: "send_request", label: "Send Request" },
+    { id: "sent_requests", label: "History", count: requests.length },
   ];
 
   return (
@@ -540,26 +664,36 @@ export default function ProviderReviewsPage() {
           to { opacity: 1; transform: translateY(0); }
         }
         .animate-fade-in {
-          animation: fadeIn 0.2s ease-out;
+          animation: fadeIn 0.25s ease-out;
+        }
+        @keyframes success-bounce {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.05); }
+        }
+        .animate-success-bounce {
+          animation: success-bounce 0.4s ease-out;
         }
       `}</style>
 
-      <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
           {/* Page header */}
-          <div className="mb-6 lg:mb-8">
-            <h1 className="text-2xl lg:text-[28px] font-display font-bold text-gray-900 tracking-tight">
-              Reviews
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+              Review Requests
             </h1>
-            <p className="text-[15px] text-gray-500 mt-1.5 leading-relaxed">
-              Request reviews from your clients to build trust with families.
+            <p className="text-sm text-gray-500 mt-1">
+              Request reviews from clients to build trust and attract more families.
             </p>
           </div>
 
-          {/* Pill tabs - matches other provider pages */}
-          <div className="mb-6">
+          {/* Stats header */}
+          <StatsHeader stats={stats} isLoading={isLoadingStats} />
+
+          {/* Tabs */}
+          <div className="mb-5">
             <div
-              className="inline-flex gap-0.5 bg-vanilla-100 border border-warm-100/60 p-1 rounded-xl"
+              className="inline-flex gap-1 bg-gray-100 p-1 rounded-xl"
               role="tablist"
               aria-label="Review request tabs"
             >
@@ -569,34 +703,47 @@ export default function ProviderReviewsPage() {
                   type="button"
                   role="tab"
                   aria-selected={activeTab === tab.id}
-                  aria-controls={`panel-${tab.id}`}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`px-5 py-2.5 rounded-lg text-[15px] font-semibold transition-all min-h-[44px] focus:outline-none focus:ring-2 focus:ring-primary-200 focus:ring-offset-1 ${
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                     activeTab === tab.id
                       ? "bg-white text-gray-900 shadow-sm"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-white/50"
+                      : "text-gray-600 hover:text-gray-900"
                   }`}
                 >
                   {tab.label}
+                  {tab.count !== undefined && tab.count > 0 && (
+                    <span className={`ml-1.5 px-1.5 py-0.5 rounded text-xs ${
+                      activeTab === tab.id ? "bg-gray-100 text-gray-600" : "bg-gray-200/50 text-gray-500"
+                    }`}>
+                      {tab.count}
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
           </div>
 
           {/* Content grid */}
-          <div className="lg:grid lg:grid-cols-[1fr,340px] lg:gap-8 lg:items-start">
+          <div className="lg:grid lg:grid-cols-[1fr,320px] lg:gap-6 lg:items-start">
             {/* Main content */}
-            <div
-              id={`panel-${activeTab}`}
-              role="tabpanel"
-              aria-labelledby={activeTab}
-              className="bg-white rounded-2xl border border-gray-100 shadow-xs p-5 lg:p-6 mb-6 lg:mb-0"
-            >
-              {activeTab === "send_request" && <SendRequestForm onSuccess={handleSendSuccess} providerSlug={providerSlug || undefined} />}
-              {activeTab === "sent_requests" && <SentRequestsList refreshKey={refreshKey} />}
+            <div className="bg-white rounded-2xl border border-gray-200/60 shadow-[0_4px_24px_rgb(0,0,0,0.04)] p-5 lg:p-6 mb-6 lg:mb-0">
+              {activeTab === "send_request" && (
+                <SendRequestForm
+                  onSuccess={handleSendSuccess}
+                  providerSlug={providerSlug || undefined}
+                  stats={stats}
+                />
+              )}
+              {activeTab === "sent_requests" && (
+                <SentRequestsList
+                  requests={requests}
+                  isLoading={isLoadingRequests}
+                  error={requestsError}
+                />
+              )}
             </div>
 
-            {/* Right panel - Tips */}
+            {/* Tips panel */}
             <div className="hidden lg:block sticky top-24">
               <TipsPanel />
             </div>

@@ -15,12 +15,6 @@ interface SentRequest {
   status: string;
 }
 
-interface ReviewStats {
-  totalSent: number;
-  thisMonth: number;
-  monthlyLimit: number;
-}
-
 // ── Helpers ──
 
 function formatDate(dateStr: string): string {
@@ -80,14 +74,6 @@ function CheckCircleIcon({ className = "w-5 h-5" }: { className?: string }) {
   );
 }
 
-function SparklesIcon({ className = "w-5 h-5" }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z" />
-    </svg>
-  );
-}
-
 function LinkIcon({ className = "w-5 h-5" }: { className?: string }) {
   return (
     <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
@@ -96,26 +82,10 @@ function LinkIcon({ className = "w-5 h-5" }: { className?: string }) {
   );
 }
 
-function TrendingUpIcon({ className = "w-5 h-5" }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941" />
-    </svg>
-  );
-}
-
-function StarIcon({ className = "w-5 h-5" }: { className?: string }) {
+function PlayIcon({ className = "w-5 h-5" }: { className?: string }) {
   return (
     <svg className={className} fill="currentColor" viewBox="0 0 24 24">
-      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-    </svg>
-  );
-}
-
-function ClockIcon({ className = "w-5 h-5" }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+      <path d="M8 5.14v14l11-7-11-7z" />
     </svg>
   );
 }
@@ -124,72 +94,52 @@ function ClockIcon({ className = "w-5 h-5" }: { className?: string }) {
 
 const DEFAULT_MESSAGE = "Hi, we'd love to hear about your experience with us. Would you take a moment to leave a review? It helps other families find quality care.";
 
-// ── Stats Header ──
+// ── Video Panel ──
 
-function StatsHeader({ stats, isLoading }: { stats: ReviewStats; isLoading: boolean }) {
-  const usagePercent = stats.monthlyLimit > 0 ? Math.min((stats.thisMonth / stats.monthlyLimit) * 100, 100) : 0;
-  const remaining = Math.max(stats.monthlyLimit - stats.thisMonth, 0);
-
-  if (isLoading) {
-    return (
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6 animate-pulse">
-        {[0, 1, 2, 3].map((i) => (
-          <div key={i} className="bg-white rounded-xl border border-gray-100 p-4 h-20" />
-        ))}
-      </div>
-    );
-  }
+function VideoPanel() {
+  const [isPlaying, setIsPlaying] = useState(false);
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-      {/* Total Sent */}
-      <div className="bg-white rounded-xl border border-gray-200/60 p-4 shadow-[0_2px_8px_rgb(0,0,0,0.04)]">
-        <div className="flex items-center gap-2 text-gray-500 mb-1">
-          <MailIcon className="w-4 h-4" />
-          <span className="text-xs font-medium">Total Sent</span>
-        </div>
-        <p className="text-2xl font-bold text-gray-900">{stats.totalSent}</p>
-      </div>
-
-      {/* This Month */}
-      <div className="bg-white rounded-xl border border-gray-200/60 p-4 shadow-[0_2px_8px_rgb(0,0,0,0.04)]">
-        <div className="flex items-center gap-2 text-gray-500 mb-1">
-          <TrendingUpIcon className="w-4 h-4" />
-          <span className="text-xs font-medium">This Month</span>
-        </div>
-        <p className="text-2xl font-bold text-gray-900">{stats.thisMonth}</p>
-      </div>
-
-      {/* Usage - with progress bar */}
-      <div className="bg-white rounded-xl border border-gray-200/60 p-4 shadow-[0_2px_8px_rgb(0,0,0,0.04)] col-span-2 lg:col-span-1">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-medium text-gray-500">Monthly Usage</span>
-          <span className="text-xs font-semibold text-gray-700">{stats.thisMonth}/{stats.monthlyLimit}</span>
-        </div>
-        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-          <div
-            className={`h-full rounded-full transition-all duration-500 ${
-              usagePercent >= 90 ? "bg-amber-500" : "bg-primary-500"
-            }`}
-            style={{ width: `${usagePercent}%` }}
+    <div className="bg-white rounded-2xl border border-gray-200/60 shadow-[0_4px_24px_rgb(0,0,0,0.04)] overflow-hidden">
+      <div className="aspect-video relative">
+        {isPlaying ? (
+          <iframe
+            src="https://www.youtube.com/embed/cb3TMkMNe3I?autoplay=1&rel=0"
+            title="How to get more reviews"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            className="absolute inset-0 w-full h-full"
           />
-        </div>
-        {remaining <= 3 && remaining > 0 && (
-          <p className="text-xs text-amber-600 mt-1.5 font-medium">{remaining} requests remaining</p>
+        ) : (
+          <button
+            onClick={() => setIsPlaying(true)}
+            className="absolute inset-0 w-full h-full group"
+          >
+            {/* YouTube thumbnail */}
+            <img
+              src="https://img.youtube.com/vi/cb3TMkMNe3I/maxresdefault.jpg"
+              alt="Video thumbnail"
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                // Fallback to hqdefault if maxresdefault doesn't exist
+                (e.target as HTMLImageElement).src = "https://img.youtube.com/vi/cb3TMkMNe3I/hqdefault.jpg";
+              }}
+            />
+            {/* Gradient overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+            {/* Play button */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-16 h-16 rounded-full bg-white/95 shadow-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
+                <PlayIcon className="w-7 h-7 text-gray-900 ml-1" />
+              </div>
+            </div>
+            {/* Title overlay */}
+            <div className="absolute bottom-0 left-0 right-0 p-4">
+              <p className="text-white font-medium text-sm">How to get more Google reviews</p>
+              <p className="text-white/70 text-xs mt-0.5">2 min watch</p>
+            </div>
+          </button>
         )}
-      </div>
-
-      {/* Pro tip / upgrade hint */}
-      <div className="bg-gradient-to-br from-primary-50 to-primary-100/50 rounded-xl border border-primary-200/40 p-4 col-span-2 lg:col-span-1">
-        <div className="flex items-start gap-2">
-          <StarIcon className="w-4 h-4 text-primary-600 mt-0.5 shrink-0" />
-          <div>
-            <p className="text-xs font-semibold text-primary-900">Pro tip</p>
-            <p className="text-xs text-primary-700 mt-0.5 leading-relaxed">
-              Providers with 10+ reviews see 3x more inquiries
-            </p>
-          </div>
-        </div>
       </div>
     </div>
   );
@@ -200,11 +150,11 @@ function StatsHeader({ stats, isLoading }: { stats: ReviewStats; isLoading: bool
 function SendRequestForm({
   onSuccess,
   providerSlug,
-  stats,
+  remainingRequests,
 }: {
   onSuccess?: () => void;
   providerSlug?: string;
-  stats: ReviewStats;
+  remainingRequests: number;
 }) {
   const [clientName, setClientName] = useState("");
   const [email, setEmail] = useState("");
@@ -215,7 +165,7 @@ function SendRequestForm({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [linkCopied, setLinkCopied] = useState(false);
 
-  const isAtLimit = stats.thisMonth >= stats.monthlyLimit;
+  const isAtLimit = remainingRequests <= 0;
 
   // Auto-dismiss success after 4 seconds
   useEffect(() => {
@@ -292,7 +242,7 @@ function SendRequestForm({
   // Success celebration state
   if (showSuccess) {
     return (
-      <div className="text-center py-8 animate-fade-in">
+      <div className="text-center py-10 animate-fade-in">
         <div className="relative w-16 h-16 mx-auto mb-4 animate-success-bounce">
           <div className="w-16 h-16 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/25">
             <CheckCircleIcon className="w-8 h-8 text-white" />
@@ -301,7 +251,7 @@ function SendRequestForm({
           <div className="absolute -bottom-0.5 -left-1 w-2 h-2 bg-primary-400 rounded-full" />
         </div>
         <h3 className="text-lg font-semibold text-gray-900 mb-1">Request sent!</h3>
-        <p className="text-sm text-gray-500 mb-4">
+        <p className="text-sm text-gray-500 mb-5">
           {successName} will receive your review request shortly.
         </p>
         <button
@@ -317,21 +267,10 @@ function SendRequestForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
-      {/* At limit warning */}
-      {isAtLimit && (
-        <div className="flex items-center gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 text-sm">
-          <ClockIcon className="w-5 h-5 shrink-0 text-amber-600" />
-          <div>
-            <p className="font-semibold">Monthly limit reached</p>
-            <p className="text-amber-700 mt-0.5">You&apos;ve used all {stats.monthlyLimit} requests this month. Resets on the 1st.</p>
-          </div>
-        </div>
-      )}
-
       {/* Error message */}
       {errorMessage && (
-        <div className="flex items-center gap-3 p-4 bg-error-50 border border-error-100 rounded-xl text-error-700 text-sm" role="alert">
-          <svg className="w-5 h-5 shrink-0 text-error-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+        <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-100 rounded-xl text-red-700 text-sm" role="alert">
+          <svg className="w-5 h-5 shrink-0 text-red-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
           </svg>
           <span className="font-medium">{errorMessage}</span>
@@ -351,7 +290,7 @@ function SendRequestForm({
             onChange={(e) => setClientName(e.target.value)}
             placeholder="Jane Smith"
             disabled={isAtLimit}
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-900 text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-300 transition-all duration-200 disabled:bg-gray-50 disabled:cursor-not-allowed"
+            className="w-full px-4 py-3 rounded-xl border border-gray-300 bg-white text-gray-900 text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-400 transition-all duration-200 disabled:bg-gray-50 disabled:cursor-not-allowed"
             required
             autoComplete="off"
           />
@@ -367,7 +306,7 @@ function SendRequestForm({
             onChange={(e) => setEmail(e.target.value)}
             placeholder="jane@example.com"
             disabled={isAtLimit}
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-900 text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-300 transition-all duration-200 disabled:bg-gray-50 disabled:cursor-not-allowed"
+            className="w-full px-4 py-3 rounded-xl border border-gray-300 bg-white text-gray-900 text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-400 transition-all duration-200 disabled:bg-gray-50 disabled:cursor-not-allowed"
             required
             autoComplete="off"
           />
@@ -386,37 +325,53 @@ function SendRequestForm({
           rows={4}
           placeholder="Write a personal message..."
           disabled={isAtLimit}
-          className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-900 text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-300 transition-all duration-200 resize-y min-h-[120px] leading-relaxed disabled:bg-gray-50 disabled:cursor-not-allowed"
+          className="w-full px-4 py-3 rounded-xl border border-gray-300 bg-white text-gray-900 text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-400 transition-all duration-200 resize-y min-h-[120px] leading-relaxed disabled:bg-gray-50 disabled:cursor-not-allowed"
           required
         />
       </div>
 
       {/* Submit button */}
-      <button
-        type="submit"
-        disabled={!clientName.trim() || !email.trim() || !message.trim() || isSubmitting || isAtLimit}
-        className="w-full py-4 rounded-2xl bg-gray-900 text-white text-[15px] font-semibold hover:bg-gray-800 disabled:bg-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 shadow-[0_4px_12px_rgb(0,0,0,0.15)] hover:shadow-[0_6px_16px_rgb(0,0,0,0.2)] disabled:shadow-none"
-      >
-        {isSubmitting ? (
-          <span className="inline-flex items-center justify-center gap-2">
-            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            Sending...
-          </span>
-        ) : (
-          <span className="inline-flex items-center justify-center gap-2">
-            <MailIcon className="w-5 h-5" />
-            Send review request
-          </span>
+      <div className="space-y-3">
+        <button
+          type="submit"
+          disabled={!clientName.trim() || !email.trim() || !message.trim() || isSubmitting || isAtLimit}
+          className="w-full py-3.5 rounded-2xl bg-gray-900 text-white text-[15px] font-medium hover:bg-gray-800 disabled:bg-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 shadow-[0_4px_12px_rgb(0,0,0,0.15)] hover:shadow-[0_6px_16px_rgb(0,0,0,0.2)] disabled:shadow-none"
+        >
+          {isSubmitting ? (
+            <span className="inline-flex items-center justify-center gap-2">
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              Sending...
+            </span>
+          ) : (
+            <span className="inline-flex items-center justify-center gap-2">
+              <MailIcon className="w-5 h-5" />
+              Send review request
+            </span>
+          )}
+        </button>
+
+        {/* Remaining requests - only show when low */}
+        {remainingRequests <= 3 && remainingRequests > 0 && (
+          <p className="text-center text-xs text-amber-600 font-medium">
+            {remainingRequests} free request{remainingRequests === 1 ? "" : "s"} remaining this month
+          </p>
         )}
-      </button>
+
+        {/* At limit message */}
+        {isAtLimit && (
+          <p className="text-center text-xs text-gray-500">
+            You&apos;ve reached your monthly limit. Resets on the 1st.
+          </p>
+        )}
+      </div>
 
       {/* Direct link option */}
       {providerSlug && (
-        <div className="flex items-center justify-center pt-2">
+        <div className="flex items-center justify-center pt-1">
           <button
             type="button"
             onClick={handleCopyLink}
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all duration-200"
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-lg transition-all duration-200"
           >
             <LinkIcon className="w-4 h-4" />
             {linkCopied ? (
@@ -440,7 +395,7 @@ function SentRequestsList({ requests, isLoading, error }: { requests: SentReques
         {[0, 1, 2].map((i) => (
           <div key={i} className="animate-pulse bg-gray-50 rounded-xl p-4">
             <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-full bg-gray-200" />
+              <div className="w-10 h-10 rounded-full bg-gray-200" />
               <div className="flex-1">
                 <div className="h-4 w-32 bg-gray-200 rounded mb-2" />
                 <div className="h-3 w-48 bg-gray-100 rounded" />
@@ -462,13 +417,13 @@ function SentRequestsList({ requests, isLoading, error }: { requests: SentReques
 
   if (requests.length === 0) {
     return (
-      <div className="text-center py-16 px-6">
-        <div className="w-14 h-14 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto mb-4">
-          <MailIcon className="w-6 h-6 text-gray-400" />
+      <div className="text-center py-14 px-6">
+        <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center mx-auto mb-3">
+          <MailIcon className="w-5 h-5 text-gray-400" />
         </div>
-        <h3 className="text-base font-semibold text-gray-900 mb-1">No requests sent yet</h3>
+        <h3 className="text-sm font-medium text-gray-900 mb-1">No requests sent yet</h3>
         <p className="text-sm text-gray-500 leading-relaxed max-w-xs mx-auto">
-          When you send review requests, they&apos;ll appear here so you can track them.
+          Sent requests will appear here.
         </p>
       </div>
     );
@@ -483,104 +438,30 @@ function SentRequestsList({ requests, isLoading, error }: { requests: SentReques
           style={{ animation: `fadeIn 0.2s ease-out ${idx * 40}ms both` }}
         >
           <div className="flex items-start gap-3">
-            {/* Avatar */}
-            <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${avatarGradient(request.clientName)} flex items-center justify-center shrink-0`}>
-              <span className="text-sm font-semibold text-gray-600">
+            <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${avatarGradient(request.clientName)} flex items-center justify-center shrink-0`}>
+              <span className="text-xs font-semibold text-gray-600">
                 {getInitials(request.clientName)}
               </span>
             </div>
-
-            {/* Info */}
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-2">
                 <span className="font-medium text-gray-900 text-sm">
                   {request.clientName}
                 </span>
-                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                  request.status === "sent"
-                    ? "bg-emerald-100 text-emerald-700"
-                    : request.status === "clicked"
-                    ? "bg-blue-100 text-blue-700"
-                    : request.status === "reviewed"
-                    ? "bg-amber-100 text-amber-700"
-                    : "bg-gray-100 text-gray-600"
-                }`}>
-                  {request.status === "sent" && "Sent"}
-                  {request.status === "clicked" && "Clicked"}
-                  {request.status === "reviewed" && "Reviewed"}
-                  {!["sent", "clicked", "reviewed"].includes(request.status) && request.status}
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-700">
+                  Sent
                 </span>
               </div>
               <p className="text-xs text-gray-500 mt-0.5 truncate">
                 {request.recipient}
               </p>
-              <p className="text-xs text-gray-400 mt-1.5">
+              <p className="text-xs text-gray-400 mt-1">
                 {formatDate(request.sentAt)}
               </p>
             </div>
           </div>
         </div>
       ))}
-    </div>
-  );
-}
-
-// ── Tips Panel ──
-
-function TipsPanel() {
-  const tips = [
-    {
-      title: "Ask right after service",
-      description: "Reach out within 24-48 hours while the experience is fresh.",
-    },
-    {
-      title: "Make it personal",
-      description: "Use their name and mention specific care you provided.",
-    },
-    {
-      title: "Keep it simple",
-      description: "One click to review. We help them write it.",
-    },
-  ];
-
-  return (
-    <div className="bg-white rounded-2xl border border-gray-200/60 shadow-[0_4px_24px_rgb(0,0,0,0.04)] overflow-hidden">
-      {/* Stats highlight */}
-      <div className="bg-gradient-to-br from-primary-500 to-primary-600 p-5 text-white">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
-            <TrendingUpIcon className="w-5 h-5" />
-          </div>
-          <div>
-            <p className="text-2xl font-bold">3x</p>
-            <p className="text-sm text-primary-100">more inquiries</p>
-          </div>
-        </div>
-        <p className="text-sm text-primary-100 leading-relaxed">
-          Providers with 10+ Google reviews see significantly more family inquiries.
-        </p>
-      </div>
-
-      {/* Tips */}
-      <div className="p-5">
-        <div className="flex items-center gap-2 mb-4">
-          <SparklesIcon className="w-4 h-4 text-primary-600" />
-          <h3 className="font-semibold text-gray-900 text-sm">Tips for success</h3>
-        </div>
-        <div className="space-y-4">
-          {tips.map((tip, i) => (
-            <div key={i} className="flex gap-3">
-              <div className="w-5 h-5 rounded-full bg-primary-100 flex items-center justify-center shrink-0 mt-0.5">
-                <span className="text-xs font-bold text-primary-700">{i + 1}</span>
-              </div>
-              <div>
-                <p className="font-medium text-gray-900 text-sm">{tip.title}</p>
-                <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{tip.description}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }
@@ -593,8 +474,7 @@ export default function ProviderReviewsPage() {
   const [requests, setRequests] = useState<SentRequest[]>([]);
   const [isLoadingRequests, setIsLoadingRequests] = useState(true);
   const [requestsError, setRequestsError] = useState<string | null>(null);
-  const [stats, setStats] = useState<ReviewStats>({ totalSent: 0, thisMonth: 0, monthlyLimit: 10 });
-  const [isLoadingStats, setIsLoadingStats] = useState(true);
+  const [remainingRequests, setRemainingRequests] = useState(10);
 
   // Fetch provider slug
   useEffect(() => {
@@ -611,7 +491,7 @@ export default function ProviderReviewsPage() {
     })();
   }, []);
 
-  // Fetch requests and compute stats
+  // Fetch requests and compute remaining
   const fetchRequests = useCallback(async () => {
     setIsLoadingRequests(true);
     try {
@@ -622,24 +502,20 @@ export default function ProviderReviewsPage() {
       setRequests(reqs);
       setRequestsError(null);
 
-      // Compute stats from requests
+      // Count this month's requests
       const now = new Date();
-      const thisMonthRequests = reqs.filter((r: SentRequest) => {
+      const thisMonthCount = reqs.filter((r: SentRequest) => {
         const sentDate = new Date(r.sentAt);
         return sentDate.getMonth() === now.getMonth() && sentDate.getFullYear() === now.getFullYear();
-      });
+      }).length;
 
-      setStats({
-        totalSent: reqs.length,
-        thisMonth: thisMonthRequests.length,
-        monthlyLimit: 10, // TODO: fetch from subscription tier
-      });
+      const monthlyLimit = 10; // TODO: fetch from subscription tier
+      setRemainingRequests(Math.max(monthlyLimit - thisMonthCount, 0));
     } catch (err) {
       console.error("Failed to fetch sent requests:", err);
       setRequestsError("Failed to load sent requests");
     } finally {
       setIsLoadingRequests(false);
-      setIsLoadingStats(false);
     }
   }, []);
 
@@ -683,12 +559,9 @@ export default function ProviderReviewsPage() {
               Review Requests
             </h1>
             <p className="text-sm text-gray-500 mt-1">
-              Request reviews from clients to build trust and attract more families.
+              Ask happy clients to leave a Google review.
             </p>
           </div>
-
-          {/* Stats header */}
-          <StatsHeader stats={stats} isLoading={isLoadingStats} />
 
           {/* Tabs */}
           <div className="mb-5">
@@ -724,14 +597,14 @@ export default function ProviderReviewsPage() {
           </div>
 
           {/* Content grid */}
-          <div className="lg:grid lg:grid-cols-[1fr,320px] lg:gap-6 lg:items-start">
+          <div className="lg:grid lg:grid-cols-[1fr,340px] lg:gap-6 lg:items-start">
             {/* Main content */}
             <div className="bg-white rounded-2xl border border-gray-200/60 shadow-[0_4px_24px_rgb(0,0,0,0.04)] p-5 lg:p-6 mb-6 lg:mb-0">
               {activeTab === "send_request" && (
                 <SendRequestForm
                   onSuccess={handleSendSuccess}
                   providerSlug={providerSlug || undefined}
-                  stats={stats}
+                  remainingRequests={remainingRequests}
                 />
               )}
               {activeTab === "sent_requests" && (
@@ -743,15 +616,15 @@ export default function ProviderReviewsPage() {
               )}
             </div>
 
-            {/* Tips panel */}
+            {/* Video panel */}
             <div className="hidden lg:block sticky top-24">
-              <TipsPanel />
+              <VideoPanel />
             </div>
           </div>
 
-          {/* Mobile tips */}
+          {/* Mobile video */}
           <div className="lg:hidden mt-6">
-            <TipsPanel />
+            <VideoPanel />
           </div>
         </div>
       </div>

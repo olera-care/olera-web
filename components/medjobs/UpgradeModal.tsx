@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 
 interface UpgradeModalProps {
   creditsUsed: number;
@@ -8,6 +9,7 @@ interface UpgradeModalProps {
 }
 
 export default function UpgradeModal({ creditsUsed, onClose }: UpgradeModalProps) {
+  const pathname = usePathname();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -15,7 +17,11 @@ export default function UpgradeModal({ creditsUsed, onClose }: UpgradeModalProps
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/medjobs/checkout", { method: "POST" });
+      const res = await fetch("/api/medjobs/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ returnUrl: pathname }),
+      });
       const data = await res.json();
       if (!res.ok) { setError(data.error || "Failed to start checkout."); return; }
       if (data.url) window.location.href = data.url;

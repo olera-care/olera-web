@@ -279,7 +279,11 @@ export default function AccountSettingsPage() {
   const handleUpgrade = async () => {
     setSubscriptionLoading(true);
     try {
-      const res = await fetch("/api/medjobs/checkout", { method: "POST" });
+      const res = await fetch("/api/medjobs/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ returnUrl: "/account/settings" }),
+      });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to start checkout");
       if (data.url) window.location.href = data.url;

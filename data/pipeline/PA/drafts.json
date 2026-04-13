@@ -1,19 +1,197 @@
 {
   "state": "PA",
   "stateName": "Pennsylvania",
-  "draftedAt": "2026-04-09T16:12:09.078Z",
+  "draftedAt": "2026-04-13T21:50:19.563Z",
   "total": 9,
-  "successful": 8,
+  "successful": 9,
   "programs": [
     {
+      "id": "pa-community-healthchoices-chc",
       "name": "Community HealthChoices (CHC)",
-      "_error": "Claude 529: {\"type\":\"error\",\"error\":{\"type\":\"overloaded_error\",\"message\":\"Overloaded\"},\"request_id\":\"req_011CZtV61PDGkf3zLY6vDQYk\"}"
+      "shortName": "CHC",
+      "tagline": "If your parent needs daily help at home or is dual eligible for Medicare and Medicaid, CHC covers up to 32 services including personal care, home health, and adult day programs.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local AAAs, CAOs, MCOs (choice after approval)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 21+ and enrolled in both Medicare and Medicaid, or qualifies for Medicaid long-term care due to needing daily help with bathing, dressing, or medication management, Community HealthChoices (CHC) provides comprehensive home and community-based services. Because CHC is a managed care program, your parent gets coordinated services through one organization instead of juggling multiple providers.\n\nCHC covers up to 32 services including personal care, home health, attendant care, adult day services, pest eradication, educational support, and nursing facility care if needed. Services are individualized based on your parent's needs assessment — there are no fixed dollar amounts or hour limits. Monthly income limit is $2,901 per person in 2025, and home equity up to $730,000 is exempt if your parent lives there or intends to return.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 21+",
+          "Pennsylvania resident",
+          "Enrolled in Medicaid",
+          "Dual eligible OR needs nursing facility level care",
+          "Income up to $2,901/month (2025)"
+        ],
+        "ageRequirement": "21+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": null,
+          "couple": null,
+          "countedAssets": [
+            "bank accounts",
+            "property",
+            "retirement accounts"
+          ],
+          "exemptAssets": [
+            "primary home under equity limit",
+            "certain personal items"
+          ],
+          "homeEquityCap": 730000
+        },
+        "functionalRequirement": "Must need nursing facility level of care (assessment of whether your parent needs daily help with Activities of Daily Living like bathing, dressing, eating, or transferring)",
+        "otherRequirements": [
+          "Pennsylvania resident",
+          "Enrolled in Medicaid",
+          "Dual eligible (Medicare and Medicaid) OR qualify for Medicaid long-term services due to functional need"
+        ],
+        "povertyLevelReference": "300% of Federal Benefit Rate"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call the Pennsylvania Independent Enrollment Broker at 1-877-550-4227 or apply online through COMPASS — screening within 90 days for new dual eligibles.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Check financial eligibility",
+            "description": "Submit PA-600 form to your County Assistance Office (CAO) with income and asset documentation for Medicaid eligibility review."
+          },
+          {
+            "step": 2,
+            "title": "Get functional assessment",
+            "description": "Contact your local Area Agency on Aging (AAA) for a Functional Eligibility Determination (FED) to assess your parent's need for daily care assistance."
+          },
+          {
+            "step": 3,
+            "title": "Enroll in CHC",
+            "description": "Call Pennsylvania Independent Enrollment Broker at 1-877-550-4227 or apply online through COMPASS website once Medicaid eligibility is confirmed."
+          },
+          {
+            "step": 4,
+            "title": "Choose managed care organization",
+            "description": "Select an MCO after approval — this organization will coordinate all your parent's services and providers."
+          }
+        ],
+        "processingTime": "Screening within 90 days for new dual eligibles; comprehensive needs assessment as needed or requested",
+        "waitlist": null,
+        "tip": "If your parent is over the income limit, they may still qualify through spend-down if they meet the functional eligibility requirements.",
+        "urls": [
+          {
+            "label": "COMPASS Application",
+            "url": "https://www.compass.state.pa.us/"
+          },
+          {
+            "label": "CHC Information",
+            "url": "https://www.pa.gov/agencies/dhs/resources/medicaid/chc"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Social Security cards for all household members",
+        "Medicare card (both parts A and B)",
+        "Current Medicaid card or approval letter",
+        "Proof of Pennsylvania residency (utility bill, lease, or state-issued document)",
+        "Most recent Social Security award letter",
+        "Bank statements for all accounts (last 3 months)",
+        "Property deeds and tax statements for real estate owned",
+        "Retirement account statements (401k, IRA, pension)",
+        "Life insurance policies with cash values",
+        "Vehicle titles and registration",
+        "Medical records documenting need for daily care assistance",
+        "Current medication list and prescribing physician information",
+        "Documentation of any other health insurance coverage",
+        "Legal documents if someone has power of attorney or guardianship"
+      ],
+      "contacts": [
+        {
+          "label": "Pennsylvania Independent Enrollment Broker",
+          "phone": "1-877-550-4227",
+          "description": "CHC enrollment and managed care organization selection",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Pennsylvania 2-1-1",
+          "phone": "2-1-1",
+          "description": "General assistance finding local County Assistance Office and Area Agency on Aging",
+          "hours": "24 hours, 7 days a week"
+        }
+      ],
+      "applicationNotes": [
+        "CHC is mandatory managed care — it replaces prior waiver programs like Aging and Attendant Care waivers",
+        "Even if your parent is dual eligible, they still need to meet functional eligibility requirements through the FED assessment",
+        "LIFE program is an alternative for ages 55+ in served areas — you can opt out of CHC to choose LIFE instead",
+        "Income and asset limits are reviewed strictly by the County Assistance Office using standard Medicaid rules"
+      ],
+      "relatedPrograms": [
+        "LIFE (Living Independence for the Elderly)",
+        "Pennsylvania Medicaid",
+        "PACE (Program of All-Inclusive Care for the Elderly)"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if it's worth more than the asset limits?",
+          "answer": "Yes, your parent can keep their primary home as long as the equity is under $730,000 in 2025, they live there, intend to return, or a non-applicant spouse or dependent lives there. Home equity above this limit may affect eligibility."
+        },
+        {
+          "question": "What if my parent has intellectual or developmental disabilities?",
+          "answer": "CHC does not cover intellectual or developmental disability services beyond supports coordination. These are handled through the DHS Office of Developmental Programs, which has separate waiver programs."
+        },
+        {
+          "question": "Can my parent stay in their current nursing home if they're already there?",
+          "answer": "Not if they're in a state-operated nursing facility or veterans' home — CHC excludes residents of these facilities. Private nursing homes may be covered through CHC's managed care organizations."
+        },
+        {
+          "question": "How do we choose between different managed care organizations?",
+          "answer": "After CHC approval, you'll select an MCO that will coordinate all services. Ask about provider networks, wait times, and specific services your parent needs. Different MCOs serve different regions and may have varying availability."
+        },
+        {
+          "question": "What happens to my parent's Medicare benefits under CHC?",
+          "answer": "Medicare benefits remain completely separate from CHC. Your parent keeps their Medicare coverage and providers. CHC only coordinates the Medicaid long-term services and supports."
+        },
+        {
+          "question": "Can I apply for CHC while my parent is still in the hospital?",
+          "answer": "Yes, hospital discharge planners often help initiate the CHC application process. This can help ensure services are in place before your parent returns home or moves to a care facility."
+        },
+        {
+          "question": "What if my parent's income is slightly over the $2,901 monthly limit?",
+          "answer": "Your parent may still qualify through Medicaid spend-down if they meet the functional eligibility requirements. The County Assistance Office will calculate if medical expenses bring their countable income below the limit."
+        },
+        {
+          "question": "How often are services reassessed once my parent is enrolled?",
+          "answer": "CHC conducts periodic reassessments based on your parent's changing needs. You can also request a reassessment if your parent's condition changes or they need additional services."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "asset-focused",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "House",
+      "phone": "1-877-550-4227",
+      "sourceUrl": "https://www.pa.gov/agencies/dhs/resources/medicaid/chc",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
     },
     {
-      "id": "pennsylvania-pace-prescription-drug-benefits",
+      "id": "pa-pace-prescription-assistance",
       "name": "PACE (Program of All-Inclusive Care for the Elderly)",
       "shortName": "PA PACE",
-      "tagline": "Your parent could save hundreds annually on prescription drugs with $6 generic co-pays",
+      "tagline": "Low-cost prescriptions for Pennsylvania seniors 65+ with limited income",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -26,14 +204,14 @@
           }
         ]
       },
-      "intro": "If your parent is 65+ and earned less than $14,500 last year ($17,700 for married couples), they can get prescription drugs with no monthly premium and low co-pays through Pennsylvania's PACE program. Your parent pays just $6 for generic drugs and $9 for brand-name prescriptions — significantly less than most Medicare Part D plans.\n\nPACE covers Pennsylvania residents who don't qualify for Medicaid prescription benefits but still struggle with drug costs on fixed incomes. Because there are no asset limits, your parent can own their home, have savings, and still qualify based solely on last year's income. The program is funded by Pennsylvania Lottery proceeds, not federal dollars.\n\nImportant: This is Pennsylvania's prescription drug program, not the national PACE long-term care program. If you're looking for comprehensive medical services including adult day care and transportation, search separately for \"PACE providers Pennsylvania\" through the National PACE Association.",
-      "savingsRange": "$600 – $2,400/year in 2026",
-      "savingsSource": "Based on $6 generic/$9 brand co-pays vs typical Medicare Part D costs",
+      "intro": "If your parent is 65+ and living on a fixed income in Pennsylvania, PACE can dramatically reduce their prescription costs. The program covers both generic and brand-name medications with co-pays of just $6 for generics and $9 for brand names — no monthly premium required.\n\nTo qualify, your parent's previous year income must be $14,500 or less for a single person, or $17,700 for a married couple. The program has no asset limits, so your parent's savings, home value, or investments won't disqualify them. However, they cannot be enrolled in Medicaid prescription benefits.\n\nImportant: This is Pennsylvania's prescription assistance program, not the national PACE long-term care program. If you're looking for comprehensive medical services including adult day health and transportation, you'll need to search separately for PACE providers through the National PACE Association.",
+      "savingsRange": "$1,200 – $3,600/year in 2026",
+      "savingsSource": "Based on $6-$9 co-pays versus average prescription costs",
       "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
           "Age 65+",
-          "Income under $14,500/year (single) or $17,700/year (married)",
+          "Income below $14,500 (single) or $17,700 (couple)",
           "Pennsylvania resident 90+ days",
           "Not on Medicaid prescription benefits"
         ],
@@ -58,129 +236,140 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Call the PACE hotline at 1-800-225-7223 to apply by phone, or apply online.",
+        "summary": "Apply by calling the PACE hotline at 1-800-225-7223 — processing time not specified.",
         "steps": [
           {
             "step": 1,
-            "title": "Gather last year's income documents",
-            "description": "Collect Social Security statements, tax returns, pension 1099s, and wage statements from the previous calendar year"
+            "title": "Gather income documents",
+            "description": "Collect proof of previous year's income including Social Security statements, tax returns, and 1099s for pensions or wages."
           },
           {
             "step": 2,
-            "title": "Call PACE hotline or apply online",
-            "description": "Call 1-800-225-7223 or visit pacecares.magellanhealth.com to start your application"
+            "title": "Call the PACE hotline",
+            "description": "Call 1-800-225-7223 to start your application. You can also call the PA MEDI helpline at 1-800-783-7067 for application assistance."
           },
           {
             "step": 3,
-            "title": "Verify residency and age",
-            "description": "Provide proof your parent has lived in Pennsylvania for 90+ days and is 65 or older"
+            "title": "Complete application online",
+            "description": "Visit pacecares.magellanhealth.com to complete your application with income verification and residency documentation."
           },
           {
             "step": 4,
-            "title": "Confirm Medicaid status",
-            "description": "Verify your parent is not enrolled in Medicaid prescription benefits (Medicare Savings Programs are OK)"
+            "title": "Submit required documents",
+            "description": "Provide proof of age, Pennsylvania residency for 90+ days, and verification that you're not enrolled in Medicaid prescription benefits."
           }
         ],
-        "processingTime": null,
+        "processingTime": "Not specified",
         "waitlist": null,
-        "tip": "Income is based on the previous calendar year, so if your parent's income dropped this year due to retirement, they still use last year's higher income for eligibility",
+        "tip": "Income is based on the previous calendar year, so if your parent's income dropped recently, they may still need to wait until next year to qualify.",
         "urls": [
           {
-            "label": "Apply Online",
+            "label": "PACE Application Portal",
             "url": "https://pacecares.magellanhealth.com/"
           },
           {
-            "label": "PA PACE Program Info",
+            "label": "PA Department of Aging PACE Program",
             "url": "https://www.pa.gov/agencies/aging/aging-programs-and-services/pace-program"
           }
         ]
       },
-      "contentSections": [
+      "documentsNeeded": [
+        "Social Security award letter or statement from previous year",
+        "Previous year's tax return (1040 or 1040EZ)",
+        "1099 forms for pension income",
+        "1099 forms for any wage income",
+        "Proof of Pennsylvania residency for 90+ consecutive days (utility bills, lease agreement, or state-issued document)",
+        "Birth certificate or other proof of age 65+",
+        "Medicare card showing you're not enrolled in Medicaid prescription benefits",
+        "Documentation of any other income sources from previous calendar year",
+        "Bank statements if you received interest income over $10"
+      ],
+      "contacts": [
         {
-          "type": "what-counts",
-          "heading": "Income: What Counts",
-          "included": [
-            "Gross Social Security benefits (before Medicare premiums deducted)",
-            "Pension payments and retirement account distributions",
-            "Wages and self-employment income",
-            "Capital gains from home sale if sold within 2 years",
-            "Interest and dividend income"
-          ],
-          "excluded": [
-            "Property Tax/Rent Rebates",
-            "VA Aid and Attendance benefits",
-            "SNAP (food stamp) benefits",
-            "LIHEAP energy assistance",
-            "First $10,000 of life insurance death benefits",
-            "Federal stimulus payments",
-            "Medicare Part B premium deductions from Social Security"
-          ]
+          "label": "PACE Hotline",
+          "phone": "1-800-225-7223",
+          "description": "Primary application and program information line",
+          "hours": "Business hours"
         },
         {
-          "type": "documents",
-          "heading": "What to Bring",
-          "categories": [
-            {
-              "name": "Identity & Residency",
-              "items": [
-                "Driver's license or state ID",
-                "Proof of Pennsylvania residency for 90+ days (utility bills, lease, mortgage)"
-              ]
-            },
-            {
-              "name": "Income Verification",
-              "items": [
-                "Social Security benefit statements (SSA-1099)",
-                "Previous year's tax return",
-                "Pension statements and 1099-R forms",
-                "W-2 forms if still working",
-                "Bank statements showing interest/dividend income"
-              ]
-            }
-          ]
+          "label": "PA MEDI Helpline",
+          "phone": "1-800-783-7067",
+          "description": "Local assistance with PACE applications",
+          "hours": "Business hours"
         },
         {
-          "type": "callout",
-          "tone": "tip",
-          "text": "Don't confuse Pennsylvania's PACE prescription program with the national PACE long-term care program. If your parent needs comprehensive medical services, adult day care, or transportation, search separately for 'PACE long-term care providers' in Pennsylvania."
+          "label": "PA Department of Aging",
+          "phone": "717-783-1550",
+          "description": "General aging services and program information",
+          "hours": "Mon-Fri 8am-5pm"
         }
       ],
+      "applicationNotes": [
+        "Income from capital gains counts if from a home sale within the past 2 years — this can push some applicants over the limit",
+        "Medicare Part B premiums are excluded from your income calculation, but full Medicaid prescription coverage disqualifies you",
+        "The program doesn't automatically adjust income limits annually — thresholds may stay the same for multiple years",
+        "If your parent's income varies year to year, they may cycle in and out of eligibility based on the previous calendar year's earnings"
+      ],
+      "relatedPrograms": [
+        "PACENET (higher income prescription assistance)",
+        "Medicare Part D",
+        "Pennsylvania LIHEAP",
+        "Property Tax/Rent Rebate Program"
+      ],
+      "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent have savings and still qualify for PACE?",
-          "answer": "Yes. PACE has no asset limits, so your parent can own their home, have bank accounts, and investments without affecting eligibility. Only last year's income matters."
+          "question": "Can my parent apply if they own their home outright?",
+          "answer": "Yes. PACE has no asset limits, so home ownership, savings accounts, or investments won't disqualify your parent. Only income from the previous calendar year matters for eligibility."
         },
         {
-          "question": "What if my parent's income is just over the PACE limit?",
-          "answer": "They may qualify for PACENET, the companion program with slightly higher income limits ($23,500 single/$31,700 married) but a $37.45 monthly premium and higher co-pays ($8 generic/$15 brand-name)."
+          "question": "What if my parent is on Medicare Part D — can they still get PACE?",
+          "answer": "Yes, your parent can have Medicare Part D and PACE at the same time. However, they cannot be enrolled in Medicaid prescription benefits (Medical Assistance pharmaceutical benefits)."
         },
         {
-          "question": "Does PACE work with Medicare Part D?",
-          "answer": "Your parent cannot have both PACE and Medicare Part D. PACE replaces Part D prescription coverage with better co-pays for qualifying low-income seniors."
+          "question": "My parent's income was higher last year but dropped this year — when can they apply?",
+          "answer": "PACE uses the previous calendar year's income for eligibility. If your parent's income dropped in the current year, they'll need to wait until next year's application cycle to qualify based on this year's lower income."
         },
         {
-          "question": "What happens if my parent moves out of Pennsylvania?",
-          "answer": "PACE benefits end when your parent is no longer a Pennsylvania resident. They would need to enroll in Medicare Part D or their new state's prescription assistance programs."
+          "question": "Does Social Security count toward the income limit?",
+          "answer": "Yes, gross Social Security income counts, but Medicare premiums deducted from Social Security are excluded. The program looks at Social Security before Medicare Part B premiums are taken out."
         },
         {
-          "question": "Can my parent get PACE if they're on Medicare Savings Programs?",
-          "answer": "Yes, Medicare Savings Programs (that help pay Medicare premiums) don't disqualify your parent from PACE. Only full Medicaid prescription benefits make them ineligible."
+          "question": "Can I apply for my parent if they can't manage the application themselves?",
+          "answer": "The application process allows for assistance, but you'll need to call the PACE hotline at 1-800-225-7223 to discuss representing your parent and what documentation may be required."
         },
         {
-          "question": "How often does my parent need to reapply for PACE?",
-          "answer": "The research doesn't specify renewal requirements. Call 1-800-225-7223 to ask about annual renewals and income reporting requirements."
+          "question": "What happens if my parent needs a prescription that's not covered?",
+          "answer": "PACE covers most prescription medications, but coverage details aren't specified in the program materials. Call 1-800-225-7223 to ask about specific medications before applying."
+        },
+        {
+          "question": "If my parent moves to another state, can they keep PACE benefits?",
+          "answer": "No. PACE requires Pennsylvania residency for at least 90 consecutive days before application and continued residency to maintain benefits. Moving out of state ends eligibility."
+        },
+        {
+          "question": "How long do PACE benefits last once approved?",
+          "answer": "The program materials don't specify renewal requirements or benefit duration. Call 1-800-225-7223 to ask about renewal processes and how long benefits continue."
         }
       ],
+      "layoutIntent": {
+        "aboutHighlight": "savings",
+        "eligibilityDisplay": "income-table",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": false,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "Pill",
       "phone": "1-800-225-7223",
       "sourceUrl": "https://www.pa.gov/agencies/aging/aging-programs-and-services/pace-program",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-09"
+      "draftedAt": "2026-04-13"
     },
     {
-      "id": "pennsylvania-healthy-horizons-medicare-savings",
+      "id": "pa-healthy-horizons-qmb-slmb-qi",
       "name": "Healthy Horizons (QMB, SLMB, QI)",
       "shortName": "Healthy Horizons",
-      "tagline": "Medicare premiums, deductibles, and copays covered for parents earning up to $2,284/month.",
+      "tagline": "If your parent has Medicare and limited income, this program can cover their Medicare premiums, deductibles, and copays.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -193,207 +382,198 @@
           }
         ]
       },
-      "intro": "If your parent has Medicare and lives on a fixed income, Healthy Horizons can eliminate their Medicare costs entirely. This Pennsylvania program covers Medicare premiums, deductibles, and copayments based on income level — from full coverage at lower incomes to just premium help at higher incomes.\n\nThe program has four tiers: QMB provides the most help (all Medicare costs covered for incomes up to $1,350/month for singles), while SLMB and QI programs cover Medicare Part B premiums for incomes up to $2,284/month. Because this works alongside Medicare, your parent keeps their current doctors and coverage while the state pays their Medicare bills.",
-      "savingsRange": "$1,680 – $8,000/year in 2026",
-      "savingsSource": "Medicare Part B premiums plus potential deductibles and copayments",
+      "intro": "If your parent is 65+ with Medicare and struggling to afford their monthly premiums or medical bills, Pennsylvania's Healthy Horizons program can help pay those costs. This program has four tiers based on income — from full Medicaid coverage plus all Medicare costs covered (QMB) to just Medicare Part B premium assistance (SLMB, QI). The highest benefit tier covers Medicare Part A and B premiums, deductibles, and all copayments, potentially saving thousands per year.\n\nYour parent must be entitled to Medicare Part A (even if not enrolled) and meet income limits that range from $1,350/month for the full benefit to higher limits for premium-only help. Because this program includes spouse income and assets in calculations, the financial picture can be complex — but the savings are substantial for those who qualify.",
+      "savingsRange": "$200 – $3,000/year in 2026",
+      "savingsSource": "Medicare Part B premium ($185/month in 2026) plus deductibles and copayments",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
-          "Age 65+ with Medicare",
-          "Income below $2,284/month (singles)",
-          "Assets under $9,950 (singles)",
-          "PA resident"
+          "Age 65+ or disabled",
+          "Entitled to Medicare Part A",
+          "Income up to $1,350–$2,279/month (varies by tier)",
+          "Assets up to $2,000–$14,910 (varies by tier)",
+          "Pennsylvania resident"
         ],
         "ageRequirement": "65+",
         "incomeTable": [
           {
             "householdSize": 1,
-            "monthlyLimit": 2284
+            "monthlyLimit": 1350
           },
           {
             "householdSize": 2,
-            "monthlyLimit": 3087
+            "monthlyLimit": 1824
           }
         ],
         "assetLimits": {
-          "individual": 9950,
-          "couple": 14910,
+          "individual": 2000,
+          "couple": 3000,
           "countedAssets": [
             "Bank accounts",
             "Stocks",
-            "Second car"
+            "Second car",
+            "Investment accounts"
           ],
           "exemptAssets": [
             "Primary home",
             "One car",
             "Personal belongings",
             "Burial plots",
-            "Life insurance up to $1,500"
+            "Life insurance up to $1,500 face value"
           ],
           "homeEquityCap": null
         },
         "functionalRequirement": null,
         "otherRequirements": [
-          "Must be entitled to Medicare Part A",
+          "Must be entitled to Medicare Part A (even if not enrolled)",
+          "Pennsylvania resident",
           "U.S. citizen or qualified immigrant",
-          "Spouse's income counts even if not applying"
+          "Spouse income and resources counted if married"
         ],
-        "povertyLevelReference": "Up to 175% FPL depending on tier"
+        "povertyLevelReference": "100-175% FPL"
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at COMPASS or call your local County Assistance Office — processing takes up to 45 days.",
+        "summary": "Apply online through COMPASS, by phone through your County Assistance Office, or in person — processing takes up to 45 days.",
+        "processingTime": "Up to 45 days; effective first of month after all info received (QMB); SLMB/QI retroactive up to 3 months",
+        "waitlist": null,
         "steps": [
           {
             "step": 1,
-            "title": "Gather documents",
-            "description": "Collect 3 months of income proof, bank statements, Medicare card, and ID for both you and your spouse."
+            "title": "Find your County Assistance Office",
+            "description": "Call 1-866-550-4355 to find your local CAO or use the DHS office locator at pa.gov. Each of Pennsylvania's 67 counties has a CAO that processes applications."
           },
           {
             "step": 2,
             "title": "Apply online or by phone",
-            "description": "Use COMPASS website or call your County Assistance Office. They'll screen for all program tiers automatically."
+            "description": "Apply online at www.compass.state.pa.us using the MAWD-1 form, or call your local CAO directly to start a phone application."
           },
           {
             "step": 3,
-            "title": "Submit all paperwork",
-            "description": "Benefits start the first of the month after your complete application is received."
+            "title": "Submit required documents",
+            "description": "Provide proof of income, resources, Medicare entitlement, and residency. Missing documents are the most common cause of delays."
+          },
+          {
+            "step": 4,
+            "title": "Wait for processing",
+            "description": "Your CAO will screen for all tiers automatically — if you don't qualify for QMB, they'll check SLMB and QI eligibility. You'll receive a decision within 45 days."
           }
         ],
-        "processingTime": "Up to 45 days",
-        "waitlist": null,
-        "tip": "Include your spouse's income and assets even if they're not applying — this is the most commonly missed requirement.",
+        "tip": "Submit all documents at once — incomplete applications cause most delays. Your CAO must screen for all program tiers, so you don't need to specify which one you want.",
         "urls": [
           {
-            "label": "COMPASS Application",
+            "label": "COMPASS Online Application",
             "url": "https://www.compass.state.pa.us"
           },
           {
-            "label": "Find County Office",
+            "label": "PA DHS Office Locator",
             "url": "https://www.pa.gov/agencies/dhs/"
           }
         ]
       },
+      "documentsNeeded": [
+        "Social Security award letter or disability determination",
+        "Medicare card or proof of Part A entitlement",
+        "Pay stubs for last 3 months (if working)",
+        "Pension or retirement income statements",
+        "Bank statements for all accounts (last 3 months)",
+        "Investment account statements (stocks, bonds, annuities)",
+        "Birth certificate or other proof of age",
+        "Social Security card",
+        "Proof of Pennsylvania residency (utility bill, lease)",
+        "Vehicle titles and registration",
+        "Life insurance policies showing face value",
+        "Property deeds or tax statements",
+        "Burial plot deeds or pre-need burial contracts",
+        "Spouse's income and asset documentation (if married)",
+        "Unpaid medical bills (for retroactive coverage requests)"
+      ],
+      "contacts": [
+        {
+          "label": "County Assistance Office Locator",
+          "phone": "(866) 550-4355",
+          "description": "Find your local CAO for application help",
+          "hours": "Business hours vary by county"
+        },
+        {
+          "label": "PA Department of Human Services",
+          "phone": "(800) 692-7462",
+          "description": "General Medicaid and benefits information",
+          "hours": "Mon-Fri 8am-5pm ET"
+        }
+      ],
+      "applicationNotes": [
+        "Your County Assistance Office must screen you for all tiers — if you don't qualify for QMB (full benefits), they'll automatically check SLMB and QI eligibility",
+        "Spouse income and resources are always counted, even if your spouse isn't applying — this is often overlooked and causes application problems",
+        "QI-1 and QI-2 participants cannot receive full Medicaid simultaneously — you'll get Medicare premium help only",
+        "Asset limits are higher for cost-sharing programs ($9,950 individual) but stricter about what counts — a second car counts as an asset"
+      ],
+      "relatedPrograms": [
+        "Pennsylvania Medicaid",
+        "SNAP (Food Assistance)",
+        "LIHEAP (Energy Assistance)",
+        "Medicare Extra Help (Low Income Subsidy)"
+      ],
       "contentSections": [
         {
           "type": "tier-comparison",
-          "heading": "Program Tiers",
-          "tiers": [
-            {
-              "name": "QMB (Qualified Medicare Beneficiary)",
-              "description": "Full Medicaid plus all Medicare costs",
-              "incomeLimit": "Up to $1,350/month (single), $1,824/month (couple)",
-              "coverage": "Medicare premiums, deductibles, copays, plus full Medicaid benefits"
-            },
-            {
-              "name": "QMB Cost-Sharing",
-              "description": "Medicare costs only",
-              "incomeLimit": "Up to $1,350/month (single), $1,824/month (couple)",
-              "coverage": "Medicare Part A/B premiums, deductibles, copays only"
-            },
-            {
-              "name": "SLMB (Specified Low-Income Medicare Beneficiary)",
-              "description": "Medicare Part B premium help",
-              "incomeLimit": "Up to $1,565/month (single), $2,116/month (couple)",
-              "coverage": "Medicare Part B premium ($174.90/month in 2024)"
-            },
-            {
-              "name": "QI (Qualifying Individual)",
-              "description": "Medicare Part B premium help",
-              "incomeLimit": "Up to $2,284/month (single), $3,087/month (couple)",
-              "coverage": "Medicare Part B premium only"
-            }
-          ]
-        },
-        {
-          "type": "what-counts",
-          "heading": "Asset Limits: What Counts",
-          "included": [
-            "Bank accounts and savings",
-            "Stocks and investments",
-            "Second car or vehicles",
-            "Real estate other than primary home"
-          ],
-          "excluded": [
-            "Primary home (any value)",
-            "One car for transportation",
-            "Personal belongings and household items",
-            "Burial plots and prepaid funeral contracts",
-            "Life insurance with face value up to $1,500"
-          ]
-        },
-        {
-          "type": "documents",
-          "heading": "What to Bring",
-          "categories": [
-            {
-              "name": "Identity",
-              "items": [
-                "Birth certificate",
-                "Social Security card",
-                "Medicare card or proof of Part A entitlement",
-                "Proof of PA residency"
-              ]
-            },
-            {
-              "name": "Financial",
-              "items": [
-                "3 months of pay stubs or pension statements",
-                "Social Security award letters",
-                "Bank statements for all accounts",
-                "Investment account statements",
-                "Unpaid medical bills (for retroactive coverage)"
-              ]
-            }
-          ]
-        },
-        {
-          "type": "callout",
-          "tone": "warning",
-          "text": "You must include your spouse's income and assets in the application even if your spouse isn't applying for benefits. This requirement catches many families off guard."
-        },
-        {
-          "type": "callout",
-          "tone": "tip",
-          "text": "The program can provide retroactive coverage up to 3 months for SLMB/QI benefits. Keep unpaid medical bills to potentially get reimbursed."
+          "title": "Program Tiers and Benefits",
+          "content": "**QMB Categorically Needy:** Full Medicaid plus all Medicare Part A/B premiums, deductibles, and copayments covered. Income limit: $1,350/month individual, $1,824 couple. Assets: $2,000 individual, $3,000 couple.\n\n**QMB Cost-Sharing Only:** Medicare Part A/B premiums, deductibles, and copayments covered (no other Medicaid benefits). Higher asset limits: $9,950 individual, $14,910 couple.\n\n**SLMB:** Medicare Part B premium only ($185/month in 2026). Income up to 120% FPL. Assets: $9,950 individual, $14,910 couple.\n\n**QI-1 and QI-2:** Medicare Part B premium only. QI-1 up to 135% FPL, QI-2 up to 175% FPL. Same asset limits as SLMB. Cannot have full Medicaid."
         }
       ],
       "faqs": [
         {
-          "question": "Can my mom keep her house if she qualifies?",
-          "answer": "Yes. Your primary home doesn't count toward the asset limits, regardless of its value. She can own a home worth any amount and still qualify."
+          "question": "Can my parent keep their house if it's worth more than the asset limit?",
+          "answer": "Yes, the primary home is exempt from asset limits regardless of value. Only countable assets like bank accounts, stocks, and second vehicles count toward the $2,000–$14,910 limits depending on the program tier."
         },
         {
-          "question": "What if my dad's income is just over the limit for one tier?",
-          "answer": "The County Assistance Office automatically screens for all tiers. If he's over the QMB limit but under SLMB, he'll be considered for SLMB. The system checks all four programs in order."
+          "question": "What happens if my parent's income is too high for QMB but might qualify for SLMB?",
+          "answer": "The County Assistance Office automatically screens for all tiers. If your parent doesn't qualify for QMB (full benefits), they'll check SLMB and QI eligibility without you needing to file a separate application."
         },
         {
-          "question": "Does my mom need to change doctors if she gets QMB?",
-          "answer": "No. She keeps Medicare and all her current doctors. QMB just means the state pays her Medicare bills instead of her paying out-of-pocket."
+          "question": "Does my parent's spouse's income count even if the spouse isn't applying?",
+          "answer": "Yes, spouse income and resources are always counted in the eligibility calculation. This is a common source of confusion and application denials. You must provide documentation for both spouses' finances."
         },
         {
-          "question": "My parents are married but only my dad has Medicare. Do we count both incomes?",
-          "answer": "Yes. Even though only your dad is applying, your mom's income and assets count toward the limits. This is required even if she's not getting benefits."
+          "question": "Can my parent get retroactive coverage for medical bills they already paid?",
+          "answer": "SLMB and QI can be retroactive up to 3 months, but QMB cost-sharing benefits (premiums and deductibles) cannot be applied retroactively. Bring unpaid medical bills to your CAO when applying."
         },
         {
-          "question": "How much will this actually save my parent each year?",
-          "answer": "It depends on the tier. SLMB/QI saves about $2,100/year in Part B premiums. QMB can save $8,000+ annually by covering premiums, the $1,676 Part B deductible, and all copays."
+          "question": "How much will this actually save on Medicare costs?",
+          "answer": "At minimum, Medicare Part B premium coverage saves $185/month ($2,220/year in 2026). Full QMB coverage adds Medicare Part A deductibles ($1,676 in 2026), Part B deductibles ($240), and all copayments — potentially $3,000+ annually for someone with regular medical care."
         },
         {
-          "question": "What happens if my parent's income changes after approval?",
-          "answer": "You must report income changes to the County Assistance Office. Depending on the change, they might move to a different tier or lose eligibility. The office will reassess annually."
+          "question": "Can I apply for my parent if they have dementia or can't handle paperwork?",
+          "answer": "Yes, family members can apply on behalf of elderly parents. You'll need to provide legal documentation if you're the appointed representative, or the CAO can help determine what authorization is needed."
+        },
+        {
+          "question": "What if my parent already has Medicare Supplement insurance?",
+          "answer": "Healthy Horizons can work alongside Medicare Supplement plans, but the benefits may overlap. Your parent might be able to drop expensive supplement coverage and save money while getting similar or better coverage through the state program."
+        },
+        {
+          "question": "How long does coverage last once approved?",
+          "answer": "Coverage continues as long as your parent meets eligibility requirements. The state will review eligibility periodically (usually annually), and you'll need to report changes in income or resources that might affect benefits."
         }
       ],
-      "phone": "1-866-550-4355",
+      "layoutIntent": {
+        "aboutHighlight": "savings",
+        "eligibilityDisplay": "income-table",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "ShieldCheck",
+      "phone": "(866) 550-4355",
       "sourceUrl": "https://www.pa.gov/agencies/dhs/resources/aging-physical-disabilities/medicaid-older-people-and-people-with-disabilities",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-09"
+      "draftedAt": "2026-04-13"
     },
     {
-      "id": "pennsylvania-snap-food-benefits",
+      "id": "pa-snap-food-benefits",
       "name": "SNAP (Supplemental Nutrition Assistance Program)",
-      "shortName": "SNAP",
-      "tagline": "Get $100–300/month toward groceries if your parent is 60+ and on a fixed income.",
+      "shortName": "SNAP Food Benefits",
+      "tagline": "Up to $300/month toward groceries if your parent is 60+ and on a fixed income",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -401,21 +581,21 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Local County Assistance Offices (find via COMPASS or pa.gov).",
+            "name": "Local County Assistance Offices",
             "type": "service-area"
           }
         ]
       },
-      "intro": "If your parent is 60+ and struggling with grocery costs, SNAP provides an EBT card loaded monthly with money for food purchases at supermarkets and stores. Most older adults receive around $106/month, though the exact amount depends on their income and household expenses — medical costs and housing expenses can actually increase their benefits.\n\nPennsylvania makes it easier for seniors to qualify than younger adults. Because seniors often have medical expenses and housing costs that reduce their net income, many qualify even if their Social Security or pension seems too high at first glance. If your parent lives alone and receives $2,608/month or less in gross income, they likely qualify. Even if they're over that limit, they may still qualify through net income calculations that account for their medical and housing expenses.\n\nThe application process is streamlined for seniors — those 60+ can use a simplified application, and Pennsylvania has no asset limits for most households, so your parent won't lose benefits for having modest savings or owning their home.",
-      "savingsRange": "$1,272 – $3,600/year in 2026",
-      "savingsSource": "Average $106/month for older adults, with maximum benefits up to $300/month",
+      "intro": "If your parent is 60+ and struggling to afford groceries, SNAP provides an EBT card that works like a debit card at supermarkets and food stores. The average older adult receives $106/month, but benefits can reach $273/month for a single person or $546/month for a couple, depending on income and expenses like medical bills and housing costs.\n\nPennsylvania makes it easier for seniors to qualify than younger adults. Even if your parent's income is above the standard limit (currently $2,608/month for one person), they can still qualify through special senior rules that account for high medical expenses and housing costs. There's no asset limit for most households, so your parent can keep their home, car, and savings while receiving benefits.\n\nThe program covers most food items including fresh produce, meat, dairy, and pantry staples. Benefits are loaded onto an EBT card each month and can be used at virtually all grocery stores, many farmers markets, and some online retailers including Amazon and Walmart.",
+      "savingsRange": "$100 – $3,276/year in 2026",
+      "savingsSource": "Average $106/month for older adults, maximum $273/month for individuals",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
           "Age 60+",
           "Income below $2,608/month (single)",
-          "U.S. citizen or qualified non-citizen",
-          "No asset limits for most households"
+          "U.S. citizen or qualified immigrant",
+          "Lives in Pennsylvania"
         ],
         "ageRequirement": "60+",
         "incomeTable": [
@@ -442,171 +622,176 @@
           {
             "householdSize": 6,
             "monthlyLimit": 7192
-          },
-          {
-            "householdSize": 7,
-            "monthlyLimit": 8108
           }
         ],
-        "assetLimits": null,
+        "assetLimits": {
+          "individual": 4500,
+          "couple": 4500,
+          "countedAssets": [
+            "Bank accounts over $4,500",
+            "Investment accounts",
+            "Extra vehicles worth over $4,650"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "One vehicle",
+            "Income-producing vehicles",
+            "Burial funds"
+          ],
+          "homeEquityCap": null
+        },
         "functionalRequirement": null,
         "otherRequirements": [
-          "U.S. citizen or qualified non-citizen",
-          "Include all household members who buy and prepare food together"
+          "Must buy and prepare food together with others counted in household",
+          "Medical expenses and housing costs are deducted to increase benefits"
         ],
         "povertyLevelReference": "200% FPL"
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online through Pennsylvania's COMPASS website — most seniors can use the simplified application for households 60+.",
+        "summary": "Apply online through Pennsylvania's COMPASS website or call your County Assistance Office — processing time varies by county.",
         "steps": [
           {
             "step": 1,
-            "title": "Check if you qualify for Simple SNAP",
-            "description": "If all household members are 60+ or receive SSI/SSDI, have no work earnings, and have fixed income with reasonable rent, use the simplified Simple SNAP application."
+            "title": "Check if you qualify",
+            "description": "Use the 'Do I Qualify?' tool on the COMPASS website (www.compass.state.pa.us) to get an instant eligibility estimate."
           },
           {
             "step": 2,
             "title": "Gather required documents",
-            "description": "Collect birth dates and Social Security numbers for household members, income information (Social Security, pension statements), and expense records (rent/mortgage, medical bills, utilities)."
+            "description": "Collect Social Security numbers, income statements, and housing/medical expense records for everyone who buys and prepares food together."
           },
           {
             "step": 3,
-            "title": "Apply through COMPASS",
-            "description": "Go to www.compass.state.pa.us to apply online, or call your County Assistance Office to apply by phone."
+            "title": "Submit application",
+            "description": "Apply online at www.compass.state.pa.us, call your local County Assistance Office, or request the Simple SNAP application by phone if everyone in the household is 60+ or disabled."
           },
           {
             "step": 4,
             "title": "Complete interview",
-            "description": "Your local County Assistance Office will contact you to complete the application process and verify information."
+            "description": "Your County Assistance Office will schedule a phone or in-person interview to review your application and verify information."
+          },
+          {
+            "step": 5,
+            "title": "Receive decision",
+            "description": "You'll get a written decision by mail. If approved, your EBT card arrives within 10 days and benefits typically start the month after approval."
           }
         ],
-        "processingTime": null,
+        "processingTime": "Varies by county; expedited processing available for urgent financial need",
         "waitlist": null,
-        "tip": "Medical expenses and housing costs actually increase your SNAP benefits, so gather all medical bills and housing expense records when applying.",
+        "tip": "Seniors over the gross income limit can still qualify through net income rules — don't assume you make too much without applying.",
         "urls": [
           {
-            "label": "Apply Online (COMPASS)",
+            "label": "COMPASS Application Portal",
             "url": "https://www.compass.state.pa.us"
+          },
+          {
+            "label": "Pennsylvania SNAP for Older Adults",
+            "url": "https://www.pa.gov/agencies/dhs/resources/snap/snap-older-adults"
           }
         ]
       },
-      "contentSections": [
+      "documentsNeeded": [
+        "Social Security numbers for all household members",
+        "Dates of birth for all household members",
+        "Social Security award letters or benefit statements",
+        "Pension or retirement income statements",
+        "Bank statements for all accounts (last 3 months)",
+        "Current rent receipt or mortgage statement",
+        "Utility bills (electric, gas, water, phone)",
+        "Medical expense receipts and bills (last 3 months)",
+        "Health insurance premium statements",
+        "Prescription drug cost documentation",
+        "Property tax bills or homeowner's insurance",
+        "Vehicle registration or title",
+        "Immigration documents (if applicable)"
+      ],
+      "contacts": [
         {
-          "type": "income-table",
-          "heading": "Gross Income Limits by Household Size (October 2025 - September 2026)",
-          "rows": [
-            {
-              "householdSize": 1,
-              "monthlyLimit": 2608
-            },
-            {
-              "householdSize": 2,
-              "monthlyLimit": 3526
-            },
-            {
-              "householdSize": 3,
-              "monthlyLimit": 4442
-            },
-            {
-              "householdSize": 4,
-              "monthlyLimit": 5358
-            },
-            {
-              "householdSize": 5,
-              "monthlyLimit": 6276
-            },
-            {
-              "householdSize": 6,
-              "monthlyLimit": 7192
-            },
-            {
-              "householdSize": 7,
-              "monthlyLimit": 8108
-            }
-          ],
-          "footnote": "For each additional household member, add $916. Seniors over these limits may still qualify through net income calculations."
+          "label": "Central PA Food Bank SNAP Hotline",
+          "phone": "(877) 999-5964",
+          "description": "SNAP application assistance and questions",
+          "hours": "Monday-Friday, business hours"
         },
         {
-          "type": "what-counts",
-          "heading": "Assets: What Counts and What Doesn't",
-          "included": [
-            "Bank accounts and savings (only if over gross income limit and using federal rules)",
-            "Value of vehicles over $4,650 (only if over gross income limit)"
-          ],
-          "excluded": [
-            "Your parent's home (primary residence)",
-            "One vehicle per household member",
-            "Income-producing vehicles (like work trucks)",
-            "Most assets for households under 200% Federal Poverty Level"
-          ]
+          "label": "PA Department of Human Services",
+          "phone": "2-1-1",
+          "description": "Find your local County Assistance Office and get general benefit information",
+          "hours": "24 hours, 7 days a week"
         },
         {
-          "type": "documents",
-          "heading": "What to Bring",
-          "categories": [
-            {
-              "name": "Identity",
-              "items": [
-                "Birth dates for all household members",
-                "Social Security numbers for all household members"
-              ]
-            },
-            {
-              "name": "Financial",
-              "items": [
-                "Social Security statements",
-                "Pension or retirement income statements",
-                "Rent or mortgage payments",
-                "Medical bills and expenses",
-                "Utility bills",
-                "Bank statements (if required)"
-              ]
-            }
-          ]
-        },
-        {
-          "type": "callout",
-          "tone": "tip",
-          "text": "Even if your parent's income seems too high, apply anyway. Pennsylvania seniors often qualify because medical expenses and housing costs are deducted from income when calculating benefits — these deductions can make the difference between qualifying and not."
+          "label": "COMPASS Customer Service",
+          "phone": "(877) 395-8930",
+          "description": "Technical help with online applications",
+          "hours": "Monday-Friday 8am-5pm"
         }
       ],
+      "applicationNotes": [
+        "If all household members are 60+ or receive SSI/SSDI with no work earnings, you may qualify for the simplified ESAP application process",
+        "Households facing immediate food insecurity may qualify for expedited processing within 7 days",
+        "Medical expenses over $35/month are deducted from income to increase benefit amounts — save all receipts",
+        "Starting February 2026, you must verify shelter and utility costs when applying, renewing benefits, or moving to a new address"
+      ],
+      "relatedPrograms": [
+        "LIHEAP (Low Income Home Energy Assistance)",
+        "Pennsylvania Property Tax/Rent Rebate Program",
+        "Medicaid",
+        "Medicare Extra Help (Part D)"
+      ],
+      "contentSections": [],
       "faqs": [
         {
-          "question": "What if my parent's Social Security is just over the income limit?",
-          "answer": "They may still qualify. Pennsylvania uses net income calculations that subtract medical expenses and housing costs from gross income. If your parent pays for prescription drugs, doctor visits, or has high rent/mortgage payments, these deductions could bring them under the limit."
+          "question": "Can my parent keep their house and still get SNAP benefits?",
+          "answer": "Yes. Your parent's primary home doesn't count toward asset limits, regardless of value. They can also keep one vehicle and reasonable personal belongings without affecting SNAP eligibility."
         },
         {
-          "question": "Can my parent keep their house and savings if they get SNAP?",
-          "answer": "Yes. Pennsylvania has no asset limits for most households. Your parent's home doesn't count as an asset, and neither do modest savings accounts. Only households with income over 200% of the Federal Poverty Level face asset limits."
+          "question": "What if my parent's income is slightly over the limit but they have high medical bills?",
+          "answer": "Seniors with income over $2,608/month can still qualify through Pennsylvania's net income test. Medical expenses over $35/month are subtracted from income, potentially bringing them under the limit. Apply anyway — many seniors are surprised to learn they qualify."
         },
         {
-          "question": "Does my parent living with me affect their SNAP benefits?",
-          "answer": "Only if you buy and prepare food together. SNAP counts everyone who regularly share meals and grocery shopping as one household. If your parent buys their own groceries and prepares separate meals, they apply as their own household."
+          "question": "Can I apply for SNAP on behalf of my elderly parent?",
+          "answer": "Yes, adult children can apply as authorized representatives if their parent gives permission. You'll need to complete an authorized representative form and may need to attend the eligibility interview with or instead of your parent."
         },
         {
-          "question": "What can my parent buy with SNAP benefits?",
-          "answer": "Most food items: fruits, vegetables, meat, dairy, bread, cereals, snacks, and non-alcoholic beverages. They cannot use SNAP for alcohol, tobacco, vitamins, hot prepared foods, or non-food items like soap or paper products."
+          "question": "How much will my parent actually receive each month?",
+          "answer": "It depends on net income after deductions. For example, a single senior with $1,500/month income and $200 in medical expenses might receive around $150/month. Use the COMPASS calculator for a personalized estimate before applying."
         },
         {
-          "question": "How long do SNAP benefits last?",
-          "answer": "Benefits are ongoing but require periodic renewal. Seniors typically renew every 12-24 months. Your parent will receive notice before their benefits expire with instructions for renewal."
+          "question": "Can my parent use SNAP benefits to buy groceries online?",
+          "answer": "Yes. Pennsylvania SNAP recipients can use their EBT card for online grocery orders from Amazon, Walmart, and other approved retailers. Delivery fees aren't covered by SNAP, but the groceries are."
         },
         {
-          "question": "What if my parent needs help with the application?",
-          "answer": "Contact your local County Assistance Office — they can walk through the application by phone or in person. You can also call the Central PA Food Bank helpline at 1-877-999-5964 for assistance."
+          "question": "What happens if my parent lives with family but buys their own food?",
+          "answer": "Only people who buy and prepare food together count as one SNAP household. If your parent shops and cooks separately, they apply as a one-person household even if they live with relatives."
+        },
+        {
+          "question": "How often does my parent need to renew SNAP benefits?",
+          "answer": "Seniors typically recertify every 12-24 months depending on their income source. You'll receive renewal paperwork by mail with plenty of advance notice. Fixed income households often have longer certification periods."
+        },
+        {
+          "question": "Can my parent get SNAP if they're already receiving Medicaid or Medicare?",
+          "answer": "Yes. SNAP is a separate program from health insurance. Many seniors receive SNAP, Medicaid, Medicare, and other benefits simultaneously. Being on one program doesn't disqualify you from others."
         }
       ],
-      "phone": "1-877-999-5964",
+      "layoutIntent": {
+        "aboutHighlight": "savings",
+        "eligibilityDisplay": "income-table",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "BowlFood",
+      "phone": "(877) 999-5964",
       "sourceUrl": "https://www.pa.gov/agencies/dhs/resources/snap/snap-older-adults",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-09"
+      "draftedAt": "2026-04-13"
     },
     {
-      "id": "pennsylvania-ship-medicare-counseling",
+      "id": "pa-ship-medicare-counseling",
       "name": "SHIP (State Health Insurance Assistance Program)",
-      "shortName": "SHIP Counseling",
-      "tagline": "Get free one-on-one help navigating your parent's Medicare options and avoiding costly mistakes.",
+      "shortName": "SHIP Medicare Help",
+      "tagline": "Free one-on-one counseling to help your parent navigate Medicare options and find cost savings.",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -619,105 +804,112 @@
           }
         ]
       },
-      "intro": "If your parent has Medicare and you're confused by their coverage options, SHIP provides free, unbiased counseling to help you understand their choices. Pennsylvania's SHIP counselors can walk you through Original Medicare versus Medicare Advantage plans, explain prescription drug coverage, and help you find programs that reduce Medicare costs.\n\nBecause SHIP counselors are trained volunteers (not insurance salespeople), they'll give you honest guidance on what works best for your parent's health needs and budget. They can also help spot Medicare fraud and errors that could be costing your family money.\n\nAny Pennsylvania resident with Medicare can use SHIP services — there are no income limits or fees. Priority goes to people with limited incomes, those under 65 with disabilities, and dual Medicare-Medicaid beneficiaries, but everyone gets served.",
+      "intro": "If your parent has Medicare and feels overwhelmed by plan choices, prescription costs, or billing errors, Pennsylvania's SHIP program provides free expert guidance. SHIP counselors help Medicare beneficiaries understand their options for Original Medicare, Medicare Advantage, Medicare Supplement plans, and prescription drug coverage — plus identify potential savings through programs like Medicare Savings Programs and Extra Help.\n\nBecause SHIP counselors are trained, certified, and independent (not insurance salespeople), your parent gets unbiased advice tailored to their specific health needs and budget. The program also includes fraud protection services to help spot billing errors that could cost hundreds or thousands of dollars. No income limits apply — any Pennsylvania Medicare beneficiary can get help, though priority goes to those with limited incomes or disabilities.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
+          "Medicare beneficiary",
           "Pennsylvania resident",
-          "Medicare beneficiary (or their caregiver)",
           "No income limits",
-          "No asset limits"
+          "Priority for limited incomes"
         ],
         "ageRequirement": null,
         "incomeTable": null,
         "assetLimits": null,
         "functionalRequirement": null,
         "otherRequirements": [
-          "Must be Medicare beneficiary or family/caregiver of one",
-          "Pennsylvania resident"
+          "Must be a Medicare beneficiary (or family/caregiver of one)",
+          "Must be a Pennsylvania resident"
         ],
         "povertyLevelReference": null
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the statewide number and you'll be connected to a local counselor — no forms required.",
+        "summary": "Call the PA MEDI helpline — counselors provide immediate guidance and can schedule deeper consultations.",
         "steps": [
           {
             "step": 1,
             "title": "Call PA MEDI",
-            "description": "Dial 1-800-783-7067 to reach Pennsylvania's Medicare counseling program."
+            "description": "Call 1-800-783-7067 to reach Pennsylvania's Medicare counseling helpline. Counselors are available during business hours."
           },
           {
             "step": 2,
-            "title": "Explain your situation",
-            "description": "Tell them what Medicare questions you have — they'll connect you with a local counselor."
+            "title": "Describe your needs",
+            "description": "Tell the counselor what Medicare questions you have — plan comparisons, prescription costs, billing problems, or help applying for cost assistance programs."
           },
           {
             "step": 3,
-            "title": "Schedule counseling",
-            "description": "Your counselor will set up a phone or in-person meeting at your convenience."
-          },
-          {
-            "step": 4,
-            "title": "Gather Medicare documents",
-            "description": "Have your parent's Medicare card and current coverage details ready for the session."
+            "title": "Get personalized guidance",
+            "description": "The counselor will provide immediate answers and may schedule a longer consultation or connect you with a local counselor near you."
           }
         ],
-        "processingTime": "Services provided upon contact via phone or local counselors",
+        "processingTime": "Immediate phone assistance — no formal application or processing time",
         "waitlist": null,
-        "tip": "Call during open enrollment (October 15 - December 7) for the most comprehensive plan comparison help.",
+        "tip": "Have your parent's Medicare card and current plan information handy when you call — this helps counselors give more specific advice.",
         "urls": [
           {
-            "label": "Find local SHIP office",
+            "label": "PA SHIP Information",
             "url": "https://www.shiphelp.org/ships/pennsylvania/"
           }
         ]
       },
-      "contentSections": [
+      "documentsNeeded": null,
+      "contacts": [
         {
-          "type": "callout",
-          "tone": "tip",
-          "text": "SHIP is Medicare counseling only — it's not health insurance itself and doesn't provide direct financial aid. Don't confuse it with Pennsylvania's CHIP program for children."
+          "label": "PA MEDI Medicare Counseling",
+          "phone": "1-800-783-7067",
+          "description": "Free Medicare counseling and assistance for Pennsylvania residents",
+          "hours": "Business hours (contact for specific schedule)"
+        },
+        {
+          "label": "National SHIP Locator",
+          "phone": "1-877-839-2675",
+          "description": "Find local SHIP counselors nationwide",
+          "hours": "Business hours"
         }
       ],
+      "applicationNotes": null,
+      "relatedPrograms": [
+        "Medicare Savings Programs",
+        "Extra Help (Low Income Subsidy)",
+        "Medicaid"
+      ],
+      "contentSections": [],
       "faqs": [
         {
-          "question": "Will a SHIP counselor try to sell us Medicare plans?",
-          "answer": "No. SHIP counselors are trained volunteers who don't sell insurance or get paid commissions. They give you unbiased information to help you choose what's best for your parent's situation."
+          "question": "Can I call SHIP on behalf of my parent who has Medicare?",
+          "answer": "Yes, family caregivers can contact SHIP for guidance about their parent's Medicare options. Counselors can explain plan choices and programs to you, though they may need to speak directly with your parent for certain personal information or to help with applications."
         },
         {
-          "question": "Can SHIP help if my parent already has Medicare Advantage?",
-          "answer": "Yes. They can review your parent's current plan, explain what's covered, help with billing issues, or discuss switching during open enrollment if the plan isn't working well."
+          "question": "How is SHIP different from insurance agents who say they help with Medicare?",
+          "answer": "SHIP counselors are trained and certified but don't sell insurance — they provide unbiased guidance about all available options. Insurance agents typically represent specific companies and earn commissions from sales, while SHIP counselors work for you and your parent's best interests."
         },
         {
-          "question": "What if my parent has both Medicare and Medicaid?",
-          "answer": "SHIP counselors specialize in helping people with both programs (called dual eligibles). They get priority for services and can help coordinate benefits between the two programs."
-        },
-        {
-          "question": "Can they help us apply for programs that reduce Medicare costs?",
-          "answer": "Yes. SHIP counselors help people apply for Medicare Savings Programs, Extra Help for prescription drugs, and other low-income subsidies that can significantly reduce Medicare premiums and copays."
-        },
-        {
-          "question": "Do we have to meet with someone in person?",
-          "answer": "No. While in-person meetings are available, many SHIP counselors can help over the phone. They'll work with whatever method is most convenient for you and your parent."
-        },
-        {
-          "question": "What should we do if we think Medicare was billed incorrectly?",
-          "answer": "SHIP's Senior Medicare Patrol service specifically helps detect and report Medicare fraud, errors, and abuse. They can walk you through disputing incorrect charges and preventing future billing problems."
+          "question": "Can SHIP help if my parent thinks Medicare billed them incorrectly?",
+          "answer": "Yes, SHIP includes Senior Medicare Patrol services specifically to help detect and report Medicare fraud, errors, and abuse. Counselors can help your parent understand their Medicare statements and take action if they spot billing problems."
         }
       ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": false,
+        "visualTone": "minimal"
+      },
+      "icon": "Compass",
       "phone": "1-800-783-7067",
       "sourceUrl": "https://www.shiphelp.org/ships/pennsylvania/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-09"
+      "draftedAt": "2026-04-13"
     },
     {
-      "id": "pennsylvania-meals-on-wheels-home-delivered",
+      "id": "pa-home-delivered-meals",
       "name": "Home-Delivered Meals (Meals on Wheels)",
       "shortName": "Meals on Wheels",
-      "tagline": "Free nutritious meals delivered to your parent's home if they can't safely shop for groceries or cook.",
+      "tagline": "If your parent can't safely shop or cook, they may qualify for free home-delivered meals 5 days a week.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -750,25 +942,26 @@
           }
         ]
       },
-      "intro": "If your parent is 60+ and struggles to prepare meals or shop for groceries safely, they may qualify for free home-delivered meals in Pennsylvania. The program delivers nutritious meals (typically 5 days per week) that provide one-third of daily nutritional requirements per meal, with menus designed for diabetes and heart disease.\n\nThis isn't automatic — your parent must qualify through an in-home assessment by a care manager from your local Area Agency on Aging. The program targets homebound seniors who live alone or with someone who also needs help, and who don't have family support for meal preparation or grocery shopping.\n\nBecause Pennsylvania has 52 local Area Agencies on Aging, eligibility requirements and waiting times vary by county. Some counties emphasize financial need while others focus purely on functional inability to prepare meals.",
+      "intro": "If your parent is 60+ and struggles to cook or shop safely, Home-Delivered Meals can bring nutritious meals directly to their door. Each meal provides one-third of daily nutritional requirements, is certified by a dietitian, and accommodates conditions like diabetes and heart disease. Most counties deliver 5 days per week at no cost.\n\nThis isn't automatic — your parent needs an in-home assessment by their local Area Agency on Aging to confirm they're homebound and unable to prepare meals safely. Because Pennsylvania has 52 different Area Agencies on Aging, eligibility details and wait times vary by county, but the core requirement is being unable to leave home regularly or prepare nutritious meals due to physical, mental, or emotional limitations.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
           "Age 60+",
-          "Homebound or can't shop safely",
-          "Lives alone or with qualifying person",
-          "Passes in-home assessment"
+          "Pennsylvania resident",
+          "Homebound or unable to cook safely",
+          "Living alone or with someone who also qualifies",
+          "Requires in-home assessment"
         ],
         "ageRequirement": "60+",
         "incomeTable": null,
         "assetLimits": null,
-        "functionalRequirement": "Physical, mental, or emotional disability preventing leaving home regularly and/or preparing nutritious meals, confirmed through in-home assessment by care manager",
+        "functionalRequirement": "Must have physical, mental, or emotional disability preventing leaving home regularly and/or preparing nutritious meals safely",
         "otherRequirements": [
           "Pennsylvania resident in non-institutional home setting",
-          "Unable to access/prepare food or shop safely without informal supports",
-          "Living alone or with someone who also qualifies"
+          "Cannot have family or informal supports available for meals and shopping",
+          "Must live alone or with someone who also qualifies"
         ],
         "povertyLevelReference": null
       },
@@ -779,106 +972,121 @@
           {
             "step": 1,
             "title": "Find your local Area Agency on Aging",
-            "description": "Pennsylvania has 52 local agencies — you must contact the one serving your parent's county, not a statewide number."
+            "description": "Pennsylvania has 52 Area Agencies covering all 67 counties. Examples: York County 717-771-9610, Blair County 814-946-1235, or search the PA Department of Aging website."
           },
           {
             "step": 2,
             "title": "Call for intake interview",
-            "description": "Explain your parent's situation: difficulty shopping, cooking, or leaving home safely. Be prepared to discuss living situation and any family support."
+            "description": "Explain your parent's situation regarding meal preparation, shopping ability, and available family support. Be prepared to discuss their living situation and functional limitations."
           },
           {
             "step": 3,
             "title": "Schedule in-home assessment",
-            "description": "A care manager will visit your parent's home to confirm eligibility based on functional ability and meal preparation needs."
+            "description": "A care manager will visit your parent's home to evaluate their ability to prepare meals and leave home safely. This assessment is required for all applicants."
           },
           {
             "step": 4,
-            "title": "Assessment determines qualification",
-            "description": "If approved, meal delivery begins. If denied, ask about other food assistance options like Senior Food Box or congregate meal sites."
+            "title": "Await approval and service start",
+            "description": "If approved, your local provider will contact your parent to arrange meal delivery schedule, dietary accommodations, and delivery instructions."
           }
         ],
-        "processingTime": "Varies by county — requires in-home assessment before service can start",
+        "processingTime": "Not specified; requires in-home assessment prior to service start",
         "waitlist": null,
-        "tip": "Don't wait until your parent has a health crisis — apply when you first notice difficulty with grocery shopping or meal preparation.",
+        "tip": "Have information ready about your parent's medical conditions, current diet restrictions, and what family help is available for shopping or cooking.",
         "urls": [
           {
-            "label": "Find your local Area Agency on Aging",
+            "label": "PA Department of Aging Meals Program",
             "url": "https://www.pa.gov/agencies/aging/aging-programs-and-services/meals-and-food-assistance"
           }
         ]
       },
-      "contentSections": [
+      "documentsNeeded": null,
+      "contacts": [
         {
-          "type": "county-directory",
-          "heading": "Local Area Agencies on Aging",
-          "offices": [
-            {
-              "name": "York County AAA",
-              "type": "county",
-              "phone": "717-771-9610",
-              "address": "aging@yorkcountypa.gov"
-            },
-            {
-              "name": "Blair Senior Services",
-              "type": "county",
-              "phone": "814-946-1235",
-              "address": "Blair County"
-            },
-            {
-              "name": "Philadelphia Corporation for Aging",
-              "type": "county",
-              "phone": null,
-              "address": "Philadelphia County"
-            }
-          ]
+          "label": "York County Area Agency on Aging",
+          "phone": "(717) 771-9610",
+          "description": "Intake and assessment for York County residents",
+          "hours": "Contact for hours"
         },
         {
-          "type": "callout",
-          "tone": "warning",
-          "text": "This program requires an in-home assessment — you cannot self-qualify or apply online. Each county has different providers and slight variations in eligibility, so requirements may differ from neighboring areas."
+          "label": "Blair Senior Services",
+          "phone": "(814) 946-1235",
+          "description": "Home-delivered meals for Blair County",
+          "hours": "Contact for hours"
         },
         {
-          "type": "callout",
-          "tone": "tip",
-          "text": "Don't confuse this with congregate meal sites, SNAP benefits, or Senior Food Box programs. Home-delivered meals are specifically for homebound seniors who cannot safely leave home or prepare meals."
+          "label": "PA Department of Aging",
+          "phone": "Contact local AAA",
+          "description": "Statewide program information and local office referrals",
+          "hours": "Varies by county"
         }
       ],
+      "applicationNotes": [
+        "You cannot self-qualify — every applicant needs an in-home assessment by local Area Agency on Aging staff",
+        "Some counties emphasize financial need while others focus purely on functional limitations — ask about specific requirements in your area",
+        "This program is separate from Medicaid waiver meals, which have stricter financial requirements and nursing home-level care needs",
+        "If your parent has family available to help with shopping or cooking, they likely won't qualify"
+      ],
+      "relatedPrograms": [
+        "SNAP (Food Stamps)",
+        "Senior Farmers Market Nutrition Program",
+        "Senior Food Box Program",
+        "Congregate Meal Sites"
+      ],
+      "contentSections": [],
       "faqs": [
         {
-          "question": "What if my parent has family nearby who could help with meals?",
-          "answer": "Your parent likely won't qualify if they have family or informal supports available for meal preparation and grocery shopping. The program targets seniors without adequate support systems."
+          "question": "Can my parent get meals if they have family nearby who could help?",
+          "answer": "Likely not. The program excludes people who have family or informal supports available for meals and shopping. The assessment will evaluate what help your parent actually receives, not just what's theoretically available."
         },
         {
-          "question": "Does my parent's income matter for qualification?",
-          "answer": "Most counties don't have strict income limits, but some (like Armstrong County) require financial inability to purchase food. The in-home assessor will evaluate your parent's overall situation including income as part of eligibility."
+          "question": "What if my parent can still drive but just doesn't cook much anymore?",
+          "answer": "They need to demonstrate they cannot prepare nutritious meals due to physical, mental, or emotional limitations — not just preference. The in-home assessment will evaluate their actual cooking ability and safety in the kitchen."
         },
         {
-          "question": "How many meals will my parent receive?",
-          "answer": "Typically 5 meals per week with shelf-stable backup meals suggested. Meals provide one-third of daily nutritional requirements and accommodate diabetes and heart disease dietary needs."
+          "question": "How much do the meals cost?",
+          "answer": "Many counties provide meals at no cost, like York County. However, some counties may require payment based on financial need. Ask your local Area Agency on Aging about costs during the intake interview."
         },
         {
-          "question": "What if my parent lives with their spouse?",
-          "answer": "Your parent can qualify if they live with someone who also meets the eligibility requirements (age 60+, homebound, unable to prepare meals). Both people would be assessed."
+          "question": "Can I apply on behalf of my parent?",
+          "answer": "You can initiate contact with the Area Agency on Aging, but your parent will need to participate in the in-home assessment. The care manager needs to evaluate your parent's living situation and functional abilities directly."
         },
         {
-          "question": "Can my parent get meals temporarily after a hospital stay?",
-          "answer": "Possibly — contact your local Area Agency on Aging to discuss short-term meal delivery during recovery. Some counties may have flexibility for temporary situations."
+          "question": "What if my parent lives in assisted living or senior housing?",
+          "answer": "They must live in a non-institutional home setting to qualify. Assisted living typically wouldn't qualify, but senior housing apartments might depending on the level of meal services already provided."
         },
         {
-          "question": "What happens if the assessor says my parent doesn't qualify?",
-          "answer": "Ask about other options like Senior Food Box, congregate meal sites, or SNAP benefits. The agency should help connect your parent to alternative food assistance programs."
+          "question": "Is this the same as the Meals on Wheels I can donate to?",
+          "answer": "It's the same type of service, but Pennsylvania's program is administered through 52 different Area Agencies on Aging with varying local providers. Some areas may contract with traditional Meals on Wheels organizations, others use different meal delivery companies."
+        },
+        {
+          "question": "What happens if my parent's condition changes after they start receiving meals?",
+          "answer": "Contact your local Area Agency on Aging if your parent's functional abilities improve significantly or if they no longer need the service. They'll reassess eligibility as needed."
+        },
+        {
+          "question": "Can my parent choose what meals they receive?",
+          "answer": "Menus are planned by dietitians and certified by the PA Department of Aging, but they do accommodate medical conditions like diabetes and heart disease. Discuss dietary restrictions during your intake interview."
         }
       ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": false,
+        "visualTone": "editorial"
+      },
+      "icon": "BowlFood",
       "phone": null,
       "sourceUrl": "https://www.pa.gov/agencies/aging/aging-programs-and-services/meals-and-food-assistance",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-09"
+      "draftedAt": "2026-04-13"
     },
     {
-      "id": "pennsylvania-caregiver-support-program",
+      "id": "pa-caregiver-support-program",
       "name": "Caregiver Support Program",
       "shortName": "Caregiver Support",
-      "tagline": "Get reimbursed for respite care and caregiving expenses while accessing support services in Pennsylvania.",
+      "tagline": "Get reimbursed for respite care and supplies while caring for your aging parent in Pennsylvania.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -891,133 +1099,157 @@
           }
         ]
       },
-      "intro": "If you're caring for an aging parent in Pennsylvania, this program reimburses you for respite care, caregiving supplies, and other expenses — plus provides care management and caregiver training. You pay upfront and submit receipts for reimbursement based on your parent's household income.\n\nThe program serves three groups: caregivers 18+ helping someone 60+ with daily tasks or any age with Alzheimer's; caregivers 55+ raising children under 18; and caregivers 55+ helping disabled adults 18-59. Because there's no income test to qualify, families at any income level can access services — though reimbursement amounts depend on your parent's household income up to 380% of Federal Poverty Level.\n\nBoth you and your parent must live in Pennsylvania, and you'll work with your local Area Agency on Aging for an in-home assessment and ongoing care management.",
+      "intro": "If you're caring for a parent 60+ with functional deficits or Alzheimer's in Pennsylvania, this program reimburses you for respite care, supplies, and other caregiving expenses. The reimbursement percentage depends on your parent's household income — up to 100% for lower incomes, scaled down to 0% above 380% of the Federal Poverty Level ($58,320 for a single person in 2026).\n\nYou pay upfront for approved services and submit receipts for reimbursement. Beyond financial help, the program provides care management, caregiver education, and training at no cost regardless of income. An in-home assessment determines what services you're authorized to receive.\n\nThe program also covers caregivers 55+ raising grandchildren or caring for disabled adult children (18-59) with different co-residence requirements. Each of Pennsylvania's 52 counties administers the program through their Area Agency on Aging, so services and wait times may vary by location.",
       "savingsRange": "",
-      "savingsSource": "Reimbursement varies by household income",
+      "savingsSource": "Reimbursement service based on sliding scale",
       "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
-          "Both live in Pennsylvania",
-          "Caregiver 18+ for parent 60+",
-          "Or caregiver 55+ for specific situations",
-          "No income test to qualify",
-          "In-home assessment required"
+          "Caregiver and care receiver both live in Pennsylvania",
+          "Care receiver 60+ with functional deficits or any age with Alzheimer's",
+          "No income limits to qualify",
+          "Reimbursement based on care receiver's household income"
         ],
-        "ageRequirement": "18+",
+        "ageRequirement": null,
         "incomeTable": null,
         "assetLimits": null,
-        "functionalRequirement": "Care receiver must have functional deficits (needing help with daily activities like bathing, dressing, medication management) or Alzheimer's/related disorder",
+        "functionalRequirement": "Care receiver must have functional deficits (needing help with daily activities like bathing, dressing, medication management) or Alzheimer's/related disorder diagnosis",
         "otherRequirements": [
           "Both caregiver and care receiver must reside in Pennsylvania",
-          "Must be primarily responsible for providing regular care",
-          "Reimbursement only available if care receiver's household income is below 380% Federal Poverty Level"
+          "Caregiver must be primarily responsible for providing regular care",
+          "No relation or co-residence required for caring for someone 60+ or with Alzheimer's",
+          "Different rules apply for caregivers 55+ raising grandchildren or caring for disabled adults 18-59"
         ],
         "povertyLevelReference": "380% FPL"
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Contact your local Area Agency on Aging for an in-home assessment — no statewide timeline provided.",
+        "summary": "Contact your county's Area Agency on Aging for an in-home assessment — no standard application form required.",
         "steps": [
           {
             "step": 1,
             "title": "Find your local Area Agency on Aging",
-            "description": "Use the county directory to find your AAA office serving your parent's county of residence."
+            "description": "Visit https://www.pa.gov/services/aging/apply-for-the-caregiver-support-program to find your county's AAA contact information."
           },
           {
             "step": 2,
-            "title": "Call to request assessment",
-            "description": "Schedule an in-home assessment to determine eligibility and service needs."
+            "title": "Call to request an assessment",
+            "description": "Contact your local AAA office to schedule an in-home assessment. Each county has different phone numbers and procedures."
           },
           {
             "step": 3,
-            "title": "Complete assessment",
-            "description": "AAA staff will assess your parent's functional needs and your household's financial situation."
+            "title": "Complete the in-home assessment",
+            "description": "An assessor will evaluate your caregiving situation and determine what services you're authorized to receive."
           },
           {
             "step": 4,
-            "title": "Receive authorization",
-            "description": "If approved, you'll get authorization to purchase services and supplies for later reimbursement."
+            "title": "Get approval for specific services",
+            "description": "Your care manager will authorize specific reimbursable services based on your assessment results."
+          },
+          {
+            "step": 5,
+            "title": "Pay for services and submit receipts",
+            "description": "You pay providers upfront, then submit receipts to your care manager for reimbursement according to your income-based percentage."
           }
         ],
-        "processingTime": "Requires in-home assessment; no statewide timeline specified",
+        "processingTime": "Requires in-home assessment; timeline varies by county",
         "waitlist": "May vary by region",
-        "tip": "Gather income documentation and any medical records showing your parent's functional needs before the assessment.",
+        "tip": "Gather income documentation for your care receiver before calling — this determines your reimbursement percentage.",
         "urls": [
           {
-            "label": "Find your local Area Agency on Aging",
+            "label": "Find Your Local Area Agency on Aging",
             "url": "https://www.pa.gov/services/aging/apply-for-the-caregiver-support-program"
           }
         ]
       },
-      "contentSections": [
+      "documentsNeeded": [
+        "Verification of care receiver's total gross household income",
+        "Documentation of functional deficits or medical diagnosis for care receiver",
+        "Proof of Pennsylvania residency for both caregiver and care receiver",
+        "Alzheimer's or related disorder diagnosis (if applicable)",
+        "Disability documentation for care receiver aged 18-59 (if applicable)",
+        "Legal guardianship papers (if applicable for grandparent caregivers)",
+        "Receipts for caregiving expenses to be reimbursed"
+      ],
+      "contacts": [
         {
-          "type": "documents",
-          "heading": "What to Bring for Assessment",
-          "categories": [
-            {
-              "name": "Financial",
-              "items": [
-                "Care receiver's household income verification (pay stubs, Social Security statements, pension records)",
-                "Bank statements for all household members"
-              ]
-            },
-            {
-              "name": "Medical",
-              "items": [
-                "Documentation of functional deficits (doctor's assessment, therapy notes)",
-                "Alzheimer's or dementia diagnosis if applicable",
-                "Disability documentation for care receivers age 18-59"
-              ]
-            }
-          ]
+          "label": "Pennsylvania Aging Services",
+          "phone": "(717) 783-1550",
+          "description": "General program information",
+          "hours": "Mon-Fri 8am-5pm ET"
         },
         {
-          "type": "callout",
-          "tone": "warning",
-          "text": "You cannot hire family members to provide paid care through this program. You pay all expenses upfront and submit receipts for reimbursement — there are no direct payments to caregivers."
-        },
-        {
-          "type": "callout",
-          "tone": "tip",
-          "text": "Even if your parent's income is above 380% Federal Poverty Level, you can still access non-financial services like care management, caregiver education, and training."
+          "label": "Local Area Agency on Aging",
+          "phone": "Varies by county",
+          "description": "Application and assessment scheduling",
+          "hours": "Contact your county AAA for specific hours"
         }
       ],
+      "applicationNotes": [
+        "Family members cannot be hired or paid to provide care to relatives through this program",
+        "Above 380% Federal Poverty Level, you can still access non-financial services like care management and education",
+        "Each county's Area Agency on Aging has different procedures and wait times",
+        "You must pay for services upfront and seek reimbursement — no direct payment to providers"
+      ],
+      "relatedPrograms": [
+        "PA OPTIONS Program",
+        "PACE Program",
+        "Pennsylvania SNAP Benefits"
+      ],
+      "contentSections": [],
       "faqs": [
         {
-          "question": "Can I get paid to care for my parent through this program?",
-          "answer": "No. Family members cannot be hired or paid to provide care to relatives. The program reimburses you for expenses like respite care from outside providers, supplies, and other care-related costs — but you cannot pay yourself or other family members."
+          "question": "Can I get reimbursed if my parent's income is too high?",
+          "answer": "If your parent's household income is above 380% of the Federal Poverty Level ($58,320 for a single person in 2026), you won't get financial reimbursement. However, you can still access non-financial services like care management, caregiver education, and training at no cost."
         },
         {
-          "question": "What if my parent's income is too high for reimbursement?",
-          "answer": "If your parent's household income is above 380% of Federal Poverty Level, you won't get financial reimbursement but can still access care management, caregiver education, training, and support services through your local Area Agency on Aging."
+          "question": "What expenses can I actually get reimbursed for?",
+          "answer": "The program reimburses for respite care, supplemental services, consumable supplies, and other care-related expenses approved by your care manager. The specific services must be authorized during your in-home assessment. You cannot be reimbursed for hiring family members to provide care."
         },
         {
-          "question": "How much will I get reimbursed?",
-          "answer": "Reimbursement percentage depends on your parent's household income and size using a sliding scale up to 380% Federal Poverty Level. Your local Area Agency on Aging will determine your specific reimbursement rate during the assessment."
+          "question": "How long does it take to get my money back after submitting receipts?",
+          "answer": "Reimbursement timelines vary by county since each Area Agency on Aging processes payments differently. Ask your local AAA about their typical processing time when you apply."
         },
         {
-          "question": "Do I need to live with my parent to qualify?",
-          "answer": "Not if you're caring for someone 60+ or any age with Alzheimer's. But if you're 55+ caring for children under 18 or disabled adults 18-59, you must live in the same household and be related by blood, marriage, or adoption."
+          "question": "Can I apply if I'm caring for my spouse who has Alzheimer's?",
+          "answer": "Yes, if your spouse has Alzheimer's or a related disorder at any age, you qualify as long as you both live in Pennsylvania and you're the primary caregiver. There's no relation or co-residence requirement for Alzheimer's care."
         },
         {
-          "question": "How long does the assessment take?",
-          "answer": "Pennsylvania doesn't provide a statewide timeline. Contact your local Area Agency on Aging for specific processing times in your county, as wait times may vary by region."
+          "question": "What if my parent lives in one Pennsylvania county but I live in another?",
+          "answer": "Both you and your care receiver must live in Pennsylvania, but you don't need to live in the same county. Contact the Area Agency on Aging in your parent's county of residence since that's where they'll receive services."
         },
         {
-          "question": "What expenses can I get reimbursed for?",
-          "answer": "You can be reimbursed for respite care, supplemental services, consumable supplies (like adult diapers), and other care-related expenses. Keep all receipts and get pre-approval from your care manager for major purchases."
+          "question": "Can I use this program and Medicaid waiver services at the same time?",
+          "answer": "This program is separate from Medicaid OPTIONS and other waiver programs. Ask your care manager about coordinating benefits, as eligibility rules and income limits differ significantly between programs."
+        },
+        {
+          "question": "What happens if my parent's income changes after I'm enrolled?",
+          "answer": "Your reimbursement percentage is based on your parent's current household income, so changes may affect your reimbursement rate. Report income changes to your care manager who will adjust your reimbursement percentage accordingly."
+        },
+        {
+          "question": "Do I need to live with my parent to qualify for this program?",
+          "answer": "For caring for someone 60+ with functional deficits or anyone with Alzheimer's, you don't need to live together or be related. Co-residence is only required for caregivers 55+ caring for grandchildren under 18 or disabled adults 18-59."
         }
       ],
-      "phone": null,
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "HandHeart",
+      "phone": "(717) 783-1550",
       "sourceUrl": "https://www.pa.gov/agencies/aging/aging-programs-and-services/caregiver-support-program",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-09"
+      "draftedAt": "2026-04-13"
     },
     {
-      "id": "pennsylvania-oplap-legal-assistance",
+      "id": "pa-oplap-legal-assistance",
       "name": "Older Pennsylvanians Legal Assistance Program (OPLAP)",
-      "shortName": "OPLAP Legal Services",
-      "tagline": "If your parent needs legal help with Medicare, housing, or other age-related issues, they may qualify for free legal representation.",
+      "shortName": "OPLAP Legal Aid",
+      "tagline": "Free legal help for Pennsylvania seniors facing housing problems, benefit denials, or healthcare disputes.",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -1041,12 +1273,12 @@
             "type": "service-area"
           },
           {
-            "name": "PALawHelp.org for county locator[1][4]",
+            "name": "PALawHelp.org for county locator",
             "type": "service-area"
           }
         ]
       },
-      "intro": "If your parent is struggling with Medicare denials, housing problems, or Social Security issues, OPLAP provides free legal help to Pennsylvania residents age 60 and older. The program offers advice, representation, and advocacy for legal matters that specifically affect older adults — from fighting wrongful benefit denials to defending against guardianship proceedings.\n\nBecause OPLAP focuses on seniors with the greatest economic and social needs, priority goes to parents with very limited incomes (generally at or below 125% of the federal poverty level, about $1,770/month for a single person in 2026). Your parent pays only actual court costs like filing fees — all legal services are free. However, demand is high and many eligible seniors are turned away due to limited resources.",
+      "intro": "If your parent is 60+ and struggling with legal issues like eviction notices, denied Medicare claims, or Social Security problems, they may qualify for free legal help through Pennsylvania's senior legal aid program. OPLAP provides attorneys who specialize in elder law issues — from fighting benefit denials to defending against guardianship proceedings.\n\nEligibility is generally based on 125% of the federal poverty level (about $1,900/month for a single person in 2026), with priority given to seniors with the greatest economic and social needs. The program covers legal matters related to abuse, age discrimination, healthcare, housing, long-term care, Medicaid, Medicare, nutrition, Social Security/SSI, and utilities. Your parent pays only court filing fees — attorney services are free.\n\nHigh demand means many qualified seniors can't be served immediately. At least 80% of legal needs among low-income older adults go unmet nationally due to limited resources.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1054,8 +1286,8 @@
         "summary": [
           "Age 60+",
           "Pennsylvania resident",
-          "Income generally below $1,770/month",
-          "Legal issue must relate to aging"
+          "Income around 125% of poverty level",
+          "Legal issue in covered areas"
         ],
         "ageRequirement": "60+",
         "incomeTable": null,
@@ -1063,92 +1295,110 @@
         "functionalRequirement": null,
         "otherRequirements": [
           "Pennsylvania resident",
-          "Legal matter must relate to abuse, age discrimination, guardianship defense, healthcare, housing, long-term care, Medicaid, Medicare, nutrition, Social Security/SSI, or utilities"
+          "Legal matter must relate to abuse, age discrimination, guardianship defense, healthcare, housing, long-term care, Medicaid, Medicare, nutrition, Social Security/SSI, or utilities",
+          "Priority given to those with greatest economic and social needs"
         ],
         "povertyLevelReference": "125% FPL"
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the statewide helpline at 1-877-727-7529 for immediate screening and referral to local services.",
+        "summary": "Call the Pennsylvania SeniorLAW Helpline at 1-877-727-7529 for immediate screening and referral to local legal aid.",
         "steps": [
           {
             "step": 1,
-            "title": "Call the Pennsylvania SeniorLAW Helpline",
-            "description": "Dial 1-877-PA SR LAW (1-877-727-7529) to speak with a legal intake specialist who will screen your parent's case."
+            "title": "Call the helpline",
+            "description": "Call Pennsylvania SeniorLAW Helpline at 1-877-PA SR LAW (1-877-727-7529) to describe your parent's legal issue and get screened for eligibility."
           },
           {
             "step": 2,
-            "title": "Describe the legal problem",
-            "description": "Explain the specific issue — Medicare denial, housing dispute, benefit problems, etc. Have relevant documents ready like court notices or benefit letters."
+            "title": "Complete intake screening",
+            "description": "Answer questions about your parent's age, income, residence, and the specific legal problem. The helpline will determine if the case fits program priorities."
           },
           {
             "step": 3,
-            "title": "Get matched to local services",
-            "description": "If your parent qualifies, you'll be referred to the appropriate local legal aid program or Area Agency on Aging in your county."
+            "title": "Get referred to local provider",
+            "description": "If eligible, you'll be connected to your county's legal aid program or Area Agency on Aging for direct legal assistance or representation."
           }
         ],
         "processingTime": null,
-        "waitlist": "High demand may result in turnaways due to resource limits",
-        "tip": "Call early in the day — helpline staff can provide immediate guidance even if local programs have waitlists.",
+        "waitlist": "High demand may result in turnaways despite qualification due to limited resources",
+        "tip": "Call early in the day — high demand means phone lines can get busy, and some qualified seniors may be turned away due to capacity limits.",
         "urls": [
           {
-            "label": "Find local programs online",
+            "label": "PALawHelp.org",
             "url": "https://www.palawhelp.org"
           },
           {
-            "label": "Official OPLAP page",
-            "url": "https://www.pa.gov/services/aging/apply-for-the-older-pennsylvanians-legal-assistance-program"
+            "label": "SeniorLAW Center",
+            "url": "https://www.seniorlawcenter.org"
           }
         ]
       },
-      "contentSections": [
+      "documentsNeeded": [
+        "Valid government-issued photo ID or birth certificate (proof of age)",
+        "Proof of Pennsylvania residency (utility bill, lease, or state-issued document)",
+        "Social Security award letter or other income documentation",
+        "Documents related to the legal issue (court notices, eviction papers, benefit denial letters, medical bills)",
+        "Medicare card and health insurance information if issue is healthcare-related",
+        "Lease agreement or property documents if issue is housing-related"
+      ],
+      "contacts": [
         {
-          "type": "callout",
-          "tone": "warning",
-          "text": "OPLAP cannot help with divorce, property settlements, or family disputes. The program only handles legal issues that specifically affect older adults."
+          "label": "Pennsylvania SeniorLAW Helpline",
+          "phone": "(877) 727-7529",
+          "description": "Statewide legal aid screening and referral for seniors",
+          "hours": "Business hours (specific hours not specified)"
         },
         {
-          "type": "callout",
-          "tone": "tip",
-          "text": "Even if local programs are full, the SeniorLAW Helpline can often provide immediate legal information and self-help resources over the phone."
+          "label": "Pennsylvania 2-1-1",
+          "phone": "2-1-1",
+          "description": "General social services helpline that can also connect to legal aid",
+          "hours": "24 hours, 7 days a week"
         }
       ],
+      "applicationNotes": [
+        "The program cannot help with divorce, property settlements, or family disputes — only issues specifically related to elder law and basic needs",
+        "Even if your parent qualifies, they may be turned away due to high demand and limited attorney capacity in their county"
+      ],
+      "relatedPrograms": [
+        "Area Agency on Aging services",
+        "Pennsylvania APPRISE (Medicare counseling)",
+        "Adult Protective Services"
+      ],
+      "contentSections": [],
       "faqs": [
         {
-          "question": "What if Mom's income is slightly above the limit?",
-          "answer": "Income limits vary by local program and aren't fixed statewide. Call 1-877-727-7529 anyway — programs consider individual circumstances and may still provide help based on the urgency of the legal issue."
+          "question": "What if my parent's legal issue isn't on the covered list?",
+          "answer": "OPLAP specifically excludes divorce, property settlements, and family disputes. If your parent's issue involves basic needs like housing, healthcare, or government benefits, call the helpline to confirm coverage. For other legal matters, they may refer you to other resources or private attorneys who work with seniors."
         },
         {
-          "question": "Can OPLAP help if Dad is facing a Medicare denial?",
-          "answer": "Yes, Medicare issues are a core focus of OPLAP. Lawyers can help appeal denials, fight wrongful coverage decisions, and navigate Medicare Advantage disputes."
+          "question": "Can I apply on behalf of my parent who has dementia?",
+          "answer": "Yes, family members can call the helpline to discuss legal issues affecting their aging parents. However, the attorney will need to communicate directly with your parent when possible, or work through proper legal channels if guardianship or power of attorney is involved."
         },
         {
-          "question": "What costs will my parent have to pay?",
-          "answer": "All legal services are free, but your parent pays actual court costs like filing fees (typically $50-300 depending on the case type). The lawyer will explain any potential costs upfront."
-        },
-        {
-          "question": "How long does it take to get help?",
-          "answer": "The helpline provides immediate phone consultation. For ongoing representation, wait times vary by county and case urgency — emergency situations like eviction notices get priority."
-        },
-        {
-          "question": "What if there's no OPLAP lawyer available in our area?",
-          "answer": "The helpline can still provide legal information, self-help resources, and referrals to other programs. They'll also put your parent on a waitlist for when services become available."
-        },
-        {
-          "question": "Can OPLAP help prevent someone from becoming Mom's guardian against her wishes?",
-          "answer": "Yes, guardianship defense is specifically covered by OPLAP. Lawyers can represent your parent in court proceedings and help protect her right to make her own decisions."
+          "question": "How long does it take to get connected with an attorney?",
+          "answer": "Processing time varies by county and case urgency. The helpline can provide immediate screening, but connection to a local attorney depends on capacity in your area. Some counties may have immediate availability while others have waiting periods due to high demand."
         }
       ],
-      "phone": "1-877-727-7529",
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "warm"
+      },
+      "icon": "Scales",
+      "phone": "(877) 727-7529",
       "sourceUrl": "https://www.pa.gov/services/aging/apply-for-the-older-pennsylvanians-legal-assistance-program",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-09"
+      "draftedAt": "2026-04-13"
     },
     {
-      "id": "pennsylvania-long-term-care-ombudsman",
+      "id": "pa-ltc-ombudsman",
       "name": "Long-Term Care Ombudsman Program",
-      "shortName": "Ombudsman Program",
-      "tagline": "Free advocate to resolve complaints about your parent's care facility or fight unfair discharge notices.",
+      "shortName": "LTC Ombudsman",
+      "tagline": "Free advocate to resolve nursing home or assisted living complaints and protect your parent's rights.",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -1161,196 +1411,168 @@
           }
         ]
       },
-      "intro": "If your parent lives in a nursing home, assisted living facility, or receives long-term care at home in Pennsylvania, they have a free advocate available. The Long-Term Care Ombudsman investigates complaints about quality of care, fights unfair discharge notices, and mediates disputes between residents and facilities.\n\nOmbudsmen handle everything from medication errors and lost personal property to dietary concerns and billing disputes. They make unannounced facility visits, educate families about resident rights, and help develop resident councils. Services are completely free and confidential — no income limits or financial tests apply.\n\nYou can contact an Ombudsman on your parent's behalf, but they'll need your parent's permission before intervening with facility staff. If your parent cannot give consent, power of attorney allows the Ombudsman to act.",
+      "intro": "If your parent lives in a nursing home, assisted living facility, or receives long-term care at home in Pennsylvania, they have a free advocate available when problems arise. The Long-Term Care Ombudsman Program investigates complaints, mediates disputes with facilities, and educates families on resident rights — at no cost regardless of income.\n\nOmbudsmen handle issues like discharge threats, medication errors, lost personal property, poor food quality, inadequate staffing, billing problems, and dignity violations. Because they have legal authority to enter facilities unannounced and access records, they can resolve problems that families struggle with alone. Services extend to family members advocating for residents, but require the resident's permission before intervening with facility staff.",
       "savingsRange": "",
       "savingsSource": "Free service",
-      "savingsVerified": true,
+      "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
-          "Pennsylvania resident in long-term care facility or receiving home care",
+          "Resident of PA long-term care facility",
+          "Or receiving LTC services at home",
+          "Family members can request help",
           "No income or asset limits",
-          "Free for families and residents",
-          "Covers nursing homes, assisted living, and home care"
+          "Completely free"
         ],
         "ageRequirement": null,
         "incomeTable": null,
         "assetLimits": null,
         "functionalRequirement": null,
         "otherRequirements": [
-          "Resident or potential resident of a Pennsylvania long-term care facility (nursing homes, assisted living, personal care homes, domiciliary care, adult day care) or receiving long-term care services at home",
-          "Complaint must relate to quality of care, resident rights, discharge/transfer, finances, medications, staffing, or facility policies"
+          "Must be related to quality of care, resident rights, or facility policies",
+          "Resident permission required before ombudsman speaks with facility staff"
         ],
         "povertyLevelReference": null
       },
       "applicationGuide": {
-        "method": "multiple",
-        "summary": "Call your county's Area Agency on Aging — they respond to complaints promptly with no paperwork required.",
+        "method": "phone",
+        "summary": "Call your county's Area Agency on Aging ombudsman — no application needed, just describe the problem.",
         "steps": [
           {
             "step": 1,
-            "title": "Find your county's Area Agency on Aging",
-            "description": "Each of Pennsylvania's 67 counties has a local Ombudsman program. Contact your county's Area Agency on Aging for immediate assistance."
+            "title": "Contact your county's ombudsman",
+            "description": "Call your local Area Agency on Aging ombudsman program directly. Each county has its own number — for example, Franklin County (717-299-7979), Montgomery County (610-278-1320), or the statewide Elder Abuse Hotline (1-800-734-2020)."
           },
           {
             "step": 2,
-            "title": "Explain your parent's situation",
-            "description": "Describe the complaint or concern. No forms required — provide details about the facility, the problem, and what resolution you're seeking."
+            "title": "Describe the complaint",
+            "description": "Explain the specific issue — discharge threat, medication problem, billing dispute, quality of care concern, or rights violation. Provide the facility name and resident's name."
           },
           {
             "step": 3,
-            "title": "Give permission for intervention",
-            "description": "If your parent can consent, the Ombudsman will ask their permission before contacting facility staff. If your parent cannot consent, provide power of attorney documentation."
+            "title": "Ombudsman investigates",
+            "description": "The ombudsman will visit the facility, review records, interview staff and residents, and work to resolve the complaint through mediation and advocacy."
           }
         ],
-        "processingTime": "Ombudsmen respond to complaints promptly, but no specific timeline provided",
+        "processingTime": "Ombudsmen respond promptly to complaints, but no specific timeline provided",
         "waitlist": null,
-        "tip": "Keep notes about dates, staff names, and specific incidents — this helps the Ombudsman investigate more effectively.",
+        "tip": "Have the facility name, resident's name, and specific details of the problem ready when you call.",
         "urls": [
           {
-            "label": "Pennsylvania Department of Aging Services",
+            "label": "PA Department of Aging Advocacy Programs",
             "url": "https://www.pa.gov/agencies/aging/aging-programs-and-services/advocacy-education-protection"
           }
         ]
       },
-      "contentSections": [
+      "documentsNeeded": null,
+      "contacts": [
         {
-          "type": "county-directory",
-          "heading": "Local Ombudsman Contacts",
-          "offices": [
-            {
-              "name": "Franklin County",
-              "type": "county",
-              "phone": "717-299-7979",
-              "address": "Contact local Area Agency on Aging"
-            },
-            {
-              "name": "Montgomery County",
-              "type": "county",
-              "phone": "610-278-1320",
-              "address": "Ombudsman@montgomerycountypa.gov"
-            },
-            {
-              "name": "Philadelphia",
-              "type": "county",
-              "phone": "PCA Helpline (number varies)",
-              "address": "Contact Philadelphia Corporation for Aging"
-            },
-            {
-              "name": "Southwest Pennsylvania (Greene, Fayette, Washington Counties)",
-              "type": "service-area",
-              "phone": "Contact SWPA Area Agency on Aging",
-              "address": "Serving Greene, Fayette, and Washington counties"
-            },
-            {
-              "name": "State Office",
-              "type": "service-area",
-              "phone": "Contact via pa.gov for statewide referral",
-              "address": "555 Walnut Street, 5th Floor, Harrisburg, PA 17101"
-            },
-            {
-              "name": "Elder Abuse Hotline",
-              "type": "service-area",
-              "phone": "1-800-734-2020",
-              "address": "For general elder abuse (not facility complaints)"
-            }
-          ]
+          "label": "Elder Abuse Hotline",
+          "phone": "1-800-734-2020",
+          "description": "Statewide hotline for elder abuse and ombudsman referrals",
+          "hours": "24 hours, 7 days a week"
         },
         {
-          "type": "callout",
-          "tone": "tip",
-          "text": "Contact your county's Area Agency on Aging directly — the state office will just refer you back to your local program, which wastes time when you need help quickly."
+          "label": "PA State Ombudsman Office",
+          "phone": null,
+          "description": "555 Walnut Street, 5th Floor, Harrisburg, PA 17101 - for statewide coordination",
+          "hours": "Business hours"
         }
       ],
+      "applicationNotes": null,
+      "relatedPrograms": [
+        "Adult Protective Services",
+        "Area Agency on Aging Services",
+        "PA Department of Health Facility Licensing"
+      ],
+      "contentSections": [],
       "faqs": [
         {
-          "question": "Can I file a complaint even if my parent doesn't want me to?",
-          "answer": "The Ombudsman can educate you about your parent's rights and your options, but they need your parent's permission before contacting facility staff. If your parent cannot give consent due to dementia or other conditions, power of attorney allows the Ombudsman to intervene."
+          "question": "Can I file a complaint if my parent has dementia and can't give permission?",
+          "answer": "Yes, if you have power of attorney or your parent cannot express their wishes due to cognitive impairment, the ombudsman can proceed without explicit verbal permission. They will use their judgment to act in the resident's best interest while respecting their rights and dignity."
         },
         {
-          "question": "What if the facility retaliates against my parent for filing a complaint?",
-          "answer": "Retaliation is illegal and the Ombudsman will investigate any retaliatory actions. They make unannounced visits and can escalate serious violations to state regulators. The service is confidential to protect residents."
+          "question": "What if the facility retaliates against my parent after I file a complaint?",
+          "answer": "Retaliation is illegal and a serious violation. Report any retaliation immediately to the ombudsman, who has legal authority to investigate and take action. Federal and state laws specifically protect residents and families who file complaints or speak with ombudsmen."
         },
         {
-          "question": "My parent is being evicted from their nursing home — can the Ombudsman stop this?",
-          "answer": "Yes, fighting unfair discharge and eviction notices is a core service. The Ombudsman will review the discharge notice, ensure proper procedures were followed, and advocate for appropriate placement if the discharge is legitimate."
-        },
-        {
-          "question": "Does this cost anything or affect my parent's benefits?",
-          "answer": "Ombudsman services are completely free with no income limits or financial tests. Using these services does not affect Medicare, Medicaid, or any other benefits your parent receives."
-        },
-        {
-          "question": "What's the difference between the Ombudsman and calling the state health department?",
-          "answer": "Ombudsmen focus on advocacy and mediation to resolve problems quickly. State health departments investigate regulatory violations, which takes longer but can result in formal sanctions. The Ombudsman often resolves issues without formal complaints."
-        },
-        {
-          "question": "Can the Ombudsman help if my parent receives care at home?",
-          "answer": "Yes, if your parent receives long-term care services in their home through a licensed provider. However, for general elder abuse or issues with unlicensed caregivers, call the Elder Abuse Hotline at 1-800-734-2020 instead."
+          "question": "Will filing a complaint affect my parent's care or get them kicked out?",
+          "answer": "No, facilities cannot discharge or transfer residents in retaliation for complaints. If they attempt to do so, that becomes an additional violation the ombudsman will address. Most complaints are resolved through mediation without adversarial proceedings."
         }
       ],
-      "phone": "Contact local Area Agency on Aging",
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": false,
+        "visualTone": "minimal"
+      },
+      "icon": "Scales",
+      "phone": "1-800-734-2020",
       "sourceUrl": "https://www.pa.gov/agencies/aging/aging-programs-and-services/advocacy-education-protection",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-09"
+      "draftedAt": "2026-04-13"
     }
   ],
   "stateOverview": {
-    "intro": "Pennsylvania offers 8 major programs that can save your family hundreds of dollars monthly and provide critical support while caring for an aging parent. These include 5 benefit programs that provide direct financial assistance — like $100–300/month for groceries through SNAP or Medicare premium coverage through Healthy Horizons — plus 3 free resource programs that offer expert guidance and advocacy.\n\nWhether your parent needs help affording medications, accessing legal representation, or getting nutritious meals delivered to their home, Pennsylvania has established programs specifically for seniors and their families. Most benefit programs have income limits (typically around $2,000–2,300/month for a single person), while resource programs like SHIP counseling and ombudsman services are available regardless of income.",
+    "intro": "Pennsylvania offers 9 programs that can save your aging parent hundreds of dollars monthly and connect you with free support services. Six are qualification-based benefits — like Community HealthChoices covering up to 32 home care services, PACE providing low-cost prescriptions, or SNAP adding up to $300/month for groceries. Three are free resources available to all Pennsylvania seniors — including SHIP counseling to navigate Medicare and legal assistance through OPLAP. Most income-based programs use similar thresholds, so if your parent qualifies for one, they may qualify for several. Start by checking the programs below that address your most urgent need — financial help, daily care support, or free guidance.",
     "startHere": [
       {
-        "name": "SNAP",
+        "name": "Community HealthChoices (CHC)",
+        "programId": "community-healthchoices-chc",
+        "why": "Covers the most expensive need — daily personal care and health services at home — if your parent is dual eligible or needs daily assistance."
+      },
+      {
+        "name": "SNAP (Supplemental Nutrition Assistance Program)",
         "programId": "snap",
-        "why": "Most immediate impact — get $100–300/month toward groceries within weeks of applying."
+        "why": "Quick financial relief with up to $300/month for groceries, and eligibility often indicates qualification for other programs."
       },
       {
-        "name": "Healthy Horizons (QMB, SLMB, QI)",
-        "programId": "healthy-horizons",
-        "why": "Could eliminate Medicare premiums and copays entirely if your parent earns less than $2,284/month."
-      },
-      {
-        "name": "SHIP",
+        "name": "SHIP (State Health Insurance Assistance Program)",
         "programId": "ship",
-        "why": "Free expert help to avoid costly Medicare mistakes — available to everyone regardless of income."
+        "why": "Free for everyone and can immediately identify Medicare cost savings your parent may be missing."
       }
     ],
     "byNeed": [
       {
-        "need": "Help paying for food and groceries",
+        "need": "Help paying for daily care at home",
         "programs": [
-          "SNAP",
-          "Home-Delivered Meals (Meals on Wheels)"
-        ],
-        "description": "Monthly grocery assistance plus free meal delivery for parents who can't safely cook."
-      },
-      {
-        "need": "Medicare and health insurance costs",
-        "programs": [
-          "PACE",
-          "Healthy Horizons (QMB, SLMB, QI)",
-          "SHIP"
-        ],
-        "description": "Reduce prescription costs, eliminate Medicare premiums, and get free expert guidance."
-      },
-      {
-        "need": "Family caregiver support",
-        "programs": [
+          "Community HealthChoices (CHC)",
           "Caregiver Support Program"
         ],
-        "description": "Reimbursement for respite care and other caregiving expenses."
+        "description": "Financial assistance for personal care, home health services, and respite care support."
       },
       {
-        "need": "Legal help and advocacy",
+        "need": "Lower medical and prescription costs",
         "programs": [
-          "Older Pennsylvanians Legal Assistance Program",
+          "PACE (Program of All-Inclusive Care for the Elderly)",
+          "Healthy Horizons (QMB, SLMB, QI)"
+        ],
+        "description": "Reduced prescription costs and Medicare premium coverage for seniors with limited income."
+      },
+      {
+        "need": "Food assistance",
+        "programs": [
+          "SNAP (Supplemental Nutrition Assistance Program)",
+          "Home-Delivered Meals (Meals on Wheels)"
+        ],
+        "description": "Monthly grocery benefits or free delivered meals if your parent can't shop or cook safely."
+      },
+      {
+        "need": "Free advice and advocacy",
+        "programs": [
+          "SHIP (State Health Insurance Assistance Program)",
+          "Older Pennsylvanians Legal Assistance Program (OPLAP)",
           "Long-Term Care Ombudsman Program"
         ],
-        "description": "Free legal representation and advocacy for facility care complaints."
+        "description": "One-on-one counseling, legal help, and advocacy services available to all Pennsylvania seniors."
       }
     ],
     "quickFacts": [
-      "Most Pennsylvania benefit programs have income limits around $2,000–2,300/month for a single person",
-      "PACE prescription program offers $6 generic co-pays with no income restrictions",
-      "Three programs (SHIP, OPLAP, Ombudsman) are completely free regardless of your parent's income or assets"
+      "Pennsylvania's Community HealthChoices program serves as the main pathway for Medicaid long-term care services, covering up to 32 different home and community-based services.",
+      "PACE prescription program is specific to Pennsylvania seniors 65+ and provides significant drug cost reductions beyond standard Medicare coverage.",
+      "Three free resource programs (SHIP, OPLAP, Long-Term Care Ombudsman) have no income limits and are available to any Pennsylvania senior or their family."
     ],
-    "resourcesVsBenefits": "Pennsylvania's programs fall into two categories: benefit programs that require income qualification and provide direct financial assistance (like SNAP's monthly grocery money or Healthy Horizons' Medicare premium coverage), and resource programs that offer free services to any Pennsylvania senior regardless of income (like SHIP's Medicare counseling or the Ombudsman Program's facility advocacy). Start with benefits if your parent's income is under $2,300/month, but access the free resources immediately — they can prevent costly mistakes while you wait for benefit approvals."
+    "resourcesVsBenefits": "Six programs require qualification based on income, age, or care needs — these provide direct financial assistance like Community HealthChoices covering home care services or SNAP providing grocery money. Three programs are free resources available to any Pennsylvania senior regardless of income — SHIP for Medicare guidance, OPLAP for legal help, and the Ombudsman for nursing home advocacy. Even if your parent's income is too high for financial benefits, these free resources can still save money through better Medicare choices and problem resolution."
   }
 }

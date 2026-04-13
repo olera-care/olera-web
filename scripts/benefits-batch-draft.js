@@ -109,6 +109,7 @@ function buildRequests(stateCodes) {
   const requests = [];
   const metadata = {};
   const skipped = [];
+  const expectedByState = {}; // authoritative count per state for hole-filling + success-rate denominator
 
   for (const stateCode of stateCodes) {
     const dirName = stateCode;
@@ -160,9 +161,11 @@ function buildRequests(stateCodes) {
         tokenLimit: built.tokenLimit,
       };
     });
+
+    expectedByState[stateCode] = divePrograms.length;
   }
 
-  return { requests, metadata, skipped };
+  return { requests, metadata, skipped, expectedByState };
 }
 
 // ---- Anthropic batch API ----
@@ -242,21 +245,39 @@ async function downloadResults(resultsUrl) {
 
 // ---- Ingest results ----
 
-function ingestResults(results, metadata) {
+function ingestResults(results, metadata, expectedByState) {
   const byState = {};
 
+  // Pre-initialize every expected state with the authoritative count so
+  // hole-filling and success-rate math don't depend on how many results we
+  // actually got back from Anthropic.
+  for (const [stateCode, expected] of Object.entries(expectedByState)) {
+    byState[stateCode] = {
+      programs: new Array(expected),
+      expected,
+    };
+  }
+
+  let orphanResults = 0;
   for (const r of results) {
     const meta = metadata[r.custom_id];
     if (!meta) {
+      orphanResults++;
       console.log(`  WARN: no metadata for custom_id ${r.custom_id}`);
       continue;
     }
 
-    if (!byState[meta.stateCode]) {
-      byState[meta.stateCode] = { programs: [], programCount: 0 };
-    }
     const bucket = byState[meta.stateCode];
-    bucket.programCount = Math.max(bucket.programCount, meta.index + 1);
+    if (!bucket) {
+      orphanResults++;
+      console.log(`  WARN: result for unexpected state ${meta.stateCode} (custom_id ${r.custom_id})`);
+      continue;
+    }
+    if (meta.index >= bucket.expected) {
+      orphanResults++;
+      console.log(`  WARN: ${meta.stateCode} result index ${meta.index} exceeds expected ${bucket.expected}`);
+      continue;
+    }
 
     if (r.result && r.result.type === 'succeeded') {
       const content = r.result.message.content?.[0]?.text || '';
@@ -268,12 +289,27 @@ function ingestResults(results, metadata) {
     }
   }
 
-  // Fill any holes (should not happen but be defensive)
-  for (const bucket of Object.values(byState)) {
-    for (let i = 0; i < bucket.programCount; i++) {
-      if (!bucket.programs[i]) bucket.programs[i] = { name: `Program ${i + 1}`, _error: 'missing from batch results' };
+  // Fill holes — any index in [0, expected) that didn't get a result. This
+  // covers the "Anthropic silently returned fewer results than we submitted"
+  // class of failure, which would otherwise look like a clean partial run.
+  let missingCount = 0;
+  for (const [stateCode, bucket] of Object.entries(byState)) {
+    for (let i = 0; i < bucket.expected; i++) {
+      if (!bucket.programs[i]) {
+        // Look up the prog name from metadata so the error object is identifiable
+        const customId = `${stateCode}__${String(i).padStart(3, '0')}`;
+        const meta = metadata[customId];
+        bucket.programs[i] = {
+          name: meta?.prog?.name || `Program ${i + 1}`,
+          _error: 'missing from batch results',
+        };
+        missingCount++;
+      }
     }
   }
+
+  if (orphanResults > 0) console.log(`  ⚠ ${orphanResults} orphaned results (no matching metadata)`);
+  if (missingCount > 0) console.log(`  ⚠ ${missingCount} programs missing from batch results (will show as _error)`);
 
   return byState;
 }
@@ -281,14 +317,18 @@ function ingestResults(results, metadata) {
 // ---- State overview generation (serial, post-batch) ----
 
 async function generateStateOverviewsSerial(byState) {
-  // We need claudeChat for this but it's not exported. Import a fresh one using the
-  // Anthropic API directly, sharing the same prompt builder from the pipeline module.
+  // Use the pipeline module's claudeChat — it has 529/503/500 retry logic with
+  // exponential backoff, which raw fetch does not. State overview generation is a
+  // 25+ min serial pass after the batch; any Anthropic load blip during that window
+  // would otherwise null out overviews silently.
   console.log(`\n  Generating state overviews for ${Object.keys(byState).length} states...`);
 
-  for (const [stateCode, bucket] of Object.entries(byState)) {
+  const entries = Object.entries(byState);
+  for (let i = 0; i < entries.length; i++) {
+    const [stateCode, bucket] = entries[i];
     const successful = bucket.programs.filter((p) => !p._parseError && !p._error);
     if (!successful.length) {
-      console.log(`  ${stateCode}: 0 successful programs, skipping overview`);
+      console.log(`  [${i + 1}/${entries.length}] ${stateCode}: 0 successful programs, skipping overview`);
       bucket.stateOverview = null;
       continue;
     }
@@ -297,32 +337,12 @@ async function generateStateOverviewsSerial(byState) {
     const prompt = pipeline.buildStateOverviewPrompt(entity, successful);
 
     try {
-      const resp = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'x-api-key': ANTHROPIC_API_KEY,
-          'anthropic-version': '2023-06-01',
-          'content-type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: MODEL,
-          max_tokens: 4096,
-          messages: [{ role: 'user', content: prompt }],
-        }),
-      });
-      if (!resp.ok) {
-        const t = await resp.text();
-        console.log(`  ${stateCode}: overview failed (${resp.status}): ${t.slice(0, 150)}`);
-        bucket.stateOverview = null;
-        continue;
-      }
-      const json = await resp.json();
-      const text = json.content?.[0]?.text || '';
+      const text = await pipeline.claudeChat(prompt, 4096);
       const overview = pipeline.finalizeStateOverview(text);
       bucket.stateOverview = overview;
-      console.log(`  ${stateCode}: overview ✓ (startHere=${overview?.startHere?.length || 0}, byNeed=${overview?.byNeed?.length || 0})`);
+      console.log(`  [${i + 1}/${entries.length}] ${stateCode}: overview ✓ (startHere=${overview?.startHere?.length || 0}, byNeed=${overview?.byNeed?.length || 0})`);
     } catch (err) {
-      console.log(`  ${stateCode}: overview error ${err.message}`);
+      console.log(`  [${i + 1}/${entries.length}] ${stateCode}: overview error — ${err.message}`);
       bucket.stateOverview = null;
     }
   }
@@ -333,7 +353,9 @@ async function generateStateOverviewsSerial(byState) {
 function writeDraftFiles(byState) {
   for (const [stateCode, bucket] of Object.entries(byState)) {
     const successful = bucket.programs.filter((p) => !p._parseError && !p._error);
-    const total = bucket.programs.length;
+    // Use the authoritative expected count as denominator, not programs.length
+    // (which can understate the true total if Anthropic dropped results).
+    const total = bucket.expected;
     const successRate = total > 0 ? successful.length / total : 0;
     const payload = {
       state: stateCode,
@@ -391,7 +413,7 @@ async function main() {
   const states = discoverStates(opts);
   console.log(`  Target states: ${states.length} (${states.join(', ')})`);
 
-  const { requests, metadata, skipped } = buildRequests(states);
+  const { requests, metadata, skipped, expectedByState } = buildRequests(states);
   console.log(`  Built ${requests.length} draft requests across ${Object.keys(new Set(requests.map(r => r.custom_id.split('__')[0]))).size} states`);
   if (skipped.length) {
     console.log(`  Skipped: ${skipped.map(s => `${s.stateCode} (${s.reason})`).join(', ')}`);
@@ -426,9 +448,9 @@ async function main() {
   const results = await downloadResults(final.results_url);
   console.log(`  Downloaded ${results.length} results`);
 
-  const byState = ingestResults(results, metadata);
+  const byState = ingestResults(results, metadata, expectedByState);
   const totalSuccess = Object.values(byState).reduce((n, b) => n + b.programs.filter(p => !p._error && !p._parseError).length, 0);
-  const totalPrograms = Object.values(byState).reduce((n, b) => n + b.programs.length, 0);
+  const totalPrograms = Object.values(byState).reduce((n, b) => n + b.expected, 0);
   console.log(`\n  Ingest: ${totalSuccess}/${totalPrograms} programs succeeded across ${Object.keys(byState).length} states`);
 
   // State overviews (serial, fast)

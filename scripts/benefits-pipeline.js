@@ -1324,6 +1324,20 @@ function finalizeProgramDraft(rawText, prog, classification, draftedAt) {
   parsed.geographicScope = parsed.geographicScope || classification.geographicScope;
   parsed.contentStatus = "pipeline-draft";
   parsed.draftedAt = draftedAt;
+
+  // Normalize FAQ shape: the model occasionally returns {q, a} instead of
+  // {question, answer}. Renderers expect {question, answer}, so coerce at ingest.
+  if (Array.isArray(parsed.faqs)) {
+    parsed.faqs = parsed.faqs.map((f) => {
+      if (!f || typeof f !== "object") return f;
+      if (f.question && f.answer) return f;
+      if (f.q !== undefined || f.a !== undefined) {
+        return { question: f.q || f.question || "", answer: f.a || f.answer || "" };
+      }
+      return f;
+    });
+  }
+
   return parsed;
 }
 
@@ -2394,7 +2408,7 @@ export interface PipelineDraft {
   sourceUrl?: string | null;
   // v3 fields
   documentsNeeded?: string[] | null;
-  contacts?: { label: string; description?: string; phone?: string | null; hours?: string }[] | null;
+  contacts?: { label: string; description?: string | null; phone?: string | null; hours?: string | null }[] | null;
   applicationNotes?: string[] | null;
   relatedPrograms?: string[] | null;
   regionalApplications?: { region: string; counties?: string[]; url: string; isPdf?: boolean }[] | null;
@@ -2406,6 +2420,7 @@ export interface PipelineDraft {
     hasDocumentChecklist?: boolean;
     visualTone?: string | null;
   } | null;
+  icon?: string | null;
   contentStatus: string;
   draftedAt: string;
   geographicScope?: { type: string; stateVariation?: boolean; localEntities?: { name: string; type: string; phone?: string; address?: string; url?: string }[] };
@@ -2452,6 +2467,7 @@ module.exports = {
   generatePipelineSummary,
   generatePipelineDrafts,
   phaseFactcheck,
+  claudeChat,
   CONTENT_VOICE_PROMPT,
 };
 

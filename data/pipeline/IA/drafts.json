@@ -1,15 +1,15 @@
 {
   "state": "IA",
   "stateName": "Iowa",
-  "draftedAt": "2026-04-09T13:34:16.197Z",
+  "draftedAt": "2026-04-13T21:50:19.533Z",
   "total": 10,
   "successful": 10,
   "programs": [
     {
-      "id": "iowa-medicaid-elderly-waiver",
+      "id": "ia-medicaid-hcbs-elderly-waiver",
       "name": "Iowa Medicaid Home & Community Based Services Elderly Waiver",
-      "shortName": "Iowa Elderly Waiver",
-      "tagline": "If your parent needs nursing home level care but wants to stay home, this program covers in-home caregivers, meal delivery, and home modifications.",
+      "shortName": "Iowa HCBS Waiver",
+      "tagline": "Comprehensive home care services for seniors who need nursing-level care but want to stay home.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -17,7 +17,7 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Home and Community Based Services Specialists (contact via HHS)",
+            "name": "Home and Community Based Services Specialists",
             "type": "service-area"
           },
           {
@@ -25,20 +25,21 @@
             "type": "service-area"
           },
           {
-            "name": "Local Social Security offices for income verification",
+            "name": "Local Social Security offices",
             "type": "service-area"
           }
         ]
       },
-      "intro": "If your parent needs nursing home level care but wants to stay in their own home, Iowa's Elderly Waiver covers the services that make this possible. The program provides in-home caregivers, meal delivery, emergency response systems, home modifications like ramps or grab bars, and respite care for family caregivers.\n\nTo qualify, your parent must be 65+, need daily help with activities like bathing or medication management (nursing facility level of care), and meet Medicaid's income and asset limits. Because this waiver covers all these services under one program, you won't need to coordinate between multiple providers — one case manager handles everything.\n\nIncome limit: $2,901/month for a single person (2025). Asset limit: $2,000, though your parent can keep their home and car.",
+      "intro": "If your parent is 65+ and needs daily help with bathing, dressing, or medication management, Iowa's HCBS Elderly Waiver can provide comprehensive care services at home instead of requiring nursing home placement. The program covers everything from personal care and homemaker services to home modifications and emergency response systems — all coordinated by one care team.\n\nTo qualify, your parent must meet nursing facility level of care requirements (a clinical assessment showing they need substantial daily assistance) and have monthly income of $2,901 or less for a single person. Assets must be $2,000 or less, though their home and one car don't count toward this limit.\n\nBecause this waiver serves as an alternative to institutional care, your parent gets both the specialized home services and full Medicaid benefits including medical care, prescriptions, and emergency services. The specific services and hours are individualized based on an assessment of your parent's needs.",
       "savingsRange": "",
       "savingsSource": "Free service",
-      "savingsVerified": false,
+      "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
           "Age 65+",
-          "Income below $2,901/month",
-          "Need nursing home level care",
+          "Monthly income $2,901 or less",
+          "Assets under $2,000",
+          "Need nursing facility level of care",
           "Iowa resident"
         ],
         "ageRequirement": "65+",
@@ -49,157 +50,158 @@
           "countedAssets": [
             "Bank accounts",
             "Investments",
-            "Cash"
+            "Property other than home"
           ],
           "exemptAssets": [
-            "Primary home (with equity limits)",
+            "Primary home (under equity limits)",
             "One car",
             "Household goods",
-            "Burial/funeral funds or contracts"
+            "Burial/funeral funds"
           ],
           "homeEquityCap": null
         },
-        "functionalRequirement": "Must need nursing facility level of care (daily help with bathing, dressing, medication management, or other activities of daily living)",
+        "functionalRequirement": "Must need nursing facility or skilled level of care (daily assistance with activities like bathing, dressing, medication management, or mobility)",
         "otherRequirements": [
-          "Iowa resident",
-          "U.S. citizen or qualified legal entrant",
-          "At risk of nursing home placement",
-          "Approved provider available in your area"
+          "Iowa resident and U.S. citizen or qualified legal resident",
+          "At risk of nursing home placement without services",
+          "Must use all other available Medicaid services first",
+          "Approved provider must be available in your area"
         ],
         "povertyLevelReference": null
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online through Iowa's Benefits Portal or call 1-855-889-7985 — processing time varies based on assessment scheduling.",
+        "summary": "Apply online through Iowa's Benefits Portal or call 1-855-889-7985 — processing includes a clinical assessment to determine level of care needs.",
         "steps": [
           {
             "step": 1,
             "title": "Submit Medicaid application",
-            "description": "Apply online at Iowa HHS Benefits Portal or call 1-855-889-7985. You'll need proof of income, assets, and residency."
+            "description": "Apply online at hhs.iowa.gov Benefits Portal, call 1-855-889-7985, or mail paper application to Iowa Department of Health and Human Services"
           },
           {
             "step": 2,
-            "title": "Complete level of care assessment",
-            "description": "Iowa Medicaid will schedule an assessment to determine if your parent needs nursing facility level care. This is done by a qualified assessor."
+            "title": "Provide required documentation",
+            "description": "Submit proof of income, assets, residency, and citizenship. Medical information from your parent's doctor will be needed for assessment"
           },
           {
             "step": 3,
-            "title": "Medical Services Unit review",
-            "description": "Iowa Medicaid Medical Services Unit reviews the assessment and determines eligibility for the waiver program."
+            "title": "Complete level of care assessment",
+            "description": "Iowa Medicaid Medical Services Unit will schedule an assessment to determine if your parent meets nursing facility level of care requirements"
           },
           {
             "step": 4,
-            "title": "Service plan development",
-            "description": "If approved, work with a case manager to develop a comprehensive service plan based on your parent's specific needs."
+            "title": "Wait for approval decision",
+            "description": "Iowa Medicaid reviews the assessment results and makes eligibility determination"
+          },
+          {
+            "step": 5,
+            "title": "Develop service plan",
+            "description": "If approved, work with Home and Community Based Services Specialists to create individualized care plan with specific services and providers"
           }
         ],
-        "processingTime": "Not specified — varies based on assessment scheduling",
+        "processingTime": "Processing time not specified — assessment scheduled after application submission",
         "waitlist": null,
-        "tip": "Gather medical information from your parent's doctor before applying — you'll need current medical documentation for the assessment.",
+        "tip": "Have medical information from your parent's doctor ready before applying — this speeds up the level of care assessment process.",
         "urls": [
           {
-            "label": "Iowa HHS Benefits Portal",
+            "label": "Iowa Benefits Portal",
             "url": "https://hhs.iowa.gov"
           }
         ]
       },
-      "contentSections": [
+      "documentsNeeded": [
+        "Social Security award letter or other proof of monthly income",
+        "Bank statements for all accounts (last 3 months)",
+        "Investment account statements and property documents",
+        "Proof of Iowa residency (utility bill, lease, or state ID)",
+        "Proof of U.S. citizenship or qualified legal status",
+        "Medicare card if applicable",
+        "Medical information from doctor, nurse, or physician assistant",
+        "Life insurance policies with cash values",
+        "Vehicle titles and registration documents",
+        "Burial/funeral contracts or pre-need burial funds documentation",
+        "Property deeds and tax statements for any real estate",
+        "Documentation of any trusts or annuities"
+      ],
+      "contacts": [
         {
-          "type": "what-counts",
-          "heading": "Asset Limits: What Counts",
-          "included": [
-            "Bank accounts and savings",
-            "Investments and stocks",
-            "Cash on hand",
-            "Second vehicles",
-            "Property other than primary home"
-          ],
-          "excluded": [
-            "Primary home (under specific equity limits)",
-            "One car",
-            "Household goods and personal belongings",
-            "Burial/funeral funds or contracts",
-            "Life insurance with face value under certain limits"
-          ]
+          "label": "Iowa HHS Benefits Line",
+          "phone": "(855) 889-7985",
+          "description": "Medicaid applications and waiver program questions",
+          "hours": "Business hours"
         },
         {
-          "type": "documents",
-          "heading": "What to Bring",
-          "categories": [
-            {
-              "name": "Identity & Residency",
-              "items": [
-                "Social Security card",
-                "Iowa driver's license or state ID",
-                "Proof of citizenship or immigration status"
-              ]
-            },
-            {
-              "name": "Financial",
-              "items": [
-                "Social Security award letter",
-                "Bank statements (all accounts)",
-                "Investment account statements",
-                "Proof of any other income"
-              ]
-            },
-            {
-              "name": "Medical",
-              "items": [
-                "Current medical information from doctor, nurse, or physician assistant",
-                "List of medications",
-                "Medical records showing need for daily care assistance"
-              ]
-            }
-          ]
-        },
-        {
-          "type": "callout",
-          "tone": "warning",
-          "text": "Your parent must need nursing facility level of care to qualify — this isn't for general aging support. The assessment determines if they need daily help with activities like bathing, dressing, or medication management."
-        },
-        {
-          "type": "callout",
-          "tone": "tip",
-          "text": "If your parent's income is over $2,901/month, they may still qualify under certain conditions. Don't assume they're ineligible — call to discuss their specific situation."
+          "label": "Iowa HHS General Line",
+          "phone": "(800) 972-2017",
+          "description": "General Medicaid and health services information",
+          "hours": "Business hours"
         }
       ],
+      "applicationNotes": [
+        "Your parent can have income over $2,901/month and still qualify under certain conditions — Medicaid planning may be needed",
+        "Home equity limits apply following nursing home Medicaid rules — the home must be under specific equity caps",
+        "Service availability depends on having approved providers in your area — ask about provider availability when applying",
+        "Annual reviews are required with current medical information from your parent's doctor to maintain eligibility"
+      ],
+      "relatedPrograms": [
+        "Iowa Regular Medicaid",
+        "Iowa SNAP Food Benefits",
+        "Iowa LIHEAP Energy Assistance"
+      ],
+      "contentSections": [],
       "faqs": [
         {
-          "question": "Can Mom keep her house if she qualifies for the waiver?",
-          "answer": "Yes, your parent can keep their primary home. The home is exempt from the $2,000 asset limit, though there are equity limits that follow nursing home Medicaid rules."
+          "question": "Can my parent keep their house if it's worth more than $2,000?",
+          "answer": "Yes, the primary home doesn't count toward the $2,000 asset limit, but home equity limits do apply following nursing home Medicaid rules. The exact equity cap varies by year and follows federal guidelines."
         },
         {
-          "question": "What if her income is just over $2,901 per month?",
-          "answer": "She may still qualify under certain conditions even with income over the limit. The rules are complex and depend on medical expenses and other factors. Call 1-855-889-7985 to discuss her specific situation."
+          "question": "What if my parent's income is over $2,901 per month?",
+          "answer": "Your parent may still qualify under certain conditions through spend-down or other Medicaid planning strategies. Contact Iowa Medicaid at (855) 889-7985 to discuss options based on your parent's specific financial situation."
         },
         {
-          "question": "How much home care will the program provide?",
-          "answer": "There's no set number of hours — services are individualized based on your parent's assessed needs. The interdisciplinary team develops a service plan that could include daily attendant care, meal delivery, or other supports as needed."
+          "question": "How do they determine if my parent needs nursing facility level of care?",
+          "answer": "Iowa Medicaid Medical Services Unit conducts a clinical assessment examining your parent's ability to perform daily activities like bathing, dressing, eating, mobility, and medication management. They evaluate whether your parent would otherwise need nursing home placement."
         },
         {
-          "question": "What if there are no approved providers in our area?",
-          "answer": "Unfortunately, your parent must have access to approved providers to use the waiver. Provider availability varies by location. The program will help identify available providers during the planning process."
+          "question": "Can I apply on behalf of my elderly parent?",
+          "answer": "Yes, adult children can help with or submit applications for their parents. You may need legal documentation if you're acting as a representative, and your parent may need to be involved in parts of the assessment process."
         },
         {
-          "question": "Does this replace regular Medicaid or work alongside it?",
-          "answer": "The waiver works alongside regular Medicaid. Your parent gets full Medicaid benefits (doctor visits, hospital care, prescriptions) plus the additional home and community-based services through the waiver."
+          "question": "What happens if there are no approved providers in my parent's area?",
+          "answer": "Service availability depends on having approved providers locally. If providers aren't available, your parent may not be able to receive waiver services even if otherwise eligible. Ask about provider availability when applying."
         },
         {
-          "question": "How often do we need to reapply or get reassessed?",
-          "answer": "The service plan is reviewed annually, and you'll need to provide current medical information from your parent's doctor for these reviews. This ensures the services still match their needs."
+          "question": "Can my parent get this waiver and regular Medicaid services at the same time?",
+          "answer": "Yes, the HCBS waiver includes full Medicaid benefits plus the additional home and community services. Your parent must access all other eligible Medicaid services first before waiver services fill remaining gaps."
+        },
+        {
+          "question": "What happens during the annual review?",
+          "answer": "Every year, your parent needs updated medical information from their doctor, nurse, or physician assistant to confirm they still meet nursing facility level of care. The comprehensive service plan is also reviewed and updated based on changing needs."
+        },
+        {
+          "question": "How much control does my parent have over which services they receive?",
+          "answer": "Services are individualized based on assessment by your parent and an interdisciplinary care team. The Consumer Choice Option allows some self-directed purchases within a monthly budget, giving your parent more control over how services are provided."
         }
       ],
-      "phone": "1-855-889-7985",
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "asset-focused",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": false,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "House",
+      "phone": "(855) 889-7985",
       "sourceUrl": "https://hhs.iowa.gov/medicaid/services-care/home-and-community-based-services/waiver-programs",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-09"
+      "draftedAt": "2026-04-13"
     },
     {
-      "id": "iowa-hcbs-elderly-waiver",
+      "id": "ia-hcbs-waiver-services",
       "name": "Home and Community-Based Services (HCBS)",
-      "shortName": "HCBS Elderly Waiver",
-      "tagline": "Get care services at home so your parent can avoid nursing home placement while Medicaid covers the costs.",
+      "shortName": "HCBS Waiver",
+      "tagline": "Medicaid services that keep your parent at home instead of a nursing facility — medical care, personal assistance, and support coordination under one program.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -212,7 +214,7 @@
           }
         ]
       },
-      "intro": "If your parent is 65+ and needs help with daily activities like bathing, dressing, or medication management, HCBS can provide care services in their own home instead of a nursing facility. Because this is a Medicaid waiver program, it covers personal care, homemaker services, and other supports that help your parent stay safely at home.\n\nTo qualify, your parent must meet both Medicaid financial requirements and demonstrate they need nursing facility-level care through a clinical assessment. The program evaluates their ability to perform daily activities and cognitive function, not just a medical diagnosis. Income limit: $2,982/month in 2026 regardless of marital status.",
+      "intro": "If your parent is 65+ and needs daily help with bathing, dressing, or medication management, Iowa's HCBS Elderly Waiver may cover comprehensive care services to help them stay at home. The program provides medical care, personal assistance, and care coordination through Medicaid — but only if your parent would otherwise qualify for nursing home placement.\n\nYour parent must meet strict income limits ($2,982/month in 2026) and pass a clinical assessment proving they need \"Nursing Facility Level of Care.\" A dementia diagnosis alone won't qualify them — the state evaluates actual daily functioning through activities like bathing, eating, and decision-making. Because this is a Medicaid waiver program, your parent's assets must also stay below Medicaid limits, though their home is exempt if equity is under $752,000.\n\nThe program covers the same services your parent would receive in a nursing facility, but delivers them at home through certified providers. One care team coordinates everything, so your parent won't need to manage multiple providers separately.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -220,169 +222,184 @@
         "summary": [
           "Age 65+",
           "Income below $2,982/month",
-          "Needs help with daily activities",
-          "Must qualify for Medicaid"
+          "Need daily care assistance",
+          "Meet Medicaid asset limits",
+          "Clinical assessment required"
         ],
         "ageRequirement": "65+",
         "incomeTable": null,
         "assetLimits": {
           "individual": null,
           "couple": null,
-          "countedAssets": [],
+          "countedAssets": [
+            "Bank accounts",
+            "Investments",
+            "Property other than primary home"
+          ],
           "exemptAssets": [
-            "Home if equity ≤ $752,000"
+            "Primary home (if equity ≤ $752,000)",
+            "Household goods",
+            "Personal belongings",
+            "One vehicle"
           ],
           "homeEquityCap": 752000
         },
-        "functionalRequirement": "Must need nursing facility level of care based on assessment of daily activities like bathing, dressing, eating, mobility, and cognitive function",
+        "functionalRequirement": "Must need Nursing Facility Level of Care, determined through interRAI-Home Care assessment evaluating daily activities like bathing, dressing, eating, mobility, and cognitive function including dementia-related decision-making",
         "otherRequirements": [
           "Must qualify for Medicaid",
-          "Cannot have transferred assets below fair market value in past 60 months"
+          "60-month look-back period applies to asset transfers",
+          "Cannot transfer assets below fair market value without penalty"
         ],
         "povertyLevelReference": null
       },
       "applicationGuide": {
-        "method": "multiple",
-        "summary": "Contact Iowa Medicaid Enterprise to start the application and clinical assessment process.",
+        "method": "phone",
+        "summary": "Contact Iowa Medicaid Enterprise to start the application and clinical assessment process — processing time not specified by the state.",
         "steps": [
           {
             "step": 1,
             "title": "Contact Iowa Medicaid Enterprise",
-            "description": "Call to request HCBS Elderly Waiver application and schedule your parent's clinical assessment."
+            "description": "Call Iowa Medicaid Enterprise to begin the HCBS Elderly Waiver application. Request both Medicaid eligibility screening and NFLOC assessment scheduling."
           },
           {
             "step": 2,
-            "title": "Complete Medicaid eligibility",
-            "description": "Provide income, asset, and identity documentation to establish Medicaid eligibility first."
+            "title": "Gather Financial Documentation",
+            "description": "Compile income and asset documentation for Medicaid eligibility review, including bank statements, Social Security letters, and property records."
           },
           {
             "step": 3,
-            "title": "Clinical assessment",
-            "description": "Iowa Medicaid Enterprise Medical Services Unit will assess your parent's need for nursing facility level of care using the interRAI-Home Care assessment."
+            "title": "Complete Clinical Assessment",
+            "description": "Schedule interRAI-Home Care assessment with Iowa Medicaid Enterprise Medical Services Unit to determine if your parent meets Nursing Facility Level of Care requirements."
           },
           {
             "step": 4,
-            "title": "Waiver approval",
-            "description": "If your parent meets both financial and functional requirements, services will be coordinated through certified HCBS providers."
+            "title": "Choose HCBS Provider",
+            "description": "If approved, select from enrolled HCBS providers in your area who meet state certification standards for service delivery."
           }
         ],
-        "processingTime": null,
+        "processingTime": "Not specified by the state",
         "waitlist": null,
-        "tip": "Apply for Medicaid first — your parent must qualify financially before the clinical assessment for HCBS services.",
+        "tip": "Apply for Medicaid first if your parent isn't already enrolled — HCBS eligibility depends on Medicaid qualification.",
         "urls": [
           {
-            "label": "Iowa HCBS Information",
+            "label": "Iowa HCBS Waiver Programs",
             "url": "https://hhs.iowa.gov/medicaid/services-care/home-and-community-based-services/waiver-programs"
           }
         ]
       },
-      "contentSections": [
+      "documentsNeeded": [
+        "Social Security card for applicant",
+        "Medicare card (both parts A and B)",
+        "Birth certificate or other proof of age",
+        "Most recent Social Security award letter",
+        "Bank statements for all accounts (last 3 months)",
+        "Investment documents (stocks, bonds, annuities)",
+        "Property deeds and tax statements",
+        "Vehicle titles and registration",
+        "Life insurance policies with cash values",
+        "Pre-need burial contracts or irrevocable burial trusts",
+        "Medical records supporting need for daily care assistance",
+        "Current medication list and prescriptions",
+        "Documentation of any asset transfers in the last 60 months",
+        "Proof of home equity value if claiming exemption"
+      ],
+      "contacts": [
         {
-          "type": "what-counts",
-          "heading": "Asset Limits: What Counts",
-          "included": [
-            "Bank accounts and savings",
-            "Investment accounts",
-            "Additional properties",
-            "Vehicles beyond one car"
-          ],
-          "excluded": [
-            "Primary home if equity is $752,000 or less (2026)",
-            "Home where spouse or disabled child lives",
-            "One vehicle",
-            "Household goods and personal items"
-          ]
+          "label": "Iowa Department of Health and Human Services",
+          "phone": "1-800-338-8366",
+          "description": "Main line for Medicaid and HCBS waiver questions",
+          "hours": "Mon-Fri 8am-4:30pm CT"
         },
         {
-          "type": "documents",
-          "heading": "What to Bring",
-          "categories": [
-            {
-              "name": "Identity",
-              "items": [
-                "Social Security card",
-                "Driver's license or state ID",
-                "Birth certificate"
-              ]
-            },
-            {
-              "name": "Financial",
-              "items": [
-                "Bank statements from past 3 months",
-                "Social Security award letter",
-                "Pension or retirement income statements",
-                "Documentation of any asset transfers in past 60 months"
-              ]
-            },
-            {
-              "name": "Medical",
-              "items": [
-                "Recent medical records",
-                "List of current medications",
-                "Documentation of help needed with daily activities"
-              ]
-            }
-          ]
-        },
-        {
-          "type": "callout",
-          "tone": "tip",
-          "text": "A dementia diagnosis alone won't qualify your parent — they must demonstrate functional limitations in daily activities during the clinical assessment."
+          "label": "Iowa 2-1-1",
+          "phone": "2-1-1",
+          "description": "Free helpline connecting to local aging and disability services",
+          "hours": "24 hours, 7 days a week"
         }
       ],
+      "applicationNotes": [
+        "Iowa has 7 different HCBS waivers — make sure to specify the Elderly Waiver for applicants 65+ when calling",
+        "The 60-month look-back period examines all asset transfers, so gather documentation of any gifts or property sales from the last 5 years",
+        "A dementia diagnosis alone won't qualify your parent — the assessment focuses on actual daily functioning, not medical conditions",
+        "Home equity up to $752,000 is exempt, but higher values may disqualify your parent from Medicaid eligibility"
+      ],
+      "relatedPrograms": [
+        "Iowa Medicaid",
+        "Supplemental Nutrition Assistance Program (SNAP)",
+        "Low Income Home Energy Assistance Program (LIHEAP)",
+        "Medicare Savings Programs"
+      ],
+      "contentSections": [],
       "faqs": [
         {
-          "question": "Can Mom keep her house if she qualifies for HCBS?",
-          "answer": "Yes, as long as the home's equity is $752,000 or less in 2026. The home is exempt if she lives there, intends to return, or if a spouse or disabled child lives there."
+          "question": "Can my parent keep their house if it's worth more than $752,000?",
+          "answer": "No. In 2026, home equity above $752,000 disqualifies your parent from Medicaid, which means they can't access HCBS either. The state counts excess home equity as a countable asset that puts them over the asset limit."
         },
         {
-          "question": "What if Mom gave money to family in the past few years?",
-          "answer": "Iowa looks back 60 months for asset transfers below fair market value. These transfers can create a penalty period that delays HCBS eligibility."
+          "question": "What if my parent has dementia but can still dress themselves?",
+          "answer": "They may not qualify for HCBS. The state uses the interRAI-Home Care assessment to evaluate actual daily functioning, not just medical diagnoses. If your parent can independently handle most activities of daily living, they likely won't meet Nursing Facility Level of Care requirements."
         },
         {
-          "question": "Does having dementia automatically qualify her for services?",
-          "answer": "No. While dementia affects cognitive function, your parent must demonstrate they need help with daily activities like bathing, dressing, or mobility during the clinical assessment."
+          "question": "Can I apply on behalf of my elderly parent?",
+          "answer": "Yes, adult children can help with the application process, but the state will need to verify your authority to act on your parent's behalf. Bring power of attorney documents or guardianship papers when contacting Iowa Medicaid Enterprise."
         },
         {
-          "question": "What happens if her income is just over $2,982/month?",
-          "answer": "She won't qualify for HCBS through Medicaid. The income limit is firm — family income doesn't count, but her own income cannot exceed this amount."
+          "question": "What happens if my parent gave away money in the last 5 years?",
+          "answer": "Iowa applies a 60-month look-back period to all asset transfers. If your parent gave away money or property below fair market value, it creates a penalty period where they're ineligible for Medicaid and HCBS. The penalty length depends on the transfer amount."
         },
         {
-          "question": "Can she choose her own care providers?",
-          "answer": "Services must be provided through enrolled HCBS providers who meet Iowa's certification standards, but there are multiple certified providers statewide."
+          "question": "Can my parent get HCBS services while living in assisted living?",
+          "answer": "This depends on the specific assisted living facility and services needed. HCBS typically serves people in their own homes, but some services may be available in certain residential settings. Contact Iowa Medicaid Enterprise to discuss your parent's specific living situation."
         },
         {
-          "question": "How long does the assessment process take?",
-          "answer": "The research doesn't specify processing times. Contact Iowa Medicaid Enterprise directly for current timelines in your area."
+          "question": "How long does the clinical assessment take?",
+          "answer": "The state doesn't specify assessment timelines, but the interRAI-Home Care evaluation is comprehensive and examines multiple areas of daily functioning. The Medical Services Unit schedules these assessments, so ask about expected timeframes when you apply."
+        },
+        {
+          "question": "What if my parent's needs change after they're enrolled?",
+          "answer": "HCBS services are individualized based on assessed needs, so the state can adjust services if your parent's condition changes. Contact your assigned care coordinator or the Medical Services Unit to request a reassessment if your parent needs more or different services."
+        },
+        {
+          "question": "Can my parent apply for HCBS and nursing home Medicaid at the same time?",
+          "answer": "Yes, and this is often recommended. Since HCBS has limited capacity and specific requirements, applying for both ensures your parent has options if they don't qualify for or can't access home-based services."
         }
       ],
-      "phone": null,
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "asset-focused",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "House",
+      "phone": "1-800-338-8366",
       "sourceUrl": "https://hhs.iowa.gov/medicaid/services-care/home-and-community-based-services/waiver-programs",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-09"
+      "draftedAt": "2026-04-13"
     },
     {
-      "id": "iowa-pace-elderly-care",
+      "id": "ia-pace-elderly-care",
       "name": "Program of All-Inclusive Care for the Elderly (PACE)",
       "shortName": "PACE",
-      "tagline": "If your parent needs nursing home-level care but wants to stay at home, PACE provides all medical care, medications, and transportation under one coordinated program.",
+      "tagline": "Comprehensive medical care and support services for parents who need nursing-home-level care but want to stay at home",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
         "type": "local",
         "stateVariation": false
       },
-      "intro": "If your parent is 55+ and needs extensive daily help with bathing, dressing, eating, or medication management, PACE may provide all their medical care under one program. Because PACE coordinates everything — doctors, specialists, medications, hospital care, and transportation to appointments — your parent won't need to juggle multiple providers or worry about coverage gaps.\n\nPACE is designed for seniors who qualify for nursing home care but want to remain in their community. The program becomes your parent's sole source of Medicare and Medicaid services, managed by one interdisciplinary team that knows their complete medical history.\n\nPACE is only available in select Iowa counties. About 90% of participants are enrolled in both Medicare and Medicaid, though others may qualify through different pathways.",
+      "intro": "If your parent needs extensive daily help with bathing, dressing, or medication management but wants to avoid nursing home placement, PACE provides all their medical care, prescriptions, transportation, and social services through one coordinated team. Your parent gets a primary care doctor, specialists, therapists, and social workers who communicate with each other — eliminating the need for you to coordinate between separate providers.\n\nPACE is only available in select Iowa counties and requires your parent to qualify for nursing facility level of care (a clinical assessment of whether they need daily help with basic activities). About 90% of participants are enrolled in both Medicare and Medicaid, though Medicare-only participants may also qualify.\n\nBecause PACE becomes your parent's sole source of medical services, they cannot use other Medicare or Medicaid providers while enrolled. However, enrollment is voluntary and they can leave the program at any time for any reason.",
       "savingsRange": "",
-      "savingsSource": "Free comprehensive medical service coordination",
+      "savingsSource": "Comprehensive coordinated care service",
       "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
           "Age 55+",
-          "Needs nursing home-level care",
-          "Can live safely at home with PACE services",
+          "Needs nursing facility level of care",
           "Lives in PACE service area",
-          "Assets under $2,000"
+          "Cannot have Medicare Advantage",
+          "Must be able to live safely at home with services"
         ],
         "ageRequirement": "55+",
         "incomeTable": null,
@@ -393,7 +410,7 @@
             "Bank accounts",
             "Stocks and bonds",
             "Investment accounts",
-            "Cash value life insurance"
+            "Cash value of life insurance"
           ],
           "exemptAssets": [
             "Primary home",
@@ -401,144 +418,153 @@
           ],
           "homeEquityCap": null
         },
-        "functionalRequirement": "Must be certified as needing nursing facility level of care — typically requires extensive assistance with Activities of Daily Living like bathing, grooming, toileting, walking, transferring, or eating",
+        "functionalRequirement": "Must be certified by Iowa as meeting nursing facility level of care — typically requiring extensive assistance with bathing, grooming, toileting, walking, transferring, or eating",
         "otherRequirements": [
-          "Live in a PACE service area county",
-          "Cannot be enrolled in Medicare Advantage (Part C)",
+          "Lives in a PACE service area county in Iowa",
+          "Able to live safely in the community with PACE services",
+          "Cannot be enrolled in Medicare Advantage (Part C), Medicare prepayment plan, or prescription drug plan",
+          "Cannot be enrolled in hospice services",
           "If Medicare-eligible: must be U.S. citizen or legal Iowa resident for 5 years"
         ],
         "povertyLevelReference": null
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Contact your local PACE provider directly by phone — processing times vary by provider.",
+        "summary": "Call your local PACE provider directly — processing time varies by provider and no specific timeline is published.",
         "steps": [
           {
             "step": 1,
-            "title": "Confirm your county has PACE",
-            "description": "PACE is only available in select Iowa counties. Contact Iowa Department of Human Services to verify your parent's county is served."
+            "title": "Verify your county has PACE",
+            "description": "PACE is only available in select Iowa counties. Contact Iowa Department of Human Services to confirm your parent's county is in a PACE service area."
           },
           {
             "step": 2,
-            "title": "Call your local PACE provider",
-            "description": "Each PACE organization serves specific counties. Get the phone number for your area's provider."
+            "title": "Contact PACE provider directly",
+            "description": "Each PACE organization serves specific counties. Call the PACE provider in your area to schedule an assessment — phone numbers vary by region."
           },
           {
             "step": 3,
-            "title": "Complete medical assessment",
-            "description": "A clinical team will assess whether your parent meets nursing facility level of care requirements."
+            "title": "Complete nursing facility assessment",
+            "description": "A clinical team will evaluate whether your parent meets nursing facility level of care requirements through medical records review and in-person assessment."
           },
           {
             "step": 4,
-            "title": "Financial eligibility review",
-            "description": "Provide income and asset documentation to determine if your parent qualifies for Medicaid funding or will pay privately."
+            "title": "Submit financial documentation",
+            "description": "If seeking Medicaid coverage, provide income and asset verification. Medicare-only participants also need financial documentation."
+          },
+          {
+            "step": 5,
+            "title": "Attend enrollment meeting",
+            "description": "If approved, meet with PACE social worker to review services, sign enrollment agreements, and begin care coordination."
           }
         ],
-        "processingTime": null,
+        "processingTime": "Processing time varies by PACE provider — contact your local organization for current timelines",
         "waitlist": null,
-        "tip": "If your parent has Medicare Advantage (Part C), they must disenroll before joining PACE — this cannot happen simultaneously.",
-        "urls": []
+        "tip": "If your parent has Medicare Advantage (Part C), they must disenroll before joining PACE — this is a common barrier that delays enrollment",
+        "urls": [
+          {
+            "label": "Iowa Department of Human Services",
+            "url": "https://hhs.iowa.gov/"
+          }
+        ]
       },
-      "contentSections": [
+      "documentsNeeded": [
+        "Birth certificate or passport for proof of age",
+        "Proof of Iowa residency (utility bill, lease, or state-issued document)",
+        "Social Security card",
+        "Medicare card (both parts A and B)",
+        "Medicaid card if already enrolled",
+        "Complete medical records documenting functional limitations",
+        "List of current medications and dosages",
+        "Most recent Social Security award letter",
+        "Bank statements for all accounts (last 3 months)",
+        "Investment documents (stocks, bonds, annuities)",
+        "Property documents (deeds, tax statements)",
+        "Vehicle titles and registration",
+        "Life insurance policies with face values",
+        "Proof of U.S. citizenship or legal residency documents",
+        "Documentation of any pension or retirement income"
+      ],
+      "contacts": [
         {
-          "type": "what-counts",
-          "heading": "Asset Limits: What Counts",
-          "included": [
-            "Bank accounts and savings",
-            "Stocks, bonds, and investment accounts",
-            "Cash value of life insurance policies",
-            "Real estate other than primary home",
-            "Valuable collections or jewelry"
-          ],
-          "excluded": [
-            "Primary home (where your parent lives)",
-            "One automobile",
-            "Personal belongings and household items",
-            "Burial plots and funeral funds up to $1,500",
-            "Term life insurance with no cash value"
-          ]
+          "label": "Iowa Department of Human Services",
+          "phone": "(800) 972-2017",
+          "description": "General Medicaid and PACE information",
+          "hours": "Mon-Fri 8am-4:30pm CT"
         },
         {
-          "type": "documents",
-          "heading": "What to Bring",
-          "categories": [
-            {
-              "name": "Identity",
-              "items": [
-                "Photo ID or driver's license",
-                "Social Security card",
-                "Proof of Iowa residency",
-                "Proof of citizenship or legal residency (if Medicare-eligible)"
-              ]
-            },
-            {
-              "name": "Medical",
-              "items": [
-                "Complete medical records showing need for daily assistance",
-                "Current medication list",
-                "Recent hospital or nursing facility records",
-                "Documentation of Activities of Daily Living limitations"
-              ]
-            },
-            {
-              "name": "Financial",
-              "items": [
-                "Social Security award letter",
-                "Pension or retirement income statements",
-                "Bank statements for all accounts",
-                "Investment account statements",
-                "Property deeds or mortgage statements"
-              ]
-            }
-          ]
-        },
-        {
-          "type": "callout",
-          "tone": "warning",
-          "text": "PACE is NOT available statewide in Iowa — only in select counties. Verify your county is in a PACE service area before starting the application process."
-        },
-        {
-          "type": "callout",
-          "tone": "tip",
-          "text": "If your parent's income exceeds standard Medicaid limits, don't assume they're disqualified. Medicaid has multiple pathways to eligibility, and a Medicaid Planning Professional can help explore options."
+          "label": "Iowa 211",
+          "phone": "2-1-1",
+          "description": "Free helpline for referrals to local PACE providers",
+          "hours": "24 hours, 7 days a week"
         }
       ],
+      "applicationNotes": [
+        "PACE is not available statewide — verify your county has a PACE provider before beginning the application process",
+        "If your parent is enrolled in Medicare Advantage (Part C), they must disenroll first, which can only happen during specific enrollment periods",
+        "Financial eligibility is complex and varies — not meeting standard Medicaid income limits doesn't automatically disqualify your parent, as there are multiple pathways to eligibility",
+        "PACE becomes the sole source of medical services — your parent cannot use other Medicare or Medicaid providers while enrolled, though they can leave the program at any time"
+      ],
+      "relatedPrograms": [
+        "Iowa Medicaid HCBS Elderly Waiver",
+        "Iowa Medicare SHIP Counseling",
+        "Area Agency on Aging Services",
+        "Iowa Medicaid"
+      ],
+      "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house if they qualify for PACE?",
-          "answer": "Yes. The primary home is exempt from PACE asset limits, regardless of value. Your parent can continue living in their home while receiving PACE services."
+          "question": "Can my parent keep their house if it's worth more than $2,000?",
+          "answer": "Yes, the primary home is exempt from PACE asset limits regardless of value. The $2,000 limit applies to countable assets like bank accounts, stocks, and bonds. Your parent can keep their home and one automobile without affecting eligibility."
         },
         {
-          "question": "What if my parent has Medicare Advantage — can they switch to PACE?",
-          "answer": "Your parent must disenroll from Medicare Advantage (Part C) before joining PACE. They cannot be enrolled in both programs simultaneously. Contact the Medicare Advantage plan to discuss disenrollment timing."
+          "question": "What if my parent lives in a county without PACE?",
+          "answer": "PACE is only available in select Iowa counties. If your parent's county doesn't have PACE, consider the Iowa Medicaid HCBS Elderly Waiver, which provides similar home and community-based services. Contact Iowa Department of Human Services at (800) 972-2017 for alternatives in your area."
         },
         {
-          "question": "What happens if we move to a different county in Iowa?",
-          "answer": "You must notify your PACE social worker immediately if you move counties. PACE service areas are geographically limited, and you may need to transfer to a different PACE provider or leave the program if the new county isn't served."
+          "question": "Can my parent use their current doctors after enrolling in PACE?",
+          "answer": "No, PACE becomes the sole source of medical services. Your parent must use PACE providers for all medical care, prescriptions, and services. However, this means one coordinated team manages everything, eliminating the need to coordinate between separate providers."
         },
         {
-          "question": "Can my parent use their regular doctor if they join PACE?",
-          "answer": "No. PACE becomes the sole source of all medical services for enrollees. Your parent will receive care from PACE's interdisciplinary team, though they can leave the program at any time to return to other providers."
+          "question": "What happens if my parent's health improves and they no longer need nursing facility level of care?",
+          "answer": "Your parent would no longer qualify for PACE and would be disenrolled from the program. They can return to traditional Medicare and Medicaid services or choose other healthcare options. PACE conducts periodic reassessments to ensure continued eligibility."
         },
         {
-          "question": "What if my parent's income is just over the Medicaid limit?",
-          "answer": "Income limits for PACE vary, and exceeding standard thresholds doesn't automatically disqualify someone. Iowa may have different limits, and Medicaid has multiple eligibility pathways. Contact a Iowa PACE provider to review your parent's specific financial situation."
+          "question": "Can I apply for PACE on behalf of my elderly parent?",
+          "answer": "You can assist with the application process, but your parent must be involved in assessments and enrollment decisions unless you have legal guardianship or power of attorney for healthcare decisions. Contact the PACE provider to discuss how family members can participate in the process."
         },
         {
-          "question": "How do we know if our county has PACE available?",
-          "answer": "Contact the Iowa Department of Human Services or search online for 'PACE providers Iowa' to get the current list of counties served. Service areas change over time, so verify current availability even if you've checked before."
+          "question": "How long does it take to get enrolled in PACE?",
+          "answer": "Processing time varies by PACE provider and there's no standard timeline published. The process includes clinical assessment, financial eligibility review, and care planning. Contact your local PACE organization directly for current processing timeframes in your area."
+        },
+        {
+          "question": "What if my parent has Medicare Advantage and wants to join PACE?",
+          "answer": "Your parent must disenroll from Medicare Advantage (Part C) before joining PACE. This can only happen during specific enrollment periods or qualifying events. Contact your Medicare Advantage plan to discuss disenrollment options and timing."
+        },
+        {
+          "question": "Can my parent leave PACE if they don't like the services?",
+          "answer": "Yes, enrollment is voluntary and your parent can leave PACE at any time for any reason. They would then return to traditional Medicare and Medicaid services or choose other healthcare options. There's no penalty for leaving the program."
         }
       ],
-      "phone": null,
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "asset-focused",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "Stethoscope",
+      "phone": "(800) 972-2017",
       "sourceUrl": "https://hhs.iowa.gov/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-09"
+      "draftedAt": "2026-04-13"
     },
     {
-      "id": "iowa-snap-food-benefits",
+      "id": "ia-snap-food-benefits",
       "name": "Supplemental Nutrition Assistance Program (SNAP)",
       "shortName": "SNAP",
-      "tagline": "Monthly grocery money for parents 60+ on fixed incomes — up to $291 per month loaded on an EBT card.",
+      "tagline": "Monthly grocery assistance for seniors 60+ on fixed incomes — $100-300/month loaded onto an EBT card",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -551,16 +577,16 @@
           }
         ]
       },
-      "intro": "If your parent is 60+ and struggling with grocery costs, SNAP provides monthly money loaded onto an EBT card they can use at most grocery stores. In Iowa, seniors get special advantages — no asset limits if all household members are 60+ or disabled, higher medical expense deductions, and more generous income limits than other states.\n\nThe benefit amount depends on household size and income after deductions. A single person can receive up to $291 per month, while a two-person household can get up to $535 monthly (2026 rates). Most seniors receive less than the maximum because benefits decrease as income increases — roughly $30 less in SNAP benefits for every $100 more in monthly income.\n\nIowa expanded eligibility beyond federal limits, allowing gross monthly income up to $2,086 for a single person (160% of poverty level). Because seniors get substantial deductions for medical expenses over $35 per month and shelter costs, many qualify even if their initial income seems too high.",
-      "savingsRange": "$100 – $3,492/year in 2026",
-      "savingsSource": "Based on typical senior benefit amounts ($100-291/month) from Iowa DHS data",
+      "intro": "If your parent is 60+ and on a fixed income, they may qualify for $100–300/month toward groceries through SNAP (formerly food stamps). Benefits are loaded monthly onto an EBT card that works like a debit card at most grocery stores and farmers markets.\n\nIowa has more generous income limits than most states — your parent can earn up to $2,086/month (160% of federal poverty level) and still qualify if they're 60+. Because seniors get special deductions for medical expenses over $35/month and shelter costs, many qualify even when their initial income seems too high.\n\nMost Iowa seniors receiving SNAP get $50–200/month depending on their net income after deductions. The maximum benefit is $291/month for a single person, but actual amounts depend on income, household size, and allowable expenses like medical costs and housing.",
+      "savingsRange": "$600 – $3,500/year in 2026",
+      "savingsSource": "Based on typical SNAP benefits of $50-291/month for seniors",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
           "Age 60+",
           "Income below $2,086/month (single)",
           "Iowa resident",
-          "U.S. citizen or qualified immigrant"
+          "U.S. citizen or qualified non-citizen"
         ],
         "ageRequirement": "60+",
         "incomeTable": [
@@ -599,48 +625,54 @@
           ],
           "exemptAssets": [
             "Primary home",
-            "Most retirement accounts",
             "One vehicle",
-            "SSI recipients often have no asset limits"
+            "Most retirement savings (401k, IRA)",
+            "Life insurance",
+            "Pre-need burial funds"
           ],
           "homeEquityCap": null
         },
         "functionalRequirement": null,
         "otherRequirements": [
-          "Must be Iowa resident",
+          "Iowa resident",
           "U.S. citizen or qualified non-citizen",
-          "SSI recipients automatically eligible"
+          "SSI recipients often automatically eligible"
         ],
         "povertyLevelReference": "160% FPL"
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online through Iowa's state portal or call your local Department of Social Services office — processing typically takes 30 days.",
+        "summary": "Apply online through Iowa's DHS portal or by phone — telephone interviews available for seniors, typically processed within 30 days",
         "steps": [
           {
             "step": 1,
-            "title": "Gather required documents",
-            "description": "Collect ID, proof of income (Social Security statements, pension records), and expense documentation (rent, utilities, medical bills over $35/month)."
+            "title": "Choose application method",
+            "description": "Apply online at hhs.iowa.gov, call your local Department of Social Services office, or visit in person. Telephone interviews are often available for applicants 60+."
           },
           {
             "step": 2,
-            "title": "Submit application",
-            "description": "Apply online at hhs.iowa.gov or contact your local Department of Social Services office. Telephone interviews are often available for seniors."
+            "title": "Complete SNAP application",
+            "description": "Provide information about household members, income, expenses, and assets. Include medical expenses over $35/month — these can significantly increase your benefit amount."
           },
           {
             "step": 3,
-            "title": "Complete interview",
-            "description": "Participate in a phone or in-person interview to verify information and calculate benefit amount including senior deductions."
+            "title": "Submit required documents",
+            "description": "Provide proof of identity, residency, income, and expenses. Medical expense receipts are especially important for seniors to maximize deductions."
           },
           {
             "step": 4,
-            "title": "Receive EBT card",
-            "description": "If approved, your parent will receive an EBT card with monthly benefits loaded automatically."
+            "title": "Complete interview",
+            "description": "Participate in a telephone or in-person interview with a caseworker. This is typically scheduled within 7-10 days of application."
+          },
+          {
+            "step": 5,
+            "title": "Receive decision",
+            "description": "Get approval or denial notice within 30 days. If approved, your EBT card arrives by mail within 7-10 business days."
           }
         ],
-        "processingTime": "Typically 30 days, expedited processing available for urgent cases",
+        "processingTime": "30 days standard, expedited processing available for urgent cases",
         "waitlist": null,
-        "tip": "If your parent receives SSI, mention this upfront — they're automatically eligible and may not need to provide as much documentation.",
+        "tip": "Seniors often qualify for higher deductions — include all medical expenses over $35/month, including Medicare premiums, prescription costs, and medical equipment.",
         "urls": [
           {
             "label": "Iowa SNAP Application Portal",
@@ -648,128 +680,109 @@
           }
         ]
       },
-      "contentSections": [
+      "documentsNeeded": [
+        "Valid government-issued photo ID",
+        "Proof of Iowa residency (utility bill, lease agreement, or mail from government agency)",
+        "Social Security cards for all household members",
+        "Most recent Social Security award letter",
+        "Pension or retirement income statements",
+        "Bank statements for all accounts (last 3 months)",
+        "Rent receipt or mortgage statement",
+        "Utility bills (electric, gas, water, phone)",
+        "Medical expense receipts from last 3 months (including Medicare premiums)",
+        "Prescription medication receipts",
+        "Health insurance premium statements",
+        "Property tax statements if you own your home",
+        "Vehicle registration and title",
+        "Life insurance policies (if cash value exceeds $1,500)",
+        "Any legal documents if someone applies on your behalf"
+      ],
+      "contacts": [
         {
-          "type": "income-table",
-          "heading": "Gross Monthly Income Limits (160% Federal Poverty Level)",
-          "rows": [
-            {
-              "householdSize": 1,
-              "monthlyLimit": "$2,086"
-            },
-            {
-              "householdSize": 2,
-              "monthlyLimit": "$2,820"
-            },
-            {
-              "householdSize": 3,
-              "monthlyLimit": "$3,553"
-            },
-            {
-              "householdSize": 4,
-              "monthlyLimit": "$4,286"
-            },
-            {
-              "householdSize": 5,
-              "monthlyLimit": "$5,020"
-            },
-            {
-              "householdSize": 6,
-              "monthlyLimit": "$5,753"
-            }
-          ],
-          "footnote": "October 2025 - September 2026 rates. Add $732 for each additional household member. If over this limit, may still qualify through net income test after deductions."
+          "label": "Iowa DHS SNAP Information",
+          "phone": "(855) 889-7985",
+          "description": "General SNAP questions and application assistance",
+          "hours": "Mon-Fri 8am-4:30pm CT"
         },
         {
-          "type": "what-counts",
-          "heading": "Asset Limits: What Counts",
-          "included": [
-            "Cash on hand",
-            "Bank account balances",
-            "Stocks and bonds",
-            "Non-retirement investments"
-          ],
-          "excluded": [
-            "Primary home (no value limit)",
-            "Most retirement accounts (401k, IRA)",
-            "One vehicle per household",
-            "Household goods and personal belongings",
-            "Life insurance policies"
-          ]
+          "label": "Iowa 2-1-1",
+          "phone": "2-1-1",
+          "description": "Free helpline for all social services including SNAP",
+          "hours": "24 hours, 7 days a week"
         },
         {
-          "type": "documents",
-          "heading": "What to Bring",
-          "categories": [
-            {
-              "name": "Identity & Residency",
-              "items": [
-                "Photo ID (driver's license or state ID)",
-                "Proof of Iowa residency (utility bill, lease)"
-              ]
-            },
-            {
-              "name": "Income Documentation",
-              "items": [
-                "Social Security award letter",
-                "Pension statements",
-                "Bank statements (last 3 months)",
-                "Any other income sources"
-              ]
-            },
-            {
-              "name": "Expense Records",
-              "items": [
-                "Rent or mortgage statements",
-                "Utility bills",
-                "Medical bills over $35/month",
-                "Medicare premium statements"
-              ]
-            }
-          ]
-        },
-        {
-          "type": "callout",
-          "tone": "tip",
-          "text": "In Iowa, households where all members are 60+ or disabled often have no asset limits due to categorical eligibility. Your parent's home and retirement savings typically don't count against them."
+          "label": "Local Department of Social Services",
+          "phone": "Contact varies by county",
+          "description": "County-specific SNAP applications and interviews",
+          "hours": "Varies by office"
         }
       ],
+      "applicationNotes": [
+        "SSI recipients are often automatically eligible for SNAP — mention your SSI when applying to speed up the process",
+        "If you're over the gross income limit, you may still qualify through net income after deductions — don't assume you make too much",
+        "Medical expenses over $35/month can significantly increase your benefit amount — save all receipts including Medicare premiums and prescription costs",
+        "New work requirements may apply to adults 55-64 without dependents, but those 60+ are typically exempt"
+      ],
+      "relatedPrograms": [
+        "Low Income Home Energy Assistance Program (LIHEAP)",
+        "Senior Farmers Market Nutrition Program",
+        "Commodity Supplemental Food Program (CSFP)",
+        "Medicaid"
+      ],
+      "contentSections": [],
       "faqs": [
         {
-          "question": "Can Mom keep her house and still qualify for SNAP?",
-          "answer": "Yes. The primary home doesn't count as an asset regardless of value. Most retirement accounts (401k, IRA, pensions) are also exempt."
+          "question": "Can my parent keep their house and still get SNAP?",
+          "answer": "Yes, your parent's home does not count as an asset for SNAP eligibility, regardless of value. Most retirement accounts (401k, IRA, pension funds) and one vehicle are also exempt from asset limits."
         },
         {
-          "question": "What if Dad's Social Security puts him just over the income limit?",
-          "answer": "He may still qualify. Seniors get deductions for medical expenses over $35/month and shelter costs. In Iowa, if gross income is over $2,086/month but net income after deductions is under $1,305/month, he can still receive benefits."
+          "question": "What if my parent receives Social Security — can they still qualify?",
+          "answer": "Yes, Social Security income is counted but Iowa allows income up to $2,086/month for a single person. Medical deductions (Medicare premiums, prescription costs over $35/month) often bring net income below qualifying limits."
         },
         {
-          "question": "How much will Mom actually receive in SNAP benefits?",
-          "answer": "It depends on her net income after deductions. Maximum is $291/month for one person, but most seniors receive less. Roughly, every $100 more in monthly income reduces SNAP benefits by about $30."
+          "question": "Can I apply for SNAP on behalf of my elderly parent?",
+          "answer": "Yes, adult children can apply on behalf of parents who cannot manage the process themselves. You'll need written authorization and may need to provide documentation that your parent cannot apply independently due to age or disability."
         },
         {
-          "question": "Does my parent have to work to get SNAP benefits?",
-          "answer": "No. Work requirements typically don't apply to people 60 and older. New 2025 rules may affect ages 55-64 without dependents, but seniors 60+ are generally exempt."
+          "question": "How much will my parent actually receive each month?",
+          "answer": "Most Iowa seniors receive $50-200/month depending on net income after deductions. The maximum is $291/month for a single person with zero net income. Higher medical expenses and housing costs increase the benefit amount."
         },
         {
-          "question": "Can Dad use SNAP benefits to buy groceries online?",
-          "answer": "Yes. The EBT card works at authorized grocery stores and many now accept online orders for pickup or delivery, including major chains."
+          "question": "Can my parent use SNAP and still get meals from senior centers?",
+          "answer": "Yes, SNAP benefits can be used alongside senior meal programs, food banks, and other nutrition assistance. These programs complement each other and don't affect SNAP eligibility."
         },
         {
-          "question": "What if my parent receives SSI?",
-          "answer": "SSI recipients are often automatically eligible for SNAP. Mention this when applying — it can simplify the process and reduce required documentation."
+          "question": "What happens if my parent's income changes after approval?",
+          "answer": "Report changes within 10 days to your local Department of Social Services. Increases in income may reduce benefits, while increases in medical expenses may increase them. Benefits are reviewed annually."
+        },
+        {
+          "question": "Can SNAP benefits be used for groceries delivered to the home?",
+          "answer": "Yes, many grocery stores that accept EBT now offer delivery services where you can pay with SNAP benefits. Online purchasing with EBT is expanding to major retailers like Amazon and Walmart in Iowa."
+        },
+        {
+          "question": "What if my parent was denied SNAP before — can they reapply?",
+          "answer": "Yes, you can reapply at any time, especially if circumstances have changed. Previous denials don't affect new applications. If you disagree with a decision, you can request a fair hearing within 90 days."
         }
       ],
-      "phone": null,
+      "layoutIntent": {
+        "aboutHighlight": "savings",
+        "eligibilityDisplay": "income-table",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "BowlFood",
+      "phone": "(855) 889-7985",
       "sourceUrl": "https://hhs.iowa.gov/assistance-programs/food-assistance/snap",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-09"
+      "draftedAt": "2026-04-13"
     },
     {
-      "id": "iowa-liheap-energy-assistance",
+      "id": "ia-liheap-energy-assistance",
       "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
-      "shortName": "Energy Bill Help",
-      "tagline": "If your parent struggles with heating bills, they may qualify for a one-time payment directly to their utility company.",
+      "shortName": "LIHEAP",
+      "tagline": "Get help paying heating bills with one-time payments sent directly to your parent's utility company.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -790,16 +803,16 @@
           }
         ]
       },
-      "intro": "If your parent is on a fixed income and struggles with heating bills, LIHEAP provides a one-time payment directly to their utility company each year. This program helps with heating costs — the primary focus is on whatever your parent uses to heat their home (natural gas, electricity, propane, or heating oil).\n\nBoth homeowners and renters qualify. There are no asset limits, so your parent can own their home and still receive help. The payment amount depends on their household size, income, fuel type, and housing situation. Priority applications for people 60+ or with disabilities start October 1, 2025, while everyone else can apply starting November 1, 2025.\n\nBecause funding is limited, apply as early as possible. The program runs through April 30, 2026, but local agencies may stop accepting applications if they run out of money.",
+      "intro": "If your parent struggles to pay heating bills on a fixed income, LIHEAP provides one-time payments sent directly to utility companies to help cover heating costs. This federal program helps Iowa households with incomes at or below 175% of federal poverty guidelines — that's $21,858 annually for a single person or $45,063 for a family of four in 2019.\n\nThe payment amount varies based on household size, income level, heating fuel type, and housing type. LIHEAP also includes crisis assistance for energy emergencies like broken heaters or utility shutoff notices. Priority applications open October 1 for households with someone age 60 or older, disabled individuals, or those facing disconnection. All other households can apply starting November 1.\n\nOnce approved, your parent receives protection from heating service disconnection from November 1 through April 1. Both homeowners and renters qualify, and there are no asset limits to worry about.",
       "savingsRange": "",
-      "savingsSource": "Payment amount varies by household income, size, fuel type, and housing type",
+      "savingsSource": "One-time payment varies by household circumstances",
       "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
-          "Income at or below 175% of federal poverty level",
+          "Household income at or below 175% federal poverty level",
           "Both homeowners and renters eligible",
           "No asset limits",
-          "Priority for ages 60+"
+          "Priority for age 60+, disabled, or disconnect notices"
         ],
         "ageRequirement": null,
         "incomeTable": [
@@ -809,197 +822,163 @@
           },
           {
             "householdSize": 2,
-            "monthlyLimit": 2459
+            "monthlyLimit": 2461
           },
           {
             "householdSize": 3,
-            "monthlyLimit": 3097
+            "monthlyLimit": 3100
           },
           {
             "householdSize": 4,
             "monthlyLimit": 3755
+          },
+          {
+            "householdSize": 5,
+            "monthlyLimit": 4394
+          },
+          {
+            "householdSize": 6,
+            "monthlyLimit": 5033
           }
         ],
         "assetLimits": null,
         "functionalRequirement": null,
         "otherRequirements": [
           "Must have a primary heating source",
-          "All household members on the same utility bill count toward household size",
-          "Roommates sharing utility bills are counted as household members"
+          "All household members including roommates sharing utility bills count toward household size",
+          "Payment goes directly to utility company or heating fuel vendor"
         ],
         "povertyLevelReference": "175% FPL"
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at liheap-apply.hhs.iowa.gov or call 211 — processing time varies by local agency.",
+        "summary": "Apply online at liheap-apply.hhs.iowa.gov or call 2-1-1, with applications processed through your local community action agency.",
         "steps": [
           {
             "step": 1,
             "title": "Check your priority status",
-            "description": "If your parent is 60+ or disabled, they can apply starting October 1. Everyone else starts November 1."
+            "description": "If your parent is 60+, disabled, or has a disconnection notice, applications open October 1, 2025. All others can apply starting November 1, 2025."
           },
           {
             "step": 2,
             "title": "Gather required documents",
-            "description": "You'll need Social Security numbers for all household members, recent heating and electric bills, and 30 days of income proof for everyone 18+."
+            "description": "Collect Social Security numbers for all household members, recent heating and electric bills, and 30 days of income proof for everyone 18 and older."
           },
           {
             "step": 3,
-            "title": "Submit your application",
-            "description": "Apply online at liheap-apply.hhs.iowa.gov, call 211, or contact your local community action agency directly."
+            "title": "Submit application",
+            "description": "Apply online at liheap-apply.hhs.iowa.gov, call 2-1-1, mail to LIHEAP, Iowa Department of Health & Human Services, Capitol Complex, Des Moines, IA 50319, or contact your local community action agency."
           },
           {
             "step": 4,
             "title": "Wait for processing",
-            "description": "The payment goes directly to the utility company, not to your parent. If there's a disconnect notice, your parent gets 30 days of protection while the application processes."
+            "description": "Your local community action agency will review the application. If facing disconnection, you get 30 days of protection while the application processes."
           }
         ],
-        "processingTime": "Varies by local agency",
-        "waitlist": "Funding is limited — some agencies may stop accepting applications if funds run out",
-        "tip": "If your parent has a utility shutoff notice, mention this when applying — they'll receive disconnect protection while the application processes.",
+        "processingTime": "Processing time varies by local agency. Households with disconnection notices receive 30 days of protection from disconnection while applications are processed.",
+        "waitlist": "Funding is limited and some local agencies may stop accepting applications if funds run out before the April 30, 2026 deadline.",
+        "tip": "Apply as early as possible after your priority period opens — funding runs out and agencies may close applications before the April 30 deadline.",
         "urls": [
           {
-            "label": "Online Application",
+            "label": "Iowa LIHEAP Online Application",
             "url": "https://liheap-apply.hhs.iowa.gov"
           },
           {
-            "label": "Find Local Office",
+            "label": "Iowa Utilities Customer Assistance",
             "url": "https://iuc.iowa.gov/customer-assistance/how-do-i-apply-energy-assistance-liheap"
           }
         ]
       },
-      "contentSections": [
+      "documentsNeeded": [
+        "Social Security cards for all household members",
+        "Most recent heating bill (gas, propane, oil, electric heat, etc.)",
+        "Most recent electric bill",
+        "Check stubs for 30-day period preceding application (for wage earners)",
+        "Most recent federal income tax return (for wage earners alternative)",
+        "Social Security, SSI, or pension check stubs from previous 30 days (for fixed income)",
+        "Unemployment or veteran's assistance statements from previous 30 days",
+        "Most recent federal income tax return (for self-employed or farmers)",
+        "Utility Account Holder Authorization Form (if applicable)",
+        "Declaration of No Household Income Form (if no one has income)"
+      ],
+      "contacts": [
         {
-          "type": "income-table",
-          "heading": "Income Limits by Household Size (2019 Guidelines)",
-          "rows": [
-            {
-              "householdSize": 1,
-              "monthlyLimit": 1822,
-              "annualLimit": 21858
-            },
-            {
-              "householdSize": 2,
-              "monthlyLimit": 2459,
-              "annualLimit": 29508
-            },
-            {
-              "householdSize": 3,
-              "monthlyLimit": 3097,
-              "annualLimit": 37161
-            },
-            {
-              "householdSize": 4,
-              "monthlyLimit": 3755,
-              "annualLimit": 45063
-            }
-          ],
-          "footnote": "2019 limits shown. Guidelines update annually — verify current limits with your local community action agency."
+          "label": "Iowa 2-1-1 Helpline",
+          "phone": "2-1-1",
+          "description": "Find your local community action agency and get application help",
+          "hours": "24 hours, 7 days a week"
         },
         {
-          "type": "documents",
-          "heading": "What to Bring",
-          "categories": [
-            {
-              "name": "Identity",
-              "items": [
-                "Social Security numbers for all household members"
-              ]
-            },
-            {
-              "name": "Housing & Utilities",
-              "items": [
-                "Most recent heating bill",
-                "Most recent electric bill"
-              ]
-            },
-            {
-              "name": "Income Proof (all household members 18+)",
-              "items": [
-                "Check stubs for past 30 days (wage earners)",
-                "Most recent federal tax return (self-employed or farmers)",
-                "Social Security, SSI, pension, or unemployment statements (fixed income recipients)"
-              ]
-            }
-          ]
+          "label": "Northeast Iowa Community Action",
+          "phone": "(563) 382-8436",
+          "description": "LIHEAP applications for Northeast Iowa region",
+          "hours": "Contact for hours and appointment scheduling"
         },
         {
-          "type": "county-directory",
-          "heading": "How to Apply",
-          "offices": [
-            {
-              "name": "Statewide Online Application",
-              "type": "service-area",
-              "phone": null,
-              "address": "liheap-apply.hhs.iowa.gov"
-            },
-            {
-              "name": "Find Your Local Agency",
-              "type": "service-area",
-              "phone": "211",
-              "address": "Call 211 for your local community action agency"
-            },
-            {
-              "name": "Northeast Iowa Community Action Corporation",
-              "type": "service-area",
-              "phone": "563-382-8436",
-              "address": "Email: [email protected]"
-            },
-            {
-              "name": "Mail Applications",
-              "type": "service-area",
-              "phone": null,
-              "address": "LIHEAP, Iowa Department of Health & Human Services, Capitol Complex, Des Moines, IA 50319"
-            }
-          ]
-        },
-        {
-          "type": "callout",
-          "tone": "warning",
-          "text": "Income limits vary by source in our research (175% vs. 200% of federal poverty guidelines). Verify current limits with your local community action agency before applying."
-        },
-        {
-          "type": "callout",
-          "tone": "tip",
-          "text": "This is a one-time payment per year that goes directly to the utility company, not to your parent. If you have roommates sharing the same utility bill, they count toward household size and may affect eligibility."
+          "label": "Iowa Department of Health & Human Services",
+          "phone": null,
+          "description": "Mail applications to: LIHEAP, Iowa Department of Health & Human Services, Capitol Complex, Des Moines, IA 50319",
+          "hours": null
         }
       ],
+      "applicationNotes": [
+        "Income limits may be up to 200% of federal poverty guidelines at some agencies — verify current limits with your local community action agency since guidelines update annually",
+        "If roommates share the same utility bill, they count as household members which may affect income limits",
+        "This is a one-time annual payment, not ongoing monthly assistance — budget accordingly for the rest of the heating season",
+        "Crisis LIHEAP provides separate emergency assistance for broken heaters, utility shutoffs, or running out of fuel"
+      ],
+      "relatedPrograms": [
+        "Weatherization Assistance Program",
+        "Crisis LIHEAP",
+        "Iowa Food Assistance Program",
+        "Medicaid"
+      ],
+      "contentSections": [],
       "faqs": [
         {
-          "question": "What if my parent has roommates?",
-          "answer": "Roommates count as household members if they're covered by the same utility bill. This increases the household size for income limits but may push total household income over the limit. Each person on the shared utility bill must provide income documentation."
+          "question": "Can my parent apply for both regular LIHEAP and crisis LIHEAP in the same year?",
+          "answer": "Yes, these are separate programs. Regular LIHEAP provides one annual payment for heating costs, while crisis LIHEAP helps with energy emergencies like broken heaters or utility shutoffs. Your parent can qualify for both if they meet the requirements."
         },
         {
-          "question": "Can my parent apply if they rent their home?",
-          "answer": "Yes, both homeowners and renters are eligible. The payment goes directly to the utility company or heating fuel vendor, regardless of whether your parent owns or rents their home."
+          "question": "What happens if my parent's roommate is included in the household but doesn't want to share income information?",
+          "answer": "If roommates share the same utility bill, they must be counted as household members for LIHEAP purposes. All household members age 18 and over must provide income documentation. If roommates won't cooperate, your parent may need to establish separate utility accounts to qualify independently."
         },
         {
-          "question": "What if my parent's utility company is threatening shutoff?",
-          "answer": "Mention the disconnect notice when applying. Your parent will receive 30 days of protection from disconnection while the LIHEAP application is processed. LIHEAP-approved households also get protection from heating service disconnection from November 1 through April 1."
+          "question": "Will the LIHEAP payment cover my parent's entire heating bill?",
+          "answer": "No, LIHEAP provides a portion of heating costs, not the full amount. The payment is calculated based on household income, size, fuel type, and housing type. It's designed to help reduce the burden, not eliminate heating costs entirely."
         },
         {
-          "question": "How much money will my parent receive?",
-          "answer": "The payment amount isn't specified in program materials — it depends on household income, household size, type of heating fuel, and housing type. Contact your local community action agency for estimates based on your parent's specific situation."
+          "question": "Can I apply for my parent if they have dementia and can't sign forms?",
+          "answer": "You may need legal authority such as power of attorney or guardianship to apply on your parent's behalf. Contact your local community action agency to discuss what documentation they require for third-party applications and whether they have alternative procedures for cognitively impaired applicants."
         },
         {
-          "question": "When should we apply?",
-          "answer": "If your parent is 60+ or disabled, apply starting October 1, 2025. Everyone else can apply starting November 1, 2025. Apply as early as possible — funding is limited and some agencies stop accepting applications when money runs out."
+          "question": "What if my parent gets approved for LIHEAP but then moves to a different utility company?",
+          "answer": "Since LIHEAP is a one-time annual payment, the benefit typically cannot be transferred to a new utility company once processed. Contact your local community action agency immediately if your parent moves before the payment is made to see if the application can be updated."
         },
         {
-          "question": "What if my parent's income is just over the limit?",
-          "answer": "Income limits are updated annually and vary by source (175% vs. 200% of federal poverty guidelines in our research). Contact your local community action agency to verify current limits — they may be higher than older published guidelines."
+          "question": "How long does the disconnection protection last if my parent has a shutoff notice?",
+          "answer": "LIHEAP-approved households receive protection from heating service disconnection from November 1 through April 1, but only if they have an active LIHEAP application. Additionally, applicants with disconnect notices who have completed applications receive 30 days of protection while the application is processed."
         }
       ],
-      "phone": "211",
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "income-table",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "Lightning",
+      "phone": "2-1-1",
       "sourceUrl": "https://iuc.iowa.gov/customer-assistance/how-do-i-apply-energy-assistance-liheap",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-09"
+      "draftedAt": "2026-04-13"
     },
     {
-      "id": "iowa-shiip-medicare-counseling",
+      "id": "ia-shiip-medicare-counseling",
       "name": "Senior Health Insurance Information Program (SHIIP) — Iowa's implementation of the national SHIP program",
       "shortName": "SHIIP Iowa",
-      "tagline": "Free one-on-one help understanding Medicare options and enrollment for your parent.",
+      "tagline": "Free one-on-one counseling to help your parent navigate Medicare enrollment, supplements, and prescription drug plans.",
       "programType": "navigator",
       "complexity": "simple",
       "geographicScope": {
@@ -1028,109 +1007,126 @@
           }
         ]
       },
-      "intro": "If your parent is approaching 65 or already on Medicare and confused about their options, SHIIP provides free one-on-one counseling to help them navigate Medicare enrollment, Medicare Supplements, Medicare Advantage, and Medicare Part D prescription drug plans. Because SHIIP counselors are trained volunteers who don't sell insurance, your parent gets unbiased information without sales pressure.\n\nSHIIP also helps people already on Medicare understand programs that can reduce their costs — like Medicare Savings Programs, Extra Help for prescription drugs, and Medicaid eligibility. The service is available to anyone preparing to enter Medicare or currently navigating existing Medicare benefits, including people under 65 with disabilities and those with limited incomes.",
+      "intro": "If your parent is approaching 65 or already on Medicare, SHIIP provides free one-on-one counseling to help them understand their options. Because Medicare has multiple parts, supplements, and prescription drug plans with different costs and coverage, most people benefit from talking through their specific situation with a trained counselor.\n\nSHIIP counselors help with Medicare enrollment, Medicare Advantage plans, prescription drug coverage (Part D), and Medicare Savings Programs that can reduce premiums and copays. They also provide education on avoiding Medicare fraud and understanding long-term care coverage options. All counseling is free and unbiased — SHIIP counselors don't sell insurance products.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
-          "Preparing for Medicare enrollment",
-          "Currently on Medicare",
-          "Limited income households",
-          "Under 65 with disabilities"
+          "Preparing to enter Medicare or currently on Medicare",
+          "People under 65 with Medicare due to disability",
+          "Dual Medicare/Medicaid eligibility",
+          "Limited income households"
         ],
         "ageRequirement": null,
         "incomeTable": null,
         "assetLimits": null,
         "functionalRequirement": null,
         "otherRequirements": [
-          "Must be preparing to enter Medicare OR currently navigating existing Medicare benefits",
-          "People with limited incomes (specific limits vary by program)"
+          "Preparing to enter Medicare system OR currently navigating existing Medicare benefits",
+          "Medicare beneficiaries under 65 with disabilities",
+          "Individuals dually eligible for Medicare and Medicaid",
+          "People with limited incomes"
         ],
         "povertyLevelReference": null
       },
       "applicationGuide": {
-        "method": "multiple",
-        "summary": "Call the statewide number at 1-800-351-4664 to connect with a local counselor — no forms or documents needed.",
+        "method": "phone",
+        "summary": "Call the statewide hotline at 1-800-351-4664 — no application needed, just schedule your free counseling session.",
         "steps": [
           {
             "step": 1,
-            "title": "Call statewide number",
-            "description": "Call 1-800-351-4664 to reach SHIIP counselors anywhere in Iowa."
+            "title": "Call the SHIIP hotline",
+            "description": "Call 1-800-351-4664 to speak with a counselor or schedule an appointment. Available statewide."
           },
           {
             "step": 2,
-            "title": "Schedule counseling session",
-            "description": "Choose between phone counseling or in-person meeting at a local sponsor location like a hospital or Area Agency on Aging office."
+            "title": "Or contact your local office",
+            "description": "Find your local SHIIP office through a sponsor organization like Spencer Municipal Hospital, St. Anthony Hospital, or contact shiip@iid.iowa.gov for your area."
           },
           {
             "step": 3,
-            "title": "Bring Medicare documents",
-            "description": "Have your parent's Medicare card, current insurance information, and list of medications ready for the counseling session."
+            "title": "Schedule counseling",
+            "description": "Set up one-on-one counseling or ask about group presentations in your area. Counselors are volunteers, so availability varies by location."
           }
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Counselors are volunteers, so availability may vary by location and season — call ahead to schedule rather than walking in.",
+        "tip": "Call before Medicare enrollment deadlines: initial enrollment at 65, and October 15 – December 7 annually for plan changes.",
         "urls": [
           {
             "label": "SHIIP Iowa website",
             "url": "https://shiip.iowa.gov"
-          },
-          {
-            "label": "Email SHIIP",
-            "url": "mailto:shiip@iid.iowa.gov"
           }
         ]
       },
-      "contentSections": [
+      "documentsNeeded": null,
+      "contacts": [
         {
-          "type": "callout",
-          "tone": "tip",
-          "text": "SHIIP is a counseling service, not a direct benefit program. They help your parent understand and enroll in OTHER programs that provide financial help — like Medicare Savings Programs and Extra Help for prescriptions."
+          "label": "SHIIP Statewide Hotline",
+          "phone": "1-800-351-4664",
+          "description": "Free Medicare counseling and enrollment help",
+          "hours": "Business hours (specific hours vary by location)"
         },
         {
-          "type": "callout",
-          "tone": "warning",
-          "text": "Medicare enrollment deadlines matter: enroll at 65 to avoid penalties, and drug plan changes can only happen October 15 – December 7 each year."
+          "label": "SHIIP Email",
+          "phone": "shiip@iid.iowa.gov",
+          "description": "Email questions or find local office locations",
+          "hours": "Email response times vary"
+        },
+        {
+          "label": "Albia SHIIP Office",
+          "phone": "(641) 932-1703",
+          "description": "Local SHIIP counseling office",
+          "hours": "Contact for specific hours"
+        },
+        {
+          "label": "Iowa Navigators (non-Medicare)",
+          "phone": "1-877-474-6284",
+          "description": "If not eligible for Medicare, call for other insurance options",
+          "hours": "Business hours"
         }
       ],
+      "applicationNotes": null,
+      "relatedPrograms": [
+        "Medicare Savings Programs",
+        "Extra Help (Low Income Subsidy)",
+        "Iowa Medicaid"
+      ],
+      "contentSections": [],
       "faqs": [
         {
-          "question": "What's the difference between SHIIP and an insurance agent?",
-          "answer": "SHIIP counselors are trained volunteers who don't sell insurance products. Because they're not paid commissions, they give unbiased information about all Medicare options without sales pressure."
+          "question": "Is there a cost for SHIIP counseling services?",
+          "answer": "No, all SHIIP services are completely free. SHIIP counselors are trained volunteers who provide unbiased information and don't sell insurance products. You won't be charged for one-on-one counseling, group presentations, or educational materials."
         },
         {
-          "question": "Can SHIIP help if my parent already has Medicare but wants to change plans?",
-          "answer": "Yes. SHIIP helps people already on Medicare compare plans during Open Enrollment (October 15 – December 7) and understand if they qualify for programs that reduce Medicare costs."
+          "question": "Can I get help if my parent already has Medicare but wants to change plans?",
+          "answer": "Yes, SHIIP helps people who are already on Medicare review their current coverage and explore other options. Medicare plan changes happen during the annual Open Enrollment period (October 15 – December 7), and SHIIP counselors can help compare plans during this time."
         },
         {
           "question": "What if my parent isn't eligible for Medicare yet?",
-          "answer": "If your parent doesn't qualify for Medicare, SHIIP will refer you to Iowa Navigators at 1-877-474-6284, which helps with other health insurance options."
-        },
-        {
-          "question": "Will there be a counselor available in our area?",
-          "answer": "SHIIP operates statewide through volunteer counselors at hospitals and Area Agency on Aging offices. Availability may vary by location and season, so call 1-800-351-4664 to find counselors near you."
-        },
-        {
-          "question": "Can SHIIP help my parent apply for programs that reduce Medicare costs?",
-          "answer": "Yes. SHIIP counselors help people understand and apply for Medicare Savings Programs, Extra Help for prescription drugs, and dual Medicare-Medicaid eligibility."
-        },
-        {
-          "question": "Does my parent need to bring specific documents to the counseling session?",
-          "answer": "Bring your parent's Medicare card, current insurance information, complete list of medications with dosages, and any recent medical bills to get the most helpful guidance."
+          "answer": "If your parent doesn't qualify for Medicare, SHIIP will refer you to Iowa Navigators at 1-877-474-6284. Iowa Navigators help with marketplace insurance plans and other coverage options for people under 65 who don't have Medicare."
         }
       ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": false,
+        "visualTone": "minimal"
+      },
+      "icon": "Compass",
       "phone": "1-800-351-4664",
       "sourceUrl": "https://shiip.iowa.gov",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-09"
+      "draftedAt": "2026-04-13"
     },
     {
-      "id": "iowa-meals-on-wheels",
+      "id": "ia-meals-on-wheels",
       "name": "Meals on Wheels",
       "shortName": "Meals on Wheels",
-      "tagline": "Free or low-cost home-delivered meals if your parent is 60+ and homebound due to illness or disability.",
+      "tagline": "Free home-delivered meals for homebound seniors 60+ who can't safely prepare food.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1146,7 +1142,7 @@
             "type": "service-area"
           },
           {
-            "name": "Meals on Wheels of Johnson County, 2210 9th St., Coralville, IA",
+            "name": "Meals on Wheels of Johnson County",
             "type": "service-area"
           },
           {
@@ -1163,148 +1159,153 @@
           }
         ]
       },
-      "intro": "If your parent is 60+ and homebound due to illness, disability, or recovery from surgery, they may qualify for home-delivered meals 5+ days per week. Each meal meets one-third of daily nutrition requirements for older adults and can include hot meals, frozen options, or breakfast bags depending on your local provider.\n\nMeals on Wheels operates through local Area Agencies on Aging across Iowa — not as one statewide program. Because eligibility focuses on those with the greatest economic and social need, your parent may receive meals for free through donations or pay a suggested amount. If they don't qualify for assistance, private pay rates range from $8.10-$9.50 per meal.\n\nThe key requirement is that your parent must be homebound by reason of illness, incapacitating disability, or other medical cause. An assessment determines how many days per week they'll receive meals based on their specific needs.",
+      "intro": "If your parent is 60+ and can't safely leave home to shop or cook, Meals on Wheels delivers nutritious meals directly to their door at least 5 days a week. Each meal meets one-third of daily nutritional guidelines for older adults — and many programs provide meals free or for a small donation based on your parent's ability to pay.\n\nBecause Iowa runs Meals on Wheels through local Area Agencies on Aging rather than one statewide system, the exact process varies by county. Some areas prioritize seniors in greatest economic need, while others offer immediate service for a fee ($8.10–$9.50 per meal if ineligible for free service). Your parent's spouse can also receive meals if it helps support your parent's care at home.",
       "savingsRange": "",
-      "savingsSource": "Free service with donation-based or sliding scale options",
+      "savingsSource": "Free service",
       "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
           "Age 60+",
           "Homebound due to illness or disability",
-          "Live in provider's service area",
-          "Assessment determines economic need"
+          "Must live in provider's service area",
+          "Assessment determines meal frequency"
         ],
         "ageRequirement": "60+",
         "incomeTable": null,
         "assetLimits": null,
-        "functionalRequirement": "Must be homebound by reason of illness, incapacitating disability, or other cause that prevents them from preparing meals or leaving home regularly",
+        "functionalRequirement": "Must be homebound due to illness, incapacitating disability, or other medical condition that prevents safe shopping or meal preparation",
         "otherRequirements": [
-          "Must live in the service area of a local provider",
-          "Assessment determines meal frequency based on need",
-          "Spouse may receive meals if it benefits the eligible older adult"
+          "Must reside in the service area of local provider",
+          "Spouse of eligible person may qualify if it benefits the homebound individual"
         ],
         "povertyLevelReference": null
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your local Area Agency on Aging for an assessment — no central application exists and processing time varies by provider.",
+        "summary": "Call your local Area Agency on Aging for an assessment — no forms required, and service can start within days.",
         "steps": [
           {
             "step": 1,
             "title": "Find your local provider",
-            "description": "Determine which Area Agency on Aging or Meals on Wheels program serves your parent's address — service areas vary by county or region"
+            "description": "Contact your area's Meals on Wheels program: Milestones AAA at (855) 410-6222, Johnson County at (319) 338-0515, or WesleyLife Central Iowa at (515) 699-3243."
           },
           {
             "step": 2,
-            "title": "Call for assessment",
-            "description": "Contact the local provider to request an eligibility assessment and explain your parent's homebound status and needs"
+            "title": "Complete phone assessment",
+            "description": "Provider will assess your parent's homebound status, living situation, and meal frequency needs. No paperwork required upfront."
           },
           {
             "step": 3,
-            "title": "Complete assessment",
-            "description": "Provider conducts individual assessment to determine eligibility and how many days per week meals are needed"
-          },
-          {
-            "step": 4,
-            "title": "Begin meal delivery",
-            "description": "If approved, meals begin delivery according to the assessed schedule (typically 5+ days per week)"
+            "title": "Schedule meal delivery",
+            "description": "Once approved, meals typically begin within a few days. Delivery schedule varies from 5-7 days per week based on assessed need."
           }
         ],
-        "processingTime": null,
+        "processingTime": "Service typically begins within days of assessment completion",
         "waitlist": null,
-        "tip": "Have details ready about your parent's medical condition, homebound status, and current meal preparation challenges when you call.",
-        "urls": []
+        "tip": "Have your parent's address, medical conditions affecting mobility, and current meal preparation challenges ready when you call.",
+        "urls": [
+          {
+            "label": "Horizons Family Services Online Request",
+            "url": "https://www.horizonsfamilyservices.org"
+          },
+          {
+            "label": "Fort Dodge Sign-Up",
+            "url": "https://www.fortdodgecf.org"
+          }
+        ]
       },
-      "contentSections": [
+      "documentsNeeded": null,
+      "contacts": [
         {
-          "type": "county-directory",
-          "heading": "Local Providers by Service Area",
-          "offices": [
-            {
-              "name": "Milestones Area Agency on Aging",
-              "type": "service-area",
-              "phone": "(855) 410-6222",
-              "address": "Multiple counties"
-            },
-            {
-              "name": "Aging Resources of Central Iowa",
-              "type": "service-area",
-              "phone": null,
-              "address": "Polk County"
-            },
-            {
-              "name": "Meals on Wheels of Johnson County",
-              "type": "service-area",
-              "phone": "(319) 338-0515",
-              "address": "2210 9th St., Coralville, IA"
-            },
-            {
-              "name": "Horizons Family Services",
-              "type": "service-area",
-              "phone": null,
-              "address": "Linn, Johnson, Washington counties"
-            },
-            {
-              "name": "WesleyLife",
-              "type": "service-area",
-              "phone": "(515) 699-3243",
-              "address": "Central Iowa"
-            },
-            {
-              "name": "Fort Dodge Community Foundation",
-              "type": "service-area",
-              "phone": null,
-              "address": "Fort Dodge area"
-            }
-          ]
+          "label": "Milestones Area Agency on Aging",
+          "phone": "(855) 410-6222",
+          "description": "Primary intake for multiple Iowa counties",
+          "hours": "Business hours"
         },
         {
-          "type": "callout",
-          "tone": "warning",
-          "text": "No statewide application exists. You must contact the specific provider that serves your parent's address — each has different processes, costs, and availability."
+          "label": "Johnson County Meals on Wheels",
+          "phone": "(319) 338-0515",
+          "description": "Serving Johnson County area",
+          "hours": "Business hours"
         },
         {
-          "type": "callout",
-          "tone": "tip",
-          "text": "Your parent's spouse can also receive meals if the provider determines it's in your parent's best interest, even if the spouse doesn't meet age requirements."
+          "label": "WesleyLife Central Iowa",
+          "phone": "(515) 699-3243",
+          "description": "Serving Central Iowa including Polk County",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Iowa Department on Aging",
+          "phone": "(515) 725-3333",
+          "description": "Statewide referrals to local providers",
+          "hours": "Mon-Fri 8am-4:30pm CT"
         }
       ],
+      "applicationNotes": [
+        "No statewide application — you must contact the provider serving your parent's specific address",
+        "If your parent doesn't qualify for free meals due to income, many programs offer paid meals at $8.10-$9.50 each",
+        "Veterans of any age may qualify through some providers regardless of other age requirements",
+        "Temporary homebound status (recovering from surgery) may still qualify for short-term meal delivery"
+      ],
+      "relatedPrograms": [
+        "SNAP (Food Benefits)",
+        "Senior Farmers Market Nutrition Program",
+        "Commodity Supplemental Food Program"
+      ],
+      "contentSections": [],
       "faqs": [
         {
-          "question": "What if my parent can still drive but has trouble cooking?",
-          "answer": "Your parent must be homebound due to illness, disability, or medical condition to qualify. Difficulty cooking alone may not be enough — they need to be unable to leave home regularly due to a medical reason."
+          "question": "What if my parent lives in a rural area with no local Meals on Wheels?",
+          "answer": "Contact the Iowa Department on Aging at (515) 725-3333 for referrals. Some providers deliver to rural areas, and others may offer frozen meal programs that cover wider geographic regions."
+        },
+        {
+          "question": "Can my parent get meals if they're temporarily homebound after surgery?",
+          "answer": "Yes, many providers offer short-term meal delivery during recovery periods. Call your local provider to discuss temporary service — they can often start meals quickly for post-hospital situations."
+        },
+        {
+          "question": "What happens if my parent's income is too high for free meals?",
+          "answer": "Most programs offer paid meals at $8.10-$9.50 per meal even if your parent doesn't qualify for free service. This is often still more affordable than grocery delivery services."
         },
         {
           "question": "Can my parent choose what meals they receive?",
-          "answer": "Meal options depend on your local provider. Some offer hot daily delivery, others provide frozen meals for multiple days, and some include breakfast bags or supplemental items. The provider will explain what's available in your area."
+          "answer": "Meal choices vary by provider, but most accommodate dietary restrictions like diabetic, low-sodium, or pureed diets. Discuss specific needs during the initial assessment."
         },
         {
-          "question": "What if my parent's income is too high for free meals?",
-          "answer": "If your parent doesn't qualify for donation-based meals, they can usually pay privately. Rates range from $8.10-$9.50 per meal depending on the provider, which is often less expensive than grocery shopping and meal preparation."
+          "question": "What if my parent lives with their spouse who isn't homebound?",
+          "answer": "The non-homebound spouse can receive meals if it helps support your parent's care. The provider will assess whether spousal meals are in your parent's best interest during the evaluation."
         },
         {
-          "question": "How many meals will my parent receive each week?",
-          "answer": "The provider conducts an assessment to determine meal frequency based on your parent's needs. Most programs deliver 5+ days per week, but the exact schedule depends on their assessment and the local program's capacity."
+          "question": "How often will meals be delivered?",
+          "answer": "Delivery frequency ranges from 5-7 days per week based on your parent's assessed need. Most providers deliver at least 5 days, with some offering weekend coverage for high-need situations."
+        },
+        {
+          "question": "Can family members apply on behalf of an elderly parent?",
+          "answer": "Yes, adult children can initiate the application process by calling the local provider. The assessment will focus on your parent's needs, but you can handle the initial contact and coordination."
         },
         {
           "question": "What if we move to a different county in Iowa?",
-          "answer": "Your parent will need to reapply with the new county's provider since each area has its own program. Service availability, costs, and meal options may be different in the new location."
-        },
-        {
-          "question": "Can my parent get meals temporarily during recovery from surgery?",
-          "answer": "Yes, temporary homebound status due to recovery from illness or surgery can qualify your parent for meals. Contact the local provider to discuss short-term meal delivery during the recovery period."
+          "answer": "You'll need to reapply with the new county's provider since each area runs its own program. Contact the Iowa Department on Aging to find the right provider for your parent's new address."
         }
       ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": false,
+        "visualTone": "editorial"
+      },
+      "icon": "BowlFood",
       "phone": "(855) 410-6222",
       "sourceUrl": "https://www.legis.iowa.gov/docs/iac/rule/02-05-2025.17.7.21.pdf",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-09"
+      "draftedAt": "2026-04-13"
     },
     {
-      "id": "iowa-legal-aid-seniors",
+      "id": "ia-legal-aid-seniors",
       "name": "Iowa Legal Aid for Seniors",
-      "shortName": "Iowa Legal Aid",
-      "tagline": "Free legal help for seniors 60+ with housing, benefits, abuse prevention, and Medicaid planning.",
+      "shortName": "Legal Aid",
+      "tagline": "Free legal help for Iowa seniors with housing, benefits, abuse prevention, and Medicaid planning",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -1312,12 +1313,12 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Iowa Legal Aid offices statewide; coordinates with Legal Services Corporation projects",
+            "name": "Iowa Legal Aid offices statewide",
             "type": "service-area"
           }
         ]
       },
-      "intro": "If your parent is 60+ and facing legal issues with housing, public benefits, elder abuse, or Medicaid planning, Iowa Legal Aid provides free attorneys and legal advice. Because they specialize in elder law, they understand the complex rules around Medicare, Medicaid, Social Security, and housing rights that can overwhelm families navigating the system alone.\n\nThe program serves Iowa residents with low to moderate incomes — generally up to 125% of the federal poverty level, with exceptions up to 200% for certain cases. Priority goes to seniors who are most vulnerable: those who are frail, live in rural areas, have disabilities, limited English, or are at risk of losing their housing or needing guardianship.\n\nServices include legal advice, counseling, court representation, and benefits screening to identify other programs your parent might qualify for. One legal aid attorney can help coordinate multiple issues instead of you trying to find separate lawyers for housing, benefits, and healthcare problems.",
+      "intro": "If your parent is 60+ and facing legal issues with housing, public benefits, or elder abuse, Iowa Legal Aid provides free legal advice, counseling, and representation. Because they prioritize seniors with the greatest need — those who are frail, rural, at risk of losing housing, or facing guardianship — your parent may get help even if their income is slightly above typical limits.\n\nThe program covers elder law issues including Medicaid planning, benefits screening, housing disputes, and abuse prevention. They serve all 99 Iowa counties and cannot deny services to seniors 60+ based solely on finances, though they do prioritize based on income and vulnerability.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1325,7 +1326,7 @@
         "summary": [
           "Age 60+",
           "Iowa resident",
-          "Low to moderate income",
+          "Income up to 125% of poverty level (exceptions possible)",
           "Priority for rural, disabled, or at-risk seniors"
         ],
         "ageRequirement": "60+",
@@ -1333,89 +1334,104 @@
         "assetLimits": null,
         "functionalRequirement": null,
         "otherRequirements": [
-          "Iowa resident",
-          "Priority given to those who are frail, rural, have disabilities, limited English, Alzheimer's, or at risk of institutionalization/homelessness/guardianship"
+          "Must be an Iowa resident",
+          "Priority given to those with economic need, disabilities, limited English, rural location, or at risk of institutionalization"
         ],
-        "povertyLevelReference": "125% FPL (exceptions up to 200% FPL)"
+        "povertyLevelReference": "125% FPL"
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Call the seniors hotline at 800-992-8161 or apply online at iowalegalaid.org — you must apply to confirm qualification even if you're 60+.",
+        "summary": "Call the seniors hotline at 800-992-8161 or apply online at iowalegalaid.org — no processing time specified.",
         "steps": [
           {
             "step": 1,
             "title": "Contact Iowa Legal Aid",
-            "description": "Call 800-992-8161 (seniors hotline) or 1-800-532-1503, or visit iowalegalaid.org to start an application."
+            "description": "Call the seniors hotline at 800-992-8161 or the general line at 800-532-1503. You can also apply online at iowalegalaid.org."
           },
           {
             "step": 2,
-            "title": "Prepare your information",
-            "description": "Have ready: proof of your parent's income, age, and Iowa residency, plus details about the specific legal issue they're facing."
+            "title": "Describe the legal issue",
+            "description": "Explain your parent's situation — housing problems, benefits denials, abuse concerns, or Medicaid planning needs."
           },
           {
             "step": 3,
-            "title": "Explain the legal problem",
-            "description": "Be specific about whether it's a housing issue, benefits denial, abuse situation, or Medicaid planning need — this helps determine priority level."
-          },
-          {
-            "step": 4,
-            "title": "Wait for intake assessment",
-            "description": "Staff will determine if your parent qualifies and whether their case gets priority based on urgency and vulnerability factors."
+            "title": "Provide basic information",
+            "description": "Share proof of age, income, and Iowa residency. They'll determine if your parent qualifies and what help is available."
           }
         ],
         "processingTime": null,
-        "waitlist": "Priority for greatest need — others may be waitlisted or referred to other resources",
-        "tip": "Even if your parent's income seems too high, call anyway — they make exceptions up to 200% of poverty level for seniors with specific legal issues.",
+        "waitlist": "Priority system — greatest need cases get immediate help, others may be waitlisted or referred elsewhere",
+        "tip": "Even if your parent's income seems too high, call anyway — they make exceptions for seniors with urgent legal needs.",
         "urls": [
           {
-            "label": "Apply online",
+            "label": "Apply Online",
             "url": "https://iowalegalaid.org"
           }
         ]
       },
-      "contentSections": [
+      "documentsNeeded": [
+        "Valid government-issued photo ID",
+        "Proof of Iowa residency (utility bill, lease, or bank statement)",
+        "Birth certificate or other proof of age 60+",
+        "Recent income documentation (Social Security letter, pension statements, pay stubs)",
+        "Details about the legal issue (notices, letters, court documents if available)",
+        "Insurance cards (Medicare, Medicaid, private insurance)"
+      ],
+      "contacts": [
         {
-          "type": "callout",
-          "tone": "tip",
-          "text": "Don't assume your parent won't qualify based on income. Iowa Legal Aid cannot deny services to seniors 60+ based solely on finances, and they make exceptions for higher incomes when seniors face urgent legal problems."
+          "label": "Iowa Legal Aid Seniors Hotline",
+          "phone": "(800) 992-8161",
+          "description": "Specialized line for seniors 60+ with legal issues",
+          "hours": "Business hours (specific hours not listed)"
+        },
+        {
+          "label": "Iowa Legal Aid General Line",
+          "phone": "(800) 532-1503",
+          "description": "Main intake line for all legal aid services",
+          "hours": "Business hours (specific hours not listed)"
         }
       ],
+      "applicationNotes": null,
+      "relatedPrograms": [
+        "Iowa Medicaid for Seniors",
+        "Iowa SNAP Benefits",
+        "Iowa LIHEAP Energy Assistance",
+        "Area Agencies on Aging"
+      ],
+      "contentSections": [],
       "faqs": [
         {
-          "question": "What if Mom's Social Security puts her just over the income limit?",
-          "answer": "Call anyway. Iowa Legal Aid makes exceptions up to 200% of the federal poverty level for seniors with urgent legal issues, and they cannot deny services to anyone 60+ based solely on finances."
+          "question": "What if my parent's income is above 125% of the poverty level?",
+          "answer": "They may still qualify for help. Iowa Legal Aid can make exceptions up to 200% of poverty level for seniors with urgent legal needs, and special grants allow even higher incomes for specific elder law issues. Call 800-992-8161 to discuss your parent's situation."
         },
         {
-          "question": "Can they help if Dad is being pressured to sign over his house?",
-          "answer": "Yes. Elder abuse prevention is a core service, including financial exploitation cases. They can provide immediate legal advice and court representation if needed to protect his property."
-        },
-        {
-          "question": "Will they help with Medicaid applications even if Mom has some savings?",
-          "answer": "Yes. They provide Medicaid planning and can help navigate the $2,000 asset limit rules, including what assets are exempt and how to properly spend down if needed."
-        },
-        {
-          "question": "What if we live in a rural area without a nearby office?",
-          "answer": "Rural seniors actually get priority for services. Iowa Legal Aid serves all 99 counties and can provide phone consultations, plus rural location increases your parent's priority level."
-        },
-        {
-          "question": "Can they represent Dad in court or just give advice?",
-          "answer": "They provide full representation including going to court with your parent for housing disputes, benefits appeals, abuse cases, and guardianship matters — not just phone advice."
+          "question": "Can I apply on behalf of my elderly parent?",
+          "answer": "Yes, family members can contact Iowa Legal Aid on behalf of seniors who need help. You'll need to provide your parent's information and explain their legal situation. They may need to speak with your parent directly depending on the issue."
         },
         {
           "question": "How long does it take to get help once we apply?",
-          "answer": "Processing time isn't specified, but seniors at risk of losing housing, facing abuse, or needing guardianship protection get priority and faster response."
+          "answer": "Processing time isn't specified, but they use a priority system. Seniors who are frail, rural, facing eviction, or at risk of guardianship get help first. Others may be waitlisted or referred to other resources."
         }
       ],
-      "phone": "800-992-8161",
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": false,
+        "hasDocumentChecklist": true,
+        "visualTone": "minimal"
+      },
+      "icon": "Scales",
+      "phone": "(800) 992-8161",
       "sourceUrl": "https://iowalegalaid.org",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-09"
+      "draftedAt": "2026-04-13"
     },
     {
-      "id": "iowa-long-term-care-ombudsman",
+      "id": "ia-long-term-care-ombudsman",
       "name": "Long-Term Care Ombudsman Program",
-      "shortName": "Care Ombudsman",
-      "tagline": "Get a trained advocate to investigate problems and protect your parent's rights in nursing homes or assisted living facilities.",
+      "shortName": "LTC Ombudsman",
+      "tagline": "Free advocacy when your parent faces problems in nursing homes, assisted living, or residential care facilities.",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -1428,100 +1444,112 @@
           }
         ]
       },
-      "intro": "If your parent lives in a nursing home, assisted living facility, or receives home care through Iowa Medicaid waiver programs, they have access to a free advocate called a Long-Term Care Ombudsman. This person investigates complaints about care quality, billing issues, or violations of your parent's rights — and works to resolve problems directly with the facility.\n\nThe ombudsman program serves any resident of Iowa long-term care facilities, regardless of income. Because every facility has an assigned local ombudsman, your parent gets someone who knows their specific facility and can respond quickly to concerns. The program also helps families understand discharge policies, resident rights, and how to navigate care decisions.",
+      "intro": "If your parent lives in a nursing home, assisted living, or residential care facility in Iowa and faces problems with their care or treatment, the Long-Term Care Ombudsman Program provides free advocacy to resolve complaints and protect their rights. Because ombudsmen are trained advocates who understand facility regulations and resident rights, they can investigate issues, mediate disputes, and help ensure your parent receives proper care without retaliation.\n\nThe program serves all long-term care residents in Iowa regardless of income or assets, with local ombudsmen assigned to every facility statewide. Services include investigating complaints about conditions or treatment, helping with involuntary discharge situations, educating families about resident rights, and providing information about facility policies and managed care processes.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
-          "Resident of Iowa long-term care facility",
+          "Current resident of Iowa long-term care facility",
           "No income or asset limits",
-          "Also covers Medicaid waiver recipients",
-          "Free for all residents"
+          "Also serves HCBS waiver program members"
         ],
         "ageRequirement": null,
         "incomeTable": null,
         "assetLimits": null,
         "functionalRequirement": null,
         "otherRequirements": [
-          "Must be resident of nursing home, assisted living, residential care facility, or elder group home in Iowa",
-          "Also serves those in Iowa Home and Community-Based Services waiver programs"
+          "Must be a resident or tenant of a long-term care facility in Iowa (nursing homes, assisted living programs, residential care facilities, or elder group homes)",
+          "Also available to those enrolled in Iowa's Home and Community-Based Services waiver programs",
+          "Excludes residents in acute stage of alcoholism, drug addiction, or uncontrolled mental illness"
         ],
         "povertyLevelReference": null
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the statewide hotline or contact the local ombudsman posted at your parent's facility — no application needed.",
+        "summary": "Call the statewide hotline or contact the local ombudsman posted at your parent's facility — no formal application needed.",
         "steps": [
           {
             "step": 1,
-            "title": "Contact the ombudsman",
-            "description": "Call 1-800-532-3213 (access code 878277#) or find the local ombudsman contact information posted at your parent's facility"
+            "title": "Call the statewide hotline",
+            "description": "Dial 1-800-532-3213 and use access code 878277# when prompted to reach the Long-Term Care Ombudsman Program."
           },
           {
             "step": 2,
-            "title": "Explain your concern",
-            "description": "Describe the problem with care, billing, discharge, or rights violations — no forms or documentation required"
+            "title": "Or contact the local ombudsman directly",
+            "description": "Find the Local Long-Term Care Ombudsman contact information posted in your parent's facility, or ask facility staff for the assigned ombudsman."
           },
           {
             "step": 3,
-            "title": "Ombudsman investigates",
-            "description": "The assigned ombudsman will investigate your complaint and work directly with facility staff to resolve the issue"
+            "title": "Describe your concern",
+            "description": "Explain the issue or complaint — no formal paperwork required. The ombudsman will determine next steps based on the situation."
           }
         ],
-        "processingTime": "Response time varies by urgency of complaint",
+        "processingTime": "Timely response required, but timeline depends on complaint urgency",
         "waitlist": null,
-        "tip": "Every facility must display their local ombudsman's contact information — look for it posted in common areas if you want to contact them directly.",
+        "tip": "You can contact the ombudsman before problems become serious — they provide education and prevention services, not just crisis intervention.",
         "urls": [
           {
-            "label": "Iowa Ombudsman Program",
+            "label": "Iowa LTC Ombudsman Official Page",
             "url": "https://hhs.iowa.gov/health-prevention/aging-services/ltcombudsman"
           }
         ]
       },
-      "contentSections": [
+      "documentsNeeded": null,
+      "contacts": [
         {
-          "type": "callout",
-          "tone": "tip",
-          "text": "The ombudsman provides advocacy only — they investigate problems and help resolve conflicts, but don't provide direct care services or financial assistance."
+          "label": "Iowa LTC Ombudsman Statewide Hotline",
+          "phone": "(800) 532-3213",
+          "description": "Main number for complaints and questions (use access code 878277#)",
+          "hours": "Contact for hours"
+        },
+        {
+          "label": "Local Ombudsman at Facility",
+          "phone": "Varies by location",
+          "description": "Contact information posted in every long-term care facility",
+          "hours": "Varies by local office"
         }
       ],
+      "applicationNotes": null,
+      "relatedPrograms": [
+        "Adult Protective Services",
+        "Iowa Department of Inspections and Appeals Health Facilities Division",
+        "Aging and Disability Resource Centers"
+      ],
+      "contentSections": [],
       "faqs": [
         {
-          "question": "What kinds of problems can the ombudsman help with?",
-          "answer": "The ombudsman investigates complaints about care quality, medication errors, billing disputes, discharge issues, violations of resident rights, and problems with facility policies. They also help families understand regulations and navigate managed care processes."
+          "question": "Can I contact the ombudsman if I'm just considering placing my parent in a facility?",
+          "answer": "Yes, the ombudsman can provide information about resident rights and what to look for in facilities. However, their core services focus on current residents who are experiencing problems with their care or treatment."
         },
         {
-          "question": "Can I contact the ombudsman before my parent moves into a facility?",
-          "answer": "Yes, families considering placement can contact the ombudsman for information about resident rights and what to expect. However, the core services focus on current residents of long-term care facilities."
+          "question": "Will the facility retaliate against my parent if I file a complaint?",
+          "answer": "Retaliation against residents or families for filing complaints is illegal. The ombudsman is trained to handle complaints in ways that protect residents from retaliation and can investigate any retaliatory actions that occur."
         },
         {
-          "question": "Will the facility know if I file a complaint?",
-          "answer": "The ombudsman will work with the facility to resolve issues, but they follow specific protocols about confidentiality. Contact them directly to understand how they'll handle your specific situation."
-        },
-        {
-          "question": "Does this cover my parent's home care services?",
-          "answer": "Yes, if your parent receives services through Iowa's Medicaid waiver programs (like the Elderly waiver or Health and Disability waiver), the ombudsman can help with those services too."
-        },
-        {
-          "question": "What if my parent's facility doesn't cooperate with the ombudsman?",
-          "answer": "Facilities are required by law to allow ombudsman access and cooperation. If a facility refuses to work with the ombudsman, that itself becomes a regulatory issue that can be escalated."
-        },
-        {
-          "question": "How much does this service cost?",
-          "answer": "The Long-Term Care Ombudsman Program is completely free. There are no income limits, application fees, or charges for investigations or advocacy services."
+          "question": "What's the difference between calling the ombudsman versus the state inspection office?",
+          "answer": "The ombudsman focuses on advocacy and resolving problems through mediation and education. State inspections are regulatory and can result in citations or penalties. The ombudsman can help you determine if a regulatory complaint is also needed."
         }
       ],
-      "phone": "1-800-532-3213",
+      "layoutIntent": {
+        "aboutHighlight": null,
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": false,
+        "visualTone": "minimal"
+      },
+      "icon": "Scales",
+      "phone": "(800) 532-3213",
       "sourceUrl": "https://hhs.iowa.gov/health-prevention/aging-services/ltcombudsman",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-09"
+      "draftedAt": "2026-04-13"
     },
     {
-      "id": "iowa-state-supplementary-assistance",
+      "id": "ia-state-supplementary-assistance",
       "name": "State Supplementary Assistance (SSA)",
       "shortName": "Iowa SSA",
-      "tagline": "If your parent receives SSI or almost qualifies, Iowa may add extra monthly cash for special needs like residential care.",
+      "tagline": "Extra cash assistance for seniors on SSI or those who barely exceed SSI income limits",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1538,16 +1566,17 @@
           }
         ]
       },
-      "intro": "If your parent is 65+ and receives SSI—or meets all SSI requirements except having slightly too much income—Iowa's State Supplementary Assistance may provide additional monthly cash. This program covers special situations like residential care facilities, in-home health services, or extra support for blind individuals.\n\nThe benefit amount varies based on your parent's specific needs and countable income. Because this supplements federal SSI payments, the total monthly benefit becomes federal SSI plus Iowa's supplement. The program requires the same strict asset limits as SSI: $2,000 for individuals or $3,000 for couples.\n\nImportant: You'll apply through different offices depending on your parent's situation. Most SSI-related cases go through Social Security offices, but residential care and in-home health services require applying through Iowa HHS local offices.",
+      "intro": "If your parent receives SSI or has income just above SSI limits, Iowa's State Supplementary Assistance provides additional monthly cash to help cover special needs. This includes extra money for blind individuals, residential care facility costs, family-life homes, and in-home health-related care.\n\nBecause SSA supplements federal SSI payments, your parent must either receive SSI or meet all SSI criteria except for having slightly too much income. Asset limits are $2,000 for individuals or $3,000 for couples — the same as SSI.\n\nThe exact payment amount varies based on your parent's living situation and countable income, with different categories like Special Blind Allowance (up to $22 less if income exceeds SSI limits) and residential care assistance for those in licensed facilities.",
       "savingsRange": "",
-      "savingsSource": "Benefit amount varies by individual needs and countable income",
+      "savingsSource": "Monthly cash supplement amount varies by category and income",
       "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
           "Age 65+, blind, or disabled",
           "Iowa resident",
-          "Must receive SSI or meet SSI criteria",
-          "Assets under $2,000 (single) or $3,000 (couple)"
+          "Assets under $2,000 (single) or $3,000 (couple)",
+          "Receives SSI or meets SSI criteria with excess income",
+          "Applied for all other eligible benefits"
         ],
         "ageRequirement": "65+",
         "incomeTable": null,
@@ -1557,241 +1586,259 @@
           "countedAssets": [
             "Bank accounts",
             "Cash",
-            "Life insurance policies over $1,500 face value"
+            "Stocks and bonds",
+            "Life insurance with face value over $1,500"
           ],
           "exemptAssets": [
-            "Primary home",
+            "Home and property it sits on",
             "One vehicle",
-            "Life insurance with combined face value up to $1,500",
+            "Life insurance policies with combined face value up to $1,500",
             "Term life insurance with no cash value"
           ],
           "homeEquityCap": null
         },
-        "functionalRequirement": "For residential care: physician must certify that nursing care isn't required but residential care is necessary",
+        "functionalRequirement": "For residential care category: physician certification that nursing care is not required but residential care is needed",
         "otherRequirements": [
-          "U.S. citizen or qualified immigrant",
-          "Must apply for all other eligible benefits",
-          "Cannot live in emergency shelters or medical facilities"
+          "Must be Iowa resident",
+          "U.S. citizen or qualified noncitizen (refugee, asylee, or lawful permanent resident with 40 quarters)",
+          "Must apply for all other eligible benefits"
         ],
         "povertyLevelReference": null
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply through Social Security offices for most cases, or Iowa HHS offices for residential/in-home care—processing time not specified.",
+        "summary": "Apply through your local Social Security office if you receive SSI, or through Iowa HHS for residential and in-home care categories.",
         "steps": [
           {
             "step": 1,
-            "title": "Determine which office handles your case",
-            "description": "If your parent receives SSI or needs basic supplementation, use Social Security offices. For residential care or in-home health services, contact Iowa HHS local offices."
+            "title": "Determine which office to contact",
+            "description": "If you receive SSI or are applying for basic SSA payment, contact your local Social Security Administration field office (find at ssa.gov). For residential care, family-life home, or in-home health-related care, contact Iowa HHS at 1-800-972-2017."
           },
           {
             "step": 2,
-            "title": "Gather required documents",
-            "description": "Collect proof of income, resources, SSI award letter (if applicable), and physician certification for residential care cases."
+            "title": "Gather required documentation",
+            "description": "Collect proof of income, resources, SSI award letter (if applicable), Social Security card, birth certificate, and proof of Iowa residency. For residential care categories, obtain physician certification."
           },
           {
             "step": 3,
             "title": "Submit application",
-            "description": "Visit the appropriate local office or call. Social Security cases use SSI application process; state-administered cases use HHS applications."
+            "description": "Visit your local SSA or HHS office serving your county, or call the appropriate number. No specific form number is required — use the SSI application process for SSA-administered cases or HHS application for state-administered categories."
           },
           {
             "step": 4,
             "title": "Complete verification if needed",
-            "description": "If your parent's income exceeds SSI limits, additional verification will be required to confirm eligibility."
+            "description": "If your income exceeds SSI limits, additional verification will be required to confirm eligibility under the excess income provisions."
           }
         ],
-        "processingTime": "Not specified",
+        "processingTime": "Processing time not specified by the program",
         "waitlist": null,
-        "tip": "Going to the wrong office will delay your application—call first to confirm whether you need Social Security or Iowa HHS for your parent's specific situation.",
+        "tip": "Apply to the correct office from the start — SSA handles most cases, but HHS handles residential and in-home care, and going to the wrong office will delay your application.",
         "urls": [
           {
-            "label": "Find Social Security office",
-            "url": "https://www.ssa.gov/office"
+            "label": "Find your local SSA office",
+            "url": "https://www.ssa.gov/locator"
           },
           {
-            "label": "Iowa HHS information",
-            "url": "https://hhs.iowa.gov"
+            "label": "Iowa HHS SSA information",
+            "url": "https://hhs.iowa.gov/media/3987/download"
           }
         ]
       },
-      "contentSections": [
+      "documentsNeeded": [
+        "Social Security card for applicant",
+        "Birth certificate or other proof of age",
+        "Proof of Iowa residency (utility bill, lease, or state-issued document)",
+        "Social Security award letter if receiving SSI",
+        "Most recent bank statements for all accounts (last 3 months)",
+        "Income documentation (pension statements, Social Security statements)",
+        "Life insurance policies showing face values",
+        "Vehicle titles and registration documents",
+        "Property deeds or tax statements if applicable",
+        "Proof of U.S. citizenship or immigration status",
+        "Physician certification form (for residential care categories only)",
+        "Documentation of other benefits received or applied for",
+        "Investment account statements (stocks, bonds, annuities)"
+      ],
+      "contacts": [
         {
-          "type": "what-counts",
-          "heading": "Asset Limits: What Counts",
-          "included": [
-            "Bank accounts and cash",
-            "Life insurance policies with combined face value over $1,500 per person",
-            "Other countable resources under federal SSI rules"
-          ],
-          "excluded": [
-            "Primary home where your parent lives",
-            "One vehicle",
-            "Life insurance policies with combined face value up to $1,500 per person",
-            "Term life insurance with no cash value",
-            "Other exempt resources under federal SSI rules"
-          ]
+          "label": "Iowa HHS Benefits Line",
+          "phone": "1-800-972-2017",
+          "description": "For residential care, in-home health care, and Medicare/Medicaid eligible categories",
+          "hours": "Business hours"
         },
         {
+          "label": "Social Security Administration",
+          "phone": "1-800-772-1213",
+          "description": "For SSI recipients and basic SSA payment applications",
+          "hours": "Mon-Fri 8am-7pm"
+        },
+        {
+          "label": "Local SSA Office Finder",
+          "phone": null,
+          "description": "Find your county's Social Security field office at ssa.gov/locator",
+          "hours": "Varies by office"
+        }
+      ],
+      "applicationNotes": [
+        "Being denied for SSI due to excess income doesn't automatically qualify you for SSA — you must still complete full verification if your income is over SSI limits",
+        "Different categories are administered by different agencies — most go through Social Security offices, but residential care and in-home health care go through Iowa HHS local offices",
+        "You must apply for all other benefits you're eligible for before SSA approval — this includes federal programs and any state programs",
+        "Children can qualify in limited circumstances: blind children in their own home or dependent relative home, disabled children only with a dependent relative"
+      ],
+      "relatedPrograms": [
+        "Supplemental Security Income (SSI)",
+        "Iowa Medicaid",
+        "SNAP Food Benefits",
+        "LIHEAP Energy Assistance"
+      ],
+      "contentSections": [
+        {
           "type": "tier-comparison",
-          "heading": "Program Categories",
-          "tiers": [
+          "title": "SSA Categories",
+          "data": [
             {
               "name": "Special Blind Allowance",
-              "description": "Additional monthly support for blind individuals",
-              "incomeLimit": "Must meet SSI criteria except for excess income",
-              "coverage": "Up to $22 monthly supplement (reduced if income exceeds SSI limits)"
+              "description": "For blind individuals with income exceeding SSI limits",
+              "amount": "Up to $22 (reduced if income exceeds SSI)",
+              "requirements": "Blind (central visual acuity 20/200 or less in better eye)"
             },
             {
               "name": "Residential Care",
-              "description": "Support for parents living in licensed care facilities",
-              "incomeLimit": "Must meet SSI criteria except for excess income",
-              "coverage": "Monthly supplement based on facility costs and countable income"
+              "description": "For individuals in licensed residential care facilities",
+              "amount": "Varies based on countable income",
+              "requirements": "Physician certification that nursing care not required but residential care needed"
+            },
+            {
+              "name": "Family-Life Home",
+              "description": "For individuals in family-life home arrangements",
+              "amount": "Varies based on countable income",
+              "requirements": "Living in approved family-life home setting"
             },
             {
               "name": "In-Home Health-Related Care",
-              "description": "Support for parents receiving health services at home",
-              "incomeLimit": "Must meet SSI criteria except for excess income",
-              "coverage": "Monthly supplement to cover in-home health care needs"
-            },
-            {
-              "name": "Family-Life Home & Dependent Relative",
-              "description": "Support for specific living arrangements",
-              "incomeLimit": "Must meet SSI criteria except for excess income",
-              "coverage": "Monthly supplement based on living situation and needs"
+              "description": "For individuals receiving health-related care at home",
+              "amount": "Varies based on countable income",
+              "requirements": "Receiving qualifying in-home health services"
             }
           ]
-        },
-        {
-          "type": "documents",
-          "heading": "What to Bring",
-          "categories": [
-            {
-              "name": "Identity & Residency",
-              "items": [
-                "Social Security card",
-                "Birth certificate",
-                "Proof of Iowa residency",
-                "Proof of citizenship or qualified immigration status"
-              ]
-            },
-            {
-              "name": "Financial",
-              "items": [
-                "SSI award letter (if receiving SSI)",
-                "Proof of all income sources",
-                "Bank statements and proof of resources",
-                "Life insurance policy information"
-              ]
-            },
-            {
-              "name": "Medical (if applicable)",
-              "items": [
-                "Physician certification for residential care needs",
-                "Documentation of blindness or disability",
-                "Proof of in-home health care requirements"
-              ]
-            }
-          ]
-        },
-        {
-          "type": "callout",
-          "tone": "tip",
-          "text": "Even if your parent was denied SSI for having too much income, they may still qualify for Iowa SSA. The program specifically covers people who meet all SSI requirements except for excess income."
         }
       ],
       "faqs": [
         {
-          "question": "What if Mom was denied SSI because her income was too high?",
-          "answer": "She may still qualify for Iowa SSA. The program specifically covers people who meet all SSI requirements except for having income above SSI limits. You'll need to go through full verification of her income and resources."
+          "question": "Can my parent get SSA if they were denied SSI for having too much income?",
+          "answer": "Possibly, but SSI denial doesn't automatically qualify them. They must still meet all SSI criteria except income and go through full verification if their income exceeds SSI limits. The excess income provision has specific rules that need to be evaluated case by case."
         },
         {
-          "question": "Can Dad keep his life insurance if he qualifies?",
-          "answer": "Yes, if the combined face value of all his life insurance policies is $1,500 or less per person. Term life insurance with no cash value doesn't count at all. Policies over $1,500 face value will count as resources."
+          "question": "Which office should we contact if my parent needs residential care assistance?",
+          "answer": "Contact Iowa HHS at 1-800-972-2017 for residential care, family-life home, or in-home health-related care categories. These are state-administered through HHS local offices, not Social Security offices."
         },
         {
-          "question": "Which office do I go to for residential care assistance?",
-          "answer": "For residential care or in-home health services, apply through Iowa HHS local offices, not Social Security. You'll also need a physician to certify that nursing care isn't required but residential care is necessary."
+          "question": "Does my parent's life insurance count against the $2,000 asset limit?",
+          "answer": "Life insurance policies with combined face value over $1,500 count as assets. Policies with face value up to $1,500 are exempt, and term life insurance with no cash value doesn't count at all."
         },
         {
-          "question": "Does Mom have to apply for other benefits first?",
-          "answer": "Yes, she must apply for or already be receiving all other benefits she's eligible for. This is a requirement before Iowa SSA will consider her application."
+          "question": "What happens if my parent lives in a nursing home or emergency shelter?",
+          "answer": "People in medical facilities or emergency shelters are not eligible for SSA. The program is designed for people living in their own homes, residential care facilities, or family-life homes — not institutional medical settings."
         },
         {
-          "question": "How much extra money will this provide each month?",
-          "answer": "The amount varies based on your parent's countable income and specific needs category. For example, Special Blind Allowance provides up to $22 monthly, but other categories have different amounts calculated individually."
+          "question": "Do we need a doctor's note for all SSA categories?",
+          "answer": "Physician certification is only required for the Residential Care category, where a doctor must certify that nursing care isn't needed but residential care is necessary. Other categories don't require medical certification."
         },
         {
-          "question": "What if we apply at the wrong office?",
-          "answer": "This will delay your application. Call first to confirm: Social Security offices handle most SSI-related cases, but Iowa HHS offices handle residential care and in-home health services. Going to the wrong office means starting over."
+          "question": "Can I apply for SSA and other benefits at the same time?",
+          "answer": "Yes, but you must apply for ALL other eligible benefits before SSA approval. This is a requirement — SSA is supplemental assistance, so you need to exhaust other options first."
+        },
+        {
+          "question": "What if my parent's income changes after they're approved for SSA?",
+          "answer": "Report income changes immediately to the administering office (SSA or Iowa HHS). SSA payments are calculated based on countable income, so changes will affect the payment amount. Failure to report changes can result in overpayments that must be repaid."
+        },
+        {
+          "question": "Can a family member apply for SSA on behalf of an elderly parent?",
+          "answer": "Yes, if you're acting as a representative payee or have legal authority. You'll need documentation of your authority to act on their behalf. Contact the appropriate office (SSA or Iowa HHS) to discuss representative arrangements."
         }
       ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "asset-focused",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "Coins",
       "phone": "1-800-972-2017",
       "sourceUrl": "https://hhs.iowa.gov/media/3987/download",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-09"
+      "draftedAt": "2026-04-13"
     }
   ],
   "stateOverview": {
-    "intro": "Iowa offers 10 programs to help your aging parent — 7 provide direct financial assistance or services, while 3 offer free guidance and advocacy. These range from monthly grocery money through SNAP ($291/month maximum) to comprehensive medical care through PACE, plus home care coverage that can prevent nursing home placement. Most financial programs have income limits, but several resources like legal aid and Medicare counseling are available regardless of income. Start by checking if your parent qualifies for Medicaid home care services — this unlocks the most comprehensive support and can save your family thousands in caregiving costs.",
+    "intro": "Iowa offers 10 major programs to help seniors stay independent and reduce family caregiving costs. Seven provide direct financial benefits — from $100-300/month in grocery assistance to comprehensive home care coverage worth thousands monthly. Three are free resources available to all Iowa families, including legal aid and advocacy services. Most income-based benefits use similar thresholds: around $2,152/month for single seniors, $2,901 for couples. Start with the programs that address your biggest expense or safety concern — home care, medical costs, or basic needs like food and utilities.",
     "startHere": [
       {
         "name": "Iowa Medicaid Home & Community Based Services Elderly Waiver",
-        "programId": "iowa-medicaid-elderly-waiver",
-        "why": "Covers in-home caregivers and services that can prevent nursing home placement while saving your family significant caregiving costs."
-      },
-      {
-        "name": "Supplemental Nutrition Assistance Program (SNAP)",
-        "programId": "snap-iowa",
-        "why": "Quick financial relief with up to $291/month for groceries — often the fastest benefit to obtain."
+        "programId": "iowa-medicaid-hcbs-elderly-waiver",
+        "why": "Covers the highest-cost caregiving expenses — personal care, medical equipment, and coordination services to keep your parent safely at home."
       },
       {
         "name": "Senior Health Insurance Information Program (SHIIP)",
-        "programId": "shiip-iowa",
-        "why": "Free expert help navigating Medicare can save hundreds monthly in premiums and avoid costly enrollment mistakes."
+        "programId": "iowa-shiip",
+        "why": "Free expert help navigating Medicare can save thousands annually in premiums and out-of-pocket costs."
+      },
+      {
+        "name": "Supplemental Nutrition Assistance Program (SNAP)",
+        "programId": "iowa-snap",
+        "why": "Quick application process for immediate monthly grocery assistance — often the fastest benefit to secure."
       }
     ],
     "byNeed": [
       {
-        "need": "Help paying for home care",
+        "need": "Home care and medical support",
         "programs": [
           "Iowa Medicaid Home & Community Based Services Elderly Waiver",
           "Home and Community-Based Services (HCBS)",
           "Program of All-Inclusive Care for the Elderly (PACE)"
         ],
-        "description": "Three programs that can cover in-home caregivers, meal delivery, and medical care to keep your parent safely at home."
+        "description": "Comprehensive programs that cover personal care, medical services, and support coordination to keep your parent at home safely."
       },
       {
-        "need": "Monthly financial assistance",
+        "need": "Food and utility assistance",
         "programs": [
           "Supplemental Nutrition Assistance Program (SNAP)",
-          "State Supplementary Assistance (SSA)",
-          "Low-Income Home Energy Assistance Program (LIHEAP)"
-        ],
-        "description": "Direct cash assistance for groceries, utility bills, and special care needs."
-      },
-      {
-        "need": "Food and meal support",
-        "programs": [
-          "Supplemental Nutrition Assistance Program (SNAP)",
+          "Low-Income Home Energy Assistance Program (LIHEAP)",
           "Meals on Wheels"
         ],
-        "description": "Monthly grocery benefits plus home-delivered meals for homebound seniors."
+        "description": "Monthly grocery benefits, heating bill assistance, and home-delivered meals for seniors who can't safely shop or cook."
+      },
+      {
+        "need": "Medicare and insurance guidance",
+        "programs": [
+          "Senior Health Insurance Information Program (SHIIP)"
+        ],
+        "description": "Free one-on-one counseling to navigate Medicare enrollment, supplements, and prescription drug plans."
+      },
+      {
+        "need": "Extra income support",
+        "programs": [
+          "State Supplementary Assistance (SSA)"
+        ],
+        "description": "Additional cash assistance for seniors on SSI or those with incomes just above SSI limits."
       },
       {
         "need": "Free advice and advocacy",
         "programs": [
-          "Senior Health Insurance Information Program (SHIIP)",
           "Iowa Legal Aid for Seniors",
           "Long-Term Care Ombudsman Program"
         ],
-        "description": "Expert guidance on Medicare, legal issues, and care facility problems — available regardless of income."
+        "description": "Free legal help and advocacy services available to all Iowa seniors regardless of income."
       }
     ],
     "quickFacts": [
-      "Iowa's Medicaid waiver programs can cover full-time in-home care that would otherwise cost $3,000-5,000 monthly out of pocket",
-      "SHIIP (Iowa's Medicare counseling) is completely free and available to all Medicare beneficiaries regardless of income",
-      "Most benefit programs require income verification, but legal aid and ombudsman services help anyone 60+"
+      "Most Iowa benefit programs use income limits around $2,152/month for single seniors, $2,901 for couples",
+      "Two programs are available to all Iowa seniors regardless of income: SHIIP counseling and Legal Aid services",
+      "Iowa's Elderly Waiver has waiting lists in some areas — apply early even if your parent doesn't need services immediately",
+      "SNAP benefits load onto an EBT card that works at most Iowa grocery stores and farmers markets"
     ],
-    "resourcesVsBenefits": "Seven Iowa programs require income qualification and provide direct benefits like monthly cash, food assistance, or paid care services — these include SNAP, Medicaid waivers, and PACE. Three programs offer free help to any Iowa senior regardless of income: SHIIP provides Medicare guidance, Legal Aid offers free legal help for seniors 60+, and the Ombudsman investigates care facility problems. Start with the free resources to understand your options, then apply for qualified benefits."
+    "resourcesVsBenefits": "Iowa's programs fall into two categories: income-qualified benefits and free resources. Benefits like SNAP, LIHEAP, and Medicaid waivers require your parent to meet specific income limits (typically around $2,152/month for singles). Free resources like SHIIP Medicare counseling, Iowa Legal Aid, and the Long-Term Care Ombudsman are available to all Iowa seniors regardless of income — use these first for guidance, then apply for financial benefits based on their recommendations."
   }
 }

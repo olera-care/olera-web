@@ -100,7 +100,7 @@ function VideoPanel() {
   const [isPlaying, setIsPlaying] = useState(false);
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200/60 shadow-[0_4px_24px_rgb(0,0,0,0.04)] overflow-hidden">
+    <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
       <div className="aspect-video relative">
         {isPlaying ? (
           <iframe
@@ -551,22 +551,22 @@ export default function ProviderReviewsPage() {
         }
       `}</style>
 
-      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
+      <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Page header */}
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+          <div className="mb-5 lg:mb-8">
+            <h1 className="text-2xl lg:text-[28px] font-display font-bold text-gray-900 tracking-tight">
               Review Requests
             </h1>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-[15px] text-gray-500 mt-1.5 leading-relaxed">
               Ask happy clients to leave a Google review.
             </p>
           </div>
 
-          {/* Tabs */}
-          <div className="mb-5">
+          {/* Tabs - matches Q&A and Connections style */}
+          <div className="mb-4 lg:mb-5">
             <div
-              className="inline-flex gap-1 bg-gray-100 p-1 rounded-xl"
+              className="flex gap-0.5 bg-vanilla-50 border border-warm-100/60 p-0.5 rounded-xl w-max"
               role="tablist"
               aria-label="Review request tabs"
             >
@@ -577,16 +577,16 @@ export default function ProviderReviewsPage() {
                   role="tab"
                   aria-selected={activeTab === tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  className={`px-5 py-2.5 rounded-lg text-[15px] font-semibold transition-all min-h-[44px] ${
                     activeTab === tab.id
                       ? "bg-white text-gray-900 shadow-sm"
-                      : "text-gray-600 hover:text-gray-900"
+                      : "text-gray-600 hover:text-gray-900 hover:bg-white/50"
                   }`}
                 >
                   {tab.label}
                   {tab.count !== undefined && tab.count > 0 && (
-                    <span className={`ml-1.5 px-1.5 py-0.5 rounded text-xs ${
-                      activeTab === tab.id ? "bg-gray-100 text-gray-600" : "bg-gray-200/50 text-gray-500"
+                    <span className={`ml-2 px-2 py-0.5 rounded-md text-xs font-semibold ${
+                      activeTab === tab.id ? "bg-vanilla-100 text-gray-600" : "bg-warm-100/50 text-gray-500"
                     }`}>
                       {tab.count}
                     </span>
@@ -596,10 +596,10 @@ export default function ProviderReviewsPage() {
             </div>
           </div>
 
-          {/* Content grid */}
-          <div className="lg:grid lg:grid-cols-[1fr,340px] lg:gap-6 lg:items-start">
+          {/* Content grid - matches Q&A layout */}
+          <div className="lg:grid lg:grid-cols-[1fr,340px] lg:gap-8 lg:items-start">
             {/* Main content */}
-            <div className="bg-white rounded-2xl border border-gray-200/60 shadow-[0_4px_24px_rgb(0,0,0,0.04)] p-5 lg:p-6 mb-6 lg:mb-0">
+            <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-5 lg:p-6 mb-6 lg:mb-0">
               {activeTab === "send_request" && (
                 <SendRequestForm
                   onSuccess={handleSendSuccess}

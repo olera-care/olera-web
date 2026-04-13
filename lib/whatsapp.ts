@@ -1,6 +1,7 @@
 import twilio from "twilio";
 import { createClient } from "@supabase/supabase-js";
 import { normalizeUSPhone } from "./twilio";
+import { shouldSendNotification } from "./notification-prefs";
 
 let twilioClient: twilio.Twilio | null = null;
 
@@ -29,6 +30,8 @@ interface SendWhatsAppOptions {
   messageType?: string;
   recipientType?: string;
   profileId?: string;
+  /** Notification type for preference checking (e.g., 'new_leads', 'messages') */
+  notificationType?: string;
 }
 
 /**
@@ -38,13 +41,22 @@ interface SendWhatsAppOptions {
  */
 export async function sendWhatsApp(
   options: SendWhatsAppOptions
-): Promise<{ success: boolean; error?: string; logId?: string }> {
+): Promise<{ success: boolean; error?: string; logId?: string; skipped?: boolean }> {
   const client = getTwilio();
   const from = process.env.TWILIO_WHATSAPP_NUMBER;
 
   if (!client || !from) {
     console.error("[whatsapp] Twilio not configured or TWILIO_WHATSAPP_NUMBER missing");
     return { success: false, error: "WhatsApp service not configured" };
+  }
+
+  // Check notification preferences if profile ID and notification type provided
+  if (options.profileId && options.notificationType) {
+    const shouldSend = await shouldSendNotification(options.profileId, options.notificationType, "whatsapp");
+    if (!shouldSend) {
+      console.log(`[whatsapp] Skipped to ${options.to} - user preference disabled for ${options.notificationType}`);
+      return { success: true, skipped: true };
+    }
   }
 
   const normalized = normalizeUSPhone(options.to);

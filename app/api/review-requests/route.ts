@@ -10,6 +10,90 @@ interface ReviewRequestClient {
   phone?: string;
 }
 
+interface EmailLogRow {
+  id: string;
+  recipient: string;
+  created_at: string;
+  status: string;
+  metadata: {
+    client_name?: string;
+    delivery_method?: string;
+  } | null;
+}
+
+/**
+ * GET /api/review-requests
+ *
+ * Fetch sent review request emails for the authenticated provider.
+ * Returns list of sent requests with recipient info, method, date, and open status.
+ */
+export async function GET() {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    }
+
+    const db = getServiceClient();
+
+    // Get the user's provider profile
+    const { data: account } = await db
+      .from("accounts")
+      .select("id")
+      .eq("user_id", user.id)
+      .single();
+
+    if (!account) {
+      return NextResponse.json({ error: "No account found" }, { status: 400 });
+    }
+
+    const { data: profile } = await db
+      .from("business_profiles")
+      .select("id")
+      .eq("account_id", account.id)
+      .in("type", ["organization", "caregiver"])
+      .single();
+
+    if (!profile) {
+      return NextResponse.json({ error: "No provider profile found" }, { status: 400 });
+    }
+
+    // Fetch review request emails for this provider
+    const { data: emails, error: emailsError } = await db
+      .from("email_log")
+      .select("id, recipient, created_at, status, metadata")
+      .eq("provider_id", profile.id)
+      .eq("email_type", "review_request")
+      .order("created_at", { ascending: false })
+      .limit(100);
+
+    if (emailsError) {
+      console.error("Failed to fetch review request emails:", emailsError);
+      return NextResponse.json({ error: "Failed to fetch data" }, { status: 500 });
+    }
+
+    // Transform the data for the frontend
+    const requests = ((emails as EmailLogRow[]) || []).map((email) => ({
+      id: email.id,
+      clientName: email.metadata?.client_name || email.recipient.split("@")[0],
+      recipient: email.recipient,
+      deliveryMethod: email.metadata?.delivery_method || "email",
+      sentAt: email.created_at,
+      status: email.status,
+    }));
+
+    return NextResponse.json({ requests });
+  } catch (err) {
+    console.error("Review requests GET error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}
+
 /**
  * POST /api/review-requests
  *
@@ -104,6 +188,10 @@ export async function POST(request: NextRequest) {
             emailType: "review_request",
             recipientType: "family",
             providerId: profile.id,
+            metadata: {
+              client_name: client.name,
+              delivery_method,
+            },
           });
 
           results.push({ name: client.name, email: client.email, status: "sent" });

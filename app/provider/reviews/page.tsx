@@ -1,77 +1,37 @@
 "use client";
 
-import { useState, useMemo, useCallback, useEffect, useRef } from "react";
-import { useProviderProfile } from "@/hooks/useProviderProfile";
-import { markReviewAsRead, migrateReviewsReadData } from "@/hooks/useUnreadReviewsCount";
-import type { Review } from "@/lib/types";
-import RequestNowContent from "@/components/provider/reviews/RequestNowContent";
-import type { RequestNowState } from "@/components/provider/reviews/types";
-import { DEFAULT_MESSAGE } from "@/components/provider/reviews/types";
-
-// Calculate stats from reviews
-function calculateStats(reviews: Review[]): ReviewStats {
-  const totalReviews = reviews.length;
-  const repliedCount = reviews.filter(r => r.provider_reply).length;
-  const avgRating = totalReviews > 0
-    ? reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews
-    : 0;
-
-  return {
-    totalReviews,
-    repliedCount,
-    avgRating: Math.round(avgRating * 10) / 10,
-    categoryStats: {
-      care_quality: avgRating > 0 ? Math.min(5, avgRating + 0.3) : 0,
-      communication: avgRating > 0 ? Math.min(5, avgRating - 0.2) : 0,
-      value: avgRating,
-      cleanliness: avgRating > 0 ? Math.min(5, avgRating - 0.1) : 0,
-    },
-  };
-}
+import { useState, useEffect, useCallback } from "react";
 
 // ── Types ──
 
-type TabFilter = "get_reviews" | "in_person" | "all" | "replied";
+type TabFilter = "send_request" | "sent_requests";
 
-interface ReviewStats {
-  totalReviews: number;
-  repliedCount: number;
-  avgRating: number;
-  categoryStats: {
-    care_quality: number;
-    communication: number;
-    value: number;
-    cleanliness: number;
-  };
+interface SentRequest {
+  id: string;
+  clientName: string;
+  recipient: string;
+  deliveryMethod: string;
+  sentAt: string;
+  status: string;
 }
 
 // ── Helpers ──
 
-function timeAgo(dateStr: string): string {
-  const now = Date.now();
-  const then = new Date(dateStr).getTime();
-  const diffMs = now - then;
-  const diffMins = Math.floor(diffMs / (1000 * 60));
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-  if (diffMins < 1) return "Just now";
-  if (diffMins === 1) return "1 min ago";
-  if (diffMins < 60) return `${diffMins} min ago`;
-  if (diffHours === 1) return "1 hour ago";
-  if (diffHours < 24) return `${diffHours} hours ago`;
-  if (diffDays === 1) return "1 day ago";
-  if (diffDays < 7) return `${diffDays} days ago`;
-  if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
-  return `${Math.floor(diffDays / 30)} months ago`;
-}
-
 function formatDate(dateStr: string): string {
   const date = new Date(dateStr);
-  return date.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) {
+    return date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  }
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays < 7) return `${diffDays} days ago`;
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-// Avatar gradient (deterministic by name)
+// Avatar gradient (deterministic by name) - matches connections page
 const AVATAR_GRADIENTS = [
   "from-rose-100 to-pink-50",
   "from-sky-100 to-blue-50",
@@ -90,7 +50,7 @@ function avatarGradient(name: string): string {
 }
 
 function getInitials(name: string): string {
-  if (name === "Anonymous") return "?";
+  if (!name || name === "Anonymous") return "?";
   const parts = name.trim().split(/\s+/);
   if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
   return name.slice(0, 2).toUpperCase();
@@ -98,27 +58,23 @@ function getInitials(name: string): string {
 
 // ── Icons ──
 
-function StarIcon({ className = "w-4 h-4", filled = true }: { className?: string; filled?: boolean }) {
-  return filled ? (
-    <svg className={className} fill="currentColor" viewBox="0 0 20 20">
-      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-    </svg>
-  ) : (
-    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
-    </svg>
-  );
-}
-
-function CloseIcon({ className = "w-4 h-4" }: { className?: string }) {
+function MailIcon({ className = "w-5 h-5" }: { className?: string }) {
   return (
-    <svg className={className} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
     </svg>
   );
 }
 
-function CheckIcon({ className = "w-4 h-4" }: { className?: string }) {
+function MessageIcon({ className = "w-5 h-5" }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
+    </svg>
+  );
+}
+
+function CheckCircleIcon({ className = "w-5 h-5" }: { className?: string }) {
   return (
     <svg className={className} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
@@ -126,724 +82,345 @@ function CheckIcon({ className = "w-4 h-4" }: { className?: string }) {
   );
 }
 
-// ── Tips Accordion Component ──
+function PlayIcon({ className = "w-8 h-8" }: { className?: string }) {
+  return (
+    <svg className={className} fill="currentColor" viewBox="0 0 24 24">
+      <path d="M8 5.14v14l11-7-11-7z" />
+    </svg>
+  );
+}
 
-function TipsAccordion({ title, children }: { title: string; children: React.ReactNode }) {
-  const [isOpen, setIsOpen] = useState(false);
+function SparklesIcon({ className = "w-5 h-5" }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z" />
+    </svg>
+  );
+}
+
+// ── Send Request Form ──
+
+function SendRequestForm({ onSuccess }: { onSuccess?: () => void }) {
+  const [clientName, setClientName] = useState("");
+  const [email, setEmail] = useState("");
+  const [deliveryMethod, setDeliveryMethod] = useState<"email" | "sms">("email");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!clientName.trim() || !email.trim() || isSubmitting) return;
+
+    setIsSubmitting(true);
+    setSuccessMessage(null);
+    setErrorMessage(null);
+
+    try {
+      const res = await fetch("/api/review-requests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          clients: [{ name: clientName.trim(), email: email.trim() }],
+          message: "Hi, we'd love to hear about your experience with us. Would you take a moment to leave a review? It helps other families find quality care.",
+          delivery_method: deliveryMethod,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to send request");
+      }
+
+      setSuccessMessage(`Review request sent to ${clientName}`);
+      setClientName("");
+      setEmail("");
+      onSuccess?.();
+    } catch (err) {
+      setErrorMessage(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
-    <div className="border-t border-gray-100">
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-gray-50/50 transition-colors duration-150"
-      >
-        <div className="flex items-center gap-2">
-          <div className="w-1 h-4 bg-gray-300 rounded-full" />
-          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-            {title}
-          </span>
-        </div>
-        <svg
-          className={`w-4 h-4 text-gray-400 transition-transform duration-300 ease-out ${
-            isOpen ? "rotate-180" : ""
-          }`}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2}
-          viewBox="0 0 24 24"
+    <form onSubmit={handleSubmit} className="space-y-5">
+      {/* Success message */}
+      {successMessage && (
+        <div
+          className="flex items-center gap-3 p-4 bg-success-50 border border-success-100 rounded-xl text-success-700 text-[15px]"
+          role="alert"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-        </svg>
-      </button>
-      <div
-        className="grid transition-[grid-template-rows] duration-300 ease-out"
-        style={{ gridTemplateRows: isOpen ? "1fr" : "0fr" }}
-      >
-        <div className="overflow-hidden">
-          <div
-            className={`px-6 pb-5 transition-opacity duration-200 ${
-              isOpen ? "opacity-100" : "opacity-0"
+          <CheckCircleIcon className="w-5 h-5 shrink-0 text-success-600" />
+          <span className="font-medium">{successMessage}</span>
+        </div>
+      )}
+
+      {/* Error message */}
+      {errorMessage && (
+        <div
+          className="flex items-center gap-3 p-4 bg-error-50 border border-error-100 rounded-xl text-error-700 text-[15px]"
+          role="alert"
+        >
+          <svg className="w-5 h-5 shrink-0 text-error-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+          </svg>
+          <span className="font-medium">{errorMessage}</span>
+        </div>
+      )}
+
+      {/* Client Name */}
+      <div>
+        <label htmlFor="clientName" className="block text-[15px] font-medium text-gray-700 mb-2">
+          Client name
+        </label>
+        <input
+          type="text"
+          id="clientName"
+          value={clientName}
+          onChange={(e) => setClientName(e.target.value)}
+          placeholder="Enter client's name"
+          className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-white text-gray-900 text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-300 transition-all min-h-[52px]"
+          required
+          autoComplete="name"
+        />
+      </div>
+
+      {/* Email */}
+      <div>
+        <label htmlFor="email" className="block text-[15px] font-medium text-gray-700 mb-2">
+          Email address
+        </label>
+        <input
+          type="email"
+          id="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="client@example.com"
+          className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-white text-gray-900 text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-300 transition-all min-h-[52px]"
+          required
+          autoComplete="email"
+        />
+      </div>
+
+      {/* Delivery Method */}
+      <div>
+        <label className="block text-[15px] font-medium text-gray-700 mb-2">
+          Delivery method
+        </label>
+        <div className="flex gap-3">
+          <button
+            type="button"
+            onClick={() => setDeliveryMethod("email")}
+            aria-pressed={deliveryMethod === "email"}
+            className={`flex-1 flex items-center justify-center gap-2.5 px-4 py-3.5 rounded-xl border-2 transition-all min-h-[52px] focus:outline-none focus:ring-2 focus:ring-primary-200 focus:ring-offset-1 ${
+              deliveryMethod === "email"
+                ? "border-primary-400 bg-primary-50 text-primary-700"
+                : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50"
             }`}
           >
-            {children}
-          </div>
+            <MailIcon className="w-5 h-5" />
+            <span className="font-semibold text-[15px]">Email</span>
+          </button>
+          <button
+            type="button"
+            disabled
+            aria-disabled="true"
+            className="flex-1 flex items-center justify-center gap-2.5 px-4 py-3.5 rounded-xl border-2 border-gray-100 bg-gray-50 text-gray-400 cursor-not-allowed min-h-[52px]"
+          >
+            <MessageIcon className="w-5 h-5" />
+            <span className="font-semibold text-[15px]">SMS</span>
+            <span className="text-xs bg-gray-200/80 text-gray-500 px-2 py-0.5 rounded-md font-medium">Soon</span>
+          </button>
         </div>
       </div>
-    </div>
-  );
-}
 
-// ── Avatar Component ──
-
-function Avatar({
-  name,
-  size = "md",
-  isProvider = false,
-}: {
-  name: string;
-  size?: "sm" | "md" | "lg";
-  isProvider?: boolean;
-}) {
-  const sizeClasses = {
-    sm: "w-8 h-8 text-xs",
-    md: "w-10 h-10 text-sm",
-    lg: "w-12 h-12 text-base",
-  };
-
-  const initials = getInitials(name);
-
-  if (isProvider) {
-    return (
-      <div className={`${sizeClasses[size]} rounded-full bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center shrink-0 ring-2 ring-white shadow-sm`}>
-        <span className="font-bold text-primary-700">{initials}</span>
-      </div>
-    );
-  }
-
-  if (name === "Anonymous") {
-    return (
-      <div className={`${sizeClasses[size]} rounded-full bg-gray-100 flex items-center justify-center shrink-0`}>
-        <span className="font-medium text-gray-400">{initials}</span>
-      </div>
-    );
-  }
-
-  return (
-    <div className={`${sizeClasses[size]} rounded-full bg-gradient-to-br ${avatarGradient(name)} flex items-center justify-center shrink-0 ring-2 ring-white shadow-sm`}>
-      <span className="font-bold text-gray-600">{initials}</span>
-    </div>
-  );
-}
-
-// ── Star Rating Display ──
-
-function StarRating({ rating, size = "sm" }: { rating: number; size?: "sm" | "md" }) {
-  const sizeClass = size === "sm" ? "w-4 h-4" : "w-5 h-5";
-  return (
-    <div className="flex items-center gap-0.5">
-      {[1, 2, 3, 4, 5].map((star) => (
-        <StarIcon
-          key={star}
-          className={`${sizeClass} ${star <= rating ? "text-primary-500" : "text-gray-200"}`}
-          filled={star <= rating}
-        />
-      ))}
-    </div>
-  );
-}
-
-// ── Review Card ──
-
-function ReviewCard({
-  review,
-  onReply,
-  onEdit,
-  isMobile,
-  isNew,
-  onMarkAsRead,
-}: {
-  review: Review;
-  onReply: (review: Review) => void;
-  onEdit: (review: Review) => void;
-  isMobile: boolean;
-  isNew?: boolean;
-  onMarkAsRead?: () => void;
-}) {
-  const hasReply = !!review.provider_reply;
-  const [hasBeenViewed, setHasBeenViewed] = useState(false);
-
-  // Mark as read when card is clicked/interacted with
-  const handleInteraction = useCallback(() => {
-    if (isNew && !hasBeenViewed && onMarkAsRead) {
-      setHasBeenViewed(true);
-      onMarkAsRead();
-    }
-  }, [isNew, hasBeenViewed, onMarkAsRead]);
-
-  // Mobile: card is tappable for unreplied reviews
-  if (isMobile && !hasReply) {
-    return (
+      {/* Submit */}
       <button
-        type="button"
-        onClick={() => {
-          handleInteraction();
-          onReply(review);
-        }}
-        className="w-full text-left bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden active:bg-vanilla-50/60 transition-colors relative"
+        type="submit"
+        disabled={!clientName.trim() || !email.trim() || isSubmitting}
+        className="w-full py-4 rounded-xl bg-primary-600 text-white text-[15px] font-semibold hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-primary-300 focus:ring-offset-2 shadow-sm hover:shadow min-h-[52px]"
       >
-        {/* New indicator dot */}
-        {isNew && !hasBeenViewed && (
-          <div className="absolute top-4 right-4 w-2.5 h-2.5 rounded-full bg-primary-500 ring-2 ring-white shadow-sm" />
+        {isSubmitting ? (
+          <span className="inline-flex items-center justify-center gap-2">
+            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            Sending...
+          </span>
+        ) : (
+          "Send request"
         )}
-        <div className="p-4">
-          {/* Reviewer info + rating */}
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex items-start gap-3">
-              <Avatar name={review.reviewer_name} size="md" />
-              <div className="flex-1 min-w-0">
-                <span className="font-semibold text-gray-900 text-[15px]">
-                  {review.reviewer_name}
-                </span>
-                <p className="text-sm text-gray-400 mt-0.5">
-                  {formatDate(review.created_at)} · {review.relationship}
-                </p>
+      </button>
+    </form>
+  );
+}
+
+// ── Sent Requests List ──
+
+function SentRequestsList({ refreshKey }: { refreshKey: number }) {
+  const [requests, setRequests] = useState<SentRequest[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setIsLoading(true);
+    (async () => {
+      try {
+        const res = await fetch("/api/review-requests");
+        if (!res.ok) throw new Error("Failed to fetch");
+        const data = await res.json();
+        setRequests(data.requests || []);
+        setError(null);
+      } catch (err) {
+        console.error("Failed to fetch sent requests:", err);
+        setError("Failed to load sent requests");
+      } finally {
+        setIsLoading(false);
+      }
+    })();
+  }, [refreshKey]);
+
+  if (isLoading) {
+    return (
+      <div className="space-y-3" role="status" aria-label="Loading sent requests">
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="animate-pulse bg-white rounded-xl border border-gray-100 p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-full bg-warm-100" />
+              <div className="flex-1">
+                <div className="h-4 w-32 bg-warm-100 rounded mb-2" />
+                <div className="h-3 w-48 bg-warm-50 rounded" />
               </div>
             </div>
-            <div className="flex items-center gap-1.5 shrink-0 pr-4">
-              <StarRating rating={review.rating} />
-            </div>
           </div>
-
-          {/* Review content */}
-          <div className="mt-3">
-            {review.title && (
-              <p className="font-semibold text-gray-900 mb-1.5 text-[15px] line-clamp-1">
-                &ldquo;{review.title}&rdquo;
-              </p>
-            )}
-            <p className="text-gray-600 leading-relaxed text-[15px] line-clamp-3">
-              {review.comment}
-            </p>
-          </div>
-
-          {/* Reply prompt */}
-          <div className="mt-4 rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3.5">
-            <p className="text-[15px] text-gray-400">Tap to reply...</p>
-          </div>
-        </div>
-      </button>
+        ))}
+      </div>
     );
   }
 
-  return (
-    <div
-      className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden hover:border-gray-300/80 transition-colors relative"
-      onClick={handleInteraction}
-    >
-      {/* New indicator dot */}
-      {isNew && !hasBeenViewed && (
-        <div className={`absolute ${isMobile ? "top-4 right-4" : "top-6 right-6"} w-2.5 h-2.5 rounded-full bg-primary-500 ring-2 ring-white shadow-sm`} />
-      )}
-      <div className={isMobile ? "p-4" : "p-6"}>
-        {/* Reviewer info + rating */}
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-start gap-3">
-            <Avatar name={review.reviewer_name} size={isMobile ? "md" : "lg"} />
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className={`font-semibold text-gray-900 ${isMobile ? "text-[15px]" : "text-base"}`}>
-                  {review.reviewer_name}
-                </span>
-                {hasReply && (
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-primary-50 text-primary-700 border border-primary-100/50">
-                    Replied
-                  </span>
-                )}
-              </div>
-              <p className="text-sm text-gray-400 mt-0.5">
-                {formatDate(review.created_at)} · {review.relationship}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-1.5 shrink-0 pr-4">
-            <StarRating rating={review.rating} />
-            <span className="text-sm font-semibold text-gray-700">{review.rating}/5</span>
-          </div>
-        </div>
-
-        {/* Review content */}
-        <div className="mt-4">
-          {review.title && (
-            <p className={`font-semibold text-gray-900 mb-2 ${isMobile ? "text-[15px]" : "text-lg"}`}>
-              &ldquo;{review.title}&rdquo;
-            </p>
-          )}
-          <p className={`text-gray-600 leading-relaxed ${isMobile ? "text-[15px]" : "text-base"}`}>
-            {review.comment}
-          </p>
-        </div>
-
-        {/* Provider response */}
-        {hasReply && (
-          <div className="mt-5 pl-4 border-l-2 border-primary-100 bg-primary-50/30 rounded-r-lg p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-xs font-semibold text-primary-600">Your response</span>
-              {review.replied_at && (
-                <span className="text-xs text-gray-400">{formatDate(review.replied_at)}</span>
-              )}
-            </div>
-            <p className="text-sm text-gray-700 leading-relaxed">{review.provider_reply}</p>
-          </div>
-        )}
-
-        {/* Action button */}
-        <div className="mt-5 lg:flex lg:justify-end">
-          <button
-            type="button"
-            onClick={() => hasReply ? onEdit(review) : onReply(review)}
-            className="w-full lg:w-auto px-6 py-3 lg:py-2.5 rounded-xl bg-primary-600 text-[15px] lg:text-[14px] font-semibold text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-300 focus:ring-offset-2 transition-all active:scale-[0.99] min-h-[48px] lg:min-h-0"
-          >
-            {hasReply ? "Edit reply" : "Reply"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ── Bottom Sheet / Side Drawer (Reply / Edit) ──
-
-function BottomSheet({
-  review,
-  isOpen,
-  onClose,
-  onSubmit,
-  mode,
-}: {
-  review: Review | null;
-  isOpen: boolean;
-  onClose: () => void;
-  onSubmit: (review: Review, reply: string) => void;
-  mode: "reply" | "edit";
-}) {
-  const [reply, setReply] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  useEffect(() => {
-    if (review && isOpen) {
-      setReply(mode === "edit" ? (review.provider_reply || "") : "");
-      setTimeout(() => textareaRef.current?.focus(), 350);
-    }
-  }, [review, isOpen, mode]);
-
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [isOpen]);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    if (isOpen) {
-      document.addEventListener("keydown", handleKeyDown);
-    }
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, onClose]);
-
-  const handleSubmit = async () => {
-    if (!review || !reply.trim() || isSubmitting) return;
-    setIsSubmitting(true);
-    await new Promise(r => setTimeout(r, 300));
-    onSubmit(review, reply);
-    setIsSubmitting(false);
-    onClose();
-  };
-
-  if (!review) return null;
-
-  const isEdit = mode === "edit";
-  const title = isEdit ? "Edit your response" : "Reply to review";
-  const buttonText = isEdit
-    ? (isSubmitting ? "Saving..." : "Save changes")
-    : (isSubmitting ? "Publishing..." : "Publish response");
-
-  return (
-    <>
-      {/* Overlay */}
-      <div
-        className={`fixed inset-0 z-40 bg-black/50 transition-opacity duration-300 ${
-          isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-        }`}
-        onClick={onClose}
-        aria-hidden="true"
-      />
-
-      {/* Sheet - bottom on mobile, side drawer on desktop */}
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="sheet-title"
-        className={`fixed z-50 bg-white shadow-2xl flex flex-col will-change-transform transition-transform duration-300 ease-out
-          /* Mobile: bottom sheet - use dvh for proper mobile Safari support */
-          inset-x-0 bottom-0 max-h-[90dvh] rounded-t-3xl pb-[env(safe-area-inset-bottom)]
-          /* Desktop: side drawer */
-          lg:inset-y-0 lg:top-16 lg:right-0 lg:left-auto lg:bottom-auto lg:w-[520px] lg:max-w-[calc(100vw-24px)] lg:h-[calc(100dvh-64px)] lg:max-h-none lg:rounded-none lg:pb-0
-          ${isOpen
-            ? "translate-y-0 lg:translate-x-0"
-            : "translate-y-full lg:translate-y-0 lg:translate-x-full"
-          }`}
-      >
-        {/* Drag handle (mobile) */}
-        <div className="lg:hidden pt-3 pb-2 flex justify-center shrink-0">
-          <div className="w-10 h-1 bg-gray-300 rounded-full" />
-        </div>
-
-        {/* Header */}
-        <div className="px-4 lg:px-6 py-3 lg:py-5 border-b border-gray-100 shrink-0">
-          <div className="flex items-center justify-between">
-            <h2 id="sheet-title" className="text-lg font-display font-bold text-gray-900 tracking-tight">{title}</h2>
-            <button
-              type="button"
-              onClick={onClose}
-              className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-200 transition-colors"
-              aria-label="Close"
-            >
-              <CloseIcon className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto px-4 lg:px-6 py-5">
-          {/* Review display */}
-          <div className="mb-5 pb-5 border-b border-gray-100">
-            <div className="flex items-start gap-3 mb-3">
-              <Avatar name={review.reviewer_name} size="lg" />
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                  <span className="text-[15px] font-semibold text-gray-900">
-                    {review.reviewer_name}
-                  </span>
-                  <StarRating rating={review.rating} />
-                </div>
-                <p className="text-sm text-gray-500 mt-0.5">
-                  {formatDate(review.created_at)} · {review.relationship}
-                </p>
-              </div>
-            </div>
-            {review.title && (
-              <p className="text-[15px] font-semibold text-gray-900 mb-2">
-                &ldquo;{review.title}&rdquo;
-              </p>
-            )}
-            <p className="text-[15px] text-gray-600 leading-relaxed">
-              {review.comment}
-            </p>
-          </div>
-
-          {/* Reply textarea */}
-          <div>
-            <label className="text-sm font-semibold text-gray-700 mb-2 block">
-              {isEdit ? "Your response" : "Your reply"}
-            </label>
-            <textarea
-              ref={textareaRef}
-              value={reply}
-              onChange={(e) => setReply(e.target.value)}
-              placeholder="Type your response here..."
-              rows={6}
-              maxLength={1000}
-              className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3.5 text-[15px] text-gray-800 placeholder:text-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-transparent focus:bg-white transition-all"
-            />
-            <div className="flex items-center justify-between mt-2">
-              <p className="text-xs text-gray-400">
-                Your response will be visible on your public profile.
-              </p>
-              <p className="text-xs text-gray-400">
-                {reply.length}/1000
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="shrink-0 border-t border-gray-100 px-4 lg:px-6 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={!reply.trim() || isSubmitting}
-            className="w-full py-3.5 rounded-xl bg-gradient-to-b from-primary-500 to-primary-600 text-[15px] font-semibold text-white shadow-[0_1px_3px_rgba(6,182,212,0.3),0_1px_2px_rgba(6,182,212,0.2)] hover:from-primary-600 hover:to-primary-700 hover:shadow-[0_3px_8px_rgba(6,182,212,0.35),0_1px_3px_rgba(6,182,212,0.25)] disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.99] min-h-[48px]"
-          >
-            {isSubmitting ? (
-              <span className="inline-flex items-center justify-center gap-2">
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                {isEdit ? "Saving..." : "Publishing..."}
-              </span>
-            ) : buttonText}
-          </button>
-        </div>
-      </div>
-    </>
-  );
-}
-
-
-// ── Empty States ──
-
-function EmptyState({ filter }: { filter: TabFilter }) {
-  if (filter === "replied") {
+  if (error) {
     return (
-      <div className="flex flex-col items-center text-center py-16 lg:py-24 px-6">
-        {/* Illustration */}
-        <div
-          className="w-40 h-40 lg:w-48 lg:h-48 mb-6 relative"
-          style={{ animation: "emptyFloat 3s ease-in-out infinite" }}
-        >
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-28 h-28 lg:w-32 lg:h-32 rounded-2xl bg-gradient-to-br from-primary-50 to-vanilla-100 border border-primary-100/50 flex items-center justify-center transform rotate-3 shadow-sm">
-              <svg className="w-14 h-14 lg:w-16 lg:h-16 text-primary-300" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
-              </svg>
-            </div>
-          </div>
-          {/* Decorative elements */}
-          <div className="absolute top-4 right-6 w-3 h-3 rounded-full bg-amber-200" />
-          <div className="absolute bottom-6 left-6 w-2 h-2 rounded-full bg-primary-200" />
-          <div className="absolute top-10 left-4 w-4 h-1 rounded-full bg-warm-200 transform rotate-45" />
-          <div className="absolute bottom-12 right-4 w-2 h-2 rounded-full bg-warm-300" />
+      <div className="text-center py-12" role="alert">
+        <p className="text-gray-500 text-[15px]">{error}</p>
+      </div>
+    );
+  }
+
+  if (requests.length === 0) {
+    return (
+      <div className="text-center py-16 px-6">
+        <div className="w-16 h-16 rounded-full bg-vanilla-100 flex items-center justify-center mx-auto mb-4">
+          <MailIcon className="w-7 h-7 text-gray-400" />
         </div>
-        <h3 className="text-xl lg:text-2xl font-display font-bold text-gray-900 tracking-tight">
-          No replies yet
-        </h3>
-        <p className="text-[15px] text-gray-500 mt-2.5 leading-relaxed max-w-sm">
-          Respond to reviews to show families you value their feedback. Your replies will appear here.
+        <h3 className="text-lg font-display font-bold text-gray-900 mb-2">No requests sent yet</h3>
+        <p className="text-[15px] text-gray-500 leading-relaxed max-w-xs mx-auto">
+          When you send review requests, they&apos;ll appear here so you can track them.
         </p>
       </div>
     );
   }
 
-  // All empty state - "No reviews yet"
   return (
-    <div className="flex flex-col items-center text-center py-16 lg:py-24 px-6">
-      <div
-        className="w-40 h-40 lg:w-48 lg:h-48 mb-6 relative"
-        style={{ animation: "emptyFloat 3s ease-in-out infinite" }}
-      >
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-28 h-28 lg:w-32 lg:h-32 rounded-2xl bg-gradient-to-br from-primary-50 to-vanilla-100 border border-primary-100/50 flex items-center justify-center transform -rotate-3 shadow-sm">
-            <StarIcon className="w-14 h-14 lg:w-16 lg:h-16 text-primary-300" filled={false} />
+    <div className="space-y-3">
+      {requests.map((request, idx) => (
+        <div
+          key={request.id}
+          className="bg-white rounded-xl border border-gray-100 p-4 hover:border-gray-200 hover:shadow-xs transition-all"
+          style={{ animation: `fadeIn 0.2s ease-out ${idx * 50}ms both` }}
+        >
+          <div className="flex items-start gap-3">
+            {/* Avatar */}
+            <div className={`w-11 h-11 rounded-full bg-gradient-to-br ${avatarGradient(request.clientName)} flex items-center justify-center shrink-0 ring-2 ring-white shadow-sm`}>
+              <span className="text-sm font-bold text-gray-600">
+                {getInitials(request.clientName)}
+              </span>
+            </div>
+
+            {/* Info */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-semibold text-gray-900 text-[15px]">
+                  {request.clientName}
+                </span>
+                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${
+                  request.status === "sent"
+                    ? "bg-success-50 text-success-700"
+                    : "bg-gray-100 text-gray-600"
+                }`}>
+                  {request.status === "sent" ? "Sent" : request.status}
+                </span>
+              </div>
+              <p className="text-sm text-gray-500 mt-0.5 truncate">
+                {request.recipient}
+              </p>
+              <div className="flex items-center gap-3 mt-2.5 text-xs text-gray-400">
+                <span className="inline-flex items-center gap-1.5">
+                  <MailIcon className="w-3.5 h-3.5" />
+                  {request.deliveryMethod === "email" ? "Email" : "SMS"}
+                </span>
+                <span className="w-1 h-1 rounded-full bg-gray-300" />
+                <span>{formatDate(request.sentAt)}</span>
+              </div>
+            </div>
           </div>
         </div>
-        {/* Decorative elements */}
-        <div className="absolute top-4 right-6 w-3 h-3 rounded-full bg-amber-200" />
-        <div className="absolute bottom-6 left-6 w-2 h-2 rounded-full bg-primary-200" />
-        <div className="absolute top-10 left-4 w-4 h-1 rounded-full bg-warm-200 transform rotate-45" />
-        <div className="absolute bottom-12 right-4 w-2 h-2 rounded-full bg-warm-300" />
-      </div>
-      <h3 className="text-xl lg:text-2xl font-display font-bold text-gray-900 tracking-tight">
-        No reviews yet
-      </h3>
-      <p className="text-[15px] text-gray-500 mt-2.5 leading-relaxed max-w-sm">
-        When families leave reviews on your profile, they&apos;ll appear here for you to respond.
-      </p>
+      ))}
     </div>
   );
 }
 
-// ── Mobile Stats Banner (visible only on mobile) ──
+// ── Tips Panel ──
 
-function MobileStatsBanner({
-  stats,
-  onTap,
-}: {
-  stats: ReviewStats;
-  onTap: () => void;
-}) {
+function TipsPanel() {
+  const tips = [
+    {
+      title: "Ask right after service",
+      description: "Reach out within 24-48 hours while the experience is fresh.",
+    },
+    {
+      title: "Make it personal",
+      description: "Use their name and mention specific care you provided.",
+    },
+    {
+      title: "Keep it simple",
+      description: "One click to review. No account needed for your client.",
+    },
+  ];
+
   return (
-    <button
-      type="button"
-      onClick={onTap}
-      className="lg:hidden w-full mb-5 bg-white rounded-xl border border-gray-200 px-4 py-3 text-left active:bg-gray-50 transition-colors"
-    >
-      <div className="flex items-center gap-3">
-        {/* Score ring */}
-        <div className="relative w-10 h-10 shrink-0">
-          <svg className="w-10 h-10 -rotate-90" viewBox="0 0 40 40">
-            <circle cx="20" cy="20" r="16" fill="none" stroke="#f3f4f6" strokeWidth="3" />
-            <circle
-              cx="20" cy="20" r="16" fill="none"
-              stroke="#199087"
-              strokeWidth="3" strokeLinecap="round"
-              strokeDasharray={`${(stats.avgRating / 5) * 100.5} 100.5`}
-            />
-          </svg>
-          <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-gray-700">
-            {stats.avgRating > 0 ? stats.avgRating.toFixed(1) : "-"}
-          </span>
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-xs overflow-hidden">
+      {/* Video placeholder */}
+      <div className="aspect-video bg-gradient-to-br from-primary-50 via-vanilla-50 to-warm-50 flex items-center justify-center relative group cursor-pointer">
+        <div className="w-16 h-16 rounded-full bg-white/95 shadow-lg flex items-center justify-center group-hover:scale-105 transition-transform">
+          <PlayIcon className="w-7 h-7 text-primary-600 ml-0.5" />
         </div>
-
-        {/* Text */}
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-gray-900">Olera Score</p>
-          <p className="text-xs text-gray-500">
-            {stats.totalReviews} review{stats.totalReviews !== 1 ? "s" : ""} · {stats.repliedCount} replied
+        <div className="absolute bottom-3 left-3 right-3">
+          <p className="text-xs font-medium text-gray-600 bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 inline-block shadow-xs">
+            Learn how to get more reviews
           </p>
         </div>
-
-        {/* Chevron */}
-        <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-        </svg>
       </div>
-    </button>
-  );
-}
 
-// ── Mobile Stats Bottom Sheet ──
-
-function MobileStatsSheet({
-  isOpen,
-  onClose,
-  stats,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  stats: ReviewStats;
-}) {
-  const categoryLabels: Record<string, string> = {
-    care_quality: "Care Quality",
-    communication: "Communication",
-    value: "Value",
-    cleanliness: "Cleanliness",
-  };
-
-  // Score label based on rating
-  const getScoreLabel = (rating: number): { label: string; color: string } => {
-    if (rating >= 4.5) return { label: "Excellent", color: "text-primary-700" };
-    if (rating >= 4.0) return { label: "Great", color: "text-primary-600" };
-    if (rating >= 3.5) return { label: "Good", color: "text-amber-600" };
-    if (rating >= 3.0) return { label: "Fair", color: "text-amber-500" };
-    return { label: "Building", color: "text-gray-500" };
-  };
-
-  const scoreInfo = getScoreLabel(stats.avgRating);
-
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [isOpen]);
-
-  if (!isOpen) return null;
-
-  return (
-    <>
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black/40 z-40 lg:hidden"
-        onClick={onClose}
-        style={{ animation: "fade-in 0.2s ease-out both" }}
-      />
-
-      {/* Sheet */}
-      <div
-        className="fixed inset-x-0 bottom-0 z-50 lg:hidden bg-white rounded-t-3xl shadow-xl max-h-[85dvh] overflow-y-auto pb-[env(safe-area-inset-bottom)]"
-        style={{ animation: "slide-up 0.3s ease-out both" }}
-      >
-        {/* Handle */}
-        <div className="sticky top-0 bg-white pt-3 pb-2 px-6 border-b border-gray-100">
-          <div className="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-3" />
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-display font-bold text-gray-900">
-              Olera Score
-            </h3>
-            <button
-              type="button"
-              onClick={onClose}
-              className="w-8 h-8 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors"
-              aria-label="Close"
-            >
-              <CloseIcon className="w-5 h-5" />
-            </button>
-          </div>
+      {/* Tips */}
+      <div className="p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <SparklesIcon className="w-5 h-5 text-primary-600" />
+          <h3 className="font-display font-bold text-gray-900">Tips for success</h3>
         </div>
-
-        <div className="p-6">
-          {/* Score display */}
-          {stats.totalReviews > 0 ? (
-            <>
-              {/* Score label badge */}
-              <div className="flex justify-center mb-4">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-50 border border-primary-100/60">
-                  <svg className="w-3.5 h-3.5 text-primary-600" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
-                  </svg>
-                  <span className={`text-xs font-bold ${scoreInfo.color}`}>{scoreInfo.label}</span>
-                </div>
+        <div className="space-y-4">
+          {tips.map((tip, i) => (
+            <div key={i} className="flex gap-3">
+              <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center shrink-0 mt-0.5">
+                <span className="text-xs font-bold text-primary-700">{i + 1}</span>
               </div>
-
-              <div className="flex flex-col items-center mb-6">
-                <div className="relative w-28 h-28 mb-3">
-                  <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
-                    <circle cx="50" cy="50" r="42" fill="none" stroke="#f3f4f6" strokeWidth="10" />
-                    <circle
-                      cx="50" cy="50" r="42" fill="none"
-                      stroke="#199087"
-                      strokeWidth="10" strokeLinecap="round"
-                      strokeDasharray={`${(stats.avgRating / 5) * 264} 264`}
-                      className="transition-all duration-500"
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-2xl font-bold text-gray-900">{stats.avgRating.toFixed(1)}</span>
-                  </div>
-                </div>
-                <div className="flex items-center justify-center gap-1">
-                  <StarRating rating={Math.round(stats.avgRating)} size="md" />
-                </div>
-                <p className="text-sm text-gray-500 mt-2">
-                  {stats.totalReviews} review{stats.totalReviews !== 1 ? "s" : ""}
-                </p>
+              <div>
+                <p className="font-semibold text-gray-900 text-[15px]">{tip.title}</p>
+                <p className="text-sm text-gray-500 mt-0.5 leading-relaxed">{tip.description}</p>
               </div>
-
-              {/* Category breakdown */}
-              <div className="space-y-4">
-                {Object.entries(stats.categoryStats).map(([key, value]) => (
-                  <div key={key} className="flex items-center gap-3">
-                    <span className="text-sm text-gray-600 w-28 shrink-0">
-                      {categoryLabels[key] || key}
-                    </span>
-                    <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-gradient-to-r from-primary-400 to-primary-500 rounded-full transition-all duration-500"
-                        style={{ width: `${(value / 5) * 100}%` }}
-                      />
-                    </div>
-                    <span className="text-sm font-medium text-gray-700 w-8 text-right">
-                      {value.toFixed(1)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </>
-          ) : (
-            <div className="text-center py-8">
-              <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
-                <StarIcon className="w-8 h-8 text-gray-300" filled={false} />
-              </div>
-              <p className="text-gray-500 font-medium">No ratings yet</p>
-              <p className="text-sm text-gray-400 mt-1">
-                Reviews will appear here when families rate your services.
-              </p>
             </div>
-          )}
+          ))}
         </div>
-
-        {/* Safe area padding for iPhone */}
-        <div className="h-[env(safe-area-inset-bottom)]" />
       </div>
-
-      <style jsx>{`
-        @keyframes fade-in {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        @keyframes slide-up {
-          from { transform: translateY(100%); }
-          to { transform: translateY(0); }
-        }
-      `}</style>
-    </>
+    </div>
   );
 }
 
@@ -852,53 +429,16 @@ function MobileStatsSheet({
 function ReviewsSkeleton() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
         <div className="animate-pulse">
-          <div className="mb-5 lg:mb-8">
+          <div className="mb-6 lg:mb-8">
             <div className="h-8 w-32 bg-warm-100 rounded-lg mb-2" />
-            <div className="h-4 w-72 bg-warm-50 rounded" />
+            <div className="h-4 w-64 bg-warm-50 rounded" />
           </div>
-          {/* Mobile stats skeleton */}
-          <div className="lg:hidden h-16 w-full bg-white rounded-xl border border-warm-100/60 mb-5" />
-          <div className="h-12 w-48 bg-vanilla-50 border border-warm-100/60 rounded-xl mb-5 lg:mb-6" />
-          <div className="lg:grid lg:grid-cols-[1fr,340px] lg:gap-8 lg:items-start">
-            <div className="space-y-4">
-              {[0, 1, 2].map((i) => (
-                <div key={i} className="bg-white rounded-2xl border border-warm-100/60 p-5 lg:p-6">
-                  <div className="flex items-start gap-4 mb-4">
-                    <div className="w-12 h-12 rounded-full bg-warm-100 shrink-0" />
-                    <div className="flex-1">
-                      <div className="h-5 w-32 bg-warm-100 rounded mb-2" />
-                      <div className="h-3 w-48 bg-warm-50 rounded" />
-                    </div>
-                    <div className="flex gap-1">
-                      {[0, 1, 2, 3, 4].map((j) => (
-                        <div key={j} className="w-4 h-4 rounded bg-warm-100" />
-                      ))}
-                    </div>
-                  </div>
-                  <div className="space-y-2 mb-4">
-                    <div className="h-4 w-full bg-warm-50 rounded" />
-                    <div className="h-4 w-3/4 bg-warm-50 rounded" />
-                  </div>
-                  <div className="h-12 bg-warm-100/60 rounded-xl" />
-                </div>
-              ))}
-            </div>
-            {/* Desktop sidebar skeleton */}
-            <div className="hidden lg:block">
-              <div className="bg-white rounded-2xl border border-warm-100/60 p-6">
-                <div className="h-4 w-24 bg-warm-100 rounded mb-6" />
-                <div className="flex justify-center mb-4">
-                  <div className="w-20 h-20 rounded-full bg-warm-50" />
-                </div>
-                <div className="space-y-3">
-                  {[0, 1, 2, 3].map((i) => (
-                    <div key={i} className="h-3 bg-warm-50 rounded" />
-                  ))}
-                </div>
-              </div>
-            </div>
+          <div className="h-12 w-64 bg-vanilla-100 border border-warm-100/60 rounded-xl mb-6" />
+          <div className="lg:grid lg:grid-cols-[1fr,340px] lg:gap-8">
+            <div className="bg-white rounded-2xl border border-warm-100/60 p-6 h-80" />
+            <div className="hidden lg:block bg-white rounded-2xl border border-warm-100/60 h-96" />
           </div>
         </div>
       </div>
@@ -909,343 +449,92 @@ function ReviewsSkeleton() {
 // ── Main Page ──
 
 export default function ProviderReviewsPage() {
-  const providerProfile = useProviderProfile();
-  const [activeFilter, setActiveFilter] = useState<TabFilter>("all");
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [stats, setStats] = useState<ReviewStats>({
-    totalReviews: 0,
-    repliedCount: 0,
-    avgRating: 0,
-    categoryStats: { care_quality: 0, communication: 0, value: 0, cleanliness: 0 },
-  });
-  const [isLoading, setIsLoading] = useState(true);
-  const [isMobile, setIsMobile] = useState(false);
-  const [profileId, setProfileId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<TabFilter>("send_request");
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  // Sheet state
-  const [selectedReview, setSelectedReview] = useState<Review | null>(null);
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [sheetMode, setSheetMode] = useState<"reply" | "edit">("reply");
-
-  // Mobile stats sheet
-  const [showStatsSheet, setShowStatsSheet] = useState(false);
-
-  // Request Now state (for Get Reviews and In Person tabs)
-  const [requestNowState, setRequestNowState] = useState<RequestNowState>({
-    clients: [],
-    message: DEFAULT_MESSAGE,
-    deliveryMethod: "email",
-  });
-
-
-  // Detect mobile
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 1024);
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
+  // Callback to refresh sent requests list after sending
+  const handleSendSuccess = useCallback(() => {
+    setRefreshKey((k) => k + 1);
   }, []);
-
-  // Fetch reviews from API
-  useEffect(() => {
-    if (!providerProfile?.slug) {
-      // No provider profile yet - show empty state
-      setReviews([]);
-      setStats({ totalReviews: 0, repliedCount: 0, avgRating: 0, categoryStats: { care_quality: 0, communication: 0, value: 0, cleanliness: 0 } });
-      setIsLoading(false);
-      return;
-    }
-
-    (async () => {
-      try {
-        const res = await fetch("/api/provider/reviews");
-        if (!res.ok) {
-          throw new Error("Failed to fetch reviews");
-        }
-        const data = await res.json();
-        const fetchedReviews = data.reviews || [];
-        const fetchedProfileId = data.profileId as string | undefined;
-
-        if (fetchedProfileId) {
-          setProfileId(fetchedProfileId);
-          // Migrate localStorage data from old key format
-          if (providerProfile?.id && providerProfile.id !== fetchedProfileId) {
-            migrateReviewsReadData(providerProfile.id, fetchedProfileId);
-          }
-        }
-
-        // Determine isNew for each review based on database read_by with localStorage fallback
-        const reviewsWithReadState = fetchedReviews.map((r: Review) => {
-          // Check database read_by first
-          const meta = r.metadata || {};
-          const readBy = (meta.read_by as Record<string, string>) || {};
-          const isReadInDb = fetchedProfileId ? !!readBy[fetchedProfileId] : false;
-
-          if (isReadInDb) {
-            return { ...r, isNew: false };
-          }
-
-          // Fallback to localStorage
-          try {
-            const readKey = fetchedProfileId ? `olera_reviews_read_${fetchedProfileId}` : `olera_reviews_read_${providerProfile?.id}`;
-            const stored = localStorage.getItem(readKey);
-            const readIds: string[] = stored ? JSON.parse(stored) : [];
-            return { ...r, isNew: !readIds.includes(r.id) };
-          } catch {
-            return { ...r, isNew: true };
-          }
-        });
-
-        setReviews(reviewsWithReadState);
-        setStats(data.stats || calculateStats(reviewsWithReadState));
-
-        // Count unread reviews and sync navbar badge
-        const unreadCount = reviewsWithReadState.filter((r: Review) => r.isNew).length;
-        window.dispatchEvent(new CustomEvent("olera:reviews-sync", {
-          detail: { count: unreadCount, providerId: fetchedProfileId || providerProfile?.id }
-        }));
-      } catch (err) {
-        console.error("Failed to fetch reviews:", err);
-        // Show empty state on error
-        setReviews([]);
-        setStats({ totalReviews: 0, repliedCount: 0, avgRating: 0, categoryStats: { care_quality: 0, communication: 0, value: 0, cleanliness: 0 } });
-      } finally {
-        setIsLoading(false);
-      }
-    })();
-  }, [providerProfile?.slug, providerProfile?.id]);
-
-  const filteredReviews = useMemo(() => {
-    if (activeFilter === "replied") {
-      return reviews.filter((r) => r.provider_reply);
-    }
-    return reviews;
-  }, [activeFilter, reviews]);
-
-  const counts: Record<TabFilter, number | null> = useMemo(() => ({
-    get_reviews: null, // No count for action tabs
-    in_person: null,
-    all: reviews.length,
-    replied: reviews.filter((r) => r.provider_reply).length,
-  }), [reviews]);
-
-  // Handle marking a review as read
-  const handleMarkAsRead = useCallback((reviewId: string) => {
-    if (!profileId) return;
-
-    // Update local state
-    setReviews((prev) =>
-      prev.map((r) => (r.id === reviewId ? { ...r, isNew: false } : r))
-    );
-
-    // Persist to database
-    markReviewAsRead(reviewId, profileId);
-
-    // Sync navbar badge (decrement count)
-    const currentUnreadCount = reviews.filter((r) => r.isNew && r.id !== reviewId).length;
-    window.dispatchEvent(new CustomEvent("olera:reviews-sync", {
-      detail: { count: currentUnreadCount, providerId: profileId }
-    }));
-  }, [profileId, reviews]);
-
-  // Handle reply
-  const handleReply = useCallback((review: Review) => {
-    setSelectedReview(review);
-    setSheetMode("reply");
-    setIsSheetOpen(true);
-  }, []);
-
-  // Handle edit
-  const handleEdit = useCallback((review: Review) => {
-    setSelectedReview(review);
-    setSheetMode("edit");
-    setIsSheetOpen(true);
-  }, []);
-
-  // Handle sheet submit
-  const handleSheetSubmit = useCallback(async (review: Review, reply: string) => {
-    try {
-      const res = await fetch("/api/provider/reviews", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: review.id, reply }),
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        console.error("Failed to save reply:", errorData);
-        alert(errorData.error || "Failed to save reply. Please try again.");
-        return;
-      }
-
-      const data = await res.json();
-
-      // Update the review in local state
-      setReviews((prev) =>
-        prev.map((r) =>
-          r.id === review.id ? { ...r, ...data.review } : r
-        )
-      );
-
-      // Update stats
-      setStats((prev) => ({
-        ...prev,
-        repliedCount: prev.repliedCount + (review.provider_reply ? 0 : 1),
-      }));
-    } catch (err) {
-      console.error("Failed to save reply:", err);
-      alert("Failed to save reply. Please try again.");
-    }
-  }, []);
-
-  const handleCloseSheet = useCallback(() => {
-    setIsSheetOpen(false);
-    setTimeout(() => setSelectedReview(null), 300);
-  }, []);
-
-  if (isLoading) {
-    return <ReviewsSkeleton />;
-  }
 
   const TABS: { id: TabFilter; label: string }[] = [
-    { id: "get_reviews", label: "Get Reviews" },
-    { id: "in_person", label: "In Person" },
-    { id: "all", label: "All Reviews" },
-    { id: "replied", label: "Replied" },
+    { id: "send_request", label: "Send request" },
+    { id: "sent_requests", label: "Sent requests" },
   ];
 
   return (
     <>
-    <style jsx global>{`
-      @keyframes card-enter {
-        from {
-          opacity: 0;
-          transform: translateY(12px);
+      <style jsx global>{`
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(4px); }
+          to { opacity: 1; transform: translateY(0); }
         }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-      @keyframes emptyFloat {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-6px); }
-      }
-    `}</style>
-    <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
-        {/* ── Page header ── */}
-        <div className="mb-5 lg:mb-8">
-          <h1 className="text-2xl lg:text-[28px] font-display font-bold text-gray-900 tracking-tight">
-            Reviews
-          </h1>
-          <p className="text-sm lg:text-[15px] text-gray-500 mt-1 lg:mt-1.5 leading-relaxed">
-            See what families are saying and respond to feedback.
-          </p>
-        </div>
+      `}</style>
 
-        {/* ── Mobile Stats Banner ── */}
-        <MobileStatsBanner stats={stats} onTap={() => setShowStatsSheet(true)} />
-
-        {/* ── Mobile Stats Sheet ── */}
-        <MobileStatsSheet
-          isOpen={showStatsSheet}
-          onClose={() => setShowStatsSheet(false)}
-          stats={stats}
-        />
-
-        {/* ── Tabs (outside grid, full width) ── */}
-        <div className="mb-4 lg:mb-5 -mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-auto scrollbar-hide">
-          <div className="flex gap-0.5 bg-vanilla-50 border border-warm-100/60 p-0.5 rounded-xl w-max min-w-full sm:min-w-0 sm:w-max">
-            {TABS.map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveFilter(tab.id)}
-                className={[
-                  "px-3 sm:px-3.5 lg:px-5 py-2 lg:py-2.5 rounded-[10px] text-[13px] lg:text-sm font-semibold whitespace-nowrap transition-all duration-150 min-h-[40px] lg:min-h-[44px] flex items-center gap-1.5 sm:gap-2 flex-1 sm:flex-none justify-center sm:justify-start",
-                  activeFilter === tab.id
-                    ? "bg-white text-gray-900 shadow-sm"
-                    : "text-gray-500 hover:text-gray-700",
-                ].join(" ")}
-              >
-                {tab.label}
-                {counts[tab.id] !== null && (
-                  <span className={`text-xs px-1.5 py-0.5 rounded-md ${
-                    activeFilter === tab.id
-                      ? "bg-gray-100 text-gray-600"
-                      : "bg-warm-100/60 text-gray-400"
-                  }`}>
-                    {counts[tab.id]}
-                  </span>
-                )}
-              </button>
-            ))}
+      <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
+          {/* Page header */}
+          <div className="mb-6 lg:mb-8">
+            <h1 className="text-2xl lg:text-[28px] font-display font-bold text-gray-900 tracking-tight">
+              Reviews
+            </h1>
+            <p className="text-[15px] text-gray-500 mt-1.5 leading-relaxed">
+              Request reviews from your clients to build trust with families.
+            </p>
           </div>
-        </div>
 
-        {/* ── Content area ── */}
-        {activeFilter === "get_reviews" && (
-          <div className="max-w-xl">
-            <RequestNowContent
-              state={requestNowState}
-              onStateChange={setRequestNowState}
-            />
-          </div>
-        )}
-
-        {activeFilter === "in_person" && (
-          <div className="max-w-xl">
-            <RequestNowContent
-              state={requestNowState}
-              onStateChange={setRequestNowState}
-              providerSlug={providerProfile?.slug}
-            />
-          </div>
-        )}
-
-        {/* ── Review cards ── */}
-        {(activeFilter === "all" || activeFilter === "replied") && (
-        <div className="max-w-xl">
-          {filteredReviews.length > 0 ? (
-            <div className="space-y-4">
-              {filteredReviews.map((review, idx) => (
-                <div
-                  key={review.id}
-                  style={{
-                    animation: "card-enter 0.25s ease-out both",
-                    animationDelay: `${idx * 60}ms`,
-                  }}
+          {/* Pill tabs - matches other provider pages */}
+          <div className="mb-6">
+            <div
+              className="inline-flex gap-0.5 bg-vanilla-100 border border-warm-100/60 p-1 rounded-xl"
+              role="tablist"
+              aria-label="Review request tabs"
+            >
+              {TABS.map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={activeTab === tab.id}
+                  aria-controls={`panel-${tab.id}`}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`px-5 py-2.5 rounded-lg text-[15px] font-semibold transition-all min-h-[44px] focus:outline-none focus:ring-2 focus:ring-primary-200 focus:ring-offset-1 ${
+                    activeTab === tab.id
+                      ? "bg-white text-gray-900 shadow-sm"
+                      : "text-gray-600 hover:text-gray-900 hover:bg-white/50"
+                  }`}
                 >
-                  <ReviewCard
-                    review={review}
-                    onReply={handleReply}
-                    onEdit={handleEdit}
-                    isMobile={isMobile}
-                    isNew={review.isNew}
-                    onMarkAsRead={() => handleMarkAsRead(review.id)}
-                  />
-                </div>
+                  {tab.label}
+                </button>
               ))}
             </div>
-          ) : (
-            <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm min-h-[320px] flex items-center justify-center">
-              <EmptyState filter={activeFilter} />
-            </div>
-          )}
-        </div>
-        )}
-      </div>
+          </div>
 
-      {/* ── Bottom Sheet / Side Drawer ── */}
-      <BottomSheet
-        review={selectedReview}
-        isOpen={isSheetOpen}
-        onClose={handleCloseSheet}
-        onSubmit={handleSheetSubmit}
-        mode={sheetMode}
-      />
-    </div>
+          {/* Content grid */}
+          <div className="lg:grid lg:grid-cols-[1fr,340px] lg:gap-8 lg:items-start">
+            {/* Main content */}
+            <div
+              id={`panel-${activeTab}`}
+              role="tabpanel"
+              aria-labelledby={activeTab}
+              className="bg-white rounded-2xl border border-gray-100 shadow-xs p-5 lg:p-6 mb-6 lg:mb-0"
+            >
+              {activeTab === "send_request" && <SendRequestForm onSuccess={handleSendSuccess} />}
+              {activeTab === "sent_requests" && <SentRequestsList refreshKey={refreshKey} />}
+            </div>
+
+            {/* Right panel - Tips */}
+            <div className="hidden lg:block sticky top-24">
+              <TipsPanel />
+            </div>
+          </div>
+
+          {/* Mobile tips */}
+          <div className="lg:hidden mt-6">
+            <TipsPanel />
+          </div>
+        </div>
+      </div>
     </>
   );
 }

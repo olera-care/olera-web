@@ -18,15 +18,26 @@ interface Provider {
   google_place_id: string | null;
 }
 
-// ── Review Templates ──
+// ── Review Sentence Starters ──
+// These are incomplete sentences that require the user to continue typing
 
-const REVIEW_TEMPLATES: Record<number, string> = {
-  5: "I had an excellent experience. The care was professional, compassionate, and exceeded my expectations. I would highly recommend them to anyone looking for quality care.",
-  4: "I had a great experience overall. The care was professional and attentive. I would recommend them to families looking for reliable care.",
-  3: "My experience was satisfactory. The care met my basic expectations, though there's room for improvement in some areas.",
-  2: "My experience was below expectations. While there were some positives, I encountered several issues that affected the quality of care.",
-  1: "I was disappointed with my experience. The care did not meet my expectations and I had significant concerns.",
-};
+function getReviewStarter(rating: number, providerName: string): string {
+  const name = providerName || "this provider";
+  switch (rating) {
+    case 5:
+      return `My experience with ${name} was exceptional. What stood out most was `;
+    case 4:
+      return `I had a positive experience with ${name}. I especially appreciated `;
+    case 3:
+      return `My experience with ${name} was `;
+    case 2:
+      return `My experience with ${name} could have been better. Specifically, `;
+    case 1:
+      return `I was disappointed with my experience at ${name} because `;
+    default:
+      return "";
+  }
+}
 
 // ── Icons ──
 
@@ -129,12 +140,12 @@ function ReviewPageContent() {
     fetchProvider();
   }, [slug]);
 
-  // Handle rating selection - pre-fill text
+  // Handle rating selection - pre-fill sentence starter
   const handleRatingSelect = (newRating: number) => {
     setRating(newRating);
     // Only pre-fill if user hasn't manually edited the text
-    if (!hasEditedText) {
-      setExperience(REVIEW_TEMPLATES[newRating] || "");
+    if (!hasEditedText && provider) {
+      setExperience(getReviewStarter(newRating, provider.display_name));
     }
   };
 
@@ -372,21 +383,20 @@ function ReviewPageContent() {
               )}
 
               {/* Text area - appears after rating */}
-              <div className={`transition-all duration-300 ${rating > 0 ? "opacity-100 max-h-96" : "opacity-40 max-h-24"}`}>
+              <div className={`transition-all duration-300 ${rating > 0 ? "opacity-100 max-h-[500px]" : "opacity-40 max-h-24"}`}>
                 <textarea
                   value={experience}
                   onChange={handleTextChange}
                   disabled={rating === 0}
-                  rows={3}
-                  placeholder={rating > 0 ? "Edit your review or add more details..." : "Select a rating to start..."}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-gray-900 text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-300 focus:bg-white transition-all resize-none leading-relaxed disabled:cursor-not-allowed"
+                  rows={4}
+                  placeholder={rating > 0 ? "Continue typing to complete your review..." : "Select a rating to start..."}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-gray-900 text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-300 focus:bg-white transition-all resize-y min-h-[100px] leading-relaxed disabled:cursor-not-allowed"
                 />
-              </div>
-
-              {/* Google note - compact */}
-              <div className="flex items-center justify-center gap-2 mt-4 mb-5">
-                <GoogleIcon className="w-4 h-4" />
-                <p className="text-xs text-gray-500">Requires a Google account</p>
+                {rating > 0 && (
+                  <p className="text-xs text-gray-400 mt-2 text-center">
+                    Mention specific caregivers, services, or moments that stood out
+                  </p>
+                )}
               </div>
 
               {/* Share button */}
@@ -394,7 +404,7 @@ function ReviewPageContent() {
                 type="button"
                 onClick={handleShareOnGoogle}
                 disabled={!experience.trim() || rating === 0}
-                className={`w-full py-3.5 rounded-full font-semibold text-[15px] transition-all flex items-center justify-center gap-2 ${
+                className={`w-full py-3.5 mt-5 rounded-full font-semibold text-[15px] transition-all flex items-center justify-center gap-2 ${
                   copied
                     ? "bg-emerald-500 text-white"
                     : experience.trim() && rating > 0
@@ -413,6 +423,12 @@ function ReviewPageContent() {
                   "Share on Google"
                 )}
               </button>
+
+              {/* Google note - below button */}
+              <div className="flex items-center justify-center gap-1.5 mt-3">
+                <GoogleIcon className="w-3.5 h-3.5" />
+                <p className="text-xs text-gray-400">Requires a Google account</p>
+              </div>
             </div>
           </div>
 

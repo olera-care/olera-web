@@ -13,7 +13,7 @@ type InterviewWithProfiles = Interview & {
 };
 
 export default function ProviderCaregiversPage() {
-  const { activeProfile } = useAuth();
+  const { activeProfile, isLoading: authLoading } = useAuth();
   const [interviews, setInterviews] = useState<InterviewWithProfiles[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -32,7 +32,12 @@ export default function ProviderCaregiversPage() {
     finally { setLoading(false); }
   }, []);
 
-  useEffect(() => { fetchInterviews(); }, [fetchInterviews]);
+  // Wait for auth to complete before fetching interviews
+  useEffect(() => {
+    if (!authLoading) {
+      fetchInterviews();
+    }
+  }, [fetchInterviews, authLoading]);
 
   const updateStatus = async (interviewId: string, status: string) => {
     setActionLoading(interviewId);
@@ -62,7 +67,7 @@ export default function ProviderCaregiversPage() {
         <InterviewCalendar
           interviews={interviews}
           perspective="provider"
-          loading={loading}
+          loading={loading || authLoading}
           onUpdateStatus={updateStatus}
           actionLoading={actionLoading}
           accessTier={accessInfo.tier}

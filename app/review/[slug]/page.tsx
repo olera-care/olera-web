@@ -18,6 +18,16 @@ interface Provider {
   google_place_id: string | null;
 }
 
+// ── Review Templates ──
+
+const REVIEW_TEMPLATES: Record<number, string> = {
+  5: "I had an excellent experience. The care was professional, compassionate, and exceeded my expectations. I would highly recommend them to anyone looking for quality care.",
+  4: "I had a great experience overall. The care was professional and attentive. I would recommend them to families looking for reliable care.",
+  3: "My experience was satisfactory. The care met my basic expectations, though there's room for improvement in some areas.",
+  2: "My experience was below expectations. While there were some positives, I encountered several issues that affected the quality of care.",
+  1: "I was disappointed with my experience. The care did not meet my expectations and I had significant concerns.",
+};
+
 // ── Icons ──
 
 function GoogleIcon({ className = "w-5 h-5" }: { className?: string }) {
@@ -31,18 +41,24 @@ function GoogleIcon({ className = "w-5 h-5" }: { className?: string }) {
   );
 }
 
-function CheckIcon({ className = "w-5 h-5" }: { className?: string }) {
+function StarIcon({ filled, className = "w-8 h-8" }: { filled: boolean; className?: string }) {
   return (
-    <svg className={className} fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24" aria-hidden="true">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-    </svg>
-  );
-}
-
-function ExternalLinkIcon({ className = "w-5 h-5" }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+    <svg className={className} viewBox="0 0 24 24" aria-hidden="true">
+      {filled ? (
+        <path
+          fill="currentColor"
+          d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+        />
+      ) : (
+        <path
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={1.5}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+        />
+      )}
     </svg>
   );
 }
@@ -51,15 +67,22 @@ function ExternalLinkIcon({ className = "w-5 h-5" }: { className?: string }) {
 
 function MinimalHeader() {
   return (
-    <header className="border-b border-gray-100 bg-white/95 backdrop-blur-sm sticky top-0 z-10">
-      <div className="flex items-center justify-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-16">
+    <header className="bg-white/80 backdrop-blur-md border-b border-gray-100/50 sticky top-0 z-10">
+      <div className="flex items-center justify-center h-14">
         <Link href="/" className="flex items-center gap-2 group" aria-label="Olera homepage">
-          <Image src="/images/olera-logo.png" alt="" width={28} height={28} className="object-contain" />
-          <span className="text-lg font-bold text-gray-900 group-hover:text-primary-700 transition-colors">Olera</span>
+          <Image src="/images/olera-logo.png" alt="" width={24} height={24} className="object-contain" />
+          <span className="text-base font-bold text-gray-900 group-hover:text-primary-600 transition-colors">Olera</span>
         </Link>
       </div>
     </header>
   );
+}
+
+// ── Truncate helper ──
+
+function truncateName(name: string, maxLength: number = 28): string {
+  if (name.length <= maxLength) return name;
+  return name.slice(0, maxLength).trimEnd() + "...";
 }
 
 // ── Main Page Content ──
@@ -75,7 +98,10 @@ function ReviewPageContent() {
   const [error, setError] = useState<string | null>(null);
 
   // Form state
+  const [rating, setRating] = useState<number>(0);
+  const [hoverRating, setHoverRating] = useState<number>(0);
   const [experience, setExperience] = useState("");
+  const [hasEditedText, setHasEditedText] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -103,6 +129,21 @@ function ReviewPageContent() {
     fetchProvider();
   }, [slug]);
 
+  // Handle rating selection - pre-fill text
+  const handleRatingSelect = (newRating: number) => {
+    setRating(newRating);
+    // Only pre-fill if user hasn't manually edited the text
+    if (!hasEditedText) {
+      setExperience(REVIEW_TEMPLATES[newRating] || "");
+    }
+  };
+
+  // Handle text change
+  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setExperience(e.target.value);
+    setHasEditedText(true);
+  };
+
   // Copy to clipboard and open Google
   const handleShareOnGoogle = async () => {
     if (!provider?.google_place_id || !experience.trim()) return;
@@ -113,7 +154,6 @@ function ReviewPageContent() {
       await navigator.clipboard.writeText(reviewText);
       setCopied(true);
 
-      // Show success state briefly, then open Google
       setTimeout(() => {
         setShowSuccess(true);
         window.open(
@@ -121,7 +161,7 @@ function ReviewPageContent() {
           "_blank",
           "noopener,noreferrer"
         );
-      }, 500);
+      }, 600);
     } catch {
       // Fallback for older browsers
       const textArea = document.createElement("textarea");
@@ -141,292 +181,260 @@ function ReviewPageContent() {
           "_blank",
           "noopener,noreferrer"
         );
-      }, 500);
+      }, 600);
     }
   };
 
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white flex flex-col">
+      <div className="min-h-screen min-h-dvh bg-gradient-to-b from-slate-50 to-white flex flex-col">
         <MinimalHeader />
         <div className="flex-1 flex items-center justify-center" role="status" aria-label="Loading">
-          <div className="w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
+          <div className="w-6 h-6 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
         </div>
       </div>
     );
   }
 
-  // Error state - provider not found
+  // Error state
   if (error || !provider) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white flex flex-col">
+      <div className="min-h-screen min-h-dvh bg-gradient-to-b from-slate-50 to-white flex flex-col">
         <MinimalHeader />
         <div className="flex-1 flex items-center justify-center p-4">
-          <div className="text-center max-w-md" style={{ animation: "fadeIn 0.3s ease-out" }}>
-            <div className="w-16 h-16 mx-auto mb-5 rounded-full bg-vanilla-100 flex items-center justify-center">
-              <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true">
+          <div className="text-center max-w-sm animate-fade-in">
+            <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+              <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
               </svg>
             </div>
-            <h1 className="text-xl font-display font-bold text-gray-900 mb-2">
-              {error || "Provider not found"}
-            </h1>
-            <p className="text-[15px] text-gray-500 mb-6 leading-relaxed">
-              We couldn&apos;t find this provider. The link may be incorrect or expired.
-            </p>
+            <h1 className="text-lg font-semibold text-gray-900 mb-1.5">{error || "Provider not found"}</h1>
+            <p className="text-sm text-gray-500 mb-5">The link may be incorrect or expired.</p>
             <Link
               href="/"
-              className="inline-flex items-center gap-2 px-6 py-3.5 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-primary-300 focus:ring-offset-2 min-h-[52px]"
+              className="inline-flex px-5 py-2.5 bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium rounded-full transition-colors"
             >
-              Go to homepage
+              Go home
             </Link>
           </div>
         </div>
-        <style jsx>{`
-          @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
-          }
-        `}</style>
       </div>
     );
   }
 
-  // No Google Place ID - show friendly message
+  // No Google Place ID
   if (!provider.google_place_id) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white flex flex-col">
+      <div className="min-h-screen min-h-dvh bg-gradient-to-b from-slate-50 to-white flex flex-col">
         <MinimalHeader />
         <div className="flex-1 flex items-center justify-center p-4">
-          <div className="text-center max-w-md" style={{ animation: "fadeIn 0.3s ease-out" }}>
-            {/* Provider avatar */}
-            <div className="w-20 h-20 mx-auto mb-5 rounded-2xl overflow-hidden bg-vanilla-100 ring-4 ring-white shadow-md">
+          <div className="text-center max-w-sm animate-fade-in">
+            <div className="w-14 h-14 mx-auto mb-4 rounded-2xl overflow-hidden bg-primary-50 flex items-center justify-center">
               {provider.image_url ? (
-                <Image
-                  src={provider.image_url}
-                  alt={provider.display_name}
-                  width={80}
-                  height={80}
-                  className="w-full h-full object-cover"
-                />
+                <Image src={provider.image_url} alt="" width={56} height={56} className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary-100 to-primary-50">
-                  <span className="text-2xl font-bold text-primary-600">
-                    {provider.display_name.charAt(0)}
-                  </span>
-                </div>
+                <span className="text-xl font-bold text-primary-600">{provider.display_name.charAt(0)}</span>
               )}
             </div>
-            <h1 className="text-xl font-display font-bold text-gray-900 mb-2">
-              Thanks for wanting to review {provider.display_name}!
-            </h1>
-            <p className="text-[15px] text-gray-500 mb-6 leading-relaxed">
-              We&apos;re still setting up their Google review page. In the meantime, your feedback means a lot — please check back soon!
+            <h1 className="text-lg font-semibold text-gray-900 mb-1.5">Thanks for wanting to review!</h1>
+            <p className="text-sm text-gray-500 mb-5">
+              We&apos;re still setting up Google reviews for {truncateName(provider.display_name, 20)}. Check back soon!
             </p>
             <Link
               href={`/provider/${provider.slug}`}
-              className="inline-flex items-center gap-2 px-6 py-3.5 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-primary-300 focus:ring-offset-2 min-h-[52px]"
+              className="inline-flex px-5 py-2.5 bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium rounded-full transition-colors"
             >
-              View their profile
+              View profile
             </Link>
           </div>
         </div>
-        <style jsx>{`
-          @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
-          }
-        `}</style>
       </div>
     );
   }
 
-  // Success state (after sharing to Google)
+  // Success state
   if (showSuccess) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white flex flex-col">
+      <div className="min-h-screen min-h-dvh bg-gradient-to-b from-slate-50 to-white flex flex-col">
         <MinimalHeader />
         <div className="flex-1 flex items-center justify-center p-4">
-          <div className="text-center max-w-md" style={{ animation: "fadeIn 0.3s ease-out" }}>
-            <div className="w-16 h-16 mx-auto mb-5 rounded-full bg-success-50 flex items-center justify-center ring-4 ring-success-50/50 shadow-sm">
-              <svg className="w-8 h-8 text-success-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+          <div className="text-center max-w-sm animate-fade-in">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/25">
+              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
               </svg>
             </div>
-            <h1 className="text-2xl font-display font-bold text-gray-900 mb-2">
-              You&apos;re all set!
-            </h1>
-            <p className="text-[15px] text-gray-500 mb-6 leading-relaxed">
-              Your review has been copied. Paste it in the Google review window that just opened.
-            </p>
-            <div className="space-y-3">
+            <h1 className="text-xl font-semibold text-gray-900 mb-2">Review copied!</h1>
+            <p className="text-sm text-gray-500 mb-6">Paste it in the Google window that just opened.</p>
+            <div className="space-y-2">
               <button
                 type="button"
-                onClick={() => {
-                  window.open(
-                    `https://search.google.com/local/writereview?placeid=${provider.google_place_id}`,
-                    "_blank",
-                    "noopener,noreferrer"
-                  );
-                }}
-                className="w-full inline-flex items-center justify-center gap-2.5 px-6 py-3.5 bg-white border border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all focus:outline-none focus:ring-2 focus:ring-gray-200 focus:ring-offset-2 min-h-[52px] shadow-xs"
+                onClick={() => window.open(`https://search.google.com/local/writereview?placeid=${provider.google_place_id}`, "_blank")}
+                className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 bg-white border border-gray-200 text-gray-700 text-sm font-medium rounded-full hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm"
               >
-                <GoogleIcon className="w-5 h-5" />
-                Open Google Reviews again
+                <GoogleIcon className="w-4 h-4" />
+                Open Google again
               </button>
               <Link
                 href={`/provider/${provider.slug}`}
-                className="block text-[15px] text-gray-500 hover:text-gray-700 transition-colors py-2"
+                className="block text-sm text-gray-500 hover:text-gray-700 transition-colors py-2"
               >
-                View provider profile
+                Back to profile
               </Link>
             </div>
           </div>
         </div>
-        <style jsx>{`
-          @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
-          }
-        `}</style>
       </div>
     );
   }
 
-  // Main review form
+  // Main review form - compact, everything in viewport
+  const displayRating = hoverRating || rating;
+  const providerDisplayName = truncateName(provider.display_name);
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white flex flex-col">
+    <div className="min-h-screen min-h-dvh bg-gradient-to-b from-slate-50 to-white flex flex-col">
       <MinimalHeader />
-      <style jsx>{`
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(8px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
 
-      <main className="flex-1 flex items-center justify-center p-4 py-8 sm:py-12">
-        <div className="w-full max-w-lg" style={{ animation: "fadeIn 0.3s ease-out" }}>
-          {/* Provider header */}
-          <div className="text-center mb-8">
-            <div className="w-20 h-20 mx-auto mb-4 rounded-2xl overflow-hidden bg-vanilla-100 ring-4 ring-white shadow-md">
-              {provider.image_url ? (
-                <Image
-                  src={provider.image_url}
-                  alt={provider.display_name}
-                  width={80}
-                  height={80}
-                  className="w-full h-full object-cover"
-                  priority
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary-100 to-primary-50">
-                  <span className="text-2xl font-bold text-primary-600" aria-hidden="true">
-                    {provider.display_name.charAt(0)}
-                  </span>
+      <main className="flex-1 flex items-center justify-center p-4 py-6">
+        <div className="w-full max-w-md animate-fade-in">
+          {/* Main card - contains everything */}
+          <div className="bg-white rounded-3xl shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
+            {/* Provider header - compact */}
+            <div className="px-6 pt-6 pb-4 border-b border-gray-100 bg-gradient-to-b from-gray-50/50 to-white">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl overflow-hidden bg-primary-50 flex-shrink-0 ring-2 ring-white shadow-sm">
+                  {provider.image_url ? (
+                    <Image src={provider.image_url} alt="" width={48} height={48} className="w-full h-full object-cover" priority />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary-100 to-primary-50">
+                      <span className="text-lg font-bold text-primary-600">{provider.display_name.charAt(0)}</span>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-            <h1 className="text-2xl font-display font-bold text-gray-900 mb-1">
-              {provider.display_name}
-            </h1>
-            {provider.city && provider.state && (
-              <p className="text-gray-500">
-                {provider.city}, {provider.state}
-              </p>
-            )}
-            {clientName && (
-              <p className="text-primary-600 font-medium mt-3">
-                Hi {clientName}, thanks for taking a moment to leave a review!
-              </p>
-            )}
-          </div>
-
-          {/* Main card */}
-          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6 sm:p-8">
-            <h2 className="text-xl font-display font-bold text-gray-900 mb-2 text-center">
-              How was your experience?
-            </h2>
-            <p className="text-[15px] text-gray-500 text-center mb-6 leading-relaxed">
-              Share your honest thoughts to help other families find quality care.
-            </p>
-
-            {/* Text area */}
-            <div className="mb-6">
-              <label htmlFor="experience" className="sr-only">Your experience</label>
-              <textarea
-                id="experience"
-                value={experience}
-                onChange={(e) => setExperience(e.target.value)}
-                rows={5}
-                placeholder="Tell us about your experience with this provider..."
-                className="w-full px-4 py-4 rounded-xl border border-gray-200 bg-vanilla-50/50 text-gray-900 text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-300 focus:bg-white transition-all resize-none leading-relaxed"
-                aria-describedby="experience-hint"
-              />
-              <p id="experience-hint" className="sr-only">
-                Write about your experience working with this care provider
-              </p>
-            </div>
-
-            {/* Google info note - using warm tones */}
-            <div className="flex items-start gap-3 p-4 bg-vanilla-100 border border-warm-100/60 rounded-xl mb-6">
-              <GoogleIcon className="w-5 h-5 mt-0.5 shrink-0" />
-              <div>
-                <p className="text-sm text-gray-700 font-medium">
-                  Your review will be shared on Google
-                </p>
-                <p className="text-sm text-gray-500 mt-0.5">
-                  More families can discover them. You&apos;ll need a Google account to post.
-                </p>
+                <div className="min-w-0">
+                  <h1 className="font-semibold text-gray-900 truncate">{provider.display_name}</h1>
+                  {provider.city && provider.state && (
+                    <p className="text-sm text-gray-500">{provider.city}, {provider.state}</p>
+                  )}
+                </div>
               </div>
             </div>
 
-            {/* Share button */}
-            <button
-              type="button"
-              onClick={handleShareOnGoogle}
-              disabled={!experience.trim()}
-              aria-disabled={!experience.trim()}
-              className={`w-full py-4 rounded-xl font-semibold text-[15px] transition-all flex items-center justify-center gap-2.5 min-h-[56px] focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                copied
-                  ? "bg-success-600 text-white focus:ring-success-300"
-                  : experience.trim()
-                  ? "bg-primary-600 hover:bg-primary-700 text-white shadow-sm hover:shadow focus:ring-primary-300 active:scale-[0.99]"
-                  : "bg-gray-100 text-gray-400 cursor-not-allowed focus:ring-gray-200"
-              }`}
-            >
-              {copied ? (
-                <>
-                  <CheckIcon className="w-5 h-5" />
-                  Copied! Opening Google...
-                </>
-              ) : (
-                <>
-                  <ExternalLinkIcon className="w-5 h-5" />
-                  Share on Google
-                </>
+            {/* Form content */}
+            <div className="px-6 py-5">
+              {/* Personalized greeting */}
+              {clientName && (
+                <p className="text-sm text-primary-600 font-medium mb-4 text-center">
+                  Hi {clientName}! Thanks for sharing your feedback.
+                </p>
               )}
-            </button>
 
-            {/* Helper text */}
-            <p className="text-xs text-center text-gray-400 mt-4 leading-relaxed">
-              We&apos;ll copy your review to your clipboard and open Google Reviews.
-              <br />
-              Just paste and submit!
-            </p>
+              {/* Title */}
+              <h2 className="text-lg font-semibold text-gray-900 text-center mb-1">
+                How was your experience?
+              </h2>
+              <p className="text-sm text-gray-500 text-center mb-5">
+                with {providerDisplayName}
+              </p>
+
+              {/* Star rating - interactive */}
+              <div className="flex items-center justify-center gap-1 mb-5">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    onClick={() => handleRatingSelect(star)}
+                    onMouseEnter={() => setHoverRating(star)}
+                    onMouseLeave={() => setHoverRating(0)}
+                    className={`p-1 rounded-lg transition-all duration-150 ${
+                      star <= displayRating
+                        ? "text-amber-400 scale-110"
+                        : "text-gray-300 hover:text-amber-300"
+                    }`}
+                    aria-label={`Rate ${star} star${star > 1 ? "s" : ""}`}
+                  >
+                    <StarIcon filled={star <= displayRating} className="w-9 h-9" />
+                  </button>
+                ))}
+              </div>
+
+              {/* Rating label */}
+              {rating > 0 && (
+                <p className="text-center text-sm text-gray-500 mb-4 animate-fade-in">
+                  {rating === 5 && "Excellent!"}
+                  {rating === 4 && "Great!"}
+                  {rating === 3 && "It was okay"}
+                  {rating === 2 && "Could be better"}
+                  {rating === 1 && "Needs improvement"}
+                </p>
+              )}
+
+              {/* Text area - appears after rating */}
+              <div className={`transition-all duration-300 ${rating > 0 ? "opacity-100 max-h-96" : "opacity-40 max-h-24"}`}>
+                <textarea
+                  value={experience}
+                  onChange={handleTextChange}
+                  disabled={rating === 0}
+                  rows={3}
+                  placeholder={rating > 0 ? "Edit your review or add more details..." : "Select a rating to start..."}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-gray-900 text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-300 focus:bg-white transition-all resize-none leading-relaxed disabled:cursor-not-allowed"
+                />
+              </div>
+
+              {/* Google note - compact */}
+              <div className="flex items-center justify-center gap-2 mt-4 mb-5">
+                <GoogleIcon className="w-4 h-4" />
+                <p className="text-xs text-gray-500">Requires a Google account</p>
+              </div>
+
+              {/* Share button */}
+              <button
+                type="button"
+                onClick={handleShareOnGoogle}
+                disabled={!experience.trim() || rating === 0}
+                className={`w-full py-3.5 rounded-full font-semibold text-[15px] transition-all flex items-center justify-center gap-2 ${
+                  copied
+                    ? "bg-emerald-500 text-white"
+                    : experience.trim() && rating > 0
+                    ? "bg-gray-900 hover:bg-gray-800 text-white shadow-lg shadow-gray-900/10 active:scale-[0.98]"
+                    : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                }`}
+              >
+                {copied ? (
+                  <>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                    </svg>
+                    Opening Google...
+                  </>
+                ) : (
+                  "Share on Google"
+                )}
+              </button>
+            </div>
           </div>
 
           {/* Footer */}
-          <footer className="text-center mt-10">
-            <p className="text-xs text-gray-400">
-              Powered by{" "}
-              <Link href="/" className="text-primary-600 hover:text-primary-700 hover:underline transition-colors">
-                Olera
-              </Link>
-            </p>
-          </footer>
+          <p className="text-center text-xs text-gray-400 mt-6">
+            Powered by{" "}
+            <Link href="/" className="text-gray-500 hover:text-gray-700 transition-colors">
+              Olera
+            </Link>
+          </p>
         </div>
       </main>
+
+      <style jsx global>{`
+        @keyframes fade-in {
+          from { opacity: 0; transform: translateY(8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+          animation: fade-in 0.4s ease-out;
+        }
+      `}</style>
     </div>
   );
 }
@@ -437,8 +445,8 @@ export default function ReviewPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white flex items-center justify-center">
-          <div className="w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
+        <div className="min-h-screen min-h-dvh bg-gradient-to-b from-slate-50 to-white flex items-center justify-center">
+          <div className="w-6 h-6 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
         </div>
       }
     >

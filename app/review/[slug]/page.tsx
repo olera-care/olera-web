@@ -271,10 +271,16 @@ function ReviewPageContent() {
         <MinimalHeader />
         <div className="flex-1 flex items-center justify-center p-4">
           <div className="text-center max-w-sm animate-fade-in">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/25">
-              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-              </svg>
+            {/* Celebratory icon with bounce */}
+            <div className="w-18 h-18 mx-auto mb-5 relative animate-success-bounce">
+              <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-emerald-400 to-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                </svg>
+              </div>
+              {/* Subtle sparkle accents */}
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-amber-400 rounded-full opacity-80" />
+              <div className="absolute -bottom-0.5 -left-1 w-2 h-2 bg-primary-400 rounded-full opacity-70" />
             </div>
             <h1 className="text-xl font-semibold text-gray-900 mb-2">Review copied!</h1>
             <p className="text-sm text-gray-500 mb-6">Paste it in the Google window that just opened.</p>
@@ -282,14 +288,14 @@ function ReviewPageContent() {
               <button
                 type="button"
                 onClick={() => window.open(`https://search.google.com/local/writereview?placeid=${provider.google_place_id}`, "_blank")}
-                className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 bg-white border border-gray-200 text-gray-700 text-sm font-medium rounded-full hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm"
+                className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 bg-white border border-gray-200 text-gray-700 text-sm font-medium rounded-full hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 shadow-sm"
               >
                 <GoogleIcon className="w-4 h-4" />
                 Open Google again
               </button>
               <Link
                 href={`/provider/${provider.slug}`}
-                className="block text-sm text-gray-500 hover:text-gray-700 transition-colors py-2"
+                className="block text-sm text-gray-500 hover:text-gray-600 transition-colors py-2"
               >
                 Back to profile
               </Link>
@@ -311,7 +317,7 @@ function ReviewPageContent() {
       <main className="flex-1 flex items-center justify-center p-4 py-6">
         <div className="w-full max-w-md animate-fade-in">
           {/* Main card - contains everything */}
-          <div className="bg-white rounded-3xl shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
+          <div className="bg-white rounded-3xl shadow-[0_4px_24px_rgb(0,0,0,0.06)] border border-gray-200/60 overflow-hidden">
             {/* Provider header - compact */}
             <div className="px-6 pt-6 pb-4 border-b border-gray-100 bg-gradient-to-b from-gray-50/50 to-white">
               <div className="flex items-center gap-3">
@@ -343,15 +349,15 @@ function ReviewPageContent() {
               )}
 
               {/* Title */}
-              <h2 className="text-lg font-semibold text-gray-900 text-center mb-1">
+              <h2 className="text-xl font-medium text-gray-900 text-center mb-1">
                 How was your experience?
               </h2>
               <p className="text-sm text-gray-500 text-center mb-5">
                 with {providerDisplayName}
               </p>
 
-              {/* Star rating - interactive */}
-              <div className="flex items-center justify-center gap-1 mb-5">
+              {/* Star rating - interactive, larger touch targets */}
+              <div className="flex items-center justify-center gap-0.5 mb-5">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <button
                     key={star}
@@ -359,44 +365,44 @@ function ReviewPageContent() {
                     onClick={() => handleRatingSelect(star)}
                     onMouseEnter={() => setHoverRating(star)}
                     onMouseLeave={() => setHoverRating(0)}
-                    className={`p-1 rounded-lg transition-all duration-150 ${
+                    className={`p-2 rounded-xl transition-all duration-150 ${
                       star <= displayRating
                         ? "text-amber-400 scale-110"
                         : "text-gray-300 hover:text-amber-300"
                     }`}
                     aria-label={`Rate ${star} star${star > 1 ? "s" : ""}`}
                   >
-                    <StarIcon filled={star <= displayRating} className="w-9 h-9" />
+                    <StarIcon filled={star <= displayRating} className="w-8 h-8" />
                   </button>
                 ))}
               </div>
 
-              {/* Rating label */}
+              {/* Rating label - consistent single words */}
               {rating > 0 && (
                 <p className="text-center text-sm text-gray-500 mb-4 animate-fade-in">
-                  {rating === 5 && "Excellent!"}
-                  {rating === 4 && "Great!"}
-                  {rating === 3 && "It was okay"}
-                  {rating === 2 && "Could be better"}
-                  {rating === 1 && "Needs improvement"}
+                  {rating === 5 && "Excellent"}
+                  {rating === 4 && "Great"}
+                  {rating === 3 && "Good"}
+                  {rating === 2 && "Fair"}
+                  {rating === 1 && "Poor"}
                 </p>
               )}
 
               {/* Text area - appears after rating */}
-              <div className={`transition-all duration-300 ${rating > 0 ? "opacity-100 max-h-[500px]" : "opacity-40 max-h-24"}`}>
+              <div className={`transition-all duration-200 ${rating > 0 ? "opacity-100 max-h-[500px]" : "opacity-40 max-h-24"}`}>
+                {rating > 0 && (
+                  <p className="text-xs text-gray-500 mb-2 text-center">
+                    Mention caregivers, services, or moments that stood out
+                  </p>
+                )}
                 <textarea
                   value={experience}
                   onChange={handleTextChange}
                   disabled={rating === 0}
                   rows={4}
-                  placeholder={rating > 0 ? "Continue typing to complete your review..." : "Select a rating to start..."}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-gray-900 text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-300 focus:bg-white transition-all resize-y min-h-[100px] leading-relaxed disabled:cursor-not-allowed"
+                  placeholder={rating > 0 ? "What made this experience memorable?" : "Select a rating to start"}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-gray-900 text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-300 focus:bg-white transition-all duration-200 resize-y min-h-[100px] leading-relaxed disabled:cursor-not-allowed"
                 />
-                {rating > 0 && (
-                  <p className="text-xs text-gray-400 mt-2 text-center">
-                    Mention specific caregivers, services, or moments that stood out
-                  </p>
-                )}
               </div>
 
               {/* Share button */}
@@ -404,7 +410,7 @@ function ReviewPageContent() {
                 type="button"
                 onClick={handleShareOnGoogle}
                 disabled={!experience.trim() || rating === 0}
-                className={`w-full py-3.5 mt-5 rounded-full font-semibold text-[15px] transition-all flex items-center justify-center gap-2 ${
+                className={`w-full py-3.5 mt-5 rounded-full font-medium text-[15px] transition-all duration-200 flex items-center justify-center gap-2 ${
                   copied
                     ? "bg-emerald-500 text-white"
                     : experience.trim() && rating > 0
@@ -435,7 +441,7 @@ function ReviewPageContent() {
           {/* Footer */}
           <p className="text-center text-xs text-gray-400 mt-6">
             Powered by{" "}
-            <Link href="/" className="text-gray-500 hover:text-gray-700 transition-colors">
+            <Link href="/" className="text-gray-500 hover:text-gray-600 transition-colors">
               Olera
             </Link>
           </p>
@@ -444,11 +450,18 @@ function ReviewPageContent() {
 
       <style jsx global>{`
         @keyframes fade-in {
-          from { opacity: 0; transform: translateY(8px); }
+          from { opacity: 0; transform: translateY(6px); }
           to { opacity: 1; transform: translateY(0); }
         }
         .animate-fade-in {
-          animation: fade-in 0.4s ease-out;
+          animation: fade-in 0.25s ease-out;
+        }
+        @keyframes success-bounce {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.05); }
+        }
+        .animate-success-bounce {
+          animation: success-bounce 0.4s ease-out;
         }
       `}</style>
     </div>

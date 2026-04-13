@@ -66,13 +66,6 @@ function MailIcon({ className = "w-5 h-5" }: { className?: string }) {
   );
 }
 
-function MessageIcon({ className = "w-5 h-5" }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
-    </svg>
-  );
-}
 
 function CheckCircleIcon({ className = "w-5 h-5" }: { className?: string }) {
   return (
@@ -98,19 +91,44 @@ function SparklesIcon({ className = "w-5 h-5" }: { className?: string }) {
   );
 }
 
+// ── Default message ──
+
+const DEFAULT_MESSAGE = "Hi, we'd love to hear about your experience with us. Would you take a moment to leave a review? It helps other families find quality care.";
+
+// ── Copy Link Icon ──
+
+function LinkIcon({ className = "w-5 h-5" }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
+    </svg>
+  );
+}
+
 // ── Send Request Form ──
 
-function SendRequestForm({ onSuccess }: { onSuccess?: () => void }) {
+function SendRequestForm({ onSuccess, providerSlug }: { onSuccess?: () => void; providerSlug?: string }) {
   const [clientName, setClientName] = useState("");
   const [email, setEmail] = useState("");
-  const [deliveryMethod, setDeliveryMethod] = useState<"email" | "sms">("email");
+  const [message, setMessage] = useState(DEFAULT_MESSAGE);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [linkCopied, setLinkCopied] = useState(false);
+
+  // Auto-dismiss success message after 3 seconds
+  useEffect(() => {
+    if (successMessage) {
+      const timer = setTimeout(() => {
+        setSuccessMessage(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [successMessage]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!clientName.trim() || !email.trim() || isSubmitting) return;
+    if (!clientName.trim() || !email.trim() || !message.trim() || isSubmitting) return;
 
     setIsSubmitting(true);
     setSuccessMessage(null);
@@ -122,8 +140,8 @@ function SendRequestForm({ onSuccess }: { onSuccess?: () => void }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           clients: [{ name: clientName.trim(), email: email.trim() }],
-          message: "Hi, we'd love to hear about your experience with us. Would you take a moment to leave a review? It helps other families find quality care.",
-          delivery_method: deliveryMethod,
+          message: message.trim(),
+          delivery_method: "email",
         }),
       });
 
@@ -140,9 +158,10 @@ function SendRequestForm({ onSuccess }: { onSuccess?: () => void }) {
         throw new Error(errorMsg);
       }
 
-      setSuccessMessage(`Review request sent to ${clientName}`);
+      setSuccessMessage(`Request sent to ${clientName}`);
       setClientName("");
       setEmail("");
+      setMessage(DEFAULT_MESSAGE);
       onSuccess?.();
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : "Something went wrong");
@@ -151,13 +170,35 @@ function SendRequestForm({ onSuccess }: { onSuccess?: () => void }) {
     }
   };
 
+  const handleCopyLink = async () => {
+    if (!providerSlug) return;
+    const link = `${window.location.origin}/review/${providerSlug}`;
+    try {
+      await navigator.clipboard.writeText(link);
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2000);
+    } catch {
+      // Fallback
+      const textArea = document.createElement("textarea");
+      textArea.value = link;
+      textArea.style.position = "fixed";
+      textArea.style.opacity = "0";
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textArea);
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2000);
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
-      {/* Success message */}
+      {/* Success message - auto-dismisses */}
       {successMessage && (
         <div
-          className="flex items-center gap-3 p-4 bg-success-50 border border-success-100 rounded-xl text-success-700 text-[15px]"
-          role="alert"
+          className="flex items-center gap-3 p-4 bg-success-50 border border-success-100 rounded-xl text-success-700 text-[15px] animate-fade-in"
+          role="status"
         >
           <CheckCircleIcon className="w-5 h-5 shrink-0 text-success-600" />
           <span className="font-medium">{successMessage}</span>
@@ -177,76 +218,63 @@ function SendRequestForm({ onSuccess }: { onSuccess?: () => void }) {
         </div>
       )}
 
-      {/* Client Name */}
-      <div>
-        <label htmlFor="clientName" className="block text-[15px] font-medium text-gray-700 mb-2">
-          Client name
-        </label>
-        <input
-          type="text"
-          id="clientName"
-          value={clientName}
-          onChange={(e) => setClientName(e.target.value)}
-          placeholder="Enter client's name"
-          className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-white text-gray-900 text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-300 transition-all min-h-[52px]"
-          required
-          autoComplete="name"
-        />
-      </div>
-
-      {/* Email */}
-      <div>
-        <label htmlFor="email" className="block text-[15px] font-medium text-gray-700 mb-2">
-          Email address
-        </label>
-        <input
-          type="email"
-          id="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="client@example.com"
-          className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-white text-gray-900 text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-300 transition-all min-h-[52px]"
-          required
-          autoComplete="email"
-        />
-      </div>
-
-      {/* Delivery Method */}
-      <div>
-        <label className="block text-[15px] font-medium text-gray-700 mb-2">
-          Delivery method
-        </label>
-        <div className="flex gap-3">
-          <button
-            type="button"
-            onClick={() => setDeliveryMethod("email")}
-            aria-pressed={deliveryMethod === "email"}
-            className={`flex-1 flex items-center justify-center gap-2.5 px-4 py-3.5 rounded-xl border-2 transition-all min-h-[52px] focus:outline-none focus:ring-2 focus:ring-primary-200 focus:ring-offset-1 ${
-              deliveryMethod === "email"
-                ? "border-primary-400 bg-primary-50 text-primary-700"
-                : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50"
-            }`}
-          >
-            <MailIcon className="w-5 h-5" />
-            <span className="font-semibold text-[15px]">Email</span>
-          </button>
-          <button
-            type="button"
-            disabled
-            aria-disabled="true"
-            className="flex-1 flex items-center justify-center gap-2.5 px-4 py-3.5 rounded-xl border-2 border-gray-100 bg-gray-50 text-gray-400 cursor-not-allowed min-h-[52px]"
-          >
-            <MessageIcon className="w-5 h-5" />
-            <span className="font-semibold text-[15px]">SMS</span>
-            <span className="text-xs bg-gray-200/80 text-gray-500 px-2 py-0.5 rounded-md font-medium">Soon</span>
-          </button>
+      {/* Client Name + Email - side by side */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label htmlFor="clientName" className="block text-[15px] font-medium text-gray-700 mb-2">
+            Client name
+          </label>
+          <input
+            type="text"
+            id="clientName"
+            value={clientName}
+            onChange={(e) => setClientName(e.target.value)}
+            placeholder="Jane Smith"
+            className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-white text-gray-900 text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-300 transition-all min-h-[52px]"
+            required
+            autoComplete="off"
+          />
         </div>
+        <div>
+          <label htmlFor="email" className="block text-[15px] font-medium text-gray-700 mb-2">
+            Email address
+          </label>
+          <input
+            type="email"
+            id="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="jane@example.com"
+            className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-white text-gray-900 text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-300 transition-all min-h-[52px]"
+            required
+            autoComplete="off"
+          />
+        </div>
+      </div>
+      <p className="text-sm text-gray-500 -mt-2">
+        We&apos;ll send your review request to this email.
+      </p>
+
+      {/* Message */}
+      <div>
+        <label htmlFor="message" className="block text-[15px] font-medium text-gray-700 mb-2">
+          Your message
+        </label>
+        <textarea
+          id="message"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          rows={4}
+          placeholder="Write a personal message..."
+          className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-white text-gray-900 text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-300 transition-all resize-none leading-relaxed"
+          required
+        />
       </div>
 
       {/* Submit */}
       <button
         type="submit"
-        disabled={!clientName.trim() || !email.trim() || isSubmitting}
+        disabled={!clientName.trim() || !email.trim() || !message.trim() || isSubmitting}
         className="w-full py-4 rounded-xl bg-primary-600 text-white text-[15px] font-semibold hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-primary-300 focus:ring-offset-2 shadow-sm hover:shadow min-h-[52px]"
       >
         {isSubmitting ? (
@@ -258,6 +286,24 @@ function SendRequestForm({ onSuccess }: { onSuccess?: () => void }) {
           "Send request"
         )}
       </button>
+
+      {/* Direct link option for clients without email */}
+      {providerSlug && (
+        <div className="pt-2 text-center">
+          <button
+            type="button"
+            onClick={handleCopyLink}
+            className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+          >
+            <LinkIcon className="w-4 h-4" />
+            {linkCopied ? (
+              <span className="text-success-600 font-medium">Link copied!</span>
+            ) : (
+              <span>Client doesn&apos;t have email? Copy direct link</span>
+            )}
+          </button>
+        </div>
+      )}
     </form>
   );
 }
@@ -459,6 +505,22 @@ function ReviewsSkeleton() {
 export default function ProviderReviewsPage() {
   const [activeTab, setActiveTab] = useState<TabFilter>("send_request");
   const [refreshKey, setRefreshKey] = useState(0);
+  const [providerSlug, setProviderSlug] = useState<string | null>(null);
+
+  // Fetch provider slug for direct link feature
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch("/api/provider/profile");
+        if (res.ok) {
+          const data = await res.json();
+          setProviderSlug(data.profile?.slug || null);
+        }
+      } catch {
+        // Silently fail - direct link will just be unavailable
+      }
+    })();
+  }, []);
 
   // Callback to refresh sent requests list after sending
   const handleSendSuccess = useCallback(() => {
@@ -476,6 +538,9 @@ export default function ProviderReviewsPage() {
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(4px); }
           to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+          animation: fadeIn 0.2s ease-out;
         }
       `}</style>
 
@@ -527,7 +592,7 @@ export default function ProviderReviewsPage() {
               aria-labelledby={activeTab}
               className="bg-white rounded-2xl border border-gray-100 shadow-xs p-5 lg:p-6 mb-6 lg:mb-0"
             >
-              {activeTab === "send_request" && <SendRequestForm onSuccess={handleSendSuccess} />}
+              {activeTab === "send_request" && <SendRequestForm onSuccess={handleSendSuccess} providerSlug={providerSlug || undefined} />}
               {activeTab === "sent_requests" && <SentRequestsList refreshKey={refreshKey} />}
             </div>
 

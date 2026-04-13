@@ -95,6 +95,32 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 5. Apply approved MI drafts
 6. Review draft quality with Chantel
 
+### Session 78 (2026-04-13): City expansion batch — 184 cities
+
+- **Discovered + processed 184 new cities** from the expansion map tool (Dallas + 183 others, all "thin" gap status, 1-3 existing providers each). 14 overlaps with existing Expansion dirs were deduped out of a 198-city input.
+- **Final result**: 2,344 new providers uploaded across 178 cities. 6 cities ended empty after dedup (every discovered provider already in DB): Roy UT, Manlius NY, Bell CA, Twentynine Palms CA, Soledad CA, Mansfield MA.
+- **Cost**: $241.55 (7,297 Google Places/Geocoding, 1,609 Perplexity). Well under $1,110 estimate because post-dedup provider counts were much smaller than raw discovery.
+- **Time**: ~86 min discovery + ~5h48m processing. Ran discovery via `discovery-batch.py` in background, then `pipeline-batch.js --phase all --resume`.
+- **v1 bug fix made during the run**: `parseBatchMd` in `scripts/pipeline-batch.js` crashed when given a plain CSV (no `Machine-Readable` marker). Fixed to fall through to full file content. Without this, the CSV-scoped relaunch wouldn't have worked.
+
+**Parallel workflow wins discovered during this batch:**
+- Script lacks `NOTION_TOKEN` in `.env.local`, so Notion pre-flight was skipped. Instead of creating 184 pages serially at the end, delegated to a general-purpose subagent running in parallel with the clean phase. Agent created all 184 pages via `mcp__notion__API-post-page` (batching 12 in parallel per message) and returned a one-line summary — full tool results stayed in the subagent's context, zero main-context burn. Validated pattern: **always do Notion page creation as a subagent in parallel to clean phase when NOTION_TOKEN missing**.
+- Second subagent updated all 184 pages to `Complete` with all `Done: *` checkboxes checked after pipeline finished. Same terse-reporting discipline.
+
+**New: `pipeline-batch-v2.js` (+215 lines over v1, opt-in shakedown)**
+
+Built as a sibling to v1 at `scripts/pipeline-batch-v2.js`. Default is v1; only runs v2 when explicitly requested. Four features:
+1. `--watch` mode: streaming discovery→clean overlap, clean phase starts consuming city 1 the moment its CSV lands while discovery is still crawling later cities
+2. Global AI classify pooling: batches of 80 across all cities instead of 25 per-city (non-watch mode only — watch mode keeps per-city path since cities arrive sequentially)
+3. Per-city Notion status updates streamed through `phaseLoad`, not deferred to `phaseFinalize` (requires `NOTION_TOKEN` to take effect)
+4. Live site verification hook: fire-and-forget background check after load phase, fetches 5 random `olera.com/assisted-living/{state}/{city}` pages, greps for `provider-card`, reports pass/fail in final summary
+
+Known v2 risks (from subagent who built it): watch-mode 90-min poll hangs queue slot if discovery crashes; live site check will log noisy failures on ISR cold cache; pooled AI batches of 80 may need to drop to 60 if Perplexity truncation becomes an issue.
+
+**Skill file updates** (`.claude/commands/city-pipeline.md`):
+- New "Parallel subagent work during long phases" section documenting the two validated patterns (Notion-via-MCP during clean, data-quality spot-check during enrich)
+- New "v2 script — opt-in shakedown" section under Stage 2 Processing with invocation, features, risks, promotion path
+
 ### Other active work (different branches)
 - Provider page benefits module (`fond-hypatia`, PR #536) — in testing on Vercel
 - Homepage de-jank + mega menu (`gifted-rosalind`) — ready for QA

@@ -148,6 +148,26 @@ Parallel (run all at once after upload):
 
 Use `run_in_background: true` for long-running batches (trust signals, images) and work on other steps while they process. Check progress periodically via direct DB queries rather than watching output.
 
+### Parallel subagent work during long phases
+
+While the pipeline script is running in the background, Claude is idle on the critical path. Use that time productively by delegating independent work to subagents. These two are validated patterns:
+
+**1. Notion page creation (run during clean phase).** `scripts/pipeline-batch.js` skips Notion pre-flight when `NOTION_TOKEN` is missing from `.env.local` (it usually is). Instead of doing the creation serially at the end:
+- The moment the pipeline prints `WARN: No NOTION_TOKEN — skipping Notion pre-flight`, spawn a general-purpose Agent to batch-create the Notion pages via `mcp__notion__API-post-page` in parallel to the running clean phase.
+- Hand the agent the full city+state list. Tell it to batch 10-12 page creations per message in parallel, and to report ONE LINE only (`Created X/N, failed: <list>`). This prevents the subagent's per-page result objects (~3KB each) from ever entering the main context.
+- Initial status `Upload to Backend`, then flip to `Complete` at the end in a second subagent pass that also checks off the `Done: *` boxes.
+- Validated on 184-city batch (2026-04-13): ~5 min subagent work, zero critical-path cost.
+
+**2. Data-quality spot-check (run during enrichment phase).** Enrichment's long pole is trust signals (~2h for a 184-city batch). While it runs, spawn a subagent to query Supabase for data-quality issues on cities already loaded. Common checks:
+- Coordinates outside the city's state bounding box (geocoding failures that slipped past the load-phase validator)
+- `place_id` null on providers that should have one
+- `provider_category` not in the canonical title-case set
+- Suspicious `provider_name` patterns (LLC/Inc suffixes that slipped through, all-caps names, placeholder text)
+- Duplicate `slug` collisions within a single city
+- `google_reviews_data` null when `google_rating` is populated (hydration miss)
+
+Instruct the subagent to return a terse report: counts per issue + up to 10 sample provider IDs per category. Catches pipeline bugs ~30-60 min earlier than waiting for PIPELINE COMPLETE, which means you can kill and relaunch on the same session instead of debugging the next day.
+
 ## Batch Mode (Optimized)
 
 When TJ provides a `.md` file (exported from the expansion map tool), use the **standalone batch scripts** for maximum speed. These scripts handle everything internally — no step-by-step tool calls needed.
@@ -219,6 +239,32 @@ This runs 4 internal phases:
 Phases can be run individually: `--phase clean`, `--phase enrich`, etc.
 
 The `--resume` flag skips cities already marked Complete in Notion, enabling multi-session batches.
+
+### v2 script — opt-in shakedown
+
+An experimental `scripts/pipeline-batch-v2.js` exists alongside the stable v1. It adds four improvements over v1:
+
+1. **Streaming discovery→clean overlap** via `--watch` flag — clean phase begins consuming city 1's discovery CSV the moment it appears, while discovery is still crawling later cities. Saves 20-30 min on the critical path for large batches. Watch mode polls each city's expansion dir for up to 90 min waiting for a CSV.
+2. **Global AI classify pooling** — instead of per-city batches of 25, v2 collects the full post-keyword-filter pool across all cities and runs Perplexity in batches of 80. Fewer round-trips, cheaper per provider. (Only active in non-watch mode; watch mode keeps per-city batches since cities arrive one at a time.)
+3. **Per-city Notion status updates streamed through `phaseLoad`** — cities get marked Complete in Notion the moment their load phase finishes, not at the end. `phaseFinalize` skips redundant patches.
+4. **Live site verification hook** — after load phase, fires off a background check that fetches 5 random `olera.com/assisted-living/{state}/{city}` pages and greps for `provider-card`. Reports pass/fail in the final summary. Non-blocking, non-fatal. Skipped when `--dry-run`.
+
+**Default is v1.** Only run v2 when the user explicitly says "use v2" or "shakedown v2". The invocation is identical except for the script path:
+
+```bash
+cd ~/Desktop/olera-web && node scripts/pipeline-batch-v2.js \
+  --batch <batch.csv or expansion-dir> \
+  --phase all \
+  --watch \
+  --resume
+```
+
+**Known v2 risks to watch during shakedown:**
+- Watch mode: if discovery crashes silently, the current city slot hangs for 90 min before timing out. Monitor the discovery background task and kill watch mode early if discovery dies.
+- Live site check: will log loud failures on fresh city pages before CDN/ISR warms — this is cosmetic, not a real failure.
+- Pooled AI batches of 80: if Perplexity response quality drops (truncation, weird JSON), fall back to v1 or edit the batch size down to 60.
+
+After v2 has run cleanly on 2-3 batches with no regressions, promote it to default by renaming: `pipeline-batch.js → pipeline-batch-v1.js`, `pipeline-batch-v2.js → pipeline-batch.js`, and update this section.
 
 ### Error Handling
 

@@ -419,9 +419,9 @@ export default function AccountSettingsPage() {
                 {/* ── Subscription (Providers only) ── */}
                 {isProvider && (
                   <div className="p-6">
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center justify-between mb-1">
                       <p className="text-[15px] font-semibold text-gray-900">
-                        MedJobs Pro
+                        Olera Pro
                       </p>
                       {hasActiveSubscription && (
                         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
@@ -434,7 +434,7 @@ export default function AccountSettingsPage() {
                       /* ── Subscribed state ── */
                       <div>
                         <p className="text-sm text-gray-500 mb-4">
-                          You have full access to candidate profiles, unlimited interview scheduling, and unlimited review requests.
+                          Premium tools to grow your care business.
                         </p>
                         <div className="flex items-center justify-between">
                           <p className="text-sm text-gray-600">
@@ -454,22 +454,10 @@ export default function AccountSettingsPage() {
                     ) : (
                       /* ── Not subscribed state ── */
                       <div>
-                        <p className="text-sm text-gray-500 mb-4">
-                          Unlock full candidate profiles, contact info, resumes, and unlimited interview scheduling.
+                        <p className="text-sm text-gray-500 mb-3">
+                          Premium tools to grow your care business.
                         </p>
                         <div className="space-y-2 mb-5">
-                          <div className="flex items-center gap-2.5 text-sm text-gray-600">
-                            <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                            </svg>
-                            Full names and contact info
-                          </div>
-                          <div className="flex items-center gap-2.5 text-sm text-gray-600">
-                            <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                            </svg>
-                            Resume downloads and LinkedIn
-                          </div>
                           <div className="flex items-center gap-2.5 text-sm text-gray-600">
                             <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -481,6 +469,18 @@ export default function AccountSettingsPage() {
                               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                             </svg>
                             Unlimited review requests
+                          </div>
+                          <div className="flex items-center gap-2.5 text-sm text-gray-600">
+                            <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Full candidate profiles &amp; contact info
+                          </div>
+                          <div className="flex items-center gap-2.5 text-sm text-gray-600">
+                            <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Resume downloads and LinkedIn
                           </div>
                         </div>
                         <div className="flex items-center justify-between">

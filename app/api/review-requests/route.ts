@@ -10,6 +10,103 @@ interface ReviewRequestClient {
   phone?: string;
 }
 
+interface EmailLogRow {
+  id: string;
+  recipient: string;
+  created_at: string;
+  status: string;
+  metadata: {
+    client_name?: string;
+    delivery_method?: string;
+  } | null;
+}
+
+// Free credit limit for review requests (lifetime, not monthly)
+const FREE_REVIEW_CREDITS = 3;
+
+/**
+ * GET /api/review-requests
+ *
+ * Fetch sent review request emails for the authenticated provider.
+ * Returns list of sent requests with recipient info, method, date, and open status.
+ */
+export async function GET() {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    }
+
+    const db = getServiceClient();
+
+    // Get the user's provider profile
+    const { data: account } = await db
+      .from("accounts")
+      .select("id")
+      .eq("user_id", user.id)
+      .single();
+
+    if (!account) {
+      return NextResponse.json({ error: "No account found" }, { status: 400 });
+    }
+
+    const { data: profile } = await db
+      .from("business_profiles")
+      .select("id, metadata")
+      .eq("account_id", account.id)
+      .in("type", ["organization", "caregiver"])
+      .single();
+
+    if (!profile) {
+      return NextResponse.json({ error: "No provider profile found" }, { status: 400 });
+    }
+
+    // Get access tier info
+    const metadata = (profile.metadata || {}) as Record<string, unknown>;
+    const isPaid = !!(metadata.medjobs_subscription_active as boolean);
+    const reviewCreditsUsed = (metadata.reviews_credits_used as number) || 0;
+
+    // Fetch review request emails for this provider
+    const { data: emails, error: emailsError } = await db
+      .from("email_log")
+      .select("id, recipient, created_at, status, metadata")
+      .eq("provider_id", profile.id)
+      .eq("email_type", "review_request")
+      .order("created_at", { ascending: false })
+      .limit(100);
+
+    if (emailsError) {
+      console.error("Failed to fetch review request emails:", emailsError);
+      return NextResponse.json({ error: "Failed to fetch data" }, { status: 500 });
+    }
+
+    // Transform the data for the frontend
+    const requests = ((emails as EmailLogRow[]) || []).map((email) => ({
+      id: email.id,
+      clientName: email.metadata?.client_name || email.recipient.split("@")[0],
+      recipient: email.recipient,
+      deliveryMethod: email.metadata?.delivery_method || "email",
+      sentAt: email.created_at,
+      status: email.status,
+    }));
+
+    return NextResponse.json({
+      requests,
+      is_paid: isPaid,
+      credits_used: reviewCreditsUsed,
+      credits_remaining: isPaid ? Infinity : Math.max(FREE_REVIEW_CREDITS - reviewCreditsUsed, 0),
+    });
+  } catch (err) {
+    console.error("Review requests GET error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}
+
 /**
  * POST /api/review-requests
  *
@@ -68,13 +165,45 @@ export async function POST(request: NextRequest) {
 
     const { data: profile } = await db
       .from("business_profiles")
-      .select("id, display_name, slug")
+      .select("id, display_name, slug, metadata")
       .eq("account_id", account.id)
       .in("type", ["organization", "caregiver"])
       .single();
 
     if (!profile?.slug) {
       return NextResponse.json({ error: "No provider profile found" }, { status: 400 });
+    }
+
+    // Check access tier for review requests
+    const metadata = (profile.metadata || {}) as Record<string, unknown>;
+    const isPaid = !!(metadata.medjobs_subscription_active as boolean);
+    const reviewCreditsUsed = (metadata.reviews_credits_used as number) || 0;
+
+    // If not paid and at/over limit, require upgrade
+    if (!isPaid && reviewCreditsUsed >= FREE_REVIEW_CREDITS) {
+      return NextResponse.json(
+        {
+          error: "Review request limit reached",
+          upgrade_required: true,
+          credits_used: reviewCreditsUsed,
+        },
+        { status: 402 }
+      );
+    }
+
+    // Check if this batch would exceed the limit (prevent batch bypass)
+    const clientsWithEmail = clients.filter((c) => c.email);
+    if (!isPaid && reviewCreditsUsed + clientsWithEmail.length > FREE_REVIEW_CREDITS) {
+      const creditsRemaining = FREE_REVIEW_CREDITS - reviewCreditsUsed;
+      return NextResponse.json(
+        {
+          error: `You can only send ${creditsRemaining} more free request${creditsRemaining === 1 ? "" : "s"}. Upgrade to Pro for unlimited requests.`,
+          upgrade_required: true,
+          credits_used: reviewCreditsUsed,
+          credits_remaining: creditsRemaining,
+        },
+        { status: 402 }
+      );
     }
 
     // Use request origin for correct preview/staging URLs, fallback to env variable
@@ -92,7 +221,7 @@ export async function POST(request: NextRequest) {
         const reviewUrl = `${siteUrl}/review/${profile.slug}?ref=email&name=${encodeURIComponent(client.name)}`;
 
         try {
-          await sendEmail({
+          const emailResult = await sendEmail({
             to: client.email,
             subject: `${profile.display_name} would love your feedback`,
             html: reviewRequestEmail({
@@ -104,9 +233,23 @@ export async function POST(request: NextRequest) {
             emailType: "review_request",
             recipientType: "family",
             providerId: profile.id,
+            metadata: {
+              client_name: client.name,
+              delivery_method,
+            },
           });
 
-          results.push({ name: client.name, email: client.email, status: "sent" });
+          if (emailResult.success) {
+            results.push({ name: client.name, email: client.email, status: "sent" });
+          } else {
+            console.error(`Email send returned error for ${client.email}:`, emailResult.error);
+            results.push({
+              name: client.name,
+              email: client.email,
+              status: "failed",
+              error: emailResult.error || "Failed to send email",
+            });
+          }
         } catch (emailErr) {
           console.error(`Failed to send review request to ${client.email}:`, emailErr);
           results.push({
@@ -145,11 +288,32 @@ export async function POST(request: NextRequest) {
 
     const sentCount = results.filter((r) => r.status === "sent").length;
 
+    // Increment review credits used (only for non-paid providers, and only for actually sent emails)
+    if (!isPaid && sentCount > 0) {
+      const newCreditsUsed = reviewCreditsUsed + sentCount;
+      try {
+        await db
+          .from("business_profiles")
+          .update({
+            metadata: {
+              ...metadata,
+              reviews_credits_used: newCreditsUsed,
+            },
+          })
+          .eq("id", profile.id);
+      } catch (creditErr) {
+        // Non-blocking — don't fail the request if credit tracking fails
+        console.error("Failed to update review credits:", creditErr);
+      }
+    }
+
     return NextResponse.json({
       success: true,
       sent: sentCount,
       total: clients.length,
       results,
+      credits_used: isPaid ? 0 : reviewCreditsUsed + sentCount,
+      credits_remaining: isPaid ? Infinity : Math.max(FREE_REVIEW_CREDITS - (reviewCreditsUsed + sentCount), 0),
     });
   } catch (err) {
     console.error("Review requests POST error:", err);

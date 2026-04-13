@@ -9,31 +9,63 @@ import Modal from "@/components/ui/Modal";
 type SettingsTab = "account" | "notifications";
 
 // Notification configurations per account type
+// Only activity-based notifications are shown here (controllable by user)
+// Marketing/transactional emails (profile reminders, nudges, etc.) always send and have no toggle
 const FAMILY_NOTIFICATIONS = [
-  { key: "connection_updates", title: "Connection updates", description: "When a provider responds or messages you" },
-  { key: "saved_provider_alerts", title: "Saved provider alerts", description: "When a saved provider becomes available" },
-  { key: "match_updates", title: "Match updates", description: "New provider matches and care profile responses" },
-  { key: "profile_reminders", title: "Profile reminders", description: "Tips to complete your care profile" },
+  {
+    key: "messages_and_responses",
+    title: "Messages & responses",
+    description: "When a provider messages you or responds to your inquiry",
+    channels: ["email", "whatsapp"] as const,
+  },
+  {
+    key: "match_updates",
+    title: "Match updates",
+    description: "When providers reach out to you on Matches",
+    channels: ["email", "whatsapp"] as const,
+  },
 ] as const;
 
 const ORGANIZATION_NOTIFICATIONS = [
-  { key: "lead_notifications", title: "New leads", description: "When families send you inquiries or connection requests" },
-  { key: "review_alerts", title: "Review alerts", description: "When you receive new reviews or Q&A questions" },
-  { key: "message_notifications", title: "Message notifications", description: "When families message you" },
-  { key: "profile_insights", title: "Profile insights", description: "Weekly performance insights and tips" },
+  {
+    key: "new_leads",
+    title: "New leads",
+    description: "When families send you inquiries or connection requests",
+    channels: ["email", "sms", "whatsapp"] as const,
+  },
+  {
+    key: "reviews_and_questions",
+    title: "Reviews & questions",
+    description: "When you receive new reviews or Q&A questions",
+    channels: ["email"] as const,
+  },
+  {
+    key: "messages",
+    title: "Messages",
+    description: "When families message you",
+    channels: ["email", "whatsapp"] as const,
+  },
 ] as const;
 
 const CAREGIVER_NOTIFICATIONS = [
-  { key: "job_alerts", title: "Job alerts", description: "New job opportunities matching your preferences" },
-  { key: "interview_reminders", title: "Interview reminders", description: "Upcoming interviews and status updates" },
-  { key: "application_updates", title: "Application updates", description: "Status changes on your applications" },
-  { key: "message_notifications", title: "Message notifications", description: "When employers message you" },
+  {
+    key: "interview_requests",
+    title: "Interview requests",
+    description: "When employers want to interview you",
+    channels: ["email"] as const,
+  },
+  {
+    key: "application_updates",
+    title: "Application updates",
+    description: "When your application is accepted or declined",
+    channels: ["email"] as const,
+  },
 ] as const;
 
 type NotificationKey =
-  | typeof FAMILY_NOTIFICATIONS[number]["key"]
-  | typeof ORGANIZATION_NOTIFICATIONS[number]["key"]
-  | typeof CAREGIVER_NOTIFICATIONS[number]["key"];
+  | (typeof FAMILY_NOTIFICATIONS)[number]["key"]
+  | (typeof ORGANIZATION_NOTIFICATIONS)[number]["key"]
+  | (typeof CAREGIVER_NOTIFICATIONS)[number]["key"];
 
 export default function AccountSettingsPage() {
   const router = useRouter();
@@ -88,6 +120,11 @@ export default function AccountSettingsPage() {
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
+
+  // Subscription management (providers only)
+  const [subscriptionLoading, setSubscriptionLoading] = useState(false);
+  const isProvider = isOrganization || (profileType === "caregiver");
+  const hasActiveSubscription = !!(meta.medjobs_subscription_active as boolean);
 
 
   // ── Notification toggle (optimistic — flips instantly, persists in background) ──
@@ -238,6 +275,38 @@ export default function AccountSettingsPage() {
     }
   };
 
+  // ── Subscription management ──
+  const handleUpgrade = async () => {
+    setSubscriptionLoading(true);
+    try {
+      const res = await fetch("/api/medjobs/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ returnUrl: "/account/settings" }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to start checkout");
+      if (data.url) window.location.href = data.url;
+    } catch (err) {
+      console.error("Upgrade error:", err);
+    } finally {
+      setSubscriptionLoading(false);
+    }
+  };
+
+  const handleManageSubscription = async () => {
+    setSubscriptionLoading(true);
+    try {
+      const res = await fetch("/api/medjobs/billing-portal", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to open billing portal");
+      if (data.url) window.location.href = data.url;
+    } catch (err) {
+      console.error("Billing portal error:", err);
+    } finally {
+      setSubscriptionLoading(false);
+    }
+  };
 
   // Get the correct notifications config based on profile type
   const getNotifications = () => {
@@ -351,6 +420,94 @@ export default function AccountSettingsPage() {
                   </div>
                 </div>
 
+                {/* ── Subscription (Providers only) ── */}
+                {isProvider && (
+                  <div className="p-6">
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="text-[15px] font-semibold text-gray-900">
+                        Olera Pro
+                      </p>
+                      {hasActiveSubscription && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                          Active
+                        </span>
+                      )}
+                    </div>
+
+                    {hasActiveSubscription ? (
+                      /* ── Subscribed state ── */
+                      <div>
+                        <p className="text-sm text-gray-500 mb-4">
+                          Premium tools to grow your care business.
+                        </p>
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm text-gray-600">
+                            <span className="font-medium text-gray-900">$49</span>
+                            <span className="text-gray-400">/month</span>
+                          </p>
+                          <button
+                            type="button"
+                            onClick={handleManageSubscription}
+                            disabled={subscriptionLoading}
+                            className="text-[14px] font-medium text-primary-600 hover:text-primary-700 disabled:opacity-50 transition-colors"
+                          >
+                            {subscriptionLoading ? "Loading..." : "Manage subscription"}
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      /* ── Not subscribed state ── */
+                      <div>
+                        <p className="text-sm text-gray-500 mb-3">
+                          Premium tools to grow your care business.
+                        </p>
+                        <div className="space-y-2 mb-5">
+                          <div className="flex items-center gap-2.5 text-sm text-gray-600">
+                            <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Unlimited interview scheduling
+                          </div>
+                          <div className="flex items-center gap-2.5 text-sm text-gray-600">
+                            <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Unlimited review requests
+                          </div>
+                          <div className="flex items-center gap-2.5 text-sm text-gray-600">
+                            <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Full candidate profiles &amp; contact info
+                          </div>
+                          <div className="flex items-center gap-2.5 text-sm text-gray-600">
+                            <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Resume downloads and LinkedIn
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm text-gray-600">
+                            <span className="font-medium text-gray-900">$49</span>
+                            <span className="text-gray-400">/month</span>
+                            <span className="text-gray-400 ml-1.5">·</span>
+                            <span className="text-gray-400 ml-1.5">Cancel anytime</span>
+                          </p>
+                          <button
+                            type="button"
+                            onClick={handleUpgrade}
+                            disabled={subscriptionLoading}
+                            className="px-4 py-2 bg-gray-900 hover:bg-gray-800 disabled:opacity-50 rounded-lg text-sm font-medium text-white transition-colors"
+                          >
+                            {subscriptionLoading ? "Loading..." : "Upgrade"}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* ── Delete Account ── */}
                 <div className="p-6">
                   <div className="flex items-start justify-between">
@@ -422,6 +579,7 @@ export default function AccountSettingsPage() {
                       key={notif.key}
                       title={notif.title}
                       description={notif.description}
+                      channels={notif.channels}
                       emailOn={getNotifOn(notif.key, "email")}
                       smsOn={getNotifOn(notif.key, "sms")}
                       whatsappOn={meta.whatsapp_opted_in && activeProfile?.phone ? getNotifOn(notif.key, "whatsapp") : undefined}
@@ -526,6 +684,7 @@ export default function AccountSettingsPage() {
 function NotificationRow({
   title,
   description,
+  channels,
   emailOn,
   smsOn,
   whatsappOn,
@@ -533,11 +692,16 @@ function NotificationRow({
 }: {
   title: string;
   description: string;
+  channels: readonly ("email" | "sms" | "whatsapp")[];
   emailOn: boolean;
   smsOn: boolean;
   whatsappOn?: boolean;
   onToggle: (channel: "email" | "sms" | "whatsapp") => void;
 }) {
+  const showEmail = channels.includes("email");
+  const showSms = channels.includes("sms");
+  const showWhatsapp = channels.includes("whatsapp") && whatsappOn !== undefined;
+
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 py-4 first:pt-0 last:pb-0">
       <div className="min-w-0">
@@ -545,15 +709,19 @@ function NotificationRow({
         <p className="text-sm text-gray-500 mt-0.5">{description}</p>
       </div>
       <div className="flex items-center gap-5 shrink-0">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-gray-500">Email</span>
-          <Toggle on={emailOn} onToggle={() => onToggle("email")} />
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-gray-500">SMS</span>
-          <Toggle on={smsOn} onToggle={() => onToggle("sms")} />
-        </div>
-        {whatsappOn !== undefined && (
+        {showEmail && (
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-gray-500">Email</span>
+            <Toggle on={emailOn} onToggle={() => onToggle("email")} />
+          </div>
+        )}
+        {showSms && (
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-gray-500">SMS</span>
+            <Toggle on={smsOn} onToggle={() => onToggle("sms")} />
+          </div>
+        )}
+        {showWhatsapp && (
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-gray-500">WhatsApp</span>
             <Toggle on={whatsappOn} onToggle={() => onToggle("whatsapp")} />

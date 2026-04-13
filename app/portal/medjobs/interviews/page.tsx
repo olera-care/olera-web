@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useAuth } from "@/components/auth/AuthProvider";
 import InterviewCalendar from "@/components/medjobs/InterviewCalendar";
 import type { Interview } from "@/lib/types";
 
@@ -10,6 +11,7 @@ type InterviewWithProfiles = Interview & {
 };
 
 export default function InterviewsPage() {
+  const { isLoading: authLoading } = useAuth();
   const [interviews, setInterviews] = useState<InterviewWithProfiles[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -23,7 +25,12 @@ export default function InterviewsPage() {
     finally { setLoading(false); }
   }, []);
 
-  useEffect(() => { fetchInterviews(); }, [fetchInterviews]);
+  // Wait for auth to complete before fetching interviews
+  useEffect(() => {
+    if (!authLoading) {
+      fetchInterviews();
+    }
+  }, [fetchInterviews, authLoading]);
 
   const updateStatus = async (interviewId: string, status: string) => {
     setActionLoading(interviewId);
@@ -49,7 +56,7 @@ export default function InterviewsPage() {
         <InterviewCalendar
           interviews={interviews}
           perspective="student"
-          loading={loading}
+          loading={loading || authLoading}
           onUpdateStatus={updateStatus}
           actionLoading={actionLoading}
         />

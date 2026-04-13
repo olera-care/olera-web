@@ -210,6 +210,8 @@ export async function POST(request: NextRequest) {
         viewUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/portal/medjobs/interviews`;
       }
 
+      // Determine recipient profile ID for preference checking
+      const recipientIsStudent = !isProviderRecipient;
       await sendEmail({
         to: recipientEmail!,
         subject: `Interview request from ${proposerName}`,
@@ -221,6 +223,8 @@ export async function POST(request: NextRequest) {
           <p><a href="${viewUrl}">View & respond on Olera</a></p>
         `,
         emailType: "interview_proposed",
+        recipientType: recipientIsStudent ? "student" : "provider",
+        recipientProfileId: recipientIsStudent ? resolvedStudentId : resolvedProviderId,
       });
     } catch (err) {
       console.error("[medjobs/interviews] email error:", err);

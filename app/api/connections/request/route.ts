@@ -826,6 +826,7 @@ async function handleGuestConnection({
         recipientType: 'provider',
         providerId: toProfileId,
         emailLogId: emailLogId ?? undefined,
+        recipientProfileId: toProfileId,
       });
     }
   } catch (emailErr) {
@@ -857,6 +858,8 @@ async function handleGuestConnection({
         await sendSMS({
           to: normalized,
           body: `New care inquiry on Olera from ${firstName || "a family"}. View and respond: ${getSiteUrl()}/provider/connections`,
+          recipientProfileId: toProfileId,
+          notificationType: "new_leads",
         });
       }
     }
@@ -900,6 +903,7 @@ async function handleGuestConnection({
           messageType: "connection_request",
           recipientType: "provider",
           profileId: toProfileId,
+          notificationType: "new_leads",
         });
       }
     }
@@ -1679,6 +1683,7 @@ export async function POST(request: Request) {
           recipientType: 'provider',
           providerId: toProfileId,
           emailLogId: emailLogId ?? undefined,
+          recipientProfileId: toProfileId,
         });
       }
     } catch (emailErr) {
@@ -1715,6 +1720,8 @@ export async function POST(request: Request) {
           const result = await sendSMS({
             to: normalized,
             body: `New care inquiry on Olera from ${firstName || "a family"}. View and respond: ${getSiteUrl()}/provider/connections`,
+            recipientProfileId: toProfileId,
+            notificationType: "new_leads",
           });
           console.log("[sms] Send result:", JSON.stringify(result));
         } else {
@@ -1763,6 +1770,7 @@ export async function POST(request: Request) {
             messageType: "connection_request",
             recipientType: "provider",
             profileId: toProfileId,
+            notificationType: "new_leads",
           });
         }
       }

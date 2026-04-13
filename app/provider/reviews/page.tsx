@@ -1,71 +1,35 @@
 "use client";
 
-import { useState, useMemo, useCallback, useEffect, useRef } from "react";
-import { useProviderProfile } from "@/hooks/useProviderProfile";
-import { markReviewAsRead, migrateReviewsReadData } from "@/hooks/useUnreadReviewsCount";
-import type { Review } from "@/lib/types";
-
-// Calculate stats from reviews
-function calculateStats(reviews: Review[]): ReviewStats {
-  const totalReviews = reviews.length;
-  const repliedCount = reviews.filter(r => r.provider_reply).length;
-  const avgRating = totalReviews > 0
-    ? reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews
-    : 0;
-
-  return {
-    totalReviews,
-    repliedCount,
-    avgRating: Math.round(avgRating * 10) / 10,
-    categoryStats: {
-      care_quality: avgRating > 0 ? Math.min(5, avgRating + 0.3) : 0,
-      communication: avgRating > 0 ? Math.min(5, avgRating - 0.2) : 0,
-      value: avgRating,
-      cleanliness: avgRating > 0 ? Math.min(5, avgRating - 0.1) : 0,
-    },
-  };
-}
+import { useState, useEffect, useCallback } from "react";
+import ReviewUpgradeModal from "@/components/provider/ReviewUpgradeModal";
 
 // ── Types ──
 
-type TabFilter = "all" | "replied";
+type TabFilter = "send_request" | "sent_requests";
 
-interface ReviewStats {
-  totalReviews: number;
-  repliedCount: number;
-  avgRating: number;
-  categoryStats: {
-    care_quality: number;
-    communication: number;
-    value: number;
-    cleanliness: number;
-  };
+interface SentRequest {
+  id: string;
+  clientName: string;
+  recipient: string;
+  deliveryMethod: string;
+  sentAt: string;
+  status: string;
 }
 
 // ── Helpers ──
 
-function timeAgo(dateStr: string): string {
-  const now = Date.now();
-  const then = new Date(dateStr).getTime();
-  const diffMs = now - then;
-  const diffMins = Math.floor(diffMs / (1000 * 60));
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-  if (diffMins < 1) return "Just now";
-  if (diffMins === 1) return "1 min ago";
-  if (diffMins < 60) return `${diffMins} min ago`;
-  if (diffHours === 1) return "1 hour ago";
-  if (diffHours < 24) return `${diffHours} hours ago`;
-  if (diffDays === 1) return "1 day ago";
-  if (diffDays < 7) return `${diffDays} days ago`;
-  if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
-  return `${Math.floor(diffDays / 30)} months ago`;
-}
-
 function formatDate(dateStr: string): string {
   const date = new Date(dateStr);
-  return date.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) {
+    return date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  }
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays < 7) return `${diffDays} days ago`;
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
 // Avatar gradient (deterministic by name)
@@ -87,7 +51,7 @@ function avatarGradient(name: string): string {
 }
 
 function getInitials(name: string): string {
-  if (name === "Anonymous") return "?";
+  if (!name || name === "Anonymous") return "?";
   const parts = name.trim().split(/\s+/);
   if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
   return name.slice(0, 2).toUpperCase();
@@ -95,27 +59,15 @@ function getInitials(name: string): string {
 
 // ── Icons ──
 
-function StarIcon({ className = "w-4 h-4", filled = true }: { className?: string; filled?: boolean }) {
-  return filled ? (
-    <svg className={className} fill="currentColor" viewBox="0 0 20 20">
-      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-    </svg>
-  ) : (
-    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
-    </svg>
-  );
-}
-
-function CloseIcon({ className = "w-4 h-4" }: { className?: string }) {
+function MailIcon({ className = "w-5 h-5" }: { className?: string }) {
   return (
-    <svg className={className} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
     </svg>
   );
 }
 
-function CheckIcon({ className = "w-4 h-4" }: { className?: string }) {
+function CheckCircleIcon({ className = "w-5 h-5" }: { className?: string }) {
   return (
     <svg className={className} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
@@ -123,782 +75,418 @@ function CheckIcon({ className = "w-4 h-4" }: { className?: string }) {
   );
 }
 
-// ── Tips Accordion Component ──
-
-function TipsAccordion({ title, children }: { title: string; children: React.ReactNode }) {
-  const [isOpen, setIsOpen] = useState(false);
-
+function LinkIcon({ className = "w-5 h-5" }: { className?: string }) {
   return (
-    <div className="border-t border-gray-100">
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-gray-50/50 transition-colors duration-150"
-      >
-        <div className="flex items-center gap-2">
-          <div className="w-1 h-4 bg-gray-300 rounded-full" />
-          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-            {title}
-          </span>
-        </div>
-        <svg
-          className={`w-4 h-4 text-gray-400 transition-transform duration-300 ease-out ${
-            isOpen ? "rotate-180" : ""
-          }`}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2}
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-        </svg>
-      </button>
-      <div
-        className="grid transition-[grid-template-rows] duration-300 ease-out"
-        style={{ gridTemplateRows: isOpen ? "1fr" : "0fr" }}
-      >
-        <div className="overflow-hidden">
-          <div
-            className={`px-6 pb-5 transition-opacity duration-200 ${
-              isOpen ? "opacity-100" : "opacity-0"
-            }`}
-          >
-            {children}
-          </div>
-        </div>
-      </div>
-    </div>
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
+    </svg>
   );
 }
 
-// ── Avatar Component ──
-
-function Avatar({
-  name,
-  size = "md",
-  isProvider = false,
-}: {
-  name: string;
-  size?: "sm" | "md" | "lg";
-  isProvider?: boolean;
-}) {
-  const sizeClasses = {
-    sm: "w-8 h-8 text-xs",
-    md: "w-10 h-10 text-sm",
-    lg: "w-12 h-12 text-base",
-  };
-
-  const initials = getInitials(name);
-
-  if (isProvider) {
-    return (
-      <div className={`${sizeClasses[size]} rounded-full bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center shrink-0 ring-2 ring-white shadow-sm`}>
-        <span className="font-bold text-primary-700">{initials}</span>
-      </div>
-    );
-  }
-
-  if (name === "Anonymous") {
-    return (
-      <div className={`${sizeClasses[size]} rounded-full bg-gray-100 flex items-center justify-center shrink-0`}>
-        <span className="font-medium text-gray-400">{initials}</span>
-      </div>
-    );
-  }
-
+function PlayIcon({ className = "w-5 h-5" }: { className?: string }) {
   return (
-    <div className={`${sizeClasses[size]} rounded-full bg-gradient-to-br ${avatarGradient(name)} flex items-center justify-center shrink-0 ring-2 ring-white shadow-sm`}>
-      <span className="font-bold text-gray-600">{initials}</span>
-    </div>
+    <svg className={className} fill="currentColor" viewBox="0 0 24 24">
+      <path d="M8 5.14v14l11-7-11-7z" />
+    </svg>
   );
 }
 
-// ── Star Rating Display ──
+// ── Default message ──
 
-function StarRating({ rating, size = "sm" }: { rating: number; size?: "sm" | "md" }) {
-  const sizeClass = size === "sm" ? "w-4 h-4" : "w-5 h-5";
-  return (
-    <div className="flex items-center gap-0.5">
-      {[1, 2, 3, 4, 5].map((star) => (
-        <StarIcon
-          key={star}
-          className={`${sizeClass} ${star <= rating ? "text-primary-500" : "text-gray-200"}`}
-          filled={star <= rating}
-        />
-      ))}
-    </div>
-  );
-}
+const DEFAULT_MESSAGE = "Hi, we'd love to hear about your experience with us. Would you take a moment to leave a review? It helps other families find quality care.";
 
-// ── Review Card ──
+// ── Video Panel ──
 
-function ReviewCard({
-  review,
-  onReply,
-  onEdit,
-  isMobile,
-  isNew,
-  onMarkAsRead,
-}: {
-  review: Review;
-  onReply: (review: Review) => void;
-  onEdit: (review: Review) => void;
-  isMobile: boolean;
-  isNew?: boolean;
-  onMarkAsRead?: () => void;
-}) {
-  const hasReply = !!review.provider_reply;
-  const [hasBeenViewed, setHasBeenViewed] = useState(false);
-
-  // Mark as read when card is clicked/interacted with
-  const handleInteraction = useCallback(() => {
-    if (isNew && !hasBeenViewed && onMarkAsRead) {
-      setHasBeenViewed(true);
-      onMarkAsRead();
-    }
-  }, [isNew, hasBeenViewed, onMarkAsRead]);
-
-  // Mobile: card is tappable for unreplied reviews
-  if (isMobile && !hasReply) {
-    return (
-      <button
-        type="button"
-        onClick={() => {
-          handleInteraction();
-          onReply(review);
-        }}
-        className="w-full text-left bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden active:bg-vanilla-50/60 transition-colors relative"
-      >
-        {/* New indicator dot */}
-        {isNew && !hasBeenViewed && (
-          <div className="absolute top-4 right-4 w-2.5 h-2.5 rounded-full bg-primary-500 ring-2 ring-white shadow-sm" />
-        )}
-        <div className="p-4">
-          {/* Reviewer info + rating */}
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex items-start gap-3">
-              <Avatar name={review.reviewer_name} size="md" />
-              <div className="flex-1 min-w-0">
-                <span className="font-semibold text-gray-900 text-[15px]">
-                  {review.reviewer_name}
-                </span>
-                <p className="text-sm text-gray-400 mt-0.5">
-                  {formatDate(review.created_at)} · {review.relationship}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-1.5 shrink-0 pr-4">
-              <StarRating rating={review.rating} />
-            </div>
-          </div>
-
-          {/* Review content */}
-          <div className="mt-3">
-            {review.title && (
-              <p className="font-semibold text-gray-900 mb-1.5 text-[15px] line-clamp-1">
-                &ldquo;{review.title}&rdquo;
-              </p>
-            )}
-            <p className="text-gray-600 leading-relaxed text-[15px] line-clamp-3">
-              {review.comment}
-            </p>
-          </div>
-
-          {/* Reply prompt */}
-          <div className="mt-4 rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3.5">
-            <p className="text-[15px] text-gray-400">Tap to reply...</p>
-          </div>
-        </div>
-      </button>
-    );
-  }
+function VideoPanel() {
+  const [isPlaying, setIsPlaying] = useState(false);
 
   return (
-    <div
-      className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden hover:border-gray-300/80 transition-colors relative"
-      onClick={handleInteraction}
-    >
-      {/* New indicator dot */}
-      {isNew && !hasBeenViewed && (
-        <div className={`absolute ${isMobile ? "top-4 right-4" : "top-6 right-6"} w-2.5 h-2.5 rounded-full bg-primary-500 ring-2 ring-white shadow-sm`} />
-      )}
-      <div className={isMobile ? "p-4" : "p-6"}>
-        {/* Reviewer info + rating */}
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-start gap-3">
-            <Avatar name={review.reviewer_name} size={isMobile ? "md" : "lg"} />
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className={`font-semibold text-gray-900 ${isMobile ? "text-[15px]" : "text-base"}`}>
-                  {review.reviewer_name}
-                </span>
-                {hasReply && (
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-primary-50 text-primary-700 border border-primary-100/50">
-                    Replied
-                  </span>
-                )}
-              </div>
-              <p className="text-sm text-gray-400 mt-0.5">
-                {formatDate(review.created_at)} · {review.relationship}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-1.5 shrink-0 pr-4">
-            <StarRating rating={review.rating} />
-            <span className="text-sm font-semibold text-gray-700">{review.rating}/5</span>
-          </div>
-        </div>
-
-        {/* Review content */}
-        <div className="mt-4">
-          {review.title && (
-            <p className={`font-semibold text-gray-900 mb-2 ${isMobile ? "text-[15px]" : "text-lg"}`}>
-              &ldquo;{review.title}&rdquo;
-            </p>
-          )}
-          <p className={`text-gray-600 leading-relaxed ${isMobile ? "text-[15px]" : "text-base"}`}>
-            {review.comment}
-          </p>
-        </div>
-
-        {/* Provider response */}
-        {hasReply && (
-          <div className="mt-5 pl-4 border-l-2 border-primary-100 bg-primary-50/30 rounded-r-lg p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-xs font-semibold text-primary-600">Your response</span>
-              {review.replied_at && (
-                <span className="text-xs text-gray-400">{formatDate(review.replied_at)}</span>
-              )}
-            </div>
-            <p className="text-sm text-gray-700 leading-relaxed">{review.provider_reply}</p>
-          </div>
-        )}
-
-        {/* Action button */}
-        <div className="mt-5 lg:flex lg:justify-end">
+    <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
+      <div className="aspect-video relative">
+        {isPlaying ? (
+          <iframe
+            src="https://www.youtube.com/embed/cb3TMkMNe3I?autoplay=1&rel=0"
+            title="How to get more reviews"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            className="absolute inset-0 w-full h-full"
+          />
+        ) : (
           <button
-            type="button"
-            onClick={() => hasReply ? onEdit(review) : onReply(review)}
-            className="w-full lg:w-auto px-6 py-3 lg:py-2.5 rounded-xl bg-primary-600 text-[15px] lg:text-[14px] font-semibold text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-300 focus:ring-offset-2 transition-all active:scale-[0.99] min-h-[48px] lg:min-h-0"
+            onClick={() => setIsPlaying(true)}
+            className="absolute inset-0 w-full h-full group"
           >
-            {hasReply ? "Edit reply" : "Reply"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ── Bottom Sheet / Side Drawer (Reply / Edit) ──
-
-function BottomSheet({
-  review,
-  isOpen,
-  onClose,
-  onSubmit,
-  mode,
-}: {
-  review: Review | null;
-  isOpen: boolean;
-  onClose: () => void;
-  onSubmit: (review: Review, reply: string) => void;
-  mode: "reply" | "edit";
-}) {
-  const [reply, setReply] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  useEffect(() => {
-    if (review && isOpen) {
-      setReply(mode === "edit" ? (review.provider_reply || "") : "");
-      setTimeout(() => textareaRef.current?.focus(), 350);
-    }
-  }, [review, isOpen, mode]);
-
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [isOpen]);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    if (isOpen) {
-      document.addEventListener("keydown", handleKeyDown);
-    }
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, onClose]);
-
-  const handleSubmit = async () => {
-    if (!review || !reply.trim() || isSubmitting) return;
-    setIsSubmitting(true);
-    await new Promise(r => setTimeout(r, 300));
-    onSubmit(review, reply);
-    setIsSubmitting(false);
-    onClose();
-  };
-
-  if (!review) return null;
-
-  const isEdit = mode === "edit";
-  const title = isEdit ? "Edit your response" : "Reply to review";
-  const buttonText = isEdit
-    ? (isSubmitting ? "Saving..." : "Save changes")
-    : (isSubmitting ? "Publishing..." : "Publish response");
-
-  return (
-    <>
-      {/* Overlay */}
-      <div
-        className={`fixed inset-0 z-40 bg-black/50 transition-opacity duration-300 ${
-          isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-        }`}
-        onClick={onClose}
-        aria-hidden="true"
-      />
-
-      {/* Sheet - bottom on mobile, side drawer on desktop */}
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="sheet-title"
-        className={`fixed z-50 bg-white shadow-2xl flex flex-col will-change-transform transition-transform duration-300 ease-out
-          /* Mobile: bottom sheet - use dvh for proper mobile Safari support */
-          inset-x-0 bottom-0 max-h-[90dvh] rounded-t-3xl pb-[env(safe-area-inset-bottom)]
-          /* Desktop: side drawer */
-          lg:inset-y-0 lg:top-16 lg:right-0 lg:left-auto lg:bottom-auto lg:w-[520px] lg:max-w-[calc(100vw-24px)] lg:h-[calc(100dvh-64px)] lg:max-h-none lg:rounded-none lg:pb-0
-          ${isOpen
-            ? "translate-y-0 lg:translate-x-0"
-            : "translate-y-full lg:translate-y-0 lg:translate-x-full"
-          }`}
-      >
-        {/* Drag handle (mobile) */}
-        <div className="lg:hidden pt-3 pb-2 flex justify-center shrink-0">
-          <div className="w-10 h-1 bg-gray-300 rounded-full" />
-        </div>
-
-        {/* Header */}
-        <div className="px-4 lg:px-6 py-3 lg:py-5 border-b border-gray-100 shrink-0">
-          <div className="flex items-center justify-between">
-            <h2 id="sheet-title" className="text-lg font-display font-bold text-gray-900 tracking-tight">{title}</h2>
-            <button
-              type="button"
-              onClick={onClose}
-              className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-200 transition-colors"
-              aria-label="Close"
-            >
-              <CloseIcon className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto px-4 lg:px-6 py-5">
-          {/* Review display */}
-          <div className="mb-5 pb-5 border-b border-gray-100">
-            <div className="flex items-start gap-3 mb-3">
-              <Avatar name={review.reviewer_name} size="lg" />
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                  <span className="text-[15px] font-semibold text-gray-900">
-                    {review.reviewer_name}
-                  </span>
-                  <StarRating rating={review.rating} />
-                </div>
-                <p className="text-sm text-gray-500 mt-0.5">
-                  {formatDate(review.created_at)} · {review.relationship}
-                </p>
-              </div>
-            </div>
-            {review.title && (
-              <p className="text-[15px] font-semibold text-gray-900 mb-2">
-                &ldquo;{review.title}&rdquo;
-              </p>
-            )}
-            <p className="text-[15px] text-gray-600 leading-relaxed">
-              {review.comment}
-            </p>
-          </div>
-
-          {/* Reply textarea */}
-          <div>
-            <label className="text-sm font-semibold text-gray-700 mb-2 block">
-              {isEdit ? "Your response" : "Your reply"}
-            </label>
-            <textarea
-              ref={textareaRef}
-              value={reply}
-              onChange={(e) => setReply(e.target.value)}
-              placeholder="Type your response here..."
-              rows={6}
-              maxLength={1000}
-              className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3.5 text-[15px] text-gray-800 placeholder:text-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-transparent focus:bg-white transition-all"
+            {/* YouTube thumbnail */}
+            <img
+              src="https://img.youtube.com/vi/cb3TMkMNe3I/maxresdefault.jpg"
+              alt="Video thumbnail"
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                // Fallback to hqdefault if maxresdefault doesn't exist
+                (e.target as HTMLImageElement).src = "https://img.youtube.com/vi/cb3TMkMNe3I/hqdefault.jpg";
+              }}
             />
-            <div className="flex items-center justify-between mt-2">
-              <p className="text-xs text-gray-400">
-                Your response will be visible on your public profile.
-              </p>
-              <p className="text-xs text-gray-400">
-                {reply.length}/1000
-              </p>
+            {/* Gradient overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+            {/* Play button */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-16 h-16 rounded-full bg-white/95 shadow-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
+                <PlayIcon className="w-7 h-7 text-gray-900 ml-1" />
+              </div>
             </div>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="shrink-0 border-t border-gray-100 px-4 lg:px-6 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={!reply.trim() || isSubmitting}
-            className="w-full py-3.5 rounded-xl bg-gradient-to-b from-primary-500 to-primary-600 text-[15px] font-semibold text-white shadow-[0_1px_3px_rgba(6,182,212,0.3),0_1px_2px_rgba(6,182,212,0.2)] hover:from-primary-600 hover:to-primary-700 hover:shadow-[0_3px_8px_rgba(6,182,212,0.35),0_1px_3px_rgba(6,182,212,0.25)] disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.99] min-h-[48px]"
-          >
-            {isSubmitting ? (
-              <span className="inline-flex items-center justify-center gap-2">
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                {isEdit ? "Saving..." : "Publishing..."}
-              </span>
-            ) : buttonText}
+            {/* Title overlay */}
+            <div className="absolute bottom-0 left-0 right-0 p-4">
+              <p className="text-white font-medium text-sm">How to get more Google reviews</p>
+              <p className="text-white/70 text-xs mt-0.5">2 min watch</p>
+            </div>
           </button>
-        </div>
+        )}
       </div>
-    </>
+    </div>
   );
 }
 
+// ── Send Request Form ──
 
-// ── Empty States ──
+function SendRequestForm({
+  onSuccess,
+  providerSlug,
+  remainingRequests,
+  creditsUsed,
+  onUpgradeRequired,
+}: {
+  onSuccess?: () => void;
+  providerSlug?: string;
+  remainingRequests: number;
+  creditsUsed: number;
+  onUpgradeRequired: () => void;
+}) {
+  const [clientName, setClientName] = useState("");
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState(DEFAULT_MESSAGE);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successName, setSuccessName] = useState("");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [linkCopied, setLinkCopied] = useState(false);
 
-function EmptyState({ filter }: { filter: TabFilter }) {
-  if (filter === "replied") {
+  const isAtLimit = remainingRequests <= 0;
+
+  // Auto-dismiss success after 4 seconds
+  useEffect(() => {
+    if (showSuccess) {
+      const timer = setTimeout(() => setShowSuccess(false), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [showSuccess]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!clientName.trim() || !email.trim() || !message.trim() || isSubmitting || isAtLimit) return;
+
+    setIsSubmitting(true);
+    setShowSuccess(false);
+    setErrorMessage(null);
+
+    try {
+      const res = await fetch("/api/review-requests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          clients: [{ name: clientName.trim(), email: email.trim() }],
+          message: message.trim(),
+          delivery_method: "email",
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        // Handle 402 - upgrade required
+        if (res.status === 402 && data.upgrade_required) {
+          onUpgradeRequired();
+          return;
+        }
+        throw new Error(data.error || "Failed to send request");
+      }
+
+      const failedResults = data.results?.filter((r: { status: string }) => r.status === "failed") || [];
+      if (failedResults.length > 0) {
+        throw new Error(failedResults[0]?.error || "Failed to send email");
+      }
+
+      setSuccessName(clientName);
+      setShowSuccess(true);
+      setClientName("");
+      setEmail("");
+      setMessage(DEFAULT_MESSAGE);
+      onSuccess?.();
+    } catch (err) {
+      setErrorMessage(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleCopyLink = async () => {
+    if (!providerSlug) return;
+    const link = `${window.location.origin}/review/${providerSlug}`;
+    try {
+      await navigator.clipboard.writeText(link);
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2000);
+    } catch {
+      const textArea = document.createElement("textarea");
+      textArea.value = link;
+      textArea.style.position = "fixed";
+      textArea.style.opacity = "0";
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textArea);
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2000);
+    }
+  };
+
+  // Success celebration state
+  if (showSuccess) {
     return (
-      <div className="flex flex-col items-center text-center py-16 lg:py-24 px-6">
-        {/* Illustration */}
-        <div
-          className="w-40 h-40 lg:w-48 lg:h-48 mb-6 relative"
-          style={{ animation: "emptyFloat 3s ease-in-out infinite" }}
+      <div className="text-center py-10 animate-fade-in">
+        <div className="relative w-16 h-16 mx-auto mb-4 animate-success-bounce">
+          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/25">
+            <CheckCircleIcon className="w-8 h-8 text-white" />
+          </div>
+          <div className="absolute -top-1 -right-1 w-3 h-3 bg-amber-400 rounded-full" />
+          <div className="absolute -bottom-0.5 -left-1 w-2 h-2 bg-primary-400 rounded-full" />
+        </div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-1">Request sent!</h3>
+        <p className="text-sm text-gray-500 mb-5">
+          {successName} will receive your review request shortly.
+        </p>
+        <button
+          type="button"
+          onClick={() => setShowSuccess(false)}
+          className="text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors"
         >
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-28 h-28 lg:w-32 lg:h-32 rounded-2xl bg-gradient-to-br from-primary-50 to-vanilla-100 border border-primary-100/50 flex items-center justify-center transform rotate-3 shadow-sm">
-              <svg className="w-14 h-14 lg:w-16 lg:h-16 text-primary-300" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
-              </svg>
+          Send another request
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-5">
+      {/* Error message */}
+      {errorMessage && (
+        <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-100 rounded-xl text-red-700 text-sm" role="alert">
+          <svg className="w-5 h-5 shrink-0 text-red-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+          </svg>
+          <span className="font-medium">{errorMessage}</span>
+        </div>
+      )}
+
+      {/* Client Name + Email */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label htmlFor="clientName" className="block text-sm font-medium text-gray-700 mb-1.5">
+            Client name
+          </label>
+          <input
+            type="text"
+            id="clientName"
+            value={clientName}
+            onChange={(e) => setClientName(e.target.value)}
+            placeholder="Jane Smith"
+            disabled={isAtLimit}
+            className="w-full px-4 py-3 rounded-xl border border-gray-300 bg-white text-gray-900 text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-400 transition-all duration-200 disabled:bg-gray-50 disabled:cursor-not-allowed"
+            required
+            autoComplete="off"
+          />
+        </div>
+        <div>
+          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">
+            Email address
+          </label>
+          <input
+            type="email"
+            id="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="jane@example.com"
+            disabled={isAtLimit}
+            className="w-full px-4 py-3 rounded-xl border border-gray-300 bg-white text-gray-900 text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-400 transition-all duration-200 disabled:bg-gray-50 disabled:cursor-not-allowed"
+            required
+            autoComplete="off"
+          />
+        </div>
+      </div>
+
+      {/* Message */}
+      <div>
+        <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1.5">
+          Your message
+        </label>
+        <textarea
+          id="message"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          rows={4}
+          placeholder="Write a personal message..."
+          disabled={isAtLimit}
+          className="w-full px-4 py-3 rounded-xl border border-gray-300 bg-white text-gray-900 text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-400 transition-all duration-200 resize-y min-h-[120px] leading-relaxed disabled:bg-gray-50 disabled:cursor-not-allowed"
+          required
+        />
+      </div>
+
+      {/* Submit button */}
+      <div className="space-y-3">
+        <button
+          type="submit"
+          disabled={!clientName.trim() || !email.trim() || !message.trim() || isSubmitting || isAtLimit}
+          className="w-full py-3.5 rounded-2xl bg-gray-900 text-white text-[15px] font-medium hover:bg-gray-800 disabled:bg-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 shadow-[0_4px_12px_rgb(0,0,0,0.15)] hover:shadow-[0_6px_16px_rgb(0,0,0,0.2)] disabled:shadow-none"
+        >
+          {isSubmitting ? (
+            <span className="inline-flex items-center justify-center gap-2">
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              Sending...
+            </span>
+          ) : (
+            <span className="inline-flex items-center justify-center gap-2">
+              <MailIcon className="w-5 h-5" />
+              Send review request
+            </span>
+          )}
+        </button>
+
+        {/* Google reassurance badge */}
+        <p className="flex items-center justify-center gap-1.5 text-xs text-gray-400">
+          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+          </svg>
+          Goes directly to your Google Business Profile
+        </p>
+
+        {/* Remaining requests - only show when low */}
+        {remainingRequests <= 3 && remainingRequests > 0 && (
+          <p className="text-center text-xs text-amber-600 font-medium">
+            {remainingRequests} free request{remainingRequests === 1 ? "" : "s"} remaining
+          </p>
+        )}
+
+        {/* At limit message */}
+        {isAtLimit && (
+          <button
+            type="button"
+            onClick={onUpgradeRequired}
+            className="text-center text-xs text-primary-600 hover:text-primary-700 font-medium w-full"
+          >
+            Upgrade to Pro for unlimited requests
+          </button>
+        )}
+      </div>
+
+      {/* Direct link option */}
+      {providerSlug && (
+        <div className="flex items-center justify-center pt-1">
+          <button
+            type="button"
+            onClick={handleCopyLink}
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-lg transition-all duration-200"
+          >
+            <LinkIcon className="w-4 h-4" />
+            {linkCopied ? (
+              <span className="text-emerald-600 font-medium">Link copied!</span>
+            ) : (
+              <span>Copy direct review link</span>
+            )}
+          </button>
+        </div>
+      )}
+    </form>
+  );
+}
+
+// ── Sent Requests List ──
+
+function SentRequestsList({ requests, isLoading, error }: { requests: SentRequest[]; isLoading: boolean; error: string | null }) {
+  if (isLoading) {
+    return (
+      <div className="space-y-3" role="status" aria-label="Loading sent requests">
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="animate-pulse bg-gray-50 rounded-xl p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-gray-200" />
+              <div className="flex-1">
+                <div className="h-4 w-32 bg-gray-200 rounded mb-2" />
+                <div className="h-3 w-48 bg-gray-100 rounded" />
+              </div>
             </div>
           </div>
-          {/* Decorative elements */}
-          <div className="absolute top-4 right-6 w-3 h-3 rounded-full bg-amber-200" />
-          <div className="absolute bottom-6 left-6 w-2 h-2 rounded-full bg-primary-200" />
-          <div className="absolute top-10 left-4 w-4 h-1 rounded-full bg-warm-200 transform rotate-45" />
-          <div className="absolute bottom-12 right-4 w-2 h-2 rounded-full bg-warm-300" />
+        ))}
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-12" role="alert">
+        <p className="text-gray-500 text-sm">{error}</p>
+      </div>
+    );
+  }
+
+  if (requests.length === 0) {
+    return (
+      <div className="text-center py-14 px-6">
+        <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center mx-auto mb-3">
+          <MailIcon className="w-5 h-5 text-gray-400" />
         </div>
-        <h3 className="text-xl lg:text-2xl font-display font-bold text-gray-900 tracking-tight">
-          No replies yet
-        </h3>
-        <p className="text-[15px] text-gray-500 mt-2.5 leading-relaxed max-w-sm">
-          Respond to reviews to show families you value their feedback. Your replies will appear here.
+        <h3 className="text-sm font-medium text-gray-900 mb-1">No requests sent yet</h3>
+        <p className="text-sm text-gray-500 leading-relaxed max-w-xs mx-auto">
+          Sent requests will appear here.
         </p>
       </div>
     );
   }
 
-  // All empty state - "No reviews yet"
   return (
-    <div className="flex flex-col items-center text-center py-16 lg:py-24 px-6">
-      <div
-        className="w-40 h-40 lg:w-48 lg:h-48 mb-6 relative"
-        style={{ animation: "emptyFloat 3s ease-in-out infinite" }}
-      >
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-28 h-28 lg:w-32 lg:h-32 rounded-2xl bg-gradient-to-br from-primary-50 to-vanilla-100 border border-primary-100/50 flex items-center justify-center transform -rotate-3 shadow-sm">
-            <StarIcon className="w-14 h-14 lg:w-16 lg:h-16 text-primary-300" filled={false} />
-          </div>
-        </div>
-        {/* Decorative elements */}
-        <div className="absolute top-4 right-6 w-3 h-3 rounded-full bg-amber-200" />
-        <div className="absolute bottom-6 left-6 w-2 h-2 rounded-full bg-primary-200" />
-        <div className="absolute top-10 left-4 w-4 h-1 rounded-full bg-warm-200 transform rotate-45" />
-        <div className="absolute bottom-12 right-4 w-2 h-2 rounded-full bg-warm-300" />
-      </div>
-      <h3 className="text-xl lg:text-2xl font-display font-bold text-gray-900 tracking-tight">
-        No reviews yet
-      </h3>
-      <p className="text-[15px] text-gray-500 mt-2.5 leading-relaxed max-w-sm">
-        When families leave reviews on your profile, they&apos;ll appear here for you to respond.
-      </p>
-    </div>
-  );
-}
-
-// ── Mobile Stats Banner (visible only on mobile) ──
-
-function MobileStatsBanner({
-  stats,
-  onTap,
-}: {
-  stats: ReviewStats;
-  onTap: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onTap}
-      className="lg:hidden w-full mb-5 bg-white rounded-xl border border-gray-200 px-4 py-3 text-left active:bg-gray-50 transition-colors"
-    >
-      <div className="flex items-center gap-3">
-        {/* Score ring */}
-        <div className="relative w-10 h-10 shrink-0">
-          <svg className="w-10 h-10 -rotate-90" viewBox="0 0 40 40">
-            <circle cx="20" cy="20" r="16" fill="none" stroke="#f3f4f6" strokeWidth="3" />
-            <circle
-              cx="20" cy="20" r="16" fill="none"
-              stroke="#199087"
-              strokeWidth="3" strokeLinecap="round"
-              strokeDasharray={`${(stats.avgRating / 5) * 100.5} 100.5`}
-            />
-          </svg>
-          <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-gray-700">
-            {stats.avgRating > 0 ? stats.avgRating.toFixed(1) : "-"}
-          </span>
-        </div>
-
-        {/* Text */}
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-gray-900">Olera Score</p>
-          <p className="text-xs text-gray-500">
-            {stats.totalReviews} review{stats.totalReviews !== 1 ? "s" : ""} · {stats.repliedCount} replied
-          </p>
-        </div>
-
-        {/* Chevron */}
-        <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-        </svg>
-      </div>
-    </button>
-  );
-}
-
-// ── Mobile Stats Bottom Sheet ──
-
-function MobileStatsSheet({
-  isOpen,
-  onClose,
-  stats,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  stats: ReviewStats;
-}) {
-  const categoryLabels: Record<string, string> = {
-    care_quality: "Care Quality",
-    communication: "Communication",
-    value: "Value",
-    cleanliness: "Cleanliness",
-  };
-
-  // Score label based on rating
-  const getScoreLabel = (rating: number): { label: string; color: string } => {
-    if (rating >= 4.5) return { label: "Excellent", color: "text-primary-700" };
-    if (rating >= 4.0) return { label: "Great", color: "text-primary-600" };
-    if (rating >= 3.5) return { label: "Good", color: "text-amber-600" };
-    if (rating >= 3.0) return { label: "Fair", color: "text-amber-500" };
-    return { label: "Building", color: "text-gray-500" };
-  };
-
-  const scoreInfo = getScoreLabel(stats.avgRating);
-
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [isOpen]);
-
-  if (!isOpen) return null;
-
-  return (
-    <>
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black/40 z-40 lg:hidden"
-        onClick={onClose}
-        style={{ animation: "fade-in 0.2s ease-out both" }}
-      />
-
-      {/* Sheet */}
-      <div
-        className="fixed inset-x-0 bottom-0 z-50 lg:hidden bg-white rounded-t-3xl shadow-xl max-h-[85dvh] overflow-y-auto pb-[env(safe-area-inset-bottom)]"
-        style={{ animation: "slide-up 0.3s ease-out both" }}
-      >
-        {/* Handle */}
-        <div className="sticky top-0 bg-white pt-3 pb-2 px-6 border-b border-gray-100">
-          <div className="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-3" />
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-display font-bold text-gray-900">
-              Olera Score
-            </h3>
-            <button
-              type="button"
-              onClick={onClose}
-              className="w-8 h-8 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors"
-              aria-label="Close"
-            >
-              <CloseIcon className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-
-        <div className="p-6">
-          {/* Score display */}
-          {stats.totalReviews > 0 ? (
-            <>
-              {/* Score label badge */}
-              <div className="flex justify-center mb-4">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-50 border border-primary-100/60">
-                  <svg className="w-3.5 h-3.5 text-primary-600" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
-                  </svg>
-                  <span className={`text-xs font-bold ${scoreInfo.color}`}>{scoreInfo.label}</span>
-                </div>
+    <div className="space-y-2">
+      {requests.map((request, idx) => (
+        <div
+          key={request.id}
+          className="bg-gray-50/50 hover:bg-gray-50 rounded-xl p-4 transition-all duration-200"
+          style={{ animation: `fadeIn 0.2s ease-out ${idx * 40}ms both` }}
+        >
+          <div className="flex items-start gap-3">
+            <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${avatarGradient(request.clientName)} flex items-center justify-center shrink-0`}>
+              <span className="text-xs font-semibold text-gray-600">
+                {getInitials(request.clientName)}
+              </span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="font-medium text-gray-900 text-sm">
+                  {request.clientName}
+                </span>
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-700">
+                  Sent
+                </span>
               </div>
-
-              <div className="flex flex-col items-center mb-6">
-                <div className="relative w-28 h-28 mb-3">
-                  <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
-                    <circle cx="50" cy="50" r="42" fill="none" stroke="#f3f4f6" strokeWidth="10" />
-                    <circle
-                      cx="50" cy="50" r="42" fill="none"
-                      stroke="#199087"
-                      strokeWidth="10" strokeLinecap="round"
-                      strokeDasharray={`${(stats.avgRating / 5) * 264} 264`}
-                      className="transition-all duration-500"
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-2xl font-bold text-gray-900">{stats.avgRating.toFixed(1)}</span>
-                  </div>
-                </div>
-                <div className="flex items-center justify-center gap-1">
-                  <StarRating rating={Math.round(stats.avgRating)} size="md" />
-                </div>
-                <p className="text-sm text-gray-500 mt-2">
-                  {stats.totalReviews} review{stats.totalReviews !== 1 ? "s" : ""}
-                </p>
-              </div>
-
-              {/* Category breakdown */}
-              <div className="space-y-4">
-                {Object.entries(stats.categoryStats).map(([key, value]) => (
-                  <div key={key} className="flex items-center gap-3">
-                    <span className="text-sm text-gray-600 w-28 shrink-0">
-                      {categoryLabels[key] || key}
-                    </span>
-                    <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-gradient-to-r from-primary-400 to-primary-500 rounded-full transition-all duration-500"
-                        style={{ width: `${(value / 5) * 100}%` }}
-                      />
-                    </div>
-                    <span className="text-sm font-medium text-gray-700 w-8 text-right">
-                      {value.toFixed(1)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </>
-          ) : (
-            <div className="text-center py-8">
-              <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
-                <StarIcon className="w-8 h-8 text-gray-300" filled={false} />
-              </div>
-              <p className="text-gray-500 font-medium">No ratings yet</p>
-              <p className="text-sm text-gray-400 mt-1">
-                Reviews will appear here when families rate your services.
+              <p className="text-xs text-gray-500 mt-0.5 truncate">
+                {request.recipient}
+              </p>
+              <p className="text-xs text-gray-400 mt-1">
+                {formatDate(request.sentAt)}
               </p>
             </div>
-          )}
-        </div>
-
-        {/* Safe area padding for iPhone */}
-        <div className="h-[env(safe-area-inset-bottom)]" />
-      </div>
-
-      <style jsx>{`
-        @keyframes fade-in {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        @keyframes slide-up {
-          from { transform: translateY(100%); }
-          to { transform: translateY(0); }
-        }
-      `}</style>
-    </>
-  );
-}
-
-// ── Loading Skeleton ──
-
-function ReviewsSkeleton() {
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
-        <div className="animate-pulse">
-          <div className="mb-5 lg:mb-8">
-            <div className="h-8 w-32 bg-warm-100 rounded-lg mb-2" />
-            <div className="h-4 w-72 bg-warm-50 rounded" />
-          </div>
-          {/* Mobile stats skeleton */}
-          <div className="lg:hidden h-16 w-full bg-white rounded-xl border border-warm-100/60 mb-5" />
-          <div className="h-12 w-48 bg-vanilla-50 border border-warm-100/60 rounded-xl mb-5 lg:mb-6" />
-          <div className="lg:grid lg:grid-cols-[1fr,340px] lg:gap-8 lg:items-start">
-            <div className="space-y-4">
-              {[0, 1, 2].map((i) => (
-                <div key={i} className="bg-white rounded-2xl border border-warm-100/60 p-5 lg:p-6">
-                  <div className="flex items-start gap-4 mb-4">
-                    <div className="w-12 h-12 rounded-full bg-warm-100 shrink-0" />
-                    <div className="flex-1">
-                      <div className="h-5 w-32 bg-warm-100 rounded mb-2" />
-                      <div className="h-3 w-48 bg-warm-50 rounded" />
-                    </div>
-                    <div className="flex gap-1">
-                      {[0, 1, 2, 3, 4].map((j) => (
-                        <div key={j} className="w-4 h-4 rounded bg-warm-100" />
-                      ))}
-                    </div>
-                  </div>
-                  <div className="space-y-2 mb-4">
-                    <div className="h-4 w-full bg-warm-50 rounded" />
-                    <div className="h-4 w-3/4 bg-warm-50 rounded" />
-                  </div>
-                  <div className="h-12 bg-warm-100/60 rounded-xl" />
-                </div>
-              ))}
-            </div>
-            {/* Desktop sidebar skeleton */}
-            <div className="hidden lg:block">
-              <div className="bg-white rounded-2xl border border-warm-100/60 p-6">
-                <div className="h-4 w-24 bg-warm-100 rounded mb-6" />
-                <div className="flex justify-center mb-4">
-                  <div className="w-20 h-20 rounded-full bg-warm-50" />
-                </div>
-                <div className="space-y-3">
-                  {[0, 1, 2, 3].map((i) => (
-                    <div key={i} className="h-3 bg-warm-50 rounded" />
-                  ))}
-                </div>
-              </div>
-            </div>
           </div>
         </div>
-      </div>
+      ))}
     </div>
   );
 }
@@ -906,308 +494,173 @@ function ReviewsSkeleton() {
 // ── Main Page ──
 
 export default function ProviderReviewsPage() {
-  const providerProfile = useProviderProfile();
-  const [activeFilter, setActiveFilter] = useState<TabFilter>("all");
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [stats, setStats] = useState<ReviewStats>({
-    totalReviews: 0,
-    repliedCount: 0,
-    avgRating: 0,
-    categoryStats: { care_quality: 0, communication: 0, value: 0, cleanliness: 0 },
-  });
-  const [isLoading, setIsLoading] = useState(true);
-  const [isMobile, setIsMobile] = useState(false);
-  const [profileId, setProfileId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<TabFilter>("send_request");
+  const [providerSlug, setProviderSlug] = useState<string | null>(null);
+  const [requests, setRequests] = useState<SentRequest[]>([]);
+  const [isLoadingRequests, setIsLoadingRequests] = useState(true);
+  const [requestsError, setRequestsError] = useState<string | null>(null);
+  const [remainingRequests, setRemainingRequests] = useState(3);
+  const [creditsUsed, setCreditsUsed] = useState(0);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
-  // Sheet state
-  const [selectedReview, setSelectedReview] = useState<Review | null>(null);
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [sheetMode, setSheetMode] = useState<"reply" | "edit">("reply");
-
-  // Mobile stats sheet
-  const [showStatsSheet, setShowStatsSheet] = useState(false);
-
-
-  // Detect mobile
+  // Fetch provider slug
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 1024);
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
-
-  // Fetch reviews from API
-  useEffect(() => {
-    if (!providerProfile?.slug) {
-      // No provider profile yet - show empty state
-      setReviews([]);
-      setStats({ totalReviews: 0, repliedCount: 0, avgRating: 0, categoryStats: { care_quality: 0, communication: 0, value: 0, cleanliness: 0 } });
-      setIsLoading(false);
-      return;
-    }
-
     (async () => {
       try {
-        const res = await fetch("/api/provider/reviews");
-        if (!res.ok) {
-          throw new Error("Failed to fetch reviews");
+        const res = await fetch("/api/provider/profile");
+        if (res.ok) {
+          const data = await res.json();
+          setProviderSlug(data.profile?.slug || null);
         }
-        const data = await res.json();
-        const fetchedReviews = data.reviews || [];
-        const fetchedProfileId = data.profileId as string | undefined;
-
-        if (fetchedProfileId) {
-          setProfileId(fetchedProfileId);
-          // Migrate localStorage data from old key format
-          if (providerProfile?.id && providerProfile.id !== fetchedProfileId) {
-            migrateReviewsReadData(providerProfile.id, fetchedProfileId);
-          }
-        }
-
-        // Determine isNew for each review based on database read_by with localStorage fallback
-        const reviewsWithReadState = fetchedReviews.map((r: Review) => {
-          // Check database read_by first
-          const meta = r.metadata || {};
-          const readBy = (meta.read_by as Record<string, string>) || {};
-          const isReadInDb = fetchedProfileId ? !!readBy[fetchedProfileId] : false;
-
-          if (isReadInDb) {
-            return { ...r, isNew: false };
-          }
-
-          // Fallback to localStorage
-          try {
-            const readKey = fetchedProfileId ? `olera_reviews_read_${fetchedProfileId}` : `olera_reviews_read_${providerProfile?.id}`;
-            const stored = localStorage.getItem(readKey);
-            const readIds: string[] = stored ? JSON.parse(stored) : [];
-            return { ...r, isNew: !readIds.includes(r.id) };
-          } catch {
-            return { ...r, isNew: true };
-          }
-        });
-
-        setReviews(reviewsWithReadState);
-        setStats(data.stats || calculateStats(reviewsWithReadState));
-
-        // Count unread reviews and sync navbar badge
-        const unreadCount = reviewsWithReadState.filter((r: Review) => r.isNew).length;
-        window.dispatchEvent(new CustomEvent("olera:reviews-sync", {
-          detail: { count: unreadCount, providerId: fetchedProfileId || providerProfile?.id }
-        }));
-      } catch (err) {
-        console.error("Failed to fetch reviews:", err);
-        // Show empty state on error
-        setReviews([]);
-        setStats({ totalReviews: 0, repliedCount: 0, avgRating: 0, categoryStats: { care_quality: 0, communication: 0, value: 0, cleanliness: 0 } });
-      } finally {
-        setIsLoading(false);
+      } catch {
+        // Silently fail
       }
     })();
-  }, [providerProfile?.slug, providerProfile?.id]);
-
-  const filteredReviews = useMemo(() => {
-    if (activeFilter === "replied") {
-      return reviews.filter((r) => r.provider_reply);
-    }
-    return reviews;
-  }, [activeFilter, reviews]);
-
-  const counts = useMemo(() => ({
-    all: reviews.length,
-    replied: reviews.filter((r) => r.provider_reply).length,
-  }), [reviews]);
-
-  // Handle marking a review as read
-  const handleMarkAsRead = useCallback((reviewId: string) => {
-    if (!profileId) return;
-
-    // Update local state
-    setReviews((prev) =>
-      prev.map((r) => (r.id === reviewId ? { ...r, isNew: false } : r))
-    );
-
-    // Persist to database
-    markReviewAsRead(reviewId, profileId);
-
-    // Sync navbar badge (decrement count)
-    const currentUnreadCount = reviews.filter((r) => r.isNew && r.id !== reviewId).length;
-    window.dispatchEvent(new CustomEvent("olera:reviews-sync", {
-      detail: { count: currentUnreadCount, providerId: profileId }
-    }));
-  }, [profileId, reviews]);
-
-  // Handle reply
-  const handleReply = useCallback((review: Review) => {
-    setSelectedReview(review);
-    setSheetMode("reply");
-    setIsSheetOpen(true);
   }, []);
 
-  // Handle edit
-  const handleEdit = useCallback((review: Review) => {
-    setSelectedReview(review);
-    setSheetMode("edit");
-    setIsSheetOpen(true);
-  }, []);
-
-  // Handle sheet submit
-  const handleSheetSubmit = useCallback(async (review: Review, reply: string) => {
+  // Fetch requests and credits info
+  const fetchRequests = useCallback(async () => {
+    setIsLoadingRequests(true);
     try {
-      const res = await fetch("/api/provider/reviews", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: review.id, reply }),
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        console.error("Failed to save reply:", errorData);
-        alert(errorData.error || "Failed to save reply. Please try again.");
-        return;
-      }
-
+      const res = await fetch("/api/review-requests");
+      if (!res.ok) throw new Error("Failed to fetch");
       const data = await res.json();
+      const reqs = data.requests || [];
+      setRequests(reqs);
+      setRequestsError(null);
 
-      // Update the review in local state
-      setReviews((prev) =>
-        prev.map((r) =>
-          r.id === review.id ? { ...r, ...data.review } : r
-        )
-      );
-
-      // Update stats
-      setStats((prev) => ({
-        ...prev,
-        repliedCount: prev.repliedCount + (review.provider_reply ? 0 : 1),
-      }));
+      // Use credits info from API (lifetime limit, not monthly)
+      const used = data.credits_used ?? 0;
+      const remaining = data.is_paid ? Infinity : (data.credits_remaining ?? 3);
+      setCreditsUsed(used);
+      setRemainingRequests(remaining);
     } catch (err) {
-      console.error("Failed to save reply:", err);
-      alert("Failed to save reply. Please try again.");
+      console.error("Failed to fetch sent requests:", err);
+      setRequestsError("Failed to load sent requests");
+    } finally {
+      setIsLoadingRequests(false);
     }
   }, []);
 
-  const handleCloseSheet = useCallback(() => {
-    setIsSheetOpen(false);
-    setTimeout(() => setSelectedReview(null), 300);
-  }, []);
+  useEffect(() => {
+    fetchRequests();
+  }, [fetchRequests]);
 
-  if (isLoading) {
-    return <ReviewsSkeleton />;
-  }
+  const handleSendSuccess = useCallback(() => {
+    fetchRequests();
+  }, [fetchRequests]);
 
-  const TABS: { id: TabFilter; label: string }[] = [
-    { id: "all", label: "All Reviews" },
-    { id: "replied", label: "Replied" },
+  const TABS: { id: TabFilter; label: string; count?: number }[] = [
+    { id: "send_request", label: "Send Request" },
+    { id: "sent_requests", label: "History", count: requests.length },
   ];
 
   return (
     <>
-    <style jsx global>{`
-      @keyframes card-enter {
-        from {
-          opacity: 0;
-          transform: translateY(12px);
+      <style jsx global>{`
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(4px); }
+          to { opacity: 1; transform: translateY(0); }
         }
-        to {
-          opacity: 1;
-          transform: translateY(0);
+        .animate-fade-in {
+          animation: fadeIn 0.25s ease-out;
         }
-      }
-      @keyframes emptyFloat {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-6px); }
-      }
-    `}</style>
-    <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
-        {/* ── Page header ── */}
-        <div className="mb-5 lg:mb-8">
-          <h1 className="text-2xl lg:text-[28px] font-display font-bold text-gray-900 tracking-tight">
-            Reviews
-          </h1>
-          <p className="text-sm lg:text-[15px] text-gray-500 mt-1 lg:mt-1.5 leading-relaxed">
-            See what families are saying and respond to feedback.
-          </p>
-        </div>
+        @keyframes success-bounce {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.05); }
+        }
+        .animate-success-bounce {
+          animation: success-bounce 0.4s ease-out;
+        }
+      `}</style>
 
-        {/* ── Mobile Stats Banner ── */}
-        <MobileStatsBanner stats={stats} onTap={() => setShowStatsSheet(true)} />
-
-        {/* ── Mobile Stats Sheet ── */}
-        <MobileStatsSheet
-          isOpen={showStatsSheet}
-          onClose={() => setShowStatsSheet(false)}
-          stats={stats}
-        />
-
-        {/* ── Tabs (outside grid, full width) ── */}
-        <div className="mb-4 lg:mb-5 -mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-auto scrollbar-hide">
-          <div className="flex gap-0.5 bg-vanilla-50 border border-warm-100/60 p-0.5 rounded-xl w-max min-w-full sm:min-w-0 sm:w-max">
-            {TABS.map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveFilter(tab.id)}
-                className={[
-                  "px-3 sm:px-3.5 lg:px-5 py-2 lg:py-2.5 rounded-[10px] text-[13px] lg:text-sm font-semibold whitespace-nowrap transition-all duration-150 min-h-[40px] lg:min-h-[44px] flex items-center gap-1.5 sm:gap-2 flex-1 sm:flex-none justify-center sm:justify-start",
-                  activeFilter === tab.id
-                    ? "bg-white text-gray-900 shadow-sm"
-                    : "text-gray-500 hover:text-gray-700",
-                ].join(" ")}
-              >
-                {tab.label}
-                <span className={`text-xs px-1.5 py-0.5 rounded-md ${
-                  activeFilter === tab.id
-                    ? "bg-gray-100 text-gray-600"
-                    : "bg-warm-100/60 text-gray-400"
-                }`}>
-                  {counts[tab.id]}
-                </span>
-              </button>
-            ))}
+      <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Page header */}
+          <div className="mb-5 lg:mb-8">
+            <h1 className="text-2xl lg:text-[28px] font-display font-bold text-gray-900 tracking-tight">
+              Review Requests
+            </h1>
+            <p className="text-[15px] text-gray-500 mt-1.5 leading-relaxed">
+              Ask happy clients to leave a Google review.
+            </p>
           </div>
-        </div>
 
-        {/* ── Review cards ── */}
-        <div className="max-w-xl">
-          {filteredReviews.length > 0 ? (
-            <div className="space-y-4">
-              {filteredReviews.map((review, idx) => (
-                <div
-                  key={review.id}
-                  style={{
-                    animation: "card-enter 0.25s ease-out both",
-                    animationDelay: `${idx * 60}ms`,
-                  }}
+          {/* Tabs - matches Q&A and Connections style */}
+          <div className="mb-4 lg:mb-5">
+            <div
+              className="flex gap-0.5 bg-vanilla-50 border border-warm-100/60 p-0.5 rounded-xl w-max"
+              role="tablist"
+              aria-label="Review request tabs"
+            >
+              {TABS.map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={activeTab === tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`px-5 py-2.5 rounded-lg text-[15px] font-semibold transition-all min-h-[44px] ${
+                    activeTab === tab.id
+                      ? "bg-white text-gray-900 shadow-sm"
+                      : "text-gray-600 hover:text-gray-900 hover:bg-white/50"
+                  }`}
                 >
-                  <ReviewCard
-                    review={review}
-                    onReply={handleReply}
-                    onEdit={handleEdit}
-                    isMobile={isMobile}
-                    isNew={review.isNew}
-                    onMarkAsRead={() => handleMarkAsRead(review.id)}
-                  />
-                </div>
+                  {tab.label}
+                  {tab.count !== undefined && tab.count > 0 && (
+                    <span className={`ml-2 px-2 py-0.5 rounded-md text-xs font-semibold ${
+                      activeTab === tab.id ? "bg-vanilla-100 text-gray-600" : "bg-warm-100/50 text-gray-500"
+                    }`}>
+                      {tab.count}
+                    </span>
+                  )}
+                </button>
               ))}
             </div>
-          ) : (
-            <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm min-h-[320px] flex items-center justify-center">
-              <EmptyState filter={activeFilter} />
+          </div>
+
+          {/* Content grid - matches Q&A layout */}
+          <div className="lg:grid lg:grid-cols-[1fr,340px] lg:gap-8 lg:items-start">
+            {/* Main content */}
+            <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-5 lg:p-6 mb-6 lg:mb-0">
+              {activeTab === "send_request" && (
+                <SendRequestForm
+                  onSuccess={handleSendSuccess}
+                  providerSlug={providerSlug || undefined}
+                  remainingRequests={remainingRequests}
+                  creditsUsed={creditsUsed}
+                  onUpgradeRequired={() => setShowUpgradeModal(true)}
+                />
+              )}
+              {activeTab === "sent_requests" && (
+                <SentRequestsList
+                  requests={requests}
+                  isLoading={isLoadingRequests}
+                  error={requestsError}
+                />
+              )}
             </div>
-          )}
+
+            {/* Video panel */}
+            <div className="hidden lg:block sticky top-24">
+              <VideoPanel />
+            </div>
+          </div>
+
+          {/* Mobile video */}
+          <div className="lg:hidden mt-6">
+            <VideoPanel />
+          </div>
         </div>
       </div>
 
-      {/* ── Bottom Sheet / Side Drawer ── */}
-      <BottomSheet
-        review={selectedReview}
-        isOpen={isSheetOpen}
-        onClose={handleCloseSheet}
-        onSubmit={handleSheetSubmit}
-        mode={sheetMode}
-      />
-    </div>
+      {/* Upgrade Modal */}
+      {showUpgradeModal && (
+        <ReviewUpgradeModal
+          creditsUsed={creditsUsed}
+          onClose={() => setShowUpgradeModal(false)}
+        />
+      )}
     </>
   );
 }

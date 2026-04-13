@@ -20,6 +20,10 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    // Accept optional returnUrl for redirect after checkout
+    const body = await request.json().catch(() => ({}));
+    const returnUrl = body.returnUrl as string | undefined;
+
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
@@ -61,12 +65,15 @@ export async function POST(request: NextRequest) {
 
     // Create checkout session
     const origin = request.nextUrl.origin;
+    const defaultReturn = "/medjobs/candidates";
+    const safeReturnUrl = returnUrl?.startsWith("/") ? returnUrl : defaultReturn;
+
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       mode: "subscription",
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${origin}/medjobs/candidates?upgraded=true`,
-      cancel_url: `${origin}/medjobs/candidates`,
+      success_url: `${origin}${safeReturnUrl}?upgraded=true`,
+      cancel_url: `${origin}${safeReturnUrl}`,
       metadata: {
         profile_id: providerProfile.id,
         product: "medjobs",

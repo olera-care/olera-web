@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
 /**
@@ -452,7 +452,25 @@ const DEMO_STUDENTS = [
   },
 ];
 
-export async function POST() {
+/**
+ * GET /api/dev/seed-demo-students
+ *
+ * Open this URL in your browser. It does everything:
+ * 1. Deletes any old non-demo student profiles (source != 'seeded')
+ * 2. Deletes the 4 demo profiles if they already exist (clean slate)
+ * 3. Creates all 4 fresh demo profiles
+ *
+ * Add ?cleanup_old=true to also remove old student accounts that aren't these demos.
+ */
+export async function GET(request: NextRequest) {
+  return seedDemoStudents(request);
+}
+
+export async function POST(request: NextRequest) {
+  return seedDemoStudents(request);
+}
+
+async function seedDemoStudents(request: NextRequest) {
   try {
     const admin = getAdminClient();
     if (!admin) {
@@ -462,22 +480,35 @@ export async function POST() {
       );
     }
 
-    const results: { slug: string; id: string; status: "created" | "exists" }[] = [];
+    const { searchParams } = new URL(request.url);
+    const cleanupOld = searchParams.get("cleanup_old") === "true";
+
+    // ── Step 1: Clean up old non-demo student profiles ──
+    let oldDeleted: string[] = [];
+    if (cleanupOld) {
+      const demoSlugs = DEMO_STUDENTS.map((s) => s.slug);
+      const { data: oldStudents } = await admin
+        .from("business_profiles")
+        .select("id, slug, display_name")
+        .eq("type", "student")
+        .not("slug", "in", `(${demoSlugs.join(",")})`);
+
+      if (oldStudents && oldStudents.length > 0) {
+        const oldIds = oldStudents.map((s: { id: string }) => s.id);
+        await admin.from("business_profiles").delete().in("id", oldIds);
+        oldDeleted = oldStudents.map((s: { display_name: string }) => s.display_name);
+      }
+    }
+
+    // ── Step 2: Delete existing demos for clean re-seed ──
+    const demoSlugs = DEMO_STUDENTS.map((s) => s.slug);
+    await admin.from("business_profiles").delete().in("slug", demoSlugs);
+
+    // ── Step 3: Create all 4 fresh demo profiles ──
+    const results: { slug: string; id: string; name: string }[] = [];
     const errors: { slug: string; error: string }[] = [];
 
     for (const student of DEMO_STUDENTS) {
-      // Check if already exists (idempotent)
-      const { data: existing } = await admin
-        .from("business_profiles")
-        .select("id")
-        .eq("slug", student.slug)
-        .single();
-
-      if (existing) {
-        results.push({ slug: student.slug, id: existing.id, status: "exists" });
-        continue;
-      }
-
       const profileId = crypto.randomUUID();
 
       const { error: insertError } = await admin
@@ -504,14 +535,18 @@ export async function POST() {
         continue;
       }
 
-      results.push({ slug: student.slug, id: profileId, status: "created" });
+      results.push({ slug: student.slug, id: profileId, name: student.display_name });
     }
 
     return NextResponse.json({
-      status: "seeded",
-      results,
+      status: "done",
+      message: `Created ${results.length} demo students.${oldDeleted.length > 0 ? ` Removed ${oldDeleted.length} old student accounts.` : ""}`,
+      created: results.map((r) => ({
+        name: r.name,
+        url: `/provider/medjobs/candidates/${r.slug}`,
+      })),
+      old_accounts_removed: oldDeleted,
       errors,
-      viewUrls: results.map((r) => `/provider/medjobs/candidates/${r.slug}`),
     });
   } catch (err) {
     console.error("Seed demo students error:", err);

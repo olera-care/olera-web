@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
+import { fetchGooglePlacePhoto } from "@/lib/google-places";
 
 /**
  * GET /api/provider/[slug]/info
@@ -72,12 +73,18 @@ export async function GET(
       }
 
       if (legacyProvider) {
+        // Fetch Google Places photo if we have a place_id
+        let imageUrl: string | null = null;
+        if (legacyProvider.place_id) {
+          imageUrl = await fetchGooglePlacePhoto(legacyProvider.place_id);
+        }
+
         const legacyResponse = NextResponse.json({
           provider: {
             id: legacyProvider.provider_id,
             display_name: legacyProvider.provider_name,
             slug: legacyProvider.slug || legacyProvider.provider_id,
-            image_url: null,
+            image_url: imageUrl,
             tagline: null,
             city: legacyProvider.city,
             state: legacyProvider.state,
@@ -94,12 +101,18 @@ export async function GET(
     // Extract Google Place ID from metadata
     const googlePlaceId = profile.metadata?.google_metadata?.place_id || null;
 
+    // Use existing image_url, or fetch from Google Places if we have a place_id
+    let imageUrl = profile.image_url;
+    if (!imageUrl && googlePlaceId) {
+      imageUrl = await fetchGooglePlacePhoto(googlePlaceId);
+    }
+
     const response = NextResponse.json({
       provider: {
         id: profile.id,
         display_name: profile.display_name,
         slug: profile.slug,
-        image_url: profile.image_url,
+        image_url: imageUrl,
         tagline: null,
         city: profile.city,
         state: profile.state,

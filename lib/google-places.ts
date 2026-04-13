@@ -104,6 +104,60 @@ export async function fetchGoogleReviews(
 }
 
 /**
+ * Fetch the primary photo URL for a Google Place.
+ *
+ * Returns the photo URL or null if:
+ * - No API key configured
+ * - Place has no photos
+ * - API returns an error
+ */
+export async function fetchGooglePlacePhoto(
+  placeId: string,
+  maxSize: number = 400,
+): Promise<string | null> {
+  const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+  if (!apiKey) {
+    console.warn("[google-places] GOOGLE_PLACES_API_KEY not set, skipping photo fetch");
+    return null;
+  }
+
+  if (!placeId) {
+    return null;
+  }
+
+  try {
+    // Fetch place details with photos field
+    const url = `${PLACES_API_BASE}/${placeId}?fields=photos&key=${apiKey}`;
+    const res = await fetch(url, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (!res.ok) {
+      const errorBody = await res.text().catch(() => "");
+      console.error(
+        `[google-places] Photo API error for ${placeId}: ${res.status} ${errorBody}`,
+      );
+      return null;
+    }
+
+    const data = await res.json();
+
+    // Get the first photo reference
+    const photoName = data.photos?.[0]?.name;
+    if (!photoName) {
+      return null;
+    }
+
+    // Construct the photo URL
+    return `https://places.googleapis.com/v1/${photoName}/media?maxHeightPx=${maxSize}&maxWidthPx=${maxSize}&key=${apiKey}`;
+  } catch (err) {
+    console.error(`[google-places] Failed to fetch photo for ${placeId}:`, err);
+    return null;
+  }
+}
+
+/**
  * Batch fetch Google reviews with rate limiting.
  *
  * Processes providers in chunks to avoid hitting API rate limits.

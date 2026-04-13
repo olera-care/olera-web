@@ -121,6 +121,11 @@ export default function AccountSettingsPage() {
   const [deleteError, setDeleteError] = useState("");
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
 
+  // Subscription management (providers only)
+  const [subscriptionLoading, setSubscriptionLoading] = useState(false);
+  const isProvider = isOrganization || (profileType === "caregiver");
+  const hasActiveSubscription = !!(meta.medjobs_subscription_active as boolean);
+
 
   // ── Notification toggle (optimistic — flips instantly, persists in background) ──
   const handleNotifToggle = useCallback(
@@ -270,6 +275,34 @@ export default function AccountSettingsPage() {
     }
   };
 
+  // ── Subscription management ──
+  const handleUpgrade = async () => {
+    setSubscriptionLoading(true);
+    try {
+      const res = await fetch("/api/medjobs/checkout", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to start checkout");
+      if (data.url) window.location.href = data.url;
+    } catch (err) {
+      console.error("Upgrade error:", err);
+    } finally {
+      setSubscriptionLoading(false);
+    }
+  };
+
+  const handleManageSubscription = async () => {
+    setSubscriptionLoading(true);
+    try {
+      const res = await fetch("/api/medjobs/billing-portal", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to open billing portal");
+      if (data.url) window.location.href = data.url;
+    } catch (err) {
+      console.error("Billing portal error:", err);
+    } finally {
+      setSubscriptionLoading(false);
+    }
+  };
 
   // Get the correct notifications config based on profile type
   const getNotifications = () => {
@@ -382,6 +415,94 @@ export default function AccountSettingsPage() {
                     />
                   </div>
                 </div>
+
+                {/* ── Subscription (Providers only) ── */}
+                {isProvider && (
+                  <div className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <p className="text-[15px] font-semibold text-gray-900">
+                        MedJobs Pro
+                      </p>
+                      {hasActiveSubscription && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                          Active
+                        </span>
+                      )}
+                    </div>
+
+                    {hasActiveSubscription ? (
+                      /* ── Subscribed state ── */
+                      <div>
+                        <p className="text-sm text-gray-500 mb-4">
+                          You have full access to candidate profiles, unlimited interview scheduling, and unlimited review requests.
+                        </p>
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm text-gray-600">
+                            <span className="font-medium text-gray-900">$49</span>
+                            <span className="text-gray-400">/month</span>
+                          </p>
+                          <button
+                            type="button"
+                            onClick={handleManageSubscription}
+                            disabled={subscriptionLoading}
+                            className="text-[14px] font-medium text-primary-600 hover:text-primary-700 disabled:opacity-50 transition-colors"
+                          >
+                            {subscriptionLoading ? "Loading..." : "Manage subscription"}
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      /* ── Not subscribed state ── */
+                      <div>
+                        <p className="text-sm text-gray-500 mb-4">
+                          Unlock full candidate profiles, contact info, resumes, and unlimited interview scheduling.
+                        </p>
+                        <div className="space-y-2 mb-5">
+                          <div className="flex items-center gap-2.5 text-sm text-gray-600">
+                            <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Full names and contact info
+                          </div>
+                          <div className="flex items-center gap-2.5 text-sm text-gray-600">
+                            <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Resume downloads and LinkedIn
+                          </div>
+                          <div className="flex items-center gap-2.5 text-sm text-gray-600">
+                            <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Unlimited interview scheduling
+                          </div>
+                          <div className="flex items-center gap-2.5 text-sm text-gray-600">
+                            <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Unlimited review requests
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm text-gray-600">
+                            <span className="font-medium text-gray-900">$49</span>
+                            <span className="text-gray-400">/month</span>
+                            <span className="text-gray-400 ml-1.5">·</span>
+                            <span className="text-gray-400 ml-1.5">Cancel anytime</span>
+                          </p>
+                          <button
+                            type="button"
+                            onClick={handleUpgrade}
+                            disabled={subscriptionLoading}
+                            className="px-4 py-2 bg-gray-900 hover:bg-gray-800 disabled:opacity-50 rounded-lg text-sm font-medium text-white transition-colors"
+                          >
+                            {subscriptionLoading ? "Loading..." : "Upgrade"}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* ── Delete Account ── */}
                 <div className="p-6">

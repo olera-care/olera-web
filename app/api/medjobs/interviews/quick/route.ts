@@ -39,6 +39,7 @@ export async function POST(request: NextRequest) {
       studentProfileId,
       type = "video",
       proposedTime,
+      alternativeTime,
       notes,
       provider,
     } = body;
@@ -225,6 +226,7 @@ export async function POST(request: NextRequest) {
         status: "proposed",
         type,
         proposed_time: proposedTime,
+        alternative_time: alternativeTime || null,
         notes: notes || null,
         proposed_by: providerProfileId,
       })
@@ -292,6 +294,18 @@ export async function POST(request: NextRequest) {
 
     // Also notify the student that they have an interview request
     if (student.email) {
+      // Format alternative time if provided
+      const formattedAltTime = alternativeTime
+        ? new Date(alternativeTime).toLocaleString("en-US", {
+            weekday: "long",
+            month: "long",
+            day: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+            timeZoneName: "short",
+          })
+        : null;
+
       try {
         await sendEmail({
           to: student.email,
@@ -300,6 +314,7 @@ export async function POST(request: NextRequest) {
             <h2>You have an interview request!</h2>
             <p><strong>${providerDisplayName}</strong> would like to schedule a ${typeLabel.toLowerCase()} interview.</p>
             <p><strong>Proposed time:</strong> ${formattedDateTime}</p>
+            ${formattedAltTime ? `<p><strong>Alternative time:</strong> ${formattedAltTime}</p>` : ""}
             ${notes ? `<p><strong>Notes:</strong> ${notes}</p>` : ""}
             <p><a href="${process.env.NEXT_PUBLIC_SITE_URL}/portal/medjobs/interviews">View & respond on Olera</a></p>
           `,

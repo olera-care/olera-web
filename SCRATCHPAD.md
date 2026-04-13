@@ -86,9 +86,10 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 - All 50 states + DC explored and researched
 
 ### What's next
-1. **Test the punched welcome page on Vercel** — verify hero card warm vanilla, personalized headline, matches section "Next:" treatment, action steps + pre-footer hidden for intake users
+1. **Merge PR #536 to staging** — the benefits module + welcome page + Slack/activity integration + latency fix are all working now. Ready for QA on staging.
 2. **Fix profile completeness for intake users** (deferred bug) — currently shows ~24% because checks don't count `state`, `income_range`, `medicaid_status`. Fix would either add new field checks OR write `care_types`/`payment_methods` from the intake API.
 3. **Add `plainLabel` to pipeline prompt** — auto-generate a 4-5 word plain-English label per program (e.g., "Help paying for home care") so provider page descriptions are human-first, not tagline-derived.
+4. **Daily digest includes benefits completions** (Layer 3 deferred from session 77 Slack work) — small addition to `/api/cron/daily-digest` to count `benefits_completed` events alongside leads/claims/disputes.
 3. **Re-run v3 pipeline on all states** — SD + TX validated, full batch for v3-quality content. Benefits module dynamically reflects whatever's in the library.
 4. **Admin review guide** — embed quality-check directions directly in the admin dashboard.
 5. Apply approved MI drafts
@@ -246,9 +247,17 @@ The deep dive. Restrained, lets content breathe. Reads like a well-researched ar
 
 ## Session Log
 
-### 2026-04-12 (Session 77) — Benefits Save Latency Debugging (IN PROGRESS, STUCK)
+### 2026-04-12 → 2026-04-13 (Session 77) — Benefits Save Latency: RESOLVED
 
-**Branch:** `fond-hypatia` | **PR:** #536 | **Latest:** `15d658e4`
+**Branch:** `fond-hypatia` | **PR:** #536 | **Latest:** `18760265`
+
+**Resolution (session 77 continuation on 2026-04-13):** After 5 rounds of debugging, the root cause was the Supabase browser client singleton caching stale auth state across client-side navigations. The fix: swap `router.push` → `window.location.href` in `BenefitsDiscoveryModule.handleSave`. Full page reload throws away the singleton, the fresh page reads the session cookies the server wrote via Set-Cookie headers, welcome page renders the personalized state on the first try. User confirmed: "Much smoother now." Total flow now ~2-3 seconds, down from 10+ seconds.
+
+**The key insight that unblocked it:** User reported "it works when I reload/go back." That observation proved the cookies WERE being set by the server — they just weren't being picked up by the stale client singleton. Full-page nav defeats the singleton entirely.
+
+---
+
+**Original session 77 entry preserved below for reference:**
 
 **The problem:** User clicks "Apply for benefits" on the provider page, sees a ~6-10 second spinner before the welcome page loads. Multiple rounds of debugging to pinpoint where the seconds are going.
 

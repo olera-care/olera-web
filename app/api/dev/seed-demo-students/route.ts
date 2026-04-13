@@ -18,22 +18,17 @@ function getAdminClient() {
 }
 
 // ── Schedule grid helper ──
-// Grid format: JSON string of { [day]: { [slot]: boolean } }
-// Days: mon, tue, wed, thu, fri, sat, sun
-// Slots: early_morning, morning, afternoon, evening, overnight
+// Grid format: flat JSON { "Mon-8am": true, "Tue-12pm": true, ... }
+// Days: Mon, Tue, Wed, Thu, Fri
+// Slots: 8am, 10am, 12pm, 2pm, 4pm, 6pm, 8pm
+// true = IN CLASS (busy), absent/false = free (available)
 function makeScheduleGrid(busySlots: Record<string, string[]>): string {
-  const days = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
-  const slots = ["early_morning", "morning", "afternoon", "evening", "overnight"];
-  const grid: Record<string, Record<string, boolean>> = {};
-
-  for (const day of days) {
-    grid[day] = {};
+  const grid: Record<string, boolean> = {};
+  for (const [day, slots] of Object.entries(busySlots)) {
     for (const slot of slots) {
-      // true = BUSY (in class), false = available
-      grid[day][slot] = busySlots[day]?.includes(slot) ?? false;
+      grid[`${day}-${slot}`] = true;
     }
   }
-
   return JSON.stringify(grid);
 }
 
@@ -45,6 +40,7 @@ const DEMO_STUDENTS = [
     slug: "maya-chen-demo",
     type: "student" as const,
     display_name: "Maya Chen",
+    image_url: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400&h=400&fit=crop&crop=face",
     email: "maya.chen@demo.olera.com",
     phone: "(512) 555-0101",
     city: "Austin",
@@ -83,12 +79,13 @@ const DEMO_STUDENTS = [
       },
 
       course_schedule_semester: "Fall 2026",
+      // MWF: classes 8am-2pm; T/Th: classes 12-4pm; free evenings + weekends
       course_schedule_grid: makeScheduleGrid({
-        mon: ["morning", "afternoon"],
-        tue: ["afternoon"],
-        wed: ["morning", "afternoon"],
-        thu: ["afternoon"],
-        fri: ["morning", "afternoon"],
+        Mon: ["8am", "10am", "12pm"],
+        Tue: ["12pm", "2pm"],
+        Wed: ["8am", "10am", "12pm"],
+        Thu: ["12pm", "2pm"],
+        Fri: ["8am", "10am", "12pm"],
       }),
 
       commitment_statement:
@@ -147,6 +144,7 @@ const DEMO_STUDENTS = [
     slug: "ethan-rivera-demo",
     type: "student" as const,
     display_name: "Ethan Rivera",
+    image_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face",
     email: "ethan.rivera@demo.olera.com",
     phone: "(210) 555-0202",
     city: "San Antonio",
@@ -248,6 +246,7 @@ const DEMO_STUDENTS = [
     slug: "priya-patel-demo",
     type: "student" as const,
     display_name: "Priya Patel",
+    image_url: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&fit=crop&crop=face",
     email: "priya.patel@demo.olera.com",
     phone: "(713) 555-0303",
     city: "Houston",
@@ -286,12 +285,13 @@ const DEMO_STUDENTS = [
       },
 
       course_schedule_semester: "Fall 2026",
+      // Packed weekdays 8am-4pm; only free evenings + weekends
       course_schedule_grid: makeScheduleGrid({
-        mon: ["early_morning", "morning", "afternoon"],
-        tue: ["early_morning", "morning", "afternoon"],
-        wed: ["early_morning", "morning", "afternoon"],
-        thu: ["early_morning", "morning", "afternoon"],
-        fri: ["early_morning", "morning", "afternoon"],
+        Mon: ["8am", "10am", "12pm", "2pm"],
+        Tue: ["8am", "10am", "12pm", "2pm"],
+        Wed: ["8am", "10am", "12pm", "2pm"],
+        Thu: ["8am", "10am", "12pm", "2pm"],
+        Fri: ["8am", "10am", "12pm", "2pm"],
       }),
 
       commitment_statement:
@@ -350,6 +350,7 @@ const DEMO_STUDENTS = [
     slug: "jordan-brooks-demo",
     type: "student" as const,
     display_name: "Jordan Brooks",
+    image_url: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=400&fit=crop&crop=face",
     email: "jordan.brooks@demo.olera.com",
     phone: "(817) 555-0404",
     city: "Fort Worth",
@@ -394,12 +395,13 @@ const DEMO_STUDENTS = [
       },
 
       course_schedule_semester: "Fall 2026",
+      // Classes + clinicals M-F 8am-4pm; free every evening 5pm+ and weekends
       course_schedule_grid: makeScheduleGrid({
-        mon: ["early_morning", "morning", "afternoon"],
-        tue: ["early_morning", "morning", "afternoon"],
-        wed: ["early_morning", "morning", "afternoon"],
-        thu: ["early_morning", "morning", "afternoon"],
-        fri: ["early_morning", "morning", "afternoon"],
+        Mon: ["8am", "10am", "12pm", "2pm"],
+        Tue: ["8am", "10am", "12pm", "2pm"],
+        Wed: ["8am", "10am", "12pm", "2pm"],
+        Thu: ["8am", "10am", "12pm", "2pm"],
+        Fri: ["8am", "10am", "12pm", "2pm"],
       }),
 
       commitment_statement:
@@ -518,6 +520,7 @@ async function seedDemoStudents(request: NextRequest) {
           slug: student.slug,
           type: student.type,
           display_name: student.display_name,
+          image_url: student.image_url,
           email: student.email,
           phone: student.phone,
           city: student.city,

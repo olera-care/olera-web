@@ -348,38 +348,40 @@ function ReviewPageContent() {
                 </p>
               )}
 
-              {/* Title */}
-              <h2 className="text-xl font-medium text-gray-900 text-center mb-1">
-                How was your experience?
-              </h2>
-              <p className="text-sm text-gray-500 text-center mb-5">
-                with {providerDisplayName}
-              </p>
+              {/* Title + subtitle + stars as unified stack */}
+              <div className="text-center mb-6">
+                <h2 className="text-xl font-medium text-gray-900">
+                  How was your experience?
+                </h2>
+                <p className="text-sm text-gray-500 mt-0.5 mb-4">
+                  with {providerDisplayName}
+                </p>
 
-              {/* Star rating - interactive, larger touch targets */}
-              <div className="flex items-center justify-center gap-0.5 mb-5">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <button
-                    key={star}
-                    type="button"
-                    onClick={() => handleRatingSelect(star)}
-                    onMouseEnter={() => setHoverRating(star)}
-                    onMouseLeave={() => setHoverRating(0)}
-                    className={`p-2 rounded-xl transition-all duration-150 ${
-                      star <= displayRating
-                        ? "text-amber-400 scale-110"
-                        : "text-gray-300 hover:text-amber-300"
-                    }`}
-                    aria-label={`Rate ${star} star${star > 1 ? "s" : ""}`}
-                  >
-                    <StarIcon filled={star <= displayRating} className="w-8 h-8" />
-                  </button>
-                ))}
+                {/* Star rating - larger on desktop */}
+                <div className="flex items-center justify-center gap-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => handleRatingSelect(star)}
+                      onMouseEnter={() => setHoverRating(star)}
+                      onMouseLeave={() => setHoverRating(0)}
+                      className={`p-2 rounded-xl transition-all duration-150 ${
+                        star <= displayRating
+                          ? "text-amber-400 scale-110"
+                          : "text-gray-300 hover:text-amber-300"
+                      }`}
+                      aria-label={`Rate ${star} star${star > 1 ? "s" : ""}`}
+                    >
+                      <StarIcon filled={star <= displayRating} className="w-9 h-9 sm:w-10 sm:h-10" />
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Rating label - consistent single words */}
               {rating > 0 && (
-                <p className="text-center text-sm text-gray-500 mb-4 animate-fade-in">
+                <p className="text-center text-sm text-gray-500 -mt-4 mb-5 animate-fade-in">
                   {rating === 5 && "Excellent"}
                   {rating === 4 && "Great"}
                   {rating === 3 && "Good"}
@@ -389,7 +391,7 @@ function ReviewPageContent() {
               )}
 
               {/* Text area - appears after rating */}
-              <div className={`transition-all duration-200 ${rating > 0 ? "opacity-100 max-h-[500px]" : "opacity-40 max-h-24"}`}>
+              <div className={`transition-all duration-200 ${rating > 0 ? "opacity-100 max-h-[500px]" : "opacity-50 max-h-28"}`}>
                 {rating > 0 && (
                   <p className="text-xs text-gray-500 mb-2 text-center">
                     Mention caregivers, services, or moments that stood out
@@ -401,21 +403,21 @@ function ReviewPageContent() {
                   disabled={rating === 0}
                   rows={4}
                   placeholder={rating > 0 ? "What made this experience memorable?" : "Select a rating to start"}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-gray-900 text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-300 focus:bg-white transition-all duration-200 resize-y min-h-[100px] leading-relaxed disabled:cursor-not-allowed"
+                  className="w-full px-4 py-3.5 rounded-xl border border-gray-300 bg-white text-gray-900 text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-400 transition-all duration-200 resize-y min-h-[110px] leading-relaxed disabled:bg-gray-50 disabled:border-gray-200 disabled:cursor-not-allowed"
                 />
               </div>
 
-              {/* Share button */}
+              {/* Share button - more spacing from textarea */}
               <button
                 type="button"
                 onClick={handleShareOnGoogle}
                 disabled={!experience.trim() || rating === 0}
-                className={`w-full py-3.5 mt-5 rounded-full font-medium text-[15px] transition-all duration-200 flex items-center justify-center gap-2 ${
+                className={`w-full py-3.5 mt-6 rounded-full font-medium text-[15px] transition-all duration-200 flex items-center justify-center gap-2 ${
                   copied
                     ? "bg-emerald-500 text-white"
                     : experience.trim() && rating > 0
                     ? "bg-gray-900 hover:bg-gray-800 text-white shadow-lg shadow-gray-900/10 active:scale-[0.98]"
-                    : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    : "bg-gray-200 text-gray-500 cursor-not-allowed"
                 }`}
               >
                 {copied ? (

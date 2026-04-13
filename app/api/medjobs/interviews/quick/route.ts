@@ -304,6 +304,8 @@ export async function POST(request: NextRequest) {
             <p><a href="${process.env.NEXT_PUBLIC_SITE_URL}/portal/medjobs/interviews">View & respond on Olera</a></p>
           `,
           emailType: "interview_proposed",
+          recipientType: "student",
+          recipientProfileId: student.id,
         });
       } catch (emailError) {
         console.error("[medjobs/interviews/quick] student email error:", emailError);

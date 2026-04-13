@@ -9,31 +9,63 @@ import Modal from "@/components/ui/Modal";
 type SettingsTab = "account" | "notifications";
 
 // Notification configurations per account type
+// Only activity-based notifications are shown here (controllable by user)
+// Marketing/transactional emails (profile reminders, nudges, etc.) always send and have no toggle
 const FAMILY_NOTIFICATIONS = [
-  { key: "connection_updates", title: "Connection updates", description: "When a provider responds or messages you" },
-  { key: "saved_provider_alerts", title: "Saved provider alerts", description: "When a saved provider becomes available" },
-  { key: "match_updates", title: "Match updates", description: "New provider matches and care profile responses" },
-  { key: "profile_reminders", title: "Profile reminders", description: "Tips to complete your care profile" },
+  {
+    key: "messages_and_responses",
+    title: "Messages & responses",
+    description: "When a provider messages you or responds to your inquiry",
+    channels: ["email", "whatsapp"] as const,
+  },
+  {
+    key: "match_updates",
+    title: "Match updates",
+    description: "When providers reach out to you on Matches",
+    channels: ["email", "whatsapp"] as const,
+  },
 ] as const;
 
 const ORGANIZATION_NOTIFICATIONS = [
-  { key: "lead_notifications", title: "New leads", description: "When families send you inquiries or connection requests" },
-  { key: "review_alerts", title: "Review alerts", description: "When you receive new reviews or Q&A questions" },
-  { key: "message_notifications", title: "Message notifications", description: "When families message you" },
-  { key: "profile_insights", title: "Profile insights", description: "Weekly performance insights and tips" },
+  {
+    key: "new_leads",
+    title: "New leads",
+    description: "When families send you inquiries or connection requests",
+    channels: ["email", "sms", "whatsapp"] as const,
+  },
+  {
+    key: "reviews_and_questions",
+    title: "Reviews & questions",
+    description: "When you receive new reviews or Q&A questions",
+    channels: ["email"] as const,
+  },
+  {
+    key: "messages",
+    title: "Messages",
+    description: "When families message you",
+    channels: ["email", "whatsapp"] as const,
+  },
 ] as const;
 
 const CAREGIVER_NOTIFICATIONS = [
-  { key: "job_alerts", title: "Job alerts", description: "New job opportunities matching your preferences" },
-  { key: "interview_reminders", title: "Interview reminders", description: "Upcoming interviews and status updates" },
-  { key: "application_updates", title: "Application updates", description: "Status changes on your applications" },
-  { key: "message_notifications", title: "Message notifications", description: "When employers message you" },
+  {
+    key: "interview_requests",
+    title: "Interview requests",
+    description: "When employers want to interview you",
+    channels: ["email"] as const,
+  },
+  {
+    key: "application_updates",
+    title: "Application updates",
+    description: "When your application is accepted or declined",
+    channels: ["email"] as const,
+  },
 ] as const;
 
 type NotificationKey =
-  | typeof FAMILY_NOTIFICATIONS[number]["key"]
-  | typeof ORGANIZATION_NOTIFICATIONS[number]["key"]
-  | typeof CAREGIVER_NOTIFICATIONS[number]["key"];
+  | (typeof FAMILY_NOTIFICATIONS)[number]["key"]
+  | (typeof ORGANIZATION_NOTIFICATIONS)[number]["key"]
+  | (typeof CAREGIVER_NOTIFICATIONS)[number]["key"];
 
 export default function AccountSettingsPage() {
   const router = useRouter();
@@ -422,6 +454,7 @@ export default function AccountSettingsPage() {
                       key={notif.key}
                       title={notif.title}
                       description={notif.description}
+                      channels={notif.channels}
                       emailOn={getNotifOn(notif.key, "email")}
                       smsOn={getNotifOn(notif.key, "sms")}
                       whatsappOn={meta.whatsapp_opted_in && activeProfile?.phone ? getNotifOn(notif.key, "whatsapp") : undefined}
@@ -526,6 +559,7 @@ export default function AccountSettingsPage() {
 function NotificationRow({
   title,
   description,
+  channels,
   emailOn,
   smsOn,
   whatsappOn,
@@ -533,11 +567,16 @@ function NotificationRow({
 }: {
   title: string;
   description: string;
+  channels: readonly ("email" | "sms" | "whatsapp")[];
   emailOn: boolean;
   smsOn: boolean;
   whatsappOn?: boolean;
   onToggle: (channel: "email" | "sms" | "whatsapp") => void;
 }) {
+  const showEmail = channels.includes("email");
+  const showSms = channels.includes("sms");
+  const showWhatsapp = channels.includes("whatsapp") && whatsappOn !== undefined;
+
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 py-4 first:pt-0 last:pb-0">
       <div className="min-w-0">
@@ -545,15 +584,19 @@ function NotificationRow({
         <p className="text-sm text-gray-500 mt-0.5">{description}</p>
       </div>
       <div className="flex items-center gap-5 shrink-0">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-gray-500">Email</span>
-          <Toggle on={emailOn} onToggle={() => onToggle("email")} />
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-gray-500">SMS</span>
-          <Toggle on={smsOn} onToggle={() => onToggle("sms")} />
-        </div>
-        {whatsappOn !== undefined && (
+        {showEmail && (
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-gray-500">Email</span>
+            <Toggle on={emailOn} onToggle={() => onToggle("email")} />
+          </div>
+        )}
+        {showSms && (
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-gray-500">SMS</span>
+            <Toggle on={smsOn} onToggle={() => onToggle("sms")} />
+          </div>
+        )}
+        {showWhatsapp && (
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-gray-500">WhatsApp</span>
             <Toggle on={whatsappOn} onToggle={() => onToggle("whatsapp")} />

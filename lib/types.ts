@@ -39,6 +39,41 @@ export type MembershipStatus =
   | "free";
 export type BillingCycle = "monthly" | "annual";
 
+// Generic notification channel preference type
+export interface NotificationChannelPrefs {
+  email?: boolean;
+  sms?: boolean;
+  whatsapp?: boolean;
+}
+
+// Base notification preferences type - used by all profile metadata types
+// This allows different profile types to have different preference keys
+// while remaining compatible when extended together
+export type NotificationPrefs = {
+  // Organization preferences
+  new_leads?: NotificationChannelPrefs;
+  reviews_and_questions?: NotificationChannelPrefs;
+  messages?: NotificationChannelPrefs;
+  // Organization legacy
+  lead_notifications?: NotificationChannelPrefs;
+  review_alerts?: NotificationChannelPrefs;
+  // Caregiver/Student preferences
+  interview_requests?: NotificationChannelPrefs;
+  application_updates?: NotificationChannelPrefs;
+  // Caregiver/Student legacy
+  job_alerts?: NotificationChannelPrefs;
+  interview_reminders?: NotificationChannelPrefs;
+  // Family preferences
+  messages_and_responses?: NotificationChannelPrefs;
+  match_updates?: NotificationChannelPrefs;
+  // Family legacy
+  connection_updates?: NotificationChannelPrefs;
+  saved_provider_alerts?: NotificationChannelPrefs;
+  profile_reminders?: NotificationChannelPrefs;
+  // Shared legacy
+  message_notifications?: NotificationChannelPrefs;
+};
+
 export type ConnectionType = "inquiry" | "save" | "match" | "request" | "application" | "invitation" | "dismiss";
 export type ConnectionStatus = "pending" | "accepted" | "declined" | "expired" | "archived";
 
@@ -287,6 +322,11 @@ export interface OrganizationMetadata {
   rating?: number;
   /** @deprecated Use reviews table count */
   review_count?: number;
+
+  // Notification preferences (activity-based, user-controllable)
+  whatsapp_opted_in?: boolean;
+  whatsapp_opted_in_at?: string;
+  notification_prefs?: NotificationPrefs;
 }
 
 export interface CaregiverMetadata {
@@ -296,6 +336,11 @@ export interface CaregiverMetadata {
   years_experience?: number;
   languages?: string[];
   availability?: string;
+
+  // Notification preferences (activity-based, user-controllable)
+  whatsapp_opted_in?: boolean;
+  whatsapp_opted_in_at?: string;
+  notification_prefs?: NotificationPrefs;
 }
 
 export interface FamilyMetadata {
@@ -323,12 +368,7 @@ export interface FamilyMetadata {
   medicaid_status?: string;
   whatsapp_opted_in?: boolean;
   whatsapp_opted_in_at?: string;
-  notification_prefs?: {
-    connection_updates?: { email?: boolean; sms?: boolean; whatsapp?: boolean };
-    saved_provider_alerts?: { email?: boolean; sms?: boolean; whatsapp?: boolean };
-    match_updates?: { email?: boolean; sms?: boolean; whatsapp?: boolean };
-    profile_reminders?: { email?: boolean; sms?: boolean; whatsapp?: boolean };
-  };
+  notification_prefs?: NotificationPrefs;
   care_post?: {
     status: "draft" | "active" | "paused";
     published_at?: string;
@@ -461,6 +501,11 @@ export interface StudentMetadata {
   // Status
   profile_completeness?: number;   // 0-100
   seeking_status?: "actively_looking" | "open" | "not_looking";
+
+  // Notification preferences (activity-based, user-controllable)
+  whatsapp_opted_in?: boolean;
+  whatsapp_opted_in_at?: string;
+  notification_prefs?: NotificationPrefs;
 }
 
 // ── Interview Scheduling ──

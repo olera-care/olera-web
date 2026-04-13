@@ -1,4 +1,5 @@
 import twilio from "twilio";
+import { shouldSendNotification } from "./notification-prefs";
 
 let twilioClient: twilio.Twilio | null = null;
 
@@ -14,16 +15,35 @@ function getTwilio(): twilio.Twilio | null {
 interface SendSMSOptions {
   to: string;
   body: string;
+  /** Recipient's profile ID for checking notification preferences */
+  recipientProfileId?: string;
+  /** Notification type for preference checking (e.g., 'new_leads') */
+  notificationType?: string;
 }
 
 /**
  * Send an SMS via Twilio. Fire-and-forget safe — logs errors
  * but never throws so callers can wrap in try/catch without
  * breaking their main flow.
+ *
+ * If recipientProfileId and notificationType are provided, checks
+ * user preferences before sending. Defaults to sending if preferences
+ * can't be checked.
  */
 export async function sendSMS(
   options: SendSMSOptions
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; error?: string; skipped?: boolean }> {
+  const { to, body, recipientProfileId, notificationType } = options;
+
+  // Check notification preferences if profile ID and type provided
+  if (recipientProfileId && notificationType) {
+    const shouldSend = await shouldSendNotification(recipientProfileId, notificationType, "sms");
+    if (!shouldSend) {
+      console.log(`[sms] Skipped to ${to} - user preference disabled for ${notificationType}`);
+      return { success: true, skipped: true };
+    }
+  }
+
   const client = getTwilio();
   const from = process.env.TWILIO_FROM_NUMBER;
 
@@ -35,8 +55,8 @@ export async function sendSMS(
   try {
     await client.messages.create({
       from,
-      to: options.to,
-      body: options.body,
+      to,
+      body,
     });
     return { success: true };
   } catch (err) {

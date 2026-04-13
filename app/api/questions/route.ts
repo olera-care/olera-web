@@ -323,6 +323,7 @@ export async function POST(request: NextRequest) {
           emailType: 'question_received',
           recipientType: 'provider',
           providerId: providerIdForLogs,
+          recipientProfileId: providerIdForLogs,
         });
       } else if (newQuestion?.id) {
         // No provider email — flag for admin "Needs Email" tab

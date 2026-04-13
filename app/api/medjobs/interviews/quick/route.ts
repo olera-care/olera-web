@@ -158,52 +158,73 @@ export async function POST(request: NextRequest) {
         }
       }
     } else {
-      // No org selected from autocomplete - check by email or create new
-      const { data: existingProfile } = await admin
+      // No org selected from autocomplete - check by email first
+      const { data: profileByEmail } = await admin
         .from("business_profiles")
         .select("id, account_id, display_name, slug")
         .eq("email", normalizedEmail)
         .in("type", ["organization", "caregiver"])
         .maybeSingle();
 
-      if (existingProfile) {
-        // Use existing profile
-        providerProfileId = existingProfile.id;
-        providerDisplayName = existingProfile.display_name;
-        providerSlug = existingProfile.slug;
+      if (profileByEmail) {
+        // Use existing profile found by email
+        providerProfileId = profileByEmail.id;
+        providerDisplayName = profileByEmail.display_name;
+        providerSlug = profileByEmail.slug;
       } else {
-        // Create a new business_profile without account_id
-        const slug = generateSlug(provider.organization, provider.city);
-        const displayName = provider.organization;
+        // Email not found - also check by organization name + city to prevent paywall bypass
+        // Use case-insensitive match on display_name and city
+        const normalizedOrgName = provider.organization.trim().toLowerCase();
+        const normalizedCity = provider.city.trim().toLowerCase();
 
-        const { data: newProfile, error: profileError } = await admin
+        const { data: profileByOrg } = await admin
           .from("business_profiles")
-          .insert({
-            slug,
-            type: "organization",
-            display_name: displayName,
-            email: normalizedEmail,
-            city: provider.city,
-            state: provider.state || null,
-            care_types: [],
-            source: "medjobs_quick_schedule",
-          })
-          .select("id")
-          .single();
+          .select("id, account_id, display_name, slug")
+          .ilike("display_name", normalizedOrgName)
+          .ilike("city", normalizedCity)
+          .in("type", ["organization", "caregiver"])
+          .limit(1)
+          .maybeSingle();
 
-        if (profileError || !newProfile) {
-          console.error("[medjobs/interviews/quick] profile creation error:", profileError);
-          return NextResponse.json({ error: "Failed to create provider profile" }, { status: 500 });
+        if (profileByOrg) {
+          // Found existing org by name + city - use it (paywall check will run)
+          providerProfileId = profileByOrg.id;
+          providerDisplayName = profileByOrg.display_name;
+          providerSlug = profileByOrg.slug;
+        } else {
+          // No existing profile found - create a new one
+          const slug = generateSlug(provider.organization, provider.city);
+          const displayName = provider.organization;
+
+          const { data: newProfile, error: profileError } = await admin
+            .from("business_profiles")
+            .insert({
+              slug,
+              type: "organization",
+              display_name: displayName,
+              email: normalizedEmail,
+              city: provider.city,
+              state: provider.state || null,
+              care_types: [],
+              source: "medjobs_quick_schedule",
+            })
+            .select("id")
+            .single();
+
+          if (profileError || !newProfile) {
+            console.error("[medjobs/interviews/quick] profile creation error:", profileError);
+            return NextResponse.json({ error: "Failed to create provider profile" }, { status: 500 });
+          }
+
+          providerProfileId = newProfile.id;
+          providerDisplayName = displayName;
+          providerSlug = slug;
+          isNewProfile = true;
         }
-
-        providerProfileId = newProfile.id;
-        providerDisplayName = displayName;
-        providerSlug = slug;
-        isNewProfile = true;
       }
     }
 
-    // Paywall check: if the provider profile already exists and is exhausted, block
+    // Paywall check: if using an existing profile (found by email, org slug, or org name+city), enforce credits
     if (!isNewProfile) {
       const { data: existingMeta } = await admin
         .from("business_profiles")

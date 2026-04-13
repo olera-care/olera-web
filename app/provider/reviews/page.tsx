@@ -4,6 +4,9 @@ import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
 import { markReviewAsRead, migrateReviewsReadData } from "@/hooks/useUnreadReviewsCount";
 import type { Review } from "@/lib/types";
+import RequestNowContent from "@/components/provider/reviews/RequestNowContent";
+import type { RequestNowState } from "@/components/provider/reviews/types";
+import { DEFAULT_MESSAGE } from "@/components/provider/reviews/types";
 
 // Calculate stats from reviews
 function calculateStats(reviews: Review[]): ReviewStats {
@@ -28,7 +31,7 @@ function calculateStats(reviews: Review[]): ReviewStats {
 
 // ── Types ──
 
-type TabFilter = "all" | "replied";
+type TabFilter = "get_reviews" | "in_person" | "all" | "replied";
 
 interface ReviewStats {
   totalReviews: number;
@@ -927,6 +930,13 @@ export default function ProviderReviewsPage() {
   // Mobile stats sheet
   const [showStatsSheet, setShowStatsSheet] = useState(false);
 
+  // Request Now state (for Get Reviews and In Person tabs)
+  const [requestNowState, setRequestNowState] = useState<RequestNowState>({
+    clients: [],
+    message: DEFAULT_MESSAGE,
+    deliveryMethod: "email",
+  });
+
 
   // Detect mobile
   useEffect(() => {
@@ -1012,7 +1022,9 @@ export default function ProviderReviewsPage() {
     return reviews;
   }, [activeFilter, reviews]);
 
-  const counts = useMemo(() => ({
+  const counts: Record<TabFilter, number | null> = useMemo(() => ({
+    get_reviews: null, // No count for action tabs
+    in_person: null,
     all: reviews.length,
     replied: reviews.filter((r) => r.provider_reply).length,
   }), [reviews]);
@@ -1096,6 +1108,8 @@ export default function ProviderReviewsPage() {
   }
 
   const TABS: { id: TabFilter; label: string }[] = [
+    { id: "get_reviews", label: "Get Reviews" },
+    { id: "in_person", label: "In Person" },
     { id: "all", label: "All Reviews" },
     { id: "replied", label: "Replied" },
   ];
@@ -1156,19 +1170,42 @@ export default function ProviderReviewsPage() {
                 ].join(" ")}
               >
                 {tab.label}
-                <span className={`text-xs px-1.5 py-0.5 rounded-md ${
-                  activeFilter === tab.id
-                    ? "bg-gray-100 text-gray-600"
-                    : "bg-warm-100/60 text-gray-400"
-                }`}>
-                  {counts[tab.id]}
-                </span>
+                {counts[tab.id] !== null && (
+                  <span className={`text-xs px-1.5 py-0.5 rounded-md ${
+                    activeFilter === tab.id
+                      ? "bg-gray-100 text-gray-600"
+                      : "bg-warm-100/60 text-gray-400"
+                  }`}>
+                    {counts[tab.id]}
+                  </span>
+                )}
               </button>
             ))}
           </div>
         </div>
 
+        {/* ── Content area ── */}
+        {activeFilter === "get_reviews" && (
+          <div className="max-w-xl">
+            <RequestNowContent
+              state={requestNowState}
+              onStateChange={setRequestNowState}
+            />
+          </div>
+        )}
+
+        {activeFilter === "in_person" && (
+          <div className="max-w-xl">
+            <RequestNowContent
+              state={requestNowState}
+              onStateChange={setRequestNowState}
+              providerSlug={providerProfile?.slug}
+            />
+          </div>
+        )}
+
         {/* ── Review cards ── */}
+        {(activeFilter === "all" || activeFilter === "replied") && (
         <div className="max-w-xl">
           {filteredReviews.length > 0 ? (
             <div className="space-y-4">
@@ -1197,6 +1234,7 @@ export default function ProviderReviewsPage() {
             </div>
           )}
         </div>
+        )}
       </div>
 
       {/* ── Bottom Sheet / Side Drawer ── */}

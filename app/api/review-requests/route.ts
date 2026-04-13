@@ -176,7 +176,7 @@ export async function POST(request: NextRequest) {
         const reviewUrl = `${siteUrl}/review/${profile.slug}?ref=email&name=${encodeURIComponent(client.name)}`;
 
         try {
-          await sendEmail({
+          const emailResult = await sendEmail({
             to: client.email,
             subject: `${profile.display_name} would love your feedback`,
             html: reviewRequestEmail({
@@ -194,7 +194,17 @@ export async function POST(request: NextRequest) {
             },
           });
 
-          results.push({ name: client.name, email: client.email, status: "sent" });
+          if (emailResult.success) {
+            results.push({ name: client.name, email: client.email, status: "sent" });
+          } else {
+            console.error(`Email send returned error for ${client.email}:`, emailResult.error);
+            results.push({
+              name: client.name,
+              email: client.email,
+              status: "failed",
+              error: emailResult.error || "Failed to send email",
+            });
+          }
         } catch (emailErr) {
           console.error(`Failed to send review request to ${client.email}:`, emailErr);
           results.push({

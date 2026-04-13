@@ -127,9 +127,17 @@ function SendRequestForm({ onSuccess }: { onSuccess?: () => void }) {
         }),
       });
 
+      const data = await res.json().catch(() => ({}));
+
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
         throw new Error(data.error || "Failed to send request");
+      }
+
+      // Check if the email actually sent successfully
+      const failedResults = data.results?.filter((r: { status: string }) => r.status === "failed") || [];
+      if (failedResults.length > 0) {
+        const errorMsg = failedResults[0]?.error || "Failed to send email";
+        throw new Error(errorMsg);
       }
 
       setSuccessMessage(`Review request sent to ${clientName}`);

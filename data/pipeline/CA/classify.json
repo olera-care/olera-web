@@ -1,21 +1,21 @@
 {
   "state": "CA",
   "stateName": "California",
-  "classifiedAt": "2026-04-09T12:16:15.698Z",
-  "total": 16,
+  "classifiedAt": "2026-04-13T17:37:21.045Z",
+  "total": 17,
   "typeSummary": {
     "benefit": 12,
-    "resource": 3,
+    "resource": 4,
     "employment": 1
   },
   "scopeSummary": {
     "federal": 6,
     "local": 2,
-    "state": 8
+    "state": 9
   },
   "complexitySummary": {
     "deep": 9,
-    "simple": 3,
+    "simple": 4,
     "medium": 4
   },
   "programs": [
@@ -27,7 +27,7 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Local county social services/Medi-Cal offices (find via dhcs.ca.gov county locator).",
+            "name": "Local county social services agency (find via county website or DHCS directory)",
             "type": "service-area"
           }
         ]
@@ -53,22 +53,18 @@
       }
     },
     {
-      "name": "Multipurpose Senior Services Program (MSSP) Waiver",
+      "name": "Multipurpose Senior Services Program Waiver (MSSP)",
       "programType": "benefit",
       "geographicScope": {
         "type": "local",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Local CDA-contracted agencies",
+            "name": "Local MSSP sites via California Department of Aging (CDA)",
             "type": "service-area"
           },
           {
-            "name": "Local DHCS county offices",
-            "type": "service-area"
-          },
-          {
-            "name": "Area Agencies on Aging (AAA)",
+            "name": "Examples: California Health Collaborative (CHC) for specific Northern CA counties; Partners in Care Foundation (likely LA area)",
             "type": "service-area"
           }
         ]
@@ -93,21 +89,16 @@
       }
     },
     {
-      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "name": "Community Based Adult Services (CBAS)",
       "programType": "benefit",
       "geographicScope": {
-        "type": "local",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Over 40 programs in 28 counties; contact DHCS or local PACE for list (e.g., West PACE San Marcos, CA)",
-            "type": "service-area"
-          }
-        ]
+        "type": "state",
+        "stateVariation": false
       },
       "complexity": "deep",
       "recommendedSections": [
         "prose",
+        "income-table",
         "what-counts",
         "documents",
         "county-directory",
@@ -115,12 +106,12 @@
       ],
       "signals": {
         "benefitType": "service",
-        "hasIncomeTiers": false,
+        "hasIncomeTiers": true,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": true,
         "hasMultipleTiers": false,
-        "isStatewide": false
+        "isStatewide": true
       }
     },
     {
@@ -131,7 +122,7 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "County Social Services Agencies (e.g., Alameda SSA, LA DPSS, Riverside DPSS)",
+            "name": "County social services agencies (e.g., Alameda SSA, LA DPSS, Ventura HSA, Riverside DPSS).",
             "type": "service-area"
           }
         ]
@@ -155,14 +146,26 @@
       }
     },
     {
-      "name": "LIHEAP",
+      "name": "LIHEAP (Low-Income Home Energy Assistance Program)",
       "programType": "benefit",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Local energy agencies via csd.ca.gov; PG&E: 1-866-675-6623; Benefits Enrollment Centers",
+            "name": "Maravilla: San Fernando Valley, Northeast LA, East LA areas[1]",
+            "type": "service-area"
+          },
+          {
+            "name": "PACE: West LA, Central LA, South LA areas[1]",
+            "type": "service-area"
+          },
+          {
+            "name": "Long Beach Community Action Partnership (LBCAP): Harbor area[1]",
+            "type": "service-area"
+          },
+          {
+            "name": "Inyo Mono Advocates for Community Action (IMACA): Owens Valley area[1]",
             "type": "service-area"
           }
         ]
@@ -171,7 +174,7 @@
       "recommendedSections": [
         "prose",
         "income-table",
-        "what-counts",
+        "tier-comparison",
         "documents",
         "county-directory",
         "callout"
@@ -179,10 +182,10 @@
       "signals": {
         "benefitType": "financial",
         "hasIncomeTiers": true,
-        "hasAssetLimits": true,
+        "hasAssetLimits": false,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
+        "hasMultipleTiers": true,
         "isStatewide": true
       }
     },
@@ -194,19 +197,19 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "CSD local service providers statewide",
+            "name": "CSD local service providers statewide.[1]",
             "type": "service-area"
           },
           {
-            "name": "San Joaquin County Human Services Agency",
+            "name": "Spectrum Community Services (Alameda County).[2]",
             "type": "service-area"
           },
           {
-            "name": "CSET (Tulare/Kings)",
+            "name": "CSET (call 1-844-224-1316).[5]",
             "type": "service-area"
           },
           {
-            "name": "211 LA providers",
+            "name": "211 LA providers.[3]",
             "type": "service-area"
           }
         ]
@@ -232,18 +235,22 @@
       }
     },
     {
-      "name": "Health Insurance Counseling & Advocacy Program (HICAP)",
+      "name": "Health Insurance Counseling and Advocacy Program (HICAP)",
       "programType": "resource",
       "geographicScope": {
-        "type": "state",
+        "type": "local",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "California Department of Aging (state oversight)",
+            "name": "Agency on Aging Area 4 (serves Nevada, Placer, Sacramento, Sierra, Sutter, Yolo, Yuba counties)",
             "type": "service-area"
           },
           {
-            "name": "Local examples: Council on Aging (Orange et al.), Sourcewise (Santa Clara), Kern County Aging and Adult Services, Ventura County AAA",
+            "name": "San Joaquin Department of Aging and Community Services PSA 11 (serves San Joaquin County)",
+            "type": "service-area"
+          },
+          {
+            "name": "California Department of Aging (statewide coordination)",
             "type": "service-area"
           }
         ]
@@ -254,7 +261,38 @@
         "county-directory"
       ],
       "signals": {
-        "benefitType": "service|advocacy",
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": false
+      }
+    },
+    {
+      "name": "Meals on Wheels (via Older Americans Act / CA Dept. of Aging)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local Area Agencies on Aging (AAAs) across California; locate via https://aging.ca.gov/",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "medium",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
         "hasIncomeTiers": false,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
@@ -264,63 +302,57 @@
       }
     },
     {
-      "name": "Meals on Wheels (via AAAs)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "Local AAAs; find via aging.ca.gov or county AAA office; examples: Contra Costa providers[1]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "medium",
-      "recommendedSections": [
-        "prose",
-        "what-counts",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": false
-      }
-    },
-    {
-      "name": "Family Caregiver Support Program",
-      "programType": "benefit",
+      "name": "Multipurpose Senior Services Program (MSSP) Caregiver Support",
+      "programType": "resource",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Local Area Agencies on Aging (AAAs) statewide; some contract with CCRCs[1]",
+            "name": "37 sites statewide administered by various organizations[2]",
+            "type": "service-area"
+          },
+          {
+            "name": "Independence at Home (largest provider)[2]",
+            "type": "service-area"
+          },
+          {
+            "name": "Partners In Care Foundation (Los Angeles County, 20+ years experience)[4]",
+            "type": "service-area"
+          },
+          {
+            "name": "Huntington Hospital (San Gabriel Valley and Pomona Valley, LA County)[9]",
+            "type": "service-area"
+          },
+          {
+            "name": "Sourcewise (specific service areas)[7]",
+            "type": "service-area"
+          },
+          {
+            "name": "Sonoma County Health and Human Services[6]",
+            "type": "service-area"
+          },
+          {
+            "name": "California Health Collaborative[3]",
+            "type": "service-area"
+          },
+          {
+            "name": "Contact California Department of Aging for complete provider list by county",
             "type": "service-area"
           }
         ]
       },
-      "complexity": "medium",
+      "complexity": "simple",
       "recommendedSections": [
         "prose",
-        "what-counts",
-        "documents",
-        "county-directory",
-        "callout"
+        "county-directory"
       ],
       "signals": {
         "benefitType": "service",
-        "hasIncomeTiers": false,
+        "hasIncomeTiers": true,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
+        "hasFunctionalReq": true,
         "hasMultipleTiers": false,
         "isStatewide": true
       }
@@ -333,23 +365,39 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Orange County: Orange County Department of Aging (OC focus, homeless priority)[1]",
+            "name": "California Department of Aging (state administrator)[1][8]",
             "type": "service-area"
           },
           {
-            "name": "Los Angeles County (excl. City of LA): LA County AD (phone/contact via ad.lacounty.gov)[2]",
+            "name": "SER California (serves 23 counties)[3]",
             "type": "service-area"
           },
           {
-            "name": "Northern CA: NEW Solutions (newsolutions.org)[6]",
+            "name": "Felton Institute (San Francisco, Marin, San Benito, San Mateo, Santa Clara, Santa Cruz counties; phone: 415-982-7007 ext. 334)[6]",
             "type": "service-area"
           },
           {
-            "name": "Bay Area (SF, Marin, San Mateo, etc.): Felton Institute, 415-982-7007 ext 334, scsep@felton.org[5]",
+            "name": "ACC Senior Services (Sacramento County)[7]",
             "type": "service-area"
           },
           {
-            "name": "State oversight: CA Dept of Aging (aging.ca.gov), find local via grantees[4][9]",
+            "name": "NEW Solutions (Northern California and Wyoming)[9]",
+            "type": "service-area"
+          },
+          {
+            "name": "AARP Foundation (operates SCSEP in multiple locations)[10]",
+            "type": "service-area"
+          },
+          {
+            "name": "Orange County Department of Aging (Orange County)[4]",
+            "type": "service-area"
+          },
+          {
+            "name": "LA Department of Aging (Los Angeles)[5]",
+            "type": "service-area"
+          },
+          {
+            "name": "19 national non-profit organizations serve as SCSEP grantees[2]",
             "type": "service-area"
           }
         ]
@@ -367,34 +415,27 @@
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
         "hasMultipleTiers": false,
-        "isStatewide": false
+        "isStatewide": true
       }
     },
     {
-      "name": "Legal Services for Seniors (via AAAs)",
+      "name": "California Senior Legal Services (via Legal Services Inc. / Area Agencies)",
       "programType": "resource",
       "geographicScope": {
         "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Local AAAs; find by county at aging.ca.gov[3]",
-            "type": "service-area"
-          }
-        ]
+        "stateVariation": false
       },
       "complexity": "simple",
       "recommendedSections": [
-        "prose",
-        "county-directory"
+        "prose"
       ],
       "signals": {
-        "benefitType": "service",
+        "benefitType": "service|advocacy",
         "hasIncomeTiers": true,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
+        "hasMultipleTiers": false,
         "isStatewide": true
       }
     },
@@ -403,11 +444,26 @@
       "programType": "resource",
       "geographicScope": {
         "type": "federal",
-        "stateVariation": true
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "35 local ombudsman programs throughout California",
+            "type": "service-area"
+          },
+          {
+            "name": "Administered by California Department of Aging (state level)",
+            "type": "service-area"
+          },
+          {
+            "name": "Services provided locally by contracted agencies",
+            "type": "service-area"
+          }
+        ]
       },
       "complexity": "simple",
       "recommendedSections": [
-        "prose"
+        "prose",
+        "county-directory"
       ],
       "signals": {
         "benefitType": "advocacy",
@@ -427,7 +483,7 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Administered statewide by SSA; local SSA offices for in-person[2][4][7]",
+            "name": "Social Security Administration offices statewide",
             "type": "service-area"
           }
         ]
@@ -435,13 +491,14 @@
       "complexity": "medium",
       "recommendedSections": [
         "prose",
+        "income-table",
         "what-counts",
         "documents",
         "county-directory"
       ],
       "signals": {
         "benefitType": "financial",
-        "hasIncomeTiers": false,
+        "hasIncomeTiers": true,
         "hasAssetLimits": true,
         "hasRegionalVariation": false,
         "hasFunctionalReq": false,
@@ -457,12 +514,12 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "State Controller's Office (centralized) [1][3][4]",
+            "name": "Administered centrally by California State Controller's Office",
             "type": "service-area"
           }
         ]
       },
-      "complexity": "deep",
+      "complexity": "medium",
       "recommendedSections": [
         "prose",
         "income-table",
@@ -475,7 +532,7 @@
         "benefitType": "financial",
         "hasIncomeTiers": true,
         "hasAssetLimits": true,
-        "hasRegionalVariation": true,
+        "hasRegionalVariation": false,
         "hasFunctionalReq": false,
         "hasMultipleTiers": false,
         "isStatewide": true
@@ -489,7 +546,7 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "County IHSS offices (contact local social services).[5]",
+            "name": "County IHSS offices (find via https://www.cdss.ca.gov/in-home-supportive-services or county social services)",
             "type": "service-area"
           }
         ]
@@ -501,8 +558,7 @@
         "what-counts",
         "tier-comparison",
         "documents",
-        "county-directory",
-        "callout"
+        "county-directory"
       ],
       "signals": {
         "benefitType": "service",
@@ -522,7 +578,7 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "11 nonprofit centers covering all counties, e.g., Inland Caregiver Resource Center (Inyo, Mono, Riverside, San Bernardino), Los Angeles CRC, others via www.caregivercalifornia.org[4][6][7][8]",
+            "name": "11 nonprofit centers statewide; examples: Inland Caregiver Resource Center (www.inlandcaregivers.org), Los Angeles CRC (losangelescrc.usc.edu), full list at caregivercalifornia.org and dhcs.ca.gov[4][5][6][7]",
             "type": "service-area"
           }
         ]
@@ -532,8 +588,7 @@
         "prose",
         "what-counts",
         "documents",
-        "county-directory",
-        "callout"
+        "county-directory"
       ],
       "signals": {
         "benefitType": "service",
@@ -541,6 +596,32 @@
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Community-Based Adult Services (CBAS)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
         "hasMultipleTiers": false,
         "isStatewide": true
       }

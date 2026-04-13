@@ -247,6 +247,88 @@ The deep dive. Restrained, lets content breathe. Reads like a well-researched ar
 
 ## Session Log
 
+### 2026-04-13 (Session 78, continued) — Benefits QA: Factcheck Built, Batch API Integrated, 48-State Run Fired
+
+**Branch:** `vigilant-zhukovsky` | **Status:** full 48-state batch regen in flight
+
+**What got built (in order):**
+
+1. **Factcheck phase (Phase B)** — `phaseFactcheck` in `scripts/benefits-pipeline.js`. Extracts structured facts (age, income hh=1/hh=2, asset limits ind/couple, phones) from drafts, queries Perplexity adversarially per program, flags mismatches by severity (exact for age, ±5% for dollars, substring for phones). Writes `factcheck.json`. Opt-in via `--phase factcheck` OR automatic in `--phase all`. Canary on TX: $0.06, 17s, 9/12 verification yield, 2 real flags surfaced (MBIC compound-program age ambiguity + Meals on Wheels missing statewide phone).
+
+2. **Factcheck in slash command** — `.claude/commands/benefits-pipeline.md` has new "Factcheck Phase — The QA Gate" section, updated phase list (6→7), updated cost table ($0.40→$0.47), all-states sweep command.
+
+3. **529 retry in `claudeChat`** — exponential backoff with jitter on 529/503/500: 10s→20s→40s→80s→120s. Prompted by CA/FL canary failing 0/14 and 3/17 during Anthropic overload window.
+
+4. **Pipeline refactor** — extracted 4 pure helpers (`buildProgramDraftPrompt`, `finalizeProgramDraft`, `buildStateOverviewPrompt`, `finalizeStateOverview`) from `phaseDraft`. Added `require.main === module` guard + `module.exports`. Enables batch script to reuse prompt logic without code duplication.
+
+5. **Batch draft script** — `scripts/benefits-batch-draft.js` (~370 lines). Imports pipeline helpers, loads each target state's dive+classify, builds all requests, submits to Anthropic Message Batches API, polls until ended, downloads results JSONL, ingests back to per-state drafts.json, generates state overviews serially post-batch, regenerates pipeline-drafts.ts + pipeline-summary.ts. Supports `--dry-run`, specific states, `--resume batch_id`, `--poll-interval`.
+
+6. **Safety guards on drafts.json write** — in both serial (`benefits-pipeline.js` main orchestrator) and batch (`benefits-batch-draft.js`). Result routes by success rate:
+   - 0 succeeded → `drafts.failed.json` (drafts.json untouched)
+   - <50% succeeded → `drafts.partial.json` (drafts.json untouched)
+   - ≥50% → `drafts.json` (normal)
+   Prevents overwrite of good content with failed runs. Triggered by CA/FL incident.
+
+7. **Factcheck draft-health warning** — `phaseFactcheck` pre-scans draft data for `_error`/`_parseError`. If any broken drafts exist, prints loud DRAFT HEALTH warning. If ALL broken, aborts with `stateHealth: "broken"`. Also warns when >60% of programs skip ("no verifiable facts") so reviewers don't confuse legitimate resource programs with silently broken drafts.
+
+8. **Troubleshoot deep dive (Anthropic batch stall)** — FL batch sat at `processing: 14, succeeded: 0` for 65+ min. Submitted 3 diagnostic batches (1 req each, isolated vars: beta header on/off, snapshot vs alias model, 20 vs 8192 max_tokens). **All 3 ended in 155-187s.** Variant C (exact same config as stuck FL) succeeded in 155s. Root cause: queue pressure — FL was submitted during the same Anthropic overload window that caused the 529s on real-time. Not a code bug, not a payload issue. Resubmitted FL after overload cleared → ended in 9.5 min, 14/14 drafted. Learning saved to memory.
+
+**FL canary v3 quality verification:**
+- 14/14 structuredEligibility, 14/14 contacts, 14/14 layoutIntent
+- 13/14 documentsNeeded, 13/14 applicationNotes
+- First program: 15 documents, 3 contacts, 8 FAQs, deep complexity, warm caregiver-first intro
+- State overview has 4 startHere picks + byNeed groups
+- Matches Texas/Chantel standard ✓
+
+**Post-mortem saved:** `feedback_benefits_pipeline_draft_safety.md` with three rules (529 retry, no-overwrite-on-failure, factcheck health warnings).
+
+**Batch API scaling math (from diagnostics + FL):**
+- Queue overhead per batch: ~145s fixed
+- Per-request work: ~30s
+- Unknown: parallelism for larger batches
+- 720-request projection: 35 min (if 10x parallelism) to 6h (if sequential)
+
+**Fired:** full 48-state batch via `node scripts/benefits-batch-draft.js`. ~720 requests. Will run unattended. On completion: ingests drafts, regenerates TS files, then factcheck sweep across all 48 states (~13 min Perplexity).
+
+**Decisions made:**
+
+| Date | Decision | Rationale |
+| 2026-04-13 | Factcheck bakes into `--phase all` — the QA gate | TJ called it "the command ship of SBF" — every state run should end with machine-verified facts before any human review. Opt-in standalone still available for re-checking after draft fixes. |
+| 2026-04-13 | Refactor phaseDraft into pure helpers (not copy-paste) | Prompt is ~200 lines. Copy-paste creates drift hazard — TJ iterates on the voice prompt frequently. Refactor is mechanical (extract prompt string template + post-processing). Unit-tested afterward. |
+| 2026-04-13 | Never overwrite drafts.json with <50% success | CA/FL incident: 0/14 failed run replaced scaffold content with error objects. Only git saved us. Guards in both serial and batch paths; route failed runs to `drafts.failed.json` / `drafts.partial.json` for inspection. |
+| 2026-04-13 | Anthropic batch API + skip explore/dive/compare/classify is the right tool for bulk v3 regen | Draft phase is 90% of wall-clock time and hard-bounded by account OTPM. Parallelizing within real-time = tarpit. Batch API has separate capacity, 50% cost, dedicated throughput. Worth the ~2h engineering cost because we'll do bulk regens repeatedly (content freshness, prompt iterations, new fields). |
+| 2026-04-13 | Stuck batch was Anthropic queue pressure, not a code bug | 3-variant diagnostic (isolated beta header, model snapshot, max_tokens) all ended in 155-187s. Real-time API was throwing 529s in the same window. Batch shares queue pressure with real-time. Wait-and-retry is the fix; no code change. |
+
+---
+
+### 2026-04-13 (Session 78) — Benefits Content QA: Audit + Plan
+
+**Branch:** `vigilant-zhukovsky` (clean, tracking staging)
+
+**What we did:** TJ asked for an honest assessment of where benefits content stands now that the provider-page benefits module is prototyped on staging (PR #536 merged). Audited coverage and reviewed the `/benefits-pipeline` slash command to understand how content was generated.
+
+**Coverage snapshot:**
+- 51/51 states + DC have state overviews drafted (in `data/pipeline-drafts.ts`)
+- 562 programs drafted across all states (range 2–21/state)
+- 528 hand-curated base programs in `data/waiver-library.ts`
+- **V3 depth (documentsNeeded, contacts, applicationNotes, layoutIntent) exists on only 12 programs — Texas only**
+- Only Texas has been human-validated (Chantel, March 2026)
+- Known accuracy drift: TX (SNAP $1,729→$2,152, MEPD $994→$967), MI (PACE 65→55, SNAP 65→60) — almost certainly present in other 49 states at similar rates
+
+**How pipeline works (for future reference):** Perplexity for explore + dive (research), Claude for draft (content), local compare + classify. 6 phases, resumable, ~$0.40/state. V3 prompt includes Chantel's TX content as few-shot exemplars + layoutIntent menu. Outputs to `data/pipeline/{STATE}/drafts.json` → `data/pipeline-drafts.ts`. Merge layer `lib/program-data.ts`: hand-curated always wins.
+
+**QA plan (to execute next):**
+- **Phase A:** Re-run v3 pipeline on 49 remaining states (~$20 total, mechanical, brings all states to TX structural depth before human review)
+- **Phase B:** Build a 7th "fact-check" pipeline phase — adversarial Perplexity queries against each draft's key facts (income limits, ages, phone numbers), flag mismatches into admin review queue. Scales; manual review of 562 programs doesn't.
+- **Phase C:** Human expert review (Chantel) on flagged items + 10% random sample
+- **Phase D:** Trust signal on unreviewed pages ("Auto-researched, last verified {date}") so we don't present auto-generated facts as authoritative
+
+**Decision:** Build Phase B before scaling Phase A review. Otherwise we burn human time on content that would be auto-caught.
+
+**Next:** Execute the plan starting with Phase A (cheap, parallelizable) while designing Phase B in parallel.
+
+---
+
 ### 2026-04-12 → 2026-04-13 (Session 77) — Benefits Save Latency: RESOLVED
 
 **Branch:** `fond-hypatia` | **PR:** #536 | **Latest:** `18760265`

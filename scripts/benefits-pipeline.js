@@ -131,6 +131,7 @@ function printUsage() {
     classify  Determine program type, geographic scope, complexity
     draft     Generate structured page content (needs ANTHROPIC_API_KEY)
     report    Generate human-readable markdown report
+    factcheck Adversarially verify drafted facts against fresh sources
 
   Options:
     --state XX           US state code (shorthand for --region "State Name")
@@ -1086,6 +1087,16 @@ async function claudeChat(prompt, maxTokens = 4096) {
       continue;
     }
 
+    // Overloaded / transient server errors: exponential backoff with jitter
+    if (resp.status === 529 || resp.status === 503 || resp.status === 500) {
+      const base = Math.min(10000 * Math.pow(2, attempt), 120000); // 10s, 20s, 40s, 80s, 120s
+      const jitter = Math.floor(Math.random() * 3000);
+      const waitMs = base + jitter;
+      console.log(`\n  [claude ${resp.status}] Overloaded. Waiting ${(waitMs / 1000).toFixed(0)}s (attempt ${attempt + 1}/${MAX_RETRIES})...`);
+      await new Promise((r) => setTimeout(r, waitMs));
+      continue;
+    }
+
     throw new Error(`Claude ${resp.status}: ${text.slice(0, 200)}`);
   }
 
@@ -1107,38 +1118,16 @@ VOICE PRINCIPLES (non-negotiable):
 SOURCE CONSTRAINT (non-negotiable):
 - NEVER cite Olera or olera.care as a source. This creates a circular reference (AI reads Olera → writes content → Olera publishes → AI reads again). Only cite .gov sites, official program pages, and authoritative third-party sources.`;
 
-async function phaseDraft(entity, diveData, classifyData) {
-  const stateCode = entity.stateCode;
+// ─── Draft prompt builder (shared between serial and batch modes) ───────────
+
+function buildProgramDraftPrompt(entity, prog, classification, draftedAt) {
   const stateName = entity.name;
-  console.log(`\n  ━━━ DRAFT: Generating page content ━━━\n`);
+  const name = prog.name || "Unknown Program";
+  const programType = classification.programType || "benefit";
+  const complexity = classification.complexity || "medium";
+  const sections = classification.recommendedSections || ["prose"];
 
-  if (!ANTHROPIC_API_KEY) {
-    console.log(`  WARN: ANTHROPIC_API_KEY not set. Skipping draft phase.`);
-    console.log(`  Set it in .env.local to enable content generation.`);
-    return null;
-  }
-
-  const divePrograms = diveData?.programs?.filter((p) => !p._error && !p._parseError) || [];
-  const classifications = classifyData?.programs || [];
-
-  if (!divePrograms.length) {
-    console.log(`  No dive data to draft from.`);
-    return null;
-  }
-
-  const DRAFT_CONCURRENCY = 1; // Sequential — Claude API has 8K output tokens/min limit, concurrency just triggers 429s
-  console.log(`  Drafting ${divePrograms.length} programs (sequential, rate-limited)...\n`);
-  let draftCompleted = 0;
-  const draftedAt = new Date().toISOString().split("T")[0];
-
-  const results = await runConcurrent(divePrograms, async (prog, i) => {
-    const classification = classifications.find((c) => c.name === prog.name) || {};
-    const name = prog.name || `Program ${i + 1}`;
-    const programType = classification.programType || "benefit";
-    const complexity = classification.complexity || "medium";
-    const sections = classification.recommendedSections || ["prose"];
-
-    const draftPrompt = `${CONTENT_VOICE_PROMPT}
+  const draftPrompt = `${CONTENT_VOICE_PROMPT}
 
 You are drafting the page content for "${name}" in ${stateName}. This is a ${programType} program with ${complexity} complexity.
 
@@ -1314,53 +1303,43 @@ CRITICAL RULES:
 - Content sections array should only include sections where you have real data to populate them.
 - Return ONLY the JSON object, no markdown wrapping.`;
 
-    // v3 outputs are richer — documents, contacts, application notes, more FAQs, layout intent
-    const tokenLimit = complexity === "deep" ? 8192 : complexity === "medium" ? 6144 : 4096;
+  // v3 outputs are richer — documents, contacts, application notes, more FAQs, layout intent
+  const tokenLimit = complexity === "deep" ? 8192 : complexity === "medium" ? 6144 : 4096;
 
-    try {
-      const response = await claudeChat(draftPrompt, tokenLimit);
-      const parsed = extractJson(response);
-      draftCompleted++;
-      process.stdout.write(`  [${draftCompleted}/${divePrograms.length}] ${name.slice(0, 50).padEnd(50)}\r`);
+  return { prompt: draftPrompt, tokenLimit, name, programType, complexity };
+}
 
-      if (parsed) {
-        parsed.programType = parsed.programType || programType;
-        parsed.complexity = parsed.complexity || complexity;
-        parsed.geographicScope = parsed.geographicScope || classification.geographicScope;
-        parsed.contentStatus = "pipeline-draft";
-        parsed.draftedAt = draftedAt;
-        return parsed;
-      } else {
-        console.log(`\n  WARN: Could not parse draft for "${name}"`);
-        return { name, _parseError: true, _raw: response.slice(0, 500) };
-      }
-    } catch (err) {
-      draftCompleted++;
-      console.log(`\n  ERROR drafting "${name}": ${err.message}`);
-      return { name, _error: err.message };
-    }
-  }, DRAFT_CONCURRENCY);
+function finalizeProgramDraft(rawText, prog, classification, draftedAt) {
+  const name = prog.name || "Unknown Program";
+  const programType = classification.programType || "benefit";
+  const complexity = classification.complexity || "medium";
 
-  const successful = results.filter((r) => !r._parseError && !r._error);
-  console.log(`\n\n  Drafted ${successful.length}/${divePrograms.length} programs`);
-  console.log(`  Parse errors: ${results.filter((r) => r._parseError).length}`);
-  console.log(`  Errors: ${results.filter((r) => r._error).length}`);
+  const parsed = extractJson(rawText || "");
+  if (!parsed) {
+    return { name, _parseError: true, _raw: (rawText || "").slice(0, 500) };
+  }
 
-  // Generate state-level overview content
-  let stateOverview = null;
-  if (successful.length > 0) {
-    console.log(`\n  Generating state overview for ${stateName}...`);
+  parsed.programType = parsed.programType || programType;
+  parsed.complexity = parsed.complexity || complexity;
+  parsed.geographicScope = parsed.geographicScope || classification.geographicScope;
+  parsed.contentStatus = "pipeline-draft";
+  parsed.draftedAt = draftedAt;
+  return parsed;
+}
 
-    const programSummaries = successful.map((p) =>
-      `- ${p.name} (${p.programType}): ${p.tagline}`
-    ).join("\n");
+function buildStateOverviewPrompt(entity, successful) {
+  const stateName = entity.name;
 
-    const typeCounts = {};
-    for (const p of successful) {
-      typeCounts[p.programType || "benefit"] = (typeCounts[p.programType || "benefit"] || 0) + 1;
-    }
+  const programSummaries = successful.map((p) =>
+    `- ${p.name} (${p.programType}): ${p.tagline}`
+  ).join("\n");
 
-    const statePrompt = `${CONTENT_VOICE_PROMPT}
+  const typeCounts = {};
+  for (const p of successful) {
+    typeCounts[p.programType || "benefit"] = (typeCounts[p.programType || "benefit"] || 0) + 1;
+  }
+
+  return `${CONTENT_VOICE_PROMPT}
 
 You are writing the state overview page for ${stateName}'s senior benefit programs. This is the landing page a caregiver sees before diving into individual programs.
 
@@ -1386,10 +1365,68 @@ Generate the state overview as a JSON object:
 }
 
 CRITICAL: Use only information from the researched programs. Do not invent programs or facts. Return ONLY the JSON object.`;
+}
+
+function finalizeStateOverview(rawText) {
+  return extractJson(rawText || "");
+}
+
+async function phaseDraft(entity, diveData, classifyData) {
+  const stateCode = entity.stateCode;
+  const stateName = entity.name;
+  console.log(`\n  ━━━ DRAFT: Generating page content ━━━\n`);
+
+  if (!ANTHROPIC_API_KEY) {
+    console.log(`  WARN: ANTHROPIC_API_KEY not set. Skipping draft phase.`);
+    console.log(`  Set it in .env.local to enable content generation.`);
+    return null;
+  }
+
+  const divePrograms = diveData?.programs?.filter((p) => !p._error && !p._parseError) || [];
+  const classifications = classifyData?.programs || [];
+
+  if (!divePrograms.length) {
+    console.log(`  No dive data to draft from.`);
+    return null;
+  }
+
+  const DRAFT_CONCURRENCY = 1; // Sequential — Claude API has 8K output tokens/min limit, concurrency just triggers 429s
+  console.log(`  Drafting ${divePrograms.length} programs (sequential, rate-limited)...\n`);
+  let draftCompleted = 0;
+  const draftedAt = new Date().toISOString().split("T")[0];
+
+  const results = await runConcurrent(divePrograms, async (prog, i) => {
+    const classification = classifications.find((c) => c.name === prog.name) || {};
+    const built = buildProgramDraftPrompt(entity, prog, classification, draftedAt);
+
+    try {
+      const response = await claudeChat(built.prompt, built.tokenLimit);
+      draftCompleted++;
+      process.stdout.write(`  [${draftCompleted}/${divePrograms.length}] ${built.name.slice(0, 50).padEnd(50)}\r`);
+      const result = finalizeProgramDraft(response, prog, classification, draftedAt);
+      if (result._parseError) console.log(`\n  WARN: Could not parse draft for "${built.name}"`);
+      return result;
+    } catch (err) {
+      draftCompleted++;
+      console.log(`\n  ERROR drafting "${built.name}": ${err.message}`);
+      return { name: built.name, _error: err.message };
+    }
+  }, DRAFT_CONCURRENCY);
+
+  const successful = results.filter((r) => !r._parseError && !r._error);
+  console.log(`\n\n  Drafted ${successful.length}/${divePrograms.length} programs`);
+  console.log(`  Parse errors: ${results.filter((r) => r._parseError).length}`);
+  console.log(`  Errors: ${results.filter((r) => r._error).length}`);
+
+  // Generate state-level overview content
+  let stateOverview = null;
+  if (successful.length > 0) {
+    console.log(`\n  Generating state overview for ${stateName}...`);
+    const statePrompt = buildStateOverviewPrompt(entity, successful);
 
     try {
       const response = await claudeChat(statePrompt, 4096);
-      stateOverview = extractJson(response);
+      stateOverview = finalizeStateOverview(response);
       if (stateOverview) {
         console.log(`  State overview generated: ${stateOverview.startHere?.length || 0} start-here picks, ${stateOverview.byNeed?.length || 0} need groups`);
       } else {
@@ -1659,6 +1696,305 @@ function phaseReport(entity, exploreData, diveData, compareData, classifyData, d
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// PHASE 7: FACT CHECK — Adversarially verify drafted facts against fresh sources
+// ═══════════════════════════════════════════════════════════════════════════
+
+function normalizePhoneDigits(p) {
+  if (p === null || p === undefined) return null;
+  const digits = String(p).replace(/\D/g, "");
+  if (!digits) return null;
+  return digits;
+}
+
+function parseAgeFromText(text) {
+  if (text === null || text === undefined) return null;
+  if (typeof text === "number") return text;
+  const s = String(text);
+  const m = s.match(/(\d{2,3})\s*\+/) || s.match(/age\s*(\d{2,3})/i) || s.match(/^(\d{2,3})\b/);
+  return m ? parseInt(m[1], 10) : null;
+}
+
+function extractFactsFromDraft(prog) {
+  const facts = {
+    age: null,
+    income_1: null,
+    income_2: null,
+    assets_individual: null,
+    assets_couple: null,
+    phones: [],
+    hasVerifiableFacts: false,
+  };
+
+  const se = prog.structuredEligibility || {};
+  facts.age = parseAgeFromText(se.ageRequirement);
+
+  if (Array.isArray(se.incomeTable)) {
+    const h1 = se.incomeTable.find((r) => r && r.householdSize === 1);
+    const h2 = se.incomeTable.find((r) => r && r.householdSize === 2);
+    if (h1 && typeof h1.monthlyLimit === "number") facts.income_1 = h1.monthlyLimit;
+    if (h2 && typeof h2.monthlyLimit === "number") facts.income_2 = h2.monthlyLimit;
+  }
+
+  if (se.assetLimits) {
+    if (typeof se.assetLimits.individual === "number") facts.assets_individual = se.assetLimits.individual;
+    if (typeof se.assetLimits.couple === "number") facts.assets_couple = se.assetLimits.couple;
+  }
+
+  if (prog.phone) {
+    const d = normalizePhoneDigits(prog.phone);
+    if (d) facts.phones.push(d);
+  }
+  if (Array.isArray(prog.contacts)) {
+    for (const c of prog.contacts) {
+      if (c && c.phone) {
+        const d = normalizePhoneDigits(c.phone);
+        if (d && !facts.phones.includes(d)) facts.phones.push(d);
+      }
+    }
+  }
+
+  facts.hasVerifiableFacts =
+    facts.age !== null ||
+    facts.income_1 !== null ||
+    facts.income_2 !== null ||
+    facts.assets_individual !== null ||
+    facts.assets_couple !== null ||
+    facts.phones.length > 0;
+
+  return facts;
+}
+
+function buildFactcheckPrompt(programName, stateName, facts) {
+  const year = new Date().getFullYear();
+  const asks = [];
+  if (facts.age !== null) asks.push(`- Minimum age requirement for the program (integer, or null if no age requirement)`);
+  if (facts.income_1 !== null || facts.income_2 !== null) {
+    asks.push(`- Current monthly income limit for a household of 1 (integer USD, or null)`);
+    asks.push(`- Current monthly income limit for a household of 2 (integer USD, or null)`);
+  }
+  if (facts.assets_individual !== null) asks.push(`- Current countable asset limit for an individual applicant (integer USD, or null)`);
+  if (facts.assets_couple !== null) asks.push(`- Current countable asset limit for a couple (integer USD, or null)`);
+  if (facts.phones.length > 0) asks.push(`- The official main phone number to apply or get help (digits only, e.g. "8005551234")`);
+
+  return `I am fact-checking program details for "${programName}" in ${stateName} as of ${year}. Prefer official .gov, state agency, or federal agency sources. Non-government sources (nonprofit clearinghouses, advocacy org guides) are acceptable if they cite an official source and are clearly current. Always return a URL for each value you provide.
+
+Tell me the CURRENT values for each of the following:
+${asks.join("\n")}
+
+Respond with STRICT JSON ONLY (no markdown fences, no prose before or after):
+{
+  "age": <int or null>,
+  "income_1": <int or null>,
+  "income_2": <int or null>,
+  "assets_individual": <int or null>,
+  "assets_couple": <int or null>,
+  "phone": "<digits only or null>",
+  "sources": {
+    "age": "<url or null>",
+    "income": "<url or null>",
+    "assets": "<url or null>",
+    "phone": "<url or null>"
+  },
+  "notes": "<short string — flag if program has been renamed, discontinued, or if you cannot find authoritative data>"
+}
+
+Rules:
+- Use null for any value that does not apply to this program (e.g. program has no income test).
+- Return a value when you have a source URL for it, even if the source is not .gov (but prefer .gov).
+- If you truly cannot find the value from any retrievable source, use null and say so in notes.
+- Do not estimate or interpolate. Do not guess.`;
+}
+
+function compareFacts(drafted, verified) {
+  const flags = [];
+
+  const cmpExact = (field, d, v) => {
+    if (d === null || d === undefined) return;
+    if (v === null || v === undefined) return;
+    if (d !== v) flags.push({ field, severity: "high", draftValue: d, verifiedValue: v });
+  };
+
+  const cmpNumericTolerant = (field, d, v) => {
+    if (d === null || d === undefined) return;
+    if (v === null || v === undefined) return;
+    if (typeof d !== "number" || typeof v !== "number") return;
+    const diff = Math.abs(d - v);
+    const denom = Math.max(Math.abs(d), Math.abs(v)) || 1;
+    const pct = diff / denom;
+    if (pct > 0.05) {
+      flags.push({
+        field,
+        severity: pct > 0.15 ? "high" : "medium",
+        draftValue: d,
+        verifiedValue: v,
+        pctDiff: +(pct * 100).toFixed(1),
+      });
+    }
+  };
+
+  cmpExact("age", drafted.age, verified.age);
+  cmpNumericTolerant("income_1", drafted.income_1, verified.income_1);
+  cmpNumericTolerant("income_2", drafted.income_2, verified.income_2);
+  cmpNumericTolerant("assets_individual", drafted.assets_individual, verified.assets_individual);
+  cmpNumericTolerant("assets_couple", drafted.assets_couple, verified.assets_couple);
+
+  if (verified.phone && drafted.phones.length > 0) {
+    const v = normalizePhoneDigits(verified.phone);
+    if (v) {
+      const match = drafted.phones.some((p) => p === v || p.endsWith(v) || v.endsWith(p));
+      if (!match) {
+        flags.push({ field: "phone", severity: "medium", draftValue: drafted.phones, verifiedValue: v });
+      }
+    }
+  }
+
+  return flags;
+}
+
+async function phaseFactcheck(entity, draftData) {
+  const stateName = entity.name;
+  console.log(`\n  ━━━ FACT CHECK: Verify drafted facts against fresh sources ━━━\n`);
+
+  const programs = (draftData && Array.isArray(draftData.programs)) ? draftData.programs : [];
+  if (!programs.length) {
+    console.log(`  No drafted programs to fact-check. Run draft first.`);
+    return null;
+  }
+
+  // State-level draft health check (added post CA/FL incident, 2026-04-13).
+  // A state with mostly _error/_parseError drafts must not be silently "clean"
+  // in factcheck output — the skips would mask a broken draft phase.
+  const brokenCount = programs.filter((p) => p._error || p._parseError).length;
+  if (brokenCount > 0) {
+    const pct = ((brokenCount / programs.length) * 100).toFixed(0);
+    console.log(`  ⚠ DRAFT HEALTH: ${brokenCount}/${programs.length} (${pct}%) drafts are broken (_error or _parseError).`);
+    console.log(`  These drafts need to be regenerated — fact-checking skipped for them.`);
+    if (brokenCount === programs.length) {
+      console.log(`  All drafts broken. Aborting factcheck for ${stateName}.`);
+      return {
+        state: entity.stateCode,
+        stateName,
+        checkedAt: new Date().toISOString(),
+        total: 0,
+        stateHealth: "broken",
+        brokenDrafts: brokenCount,
+        programs: [],
+        flags: [],
+      };
+    }
+  }
+
+  const FACTCHECK_CONCURRENCY = 3;
+  console.log(`  Fact-checking ${programs.length} programs (concurrency: ${FACTCHECK_CONCURRENCY})...\n`);
+  let completed = 0;
+
+  const results = await runConcurrent(programs, async (prog, i) => {
+    const name = prog.name || `Program ${i + 1}`;
+    const facts = extractFactsFromDraft(prog);
+
+    if (!facts.hasVerifiableFacts) {
+      completed++;
+      process.stdout.write(`  [${completed}/${programs.length}] ${name.slice(0, 50).padEnd(50)} (skipped: no verifiable facts)\n`);
+      return {
+        programId: prog.id,
+        programName: name,
+        skipped: true,
+        reason: "no verifiable facts",
+        flags: [],
+      };
+    }
+
+    const prompt = buildFactcheckPrompt(name, stateName, facts);
+
+    try {
+      const response = await perplexityChat(prompt);
+      const verified = extractJson(response);
+      completed++;
+      process.stdout.write(`  [${completed}/${programs.length}] ${name.slice(0, 50).padEnd(50)} ${cost.summary()}\r`);
+
+      if (!verified) {
+        return {
+          programId: prog.id,
+          programName: name,
+          parseError: true,
+          facts,
+          raw: response.slice(0, 500),
+          flags: [],
+        };
+      }
+
+      const flags = compareFacts(facts, verified);
+      return {
+        programId: prog.id,
+        programName: name,
+        facts,
+        verified,
+        flags,
+        notes: verified.notes || null,
+      };
+    } catch (err) {
+      completed++;
+      console.log(`\n  ERROR: "${name}": ${err.message}`);
+      return { programId: prog.id, programName: name, error: err.message, flags: [] };
+    }
+  }, FACTCHECK_CONCURRENCY);
+
+  const withFlags = results.filter((r) => r.flags && r.flags.length > 0);
+  const totalFlags = withFlags.reduce((n, r) => n + r.flags.length, 0);
+  const highSeverity = withFlags.reduce(
+    (n, r) => n + r.flags.filter((f) => f.severity === "high").length,
+    0,
+  );
+  const skipped = results.filter((r) => r.skipped).length;
+  const parseErrors = results.filter((r) => r.parseError).length;
+  const errors = results.filter((r) => r.error).length;
+
+  console.log(`\n\n  Fact-check complete`);
+  console.log(`  Programs checked: ${results.length - skipped - errors}`);
+  console.log(`  Skipped (no verifiable facts): ${skipped}`);
+  console.log(`  Parse errors: ${parseErrors}`);
+  console.log(`  API errors: ${errors}`);
+  console.log(`  Programs with flags: ${withFlags.length}`);
+  console.log(`  Total flags: ${totalFlags} (${highSeverity} high severity)`);
+
+  // If most programs are skipped, that's suspicious — could be legitimate (many
+  // resource-type programs with no income test) or symptomatic of thin/broken drafts.
+  if (programs.length >= 5 && skipped / programs.length > 0.6) {
+    console.log(`\n  ⚠ HEALTH WARNING: ${skipped}/${programs.length} programs skipped for "no verifiable facts".`);
+    console.log(`  Possible causes:`);
+    console.log(`    1. Most programs are resources/navigators with no income test (legit)`);
+    console.log(`    2. Draft phase produced thin content — structuredEligibility missing`);
+    console.log(`  Verify by inspecting data/pipeline/${entity.stateCode || entity.slug || "?"}/drafts.json`);
+  }
+
+  if (withFlags.length > 0) {
+    console.log(`\n  Flagged programs:`);
+    for (const r of withFlags) {
+      console.log(`    - ${r.programName}: ${r.flags.length} flag${r.flags.length > 1 ? "s" : ""}`);
+      for (const f of r.flags) {
+        const d = typeof f.draftValue === "object" ? JSON.stringify(f.draftValue) : f.draftValue;
+        const v = typeof f.verifiedValue === "object" ? JSON.stringify(f.verifiedValue) : f.verifiedValue;
+        console.log(`        [${f.severity}] ${f.field}: drafted=${d} verified=${v}${f.pctDiff ? ` (${f.pctDiff}% diff)` : ""}`);
+      }
+    }
+  }
+
+  return {
+    state: entity.stateCode,
+    stateName,
+    checkedAt: new Date().toISOString(),
+    total: results.length,
+    skipped,
+    parseErrors,
+    errors,
+    programsWithFlags: withFlags.length,
+    totalFlags,
+    highSeverityFlags: highSeverity,
+    programs: results,
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // MAIN
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -1711,13 +2047,14 @@ async function main() {
       }
     }
 
-    const estPerplexity = 2 + (existing.length || 10);
-    const estClaude = existing.length || 10;
+    const progCount = existing.length || 10;
+    const estPerplexity = 2 + progCount + progCount; // explore + dive + factcheck
+    const estClaude = progCount;
     console.log(`\n  Would make ~${estPerplexity} Perplexity calls (~$${(estPerplexity * 0.005).toFixed(3)})`);
     console.log(`  Would make ~${estClaude} Claude calls for drafts`);
     console.log(`  Output: data/pipeline/${dirName}/`);
     console.log(`    explore.json, dive.json, compare.json, classify.json, drafts.json`);
-    console.log(`    exploration_report.md`);
+    console.log(`    factcheck.json, exploration_report.md`);
     process.exit(0);
   }
 
@@ -1774,7 +2111,26 @@ async function main() {
       console.log(`\n  No classify data. Run: --phase classify --run`);
     } else {
       draftData = await phaseDraft(entity, diveData, classifyData);
-      writeFile(dirName, "drafts.json", draftData);
+      // Safety guard: don't overwrite a good drafts.json with a failed/partial run.
+      // Rationale: 2026-04-13 CA/FL incident where Claude 529s caused 0/14 success
+      // on FL, overwriting scaffold content. Partial/empty runs now route to a
+      // side file so the previous good state survives.
+      const successRate = draftData && draftData.total > 0
+        ? draftData.successful / draftData.total
+        : 0;
+      if (draftData === null || draftData === undefined) {
+        // phaseDraft already logged why (missing API key, no dive data, etc.)
+      } else if (draftData.successful === 0) {
+        console.log(`\n  ⚠ SAFETY: 0/${draftData.total} drafts succeeded. NOT overwriting drafts.json.`);
+        console.log(`  Writing failed run to drafts.failed.json for inspection.`);
+        writeFile(dirName, "drafts.failed.json", draftData);
+      } else if (successRate < 0.5) {
+        console.log(`\n  ⚠ SAFETY: only ${draftData.successful}/${draftData.total} drafts succeeded (${(successRate * 100).toFixed(0)}%). NOT overwriting drafts.json.`);
+        console.log(`  Writing partial run to drafts.partial.json for inspection.`);
+        writeFile(dirName, "drafts.partial.json", draftData);
+      } else {
+        writeFile(dirName, "drafts.json", draftData);
+      }
     }
   }
 
@@ -1785,6 +2141,16 @@ async function main() {
     if (!classifyData) classifyData = readJson(dirName, "classify.json");
     if (!draftData) draftData = readJson(dirName, "drafts.json");
     phaseReport(entity, exploreData, diveData, compareData, classifyData, draftData);
+  }
+
+  if (shouldRun("factcheck")) {
+    if (!draftData) draftData = readJson(dirName, "drafts.json");
+    if (!draftData || !draftData.programs || !draftData.programs.length) {
+      console.log(`\n  No drafts to fact-check. Run: --phase draft --run`);
+    } else {
+      const factcheckData = await phaseFactcheck(entity, draftData);
+      if (factcheckData) writeFile(dirName, "factcheck.json", factcheckData);
+    }
   }
 
   // Auto-generate pipeline-summary.ts for the admin dashboard
@@ -2072,8 +2438,27 @@ export const pipelineDrafts: Record<string, PipelineStateDrafts> = ${JSON.string
   console.log(`  → Updated ${outPath} (${Object.keys(entries).length} state${Object.keys(entries).length > 1 ? "s" : ""} with drafts)`);
 }
 
-main().catch((err) => {
-  console.error(`\n  Fatal: ${err.message}`);
-  console.error(err.stack);
-  process.exit(1);
-});
+module.exports = {
+  STATE_NAMES,
+  resolveEntity,
+  readJson,
+  writeFile,
+  extractJson,
+  loadExistingPrograms,
+  buildProgramDraftPrompt,
+  finalizeProgramDraft,
+  buildStateOverviewPrompt,
+  finalizeStateOverview,
+  generatePipelineSummary,
+  generatePipelineDrafts,
+  phaseFactcheck,
+  CONTENT_VOICE_PROMPT,
+};
+
+if (require.main === module) {
+  main().catch((err) => {
+    console.error(`\n  Fatal: ${err.message}`);
+    console.error(err.stack);
+    process.exit(1);
+  });
+}

@@ -1,0 +1,424 @@
+{
+  "state": "TX",
+  "stateName": "Texas",
+  "checkedAt": "2026-04-13T17:15:54.027Z",
+  "total": 12,
+  "skipped": 0,
+  "parseErrors": 0,
+  "errors": 0,
+  "programsWithFlags": 2,
+  "totalFlags": 2,
+  "highSeverityFlags": 1,
+  "programs": [
+    {
+      "programId": "tx-medicaid-buy-in-qmb-slmb-qi",
+      "programName": "Medicaid Buy-In for Children (MBIC) / Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), Qualifying Individual (QI)",
+      "facts": {
+        "age": 65,
+        "income_1": 3913,
+        "income_2": 5297,
+        "assets_individual": 9660,
+        "assets_couple": 14470,
+        "phones": [
+          "211",
+          "8775417905",
+          "8003334114"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 18,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "211",
+        "sources": {
+          "age": "https://www.navigatelifetexas.org/en/insurance-financial-help/medicaid-buy-in-for-children-with-disabilities",
+          "income": null,
+          "assets": null,
+          "phone": "https://www.navigatelifetexas.org/en/services-groups-events/services/medicaid-buy-in-for-children"
+        },
+        "notes": "Query covers multiple programs (MBIC, QMB, SLMB, QI); data provided for MBIC only (children's program). No 2026-specific or income/asset limits found in sources. QMB/SLMB/QI are Medicare Savings Programs with no age minimum (65+ typical) but no Texas data here."
+      },
+      "flags": [
+        {
+          "field": "age",
+          "severity": "high",
+          "draftValue": 65,
+          "verifiedValue": 18
+        }
+      ],
+      "notes": "Query covers multiple programs (MBIC, QMB, SLMB, QI); data provided for MBIC only (children's program). No 2026-specific or income/asset limits found in sources. QMB/SLMB/QI are Medicare Savings Programs with no age minimum (65+ typical) but no Texas data here."
+    },
+    {
+      "programId": "tx-star-plus-medicaid-hcbs",
+      "programName": "STAR+PLUS",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 2000,
+        "assets_couple": 2000,
+        "phones": [
+          "211",
+          "8775417905"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": 2901,
+        "income_2": 2901,
+        "assets_individual": 2000,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://www.medicaidplanningassistance.org/texas-medicaid-starplus/[1];https://www.navigatelifetexas.org/en/insurance-financial-help/starplus-home-and-community-based-services-hcbs[5]",
+          "income": "https://www.medicaidplanningassistance.org/texas-medicaid-starplus/[1]",
+          "assets": "https://www.medicaidplanningassistance.org/texas-medicaid-starplus/[1];https://www.navigatelifetexas.org/en/insurance-financial-help/starplus-home-and-community-based-services-hcbs[5]",
+          "phone": null
+        },
+        "notes": "No minimum age; program serves 21+ disabled or 65+; no .gov sources found; data as of 2025; no phone number located"
+      },
+      "flags": [],
+      "notes": "No minimum age; program serves 21+ disabled or 65+; no .gov sources found; data as of 2025; no phone number located"
+    },
+    {
+      "programId": "tx-pace-eldercare",
+      "programName": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "facts": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 2000,
+        "assets_couple": null,
+        "phones": [
+          "9155623444",
+          "91556234441442",
+          "211",
+          "8006334227"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No authoritative data found for Program of All-Inclusive Care for the Elderly (PACE) eligibility details (age, income, assets, phone) in Texas from provided search results; Texas HHS PACE page linked but no specifics extracted: https://hhs.texas.gov/doing-business-hhs/provider-portals/long-term-care-providers/program-all-inclusive-care-elderly-pace. Search results mostly reference unrelated Texas PACE (Property Assessed Clean Energy) program."
+      },
+      "flags": [],
+      "notes": "No authoritative data found for Program of All-Inclusive Care for the Elderly (PACE) eligibility details (age, income, assets, phone) in Texas from provided search results; Texas HHS PACE page linked but no specifics extracted: https://hhs.texas.gov/doing-business-hhs/provider-portals/long-term-care-providers/program-all-inclusive-care-elderly-pace. Search results mostly reference unrelated Texas PACE (Property Assessed Clean Energy) program."
+    },
+    {
+      "programId": "tx-snap-food-benefits",
+      "programName": "Supplemental Nutrition Assistance Program (SNAP)",
+      "facts": {
+        "age": 60,
+        "income_1": 1255,
+        "income_2": 1703,
+        "assets_individual": 2000,
+        "assets_couple": 2000,
+        "phones": [
+          "211",
+          "8775417905"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": [
+        3
+      ],
+      "flags": [],
+      "notes": null
+    },
+    {
+      "programId": "tx-liheap-energy-assistance",
+      "programName": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "facts": {
+        "age": null,
+        "income_1": 2815,
+        "income_2": 3681,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "211",
+          "8773998939",
+          "5125844120"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": 2815,
+        "income_2": 3681,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8773998939",
+        "sources": {
+          "age": null,
+          "income": "https://www.snapscreener.com/liheap/texas",
+          "assets": null,
+          "phone": "https://www.texasgasservice.com/save-money/assistance-programs/low-income-home-energy-assistance-program"
+        },
+        "notes": "Income from non-.gov source citing current limits; no assets test found; official 2026/2027 state plans do not list specific income tables in excerpts"
+      },
+      "flags": [],
+      "notes": "Income from non-.gov source citing current limits; no assets test found; official 2026/2027 state plans do not list specific income tables in excerpts"
+    },
+    {
+      "programId": "tx-weatherization-assistance-program",
+      "programName": "Weatherization Assistance Program",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "211",
+          "80067782643530",
+          "5124825346"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": "https://cacost.org/programs/weatherization/",
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No statewide official main phone number found; local subrecipients have their own contacts (e.g., 2547530331[3], 2148192000[5], 2103625282[6]). Income at 150-200% FPL per non-.gov source citing federal levels[1]; no age/assets limits specified in sources. TDHCA official site active[2]."
+      },
+      "flags": [],
+      "notes": "No statewide official main phone number found; local subrecipients have their own contacts (e.g., 2547530331[3], 2148192000[5], 2103625282[6]). Income at 150-200% FPL per non-.gov source citing federal levels[1]; no age/assets limits specified in sources. TDHCA official site active[2]."
+    },
+    {
+      "programId": "tx-ship-medicare-counseling",
+      "programName": "Texas State Health Insurance Assistance Program (SHIP)",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8002529240",
+          "8006334227"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "18002529240",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://www.shiphelp.org/ships/texas/"
+        },
+        "notes": "SHIP/HICAP has no age, income, or asset eligibility limits; open to Medicare-eligible (65+ or disabled) and caregivers. Phone from shiphelp.org citing Texas program."
+      },
+      "flags": [],
+      "notes": "SHIP/HICAP has no age, income, or asset eligibility limits; open to Medicare-eligible (65+ or disabled) and caregivers. Phone from shiphelp.org citing Texas program."
+    },
+    {
+      "programId": "tx-meals-on-wheels",
+      "programName": "Meals on Wheels",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "211",
+          "8173360912",
+          "9727719514"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "18004589858",
+        "sources": {
+          "age": "https://www.mealsonwheelsetx.org",
+          "income": null,
+          "assets": null,
+          "phone": "https://www.mealsonwheelsetx.org"
+        },
+        "notes": "Search results show Meals on Wheels East Texas references age 60+ and directs applicants to contact Department of Health and Human Services (1-800-458-9858) for qualification determination. Income and asset limits not specified in available search results. No official .gov source URLs provided in search results; information sourced from nonprofit program websites. Meals on Wheels Texas is a 501(c)(3) statewide association; eligibility criteria may vary by regional program."
+      },
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "211",
+            "8173360912",
+            "9727719514"
+          ],
+          "verifiedValue": "18004589858"
+        }
+      ],
+      "notes": "Search results show Meals on Wheels East Texas references age 60+ and directs applicants to contact Department of Health and Human Services (1-800-458-9858) for qualification determination. Income and asset limits not specified in available search results. No official .gov source URLs provided in search results; information sourced from nonprofit program websites. Meals on Wheels Texas is a 501(c)(3) statewide association; eligibility criteria may vary by regional program."
+    },
+    {
+      "programId": "tx-cba-waiver",
+      "programName": "Community Based Alternatives (CBA) Waiver",
+      "facts": {
+        "age": 21,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 2000,
+        "assets_couple": 3000,
+        "phones": [
+          "211",
+          "8775417905"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 21,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://prntexas.org/wp-content/uploads/2018/07/Community-Based-Alternatives-Program.pdf",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "Program terminated on 10/31/2014 per Medicaid.gov; no current asset limits or phone found; age from pre-termination source"
+      },
+      "flags": [],
+      "notes": "Program terminated on 10/31/2014 per Medicaid.gov; no current asset limits or phone found; age from pre-termination source"
+    },
+    {
+      "programId": "tx-community-caregiver-support",
+      "programName": "Community Caregiver Support Program",
+      "facts": {
+        "age": 18,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 5000,
+        "assets_couple": 6000,
+        "phones": [
+          "18559372372",
+          "8775417905"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No authoritative data found for a statewide 'Community Caregiver Support Program' in Texas with the requested eligibility details (age, assets, income); search results describe regional (e.g., NCTCoG) or related programs (e.g., CAS, STAR+PLUS) without matching asset/income limits or confirming this exact program name/status as of 2026"
+      },
+      "flags": [],
+      "notes": "No authoritative data found for a statewide 'Community Caregiver Support Program' in Texas with the requested eligibility details (age, assets, income); search results describe regional (e.g., NCTCoG) or related programs (e.g., CAS, STAR+PLUS) without matching asset/income limits or confirming this exact program name/status as of 2026"
+    },
+    {
+      "programId": "tx-legal-aid-seniors-aaa",
+      "programName": "Legal Aid for Seniors through AAAs",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "3252235704",
+          "3256728544",
+          "5129166062",
+          "3256778591"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://texaslawhelp.org/article/area-agencies-on-aging-a-place-to-get-help",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No financial eligibility criteria; no statewide main phone number found. Services via 28 local AAAs."
+      },
+      "flags": [],
+      "notes": "No financial eligibility criteria; no statewide main phone number found. Services via 28 local AAAs."
+    },
+    {
+      "programId": "tx-ltc-ombudsman",
+      "programName": "Long-Term Care Ombudsman Program",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8002522412",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8002522412",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://ltco.texas.gov"
+        },
+        "notes": "Long-Term Care Ombudsman Program is an advocacy service, not a benefits program with eligibility criteria. No age, income, or asset limits apply. Services are free and available to all residents of nursing homes and assisted living facilities, their families, and facility staff. Phone number confirmed from multiple official Texas.gov sources."
+      },
+      "flags": [],
+      "notes": "Long-Term Care Ombudsman Program is an advocacy service, not a benefits program with eligibility criteria. No age, income, or asset limits apply. Services are free and available to all residents of nursing homes and assisted living facilities, their families, and facility staff. Phone number confirmed from multiple official Texas.gov sources."
+    }
+  ]
+}

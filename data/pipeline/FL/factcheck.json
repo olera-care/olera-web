@@ -1,0 +1,98 @@
+{
+  "state": "FL",
+  "stateName": "Florida",
+  "checkedAt": "2026-04-13T17:45:45.283Z",
+  "total": 14,
+  "skipped": 14,
+  "parseErrors": 0,
+  "errors": 0,
+  "programsWithFlags": 0,
+  "totalFlags": 0,
+  "highSeverityFlags": 0,
+  "programs": [
+    {
+      "programName": "Statewide Medicaid Managed Care Long-Term Care Program (SMMC-LTC) HCBS Waivers",
+      "skipped": true,
+      "reason": "no verifiable facts",
+      "flags": []
+    },
+    {
+      "programName": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "skipped": true,
+      "reason": "no verifiable facts",
+      "flags": []
+    },
+    {
+      "programName": "Medicaid Medicare Savings Programs (QMB, SLMB, QI)",
+      "skipped": true,
+      "reason": "no verifiable facts",
+      "flags": []
+    },
+    {
+      "programName": "SNAP (Supplemental Nutrition Assistance Program)",
+      "skipped": true,
+      "reason": "no verifiable facts",
+      "flags": []
+    },
+    {
+      "programName": "LIHEAP (Low-Income Home Energy Assistance Program)",
+      "skipped": true,
+      "reason": "no verifiable facts",
+      "flags": []
+    },
+    {
+      "programName": "Weatherization Assistance Program (WAP)",
+      "skipped": true,
+      "reason": "no verifiable facts",
+      "flags": []
+    },
+    {
+      "programName": "SHINE (Serving Health Insurance Needs of Elders)",
+      "skipped": true,
+      "reason": "no verifiable facts",
+      "flags": []
+    },
+    {
+      "programName": "Home Delivered Meals (Meals on Wheels)",
+      "skipped": true,
+      "reason": "no verifiable facts",
+      "flags": []
+    },
+    {
+      "programName": "Alzheimer's Disease Initiative (ADI) Respite Services",
+      "skipped": true,
+      "reason": "no verifiable facts",
+      "flags": []
+    },
+    {
+      "programName": "Senior Community Service Employment Program (SCSEP)",
+      "skipped": true,
+      "reason": "no verifiable facts",
+      "flags": []
+    },
+    {
+      "programName": "Legal Aid for Seniors (Area Agency Legal Services)",
+      "skipped": true,
+      "reason": "no verifiable facts",
+      "flags": []
+    },
+    {
+      "programName": "Home Care for the Elderly (HCE) Program",
+      "skipped": true,
+      "reason": "no verifiable facts",
+      "flags": []
+    },
+    {
+      "programName": "Community Care for the Elderly (CCE) Program",
+      "skipped": true,
+      "reason": "no verifiable facts",
+      "flags": []
+    },
+    {
+      "programName": "Elder Options",
+      "skipped": true,
+      "reason": "no verifiable facts",
+      "flags": []
+    }
+  ]
+}

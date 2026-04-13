@@ -1,0 +1,208 @@
+{
+  "state": "CA",
+  "stateName": "California",
+  "checkedAt": "2026-04-13T17:41:30.379Z",
+  "total": 17,
+  "skipped": 14,
+  "parseErrors": 0,
+  "errors": 0,
+  "programsWithFlags": 1,
+  "totalFlags": 1,
+  "highSeverityFlags": 0,
+  "programs": [
+    {
+      "programName": "Medi-Cal Medicare Savings Programs (QMB, SLMB, QI)",
+      "skipped": true,
+      "reason": "no verifiable facts",
+      "flags": []
+    },
+    {
+      "programName": "Multipurpose Senior Services Program Waiver (MSSP)",
+      "skipped": true,
+      "reason": "no verifiable facts",
+      "flags": []
+    },
+    {
+      "programName": "Community Based Adult Services (CBAS)",
+      "skipped": true,
+      "reason": "no verifiable facts",
+      "flags": []
+    },
+    {
+      "programName": "CalFresh",
+      "skipped": true,
+      "reason": "no verifiable facts",
+      "flags": []
+    },
+    {
+      "programName": "LIHEAP (Low-Income Home Energy Assistance Program)",
+      "skipped": true,
+      "reason": "no verifiable facts",
+      "flags": []
+    },
+    {
+      "programName": "Weatherization Assistance Program (WAP)",
+      "skipped": true,
+      "reason": "no verifiable facts",
+      "flags": []
+    },
+    {
+      "programName": "Health Insurance Counseling and Advocacy Program (HICAP)",
+      "skipped": true,
+      "reason": "no verifiable facts",
+      "flags": []
+    },
+    {
+      "programName": "Meals on Wheels (via Older Americans Act / CA Dept. of Aging)",
+      "skipped": true,
+      "reason": "no verifiable facts",
+      "flags": []
+    },
+    {
+      "programId": "ca-mssp-caregiver-support",
+      "programName": "Multipurpose Senior Services Program (MSSP) Caregiver Support",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "18006771116",
+          "8006644664"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://www.dhcs.ca.gov/services/medi-cal/Pages/MSSPMedi-CalWaiver.aspx",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No income or asset limits found; eligibility tied to Medi-Cal (which has its own tests) and nursing home level of care. No statewide application phone; contact local providers. Some variation in age (60+ or 65+ by site)."
+      },
+      "flags": [],
+      "notes": "No income or asset limits found; eligibility tied to Medi-Cal (which has its own tests) and nursing home level of care. No statewide application phone; contact local providers. Some variation in age (60+ or 65+ by site)."
+    },
+    {
+      "programName": "Senior Community Service Employment Program (SCSEP)",
+      "skipped": true,
+      "reason": "no verifiable facts",
+      "flags": []
+    },
+    {
+      "programName": "California Senior Legal Services (via Legal Services Inc. / Area Agencies)",
+      "skipped": true,
+      "reason": "no verifiable facts",
+      "flags": []
+    },
+    {
+      "programName": "Long-Term Care Ombudsman Program",
+      "skipped": true,
+      "reason": "no verifiable facts",
+      "flags": []
+    },
+    {
+      "programId": "ca-state-supplementary-payment-ssp",
+      "programName": "State Supplementary Payment (SSP)",
+      "facts": {
+        "age": 65,
+        "income_1": 1206.94,
+        "income_2": 2057.83,
+        "assets_individual": 2000,
+        "assets_couple": 3000,
+        "phones": [
+          "8007721213",
+          "8003250778",
+          "9166518848"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 2000,
+        "assets_couple": 3000,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": "https://californiatoday.com/guides/social-security/2026-ssi-ssdi-guide-payment-standards-and-work-thresholds/",
+          "phone": null
+        },
+        "notes": "SSP is a state supplement to federal SSI. Asset limits provided are for SSI (federal program); SSP-specific limits not found in search results. Income limits for SSI/SSP not provided in search results. Age requirement, income limits, and phone number could not be located in provided sources. Recommend consulting official California Department of Social Services or SSA websites directly."
+      },
+      "flags": [],
+      "notes": "SSP is a state supplement to federal SSI. Asset limits provided are for SSI (federal program); SSP-specific limits not found in search results. Income limits for SSI/SSP not provided in search results. Age requirement, income limits, and phone number could not be located in provided sources. Recommend consulting official California Department of Social Services or SSA websites directly."
+    },
+    {
+      "programName": "Property Tax Postponement Program",
+      "skipped": true,
+      "reason": "no verifiable facts",
+      "flags": []
+    },
+    {
+      "programName": "In-Home Supportive Services (IHSS)",
+      "skipped": true,
+      "reason": "no verifiable facts",
+      "flags": []
+    },
+    {
+      "programId": "ca-caregiver-resource-centers",
+      "programName": "Caregiver Resource Centers (CRC)",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "9095141404",
+          "8006756694"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8004458106",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://www.caregiver.org/resource/californias-caregiver-resource-centers/"
+        },
+        "notes": "CRC is a statewide network of 11 nonprofit centers serving family caregivers of adults with chronic/debilitating conditions and neurocognitive disorders. No eligibility criteria (age, income, assets limits) are specified in available official sources. Phone number provided is the Bay Area CRC toll-free line; other regional centers have different numbers. Program administration migrated to California Department of Aging as of July 2022. Services are provided at low or no cost but specific financial eligibility thresholds are not documented in retrieved sources."
+      },
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "9095141404",
+            "8006756694"
+          ],
+          "verifiedValue": "8004458106"
+        }
+      ],
+      "notes": "CRC is a statewide network of 11 nonprofit centers serving family caregivers of adults with chronic/debilitating conditions and neurocognitive disorders. No eligibility criteria (age, income, assets limits) are specified in available official sources. Phone number provided is the Bay Area CRC toll-free line; other regional centers have different numbers. Program administration migrated to California Department of Aging as of July 2022. Services are provided at low or no cost but specific financial eligibility thresholds are not documented in retrieved sources."
+    },
+    {
+      "programName": "Community-Based Adult Services (CBAS)",
+      "skipped": true,
+      "reason": "no verifiable facts",
+      "flags": []
+    }
+  ]
+}

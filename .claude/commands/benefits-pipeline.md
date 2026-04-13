@@ -37,6 +37,7 @@ Each directory is a state. Check for:
 - `classify.json` — classification done (program types, geo scopes, complexity)
 - `drafts.json` — content drafts generated
 - `exploration_report.md` — report generated
+- `factcheck.json` — drafted facts verified against fresh sources (QA gate)
 
 Also check the admin dashboard data:
 ```bash
@@ -54,6 +55,33 @@ If approved drafts exist, offer to apply them first before doing any new explora
 
 If an approved state overview exists, the state page is already rendering from `pipeline-drafts.ts` — no separate apply step needed. Just confirm the v2 state page looks good at `/senior-benefits/{state-id}` (compare with old page at `/current`).
 
+## Bulk Draft Mode (Anthropic Message Batches API)
+
+For regenerating drafts across many states, **use `benefits-batch-draft.js` instead of `benefits-batch.js`**. It submits all program drafts as one Anthropic batch:
+- **50% cost** vs real-time API
+- **Dedicated throughput** — no 529 overload or 429 retry tarpits
+- **1–3 hour turnaround** for ~700 drafts (vs 5–12 hours serial)
+- **Prerequisite:** target states must already have `dive.json` + `classify.json` (no re-exploration)
+
+```bash
+# All states with classify.json (skips TX, already v3)
+node scripts/benefits-batch-draft.js
+
+# Specific states
+node scripts/benefits-batch-draft.js CA FL NY
+
+# Dry run (see counts, don't submit)
+node scripts/benefits-batch-draft.js --dry-run
+```
+
+After the batch completes, the script downloads results, writes each state's `drafts.json`, generates state overviews serially (fast, ~30s/state), and regenerates `pipeline-drafts.ts` + `pipeline-summary.ts`. Then run factcheck separately:
+
+```bash
+for s in AL AK ...; do node scripts/benefits-pipeline.js --state $s --phase factcheck --run; done
+```
+
+**When NOT to use batch mode:** single-state exploratory runs, first-time state that needs explore/dive/classify, iterating on the prompt (you want fast feedback).
+
 ## Pipeline Script Reference
 
 ```bash
@@ -70,13 +98,14 @@ node scripts/benefits-pipeline.js --region "DMV" --run
 
 `--state XX` is shorthand for `--region "{state name}"`. `--parent-state` links a region to a state for comparison data.
 
-**Six phases run in order. Each reads the previous phase's output:**
+**Seven phases run in order. Each reads the previous phase's output:**
 1. `explore` — finds all programs (2 Perplexity queries adapted to entity type)
 2. `dive` — deep dives each program (1 Perplexity query per program)
 3. `compare` — cross-references against `waiver-library.ts` (uses parent state data for regions)
 4. `classify` — determines program type, geographic scope, complexity ($0, local processing)
 5. `draft` — generates structured page content via Claude API (1 call per program)
 6. `report` — generates markdown report + auto-updates `data/pipeline-summary.ts` and `data/pipeline-drafts.ts`
+7. `factcheck` — **adversarially verifies drafted facts against fresh sources** (1 Perplexity query per program, ~$0.06/state). Writes `factcheck.json` with mismatches flagged by severity. This is the QA gate — every state run ends here.
 
 **Output:** State data goes to `data/pipeline/{STATE_CODE}/`, region data to `data/pipeline/{slug}/` (e.g., `data/pipeline/miami-dade-county-fl/`).
 
@@ -277,4 +306,66 @@ Programs now have optional classification and rich content fields:
 | Compare + Classify | $0 (local) |
 | Draft (~15 programs × 1 Claude call) | ~$0.30 |
 | Report | $0 (local) |
-| **Total** | **~$0.40** |
+| Factcheck (~15 programs × 1 query) | ~$0.08 |
+| **Total** | **~$0.47** |
+
+## Factcheck Phase — The QA Gate
+
+Factcheck is the final phase and runs automatically at the end of every `--phase all` state run. It takes the completed drafts and adversarially re-queries Perplexity for the same key facts, writing `data/pipeline/{STATE}/factcheck.json`. **This is the command ship of SBF quality — drafts that pass factcheck cleanly are ready for human review; flagged drafts get eyes on them first.**
+
+**What it checks per program:**
+- Age requirement (extracted from `structuredEligibility.ageRequirement`)
+- Monthly income limits for household size 1 and 2 (from `structuredEligibility.incomeTable`)
+- Asset limits for individual and couple (from `structuredEligibility.assetLimits`)
+- Phone numbers (top-level `phone` + `contacts[].phone`)
+
+**How flags are raised:**
+- `age`: exact-match required; any mismatch = `high` severity
+- Dollar amounts: ±5% tolerance (rounding), 5–15% diff = `medium`, >15% = `high`
+- Phone: at least one drafted phone must match (substring or full-digits); otherwise `medium`
+
+**Output structure (`factcheck.json`):**
+```json
+{
+  "state": "TX",
+  "checkedAt": "2026-04-13T17:14:48Z",
+  "total": 12,
+  "programsWithFlags": 2,
+  "totalFlags": 2,
+  "highSeverityFlags": 1,
+  "programs": [
+    {
+      "programId": "tx-medicaid-mbic",
+      "programName": "...",
+      "facts":    { "age": 65, "income_1": null, ... },
+      "verified": { "age": 18, "phone": "...", "sources": {...}, "notes": "..." },
+      "flags": [
+        { "field": "age", "severity": "high", "draftValue": 65, "verifiedValue": 18 }
+      ]
+    }
+  ]
+}
+```
+
+**After a state run, always surface flags to the user:**
+1. Programs-with-flags count + high-severity total
+2. Each flagged program with field, drafted value, verified value, source URL
+3. Recommend reviewing high-severity flags before approving the state for publish
+
+**Run factcheck alone (on a state that already has drafts, no re-drafting needed):**
+```bash
+node scripts/benefits-pipeline.js --state XX --phase factcheck --run
+```
+
+**Sweep every state that already has drafts:**
+```bash
+for s in AL AK AZ AR CA CO CT DE FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY DC; do
+  node scripts/benefits-pipeline.js --state $s --phase factcheck --run
+done
+```
+Total cost: ~$3 for all 50 states + DC.
+
+**Known limitations:**
+- Age parser takes the first numeric age match — compound programs (e.g. "0-18 for X, 65+ for Y") will flag even when the drafted value is not truly wrong. Treat these as "needs human eyes" not "definitely wrong."
+- Only numeric facts + phones are auto-checked. Prose claims (processing time, services offered, eligibility nuances) still require human review.
+- Perplexity occasionally returns non-.gov sources. Acceptable if cited and current; judge the source URL when triaging flags.

@@ -47,19 +47,36 @@ export async function GET(
     }
 
     if (!profile) {
-      // Third try: legacy olera-providers table as fallback
-      const { data: legacyProvider } = await db
+      // Third try: legacy olera-providers table by slug
+      let legacyProvider = null;
+
+      const { data: bySlug } = await db
         .from("olera-providers")
-        .select("provider_id, name, city, state, place_id")
-        .eq("provider_id", slug)
+        .select("provider_id, provider_name, city, state, place_id, slug")
+        .eq("slug", slug)
+        .not("deleted", "is", true)
         .maybeSingle();
+
+      legacyProvider = bySlug;
+
+      // Fourth try: legacy olera-providers by provider_id
+      if (!legacyProvider) {
+        const { data: byProviderId } = await db
+          .from("olera-providers")
+          .select("provider_id, provider_name, city, state, place_id, slug")
+          .eq("provider_id", slug)
+          .not("deleted", "is", true)
+          .maybeSingle();
+
+        legacyProvider = byProviderId;
+      }
 
       if (legacyProvider) {
         const legacyResponse = NextResponse.json({
           provider: {
             id: legacyProvider.provider_id,
-            display_name: legacyProvider.name,
-            slug: legacyProvider.provider_id,
+            display_name: legacyProvider.provider_name,
+            slug: legacyProvider.slug || legacyProvider.provider_id,
             image_url: null,
             tagline: null,
             city: legacyProvider.city,

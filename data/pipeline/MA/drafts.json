@@ -1,9 +1,9 @@
 {
   "state": "MA",
   "stateName": "Massachusetts",
-  "draftedAt": "2026-04-13T21:50:19.542Z",
+  "draftedAt": "2026-04-13T22:29:50.207Z",
   "total": 16,
-  "successful": 14,
+  "successful": 16,
   "programs": [
     {
       "id": "ma-masshealth-medicare-savings",
@@ -792,8 +792,181 @@
       "draftedAt": "2026-04-13"
     },
     {
+      "id": "ma-weatherization-assistance",
       "name": "Residential Conservation Service (Weatherization)",
-      "_error": "batch: canceled"
+      "shortName": "Weatherization Assistance",
+      "tagline": "Free home insulation and heating repairs that can cut your parent's heating bills by 25-35%",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local energy assistance agencies (full list by town on Mass.gov); e.g., ABCD, Community Teamwork, Self Help Inc.",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is on a fixed income and struggling with high heating bills, Massachusetts Weatherization Assistance can provide free home improvements worth an average of $4,725. The program covers air sealing, insulation, heating system repairs, and weather-stripping at no cost to your parent — and typically reduces heating bills by 25-35%.\n\nBecause this program coordinates with utility companies and uses trained contractors, your parent gets professional-grade weatherization without the hassle of finding reliable workers or managing multiple estimates. Priority goes to households with elderly members, people with disabilities, or families with children under 6.\n\nThe catch: applications are only accepted October 1 through April 30 each year, and demand exceeds funding. Your parent must qualify for the Low Income Home Energy Assistance Program (LIHEAP) income limits — generally 60% of state median income or 200% of federal poverty level.",
+      "savingsRange": "25-35% reduction in heating bills",
+      "savingsSource": "Massachusetts Weatherization Assistance Program (Mass.gov)",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Income at LIHEAP levels (varies by household size)",
+          "Homeowner or tenant with landlord permission",
+          "Not previously weatherized",
+          "Priority for elderly households"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must qualify for LIHEAP income limits (60% state median income or 200% federal poverty level)",
+          "Cannot have received weatherization through this program before",
+          "Homeowners need proof of ownership; tenants need signed landlord permission",
+          "Landlord must agree not to raise rent for 1 year and not evict except for good cause",
+          "Must be U.S. citizen or qualified alien",
+          "Condominiums with more than 4 units are not eligible"
+        ],
+        "povertyLevelReference": "200% FPL or 60% State Median Income"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply through your local energy assistance agency October 1 through April 30, with processing time varying by area demand.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local agency",
+            "description": "Look up your city or town on Mass.gov's Weatherization Assistance Program page to find the energy assistance agency serving your area. Common agencies include ABCD (Boston area), Community Teamwork, and Self Help Inc."
+          },
+          {
+            "step": 2,
+            "title": "Apply during open season",
+            "description": "Submit application October 1 through April 30 via your local agency's online portal, in person, by mail, or phone. Use the same Single Certification Process application used for LIHEAP."
+          },
+          {
+            "step": 3,
+            "title": "Provide required documentation",
+            "description": "Submit proof of income for all household members 18+, citizenship documentation, and property ownership or landlord permission forms."
+          },
+          {
+            "step": 4,
+            "title": "Schedule energy inspection",
+            "description": "After eligibility approval, your local agency schedules a home energy audit to determine needed weatherization measures."
+          },
+          {
+            "step": 5,
+            "title": "Complete weatherization work",
+            "description": "Approved contractors perform the work at no cost, followed by a quality inspection to ensure proper installation."
+          }
+        ],
+        "processingTime": "Processing time varies by local agency and annual demand",
+        "waitlist": "Due to limited funding, priority service creates effective waitlist; households must apply annually",
+        "tip": "Priority goes to elderly households, so mention your parent's age prominently in the application.",
+        "urls": [
+          {
+            "label": "Massachusetts Weatherization Assistance Program",
+            "url": "https://www.mass.gov/info-details/weatherization-assistance-program-wap"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Proof of income for all household members 18 and older (pay stubs, Social Security award letters, pension statements)",
+        "Proof of U.S. citizenship or qualified alien status for all household members",
+        "Valid government-issued photo ID",
+        "Homeowners: Deed, mortgage statement, or property tax bill as proof of ownership",
+        "Tenants: Signed landlord permission letter authorizing weatherization work",
+        "Landlord agreement form (no rent increase for 1 year, no eviction except for good cause)",
+        "Proof landlord is current on property taxes and excise taxes",
+        "Proof landlord is current on water and sewer bills",
+        "Most recent heating bills (gas, oil, electric, or propane)",
+        "Utility discount or fuel assistance documentation (for tenants in 1-4 unit buildings)",
+        "Birth certificates for children under 6 (for priority consideration)",
+        "Disability documentation (for priority consideration)"
+      ],
+      "contacts": [
+        {
+          "label": "Mass.gov Agency Finder",
+          "phone": null,
+          "description": "Find your local energy assistance agency by city or town",
+          "hours": "Online directory available 24/7"
+        },
+        {
+          "label": "ABCD (Boston area)",
+          "phone": "(617) 357-6000",
+          "description": "Serves Boston, Brookline, Newton, and Mystic Valley communities",
+          "hours": "Mon-Fri 8:30am-5pm"
+        },
+        {
+          "label": "Community Teamwork",
+          "phone": "(978) 459-0551",
+          "description": "Serves Lowell area and surrounding communities",
+          "hours": "Mon-Fri 8am-4:30pm"
+        }
+      ],
+      "applicationNotes": [
+        "Applications are only accepted October 1 through April 30 each program year — missing this window means waiting until the next year",
+        "Tenants in buildings with more than 4 units (condos) are not eligible, but tenants in 1-4 unit buildings can qualify if they pay their own heating bills",
+        "Landlord requirements are strictly enforced — if the landlord won't sign agreements or isn't current on taxes and utilities, the application will be denied",
+        "The program may coordinate with utility programs like MassSave but won't duplicate services already provided"
+      ],
+      "relatedPrograms": [
+        "Low Income Home Energy Assistance Program (LIHEAP)",
+        "MassSave Energy Efficiency Programs",
+        "SNAP (Food Assistance)",
+        "Supplemental Security Income (SSI)"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "What if my parent's landlord won't sign the permission forms?",
+          "answer": "The landlord must sign agreements not to raise rent for 1 year and not to evict except for good cause. If they refuse, your parent cannot receive weatherization services. Some landlords are more willing when they understand the improvements increase property value at no cost to them."
+        },
+        {
+          "question": "Can my parent apply if they received weatherization help from their utility company?",
+          "answer": "Yes, the program coordinates with utility programs like MassSave and won't duplicate services already provided. However, if your parent already received comprehensive weatherization through this specific program before, they're not eligible again."
+        },
+        {
+          "question": "How long is the actual waitlist after approval?",
+          "answer": "Processing time varies significantly by region and funding availability. Priority households (elderly, disabled, families with young children) get served first, but even priority cases may wait months depending on local demand and contractor availability."
+        },
+        {
+          "question": "What exactly gets done to the house?",
+          "answer": "Services include air sealing, attic/wall/floor insulation, pipe and duct insulation, weather-stripping, heating system tune-ups and repairs, and safety testing of combustion appliances. The specific work depends on your parent's home energy audit results."
+        },
+        {
+          "question": "Can I apply on behalf of my elderly parent?",
+          "answer": "You can help with the application process, but your parent typically needs to be involved since they must sign forms as the homeowner or tenant. Contact your local energy assistance agency to discuss specific accommodation needs for elderly applicants."
+        },
+        {
+          "question": "What if my parent's income is slightly over the LIHEAP limits?",
+          "answer": "Income limits are based on 60% of state median income or 200% of federal poverty level, whichever is higher. These limits vary by household size and are updated annually. If your parent is over the limit, they won't qualify for this program but may qualify for utility company programs."
+        },
+        {
+          "question": "Does my parent have to pay anything upfront or get reimbursed later?",
+          "answer": "No. This is completely free with no upfront costs, co-pays, or reimbursement process. All materials, labor, and inspections are covered by the program at no cost to your parent."
+        },
+        {
+          "question": "What happens if we miss the October 1 to April 30 application window?",
+          "answer": "You must wait until the next program year starting October 1. There are no exceptions to this application period, so mark your calendar and apply early in the season to improve chances of getting served that year."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "savings",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "Lightning",
+      "phone": null,
+      "sourceUrl": "https://www.mass.gov/info-details/weatherization-assistance-program-wap",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
     },
     {
       "id": "ma-shine-health-insurance-counseling",
@@ -1681,8 +1854,241 @@
       "draftedAt": "2026-04-13"
     },
     {
+      "id": "ma-prescription-advantage",
       "name": "Prescription Advantage",
-      "_error": "batch: canceled"
+      "shortName": "Prescription Advantage",
+      "tagline": "Massachusetts prescription drug coverage that reduces medication costs based on your parent's income.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Centralized administration through Commonwealth of Massachusetts Executive Office of Elder Affairs",
+            "type": "service-area"
+          },
+          {
+            "name": "Applications processed through central P.O. Box in Worcester, MA",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your Massachusetts parent is 65+ and paying high prescription costs, Prescription Advantage provides income-based drug coverage that reduces premiums, deductibles, and copayments. The program works alongside Medicare Part D or serves as primary coverage for those without Medicare, with assistance levels based on household income — lower-income members receive greater help.\n\nIncome limits range from $21,128/year for single people in the lowest tier up to $78,250/year for higher tiers (2026 rates). Because this program requires you to apply for federal programs like Medicare Extra Help first if your parent qualifies, the application process involves multiple steps and coordination between different agencies.",
+      "savingsRange": "",
+      "savingsSource": "Income-based assistance with premiums, deductibles, and copayments",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+ or under 65 with disabilities",
+          "Massachusetts resident",
+          "Income below $78,250/year (single)",
+          "Must apply for Medicare Extra Help first if income qualifies",
+          "Cannot have MassHealth prescription coverage"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1761
+          },
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2641
+          },
+          {
+            "householdSize": 1,
+            "monthlyLimit": 3301
+          },
+          {
+            "householdSize": 1,
+            "monthlyLimit": 3913
+          },
+          {
+            "householdSize": 1,
+            "monthlyLimit": 6521
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2379
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 3577
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 4463
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 5288
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 8813
+          }
+        ],
+        "assetLimits": {
+          "individual": 17220,
+          "couple": 34360,
+          "countedAssets": [
+            "Bank accounts",
+            "Investments",
+            "Property other than primary home"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "Life insurance policies",
+            "Burial plots",
+            "Personal possessions"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be Massachusetts resident with primary residence in state",
+          "Must be Medicare eligible (with limited exceptions for 65+ not eligible)",
+          "Cannot receive prescription benefits through MassHealth or CommonHealth",
+          "Must apply for Medicare Extra Help if income qualifies",
+          "Must apply for MassHealth Buy-In Program if eligible",
+          "Under 65: must work no more than 40 hours per month"
+        ],
+        "povertyLevelReference": "500% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply by phone at 1-800-243-4636 or online at prescriptionadvantagema.org — benefits begin the first day of the month after processing.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Check if you must apply for other programs first",
+            "description": "If your parent's income qualifies for Medicare Extra Help or MassHealth Buy-In Program, you must apply for those programs first. Call 1-800-243-4636 to confirm requirements."
+          },
+          {
+            "step": 2,
+            "title": "Gather required documents",
+            "description": "Collect proof of Massachusetts residency, Medicare eligibility documentation, income verification, and asset information if applying for Extra Help or Medicare Savings Program."
+          },
+          {
+            "step": 3,
+            "title": "Submit application",
+            "description": "Apply online at www.prescriptionadvantagema.org, call 1-800-243-4636 (TTY 711), or mail to Prescription Advantage, P.O. Box 15153, Worcester, MA 01615-0153."
+          },
+          {
+            "step": 4,
+            "title": "Wait for processing and enrollment period",
+            "description": "Applications must be processed during open enrollment periods. If you miss enrollment, you must wait for the next enrollment period unless you're 66+ and recently moved to MA, lost coverage, or became ineligible for Medicaid."
+          }
+        ],
+        "processingTime": "Benefits begin on the first day of the month following complete processing of application",
+        "waitlist": "Must apply during open enrollment periods — if missed, must wait for next enrollment period with limited exceptions",
+        "tip": "Apply for Medicare Extra Help and MassHealth Buy-In Program first if your parent's income qualifies — this is required before Prescription Advantage will process your application.",
+        "urls": [
+          {
+            "label": "Prescription Advantage Application",
+            "url": "https://www.prescriptionadvantagema.org"
+          },
+          {
+            "label": "Program Information",
+            "url": "https://www.mass.gov/info-details/prescription-advantage"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Proof of Massachusetts residency (utility bill, lease agreement, or state-issued document)",
+        "Medicare card (both parts) if Medicare eligible",
+        "Social Security award letter or other proof of income",
+        "Pension or retirement income statements",
+        "Bank statements for all accounts (last 3 months)",
+        "Investment documents if applying for Extra Help (stocks, bonds, annuities)",
+        "Property documents if applying for Extra Help (deeds, tax statements)",
+        "Life insurance policies with face values if applying for Extra Help",
+        "Spouse information and income documentation if married and living together",
+        "Disability documentation if under age 65",
+        "Documentation showing you applied for Medicare Extra Help if income qualifies",
+        "Documentation showing you applied for MassHealth Buy-In Program if eligible"
+      ],
+      "contacts": [
+        {
+          "label": "Prescription Advantage Program",
+          "phone": "(800) 243-4636",
+          "description": "Applications, eligibility questions, and program information",
+          "hours": "Business hours (TTY 711)"
+        },
+        {
+          "label": "Massachusetts 2-1-1",
+          "phone": "2-1-1",
+          "description": "General assistance with all social services and benefits",
+          "hours": "24 hours, 7 days a week"
+        }
+      ],
+      "applicationNotes": [
+        "You must apply for Medicare Extra Help and MassHealth Buy-In Program first if your parent's income qualifies — Prescription Advantage will not process applications until this requirement is met",
+        "Missing open enrollment means waiting for the next enrollment period unless you're 66+ and recently moved to Massachusetts, lost coverage, or became ineligible for Medicaid",
+        "Asset limits only apply if you're also applying for Medicare Extra Help or Medicare Savings Program — most Prescription Advantage applicants have no asset limits",
+        "The program has five income tiers (S0-S5) with different benefit levels — lower tiers receive more assistance with premiums and copayments"
+      ],
+      "relatedPrograms": [
+        "Medicare Extra Help (Low Income Subsidy)",
+        "MassHealth Buy-In Program",
+        "MassHealth",
+        "SNAP (Food Assistance)"
+      ],
+      "contentSections": [
+        {
+          "type": "tier-comparison",
+          "title": "Income Categories and Benefits",
+          "content": "Prescription Advantage has five income categories (S0-S5) for Medicare-eligible members. Categories S0-S3 receive the most assistance with copayments and coinsurance. Your parent's benefits depend on which category they fall into based on household income."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent apply for Prescription Advantage if they already have Medicare Part D?",
+          "answer": "Yes, but they must keep their Medicare Part D or Medicare Advantage plan with drug coverage. Prescription Advantage works as secondary coverage to fill gaps in their existing Medicare prescription coverage."
+        },
+        {
+          "question": "What happens if my parent's income qualifies for Medicare Extra Help but we don't apply for it first?",
+          "answer": "Prescription Advantage will not process the application until you apply for Medicare Extra Help first. This is a mandatory requirement — call 1-800-243-4636 to confirm which programs you must apply for before submitting your Prescription Advantage application."
+        },
+        {
+          "question": "Can my parent keep their house if it's worth more than the asset limits?",
+          "answer": "Yes, the primary home doesn't count toward asset limits. Asset limits of $17,220 (single) or $34,360 (married) only apply if your parent is also applying for Medicare Extra Help, and these limits exclude the home, life insurance, burial plots, and personal possessions."
+        },
+        {
+          "question": "What if we miss the open enrollment period?",
+          "answer": "You must wait for the next open enrollment period unless your parent is 66 or older and recently moved to Massachusetts, lost prescription coverage, or became ineligible for Medicaid. These are the only exceptions that allow enrollment outside the regular enrollment period."
+        },
+        {
+          "question": "Can my parent have both MassHealth and Prescription Advantage?",
+          "answer": "No, people receiving prescription drug benefits through MassHealth or MassHealth CommonHealth cannot join Prescription Advantage. However, if they're eligible for MassHealth Buy-In Program (Medicare Savings Program), they must apply for that first before applying for Prescription Advantage."
+        },
+        {
+          "question": "How much will my parent actually pay for prescriptions with this program?",
+          "answer": "It depends on their income category (S0-S5). Lower-income members in categories S0-S3 receive more help with copayments and coinsurance, but specific amounts aren't published. Call 1-800-243-4636 with your parent's income information to get an estimate of their costs."
+        },
+        {
+          "question": "Can I apply on behalf of my elderly parent?",
+          "answer": "The program allows applications by phone, mail, and online, but doesn't specify whether family members can apply on behalf of parents. Call 1-800-243-4636 to ask about representation requirements and whether you need any legal documentation to apply for your parent."
+        },
+        {
+          "question": "What if my parent is under 65 but has a disability?",
+          "answer": "They may qualify if they meet MassHealth's CommonHealth disability guidelines, work no more than 40 hours per month, and have gross annual household income at or below 188% of the Federal Poverty Level. They'll need disability documentation as part of their application."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "income-table",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": false,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "Pill",
+      "phone": "(800) 243-4636",
+      "sourceUrl": "https://www.prescriptionadvantagema.org",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
     },
     {
       "id": "ma-home-modification-loan",

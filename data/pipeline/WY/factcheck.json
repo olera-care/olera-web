@@ -1,0 +1,128 @@
+{
+  "state": "WY",
+  "stateName": "Wyoming",
+  "checkedAt": "2026-04-14T01:24:39.022Z",
+  "total": 3,
+  "skipped": 0,
+  "parseErrors": 0,
+  "errors": 0,
+  "programsWithFlags": 2,
+  "totalFlags": 2,
+  "highSeverityFlags": 0,
+  "programs": [
+    {
+      "programId": "wy-state-parks-senior-discounts",
+      "programName": "Wyoming State Parks Senior Discounts",
+      "facts": {
+        "age": 62,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8779967275"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "877996275",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://wyoparks.wyo.gov/index.php/permits-reservations/permits-fees"
+        },
+        "notes": "No Wyoming State Parks senior discount program found in official sources; annual passes available to all residents without age, income, or assets test. Some historic sites offer flat senior rates (e.g., $9 at Wyoming Territorial Prison) but no dedicated senior program."
+      },
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "8779967275"
+          ],
+          "verifiedValue": "877996275"
+        }
+      ],
+      "notes": "No Wyoming State Parks senior discount program found in official sources; annual passes available to all residents without age, income, or assets test. Some historic sites offer flat senior rates (e.g., $9 at Wyoming Territorial Prison) but no dedicated senior program."
+    },
+    {
+      "programId": "wy-liheap-energy-assistance",
+      "programName": "Low Income Energy Assistance Program (LIHEAP)",
+      "facts": {
+        "age": null,
+        "income_1": 2985,
+        "income_2": 3904,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8002464221"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": 2985,
+        "income_2": 3904,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8002464221",
+        "sources": {
+          "age": null,
+          "income": "https://www.snapscreener.com/liheap/wyoming",
+          "assets": null,
+          "phone": "https://dfs.wyo.gov/assistance-programs/home-utilities-energy-assistance/low-income-energy-assistance-program-lieap/"
+        },
+        "notes": "Income from non-.gov source citing limits; official state site confirms 60% SMI eligibility but no exact figures; program active for 2025-2026 as LIEAP; no assets test found"
+      },
+      "flags": [],
+      "notes": "Income from non-.gov source citing limits; official state site confirms 60% SMI eligibility but no exact figures; program active for 2025-2026 as LIEAP; no assets test found"
+    },
+    {
+      "programId": "wy-tax-refund-elderly-disabled",
+      "programName": "Wyoming Tax Refund for Elderly & Disabled",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 29950,
+        "assets_couple": 59900,
+        "phones": [
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 65,
+        "income_1": 17500,
+        "income_2": 28500,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "18669898901",
+        "sources": {
+          "age": "https://www.lincolninst.edu/app/uploads/legacy-files/gwipp/upload/sources/Wyoming/2017/WY_Tax_Refund_for_Elderly_and_Disabled_Wyoming_Department_of_Health_2013.pdf",
+          "income": "https://www.lincolninst.edu/app/uploads/legacy-files/gwipp/upload/sources/Wyoming/2017/WY_Tax_Refund_for_Elderly_and_Disabled_Wyoming_Department_of_Health_2013.pdf",
+          "assets": null,
+          "phone": "https://www.lincolninst.edu/app/uploads/legacy-files/gwipp/upload/sources/Wyoming/2017/WY_Tax_Refund_for_Elderly_and_Disabled_Wyoming_Department_of_Health_2013.pdf"
+        },
+        "notes": "Data from 2013 WY Dept of Health source; no current 2026 authoritative data found in results; asset limit mentioned as $29,950 per adult but lacks current confirmation"
+      },
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "211"
+          ],
+          "verifiedValue": "18669898901"
+        }
+      ],
+      "notes": "Data from 2013 WY Dept of Health source; no current 2026 authoritative data found in results; asset limit mentioned as $29,950 per adult but lacks current confirmation"
+    }
+  ]
+}

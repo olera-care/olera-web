@@ -1,0 +1,458 @@
+{
+  "state": "OH",
+  "stateName": "Ohio",
+  "checkedAt": "2026-04-14T01:01:49.306Z",
+  "total": 12,
+  "skipped": 0,
+  "parseErrors": 0,
+  "errors": 0,
+  "programsWithFlags": 3,
+  "totalFlags": 5,
+  "highSeverityFlags": 4,
+  "programs": [
+    {
+      "programId": "oh-medicaid-aged-blind-disabled",
+      "programName": "Medicaid for the Aged, Blind, or Disabled (ABD)",
+      "facts": {
+        "age": 65,
+        "income_1": 794,
+        "income_2": 1191,
+        "assets_individual": 2000,
+        "assets_couple": 3000,
+        "phones": [
+          "8003248680"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 65,
+        "income_1": 994,
+        "income_2": 1491,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://medicaid.ohio.gov/families-and-individuals/citizen-programs-and-initiatives/aged-blind-disabled",
+          "income": "https://dam.assets.ohio.gov/image/upload/medicaid.ohio.gov/Families,%20Individuals/Programs/whoQualifies/2026_Aged_Blind_Disabled_Individuals.pdf",
+          "assets": null,
+          "phone": null
+        },
+        "notes": "Asset limits not found in provided sources; income limits from official 2026 Ohio Medicaid PDF tied to SSI rates"
+      },
+      "flags": [
+        {
+          "field": "income_1",
+          "severity": "high",
+          "draftValue": 794,
+          "verifiedValue": 994,
+          "pctDiff": 20.1
+        },
+        {
+          "field": "income_2",
+          "severity": "high",
+          "draftValue": 1191,
+          "verifiedValue": 1491,
+          "pctDiff": 20.1
+        }
+      ],
+      "notes": "Asset limits not found in provided sources; income limits from official 2026 Ohio Medicaid PDF tied to SSI rates"
+    },
+    {
+      "programId": "oh-passport-waiver",
+      "programName": "PASSPORT Waiver",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "18002664346",
+          "6146457250",
+          "211",
+          "16144666190"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 2000,
+        "assets_couple": 3000,
+        "phone": "8559260994",
+        "sources": {
+          "age": "https://www.coaaa.org/cms/services/need-help-staying-at-home/passport",
+          "income": null,
+          "assets": "https://www.medicaidplanningassistance.org/ohio-passport-waiver/",
+          "phone": "https://www.help4seniors.org/news/public-notice-and-request-for-comment-passport-medicaid-waiver-amendment/"
+        },
+        "notes": "Program is active as of April 2026. Income limits exist but are complex (based on Medicaid eligibility and spousal allowances); specific dollar amounts not provided in retrieved sources. Asset limits are current as of 2025 per medicaidplanningassistance.org. Phone number is toll-free for PASSPORT inquiries per official state notices."
+      },
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "18002664346",
+            "6146457250",
+            "211",
+            "16144666190"
+          ],
+          "verifiedValue": "8559260994"
+        }
+      ],
+      "notes": "Program is active as of April 2026. Income limits exist but are complex (based on Medicaid eligibility and spousal allowances); specific dollar amounts not provided in retrieved sources. Asset limits are current as of 2025 per medicaidplanningassistance.org. Phone number is toll-free for PASSPORT inquiries per official state notices."
+    },
+    {
+      "programId": "oh-pace-all-inclusive-care",
+      "programName": "Ohio Program of All-Inclusive Care for the Elderly (PACE)",
+      "facts": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8446406446"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://aging.ohio.gov/wps/portal/gov/aging/see-news-and-events/news/pace-expansion-july-2025",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No income, assets, or phone found in sources; PACE uses institutional Medicaid eligibility standards per nonprofit citing official info"
+      },
+      "flags": [],
+      "notes": "No income, assets, or phone found in sources; PACE uses institutional Medicaid eligibility standards per nonprofit citing official info"
+    },
+    {
+      "programId": "oh-medicare-savings-programs",
+      "programName": "Medicare Savings Programs (QMB, SLMB, QI-1)",
+      "facts": {
+        "age": null,
+        "income_1": 1350,
+        "income_2": 1824,
+        "assets_individual": 9950,
+        "assets_couple": 14910,
+        "phones": [
+          "18003248680",
+          "18446406446"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 9950,
+        "assets_couple": 14910,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": "https://benefitscheckup.org/program/health_oh_msp_medicare_premium",
+          "assets": "https://benefitscheckup.org/program/health_oh_msp_medicare_premium",
+          "phone": null
+        },
+        "notes": "Programs have tiered income limits by type (QMB/SLMB/QI-1); no single value or 2026 official Ohio state source found; assets from nonprofit citing federal/Ohio standards"
+      },
+      "flags": [],
+      "notes": "Programs have tiered income limits by type (QMB/SLMB/QI-1); no single value or 2026 official Ohio state source found; assets from nonprofit citing federal/Ohio standards"
+    },
+    {
+      "programId": "oh-snap-food-benefits",
+      "programName": "Ohio SNAP (Supplemental Nutrition Assistance Program)",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 4500,
+        "assets_couple": 4500,
+        "phones": [
+          "8666633225"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No authoritative data found in search results for age requirement, asset limits, or phone number; SNAP still active in Ohio but with 2026 work requirement changes expanding to ages 18-64 per non-.gov sources citing federal law"
+      },
+      "flags": [],
+      "notes": "No authoritative data found in search results for age requirement, asset limits, or phone number; SNAP still active in Ohio but with 2026 work requirement changes expanding to ages 18-64 per non-.gov sources citing federal law"
+    },
+    {
+      "programId": "oh-heap-energy-assistance",
+      "programName": "Home Energy Assistance Program (HEAP)",
+      "facts": {
+        "age": null,
+        "income_1": 5049,
+        "income_2": 6816,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "18002820880",
+          "18008605799",
+          "18009454250",
+          "711"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": 1591,
+        "income_2": 2155,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8002820880",
+        "sources": {
+          "age": null,
+          "income": "https://development.ohio.gov/individual/energy-assistance/1-home-energy-assistance-program",
+          "assets": null,
+          "phone": "https://development.ohio.gov/individual/energy-assistance/apply-now-energy-assistance-programs"
+        },
+        "notes": "Income limits calculated as 175% FPG monthly for July 2025-May 2026 (HH1: $1,591; HH2: $2,155) from official state site table (smaller HH not shown but derivable); program admin changes to ODOD JFS effective Apr 6 2026"
+      },
+      "flags": [
+        {
+          "field": "income_1",
+          "severity": "high",
+          "draftValue": 5049,
+          "verifiedValue": 1591,
+          "pctDiff": 68.5
+        },
+        {
+          "field": "income_2",
+          "severity": "high",
+          "draftValue": 6816,
+          "verifiedValue": 2155,
+          "pctDiff": 68.4
+        }
+      ],
+      "notes": "Income limits calculated as 175% FPG monthly for July 2025-May 2026 (HH1: $1,591; HH2: $2,155) from official state site table (smaller HH not shown but derivable); program admin changes to ODOD JFS effective Apr 6 2026"
+    },
+    {
+      "programId": "oh-weatherization-assistance-program",
+      "programName": "Weatherization Assistance Program (WAP)",
+      "facts": {
+        "age": null,
+        "income_1": 2608,
+        "income_2": 3525,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8008481300",
+          "6142522799",
+          "7405948499",
+          "4197845393"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8008481300",
+        "sources": {
+          "age": null,
+          "income": "https://development.ohio.gov/individual/energy-assistance/6-home-weatherization-assistance-program",
+          "assets": null,
+          "phone": "https://www.bridgescap.org/hwap"
+        },
+        "notes": "Program renamed HWAP; income limits are annual (e.g., $31,300/12=$2608 monthly for 1, $42,300/12=$3525 for 2) for July 2025-June 2026 per official source, not monthly integers; no assets test; admin changes to ODJFS April 2026"
+      },
+      "flags": [],
+      "notes": "Program renamed HWAP; income limits are annual (e.g., $31,300/12=$2608 monthly for 1, $42,300/12=$3525 for 2) for July 2025-June 2026 per official source, not monthly integers; no assets test; admin changes to ODJFS April 2026"
+    },
+    {
+      "programId": "oh-oshiip-medicare-counseling",
+      "programName": "Ohio Senior Health Insurance Information Program (OSHIIP)",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8006861578"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8006861578",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://insurance.ohio.gov/consumers/medicare/01-oshiip"
+        },
+        "notes": "OSHIIP is a free counseling program with no age, income, or asset eligibility requirements"
+      },
+      "flags": [],
+      "notes": "OSHIIP is a free counseling program with no age, income, or asset eligibility requirements"
+    },
+    {
+      "programId": "oh-home-delivered-meals-aging-network",
+      "programName": "Home-Delivered Meals (via Ohio Aging Network)",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "18002664346",
+          "6145256200",
+          "3308327220"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://www.williamscountyoh.gov/169/Home-Delivered-Meals",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No statewide centralized phone or income/assets eligibility found; varies by AAA/county. Age from county example (60+)"
+      },
+      "flags": [],
+      "notes": "No statewide centralized phone or income/assets eligibility found; varies by AAA/county. Age from county example (60+)"
+    },
+    {
+      "programId": "oh-nfcsp-caregiver-support",
+      "programName": "National Family Caregiver Support Program (NFCSP)",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8662435678",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "18662435678",
+        "sources": {
+          "age": null,
+          "income": "https://www.coaaa.org/cms/29-cat-newsletter/409-newsletter-2025-winter-caregiverprogram",
+          "assets": "https://www.coaaa.org/cms/29-cat-newsletter/409-newsletter-2025-winter-caregiverprogram",
+          "phone": "https://aging.ohio.gov/care-and-living/caregiver-support/caregiver-support-program-1"
+        },
+        "notes": "No income or asset limits; eligibility based on care recipient age 60+ needing help with 2+ ADLs per COAAA (2025 source citing program details). Phone from official Ohio Dept of Aging site."
+      },
+      "flags": [],
+      "notes": "No income or asset limits; eligibility based on care recipient age 60+ needing help with 2+ ADLs per COAAA (2025 source citing program details). Phone from official Ohio Dept of Aging site."
+    },
+    {
+      "programId": "oh-scsep-employment",
+      "programName": "Senior Community Service Employment Program (SCSEP)",
+      "facts": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "6144665500",
+          "9378400055",
+          "3308327220",
+          "7403535238",
+          "3307820978"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://aging.ohio.gov/care-and-living/staying-active/staying-active-catalog/senior-community-services-employment-program",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "Age requirement (55+) confirmed from Ohio Department of Aging official source. Income eligibility exists (125% federal poverty level per DOL) but specific dollar thresholds vary by family size and are not provided in search results. No single official main phone number found; Ohio has multiple regional SCSEP provider offices with different numbers. Assets limits not specified in available sources. Program remains active as of 2026 with current funding."
+      },
+      "flags": [],
+      "notes": "Age requirement (55+) confirmed from Ohio Department of Aging official source. Income eligibility exists (125% federal poverty level per DOL) but specific dollar thresholds vary by family size and are not provided in search results. No single official main phone number found; Ohio has multiple regional SCSEP provider offices with different numbers. Assets limits not specified in available sources. Program remains active as of 2026 with current funding."
+    },
+    {
+      "programId": "oh-legal-assistance-seniors",
+      "programName": "Legal Assistance for Seniors (via Ohio Legal Services)",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "5133454160",
+          "18004886070"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "18004886070",
+        "sources": {
+          "age": "https://www.proseniors.org/legal-services/legal-hotline/",
+          "income": null,
+          "assets": null,
+          "phone": "https://www.proseniors.org/legal-services/legal-hotline/"
+        },
+        "notes": "Program is the Pro Seniors Legal Helpline (not Ohio Legal Services); no income or asset limits per multiple sources including state agency references"
+      },
+      "flags": [],
+      "notes": "Program is the Pro Seniors Legal Helpline (not Ohio Legal Services); no income or asset limits per multiple sources including state agency references"
+    }
+  ]
+}

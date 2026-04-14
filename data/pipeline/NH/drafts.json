@@ -1,9 +1,9 @@
 {
   "state": "NH",
   "stateName": "New Hampshire",
-  "draftedAt": "2026-04-13T21:50:19.554Z",
+  "draftedAt": "2026-04-13T22:29:50.215Z",
   "total": 18,
-  "successful": 17,
+  "successful": 18,
   "programs": [
     {
       "id": "nh-medicaid-aged-blind-disabled",
@@ -1749,8 +1749,168 @@
       "draftedAt": "2026-04-13"
     },
     {
+      "id": "nh-scsep-employment",
       "name": "SCSEP (Senior Community Service Employment Program)",
-      "_error": "batch: canceled"
+      "shortName": "SCSEP",
+      "tagline": "Part-time community service work for unemployed adults 55+ at minimum wage while building job skills.",
+      "programType": "employment",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Operation ABLE",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 55+ and unemployed with limited income, SCSEP provides part-time paid work (average 20 hours per week) at community organizations like schools, hospitals, and senior centers. Participants earn at least minimum wage while gaining job training and support to find permanent employment.\n\nBecause SCSEP prioritizes certain groups first — veterans, adults 65+, disabled individuals, and those with limited English or low literacy — your parent may face a waitlist depending on their situation. Income limit: no more than 125% of federal poverty level (varies by household size and updates annually).\n\nThe program is temporary training, not permanent employment. The goal is to help participants transition to unsubsidized jobs in the community.",
+      "savingsRange": "",
+      "savingsSource": "Paid employment opportunity",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Unemployed",
+          "Income at 125% poverty level or below",
+          "New Hampshire resident"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be unemployed at time of enrollment",
+          "Must be eligible to work in the United States",
+          "Must want to learn or refresh job skills"
+        ],
+        "povertyLevelReference": "125% FPL"
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call Operation ABLE, New Hampshire's SCSEP provider, or the national hotline 1-877-872-5627.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact the program provider",
+            "description": "Call Operation ABLE (New Hampshire's SCSEP provider) or the national hotline 1-877-872-5627 (1-877-US2-JOBS) to discuss eligibility and availability."
+          },
+          {
+            "step": 2,
+            "title": "Gather required documents",
+            "description": "Collect proof of age, income verification for all household members, proof of unemployment status, New Hampshire residency documents, and work authorization."
+          },
+          {
+            "step": 3,
+            "title": "Complete enrollment process",
+            "description": "Work with the provider to complete application paperwork and income verification. Priority enrollment goes to veterans, adults 65+, disabled individuals, and other specified groups."
+          },
+          {
+            "step": 4,
+            "title": "Job placement assignment",
+            "description": "If accepted, you'll be matched with a community service position at a local non-profit or public agency based on your skills and interests."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": "Waitlist possible for non-priority applicants",
+        "tip": "Veterans and their qualified spouses get first priority, followed by adults 65+, so mention veteran status if applicable.",
+        "urls": [
+          {
+            "label": "National SCSEP Information",
+            "url": "https://www.dol.gov/agencies/eta/seniors"
+          },
+          {
+            "label": "CareerOneStop Older Worker Program Finder",
+            "url": "https://www.careeronestop.org/LocalHelp/service-locator.aspx"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Valid government-issued photo ID",
+        "Birth certificate or other proof of age 55+",
+        "Social Security award letter or pension statements showing current income",
+        "Pay stubs from last 30 days (if recently employed)",
+        "Unemployment benefits documentation or termination letter",
+        "Bank statements for all accounts (last 3 months)",
+        "Proof of New Hampshire residency (utility bill, lease agreement, or state-issued document)",
+        "Social Security card or work authorization documents",
+        "Income verification for all household members",
+        "Veteran's discharge papers (DD-214) if applicable for priority status"
+      ],
+      "contacts": [
+        {
+          "label": "National SCSEP Hotline",
+          "phone": "(877) 872-5627",
+          "description": "1-877-US2-JOBS for program information and New Hampshire provider referrals",
+          "hours": "Business hours"
+        },
+        {
+          "label": "New Hampshire 2-1-1",
+          "phone": "2-1-1",
+          "description": "Free helpline for all social services and local program information",
+          "hours": "24 hours, 7 days a week"
+        }
+      ],
+      "applicationNotes": [
+        "Priority enrollment is given to veterans and qualified spouses first, then adults 65+, disabled individuals, those with limited English proficiency, low literacy, rural residents, homeless individuals, and those with poor employment prospects",
+        "Income limits are based on total household income at 125% of federal poverty level — check current HHS Poverty Guidelines as they update annually",
+        "This is a temporary training program designed to lead to permanent unsubsidized employment, not long-term community service work",
+        "Work assignments are typically at non-profit organizations, schools, hospitals, day-care centers, and senior centers in your community"
+      ],
+      "relatedPrograms": [
+        "SNAP (Food Benefits)",
+        "LIHEAP (Energy Assistance)",
+        "New Hampshire Medicaid"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent apply if they're collecting Social Security or pension benefits?",
+          "answer": "Yes, as long as their total household income stays at or below 125% of federal poverty level. Social Security and pension income count toward the income limit, but the program allows participants to work part-time while receiving these benefits."
+        },
+        {
+          "question": "How long can my parent stay in the SCSEP program?",
+          "answer": "SCSEP is designed as temporary training, not permanent employment. The goal is to help participants gain skills and transition to unsubsidized jobs in the community. Specific time limits vary by individual circumstances and local provider policies."
+        },
+        {
+          "question": "What if my parent doesn't fall into any priority groups — how long is the waitlist?",
+          "answer": "Waitlist times vary by local demand and aren't specified in program guidelines. Priority goes first to veterans/spouses, then adults 65+, disabled individuals, those with limited English, low literacy, rural residents, homeless individuals, and those with poor employment prospects."
+        },
+        {
+          "question": "Can my parent choose what type of work they do in the program?",
+          "answer": "Participants are matched with community service positions based on their skills, interests, and available host sites. Common placements include schools, hospitals, day-care centers, and senior centers, but specific assignments depend on local opportunities."
+        },
+        {
+          "question": "What happens if my parent finds a regular job while in SCSEP?",
+          "answer": "That's the program's goal. SCSEP includes job search assistance and is designed to help participants transition to permanent unsubsidized employment. Finding regular work is considered a successful program completion."
+        },
+        {
+          "question": "Does my parent need specific job skills or education to qualify?",
+          "answer": "No specific skills or education requirements are listed. The program is designed for people who want to learn or refresh job skills, regardless of their current skill level or educational background."
+        },
+        {
+          "question": "Can I apply on behalf of my elderly parent?",
+          "answer": "Contact Operation ABLE or call 1-877-872-5627 to discuss application procedures for elderly applicants who may need assistance. Program providers can explain what documentation and authorization might be needed for family members to help with the process."
+        },
+        {
+          "question": "Will SCSEP work affect my parent's other benefits like Medicaid or SNAP?",
+          "answer": "SCSEP earnings count as income for other benefit programs. Because participants earn at least minimum wage for part-time work, this could affect eligibility for income-based programs. Contact each benefit program directly to understand how SCSEP income will impact existing benefits."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "waitlist",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": false,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "Briefcase",
+      "phone": "(877) 872-5627",
+      "sourceUrl": "https://www.dol.gov/agencies/eta/seniors",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
     },
     {
       "id": "nh-legal-assistance-seniors",

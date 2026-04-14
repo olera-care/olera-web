@@ -1,9 +1,9 @@
 {
   "state": "HI",
   "stateName": "Hawaii",
-  "draftedAt": "2026-04-13T21:50:19.530Z",
+  "draftedAt": "2026-04-13T22:29:50.201Z",
   "total": 21,
-  "successful": 19,
+  "successful": 21,
   "programs": [
     {
       "id": "hi-medquest-medicaid-seniors-disabled",
@@ -518,8 +518,221 @@
       "draftedAt": "2026-04-13"
     },
     {
+      "id": "hi-medicare-savings-programs-qmb-slmb-qi",
       "name": "Medicare Savings Programs (QMB, SLMB, QI)",
-      "_error": "batch: canceled"
+      "shortName": "Medicare Savings Programs",
+      "tagline": "Get help paying Medicare premiums, deductibles, and copays if your parent's income is under $2,095/month",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "MedQUEST offices: Oahu (Kapolei), Maui, Big Island, Kauai; statewide helpline",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent struggles to afford Medicare premiums, deductibles, and copays on a fixed income, Medicare Savings Programs can cover these costs — potentially saving $2,000-4,000 per year. Three tiers exist based on income: QMB (Qualified Medicare Beneficiary) for incomes under $1,550/month covers all Medicare costs including the $202.90 monthly Part B premium, $1,604 Part A deductible, and all copays. SLMB and QI cover the Part B premium only for incomes up to $2,095/month.\n\nBecause Hawaii has higher income limits than the mainland, your parent may qualify even if they wouldn't elsewhere. The program also automatically triggers Extra Help for prescription drug costs. Asset limits are $9,950 for individuals ($14,910 for couples) but don't count the home, one car, or burial plots.\n\nThe QI tier operates first-come, first-served with limited annual funding and requires yearly reapplication — so timing matters if your parent qualifies at that income level.",
+      "savingsRange": "$2,434 – $4,200/year in 2026",
+      "savingsSource": "Part B premium ($2,434/year) plus deductibles and copays for QMB",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Must have Medicare Part A and Part B",
+          "Income under $2,095/month (varies by tier)",
+          "Assets under $9,950 individual/$14,910 couple",
+          "Hawaii resident"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1550,
+            "tier": "QMB"
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2095,
+            "tier": "QMB"
+          },
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1860,
+            "tier": "SLMB"
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2514,
+            "tier": "SLMB"
+          },
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2095,
+            "tier": "QI"
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2830,
+            "tier": "QI"
+          }
+        ],
+        "assetLimits": {
+          "individual": 9950,
+          "couple": 14910,
+          "countedAssets": [
+            "Bank accounts",
+            "Stocks",
+            "Bonds",
+            "Investment accounts"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "One vehicle",
+            "Burial plots",
+            "Life insurance up to $1,500 face value",
+            "Personal belongings"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be enrolled in Medicare Part A and Part B",
+          "U.S. citizen or qualified immigrant",
+          "Hawaii resident",
+          "Cannot be eligible for full Medicaid (QI tier only)"
+        ],
+        "povertyLevelReference": "100-135% FPL depending on tier"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online through Hawaii's MedQUEST portal at medquest.hawaii.gov or call (808) 587-7500 — processing typically takes 45 days.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Gather required documents",
+            "description": "Collect income proof (Social Security award letter, pay stubs), bank statements from last 3 months, Medicare card, and Hawaii residency proof before starting."
+          },
+          {
+            "step": 2,
+            "title": "Submit application",
+            "description": "Apply online at medquest.hawaii.gov using form 03701, call Hawaii MedQUEST at (808) 587-7500 or toll-free 1-800-316-8005, or visit your local MedQUEST district office."
+          },
+          {
+            "step": 3,
+            "title": "Choose your tier carefully",
+            "description": "If income qualifies for QI tier ($1,860-2,095/month individual), apply early in the calendar year as funding is first-come, first-served and may run out."
+          },
+          {
+            "step": 4,
+            "title": "Follow up on processing",
+            "description": "Processing takes about 45 days. If approved for QMB, providers cannot bill your parent for Medicare copays or deductibles — keep approval letter as proof."
+          }
+        ],
+        "processingTime": "Typically 45 days",
+        "waitlist": "QI tier has first-come, first-served funding limits and may have waitlist if annual funds are exhausted",
+        "tip": "QI tier requires annual reapplication, so set a calendar reminder if your parent qualifies at that income level.",
+        "urls": [
+          {
+            "label": "Hawaii MedQUEST Application Portal",
+            "url": "https://medquest.hawaii.gov"
+          },
+          {
+            "label": "Hawaii SHIP Counseling",
+            "url": "https://hawaiiship.org"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Social Security award letter or SSI statement",
+        "Pay stubs from last 30 days (if working)",
+        "Most recent tax return",
+        "Bank statements for all accounts (last 3 months)",
+        "Investment account statements (stocks, bonds, annuities)",
+        "Medicare card (both Part A and Part B)",
+        "Birth certificate or passport",
+        "Hawaii driver's license or state ID",
+        "Proof of Hawaii residency (utility bill or lease)",
+        "Life insurance policies with face values",
+        "Vehicle titles and registration",
+        "Burial plot deeds or pre-need burial contracts",
+        "Pension or retirement income statements",
+        "Property tax statements",
+        "Legal documents if someone else is applying on their behalf"
+      ],
+      "contacts": [
+        {
+          "label": "Hawaii MedQUEST",
+          "phone": "(808) 587-7500",
+          "description": "Primary application line for Medicare Savings Programs",
+          "hours": "Monday-Friday, business hours"
+        },
+        {
+          "label": "MedQUEST Toll-Free",
+          "phone": "1-800-316-8005",
+          "description": "Statewide toll-free line for neighbor islands",
+          "hours": "Monday-Friday, business hours"
+        },
+        {
+          "label": "Hawaii SHIP Counseling",
+          "phone": "1-888-536-9117",
+          "description": "Free Medicare counseling and application assistance",
+          "hours": "Monday-Friday 8am-4pm HST"
+        }
+      ],
+      "applicationNotes": [
+        "QI tier funding is limited annually — apply early in the calendar year if your parent's income is in the $1,860-2,095 range",
+        "If approved for QMB, providers cannot balance bill your parent for Medicare costs — keep approval letter as proof of protection",
+        "Automatic Extra Help for prescription drugs is triggered by approval — no separate application needed",
+        "Hawaii's income limits are higher than mainland states, so your parent may qualify even if they wouldn't elsewhere"
+      ],
+      "relatedPrograms": [
+        "Hawaii Medicaid (Quest Integration)",
+        "Medicare Part D Extra Help",
+        "SNAP Food Benefits",
+        "LIHEAP Energy Assistance"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if it's worth more than the asset limit?",
+          "answer": "Yes, the primary home doesn't count toward the $9,950 asset limit regardless of value. Only countable assets like bank accounts, stocks, and bonds matter for qualification."
+        },
+        {
+          "question": "What's the real difference between QMB, SLMB, and QI if they all help with Medicare costs?",
+          "answer": "QMB covers everything — Part B premiums, deductibles, copays, and protects from provider billing. SLMB and QI only cover the $202.90/month Part B premium. QMB provides the most comprehensive coverage but has the lowest income limit."
+        },
+        {
+          "question": "How long is the waitlist for QI really?",
+          "answer": "QI operates on first-come, first-served annual funding that can be exhausted mid-year. If funds run out, you wait until the next calendar year when funding resets. Apply early in January if your parent's income qualifies for QI."
+        },
+        {
+          "question": "Can I apply on behalf of my elderly parent who has dementia?",
+          "answer": "Yes, but you'll need legal documentation like power of attorney or guardianship papers. Include these documents with the application and clearly indicate you're applying as their representative."
+        },
+        {
+          "question": "Can my parent have Medicare Savings Programs and regular Hawaii Medicaid at the same time?",
+          "answer": "QMB and SLMB can be combined with Medicaid, but QI specifically requires that your parent not be eligible for full Medicaid. The programs are designed to fill gaps for people who don't qualify for comprehensive Medicaid."
+        },
+        {
+          "question": "What happens if my parent's income goes up after they're approved?",
+          "answer": "Report income changes to MedQUEST at (808) 587-7500. If income exceeds the limit, they may lose coverage or move to a different tier. QI requires annual reapplication anyway, but QMB and SLMB continue unless circumstances change significantly."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "savings",
+        "eligibilityDisplay": "income-table",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "Money",
+      "phone": "(808) 587-7500",
+      "sourceUrl": "https://medquest.hawaii.gov/content/medquest/en/members-applicants/get-started/programs.html",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
     },
     {
       "id": "hi-snap-food-benefits",
@@ -1872,8 +2085,127 @@
       "draftedAt": "2026-04-13"
     },
     {
+      "id": "hi-senior-legal-helpline",
       "name": "Senior Legal Helpline (via Area Agencies on Aging)",
-      "_error": "batch: canceled"
+      "shortName": "Senior Legal Helpline",
+      "tagline": "Free legal advice by phone for Hawaii seniors facing housing, benefits, or family law issues.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Legal Aid Society of Hawaii (primary provider via Area Agencies on Aging network)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and facing eviction, benefit denials, or family disputes, they can get free legal advice from licensed attorneys over the phone. The Senior Legal Helpline connects Hawaii seniors with state-barred lawyers who provide immediate guidance on civil legal issues — no income limits for priority cases like foreclosure or benefits loss.\n\nThe service covers housing problems, consumer issues, public benefits appeals, and family law matters. Because attorneys handle calls directly, your parent gets professional legal advice without needing to travel to an office or navigate complex paperwork. One phone call provides screening, brief application, and immediate consultation.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Hawaii resident",
+          "No income test for priority issues",
+          "Civil legal matters only"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be Hawaii resident",
+          "No conflicts of interest with Legal Aid Society",
+          "Civil legal issues only (not criminal matters)"
+        ],
+        "povertyLevelReference": "125% FPL"
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call the helpline and complete a brief application over the phone — immediate advice during the same call.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the helpline",
+            "description": "Oahu: 536-0011 or Neighbor Islands/Statewide: 1-888-536-0011"
+          },
+          {
+            "step": 2,
+            "title": "Complete phone screening",
+            "description": "Staff will ask about your legal problem, income, and household details for eligibility"
+          },
+          {
+            "step": 3,
+            "title": "Receive immediate advice",
+            "description": "Licensed attorney provides legal guidance, document review, or referrals during the call"
+          }
+        ],
+        "processingTime": "Immediate phone advice upon eligibility screening during call",
+        "waitlist": null,
+        "tip": "Have details about your legal problem and household income ready — the more specific you are, the better advice you'll receive.",
+        "urls": []
+      },
+      "documentsNeeded": null,
+      "contacts": [
+        {
+          "label": "Senior Legal Helpline - Oahu",
+          "phone": "536-0011",
+          "description": "Direct legal advice for Oahu residents",
+          "hours": "During business hours"
+        },
+        {
+          "label": "Senior Legal Helpline - Neighbor Islands",
+          "phone": "1-888-536-0011",
+          "description": "Toll-free legal advice for all Hawaii islands",
+          "hours": "During business hours"
+        },
+        {
+          "label": "Legal Aid Society of Hawaii",
+          "phone": "536-4302",
+          "description": "Main office for general legal aid services",
+          "hours": "Mon-Fri business hours"
+        }
+      ],
+      "applicationNotes": [
+        "Seniors 60+ can access the hotline even if their income exceeds 125% of poverty level for priority issues like foreclosure or public benefits loss",
+        "Service is limited to phone advice and brief services — full legal representation depends on case type and available resources"
+      ],
+      "relatedPrograms": [
+        "ADRC (Aging and Disability Resource Center)",
+        "Senior Medicare Patrol",
+        "Hawaii SHIP (State Health Insurance Program)"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can I call on behalf of my elderly parent who has dementia?",
+          "answer": "Yes, family members can call for basic information, but the attorney may need to speak directly with your parent or require legal documentation showing you can act on their behalf. Have your parent's consent ready, and be prepared to provide power of attorney documents if needed for specific legal advice."
+        },
+        {
+          "question": "What if my parent's income is too high for regular Legal Aid services?",
+          "answer": "Seniors 60+ can still access the hotline for priority issues like foreclosure, eviction, or public benefits loss regardless of income. The 125% poverty limit applies to full Legal Aid services, but the Senior Legal Helpline has more flexible eligibility for older adults facing urgent legal problems."
+        },
+        {
+          "question": "Will the attorney write letters or review documents during the call?",
+          "answer": "Yes, attorneys can provide brief services like writing demand letters to landlords or reviewing simple documents during the call. More complex document preparation may require follow-up services or referrals to other legal resources, depending on your parent's situation and case complexity."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": null,
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": false,
+        "hasDocumentChecklist": false,
+        "visualTone": "minimal"
+      },
+      "icon": "Phone",
+      "phone": "536-0011",
+      "sourceUrl": "https://ittakesanohana.org/wp-content/uploads/2011/01/LASH-Facts-About-LASH.pdf",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
     },
     {
       "id": "hi-ltc-ombudsman-program",

@@ -1,9 +1,9 @@
 {
   "state": "AK",
   "stateName": "Alaska",
-  "draftedAt": "2026-04-13T21:50:19.503Z",
+  "draftedAt": "2026-04-13T22:29:50.178Z",
   "total": 13,
-  "successful": 12,
+  "successful": 13,
   "programs": [
     {
       "id": "ak-medicaid-seniors-disabled",
@@ -2050,8 +2050,187 @@
       "draftedAt": "2026-04-13"
     },
     {
+      "id": "ak-legal-services-senior-hotline",
       "name": "Alaska Legal Services Corporation (ALSC) Senior Legal Hotline",
-      "_error": "batch: canceled"
+      "shortName": "ALSC Senior Legal",
+      "tagline": "Free legal help for seniors 60+ with housing, benefits, healthcare, and other civil legal problems.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Anchorage: 1016 West Sixth Ave, Suite 200, 907-272-9431 / 1-888-478-2572",
+            "type": "service-area"
+          },
+          {
+            "name": "Bethel: PO Box 248, 460 Ridgecrest Dr, Suite 113, 907-543-2237 / 1-800-478-2230",
+            "type": "service-area"
+          },
+          {
+            "name": "Dillingham",
+            "type": "service-area"
+          },
+          {
+            "name": "Juneau: 8711 Teal St, Suite 203, 907-586-6425 / 1-800-789-6426",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60 or older and facing legal problems with housing, benefits, or healthcare, Alaska Legal Services Corporation provides free legal assistance through their Elder Advocacy program. They handle landlord-tenant disputes, Social Security appeals, Medicaid issues, and help with nursing home problems — civil legal matters that can cost thousands in attorney fees.\n\nSeniors 60+ get priority access regardless of income, though the program focuses on those in social or economic need. ALSC provides legal advice, court representation, and referrals across Alaska through offices in Anchorage, Bethel, Dillingham, and Juneau. Because resources are limited, not all cases can be accepted — priority goes to urgent situations involving housing, income maintenance, and healthcare access.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Alaska resident",
+          "Civil legal issue (housing, benefits, healthcare)",
+          "Priority to those in social/economic need"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2078
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2818
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 3557
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 4297
+          },
+          {
+            "householdSize": 5,
+            "monthlyLimit": 5037
+          },
+          {
+            "householdSize": 6,
+            "monthlyLimit": 5776
+          },
+          {
+            "householdSize": 7,
+            "monthlyLimit": 6516
+          },
+          {
+            "householdSize": 8,
+            "monthlyLimit": 7255
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Civil legal issues only (no criminal cases, personal injury, or wrongful death)",
+          "Case must align with office priorities",
+          "No conflicts of interest"
+        ],
+        "povertyLevelReference": "125% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call the statewide intake line at 1-888-478-2572 or complete the online eligibility interview — you'll hear back within two business days.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact ALSC for intake",
+            "description": "Call 1-888-478-2572 (statewide) or complete the online eligibility interview at https://www.alsc-law.org/intake/. You can also visit your nearest office with a paper application."
+          },
+          {
+            "step": 2,
+            "title": "Provide case information",
+            "description": "Explain the legal issue, provide income and household information, and share any paperwork related to the problem. Be ready to describe why this is urgent or affects basic needs."
+          },
+          {
+            "step": 3,
+            "title": "Wait for eligibility determination",
+            "description": "An intake specialist will contact you within two business days to determine if your case can be accepted based on priorities and available resources."
+          }
+        ],
+        "processingTime": "Two business days for initial contact after intake",
+        "waitlist": "Not all cases can be accepted due to limited resources",
+        "tip": "Emphasize how the legal issue affects housing, income, or healthcare access — these get priority.",
+        "urls": [
+          {
+            "label": "ALSC Online Eligibility Interview",
+            "url": "https://www.alsc-law.org/intake/"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Information about your legal problem and any court papers or notices",
+        "Proof of income from the last month (Social Security letter, pay stubs, pension statements)",
+        "Information about household assets (bank accounts, property, investments)",
+        "Contact information (phone number and email address)",
+        "Identification showing you're an Alaska resident",
+        "Any paperwork related to your legal issue (eviction notice, benefit denial letter, etc.)"
+      ],
+      "contacts": [
+        {
+          "label": "ALSC Statewide Intake",
+          "phone": "1-888-478-2572",
+          "description": "Main number for all Alaska Legal Services intake",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Anchorage Office",
+          "phone": "907-272-9431",
+          "description": "Local office serving Anchorage area",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Bethel Office",
+          "phone": "907-543-2237",
+          "description": "Local office serving Bethel area",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Juneau Office",
+          "phone": "907-586-6425",
+          "description": "Local office serving Juneau area",
+          "hours": "Business hours"
+        }
+      ],
+      "applicationNotes": null,
+      "relatedPrograms": [
+        "Alaska Senior Assistance",
+        "Adult Public Assistance",
+        "Medicaid"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "What if my parent's income is too high for the general income limits?",
+          "answer": "Seniors 60+ may receive assistance regardless of income through the Elder Advocacy program, with priority given to those in social or economic need. Income limits only apply if general ALSC services are needed."
+        },
+        {
+          "question": "Will ALSC definitely take my parent's case?",
+          "answer": "No — ALSC has limited resources and cannot accept all cases. Priority goes to urgent situations involving housing, income maintenance, and healthcare access. Cases involving basic needs like eviction or benefit denials are more likely to be accepted."
+        },
+        {
+          "question": "Can I apply on behalf of my elderly parent?",
+          "answer": "You can help with the intake process, but your parent will need to be involved since it's their legal matter. If your parent cannot communicate due to dementia or other conditions, mention this during intake — ALSC may be able to help with guardianship issues."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "minimal"
+      },
+      "icon": "Scales",
+      "phone": "1-888-478-2572",
+      "sourceUrl": "https://www.alsc-law.org/elder-advocacy/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
     },
     {
       "id": "ak-long-term-care-ombudsman",

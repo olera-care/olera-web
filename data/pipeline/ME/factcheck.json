@@ -1,0 +1,273 @@
+{
+  "state": "ME",
+  "stateName": "Maine",
+  "checkedAt": "2026-04-14T00:56:36.492Z",
+  "total": 7,
+  "skipped": 0,
+  "parseErrors": 0,
+  "errors": 0,
+  "programsWithFlags": 3,
+  "totalFlags": 3,
+  "highSeverityFlags": 0,
+  "programs": [
+    {
+      "programId": "me-hcbs-waivers",
+      "programName": "Home and Community-Based Services (HCBS) Waivers",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 10000,
+        "assets_couple": 15000,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": "https://www.medicaidplanningassistance.org/maine-elderly-adults-disabilities-waiver/",
+          "phone": null
+        },
+        "notes": "Maine has multiple HCBS waivers with different eligibility criteria. Asset limits provided are for the Elderly and Adults with Disabilities Waiver (0276.R06.00) as of 2026. Age requirements vary by waiver program (e.g., 65+ for elderly waiver, 18+ for ID/autism waivers, 21-64 for other disabilities waiver). Income limits not found in provided sources. A new Lifespan Waiver is launching July 2026 that will consolidate multiple programs. Recommend consulting Maine DHHS directly for complete eligibility details for the specific waiver program of interest."
+      },
+      "flags": [],
+      "notes": "Maine has multiple HCBS waivers with different eligibility criteria. Asset limits provided are for the Elderly and Adults with Disabilities Waiver (0276.R06.00) as of 2026. Age requirements vary by waiver program (e.g., 65+ for elderly waiver, 18+ for ID/autism waivers, 21-64 for other disabilities waiver). Income limits not found in provided sources. A new Lifespan Waiver is launching July 2026 that will consolidate multiple programs. Recommend consulting Maine DHHS directly for complete eligibility details for the specific waiver program of interest."
+    },
+    {
+      "programId": "me-snap-food-benefits",
+      "programName": "SNAP (Supplemental Nutrition Assistance Program)",
+      "facts": {
+        "age": 60,
+        "income_1": 2608,
+        "income_2": 3526,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8557974357",
+          "211",
+          "8004426003"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": 2609,
+        "income_2": 3525,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": "https://www.maine.gov/dhhs/ofi/programs-services/food-supplement",
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No minimum age requirement found in search results. Asset limits not provided in search results. Official phone number not found in search results; Maine DHHS website references a Call Center but does not display the number in provided excerpts. Income limits current as of April 2026 per Maine DHHS official source (200% FPL). Program remains active; no discontinuation or renaming detected."
+      },
+      "flags": [],
+      "notes": "No minimum age requirement found in search results. Asset limits not provided in search results. Official phone number not found in search results; Maine DHHS website references a Call Center but does not display the number in provided excerpts. Income limits current as of April 2026 per Maine DHHS official source (200% FPL). Program remains active; no discontinuation or renaming detected."
+    },
+    {
+      "programId": "me-liheap-energy-assistance",
+      "programName": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "facts": {
+        "age": null,
+        "income_1": 3070,
+        "income_2": 4014,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8004524668",
+          "8008665588"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8775443271",
+        "sources": {
+          "age": null,
+          "income": "https://www.mainehousing.org/programs-services/energy/energydetails/liheap",
+          "assets": null,
+          "phone": "https://www.mainehousing.org/programs-services/energy/energydetails/liheap"
+        },
+        "notes": "Program renamed HEAP (still LIHEAP federally); income limits stated as based on household size for 2025-2026 season but specific monthly USD values not listed in sources; phone from MaineHousing site"
+      },
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "8004524668",
+            "8008665588"
+          ],
+          "verifiedValue": "8775443271"
+        }
+      ],
+      "notes": "Program renamed HEAP (still LIHEAP federally); income limits stated as based on household size for 2025-2026 season but specific monthly USD values not listed in sources; phone from MaineHousing site"
+    },
+    {
+      "programId": "me-weatherization-assistance-program",
+      "programName": "Weatherization Assistance Program (WAP)",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "2072061261",
+          "2079742407",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "18004524668",
+        "sources": {
+          "age": null,
+          "income": "https://www.mainehousing.org/programs-services/HomeImprovement/homeimprovementdetail/weatherization",
+          "assets": null,
+          "phone": "https://www.mainehousing.org/news/public-notices/public-hearing---weatherization-assistance-program-fiscal-year-2026-proposed-state-plan"
+        },
+        "notes": "No numerical eligibility values found in sources; eligibility tied to HEAP. Phone from FY2026 WAP plan hearing notice."
+      },
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "2072061261",
+            "2079742407",
+            "211"
+          ],
+          "verifiedValue": "18004524668"
+        }
+      ],
+      "notes": "No numerical eligibility values found in sources; eligibility tied to HEAP. Phone from FY2026 WAP plan hearing notice."
+    },
+    {
+      "programId": "me-ship-medicare-counseling",
+      "programName": "State Health Insurance Assistance Program (SHIP) - Maine Senior Health Insurance Assistance Program",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "2073966524"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8002622232",
+        "sources": {
+          "age": "https://www.maine.gov/dhhs/oads/get-support/older-adults-disabilities/older-adult-services/ship-medicare-assistance[3]",
+          "income": null,
+          "assets": null,
+          "phone": "https://www.cms.gov/contacts/maine-state-health-insurance-assistance-program-ship/general-beneficiary-contact/1562091[1]"
+        },
+        "notes": "Program has no minimum age requirement; eligibility is for Medicare beneficiaries (age 65+ or disabled younger), free counseling with no income/assets test"
+      },
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "2073966524"
+          ],
+          "verifiedValue": "8002622232"
+        }
+      ],
+      "notes": "Program has no minimum age requirement; eligibility is for Medicare beneficiaries (age 65+ or disabled younger), free counseling with no income/assets test"
+    },
+    {
+      "programId": "me-home-delivered-meals",
+      "programName": "Home Delivered Meals",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "2072879200",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://www.smaaa.org/services-for-older-adults/nutrition/meals-on-wheels/",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No income or asset limits found in sources; program appears need-based on homebound status and meal prep ability. Age 60+ from regional AAA citing state program; state site implies older adults but no explicit minimum. No official phone or 2026 changes found."
+      },
+      "flags": [],
+      "notes": "No income or asset limits found in sources; program appears need-based on homebound status and meal prep ability. Age 60+ from regional AAA citing state program; state site implies older adults but no explicit minimum. No official phone or 2026 changes found."
+    },
+    {
+      "programId": "me-legal-services-elderly",
+      "programName": "Maine Legal Services for the Elderly",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "18007505353",
+          "2076231797"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "18007505353",
+        "sources": {
+          "age": "https://www.maine.gov/dhhs/oads/get-support/older-adults-disabilities/older-adult-services/legal-assistance",
+          "income": null,
+          "assets": null,
+          "phone": "https://www.maine.gov/dhhs/oads/get-support/older-adults-disabilities/older-adult-services/legal-assistance"
+        },
+        "notes": "Program is officially named 'Legal Services for Maine Elders, Inc.' Age requirement is clearly documented as 60+. Income and asset limits are not specified in available sources; program serves 'socially and economically needy elderly' but specific thresholds are not publicly stated. Phone number confirmed from official Maine DHHS source."
+      },
+      "flags": [],
+      "notes": "Program is officially named 'Legal Services for Maine Elders, Inc.' Age requirement is clearly documented as 60+. Income and asset limits are not specified in available sources; program serves 'socially and economically needy elderly' but specific thresholds are not publicly stated. Phone number confirmed from official Maine DHHS source."
+    }
+  ]
+}

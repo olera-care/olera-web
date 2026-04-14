@@ -1,0 +1,499 @@
+{
+  "state": "OR",
+  "stateName": "Oregon",
+  "checkedAt": "2026-04-14T01:02:49.916Z",
+  "total": 15,
+  "skipped": 2,
+  "parseErrors": 0,
+  "errors": 0,
+  "programsWithFlags": 4,
+  "totalFlags": 4,
+  "highSeverityFlags": 1,
+  "programs": [
+    {
+      "programId": "or-opi-m-medicaid-home-care",
+      "programName": "OPI-M (Medicaid-funded)",
+      "facts": {
+        "age": 60,
+        "income_1": 5217,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "18556732525",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 18,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://secure.sos.state.or.us/oard/displayDivisionRules.action;JSESSIONID_OARD=yjZAzwsrUk4xT_B-crcaplz7pH05kHCOyAaeNid16veFFKxR_mlw!99228750?selectedDivision=7202",
+          "income": "https://secure.sos.state.or.us/oard/displayDivisionRules.action;JSESSIONID_OARD=yjZAzwsrUk4xT_B-crcaplz7pH05kHCOyAaeNid16veFFKxR_mlw!99228750?selectedDivision=7202",
+          "assets": "https://multco.us/info/oregon-project-independence-medicaid-opi-m-case-management",
+          "phone": null
+        },
+        "notes": "Income limit is 400% FPL (exact $ not in sources); assets = 6 months NF costs (exact $ not specified); no specific phone found; OPI-M active per 2026 application PDF"
+      },
+      "flags": [
+        {
+          "field": "age",
+          "severity": "high",
+          "draftValue": 60,
+          "verifiedValue": 18
+        }
+      ],
+      "notes": "Income limit is 400% FPL (exact $ not in sources); assets = 6 months NF costs (exact $ not specified); no specific phone found; OPI-M active per 2026 application PDF"
+    },
+    {
+      "programId": "or-pace-elderly-care",
+      "programName": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "facts": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "18556732372"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8442247223",
+        "sources": {
+          "age": "https://www.oregon.gov/odhs/providers-partners/seniors-disabilities/Documents/pace-fact-sheet.pdf",
+          "income": null,
+          "assets": null,
+          "phone": "https://sharedsystems.dhsoha.state.or.us/DHSForms/Served/de2658.pdf"
+        },
+        "notes": "No income or asset limits found in sources; PACE has no financial eligibility tests beyond Medicare/Medicaid enrollment"
+      },
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "18556732372"
+          ],
+          "verifiedValue": "8442247223"
+        }
+      ],
+      "notes": "No income or asset limits found in sources; PACE has no financial eligibility tests beyond Medicare/Medicaid enrollment"
+    },
+    {
+      "programId": "or-medicare-savings-programs",
+      "programName": "Medicare Savings Programs (MSP)",
+      "facts": {
+        "age": null,
+        "income_1": 1330,
+        "income_2": 1804,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "18002828096"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": "https://www.oregon.gov/odhs/aging-disability-services/pages/medicare-savings-programs.aspx",
+          "assets": "https://www.oregon.gov/odhs/aging-disability-services/pages/medicare-savings-programs.aspx",
+          "phone": null
+        },
+        "notes": "MSP in Oregon has no asset limits and multiple income tiers by program type (QMB/SLMB/QI); no single income limit applies. No phone number found in sources. Official state site lists March 2026-Feb 2027 incomes: QMB 1330/1804, SLMB 1596/2164, QI 1796/2435."
+      },
+      "flags": [],
+      "notes": "MSP in Oregon has no asset limits and multiple income tiers by program type (QMB/SLMB/QI); no single income limit applies. No phone number found in sources. Official state site lists March 2026-Feb 2027 incomes: QMB 1330/1804, SLMB 1596/2164, QI 1796/2435."
+    },
+    {
+      "programId": "or-snap-food-benefits",
+      "programName": "SNAP Food Benefits (Oregon)",
+      "facts": {
+        "age": null,
+        "income_1": 2608,
+        "income_2": 3526,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "1855503",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": 2608,
+        "income_2": 3526,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8556732372",
+        "sources": {
+          "age": null,
+          "income": "https://www.snapscreener.com/guides/oregon",
+          "assets": null,
+          "phone": "https://www.oregon.gov/odhs/food/pages/snap.aspx"
+        },
+        "notes": "Income limits are gross monthly for Oct 1, 2025-Sept 30, 2026 from snapscreener.com (non-gov citing federal); no explicit asset limits found in results (Oregon broad-based categorical eligibility likely eliminates test); no age limit for program"
+      },
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "1855503",
+            "211"
+          ],
+          "verifiedValue": "8556732372"
+        }
+      ],
+      "notes": "Income limits are gross monthly for Oct 1, 2025-Sept 30, 2026 from snapscreener.com (non-gov citing federal); no explicit asset limits found in results (Oregon broad-based categorical eligibility likely eliminates test); no age limit for program"
+    },
+    {
+      "programId": "or-liheap-energy-assistance",
+      "programName": "Low Income Home Energy Assistance Program (LIHEAP) / Oregon Energy Assistance Program (OEAP)",
+      "facts": {
+        "age": null,
+        "income_1": 3198,
+        "income_2": 4183,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8004535511",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": 3198,
+        "income_2": 4182,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8004535511",
+        "sources": {
+          "age": null,
+          "income": "https://www.snapscreener.com/liheap/oregon",
+          "assets": null,
+          "phone": "https://www.oregon.gov/ohcs/energy-weatherization/Documents/2026%20Final%20Energy%20Assistance%20Intake%20Operations%20&%20Policy%20Manual.pdf"
+        },
+        "notes": "Income from non-.gov source citing LIHEAP limits; official 2026 manual lacks explicit limits in snippet; no assets test found"
+      },
+      "flags": [],
+      "notes": "Income from non-.gov source citing LIHEAP limits; official 2026 manual lacks explicit limits in snippet; no assets test found"
+    },
+    {
+      "programId": "or-weatherization-assistance-wap",
+      "programName": "Low Income Weatherization Assistance Program (WAP)",
+      "skipped": true,
+      "reason": "no verifiable facts",
+      "flags": []
+    },
+    {
+      "programId": "or-shiba-medicare-counseling",
+      "programName": "Senior Health Insurance Benefits Assistance (SHIBA)",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8007224134",
+          "5036558269",
+          "5039883646"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8007224134",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://shiba.oregon.gov/get-help/pages/shiba-help.aspx"
+        },
+        "notes": "SHIBA is a free Medicare counseling program with no age, income, or asset limits; phone from official Oregon state SHIBA site"
+      },
+      "flags": [],
+      "notes": "SHIBA is a free Medicare counseling program with no age, income, or asset limits; phone from official Oregon state SHIBA site"
+    },
+    {
+      "programId": "or-meals-on-wheels",
+      "programName": "Meals on Wheels",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "5039455811",
+          "5033642856",
+          "8004698772",
+          "5033043400"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8667886325",
+        "sources": {
+          "age": "https://www.mowp.org/what-we-do/online-meal-request/",
+          "income": null,
+          "assets": null,
+          "phone": "https://www.mowp.org/what-we-do/online-meal-request/"
+        },
+        "notes": "Meals on Wheels in Oregon is administered by local nonprofits, not a single statewide program; no income or asset limits found across sources; age from Meals on Wheels People (Portland area); no .gov sources with 2026 details"
+      },
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "5039455811",
+            "5033642856",
+            "8004698772",
+            "5033043400"
+          ],
+          "verifiedValue": "8667886325"
+        }
+      ],
+      "notes": "Meals on Wheels in Oregon is administered by local nonprofits, not a single statewide program; no income or asset limits found across sources; age from Meals on Wheels People (Portland area); no .gov sources with 2026 details"
+    },
+    {
+      "programId": "or-family-caregiver-assistance-support",
+      "programName": "Family Caregiver Assistance Program (FCAP) / Family Caregiver Support Program (FCSP)",
+      "facts": {
+        "age": null,
+        "income_1": 4163,
+        "income_2": 5637,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8556732372"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": 4163,
+        "income_2": 5637,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8556732372",
+        "sources": {
+          "age": null,
+          "income": "https://www.oregon.gov/oha/HPA/HP-MAC/MACmeetings/3.2%20Family%20Caregiver%20Assistance%20Program%20fact%20sheet%20-%202022.pdf",
+          "assets": "https://www.oregon.gov/oha/HPA/HP-MAC/MACmeetings/3.2%20Family%20Caregiver%20Assistance%20Program%20fact%20sheet%20-%202022.pdf",
+          "phone": "https://sharedsystems.dhsoha.state.or.us/DHSForms/Served/de9665.pdf?CFGRIDKEY=DHS+9665%2C%2CFamily+Caregiver+Program+brochure%2C%2Cde9665.pdf%2C%2C%2C%2C%2C%2C%2Fes_xweb..%2FFORMS%2F-%2C%2C%2Fes_xweb..%2FFORMS%2F-%2C"
+        },
+        "notes": "Income/assets from 2022 FCAP proposal (not confirmed implemented as of 2026); FCSP lacks income/assets limits per official sources; phone is statewide ADRC helpline for FCSP"
+      },
+      "flags": [],
+      "notes": "Income/assets from 2022 FCAP proposal (not confirmed implemented as of 2026); FCSP lacks income/assets limits per official sources; phone is statewide ADRC helpline for FCSP"
+    },
+    {
+      "programId": "or-scsep-senior-employment",
+      "programName": "Senior Community Service Employment Program (SCSEP)",
+      "facts": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "5032285100",
+          "5416877393",
+          "8778725627"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "5032285100",
+        "sources": {
+          "age": "https://www.dol.gov/agencies/eta/seniors",
+          "income": null,
+          "assets": null,
+          "phone": "https://oregon.easterseals.com/get-support/areas-of-support/employment-job-training/senior-community-service-employment-program"
+        },
+        "notes": "Age requirement (55+) confirmed from federal DOL source. Income limit of 125% federal poverty level is mentioned in search results but specific dollar amounts are not provided; poverty guidelines are updated annually (most recent: January 15, 2025 per DOL). No asset limits found in search results. Phone number is from Oregon Easterseals (official SCSEP administrator for Oregon). Program remains active as of search date."
+      },
+      "flags": [],
+      "notes": "Age requirement (55+) confirmed from federal DOL source. Income limit of 125% federal poverty level is mentioned in search results but specific dollar amounts are not provided; poverty guidelines are updated annually (most recent: January 15, 2025 per DOL). No asset limits found in search results. Phone number is from Oregon Easterseals (official SCSEP administrator for Oregon). Program remains active as of search date."
+    },
+    {
+      "programId": "or-legal-aid-services-laso",
+      "programName": "Legal Aid Services of Oregon (LASO)",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "5032242640",
+          "5032445204",
+          "5419268678",
+          "5413856944",
+          "18006786944"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": "https://oregonlawhelp.org/referrals/legal-aid-services-oregon-portland-regional-office",
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No age requirement found; income up to 125% FPL mentioned but no numeric value; no statewide main phone or assets info; multiple regional phones only; no authoritative 2026 data on financials"
+      },
+      "flags": [],
+      "notes": "No age requirement found; income up to 125% FPL mentioned but no numeric value; no statewide main phone or assets info; multiple regional phones only; no authoritative 2026 data on financials"
+    },
+    {
+      "programId": "or-long-term-care-ombudsman",
+      "programName": "Long-term Care Ombudsman",
+      "skipped": true,
+      "reason": "no verifiable facts",
+      "flags": []
+    },
+    {
+      "programId": "or-elderly-rental-assistance",
+      "programName": "Elderly Rental Assistance Program (ERA)",
+      "facts": {
+        "age": 58,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "5039862000",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 58,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://www.oregon.gov/ohcs/for-providers/Documents/factsheets/FACTSHEET-ERA.pdf",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No specific income limits, asset limits, or phone number found in sources; income is <=50% AMI per household size. Direct phone not listed; contact local agencies via https://caporegon.org/find-services/ or 211."
+      },
+      "flags": [],
+      "notes": "No specific income limits, asset limits, or phone number found in sources; income is <=50% AMI per household size. Direct phone not listed; contact local agencies via https://caporegon.org/find-services/ or 211."
+    },
+    {
+      "programId": "or-senior-tuition-audit",
+      "programName": "Oregon Senior Free Tuition Audit Program",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "9717226111",
+          "5033250910"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://oregon.public.law/statutes/ors_341.518",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "Program officially named 'Tuition waiver for students 65 years of age or older' per ORS 341.518; some colleges apply at 62 but statute sets 65; no income/assets test; no central phone found"
+      },
+      "flags": [],
+      "notes": "Program officially named 'Tuition waiver for students 65 years of age or older' per ORS 341.518; some colleges apply at 62 but statute sets 65; no income/assets test; no central phone found"
+    },
+    {
+      "programId": "or-hrsn-health-social-needs",
+      "programName": "Health Related Social Needs Benefits (HSRN)",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8002730557",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": "https://pacificsource.com/medicaid/your-plan/HRSN-health-related-social-needs",
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No official main phone number found in sources; program eligibility based on OHP membership, life transitions, social needs, and clinical risks (some housing supports require income ≤30% area median); prefer official OHA sources like https://www.oregon.gov/oha/hsd/medicaid-policy/pages/hrsn.aspx which lack specific phone/income details"
+      },
+      "flags": [],
+      "notes": "No official main phone number found in sources; program eligibility based on OHP membership, life transitions, social needs, and clinical risks (some housing supports require income ≤30% area median); prefer official OHA sources like https://www.oregon.gov/oha/hsd/medicaid-policy/pages/hrsn.aspx which lack specific phone/income details"
+    }
+  ]
+}

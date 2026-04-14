@@ -1,9 +1,9 @@
 {
   "state": "MI",
   "stateName": "Michigan",
-  "draftedAt": "2026-04-13T21:50:19.545Z",
+  "draftedAt": "2026-04-13T22:29:50.209Z",
   "total": 6,
-  "successful": 5,
+  "successful": 6,
   "programs": [
     {
       "id": "mi-choice-waiver",
@@ -376,8 +376,122 @@
       "draftedAt": "2026-04-13"
     },
     {
+      "id": "mi-options",
       "name": "MI Options",
-      "_error": "batch: canceled"
+      "shortName": "MI Options",
+      "tagline": "Free counseling to help your parent explore home care options, Medicare plans, and long-term care services in Michigan.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Statewide call center; local: The Senior Alliance (Wayne County), AgeWays, WellWise Services (regional examples)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs help navigating Medicare options or exploring alternatives to nursing home care, MI Options provides free person-centered counseling sessions. Because these are certified counselors who specialize in aging services, your parent gets personalized guidance on home and community-based services, caregiver respite, transportation options, and Medicare plan selection — all in one 90-minute session with follow-up support.\n\nMI Options is open to all Michigan residents age 18 and older, including caregivers and family members. There are no income or asset limits. The program launched in 2025 and connects you to local Area Agencies on Aging and nonprofit partners statewide, but the counseling itself is always free.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 18+",
+          "Michigan resident",
+          "No income or asset limits",
+          "Includes caregivers and family members"
+        ],
+        "ageRequirement": "18+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Michigan resident"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call the statewide number to schedule a counseling appointment — no forms or documents required upfront.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the MI Options hotline",
+            "description": "Call 800-803-7174, Monday through Friday 8am-8pm. You can speak with an agent immediately, schedule an appointment, or get referred to a local counselor in your area."
+          },
+          {
+            "step": 2,
+            "title": "Schedule your counseling session",
+            "description": "The call center will connect you with a certified counselor through your local Area Agency on Aging or partnering nonprofit. Sessions are typically 90 minutes and can be done by phone or in person."
+          },
+          {
+            "step": 3,
+            "title": "Prepare for your session",
+            "description": "Think about your parent's current situation, goals, and preferences for care. The counselor will create a personalized action plan and provide follow-up support."
+          }
+        ],
+        "processingTime": "Immediate phone access; counselor appointments scheduled via call center",
+        "waitlist": null,
+        "tip": "Prepare a list of your parent's current challenges and care preferences before the counseling session to make the most of the 90-minute appointment.",
+        "urls": []
+      },
+      "documentsNeeded": null,
+      "contacts": [
+        {
+          "label": "MI Options Statewide Line",
+          "phone": "(800) 803-7174",
+          "description": "Schedule counseling appointments and get referrals to local providers",
+          "hours": "Mon-Fri 8am-8pm"
+        },
+        {
+          "label": "AgeWays (Regional)",
+          "phone": "(833) 801-5587",
+          "description": "Local MI Options provider for select counties",
+          "hours": "Call for hours"
+        },
+        {
+          "label": "WellWise Services (Regional)",
+          "phone": "(517) 592-1974",
+          "description": "Local MI Options provider for select counties",
+          "hours": "Call for hours"
+        }
+      ],
+      "applicationNotes": null,
+      "relatedPrograms": [
+        "MI Choice Waiver",
+        "Michigan Medicare/Medicaid Assistance Program",
+        "Area Agency on Aging services"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Is MI Options the same as the MI Choice Waiver?",
+          "answer": "No. MI Options provides free counseling and referrals to help you explore care options. MI Choice is a separate Medicaid waiver program that actually pays for home care services but has income limits and waitlists. MI Options counselors can help you understand if MI Choice might be right for your parent."
+        },
+        {
+          "question": "Can I call on behalf of my parent who has dementia?",
+          "answer": "Yes. MI Options is specifically designed for family caregivers and includes you as part of the counseling process. The counselor will work with both you and your parent (as appropriate) to develop a care plan that fits your family's situation."
+        },
+        {
+          "question": "What if my parent already has Medicare — can they still use this service?",
+          "answer": "Absolutely. Many MI Options users already have Medicare but need help choosing between different Medicare Advantage plans, understanding Medicare supplements, or exploring what Medicare doesn't cover for long-term care. The counselors specialize in Medicare navigation."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": null,
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": false,
+        "visualTone": "minimal"
+      },
+      "icon": "Compass",
+      "phone": "(800) 803-7174",
+      "sourceUrl": "https://www.michigan.gov/mdhhs/inside-mdhhs/newsroom/2025/08/22/mi-options",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
     },
     {
       "id": "mi-senior-project-fresh",

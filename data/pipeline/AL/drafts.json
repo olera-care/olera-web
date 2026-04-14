@@ -1,9 +1,9 @@
 {
   "state": "AL",
   "stateName": "Alabama",
-  "draftedAt": "2026-04-13T21:50:19.507Z",
+  "draftedAt": "2026-04-13T22:29:50.182Z",
   "total": 16,
-  "successful": 15,
+  "successful": 16,
   "programs": [
     {
       "id": "al-medicaid-elderly-disabled-waiver",
@@ -2396,8 +2396,207 @@
       "draftedAt": "2026-04-13"
     },
     {
+      "id": "al-senior-aides-program",
       "name": "Senior Aides Program",
-      "_error": "batch: canceled"
+      "shortName": "Senior Aides",
+      "tagline": "Home care assistance to help your aging parent avoid nursing home placement while staying safely at home.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local Area Agencies on Aging",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs daily help with bathing, dressing, or medication management, Alabama's home care programs can provide personal aides to help them stay safely at home instead of moving to a nursing facility. These programs work through Medicaid waivers and state funding to deliver services like personal care, homemaker assistance, and respite care directly to your parent's home.\n\nThe main pathway is the Elderly & Disabled (E&D) Waiver, which requires your parent to meet nursing facility level of care (a clinical assessment showing they need substantial daily assistance) and have income below $2,982/month. Alabama CARES provides additional support services for caregivers of adults 60+ or those caring for family members with dementia, regardless of income level.\n\nBecause these programs often have waitlists and complex eligibility requirements, starting the application process early is critical — even if your parent doesn't need services immediately.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+ or disabled",
+          "Income below $2,982/month",
+          "Needs daily help with bathing, dressing, or medication",
+          "Meets nursing facility level of care",
+          "Standard Medicaid asset limits apply"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2982
+          }
+        ],
+        "assetLimits": {
+          "individual": null,
+          "couple": null,
+          "countedAssets": [
+            "Bank accounts",
+            "Investments",
+            "Second vehicles"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "Household furnishings",
+            "Appliances",
+            "Personal effects",
+            "One vehicle"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "Must meet Nursing Facility Level of Care (a clinical assessment showing your parent needs daily help with at least 2 of 11 activities including bathing, dressing, eating, medication management, or mobility)",
+        "otherRequirements": [
+          "Must be Alabama resident",
+          "Cannot have transferred assets within 60 months for less than fair market value",
+          "Veterans must apply for maximum VA benefits first"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your local Area Agency on Aging at 1-877-425-2243 to start the assessment process, which typically takes several weeks to complete.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact your local Area Agency on Aging",
+            "description": "Call 1-877-425-2243 to reach your regional AAA or call Alabama Age Line at 1-800-243-5463 for referral to the correct local office."
+          },
+          {
+            "step": 2,
+            "title": "Complete initial screening",
+            "description": "AAA staff will conduct a phone screening to determine which programs your parent may qualify for and schedule an in-home assessment."
+          },
+          {
+            "step": 3,
+            "title": "Submit Medicaid application",
+            "description": "Apply for Medicaid online at medicaid.alabama.gov or by calling the local office. This is required for E&D Waiver services."
+          },
+          {
+            "step": 4,
+            "title": "Complete HCBS-1 functional assessment",
+            "description": "A trained assessor will visit your parent's home to evaluate their daily living needs and determine if they meet nursing facility level of care."
+          },
+          {
+            "step": 5,
+            "title": "Wait for approval and service coordination",
+            "description": "If approved, you'll be assigned a case manager who will help arrange specific services based on your parent's assessed needs and available funding."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": "Waitlists are common for waiver services, though specific wait times are not published",
+        "tip": "Start the process before your parent needs immediate help — assessments and approvals can take weeks, and waitlists may add additional delays.",
+        "urls": [
+          {
+            "label": "Alabama Medicaid Applications",
+            "url": "https://medicaid.alabama.gov"
+          },
+          {
+            "label": "Alabama Age Line",
+            "url": "https://alabamaageline.gov"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Social Security card for your parent",
+        "Medicare card (both parts A and B)",
+        "Birth certificate or passport for proof of age",
+        "Proof of Alabama residency (utility bill, lease, or state ID)",
+        "Most recent Social Security award letter",
+        "Bank statements for all accounts (last 3 months)",
+        "Any pension or retirement income statements",
+        "Current medication list and medical records",
+        "Insurance policies and documentation",
+        "Property deeds or rental agreements",
+        "Vehicle titles and registration",
+        "Documentation of any asset transfers in the last 60 months",
+        "Power of attorney documents if applying on parent's behalf",
+        "Contact information for current doctors and care providers",
+        "List of current services or care your parent receives"
+      ],
+      "contacts": [
+        {
+          "label": "Area Agencies on Aging Statewide",
+          "phone": "(877) 425-2243",
+          "description": "Primary contact for E&D Waiver and home care services",
+          "hours": "Monday-Friday, business hours (varies by region)"
+        },
+        {
+          "label": "Alabama Age Line",
+          "phone": "(800) 243-5463",
+          "description": "Statewide information and referral for all aging services",
+          "hours": "Monday-Friday 8am-5pm CT"
+        },
+        {
+          "label": "Alabama Medicaid",
+          "phone": "(334) 242-5000",
+          "description": "General Medicaid questions and application status",
+          "hours": "Monday-Friday 8am-5pm CT"
+        }
+      ],
+      "applicationNotes": [
+        "A dementia diagnosis alone is not sufficient to meet nursing facility level of care — your parent must need hands-on daily assistance with specific activities",
+        "Asset transfers within the past 60 months will trigger penalties that can delay eligibility — be prepared to document all financial transactions",
+        "Programs prioritize applicants with the greatest needs, so comprehensive documentation of your parent's functional limitations is crucial",
+        "Different waivers and programs may have different waitlist lengths — ask about all available options during your initial screening"
+      ],
+      "relatedPrograms": [
+        "Personal Choices Program",
+        "Alabama CARES",
+        "SNAP Food Benefits",
+        "LIHEAP Energy Assistance"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house and still qualify for these services?",
+          "answer": "Yes, your parent's primary home is exempt from asset limits regardless of value. However, they must still meet the income limit of $2,982/month and other Medicaid requirements."
+        },
+        {
+          "question": "What if my parent needs care immediately but there's a waitlist?",
+          "answer": "Apply immediately and ask about priority placement for crisis situations. In the meantime, contact Alabama CARES at 1-800-243-5463 for short-term caregiver support and information about private-pay options."
+        },
+        {
+          "question": "Can I apply on behalf of my elderly parent?",
+          "answer": "Yes, family members can apply on behalf of their parents. You'll need power of attorney documents or other legal authorization to act on their behalf during the application process."
+        },
+        {
+          "question": "How many hours of aide services will my parent receive?",
+          "answer": "Service hours depend on your parent's assessed needs and available funding. The case manager will work with you to develop a care plan based on the functional assessment results and program capacity."
+        },
+        {
+          "question": "What's the difference between E&D Waiver and Alabama CARES?",
+          "answer": "E&D Waiver provides direct personal care services through Medicaid for those meeting nursing facility level of care. Alabama CARES offers caregiver support, training, and some services for families caring for adults 60+ with no income restrictions."
+        },
+        {
+          "question": "Can my parent receive services from both programs at the same time?",
+          "answer": "Yes, your parent may be able to receive E&D Waiver services while you as the caregiver receive support through Alabama CARES. Each program has different eligibility requirements and serves different needs."
+        },
+        {
+          "question": "What happens if my parent's needs change after they're enrolled?",
+          "answer": "Case managers conduct regular reassessments to adjust services as your parent's needs change. You can also request a reassessment if your parent's condition significantly improves or declines."
+        },
+        {
+          "question": "Do we have to choose our own aide or does the program assign one?",
+          "answer": "This depends on which program and service model your parent qualifies for. Personal Choices allows more self-direction in hiring, while traditional E&D services typically work with contracted agencies that provide pre-screened aides."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "asset-focused",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "House",
+      "phone": "(877) 425-2243",
+      "sourceUrl": "https://medicaid.alabama.gov",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
     },
     {
       "id": "al-seniorx-prescription-assistance",

@@ -1,9 +1,9 @@
 {
   "state": "GA",
   "stateName": "Georgia",
-  "draftedAt": "2026-04-13T21:50:19.528Z",
+  "draftedAt": "2026-04-13T22:29:50.196Z",
   "total": 11,
-  "successful": 10,
+  "successful": 11,
   "programs": [
     {
       "id": "ga-ccsp-home-care",
@@ -829,8 +829,168 @@
       "draftedAt": "2026-04-13"
     },
     {
+      "id": "ga-liheap-energy-assistance",
       "name": "Low Income Home Energy Assistance Program (LIHEAP)",
-      "_error": "batch: canceled"
+      "shortName": "LIHEAP",
+      "tagline": "Get $350-400 applied directly to your parent's energy bills if they're on a limited income.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local Community Action Agencies (CAAs), e.g., Community Action For Improvement (https://www.cafi-ga.org), Enrichment Services (https://enrichmentservices.org), Fulton Atlanta Community Action Authority (https://www.facaa.org), Southwest Georgia Community Action Council (https://www.swgacac.com). Full list via Georgia DFCS",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent struggles with high heating or cooling bills, LIHEAP can provide $350-400 paid directly to their energy company each year. Because the program prioritizes seniors age 60+, your parent gets first access to appointment slots and receives the maximum $400 benefit amount.\n\nThe program covers one heating benefit and one cooling benefit per year, with payments going straight to the utility company — your parent never handles the money directly. Because each county has its own Community Action Agency with separate budgets and waitlists, availability varies significantly by location.\n\nYour parent's energy company must be a registered LIHEAP vendor, and household income must be at or below 60% of Georgia's median income for their household size. Applications require scheduled appointments and operate first-come, first-served until county funds run out.",
+      "savingsRange": "$350 – $400/year",
+      "savingsSource": "Direct payments to energy suppliers, with seniors 60+ receiving maximum $400",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Income at or below 60% of state median",
+          "Responsible for paying home energy bills",
+          "U.S. citizen or legal resident",
+          "Energy company must be registered LIHEAP vendor"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Responsible for paying the cost of energy for the primary home heating source",
+          "U.S. citizen or lawfully admitted immigrant",
+          "Energy supplier must be a registered LIHEAP vendor with Georgia Department of Human Services",
+          "Must apply in county of residence"
+        ],
+        "povertyLevelReference": "60% of Georgia State Median Income"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Schedule an appointment with your county's Community Action Agency — seniors 60+ get priority scheduling starting in January.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your county's Community Action Agency",
+            "description": "Visit dfcs.georgia.gov to locate your county's specific CAA. Each county has its own agency, budget, and phone number."
+          },
+          {
+            "step": 2,
+            "title": "Schedule an appointment",
+            "description": "Call your local CAA or check their online portal for appointment scheduling. Seniors 60+ typically get priority access starting January 2nd."
+          },
+          {
+            "step": 3,
+            "title": "Gather required documents",
+            "description": "Collect proof of income for all household members (last 30 days), Social Security cards, most recent gas and electric bills, and valid photo ID."
+          },
+          {
+            "step": 4,
+            "title": "Attend your appointment",
+            "description": "Meet with your local CAA representative. If you're homebound, ask about home visits — many agencies provide this service."
+          },
+          {
+            "step": 5,
+            "title": "Payment goes directly to utility",
+            "description": "If approved, LIHEAP pays your energy company directly. You'll see the credit on your next bill."
+          }
+        ],
+        "processingTime": "First-come, first-served basis with no specific timeline provided",
+        "waitlist": "Yes — if appointment slots are full, you can join a waitlist or check back periodically. Wait times vary significantly by county funding.",
+        "tip": "Call early in the program year and ask specifically about senior priority dates — many counties open applications for 60+ or 65+ residents before general enrollment.",
+        "urls": [
+          {
+            "label": "Georgia DFCS LIHEAP Information",
+            "url": "https://dfcs.georgia.gov/regular-home-energy-assistance/energy-assistance-eligibility-requirements"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Valid U.S. issued photo ID",
+        "Social Security cards for all household members",
+        "Proof of income for all household members 18+ from the last 30 days (pay stubs, Social Security award letters, pension statements)",
+        "Zero-income form if anyone has no income (completed at appointment)",
+        "Most recent gas bill showing name, address, account number, and amount due",
+        "Most recent electric bill showing name, address, account number, and amount due",
+        "Verification of age if required for priority consideration",
+        "Signed letter if a representative is applying on behalf of the household member"
+      ],
+      "contacts": [
+        {
+          "label": "Georgia 2-1-1",
+          "phone": "2-1-1",
+          "description": "Statewide helpline for all social services and local CAA contact information",
+          "hours": "24 hours, 7 days a week"
+        },
+        {
+          "label": "Georgia DFCS",
+          "phone": null,
+          "description": "Visit dfcs.georgia.gov for complete list of county Community Action Agencies",
+          "hours": "Online resource"
+        }
+      ],
+      "applicationNotes": [
+        "Seniors 60+ receive priority scheduling and the maximum $400 benefit amount",
+        "You cannot switch counties if your local agency runs out of funds — you must apply where you live",
+        "Energy suppliers must be registered LIHEAP vendors or you'll be ineligible, regardless of income",
+        "Bring copies of all documents to your appointment — originals may be required for verification"
+      ],
+      "relatedPrograms": [
+        "Weatherization Assistance Program (WAP)",
+        "Georgia Power CARE Program",
+        "SNAP (Food Benefits)"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "What if my parent's energy company isn't a registered LIHEAP vendor?",
+          "answer": "Your parent cannot receive LIHEAP benefits, even if they meet all income requirements. Contact your local Community Action Agency to confirm which companies are registered vendors in your area before applying."
+        },
+        {
+          "question": "Can my parent get both heating and cooling assistance in the same year?",
+          "answer": "Yes, if funding is available. LIHEAP provides one heating benefit and one cooling benefit per program year. Cooling assistance is seasonal and depends on your county's available budget."
+        },
+        {
+          "question": "What happens if my parent's county runs out of money before their appointment?",
+          "answer": "They cannot switch to another county's program — LIHEAP requires you to apply where you live. They'll need to join the waitlist or wait for the next program year when new federal funding becomes available."
+        },
+        {
+          "question": "Can I apply on behalf of my elderly parent?",
+          "answer": "Yes, but you'll need a signed letter authorizing you to represent them. Some agencies also offer home visits for homebound applicants, which might be easier than having you serve as a representative."
+        },
+        {
+          "question": "How does the 60% state median income limit work for different household sizes?",
+          "answer": "Income limits vary by household size, but specific dollar amounts aren't published online. Your local Community Action Agency will have the current income table and can tell you the exact limit for your parent's household size over the phone."
+        },
+        {
+          "question": "What if my parent has zero income?",
+          "answer": "They can still apply. You'll need to complete a zero-income form at the appointment to document their situation. Having no income doesn't automatically disqualify them if other household members have income below the limits."
+        },
+        {
+          "question": "When do applications typically open each year?",
+          "answer": "Timing varies by county, but many agencies prioritize seniors starting January 2nd, with general applications opening February 2nd. Call your local Community Action Agency in December to confirm their specific schedule."
+        },
+        {
+          "question": "Can my parent apply for LIHEAP and other utility assistance programs at the same time?",
+          "answer": "Yes, LIHEAP can be combined with Georgia Power CARE and other utility assistance programs. The agencies typically coordinate to maximize your parent's benefits without duplication."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "savings",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "Lightning",
+      "phone": "2-1-1",
+      "sourceUrl": "https://dfcs.georgia.gov/regular-home-energy-assistance/energy-assistance-eligibility-requirements",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
     },
     {
       "id": "ga-weatherization-assistance-program",

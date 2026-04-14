@@ -1,9 +1,9 @@
 {
   "state": "OH",
   "stateName": "Ohio",
-  "draftedAt": "2026-04-13T21:50:19.560Z",
+  "draftedAt": "2026-04-13T22:29:50.219Z",
   "total": 12,
-  "successful": 11,
+  "successful": 12,
   "programs": [
     {
       "id": "oh-medicaid-aged-blind-disabled",
@@ -2084,8 +2084,141 @@
       "draftedAt": "2026-04-13"
     },
     {
+      "id": "oh-legal-assistance-seniors",
       "name": "Legal Assistance for Seniors (via Ohio Legal Services)",
-      "_error": "batch: canceled"
+      "shortName": "Legal Assistance",
+      "tagline": "Free legal help for your parent's Medicare, housing, elder abuse, or estate planning issues.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Pro Seniors (Cincinnati-area focus)",
+            "type": "service-area"
+          },
+          {
+            "name": "Legal Aid of Western Ohio (LAWO: Northwest counties)",
+            "type": "service-area"
+          },
+          {
+            "name": "Legal Aid Society of Cleveland (Northeast)",
+            "type": "service-area"
+          },
+          {
+            "name": "LASCO (Central Ohio seniors team)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and needs legal help with Medicare problems, housing issues, estate planning, or elder abuse, Ohio provides free legal advice and services specifically for seniors. The Pro Seniors Legal Helpline offers immediate phone consultations with attorneys statewide — no income requirements for advice and referrals.\n\nFor more complex cases requiring full legal representation, low-income seniors can access free attorneys through regional legal aid organizations across Ohio. These services handle civil legal matters including Medicaid appeals, powers of attorney, simple wills, consumer protection, and nursing home advocacy.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Ohio resident",
+          "Civil legal issues only",
+          "Low income required for full representation"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Ohio resident",
+          "Civil legal matters only (not criminal cases)",
+          "Low income required for representation beyond phone advice (varies by regional provider)"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call the Pro Seniors Legal Helpline to schedule a 30-minute attorney consultation — available statewide with no income requirements.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the Pro Seniors Legal Helpline",
+            "description": "Phone (513) 345-4160 or 1-800-488-6070 to schedule a 30-minute attorney phone appointment. Available statewide for advice and referrals."
+          },
+          {
+            "step": 2,
+            "title": "Describe the legal issue during intake",
+            "description": "Staff will gather basic information about your parent's legal problem to match them with the right attorney or service."
+          },
+          {
+            "step": 3,
+            "title": "Get attorney consultation or referral",
+            "description": "Receive legal advice during scheduled appointment, or get referred to regional legal aid for full representation if low-income and case qualifies."
+          }
+        ],
+        "processingTime": "Intake immediate, attorney callback scheduled in 30-minute blocks",
+        "waitlist": null,
+        "tip": "For representation beyond advice, you'll need to apply separately through your regional legal aid provider — Pro Seniors can refer you to the right organization.",
+        "urls": [
+          {
+            "label": "Pro Seniors Legal Services",
+            "url": "https://www.proseniors.org/legal-services/legal-hotline/"
+          }
+        ]
+      },
+      "documentsNeeded": null,
+      "contacts": [
+        {
+          "label": "Pro Seniors Legal Helpline",
+          "phone": "(513) 345-4160",
+          "description": "Statewide legal advice and referrals for seniors",
+          "hours": "Call for appointment scheduling"
+        },
+        {
+          "label": "Pro Seniors Toll-Free",
+          "phone": "1-800-488-6070",
+          "description": "Same helpline, toll-free access",
+          "hours": "Call for appointment scheduling"
+        },
+        {
+          "label": "Legal Aid Line",
+          "phone": "Toll-free (number varies)",
+          "description": "For ABLE and LAWO applications in specific regions",
+          "hours": "Contact for current number and hours"
+        }
+      ],
+      "applicationNotes": null,
+      "relatedPrograms": [
+        "Ohio SHIP (Health Insurance Counseling)",
+        "Adult Protective Services",
+        "Ohio Long-Term Care Ombudsman"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can I call on behalf of my elderly parent who has dementia?",
+          "answer": "Yes, family members can call for initial information and referrals. For legal representation, the attorney will need to assess your parent's capacity or work with existing power of attorney documents. If no legal authority exists, they can help you understand guardianship options."
+        },
+        {
+          "question": "What's the difference between the free hotline advice and full legal representation?",
+          "answer": "The Pro Seniors hotline provides 30-minute consultations, document preparation guidance, and referrals with no income requirements statewide. Full representation (where an attorney handles your case) requires low-income qualification and is provided by regional legal aid organizations that vary by county."
+        },
+        {
+          "question": "My parent lives in rural Ohio — are services available outside major cities?",
+          "answer": "Yes, the Pro Seniors hotline serves all Ohio counties for advice and referrals. For representation, Legal Aid of Western Ohio covers northwest counties including rural areas like Henry, Paulding, and Williams counties. Other regions have their own legal aid providers."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": null,
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": false,
+        "visualTone": "minimal"
+      },
+      "icon": "Scales",
+      "phone": "(513) 345-4160",
+      "sourceUrl": "https://www.proseniors.org/legal-services/legal-hotline/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
     }
   ],
   "stateOverview": {

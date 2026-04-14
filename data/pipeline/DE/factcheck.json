@@ -1,0 +1,462 @@
+{
+  "state": "DE",
+  "stateName": "Delaware",
+  "checkedAt": "2026-04-14T00:53:32.789Z",
+  "total": 12,
+  "skipped": 0,
+  "parseErrors": 0,
+  "errors": 0,
+  "programsWithFlags": 5,
+  "totalFlags": 6,
+  "highSeverityFlags": 3,
+  "programs": [
+    {
+      "programId": "de-diamond-state-health-plan",
+      "programName": "Diamond State Health Plan (DSHP and DSHP-Plus)",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 2000,
+        "assets_couple": null,
+        "phones": [
+          "8003722022"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8669408963",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://www.medicaidplanningassistance.org/delaware-diamond-state-health-plan/"
+        },
+        "notes": "No authoritative current data found on age, income, or asset limits from official .gov sources as of 2026; program targets elderly or physically disabled but no minimum age specified. Phone from DMMA CIU for DSHP-Plus applications."
+      },
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "8003722022"
+          ],
+          "verifiedValue": "8669408963"
+        }
+      ],
+      "notes": "No authoritative current data found on age, income, or asset limits from official .gov sources as of 2026; program targets elderly or physically disabled but no minimum age specified. Phone from DMMA CIU for DSHP-Plus applications."
+    },
+    {
+      "programId": "de-dsaapd-waivers",
+      "programName": "Division of Services for Aging and Adults with Physical Disabilities (DSAAPD) Waivers",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 2000,
+        "assets_couple": null,
+        "phones": [
+          "8002239074"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 18,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 2000,
+        "assets_couple": null,
+        "phone": "8002239074",
+        "sources": {
+          "age": "https://dhss.delaware.gov/wp-content/uploads/sites/2/dsaapd/pdf/dsaapd_brochure_with_inserts.pdf",
+          "income": null,
+          "assets": "https://medicaideligibilitycalculator.com/medicaid-eligibility/delaware/",
+          "phone": "https://dhss.delaware.gov/wp-content/uploads/sites/2/dsaapd/pdf/dsaapd_brochure_with_inserts.pdf"
+        },
+        "notes": "DSAAPD administers two Medicaid Waivers (Elderly and Disabled, and Assisted Living). Age requirement varies by program: 60+ for some programs, 18+ for others with specified medical/financial criteria. Income limits not explicitly stated in retrieved sources for 2026. Asset limit of $2000 is standard Delaware Medicaid. Phone number is official DSAAPD contact line. Specific income thresholds for each waiver program require direct contact with DSAAPD or access to current Delaware Medicaid policy documents not fully captured in search results."
+      },
+      "flags": [
+        {
+          "field": "age",
+          "severity": "high",
+          "draftValue": 60,
+          "verifiedValue": 18
+        }
+      ],
+      "notes": "DSAAPD administers two Medicaid Waivers (Elderly and Disabled, and Assisted Living). Age requirement varies by program: 60+ for some programs, 18+ for others with specified medical/financial criteria. Income limits not explicitly stated in retrieved sources for 2026. Asset limit of $2000 is standard Delaware Medicaid. Phone number is official DSAAPD contact line. Specific income thresholds for each waiver program require direct contact with DSAAPD or access to current Delaware Medicaid policy documents not fully captured in search results."
+    },
+    {
+      "programId": "de-pace-comprehensive-care",
+      "programName": "Program of All-Inclusive Care for the Elderly (PACE) - Delaware PACE",
+      "facts": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 2000,
+        "assets_couple": null,
+        "phones": [
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://www.cms.gov/medicare/medicaid-coordination/about/pace",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "Program has been renamed to LIFE (Living Independence for the Elderly) in Delaware. Age requirement of 55+ confirmed from multiple federal and state sources. Income and asset limits for PACE/LIFE eligibility could not be located in provided search results. Phone number for application assistance not found in search results. Delaware LIFE/PACE centers are located in Milford (PACE Your LIFE) and Wilmington (Saint Francis LIFE). For complete current eligibility details, contact Delaware DHSS DMMA at http://dhss.delaware.gov/dhss/dmma/pace_home.html"
+      },
+      "flags": [],
+      "notes": "Program has been renamed to LIFE (Living Independence for the Elderly) in Delaware. Age requirement of 55+ confirmed from multiple federal and state sources. Income and asset limits for PACE/LIFE eligibility could not be located in provided search results. Phone number for application assistance not found in search results. Delaware LIFE/PACE centers are located in Milford (PACE Your LIFE) and Wilmington (Saint Francis LIFE). For complete current eligibility details, contact Delaware DHSS DMMA at http://dhss.delaware.gov/dhss/dmma/pace_home.html"
+    },
+    {
+      "programId": "de-qmb-slmb-medicare-help",
+      "programName": "Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB)",
+      "facts": {
+        "age": null,
+        "income_1": 1585,
+        "income_2": 2135,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8008529089",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": 1235,
+        "income_2": 1663,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": "https://www.medicareresources.org/states/delaware-guide-content/",
+          "assets": "https://www.medicareresources.org/states/delaware-guide-content/",
+          "phone": null
+        },
+        "notes": "No 2026-specific Delaware values found in search results; values from nonprofit citing official sources, no asset limits in DE, no phone located"
+      },
+      "flags": [
+        {
+          "field": "income_1",
+          "severity": "high",
+          "draftValue": 1585,
+          "verifiedValue": 1235,
+          "pctDiff": 22.1
+        },
+        {
+          "field": "income_2",
+          "severity": "high",
+          "draftValue": 2135,
+          "verifiedValue": 1663,
+          "pctDiff": 22.1
+        }
+      ],
+      "notes": "No 2026-specific Delaware values found in search results; values from nonprofit citing official sources, no asset limits in DE, no phone located"
+    },
+    {
+      "programId": "de-snap-food-benefits",
+      "programName": "Food Stamp Program (SNAP)",
+      "facts": {
+        "age": 60,
+        "income_1": 2608,
+        "income_2": 3526,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "3022559500",
+          "211",
+          "8778234369"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": 2610,
+        "income_2": 3526,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "18668437212",
+        "sources": {
+          "age": null,
+          "income": "https://www.fbd.org/snap-outreach/",
+          "assets": null,
+          "phone": "https://detvch.com/snap-benefits-ending-delaware-2026/"
+        },
+        "notes": "Income limits are for 200% FPL household category, current for Oct 1, 2025 – Sept 30, 2026. No minimum age requirement found in search results. Asset limits not specified in available sources; Delaware DHSS notes no resource test for most households meeting 200% FPL limit. Phone number is Delaware DHSS SNAP assistance line. Program remains active as of April 2026."
+      },
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "3022559500",
+            "211",
+            "8778234369"
+          ],
+          "verifiedValue": "18668437212"
+        }
+      ],
+      "notes": "Income limits are for 200% FPL household category, current for Oct 1, 2025 – Sept 30, 2026. No minimum age requirement found in search results. Asset limits not specified in available sources; Delaware DHSS notes no resource test for most households meeting 200% FPL limit. Phone number is Delaware DHSS SNAP assistance line. Program remains active as of April 2026."
+    },
+    {
+      "programId": "de-liheap-energy-assistance",
+      "programName": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "facts": {
+        "age": null,
+        "income_1": 3278,
+        "income_2": 4287,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "3022559875",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": 3278,
+        "income_2": 4287,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": "https://www.snapscreener.com/liheap/delaware",
+          "assets": null,
+          "phone": null
+        },
+        "notes": "Program is also known as Delaware Energy Assistance Program (DEAP). Income limits based on gross monthly income. Phone number for applications not found in search results; official DHSS LIHEAP page (https://www.dhss.delaware.gov/dhss/dss/liheap.html) should be consulted for current contact information. Application period for 2025-2026 is 10/1/2025–3/31/2026; current date (4/14/2026) is outside active application window."
+      },
+      "flags": [],
+      "notes": "Program is also known as Delaware Energy Assistance Program (DEAP). Income limits based on gross monthly income. Phone number for applications not found in search results; official DHSS LIHEAP page (https://www.dhss.delaware.gov/dhss/dss/liheap.html) should be consulted for current contact information. Application period for 2025-2026 is 10/1/2025–3/31/2026; current date (4/14/2026) is outside active application window."
+    },
+    {
+      "programId": "de-weatherization-assistance-program",
+      "programName": "Weatherization Assistance Program (WAP)",
+      "facts": {
+        "age": null,
+        "income_1": 2510,
+        "income_2": 3407,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "3025046111",
+          "3027353480"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "3025046111",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://dnrec.delaware.gov/climate-coastal-energy/sustainable-communities/weatherization/"
+        },
+        "notes": "No specific income limits or age requirements found in sources; eligibility based on household income and size with reference to chart not accessible. Phone from official DNREC site for Energy Coordinating Agency."
+      },
+      "flags": [],
+      "notes": "No specific income limits or age requirements found in sources; eligibility based on household income and size with reference to chart not accessible. Phone from official DNREC site for Energy Coordinating Agency."
+    },
+    {
+      "programId": "de-senior-medicare-patrol",
+      "programName": "Delaware Senior Medicare Patrol (SMP/SHIP)",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8778082468"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8002239074",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://smpresource.org/locator/delaware/"
+        },
+        "notes": "Delaware SMP does not appear to have eligibility requirements based on age, income, or assets. The program serves all Medicare beneficiaries. Phone number (800) 223-9074 is listed as the contact to receive SMP program services and inquire about volunteering. No .gov URL available for this specific contact information in search results; sourced from official SMP Resource Center locator page."
+      },
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "8778082468"
+          ],
+          "verifiedValue": "8002239074"
+        }
+      ],
+      "notes": "Delaware SMP does not appear to have eligibility requirements based on age, income, or assets. The program serves all Medicare beneficiaries. Phone number (800) 223-9074 is listed as the contact to receive SMP program services and inquire about volunteering. No .gov URL available for this specific contact information in search results; sourced from official SMP Resource Center locator page."
+    },
+    {
+      "programId": "de-home-delivered-meals",
+      "programName": "Home Delivered Meals (Meals on Wheels)",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "3024213734",
+          "3022930008",
+          "3027341200",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No authoritative data found on minimum age, income, or assets eligibility; program targets homebound seniors but no specific numeric requirements or .gov sources located. Multiple local providers with separate contact phones but no single main official number."
+      },
+      "flags": [],
+      "notes": "No authoritative data found on minimum age, income, or assets eligibility; program targets homebound seniors but no specific numeric requirements or .gov sources located. Multiple local providers with separate contact phones but no single main official number."
+    },
+    {
+      "programId": "de-scsep-employment",
+      "programName": "Senior Community Service Employment Program (SCSEP)",
+      "facts": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "3022523211",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "3022523211",
+        "sources": {
+          "age": "https://www.dol.gov/agencies/eta/seniors",
+          "income": null,
+          "assets": null,
+          "phone": "https://laborfiles.delaware.gov/main/det/faqs-scsep/SCSEP_FAQs.pdf"
+        },
+        "notes": "No specific 2026 Delaware income or assets limits found in sources; federal income guideline is 125% poverty level but exact dollar values not provided"
+      },
+      "flags": [],
+      "notes": "No specific 2026 Delaware income or assets limits found in sources; federal income guideline is 125% poverty level but exact dollar values not provided"
+    },
+    {
+      "programId": "de-legal-aid-seniors",
+      "programName": "Legal Aid for Seniors",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "3025750660",
+          "3026748500",
+          "3028560038",
+          "3025750408"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "3025750660",
+        "sources": {
+          "age": "https://www.declasi.org/legal-services/elder-legal-services/",
+          "income": null,
+          "assets": null,
+          "phone": "https://www.declasi.org/legal-services/elder-legal-services/"
+        },
+        "notes": "Program is Community Legal Aid Society, Inc. (CLASI) Elder Law Program. Age requirement (60+) is clearly stated. Income and asset limits not disclosed in available sources; CLASI serves low-income individuals but specific thresholds not provided in search results. Phone number is New Castle County (Wilmington) office main line; toll-free alternatives available (800-292-7980). No evidence of program discontinuation or renaming as of April 2026."
+      },
+      "flags": [],
+      "notes": "Program is Community Legal Aid Society, Inc. (CLASI) Elder Law Program. Age requirement (60+) is clearly stated. Income and asset limits not disclosed in available sources; CLASI serves low-income individuals but specific thresholds not provided in search results. Phone number is New Castle County (Wilmington) office main line; toll-free alternatives available (800-292-7980). No evidence of program discontinuation or renaming as of April 2026."
+    },
+    {
+      "programId": "de-long-term-care-ombudsman",
+      "programName": "Long-Term Care Ombudsman Program",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8002239074",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8002239074",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://dhss.delaware.gov/wp-content/uploads/sites/2/dsaapd/pdf/volunteer_ombudsman_brochure.pdf"
+        },
+        "notes": "Program has no age, income, or asset eligibility requirements; it serves residents of long-term care facilities. Phone confirmed from official DE DHSS source."
+      },
+      "flags": [],
+      "notes": "Program has no age, income, or asset eligibility requirements; it serves residents of long-term care facilities. Phone confirmed from official DE DHSS source."
+    }
+  ]
+}

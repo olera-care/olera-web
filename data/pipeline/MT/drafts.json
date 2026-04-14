@@ -1,9 +1,9 @@
 {
   "state": "MT",
   "stateName": "Montana",
-  "draftedAt": "2026-04-13T21:50:19.549Z",
+  "draftedAt": "2026-04-13T22:29:50.214Z",
   "total": 14,
-  "successful": 13,
+  "successful": 14,
   "programs": [
     {
       "id": "mt-big-sky-waiver-program",
@@ -2376,8 +2376,126 @@
       "draftedAt": "2026-04-13"
     },
     {
+      "id": "mt-long-term-care-ombudsman",
       "name": "Long-Term Care Ombudsman Program",
-      "_error": "batch: canceled"
+      "shortName": "Ombudsman Program",
+      "tagline": "Free advocacy and complaint resolution when your parent faces problems in nursing homes or assisted living facilities.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "State office in Helena; local via Area Agencies on Aging (e.g., Western Montana Area VI Agency, Flathead County Agency on Aging). Directory: https://dphhs.mt.gov/sltc/aging/longtermcareombudsman/.",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent lives in a Montana nursing home, assisted living facility, or Critical Access Hospital and faces problems with care, billing, or their rights, the Long-Term Care Ombudsman Program provides free advocacy and complaint resolution. Over 30 certified ombudsmen across Montana investigate issues like improper discharge, abuse, neglect, quality of care concerns, and Medicaid/Medicare problems.\n\nBecause ombudsmen maintain confidentiality and act only at your parent's request, they can address sensitive issues without fear of retaliation. The program serves all residents regardless of income — no financial tests or paperwork required to get help.\n\nOmbudsmen also provide information about long-term care options, help with facility placement decisions, and connect families to other aging services across Montana.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Resident of nursing home, assisted living, or Critical Access Hospital in Montana",
+          "No income or asset limits",
+          "Family members can contact on resident's behalf",
+          "Available statewide through local ombudsmen"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be for residents in certified long-term care facilities in Montana",
+          "Ombudsmen act only at resident's request and maintain confidentiality"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call the state hotline at 1-800-332-2272 during business hours for immediate response to complaints.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact the Ombudsman",
+            "description": "Call 1-800-332-2272 during business hours or find your local ombudsman through Area Agencies on Aging at https://dphhs.mt.gov/sltc/aging/longtermcareombudsman/."
+          },
+          {
+            "step": 2,
+            "title": "Describe the Problem",
+            "description": "Explain the concern verbally — no forms required. Provide details about the facility, resident name, and specific issues with care, rights, or services."
+          },
+          {
+            "step": 3,
+            "title": "Ombudsman Investigates",
+            "description": "The ombudsman will visit the facility, interview staff and residents as needed, and work toward resolution while maintaining confidentiality."
+          }
+        ],
+        "processingTime": "Immediate response to complaints; ombudsmen move into action at resident's request",
+        "waitlist": null,
+        "tip": "For emergencies involving immediate danger, call 911 first — the ombudsman hotline operates during business hours only.",
+        "urls": [
+          {
+            "label": "Montana Long-Term Care Ombudsman Directory",
+            "url": "https://dphhs.mt.gov/sltc/aging/longtermcareombudsman/"
+          }
+        ]
+      },
+      "documentsNeeded": null,
+      "contacts": [
+        {
+          "label": "State Long-Term Care Ombudsman",
+          "phone": "1-800-332-2272",
+          "description": "Complaint resolution and advocacy for nursing home and assisted living residents",
+          "hours": "Business hours only (call 911 for emergencies)"
+        },
+        {
+          "label": "Montana Senior and Long Term Care (mail)",
+          "phone": null,
+          "description": "PO Box 4210, Helena, MT 59604",
+          "hours": "Business hours"
+        }
+      ],
+      "applicationNotes": null,
+      "relatedPrograms": [
+        "Area Agencies on Aging",
+        "Adult Protective Services",
+        "Montana Medicaid"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can I contact the ombudsman even if my parent doesn't want to file a complaint?",
+          "answer": "You can contact the ombudsman for information and guidance, but they can only investigate or take action at your parent's request. Because ombudsmen maintain strict confidentiality, they cannot override a resident's wishes even when family members have concerns."
+        },
+        {
+          "question": "What if the problem is in my parent's home care, not a facility?",
+          "answer": "The Long-Term Care Ombudsman only covers residents in nursing homes, assisted living facilities, and Critical Access Hospitals with swing beds. For home-based care issues, contact Adult Protective Services or your local Area Agency on Aging for other resources."
+        },
+        {
+          "question": "How long does it take to resolve complaints?",
+          "answer": "Ombudsmen respond immediately and begin investigating right away. Resolution time depends on the complexity of the issue, but ombudsmen make regular facility visits and work persistently until problems are addressed."
+        },
+        {
+          "question": "Will the facility retaliate against my parent for filing a complaint?",
+          "answer": "Retaliation is illegal, and ombudsmen are trained to handle complaints confidentially to minimize this risk. They maintain ongoing relationships with facilities and monitor for any signs of retaliation after complaints are resolved."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": null,
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": false,
+        "visualTone": "minimal"
+      },
+      "icon": "Scales",
+      "phone": "1-800-332-2272",
+      "sourceUrl": "https://dphhs.mt.gov/sltc/aging/longtermcareombudsman/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
     }
   ],
   "stateOverview": {

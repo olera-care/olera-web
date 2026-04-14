@@ -1,9 +1,9 @@
 {
   "state": "UT",
   "stateName": "Utah",
-  "draftedAt": "2026-04-13T21:50:19.567Z",
+  "draftedAt": "2026-04-13T22:29:50.225Z",
   "total": 13,
-  "successful": 10,
+  "successful": 13,
   "programs": [
     {
       "id": "ut-medicaid-program",
@@ -349,8 +349,245 @@
       "draftedAt": "2026-04-13"
     },
     {
+      "id": "ut-medicare-savings-programs",
       "name": "Medicare Savings Programs (QMB, SLMB, QI)",
-      "_error": "batch: canceled"
+      "shortName": "Medicare Savings Programs",
+      "tagline": "If your parent's monthly income is under $1,823, Medicare may cover their premiums, deductibles, and copays.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local Utah Medicaid offices (find via https://medicaid.utah.gov/)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent struggles with Medicare premiums and medical bills, three programs can help based on their income level. The Qualified Medicare Beneficiary (QMB) program covers all Medicare costs for individuals earning $1,350/month or less. The Specified Low-income Medicare Beneficiary (SLMB) program covers Part B premiums for those earning $1,351–$1,620/month. The Qualifying Individual (QI) program also covers Part B premiums for those earning $1,621–$1,823/month.\n\nBecause these programs work through Utah Medicaid, your parent gets immediate relief from Medicare costs once approved. QMB recipients receive a Medicaid card marked \"MEDICARE COST-SHARING ONLY\" that prevents providers from billing them for covered services. SLMB and QI recipients don't get a card because Utah pays Medicare directly for their premiums.\n\nThe QI program has limited federal funding that can run out mid-year, blocking new applicants until the following year. QMB and SLMB are guaranteed for all who qualify.",
+      "savingsRange": "$1,968 – $7,872/year in 2026",
+      "savingsSource": "Based on Medicare Part B premium ($185/month) plus typical deductibles and coinsurance",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Must have Medicare Part A",
+          "Income below $1,823/month (single)",
+          "Assets under $9,950 (single)",
+          "Utah resident"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1350,
+            "tier": "QMB"
+          },
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1620,
+            "tier": "SLMB"
+          },
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1823,
+            "tier": "QI"
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 1824,
+            "tier": "QMB"
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2189,
+            "tier": "SLMB"
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2462,
+            "tier": "QI"
+          }
+        ],
+        "assetLimits": {
+          "individual": 9950,
+          "couple": 14910,
+          "countedAssets": [
+            "Cash and bank accounts",
+            "Stocks and bonds over $1,500 face value",
+            "Non-exempt life insurance policies",
+            "Investment accounts"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "One vehicle",
+            "Household items and personal belongings",
+            "Wedding and engagement rings",
+            "Burial plots",
+            "Up to $1,500 in burial expenses"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be eligible for Medicare Part A (QMB) or enrolled in Part A and Part B (SLMB/QI)",
+          "Cannot receive full Medicaid benefits (QI only)",
+          "Must be Utah resident"
+        ],
+        "povertyLevelReference": "QMB: 100% FPL, SLMB: 120% FPL, QI: 135% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply through Utah Medicaid by phone, mail, or in-person with processing taking up to 45 days.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact Utah Medicaid",
+            "description": "Visit https://medicaid.utah.gov/medicare-cost-sharing-programs/ or call your local Medicaid office to request an application. No specific form number is required."
+          },
+          {
+            "step": 2,
+            "title": "Gather required documents",
+            "description": "Collect proof of income, assets, Medicare enrollment, and Utah residency before submitting your application."
+          },
+          {
+            "step": 3,
+            "title": "Submit complete application",
+            "description": "Mail, deliver in-person, or submit by phone to your local Utah Medicaid office. Include all supporting documents to avoid delays."
+          },
+          {
+            "step": 4,
+            "title": "Wait for determination",
+            "description": "QMB decisions take up to 45 days. SLMB and QI can be processed with up to 3 months retroactive coverage if approved."
+          }
+        ],
+        "processingTime": "Up to 45 days for QMB; SLMB and QI may receive up to 3 months retroactive coverage",
+        "waitlist": "QI program may stop accepting new applicants when federal funds are exhausted",
+        "tip": "Apply early in the year for QI since funding can run out before December",
+        "urls": [
+          {
+            "label": "Utah Medicaid Medicare Cost-Sharing Programs",
+            "url": "https://medicaid.utah.gov/medicare-cost-sharing-programs/"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Medicare card (both Part A and Part B)",
+        "Social Security award letter or most recent statement",
+        "Pay stubs from last 30 days (if working)",
+        "Bank statements for all accounts (last 3 months)",
+        "Investment account statements (stocks, bonds, annuities)",
+        "Life insurance policies with cash values",
+        "Vehicle titles and registration",
+        "Property deeds or tax statements",
+        "Proof of Utah residency (utility bill, lease, or state ID)",
+        "Birth certificate or proof of age",
+        "Burial contracts or funeral expense documentation",
+        "Pension or retirement income statements",
+        "Any trust agreements or legal documents"
+      ],
+      "contacts": [
+        {
+          "label": "Utah Medicaid Information",
+          "phone": null,
+          "description": "Find your local Medicaid office and phone number",
+          "hours": "Visit https://medicaid.utah.gov/ for office locations"
+        },
+        {
+          "label": "Utah 2-1-1",
+          "phone": "2-1-1",
+          "description": "Free helpline for all Utah social services and benefits",
+          "hours": "24 hours, 7 days a week"
+        }
+      ],
+      "applicationNotes": [
+        "Income limits update every April based on federal poverty guidelines — verify current limits when applying",
+        "QMB recipients must show their Medicaid card to prevent provider billing for Medicare costs",
+        "SLMB and QI recipients won't receive a card because Utah pays Medicare directly for premiums",
+        "QI funding is not guaranteed — apply as early in the year as possible to avoid being shut out"
+      ],
+      "relatedPrograms": [
+        "Utah Medicaid",
+        "Medicare Part D Extra Help",
+        "SNAP Food Benefits",
+        "LIHEAP Energy Assistance"
+      ],
+      "contentSections": [
+        {
+          "type": "tier-comparison",
+          "title": "Which Program Level Fits Your Parent?",
+          "data": [
+            {
+              "tier": "QMB (Qualified Medicare Beneficiary)",
+              "income": "Up to $1,350/month (single), $1,824/month (couple)",
+              "covers": "All Medicare premiums, deductibles, coinsurance, and copays",
+              "card": "Medicaid card marked 'MEDICARE COST-SHARING ONLY'",
+              "notes": "Most comprehensive coverage"
+            },
+            {
+              "tier": "SLMB (Specified Low-income Medicare Beneficiary)",
+              "income": "$1,351–$1,620/month (single), $1,825–$2,189/month (couple)",
+              "covers": "Medicare Part B premiums only",
+              "card": "No card issued — premium paid directly",
+              "notes": "Must be enrolled in Medicare Part A and Part B"
+            },
+            {
+              "tier": "QI (Qualifying Individual)",
+              "income": "$1,621–$1,823/month (single), $2,190–$2,462/month (couple)",
+              "covers": "Medicare Part B premiums only",
+              "card": "No card issued — premium paid directly",
+              "notes": "Limited funding — may close to new applicants"
+            }
+          ]
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent apply for QMB and still keep their house?",
+          "answer": "Yes. The primary home is completely exempt from asset limits regardless of value. Your parent can own a home worth any amount and still qualify as long as their other countable assets stay under $9,950 (single) or $14,910 (couple)."
+        },
+        {
+          "question": "What happens if my parent's income is right at the limit?",
+          "answer": "Utah uses a $20 monthly income disregard for all programs, meaning $20 of monthly income doesn't count. For example, if your parent earns $1,370/month, only $1,350 counts toward the QMB limit of $1,350, so they would qualify."
+        },
+        {
+          "question": "Can I apply for my parent who has dementia?",
+          "answer": "Yes, family members can apply on behalf of elderly parents. You'll need to provide all the same documentation plus proof of your authority to act (power of attorney or guardianship papers). Contact Utah Medicaid to discuss the specific process for representative applications."
+        },
+        {
+          "question": "How is the QI waitlist different from the other programs?",
+          "answer": "QI has a federal funding cap that can run out mid-year, while QMB and SLMB are entitlements with guaranteed funding. When QI funds are exhausted, Utah stops accepting new applications until the next federal fiscal year begins in October."
+        },
+        {
+          "question": "What if my parent already has full Medicaid coverage?",
+          "answer": "Parents with full Medicaid automatically get QMB-level benefits and don't need to apply separately. However, if your parent has QI coverage, they cannot also have full Medicaid — these programs are mutually exclusive."
+        },
+        {
+          "question": "Do these programs cover Medicare Advantage plan costs?",
+          "answer": "Yes, but it depends on the program level. QMB covers all Medicare Advantage copays, deductibles, and premiums. SLMB and QI only cover the Medicare Part B premium portion, not the additional plan-specific costs."
+        },
+        {
+          "question": "What happens if providers try to bill my parent for Medicare costs?",
+          "answer": "For QMB recipients, providers cannot legally bill your parent for any Medicare-covered services. Show the Medicaid card marked 'MEDICARE COST-SHARING ONLY.' If billing continues, contact Utah Medicaid immediately to resolve the issue."
+        },
+        {
+          "question": "How often does my parent need to renew their coverage?",
+          "answer": "These programs typically require annual renewal through Utah Medicaid. You'll receive renewal paperwork by mail approximately 60 days before the coverage expires. Income and asset limits are updated each April based on federal poverty guidelines."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "savings",
+        "eligibilityDisplay": "income-table",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "Money",
+      "phone": "2-1-1",
+      "sourceUrl": "https://medicaid.utah.gov/medicare-cost-sharing-programs/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
     },
     {
       "id": "ut-snap-food-benefits",
@@ -1475,8 +1712,190 @@
       "draftedAt": "2026-04-13"
     },
     {
+      "id": "ut-scsep-employment",
       "name": "Senior Community Service Employment Program (SCSEP)",
-      "_error": "batch: canceled"
+      "shortName": "SCSEP Employment",
+      "tagline": "Part-time paid work training for unemployed adults 55+ earning under $2,500/month for a family of two",
+      "programType": "employment",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Easterseals-Goodwill Northern Rocky Mountain",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 55+ and unemployed with limited income, SCSEP provides paid part-time work training up to 20 hours per week at community organizations. Your parent earns wages while gaining job skills in fields like customer service, health care, or computer technology — creating a bridge to permanent employment.\n\nYour parent's family income must be below 125% of the federal poverty level ($2,500/month for a household of two in 2026). Because this isn't first-come, first-served, the program director reviews each application for suitability and may maintain a waitlist. Veterans and adults over 65 get priority for available positions.\n\nParticipants can stay in the program for up to 48 months total across their lifetime. The goal is to develop skills and connections that lead to unsubsidized employment in the community.",
+      "savingsRange": "",
+      "savingsSource": "Part-time employment training with wages",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Income below 125% federal poverty level",
+          "Unemployed or facing job loss",
+          "Utah resident in served areas",
+          "Under 48-month lifetime limit"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1583
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2142
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 2700
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 3258
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be unemployed or have notice of job termination",
+          "Legally authorized to work in the U.S.",
+          "Resident of Utah in an area served by the program",
+          "Have not exceeded 48-month lifetime participation limit",
+          "Register with Utah State Workforce within two weeks"
+        ],
+        "povertyLevelReference": "125% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online at ipdcscsep.org or call (800) 771-2153 — processing time varies and acceptance isn't guaranteed.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Complete the SCSEP application",
+            "description": "Fill out the application at https://www.ipdcscsep.org/scsep-application or call Easterseals-Goodwill at (800) 771-2153 for a paper application."
+          },
+          {
+            "step": 2,
+            "title": "Gather income verification documents",
+            "description": "Collect proof of all income sources, age verification, Utah residency proof, and work authorization documents."
+          },
+          {
+            "step": 3,
+            "title": "Register with Utah State Workforce",
+            "description": "If not already registered, sign up at jobs.utah.gov within two weeks of submitting your SCSEP application."
+          },
+          {
+            "step": 4,
+            "title": "Wait for Project Director review",
+            "description": "Your application will be reviewed for eligibility and suitability — this is not first-come, first-served. You may be placed on a waitlist."
+          },
+          {
+            "step": 5,
+            "title": "Complete Individual Employment Plan",
+            "description": "If accepted, work with staff to create your personalized training and employment goals plan."
+          }
+        ],
+        "processingTime": "Not specified — application reviewed by Project Director based on eligibility and suitability",
+        "waitlist": "Possible waitlist if no immediate openings after eligibility determination",
+        "tip": "Veterans and their qualified spouses get first priority, followed by adults over 65 — mention veteran status when applying.",
+        "urls": [
+          {
+            "label": "SCSEP Online Application",
+            "url": "https://www.ipdcscsep.org/scsep-application"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Proof of age (birth certificate, driver's license, or passport)",
+        "Social Security card",
+        "Proof of all income sources from the last 30 days (pay stubs, Social Security letters, pension statements)",
+        "Proof of Utah residency (utility bill, lease agreement, or state-issued document)",
+        "Valid government-issued photo ID",
+        "Proof of legal work authorization in the U.S. (for I-9 form completion)",
+        "Bank account information for direct deposit setup",
+        "Proof of Utah State Workforce registration (or register within two weeks)",
+        "Termination notice if currently employed but facing job loss",
+        "Military service records (DD-214) if claiming veteran priority"
+      ],
+      "contacts": [
+        {
+          "label": "Easterseals-Goodwill SCSEP Utah",
+          "phone": "(800) 771-2153",
+          "description": "Primary SCSEP provider for Utah applications and enrollment",
+          "hours": "Business hours (call for specific times)"
+        },
+        {
+          "label": "Utah 2-1-1",
+          "phone": "2-1-1",
+          "description": "General information about employment and social services",
+          "hours": "24 hours, 7 days a week"
+        }
+      ],
+      "applicationNotes": [
+        "Enrollment decisions are based on suitability and priority tiers, not application order — veterans and adults over 65 get preference",
+        "The 48-month lifetime limit applies even if you switch between different SCSEP providers across states",
+        "You must be willing to work up to 20 hours per week and follow your Individual Employment Plan requirements",
+        "Willfully misreporting income information will disqualify you from the program"
+      ],
+      "relatedPrograms": [
+        "Utah State Workforce Development",
+        "SNAP Food Benefits",
+        "LIHEAP Energy Assistance",
+        "Senior Farmers Market Nutrition Program"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent apply if they're currently working part-time but worried about losing their job?",
+          "answer": "Yes, if your parent has received notice of pending termination or layoff, they can apply even while still employed. They need to provide the termination notice as part of their application."
+        },
+        {
+          "question": "What happens if my parent has already used SCSEP in another state — does that count toward the 48-month limit?",
+          "answer": "Yes, the 48-month limit applies across all SCSEP providers nationwide. If your parent participated in SCSEP in California for 12 months, they would have 36 months of eligibility remaining for Utah SCSEP."
+        },
+        {
+          "question": "How long is the waitlist really, and will we know where my parent stands?",
+          "answer": "The program doesn't publish specific waitlist times since acceptance depends on suitability assessment, not application order. Veterans and adults over 65 get priority, which can affect wait times for others."
+        },
+        {
+          "question": "Can my parent choose what type of work they'll be trained for?",
+          "answer": "Your parent will work with staff to create an Individual Employment Plan based on their interests and local opportunities. Common placements include customer service, health care support, computer technician roles, and teachers' aide positions."
+        },
+        {
+          "question": "What if my parent needs to move to a different area of Utah during the program?",
+          "answer": "Since SCSEP isn't available statewide, your parent would need to move to an area served by Easterseals-Goodwill. Call (800) 771-2153 to confirm whether their new location has program coverage."
+        },
+        {
+          "question": "Can I apply on behalf of my elderly parent who has trouble with paperwork?",
+          "answer": "You can help your parent complete the application, but they must be legally able to work and participate in the program themselves. The program requires active participation in work training, not just benefit receipt."
+        },
+        {
+          "question": "What happens if my parent's income changes while they're in the program?",
+          "answer": "Income is verified at enrollment, but participants must report significant changes. If income rises above 125% of the federal poverty level, your parent may need to transition out of the program."
+        },
+        {
+          "question": "Can my parent apply for SCSEP and regular unemployment benefits at the same time?",
+          "answer": "Check with both programs about simultaneous enrollment. SCSEP requires registration with Utah State Workforce, which also handles unemployment benefits, so they can provide guidance on any conflicts."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "income-table",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": false,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "Briefcase",
+      "phone": "(800) 771-2153",
+      "sourceUrl": "https://daas.utah.gov/wp-content/uploads/2024/05/Utah-SCSEP-Four-Year-State-Plan-2024-for-public-comment-1.pdf",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
     },
     {
       "id": "ut-legal-services-seniors",
@@ -1630,8 +2049,129 @@
       "draftedAt": "2026-04-13"
     },
     {
+      "id": "ut-long-term-care-ombudsman",
       "name": "Utah Long-Term Care Ombudsman Program",
-      "_error": "batch: canceled"
+      "shortName": "Long-Term Care Ombudsman",
+      "tagline": "Free advocacy for your parent if they're already in a nursing home, assisted living, or memory care facility.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "State-level program manager",
+            "type": "service-area"
+          },
+          {
+            "name": "11 local Area Agencies on Aging programs",
+            "type": "service-area"
+          },
+          {
+            "name": "Salt Lake County Aging and Adult Services",
+            "type": "service-area"
+          },
+          {
+            "name": "Mountain Association of Governments (Summit, Utah, Wasatch counties)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent lives in a nursing home, assisted living, memory care, or skilled rehab facility and faces problems with care, billing, or their rights, the Utah Long-Term Care Ombudsman Program provides free advocacy. Approximately 50 trained staff and volunteer ombudsmen across 11 regional offices investigate complaints, resolve disputes, and ensure facilities respect residents' rights.\n\nThis program serves any resident already living in a long-term care facility — no age, income, or asset requirements. Because ombudsmen operate independently from facility regulators, they focus purely on advocacy and problem-solving rather than enforcement. Services are completely confidential except in life-threatening emergencies.\n\nImportant: This program advocates for people already in facilities. It does not help with funding care, finding facilities, or getting admitted to care.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Already living in a long-term care facility",
+          "No age or income requirements",
+          "Free and confidential advocacy"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be a current resident of a nursing home, assisted living, skilled rehab, memory care, or small health care facility",
+          "Services also available to individuals attempting to enter a facility"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call your local Area Agency on Aging ombudsman program — no forms or documentation required.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact your local ombudsman",
+            "description": "Call your regional Area Agency on Aging to reach the ombudsman serving your parent's facility. For example, Mountain Association of Governments serves Summit, Utah, and Wasatch counties at 801-229-3809."
+          },
+          {
+            "step": 2,
+            "title": "Describe the situation",
+            "description": "Explain the problem your parent is experiencing — billing issues, care quality, facility policies, or rights violations. The ombudsman will determine next steps."
+          },
+          {
+            "step": 3,
+            "title": "Ombudsman investigates",
+            "description": "The ombudsman visits the facility, interviews residents and staff, and works to resolve the issue through advocacy and mediation."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "You can file a complaint on behalf of your parent, but the ombudsman will need your parent's permission to investigate unless it's an emergency.",
+        "urls": [
+          {
+            "label": "Utah Division of Aging and Adult Services",
+            "url": "https://daas.utah.gov/long-term-care-ombudsman/"
+          }
+        ]
+      },
+      "documentsNeeded": null,
+      "contacts": [
+        {
+          "label": "Mountain Association of Governments",
+          "phone": "(801) 229-3809",
+          "description": "Serves Summit, Utah, and Wasatch counties",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Utah Aging and Adult Services",
+          "phone": null,
+          "description": "State program information and county contact referrals",
+          "hours": "Business hours"
+        }
+      ],
+      "applicationNotes": null,
+      "relatedPrograms": [
+        "Utah Area Agencies on Aging",
+        "Adult Protective Services",
+        "Utah SHIP (Health Insurance Counseling)"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can I file a complaint if my parent has dementia and can't speak for themselves?",
+          "answer": "Yes, family members can file complaints on behalf of residents. The ombudsman may still need to speak with your parent if possible, but they understand cognitive limitations and will work within those constraints. In cases involving immediate safety concerns, the ombudsman can act without explicit resident consent."
+        },
+        {
+          "question": "What's the difference between calling the ombudsman versus reporting to state regulators?",
+          "answer": "Ombudsmen focus on advocacy and problem-solving — they work with facilities to resolve issues and protect residents' rights. State regulators investigate compliance violations and can impose penalties. The ombudsman often resolves problems faster through direct facility engagement, while regulatory complaints may take longer but can result in formal citations."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": false,
+        "visualTone": "minimal"
+      },
+      "icon": "Scales",
+      "phone": "(801) 229-3809",
+      "sourceUrl": "https://daas.utah.gov/long-term-care-ombudsman/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
     },
     {
       "id": "ut-aging-waiver",

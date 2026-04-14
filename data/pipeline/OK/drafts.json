@@ -1,9 +1,9 @@
 {
   "state": "OK",
   "stateName": "Oklahoma",
-  "draftedAt": "2026-04-13T21:50:19.561Z",
+  "draftedAt": "2026-04-13T22:29:50.220Z",
   "total": 13,
-  "successful": 11,
+  "successful": 13,
   "programs": [
     {
       "id": "ok-medicaid-soonercare",
@@ -574,12 +574,462 @@
       "draftedAt": "2026-04-13"
     },
     {
+      "id": "ok-medicare-savings-programs",
       "name": "Medicare Savings Programs (QMB, SLMB, QI)",
-      "_error": "batch: canceled"
+      "shortName": "Medicare Savings Programs",
+      "tagline": "If your parent's monthly income is below $1,660, Oklahoma may pay their Medicare premiums and reduce their out-of-pocket costs.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local OKDHS Human Services Centers (statewide network)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent struggles to afford Medicare premiums, deductibles, or coinsurance, Oklahoma's Medicare Savings Programs can help. These three programs — QMB, SLMB, and QI — pay different levels of Medicare costs based on income. QMB covers the most (all Medicare Part A and B costs), while SLMB and QI cover Medicare Part B premiums only.\n\nOklahoma uses stricter income limits than many states. Monthly limits range from $1,235 for QMB up to $1,660 for QI (single person). Your parent must also have assets below $9,090 (single) or $13,630 (married couple). Because QI has limited funding and works first-come, first-served, apply early in the year if your parent qualifies.\n\nAll three programs automatically qualify your parent for Extra Help with prescription drug costs. Apply through your local OKDHS Human Services Center — you cannot apply through Medicare directly.",
+      "savingsRange": "$200 – $2,400/year in 2026",
+      "savingsSource": "Medicare Part B premium savings plus potential deductible and coinsurance coverage",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Must have Medicare Part A",
+          "Monthly income below $1,660 (single)",
+          "Assets below $9,090 (single)",
+          "Oklahoma resident",
+          "U.S. citizen or qualified immigrant"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1235,
+            "program": "QMB"
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 1663,
+            "program": "QMB"
+          },
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1478,
+            "program": "SLMB"
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 1992,
+            "program": "SLMB"
+          },
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1660,
+            "program": "QI"
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2239,
+            "program": "QI"
+          }
+        ],
+        "assetLimits": {
+          "individual": 9090,
+          "couple": 13630,
+          "countedAssets": [
+            "Cash",
+            "Bank accounts",
+            "Stocks and bonds",
+            "Investment accounts"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "One car",
+            "Personal belongings",
+            "Burial plots",
+            "Pre-need burial contracts"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be eligible for Medicare Part A (even if not enrolled for QMB)",
+          "Must have Medicare Part A and B for SLMB and QI",
+          "QI applicants cannot be eligible for other Medicaid programs"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "in-person",
+        "summary": "Apply at your local OKDHS Human Services Center — processing time varies by office and QI has limited annual funding.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local OKDHS office",
+            "description": "Call 405-521-3646 or visit oklahoma.gov/okdhs to find your nearest Human Services Center. Each county has at least one office."
+          },
+          {
+            "step": 2,
+            "title": "Gather required documents",
+            "description": "Collect proof of income, assets, Medicare card, and residency. Missing documents are the most common cause of delays."
+          },
+          {
+            "step": 3,
+            "title": "Submit application in person or by phone",
+            "description": "Visit your local office or call to apply. Request Appendix C-1 Schedule VI for QMB, VII for SLMB, or VII.a for QI."
+          },
+          {
+            "step": 4,
+            "title": "Wait for processing",
+            "description": "OKDHS will review your application and contact you if additional information is needed. QI applications are processed first-come, first-served due to limited funding."
+          }
+        ],
+        "processingTime": "Varies by office — contact your local OKDHS center for current processing times",
+        "waitlist": "QI has first-come, first-served processing with priority to prior-year recipients — limited funds may create waitlist",
+        "tip": "Apply early in the year for QI since funding is limited and distributed first-come, first-served.",
+        "urls": [
+          {
+            "label": "Find OKDHS Office",
+            "url": "https://oklahoma.gov/okdhs"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Medicare card (both parts)",
+        "Social Security cards for all household members",
+        "Most recent Social Security award letter or pension statements",
+        "Pay stubs from the last 30 days (if still working)",
+        "Bank statements for all accounts (last 3 months)",
+        "Investment documents (stocks, bonds, annuities)",
+        "Life insurance policies with cash values",
+        "Vehicle titles and registration",
+        "Burial plot deeds or pre-need burial contracts",
+        "Proof of Oklahoma residency (utility bill or lease)",
+        "Birth certificate or other proof of age",
+        "Proof of citizenship or qualified immigrant status"
+      ],
+      "contacts": [
+        {
+          "label": "OKDHS Main Line",
+          "phone": "(405) 521-3646",
+          "description": "Find your nearest Human Services Center",
+          "hours": "Mon-Fri 8am-5pm CT"
+        },
+        {
+          "label": "Oklahoma 2-1-1",
+          "phone": "2-1-1",
+          "description": "Free helpline for all social services and benefits",
+          "hours": "24 hours, 7 days a week"
+        }
+      ],
+      "applicationNotes": [
+        "Income limits update every April 1 — verify current amounts with OKDHS when applying",
+        "Oklahoma uses stricter income limits than federal baselines, so you may not qualify even if eligible in other states",
+        "QI requires annual reapplication and excludes those eligible for other Medicaid programs",
+        "You must apply through Oklahoma's Medicaid agency (OKDHS), not Medicare directly"
+      ],
+      "relatedPrograms": [
+        "Extra Help (Medicare Part D prescription assistance)",
+        "Oklahoma SoonerCare (Medicaid)",
+        "SNAP Food Benefits",
+        "LIHEAP Energy Assistance"
+      ],
+      "contentSections": [
+        {
+          "type": "comparison-table",
+          "title": "Program Comparison: QMB vs. SLMB vs. QI",
+          "content": {
+            "headers": [
+              "Program",
+              "Income Limit (Single)",
+              "Income Limit (Couple)",
+              "What It Covers"
+            ],
+            "rows": [
+              [
+                "QMB",
+                "$1,235/month",
+                "$1,663/month",
+                "All Medicare Part A and B costs (premiums, deductibles, coinsurance)"
+              ],
+              [
+                "SLMB",
+                "Up to $1,478/month",
+                "Up to $1,992/month",
+                "Medicare Part B premiums only"
+              ],
+              [
+                "QI",
+                "Up to $1,660/month",
+                "Up to $2,239/month",
+                "Medicare Part B premiums only (limited funding)"
+              ]
+            ]
+          }
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if it's worth more than the asset limit?",
+          "answer": "Yes, the primary home is exempt from the $9,090 asset limit regardless of value. Only countable assets like bank accounts, stocks, and investment accounts are included in the limit."
+        },
+        {
+          "question": "What's the real difference between SLMB and QI if they both just pay Part B premiums?",
+          "answer": "The main difference is funding and income limits. SLMB has guaranteed funding for all who qualify up to $1,478/month income. QI covers higher incomes (up to $1,660/month) but has limited funding distributed first-come, first-served each year."
+        },
+        {
+          "question": "Can I apply for my parent if they have dementia?",
+          "answer": "Yes, family members can apply on behalf of elderly parents. You may need to provide documentation of your authority to act for them, such as power of attorney. Contact your local OKDHS office about specific requirements."
+        },
+        {
+          "question": "What happens if my parent's income goes up after they're enrolled?",
+          "answer": "You must report income changes to OKDHS. If income exceeds the limits, your parent may lose coverage or move to a different program tier. QMB recipients might move to SLMB, for example, if income rises above $1,235 but stays below $1,478."
+        },
+        {
+          "question": "Why are Oklahoma's income limits lower than what I see online for other states?",
+          "answer": "States can set their own limits within federal guidelines. Oklahoma uses stricter income limits than the federal baselines. Always verify with OKDHS rather than national websites, as Oklahoma-specific limits apply."
+        },
+        {
+          "question": "Can my parent apply for Medicare Savings Programs and SoonerCare at the same time?",
+          "answer": "Yes, you can apply for both through the same OKDHS application. However, QI applicants cannot be eligible for other Medicaid programs — if your parent qualifies for regular SoonerCare, they wouldn't be eligible for QI specifically."
+        },
+        {
+          "question": "How long does the Extra Help prescription coverage last once approved?",
+          "answer": "Extra Help is automatic and continuous as long as your parent remains enrolled in any Medicare Savings Program. They don't need to apply separately — it starts when their Medicare Savings Program begins."
+        },
+        {
+          "question": "What if my parent needs QI but applies late in the year when funding might be gone?",
+          "answer": "Apply anyway and ask to be put on the waiting list for the following year. Prior-year recipients get priority, but new applicants can still be approved if funding becomes available or is restored the next year."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "savings",
+        "eligibilityDisplay": "income-table",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "Money",
+      "phone": "(405) 521-3646",
+      "sourceUrl": "https://oklahoma.gov/okdhs/services/health/help.html",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
     },
     {
+      "id": "ok-snap-food-benefits",
       "name": "Supplemental Nutrition Assistance Program (SNAP)",
-      "_error": "batch: canceled"
+      "shortName": "SNAP Food Benefits",
+      "tagline": "Monthly grocery assistance for seniors 60+ on fixed incomes — potentially $100-400/month on an EBT card.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local Oklahoma Department of Human Services (OKDHS) offices statewide",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and struggling with grocery costs, SNAP provides monthly funds on an EBT card for food purchases. The amount depends on household size and income — a typical 2-person elderly household might receive $415/month after deductions, with a minimum of $24 for smaller households.\n\nSeniors get special advantages: they only need to meet the net income test (not gross), can deduct medical expenses over $35/month, and have higher asset limits. Because Oklahoma processes applications within 30 days (7 days if expedited), your parent could be getting food assistance within weeks of applying.\n\nThe EBT card works like a debit card at grocery stores for food purchases, but cannot be used for alcohol, tobacco, or hot prepared foods. All Social Security, pension, and other income counts, but medical expenses and housing costs are deducted from income calculations.",
+      "savingsRange": "$288 – $4,980/year in 2026",
+      "savingsSource": "Based on minimum $24/month benefit to typical elderly household benefit of $415/month",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Net income below $1,255/month (1 person)",
+          "Assets under $4,250",
+          "Oklahoma resident",
+          "U.S. citizen or qualified immigrant"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1255
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 1703
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 2151
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 2599
+          }
+        ],
+        "assetLimits": {
+          "individual": 4250,
+          "couple": 4250,
+          "countedAssets": [
+            "Cash",
+            "Bank accounts",
+            "Savings accounts"
+          ],
+          "exemptAssets": [
+            "Home and land",
+            "Retirement/pension plans",
+            "Household goods",
+            "Personal belongings"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "U.S. citizen or qualified non-citizen",
+          "Social Security number for all household members",
+          "Oklahoma residency",
+          "Household must buy/prepare food together"
+        ],
+        "povertyLevelReference": "100% FPL (net income)"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online at OKDHSLive! or call 1-877-760-0114 — takes about 20 minutes to start, with required interview within 30 days.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Start your application",
+            "description": "Apply online at OKDHSLive! (https://www.okdhslive.org/) or call 1-877-760-0114. The online application takes about 20 minutes to complete initial information."
+          },
+          {
+            "step": 2,
+            "title": "Gather required documents",
+            "description": "Collect proof of income (Social Security letters, pension statements), ID, Social Security cards, and medical expense receipts over $35/month for potential deductions."
+          },
+          {
+            "step": 3,
+            "title": "Submit documents",
+            "description": "Upload documents online through OKDHSLive!, mail to your local OKDHS office, or bring them to an in-person appointment."
+          },
+          {
+            "step": 4,
+            "title": "Complete required interview",
+            "description": "OKDHS will schedule a phone or in-person interview to review your application and verify information. This is mandatory for all applicants."
+          },
+          {
+            "step": 5,
+            "title": "Receive decision",
+            "description": "You'll get a decision within 30 days (or 7 days if you qualify for expedited processing due to very low income). If approved, your EBT card arrives by mail."
+          }
+        ],
+        "processingTime": "30 days for regular applications, 7 days for expedited processing if very low income",
+        "waitlist": null,
+        "tip": "Seniors 60+ should emphasize medical expenses over $35/month — these are deducted from income and can significantly increase your benefit amount.",
+        "urls": [
+          {
+            "label": "OKDHSLive! Online Application",
+            "url": "https://www.okdhslive.org/"
+          },
+          {
+            "label": "Oklahoma SNAP Information",
+            "url": "https://oklahoma.gov/okdhs/services/snap.html"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Social Security cards for all household members",
+        "Valid government-issued photo ID",
+        "Most recent Social Security award letter",
+        "Pension or retirement income statements (last 30 days)",
+        "Bank statements for all accounts (last 3 months)",
+        "Proof of Oklahoma residency (utility bill, lease, or state-issued document)",
+        "Medical expense receipts and bills (last 3 months if over $35/month)",
+        "Proof of rent or mortgage payments",
+        "Utility bills (electric, gas, water for standard utility deduction)",
+        "Health insurance premium statements",
+        "Proof of disability if applicable",
+        "Immigration documents if not U.S. citizen",
+        "Any other income documentation (rental income, interest, etc.)"
+      ],
+      "contacts": [
+        {
+          "label": "OKDHS SNAP Application Line",
+          "phone": "(877) 760-0114",
+          "description": "Apply by phone or get help with applications",
+          "hours": "Monday-Friday 8am-5pm CT"
+        },
+        {
+          "label": "Oklahoma 2-1-1",
+          "phone": "2-1-1",
+          "description": "Free 24/7 helpline for all social services and local OKDHS office locations",
+          "hours": "24 hours, 7 days a week"
+        },
+        {
+          "label": "SNAP Retailer Service Center",
+          "phone": "(877) 823-4369",
+          "description": "Questions about using your EBT card or finding stores that accept SNAP",
+          "hours": "Monday-Friday 6am-10pm CT, weekends 8am-6pm CT"
+        }
+      ],
+      "applicationNotes": [
+        "Expedited processing (7 days) is available if your household has less than $150 in monthly income and $100 or less in cash/bank accounts",
+        "Medical expenses over $35/month can be deducted from your income calculation — keep all receipts for copays, prescriptions, and health insurance premiums",
+        "If your parent lives with others but can't shop or cook for themselves due to disability or age 60+, they may qualify as a separate household",
+        "Changes in income or household size must be reported within 10 days to avoid overpayments that need to be repaid"
+      ],
+      "relatedPrograms": [
+        "Low Income Home Energy Assistance Program (LIHEAP)",
+        "Weatherization Assistance Program",
+        "Medicaid",
+        "Senior Farmers Market Nutrition Program"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent keep SNAP benefits if they move to assisted living?",
+          "answer": "Yes, if the assisted living facility doesn't provide meals or if your parent pays for their own food separately. They would need to report the address change within 10 days and their benefit amount might change based on new housing costs."
+        },
+        {
+          "question": "What happens if my parent's Social Security goes up — will they lose SNAP?",
+          "answer": "Not necessarily. Small Social Security increases are often offset by standard deductions and medical expenses. Report the change within 10 days — OKDHS will recalculate benefits and may reduce the amount rather than eliminate them entirely."
+        },
+        {
+          "question": "Can I apply for SNAP on behalf of my elderly parent who has dementia?",
+          "answer": "Yes, if you're their legal guardian or have power of attorney. You'll need to provide those legal documents with the application. If you don't have legal authority, your parent must apply themselves or you can help them apply as their representative during the interview."
+        },
+        {
+          "question": "Does money in a retirement account count toward the $4,250 asset limit?",
+          "answer": "No, 401(k)s, IRAs, and pension plans don't count as assets. However, any money your parent withdraws from these accounts does count as income in the month they withdraw it."
+        },
+        {
+          "question": "Can my parent use SNAP and get Meals on Wheels at the same time?",
+          "answer": "Yes, there's no conflict between SNAP benefits and Meals on Wheels. SNAP helps with grocery shopping while Meals on Wheels provides prepared meals — they serve different needs and can complement each other."
+        },
+        {
+          "question": "How long do SNAP benefits last once approved?",
+          "answer": "Elderly households (60+) typically get certified for 24 months before needing to reapply, compared to 12 months for other households. You'll receive a renewal notice about 30 days before your benefits expire."
+        },
+        {
+          "question": "What if the local OKDHS office says there's a wait for interviews?",
+          "answer": "By federal law, they must complete your interview within 30 days of application (7 days if expedited). If they can't meet this deadline, ask to speak with a supervisor or call the state SNAP hotline at (877) 760-0114 to escalate."
+        },
+        {
+          "question": "Can my parent shop online with their EBT card?",
+          "answer": "Yes, major retailers like Amazon, Walmart, and many grocery stores accept EBT cards for online grocery orders in Oklahoma. Delivery fees cannot be paid with SNAP benefits, but the groceries themselves can be."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "savings",
+        "eligibilityDisplay": "income-table",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "BowlFood",
+      "phone": "(877) 760-0114",
+      "sourceUrl": "https://oklahoma.gov/okdhs/services/snap.html",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
     },
     {
       "id": "ok-liheap-energy-assistance",

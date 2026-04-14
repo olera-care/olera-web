@@ -1,9 +1,9 @@
 {
   "state": "FL",
   "stateName": "Florida",
-  "draftedAt": "2026-04-13T21:50:19.525Z",
+  "draftedAt": "2026-04-13T22:29:50.193Z",
   "total": 14,
-  "successful": 13,
+  "successful": 14,
   "programs": [
     {
       "id": "fl-smmc-ltc-hcbs-waivers",
@@ -595,8 +595,191 @@
       "draftedAt": "2026-04-13"
     },
     {
+      "id": "fl-snap-food-benefits",
       "name": "SNAP (Supplemental Nutrition Assistance Program)",
-      "_error": "batch: canceled"
+      "shortName": "SNAP Food Benefits",
+      "tagline": "Up to $298/month for groceries if your parent is 60+ on a fixed income",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local DCF Service Centers (statewide; locator: https://www.myflfamilies.com/service-centers/)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and struggling with grocery costs, SNAP provides monthly benefits loaded onto an EBT card for food purchases. Maximum benefit: $298/month for a single person, $546 for two people. Because seniors get special treatment under SNAP rules, your parent only needs to meet the net income limit (after medical and housing deductions) — not the stricter gross income test that applies to younger households.\n\nThe program covers fruits, vegetables, meat, dairy, and grains but excludes hot prepared foods, alcohol, and tobacco. Benefits are calculated as the maximum allotment minus 30% of net income, so a single senior with $800/month net income would receive $298 - $240 = $58/month. Many eligible seniors miss out because they don't know about medical expense deductions — if your parent pays more than $35/month out-of-pocket for medical costs, this significantly lowers their countable income.",
+      "savingsRange": "$58 – $298/month in 2025",
+      "savingsSource": "Maximum SNAP allotments minus 30% of net income calculation",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Income below $1,255/month (net)",
+          "Florida resident",
+          "Assets under $4,500"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1255
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 1703
+          }
+        ],
+        "assetLimits": {
+          "individual": 4500,
+          "couple": 4500,
+          "countedAssets": [
+            "Bank accounts",
+            "Cash value of life insurance",
+            "Income-producing property"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "Household goods",
+            "Retirement savings (most)",
+            "One vehicle (often)",
+            "Personal property"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "U.S. citizen or qualified non-citizen",
+          "Florida resident",
+          "Social Security number or proof of application",
+          "Not fleeing felony warrant"
+        ],
+        "povertyLevelReference": "100% FPL (net income)"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online at ACCESS Florida or call 1-866-762-2237; typically processed within 30 days with required interview",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Submit application",
+            "description": "Apply online at ACCESS Florida (myflfamilies.com/service-programs/access/) or call 1-866-762-2237. You can also download form CF-EBT 1800 and mail to your local DCF office."
+          },
+          {
+            "step": 2,
+            "title": "Gather required documents",
+            "description": "Collect proof of identity, income statements (Social Security award letters, pension statements), medical bills over $35/month, and housing costs (rent/mortgage, utilities)."
+          },
+          {
+            "step": 3,
+            "title": "Complete phone interview",
+            "description": "DCF will schedule a required eligibility interview within 30 days. Be prepared to discuss household composition and expenses."
+          },
+          {
+            "step": 4,
+            "title": "Receive decision",
+            "description": "If approved, your EBT card arrives by mail within 7-10 days. Benefits are loaded monthly and can be used at grocery stores and farmers markets."
+          }
+        ],
+        "processingTime": "Typically 30 days; expedited processing if household has less than $150 gross monthly income and less than $100 cash",
+        "waitlist": null,
+        "tip": "Emphasize all medical expenses over $35/month during the interview — prescription costs, Medicare premiums, and out-of-pocket medical bills significantly reduce countable income for seniors",
+        "urls": [
+          {
+            "label": "ACCESS Florida Application",
+            "url": "https://www.myflfamilies.com/service-programs/access/"
+          },
+          {
+            "label": "Find Local DCF Office",
+            "url": "https://www.myflfamilies.com/service-centers/"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Valid government-issued photo ID (driver's license or state ID)",
+        "Social Security card for applicant and all household members",
+        "Most recent Social Security award letter",
+        "Pension or retirement income statements",
+        "Bank statements for all accounts (last 3 months)",
+        "Proof of Florida residency (utility bill, lease, or voter registration)",
+        "Medical bills and receipts for out-of-pocket expenses (last 3 months)",
+        "Medicare card and premium statements",
+        "Prescription receipts and pharmacy statements",
+        "Rent receipt or mortgage statement",
+        "Utility bills (electric, gas, water, phone)",
+        "Property tax statements if you own your home",
+        "Life insurance policies with cash values",
+        "Immigration documents if not a U.S. citizen"
+      ],
+      "contacts": [
+        {
+          "label": "ACCESS Florida Helpline",
+          "phone": "1-866-762-2237",
+          "description": "SNAP application assistance and case status",
+          "hours": "Mon-Fri 7am-6pm ET"
+        },
+        {
+          "label": "Florida 2-1-1",
+          "phone": "2-1-1",
+          "description": "General assistance finding food resources and social services",
+          "hours": "24 hours, 7 days a week"
+        }
+      ],
+      "applicationNotes": [
+        "Medical expense deductions are often overlooked — include Medicare premiums, prescription costs, dental bills, and any medical equipment over $35/month total",
+        "If your parent lives with family but buys and prepares food separately, they can apply as a one-person household with lower income limits",
+        "Expedited processing (within 7 days) is available for households with very low income and minimal cash on hand",
+        "Benefits can be used for online grocery purchases through Amazon and Walmart, and at participating farmers markets with bonus incentives"
+      ],
+      "relatedPrograms": [
+        "LIHEAP (Low Income Home Energy Assistance Program)",
+        "Medicaid",
+        "Extra Help (Medicare Part D prescription assistance)",
+        "Meals on Wheels"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent keep SNAP if they live in my house but don't pay rent?",
+          "answer": "Yes, if your parent buys and prepares food separately from your household. They can claim a standard shelter deduction even without paying rent. If they eat meals with your family regularly, they must be included in your household for SNAP purposes."
+        },
+        {
+          "question": "What if my parent's Social Security is $1,400/month — too high for the income limit?",
+          "answer": "They may still qualify because seniors get medical expense deductions. If your parent pays more than $35/month for Medicare premiums, prescriptions, or medical bills, this reduces their countable income. A $1,400 Social Security recipient paying $200/month in medical costs would have $1,200 net income — under the $1,255 limit."
+        },
+        {
+          "question": "Can I apply for SNAP on behalf of my elderly parent?",
+          "answer": "Yes, you can apply as an authorized representative if your parent signs form CF-EBT 2240 or provides written permission. You'll handle the application and interview process, but your parent must be available by phone during the eligibility interview."
+        },
+        {
+          "question": "How does owning a house affect SNAP eligibility?",
+          "answer": "The primary residence doesn't count toward the $4,500 asset limit, regardless of value. However, rental property or a second home does count as an asset. Property taxes and homeowner's insurance can be deducted as shelter costs, potentially lowering countable income."
+        },
+        {
+          "question": "What happens if my parent's income changes after approval?",
+          "answer": "Report income changes within 10 days if monthly income exceeds 130% of the poverty level ($1,626 for one person in 2025). Benefits are recalculated and may increase or decrease. Failure to report timely can result in overpayments that must be repaid."
+        },
+        {
+          "question": "Can my parent use SNAP and still get meals from a senior center?",
+          "answer": "Yes, congregate meals at senior centers don't affect SNAP eligibility or benefits. Many seniors use SNAP for groceries and attend senior center meals for social interaction. Both programs can be used simultaneously without conflict."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "savings",
+        "eligibilityDisplay": "income-table",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "BowlFood",
+      "phone": "1-866-762-2237",
+      "sourceUrl": "https://www.myflfamilies.com/services/public-assistance/supplemental-nutrition-assistance-program-snap/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
     },
     {
       "id": "fl-liheap-energy-assistance",

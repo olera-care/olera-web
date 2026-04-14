@@ -1,9 +1,9 @@
 {
   "state": "MN",
   "stateName": "Minnesota",
-  "draftedAt": "2026-04-13T21:50:19.546Z",
+  "draftedAt": "2026-04-13T22:29:50.210Z",
   "total": 13,
-  "successful": 12,
+  "successful": 13,
   "programs": [
     {
       "id": "mn-medical-assistance-medicaid",
@@ -1145,8 +1145,167 @@
       "draftedAt": "2026-04-13"
     },
     {
+      "id": "mn-senior-nutrition-meals-on-wheels",
       "name": "Senior Nutrition Program (Meals on Wheels)",
-      "_error": "batch: canceled"
+      "shortName": "Meals on Wheels",
+      "tagline": "Home-delivered meals up to 5 days a week for parents who can't cook or shop regularly.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Three Rivers CAP (southeast MN): (507) 316-0610",
+            "type": "service-area"
+          },
+          {
+            "name": "Meals on Wheels of Ramsey County",
+            "type": "service-area"
+          },
+          {
+            "name": "Otter Tail County Nutrition Assistance",
+            "type": "service-area"
+          },
+          {
+            "name": "43 congregate sites and Meals on Wheels in southeast MN via local services",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and struggles to prepare nutritious meals or get to the grocery store, Minnesota's Senior Nutrition Program delivers hot, fresh meals directly to their door. Your parent can receive home-delivered meals up to 5 days a week (Monday-Friday), with low-sodium options standard and diabetic meals available.\n\nBecause the program focuses on need rather than strict income limits, your parent won't be turned away due to inability to pay. The service includes daily safety checks by volunteers and one-on-one support from nutrition specialists. Spouses and caregivers may also qualify if caregiving prevents meal preparation.\n\nThe program operates through local providers across Minnesota, so availability and exact services vary by region. Some areas may not deliver outside city limits or to rural locations.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Unable to prepare hot meals regularly",
+          "Lives in provider service area",
+          "Not in facility that provides meals"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must be unable to prepare hot, nutritious meals regularly due to mobility or other challenges, or unable to drive to meal sites, restaurants, or grocery stores",
+        "otherRequirements": [
+          "Must be able to feed themselves or have someone available to assist",
+          "Must reside in the service area of the local provider",
+          "Cannot be living in a facility that provides meals"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your local provider directly — no universal application exists statewide.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local provider",
+            "description": "Contact varies by region: Three Rivers CAP serves southeast MN at (507) 316-0610 or (800) 277-8418. Meals on Wheels of Ramsey County serves the Twin Cities metro. Other areas served by local providers — call 2-1-1 to find yours."
+          },
+          {
+            "step": 2,
+            "title": "Complete intake assessment",
+            "description": "Provider will ask about your parent's ability to prepare meals, mobility challenges, and dietary needs. Some providers offer online enrollment while others handle everything by phone."
+          },
+          {
+            "step": 3,
+            "title": "Schedule delivery",
+            "description": "If approved, meals typically start within days to weeks depending on local capacity. Volunteers will conduct daily safety checks during delivery."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Have your parent's address, medical conditions, and dietary restrictions ready when you call.",
+        "urls": []
+      },
+      "documentsNeeded": [
+        "Valid photo ID or driver's license",
+        "Proof of address (utility bill or lease)",
+        "Information about medical conditions affecting meal preparation",
+        "List of dietary restrictions or special needs",
+        "Emergency contact information",
+        "Details about current living situation and mobility challenges"
+      ],
+      "contacts": [
+        {
+          "label": "Three Rivers CAP (Southeast MN)",
+          "phone": "(507) 316-0610",
+          "description": "Serves southeast Minnesota counties",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Three Rivers CAP Toll-Free",
+          "phone": "(800) 277-8418",
+          "description": "Southeast MN toll-free line",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Minnesota 2-1-1",
+          "phone": "2-1-1",
+          "description": "Find local Meals on Wheels providers statewide",
+          "hours": "24/7"
+        }
+      ],
+      "applicationNotes": [
+        "Rural residents outside city limits may face delivery restrictions — ask your local provider about service boundaries",
+        "Severe weather may cancel deliveries, so have backup meal options available",
+        "Donations are requested monthly but completely optional — no one is turned away for inability to pay",
+        "Some providers emphasize no turn-away policy while others may have capacity limits"
+      ],
+      "relatedPrograms": [
+        "SNAP (Food Support)",
+        "Senior Farmers Market Nutrition Program",
+        "Commodity Supplemental Food Program",
+        "Emergency Food Assistance Program"
+      ],
+      "contentSections": [
+        {
+          "type": "callout",
+          "title": "Service Area Restrictions",
+          "content": "Delivery may not be available outside city limits in rural areas. Contact your local provider to confirm they serve your parent's address before applying."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can I apply for my parent if they have dementia?",
+          "answer": "Yes, family members can apply on behalf of elderly parents who cannot manage the process themselves. You'll need to provide your parent's information and explain their inability to prepare meals. Some providers may require you to be present during the initial assessment."
+        },
+        {
+          "question": "What if my parent lives outside city limits in a rural area?",
+          "answer": "Delivery availability varies by provider and may not extend to rural areas outside city limits. Call your local provider first to confirm they serve your parent's address. If not available, family members or hired aides may need to handle meal delivery."
+        },
+        {
+          "question": "Can my parent get meals if they already receive SNAP benefits?",
+          "answer": "Yes, Meals on Wheels is separate from SNAP and your parent can receive both. SNAP benefits can even be used to pay for congregate meals at senior dining sites. The programs complement each other for comprehensive nutrition support."
+        },
+        {
+          "question": "What happens if my parent can't afford the suggested donation?",
+          "answer": "No one is turned away due to inability to pay. While providers request monthly donations to help sustain the program, donations are completely voluntary. The program is funded through the Older Americans Act regardless of individual contributions."
+        },
+        {
+          "question": "Are gluten-free or other special diet meals available?",
+          "answer": "Availability of gluten-free meals and menu customization varies by local provider. Low-sodium options are standard statewide, and diabetic meals are generally available. Ask your specific provider about accommodating other dietary needs when you apply."
+        },
+        {
+          "question": "How quickly can meal delivery start once approved?",
+          "answer": "Most providers can start delivery within days to weeks of approval, depending on local capacity and volunteer availability. Temporary needs like post-illness recovery are often accommodated quickly if eligibility criteria are met."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "warm"
+      },
+      "icon": "BowlFood",
+      "phone": "(507) 316-0610",
+      "sourceUrl": "https://mn.gov/dhs/people-we-serve/seniors/services/home-community/programs-and-services/senior-nutrition.jsp",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
     },
     {
       "id": "mn-family-adult-assistance-alternative-care-grants",

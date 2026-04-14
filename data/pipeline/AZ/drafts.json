@@ -1,9 +1,9 @@
 {
   "state": "AZ",
   "stateName": "Arizona",
-  "draftedAt": "2026-04-13T21:50:19.512Z",
+  "draftedAt": "2026-04-13T22:29:50.185Z",
   "total": 10,
-  "successful": 9,
+  "successful": 10,
   "programs": [
     {
       "id": "az-ahcccs-altcs",
@@ -1720,8 +1720,155 @@
       "draftedAt": "2026-04-13"
     },
     {
+      "id": "az-long-term-care-ombudsman",
       "name": "Arizona Long Term Care Ombudsman Program",
-      "_error": "batch: canceled"
+      "shortName": "Ombudsman Program",
+      "tagline": "Free advocate when your parent faces problems in their nursing home or assisted living facility.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Maricopa County Area Agency on Aging",
+            "type": "service-area"
+          },
+          {
+            "name": "Pima Council on Aging",
+            "type": "service-area"
+          },
+          {
+            "name": "NACOG (serving Apache, Coconino, Navajo, and Yavapai counties)",
+            "type": "service-area"
+          },
+          {
+            "name": "Navajo Nation Area Agency on Aging",
+            "type": "service-area"
+          },
+          {
+            "name": "Inter Tribal Council of Arizona",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent lives in a nursing home, assisted living facility, or adult day care in Arizona and faces abuse, neglect, poor care, or wrongful eviction, a Long Term Care Ombudsman can investigate and advocate for them at no cost. These trained advocates have legal authority to enter facilities, review records, and mediate disputes between residents and staff.\n\nThe program serves any resident in Arizona long-term care facilities including nursing homes, assisted living, hospice centers, adult day care, and adult foster care homes. Because ombudsmen must have your parent's consent before investigating complaints, the resident (not just family) must authorize action. Ombudsmen investigate complaints about medication errors, inadequate food quality, facility cleanliness, billing disputes, and violations of resident rights.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Resident of Arizona long-term care facility",
+          "No income or age limits",
+          "Includes nursing homes and assisted living"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be a resident of a long-term care facility in Arizona (nursing homes, hospice centers, adult day care, assisted living facilities, or adult foster care homes)",
+          "Resident must consent to ombudsman investigation or advocacy"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your regional Area Agency on Aging or the state ombudsman office directly — no application forms required.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call your regional office",
+            "description": "Contact your county's Area Agency on Aging: Maricopa County (602) 264-4357, Pima County (520) 790-7262, Northern Arizona counties (928) 213-5215, or Yavapai County (928) 649-3763."
+          },
+          {
+            "step": 2,
+            "title": "Describe the situation",
+            "description": "Explain the problem your parent is experiencing in their facility. The ombudsman will determine if they can investigate based on your parent's consent."
+          },
+          {
+            "step": 3,
+            "title": "Get resident consent",
+            "description": "Your parent must agree to the ombudsman's involvement before any investigation can begin. The ombudsman will explain their role and get verbal or written consent."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "If your parent is reluctant to speak up about facility problems, explain that ombudsmen are independent advocates, not facility staff, and their services are confidential.",
+        "urls": [
+          {
+            "label": "Arizona DES Long-Term Care Ombudsman",
+            "url": "https://des.az.gov/LTCOP"
+          }
+        ]
+      },
+      "documentsNeeded": null,
+      "contacts": [
+        {
+          "label": "Maricopa County Area Agency on Aging",
+          "phone": "(602) 264-4357",
+          "description": "Ombudsman services for Phoenix metro area",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Pima County (Pima Council on Aging)",
+          "phone": "(520) 790-7262",
+          "description": "Ombudsman services for Tucson area",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Northern Arizona NACOG",
+          "phone": "(928) 213-5215",
+          "description": "Apache, Coconino, and Navajo counties",
+          "hours": "Business hours"
+        },
+        {
+          "label": "State Ombudsman Program",
+          "phone": "(602) 542-6454",
+          "description": "Main state office for escalation or general questions",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Adult Protective Services",
+          "phone": "(877) 767-2385",
+          "description": "Report serious abuse or neglect of vulnerable adults",
+          "hours": "24 hours, 7 days a week"
+        }
+      ],
+      "applicationNotes": null,
+      "relatedPrograms": [
+        "Adult Protective Services",
+        "Arizona Area Agencies on Aging",
+        "Arizona ALTCS (Long-Term Care Services)"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can I call the ombudsman if my parent is afraid to complain about their facility?",
+          "answer": "The ombudsman can meet with your parent privately to explain their rights and the complaint process, but they cannot investigate without your parent's consent. Many residents feel more comfortable speaking up once they understand that ombudsmen are independent advocates, not facility employees, and that retaliation against residents for filing complaints is illegal."
+        },
+        {
+          "question": "What if the regional ombudsman doesn't resolve our problem?",
+          "answer": "You can escalate to the DES oversight office at (602) 542-6446. For serious abuse or neglect, also contact Adult Protective Services at (877) 767-2385. If the issue involves Medicaid billing or services, contact the Arizona Health Care Cost Containment System (AHCCCS)."
+        },
+        {
+          "question": "Can the ombudsman help if the facility wants to evict my parent?",
+          "answer": "Yes, ombudsmen investigate inappropriate evictions and can advocate for proper notice and due process. Arizona law requires 30-day written notice for most evictions from assisted living facilities, and nursing homes must follow federal discharge planning requirements. The ombudsman can ensure the facility follows proper procedures."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": false,
+        "visualTone": "minimal"
+      },
+      "icon": "Scales",
+      "phone": "(602) 542-6454",
+      "sourceUrl": "https://des.az.gov/LTCOP",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
     }
   ],
   "stateOverview": {

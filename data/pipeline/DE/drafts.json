@@ -1,9 +1,9 @@
 {
   "state": "DE",
   "stateName": "Delaware",
-  "draftedAt": "2026-04-13T21:50:19.523Z",
+  "draftedAt": "2026-04-13T22:29:50.191Z",
   "total": 12,
-  "successful": 11,
+  "successful": 12,
   "programs": [
     {
       "id": "de-diamond-state-health-plan",
@@ -182,8 +182,187 @@
       "draftedAt": "2026-04-13"
     },
     {
+      "id": "de-dsaapd-waivers",
       "name": "Division of Services for Aging and Adults with Physical Disabilities (DSAAPD) Waivers",
-      "_error": "batch: canceled"
+      "shortName": "DSAAPD Waivers",
+      "tagline": "Home care services that let your parent avoid nursing home placement while getting daily help with bathing, dressing, and mobility.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Delaware Aging & Disability Resource Center (ADRC)",
+            "type": "service-area"
+          },
+          {
+            "name": "Joining Generations",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs nursing home-level care but wants to stay in their own home, Delaware's DSAAPD waivers can provide personal care services, case management, and assistive devices — all covered by Medicaid. Your parent gets help with daily activities like bathing, dressing, toileting, and medication management from trained caregivers who come to their home.\n\nBecause this is a Medicaid waiver program, your parent must first qualify for Medicaid and meet nursing home level of care requirements (needing daily help with multiple activities of daily living). The program covers Delaware residents age 60+ or younger adults 18-59 who meet stricter financial and medical criteria. Services include personal care attendants, respite care for family caregivers, assistive devices like shower chairs and ramps, and case management to coordinate all care.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+ (or 18-59 with stricter criteria)",
+          "Medicaid eligible",
+          "Needs nursing home level of care",
+          "Delaware resident living at home"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 2000,
+          "couple": null,
+          "countedAssets": [
+            "Bank accounts",
+            "CDs",
+            "Property other than residence",
+            "Whole life insurance",
+            "401K accounts"
+          ],
+          "exemptAssets": [
+            "Primary residence"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "Must need nursing home level of care (requiring daily assistance with activities like bathing, dressing, mobility, toileting, feeding, or health maintenance)",
+        "otherRequirements": [
+          "Delaware resident living in own home or apartment",
+          "Medicaid eligible",
+          "Functionally impaired with physical disabilities"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call 800-223-9074 for intake — processing time varies but you must qualify for Medicaid first.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call DSAAPD intake line",
+            "description": "Call 800-223-9074 (DSAAPD or Joining Generations) to start the referral process through Delaware's Aging & Disability Resource Center."
+          },
+          {
+            "step": 2,
+            "title": "Apply for Medicaid",
+            "description": "Complete Medicaid application since waiver eligibility requires Medicaid qualification — this is handled through Division of Medicaid and Medical Assistance (DMMA)."
+          },
+          {
+            "step": 3,
+            "title": "Clinical assessment",
+            "description": "Undergo functional assessment to determine if your parent meets nursing home level of care requirements for activities like bathing, dressing, and mobility."
+          },
+          {
+            "step": 4,
+            "title": "Service planning",
+            "description": "Work with case manager to develop care plan and arrange personal care attendants, assistive devices, and other covered services."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Start the Medicaid application process early — waiver services can't begin until Medicaid eligibility is confirmed.",
+        "urls": [
+          {
+            "label": "DSAAPD Official Site",
+            "url": "https://www.dhss.delaware.gov/dsaapd"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Social Security cards for all household members",
+        "Medicare card (both parts)",
+        "Proof of Delaware residency (utility bill, lease, or state-issued document)",
+        "Most recent Social Security award letter",
+        "Pension or retirement income statements",
+        "Bank statements for all accounts (last 3 months)",
+        "Investment documents (stocks, bonds, annuities)",
+        "Property documents (deeds, tax statements)",
+        "Life insurance policies with face values",
+        "Vehicle titles and registration",
+        "Medical records documenting functional impairments",
+        "Physician documentation of need for daily care assistance",
+        "Documentation of current medical conditions and medications",
+        "Proof of any irrevocable trusts if assets exceed limits"
+      ],
+      "contacts": [
+        {
+          "label": "DSAAPD Intake Line",
+          "phone": "(800) 223-9074",
+          "description": "Primary number for waiver program information and referrals",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Delaware Aging & Disability Resource Center",
+          "phone": "(800) 223-9074",
+          "description": "Statewide referral and information center",
+          "hours": "Business hours"
+        }
+      ],
+      "applicationNotes": [
+        "Ages 18-59 face stricter financial and medical criteria than applicants 60 and older",
+        "If assets exceed $2,000, you may need to establish an irrevocable trust before qualifying",
+        "Different waivers available (Elderly & Disabled, Assisted Living, Acquired Brain Injury) — intake will determine which fits your parent's needs",
+        "Assisted living waiver coverage requires the facility to be licensed and offer covered services"
+      ],
+      "relatedPrograms": [
+        "Delaware Medicaid",
+        "PACE (Program of All-Inclusive Care for the Elderly)",
+        "State Supplemental Payment Program",
+        "Delaware SNAP"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent apply if they're already in a nursing home?",
+          "answer": "The waiver is designed as an alternative to nursing home care, so your parent typically needs to be living in their own home or apartment. If they're currently in a facility, discuss transition planning with the intake coordinator."
+        },
+        {
+          "question": "What happens if my parent's assets are over the $2,000 limit?",
+          "answer": "Your parent may need to establish an irrevocable trust or spend down assets to qualify for Medicaid, which is required for waiver services. The intake team can refer you to specialists who help with Medicaid planning."
+        },
+        {
+          "question": "How many hours of personal care will my parent receive?",
+          "answer": "Service hours depend on your parent's individual care plan developed during the clinical assessment. The case manager determines the level of assistance needed based on functional limitations and safety requirements."
+        },
+        {
+          "question": "Can family members be paid as personal care attendants?",
+          "answer": "Policies on family member caregivers vary by waiver type and provider agency. Ask the case manager about whether spouses or adult children can receive payment for providing care services."
+        },
+        {
+          "question": "What if my parent needs more care than the waiver provides?",
+          "answer": "If your parent's needs increase beyond what home-based services can safely provide, the case manager will reassess and may recommend nursing home placement or other higher levels of care."
+        },
+        {
+          "question": "Does the waiver cover assisted living costs?",
+          "answer": "The Assisted Living Waiver can help cover costs at licensed assisted living facilities that provide covered services. Your parent must still meet all Medicaid and functional eligibility requirements."
+        },
+        {
+          "question": "Can I apply for DSAAPD waivers and PACE at the same time?",
+          "answer": "No — these are different Medicaid programs that serve similar populations. The intake coordinator will help determine which program best fits your parent's needs and preferences."
+        },
+        {
+          "question": "What happens if we move out of Delaware?",
+          "answer": "DSAAPD waivers only serve Delaware residents. If you move, you'll need to apply for similar waiver programs in your new state, though eligibility rules and services may differ significantly."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "asset-focused",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": false,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "House",
+      "phone": "(800) 223-9074",
+      "sourceUrl": "https://www.dhss.delaware.gov/dsaapd",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
     },
     {
       "id": "de-pace-comprehensive-care",

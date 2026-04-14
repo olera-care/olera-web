@@ -1,13 +1,181 @@
 {
   "state": "KY",
   "stateName": "Kentucky",
-  "draftedAt": "2026-04-13T21:50:19.540Z",
+  "draftedAt": "2026-04-13T22:29:50.206Z",
   "total": 16,
-  "successful": 15,
+  "successful": 16,
   "programs": [
     {
+      "id": "ky-medicaid-long-term-care",
       "name": "Kentucky Medicaid",
-      "_error": "batch: canceled"
+      "shortName": "Kentucky Medicaid",
+      "tagline": "If your parent needs daily care help and has limited income, Medicaid can cover nursing home costs or home-based services.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "state"
+      },
+      "intro": "If your parent is 65+ and needs help with daily activities like bathing, dressing, or medication management, Kentucky Medicaid can cover the full cost of nursing home care or home-based services. This isn't regular Medicaid — it's specifically for long-term care when your parent needs significant daily assistance.\n\nKentucky Medicaid covers nursing home costs entirely, or provides home-based services like personal care, adult day care, meal delivery, and home modifications through waiver programs. Your parent can have income up to $2,982/month and assets up to $2,000 (with spousal protections allowing the community spouse to keep $31,584–$162,660 in assets).\n\nThe key requirement is proving Nursing Facility Level of Care — that your parent needs help with at least 3 activities of daily living or has cognitive issues like dementia. Home-based waiver services may have waitlists, but nursing home coverage is available immediately if a bed is open.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+",
+          "Income below $2,982/month",
+          "Assets below $2,000 (individual)",
+          "Needs help with 3+ daily activities",
+          "Kentucky resident"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 2000,
+          "couple": 4000,
+          "countedAssets": [
+            "Bank accounts",
+            "Investment accounts",
+            "Cash",
+            "Additional vehicles",
+            "Non-exempt property"
+          ],
+          "exemptAssets": [
+            "Primary home (if equity under $713,000)",
+            "One vehicle",
+            "Personal belongings",
+            "Burial plots and prepaid burial funds up to $1,500",
+            "Life insurance up to $1,500 face value"
+          ],
+          "homeEquityCap": 713000
+        },
+        "functionalRequirement": "Must need help with at least 3 activities of daily living (bathing, dressing, eating, toileting, transferring, continence) or have cognitive/behavioral issues like dementia requiring supervision",
+        "otherRequirements": [
+          "Kentucky resident",
+          "US citizen or qualified immigrant",
+          "Must pass Nursing Facility Level of Care assessment"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online at kynect.ky.gov or call 1-855-306-8959, then complete a medical assessment — takes 45-90 days total.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Start your application",
+            "description": "Apply online at kynect.ky.gov (use the prescreening tool first) or call 1-855-306-8959. You can also visit your local DCBS office — find locations at chfs.ky.gov."
+          },
+          {
+            "step": 2,
+            "title": "Submit required documents",
+            "description": "Gather income, asset, and medical documentation. Submit everything at once to avoid delays. Your local DCBS office can help with document requirements."
+          },
+          {
+            "step": 3,
+            "title": "Complete medical assessment",
+            "description": "Schedule the Nursing Facility Level of Care assessment through form HP-001A. This determines if your parent qualifies for long-term care services."
+          },
+          {
+            "step": 4,
+            "title": "Choose services if approved",
+            "description": "If approved, choose between nursing home care (immediate if bed available) or home-based waiver services (may have waitlist depending on your region)."
+          }
+        ],
+        "processingTime": "45-90 days typical, varies by completeness of application and assessment scheduling",
+        "waitlist": "Possible waitlist for home-based waiver services — varies by region and specific waiver program",
+        "tip": "If your parent's income exceeds $2,982/month, you'll need to set up a Qualified Income Trust (Miller Trust) — consult an elder law attorney before applying.",
+        "urls": [
+          {
+            "label": "Kentucky Medicaid Application",
+            "url": "https://kynect.ky.gov"
+          },
+          {
+            "label": "Find Local DCBS Office",
+            "url": "https://chfs.ky.gov"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Birth certificate or passport for proof of age and citizenship",
+        "Proof of Kentucky residency (utility bill, lease, or state-issued document)",
+        "Social Security award letters for all income sources",
+        "Bank statements for all accounts (last 3 months)",
+        "Investment account statements (stocks, bonds, annuities, trusts)",
+        "Property deeds and current tax assessments",
+        "Vehicle titles and current market value assessments",
+        "Life insurance policies with face values",
+        "Pre-need burial contracts or irrevocable burial trust documents",
+        "Medical records documenting functional limitations and care needs",
+        "Current medication list and prescribing physician information",
+        "Marriage certificate if applying with spouse",
+        "Power of attorney documents if someone else is applying"
+      ],
+      "contacts": [
+        {
+          "label": "Kynect Customer Service",
+          "phone": "(855) 306-8959",
+          "description": "Kentucky Medicaid applications and questions",
+          "hours": "Mon-Fri 7am-9pm, Sat 9am-4pm ET"
+        },
+        {
+          "label": "Kentucky 2-1-1",
+          "phone": "2-1-1",
+          "description": "Free helpline for all Kentucky social services and local DCBS offices",
+          "hours": "24 hours, 7 days a week"
+        }
+      ],
+      "applicationNotes": [
+        "The 60-month look-back period means any gifts or asset transfers in the past 5 years may create penalty periods — gather records of all transfers",
+        "Community spouse asset protection varies from $31,584 to $162,660 — higher amounts require a fair hearing but are often approved",
+        "Home-based waiver services are assessed one-at-a-time based on need, unlike nursing home care which provides comprehensive services immediately",
+        "Many families unknowingly spend down assets when they might already qualify — apply even if you think assets are too high"
+      ],
+      "relatedPrograms": [
+        "Kentucky SNAP (Food Benefits)",
+        "Kentucky Energy Assistance (LIHEAP)",
+        "Kentucky Medicare Savings Program",
+        "Area Agency on Aging Services"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if it's worth more than the $2,000 asset limit?",
+          "answer": "Yes, the primary home is exempt from asset limits as long as your parent intends to return and the home equity is under $713,000. Even if your parent moves to a nursing home, the house remains protected if there's intent to return or if a spouse, disabled child, or caregiver child lives there."
+        },
+        {
+          "question": "What if my parent's Social Security is $3,200/month — over the $2,982 limit?",
+          "answer": "Your parent can still qualify by setting up a Qualified Income Trust (also called a Miller Trust). The excess income ($218 in this case) goes into the trust, and your parent pays it toward their care costs. You'll need an elder law attorney to set this up properly."
+        },
+        {
+          "question": "How long is the waitlist for home-based services really?",
+          "answer": "Waitlist length varies significantly by region and specific waiver program — some areas have immediate openings while others may have several months' wait. Nursing home coverage is available immediately if a bed is open. Ask your DCBS office about current wait times in your area."
+        },
+        {
+          "question": "Can I apply for my parent if they have dementia and can't manage paperwork?",
+          "answer": "Yes, family members can apply on behalf of parents who cannot manage their own affairs. You'll need to provide documentation of your authority to act (power of attorney) or the state may require guardianship proceedings depending on your parent's capacity."
+        },
+        {
+          "question": "Will Medicaid take my parent's house after they die?",
+          "answer": "Kentucky may seek estate recovery from the home's value after death, but only after the surviving spouse dies and if no qualifying children live there. Many protections exist, and proper planning can minimize recovery. Consult an elder law attorney about estate recovery rules."
+        },
+        {
+          "question": "What's the difference between nursing home Medicaid and the waiver programs?",
+          "answer": "Nursing home Medicaid covers all care costs immediately if a bed is available. Waiver programs provide home-based services like personal care and adult day care, but you receive services one-at-a-time based on assessment, and there may be waitlists. Both require the same income and asset limits."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "asset-focused",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "warm"
+      },
+      "icon": "Bed",
+      "phone": "(855) 306-8959",
+      "sourceUrl": "https://kynect.ky.gov",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
     },
     {
       "id": "ky-hcbs-waivers",

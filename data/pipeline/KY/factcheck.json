@@ -1,0 +1,553 @@
+{
+  "state": "KY",
+  "stateName": "Kentucky",
+  "checkedAt": "2026-04-14T00:56:10.646Z",
+  "total": 16,
+  "skipped": 0,
+  "parseErrors": 0,
+  "errors": 1,
+  "programsWithFlags": 2,
+  "totalFlags": 3,
+  "highSeverityFlags": 0,
+  "programs": [
+    {
+      "programId": "ky-medicaid-long-term-care",
+      "programName": "Kentucky Medicaid",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 2000,
+        "assets_couple": 4000,
+        "phones": [
+          "8553068959",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 2000,
+        "assets_couple": 4000,
+        "phone": "8554596328",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": "https://www.kyelderlaw.com/important-numbers-for-kentucky-medicaid-2026/",
+          "phone": "https://khbe.ky.gov/Agents-kynectors/KynectorResources/OE.Brochure.2026.kynector.pdf"
+        },
+        "notes": "Asset limits from elder law site for LTC Medicaid; no .gov source found for assets; phone from state kynect brochure; no age req or income limits specified as no general test"
+      },
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "8553068959",
+            "211"
+          ],
+          "verifiedValue": "8554596328"
+        }
+      ],
+      "notes": "Asset limits from elder law site for LTC Medicaid; no .gov source found for assets; phone from state kynect brochure; no age req or income limits specified as no general test"
+    },
+    {
+      "programId": "ky-hcbs-waivers",
+      "programName": "Kentucky Home and Community-Based Services (HCBS) Waivers",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8553068959",
+          "8773150589",
+          "2707376082"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": 2982,
+        "income_2": null,
+        "assets_individual": 2000,
+        "assets_couple": 2000,
+        "phone": "8773150589",
+        "sources": {
+          "age": null,
+          "income": "https://www.medicaidplanningassistance.org/kentucky-home-community-waiver/",
+          "assets": "https://www.medicaidplanningassistance.org/kentucky-home-community-waiver/",
+          "phone": "https://chfs.ky.gov/agencies/dms/dca/pages/hcb-waiver.aspx"
+        },
+        "notes": "Kentucky operates multiple HCBS waivers with different eligibility criteria. Data provided is for the HCB (Home and Community Based) Waiver specifically, which serves elderly (65+) or disabled adults. No minimum age requirement exists for the HCB Waiver itself, but the program targets 65+ or disabled populations. Income limit is 300% of Federal Benefit Rate (2026: $2,982/month). Asset limit is $2,000 for single applicants; for couples, each spouse can have $2,000 but joint assets are considered. Phone number is for Department for Aging and Independent Living (DAIL), which co-operates the HCB waiver. Other Kentucky HCBS waivers (e.g., CHILD Waiver for under-21, DD waivers) have different eligibility criteria not fully detailed in search results."
+      },
+      "flags": [],
+      "notes": "Kentucky operates multiple HCBS waivers with different eligibility criteria. Data provided is for the HCB (Home and Community Based) Waiver specifically, which serves elderly (65+) or disabled adults. No minimum age requirement exists for the HCB Waiver itself, but the program targets 65+ or disabled populations. Income limit is 300% of Federal Benefit Rate (2026: $2,982/month). Asset limit is $2,000 for single applicants; for couples, each spouse can have $2,000 but joint assets are considered. Phone number is for Department for Aging and Independent Living (DAIL), which co-operates the HCB waiver. Other Kentucky HCBS waivers (e.g., CHILD Waiver for under-21, DD waivers) have different eligibility criteria not fully detailed in search results."
+    },
+    {
+      "programId": "kentucky-pace",
+      "programName": "Kentucky PACE",
+      "facts": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8008071301",
+          "5026767550",
+          "5025646930"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "5026767550",
+        "sources": {
+          "age": "https://chfs.ky.gov/agencies/dms/dca/Pages/pace.aspx",
+          "income": null,
+          "assets": null,
+          "phone": "https://chfs.ky.gov/agencies/dail/Pages/pace.aspx"
+        },
+        "notes": "No income or asset limits found in sources; PACE eligibility certified by state and focuses on nursing facility level of care, dual eligibility, and community residence. Age confirmed 55+ by official KY CHFS site."
+      },
+      "flags": [],
+      "notes": "No income or asset limits found in sources; PACE eligibility certified by state and focuses on nursing facility level of care, dual eligibility, and community residence. Age confirmed 55+ by official KY CHFS site."
+    },
+    {
+      "programId": "ky-medicare-savings-programs-qmb-slmb-qi",
+      "programName": "Kentucky Medicare Savings Programs (QMB, SLMB, QI)",
+      "facts": {
+        "age": null,
+        "income_1": 1325,
+        "income_2": 1783,
+        "assets_individual": 9660,
+        "assets_couple": 14470,
+        "phones": [
+          "8006334227"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 9090,
+        "assets_couple": 13630,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": "https://www.medicareresources.org/states/kentucky-guide-content/",
+          "assets": "https://www.medicareresources.org/states/kentucky-guide-content/",
+          "phone": null
+        },
+        "notes": "No single income limit applies; tiered by QMB ($1235/1, $1663/2), SLMB ($1478/1, $1992/2), QI ($1660/1, $2239/2) per non-.gov source citing federal limits. No 2026 KY-specific official limits or phone found; assets from federal limits."
+      },
+      "flags": [
+        {
+          "field": "assets_individual",
+          "severity": "medium",
+          "draftValue": 9660,
+          "verifiedValue": 9090,
+          "pctDiff": 5.9
+        },
+        {
+          "field": "assets_couple",
+          "severity": "medium",
+          "draftValue": 14470,
+          "verifiedValue": 13630,
+          "pctDiff": 5.8
+        }
+      ],
+      "notes": "No single income limit applies; tiered by QMB ($1235/1, $1663/2), SLMB ($1478/1, $1992/2), QI ($1660/1, $2239/2) per non-.gov source citing federal limits. No 2026 KY-specific official limits or phone found; assets from federal limits."
+    },
+    {
+      "programId": "ky-snap-food-benefits",
+      "programName": "SNAP (Supplemental Nutrition Assistance Program)",
+      "facts": {
+        "age": 60,
+        "income_1": 2608,
+        "income_2": 3526,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "18553068959",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8553068959",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://chfs.ky.gov/agencies/dcbs/dfs/nab/Pages/snap.aspx"
+        },
+        "notes": "No authoritative current 2026 income, asset, or age eligibility limits found in provided sources; official KY CHFS page lacks specific figures. Phone from official KY state site."
+      },
+      "flags": [],
+      "notes": "No authoritative current 2026 income, asset, or age eligibility limits found in provided sources; official KY CHFS page lacks specific figures. Phone from official KY state site."
+    },
+    {
+      "programId": "ky-energy-assistance-liheap",
+      "programName": "Kentucky Energy Assistance Program (LIHEAP)",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 2000,
+        "assets_couple": 2000,
+        "phones": [
+          "211",
+          "5025643703"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 2000,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": "https://chfs.ky.gov/agencies/dcbs/dfs/pdb/Pages/liheap.aspx",
+          "phone": null
+        },
+        "notes": "No separate asset limits specified for individual vs couple; standard $2000 liquid resources limit applies (higher exceptions noted); no single statewide phone number found, contact local agencies; data from official state site appears current for 2026"
+      },
+      "flags": [],
+      "notes": "No separate asset limits specified for individual vs couple; standard $2000 liquid resources limit applies (higher exceptions noted); no single statewide phone number found, contact local agencies; data from official state site appears current for 2026"
+    },
+    {
+      "programId": "ky-weatherization-assistance-program",
+      "programName": "Kentucky Weatherization Assistance Program",
+      "facts": {
+        "age": null,
+        "income_1": 2010,
+        "income_2": 2705,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "211",
+          "8595816607",
+          "6064050019"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No specific income limits, asset limits, age requirements, or single official statewide phone number found in sources; eligibility based on low-income guidelines referenced but not detailed on official KHC pages (e.g., https://www.kyhousing.org/Partners/Developers/Single-Family/Weatherization-Assistance/Pages/WAP-Eligibility.aspx); contact local Community Action Agencies"
+      },
+      "flags": [],
+      "notes": "No specific income limits, asset limits, age requirements, or single official statewide phone number found in sources; eligibility based on low-income guidelines referenced but not detailed on official KHC pages (e.g., https://www.kyhousing.org/Partners/Developers/Single-Family/Weatherization-Assistance/Pages/WAP-Eligibility.aspx); contact local Community Action Agencies"
+    },
+    {
+      "programId": "ky-ship-medicare-counseling",
+      "programName": "Kentucky State Health Insurance Assistance Program (SHIP)",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8772937447",
+          "5025646930",
+          "5022665571"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8772937447",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://www.cms.gov/contacts/state-health-insurance-assistance-program-ship/general-beneficiary-contact/1562081"
+        },
+        "notes": "SHIP has no age, income, or asset limits; open to Medicare beneficiaries, age 60+, disabled, families, caregivers"
+      },
+      "flags": [],
+      "notes": "SHIP has no age, income, or asset limits; open to Medicare beneficiaries, age 60+, disabled, families, caregivers"
+    },
+    {
+      "programId": "ky-meals-on-wheels",
+      "programName": "Kentucky Meals on Wheels",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8592831885",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://chfs.ky.gov/agencies/dail/Pages/nutrition.aspx",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "Program is officially 'Nutrition Program for the Elderly'; no income or asset limits found in sources; funding cuts noted for 2026 but program continues; no phone or application details in official sources"
+      },
+      "flags": [],
+      "notes": "Program is officially 'Nutrition Program for the Elderly'; no income or asset limits found in sources; funding cuts noted for 2026 but program continues; no phone or application details in official sources"
+    },
+    {
+      "programId": "ky-national-family-caregiver-support",
+      "programName": "National Family Caregiver Support Program / Kentucky Family Caregiver Program",
+      "facts": {
+        "age": null,
+        "income_1": 2128,
+        "income_2": 2878,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "211",
+          "5022665571",
+          "8592831885"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://prd.webapps.chfs.ky.gov/kyfaces/Kinship/NFCSP",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "NFCSP has no income or asset limits per official KY and federal sources; KFCP has 150% FPL income limit but query is for NFCSP/KFCP combined and no exact monthly USD values found"
+      },
+      "flags": [],
+      "notes": "NFCSP has no income or asset limits per official KY and federal sources; KFCP has 150% FPL income limit but query is for NFCSP/KFCP combined and no exact monthly USD values found"
+    },
+    {
+      "programId": "ky-senior-community-service-employment",
+      "programName": "Senior Community Service Employment Program (SCSEP)",
+      "facts": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8334397759",
+          "6067896517",
+          "8595816607",
+          "2706861607"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8334397759",
+        "sources": {
+          "age": "https://chfs.ky.gov/agencies/dail/Pages/scsep.aspx",
+          "income": "https://chfs.ky.gov/agencies/dail/Pages/scsep.aspx",
+          "assets": null,
+          "phone": "https://goodwillky.org/scsep/"
+        },
+        "notes": "No specific income dollar amounts or asset limits found; program specifies income at or below 125% poverty level. No statewide main phone; Goodwill KY phone provided as KY operator."
+      },
+      "flags": [],
+      "notes": "No specific income dollar amounts or asset limits found; program specifies income at or below 125% poverty level. No statewide main phone; Goodwill KY phone provided as KY operator."
+    },
+    {
+      "programId": "ky-legal-aid-seniors",
+      "programName": "Kentucky Legal Aid for Seniors",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8007821924",
+          "2707821924",
+          "5025841254",
+          "8594318200",
+          "8662775733"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No program named 'Kentucky Legal Aid for Seniors' found in sources; general legal aid programs like Legal Aid Society (yourlegalaid.org) have no age requirement and serve low-income (125-200% FPL) but no specific senior program with details identified"
+      },
+      "flags": [],
+      "notes": "No program named 'Kentucky Legal Aid for Seniors' found in sources; general legal aid programs like Legal Aid Society (yourlegalaid.org) have no age requirement and serve low-income (125-200% FPL) but no specific senior program with details identified"
+    },
+    {
+      "programId": "ky-long-term-care-ombudsman",
+      "programName": "Kentucky Long-Term Care Ombudsman Program",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8592779215",
+          "6068862374",
+          "8007372723"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://chfs.ky.gov/agencies/dail/Pages/ltcomb.aspx"
+        },
+        "notes": "Program has no age, income, or asset eligibility requirements; services free for long-term care residents statewide. No single statewide main phone found in official sources; contacts are district-specific."
+      },
+      "flags": [],
+      "notes": "Program has no age, income, or asset eligibility requirements; services free for long-term care residents statewide. No single statewide main phone found in official sources; contacts are district-specific."
+    },
+    {
+      "programId": "ky-hcb-waiver",
+      "programName": "Home and Community Based (HCB) Waiver",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8773150589",
+          "8553068959",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": 2982,
+        "income_2": 2982,
+        "assets_individual": 2000,
+        "assets_couple": 2000,
+        "phone": "8553068959",
+        "sources": {
+          "age": "https://www.medicaidplanningassistance.org/kentucky-home-community-waiver/[1]",
+          "income": "https://www.medicaidplanningassistance.org/kentucky-home-community-waiver/[1]",
+          "assets": "https://www.medicaidplanningassistance.org/kentucky-home-community-waiver/[1]",
+          "phone": "https://chfs.ky.gov/agencies/dms/dca/pages/hcb-waiver.aspx[2]"
+        },
+        "notes": "Age sourced from non-.gov citing official criteria (no strict minimum); values for 2026; phone for Medicaid application leading to HCB"
+      },
+      "flags": [],
+      "notes": "Age sourced from non-.gov citing official criteria (no strict minimum); values for 2026; phone for Medicaid application leading to HCB"
+    },
+    {
+      "programId": "ky-money-follows-person",
+      "programName": "Money Follows the Person (Kentucky Transitions)",
+      "error": "Perplexity 502: <!DOCTYPE html>\n<!--[if lt IE 7]> <html class=\"no-js ie6 oldie\" lang=\"en-US\"> <![endif]-->\n<!--[if IE 7]>    <html class=\"no-js ie7 oldie\" lang=\"en-US\"> <![endif]-->\n<!--[if IE 8]>    <html class=\"no-",
+      "flags": []
+    },
+    {
+      "programId": "ky-senior-meals-program",
+      "programName": "State-Funded Senior Meals Program",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8779250037",
+          "6067396349",
+          "6064744179",
+          "6064736244"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://chfs.ky.gov/agencies/dail/Pages/nutrition.aspx",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "Program appears to be Nutrition Program for the Elderly (state-funded); no income or asset limits found in sources; funded through 2026 with reallocations; contact via local Area Agencies on Aging"
+      },
+      "flags": [],
+      "notes": "Program appears to be Nutrition Program for the Elderly (state-funded); no income or asset limits found in sources; funded through 2026 with reallocations; contact via local Area Agencies on Aging"
+    }
+  ]
+}

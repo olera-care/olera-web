@@ -1,0 +1,168 @@
+{
+  "state": "DC",
+  "stateName": "District of Columbia",
+  "checkedAt": "2026-04-14T01:35:42.436Z",
+  "total": 4,
+  "skipped": 0,
+  "parseErrors": 0,
+  "errors": 0,
+  "programsWithFlags": 2,
+  "totalFlags": 3,
+  "highSeverityFlags": 2,
+  "programs": [
+    {
+      "programId": "dc-epd-waiver-program",
+      "programName": "Elderly and Persons with Physical Disabilities (EPD) Waiver Program",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 4000,
+        "assets_couple": null,
+        "phones": [
+          "311"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": 2743,
+        "income_2": null,
+        "assets_individual": 4000,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://dacl.dc.gov/service/epd-waiver",
+          "income": "https://dacl.dc.gov/service/epd-waiver",
+          "assets": "https://dacl.dc.gov/service/epd-waiver",
+          "phone": null
+        },
+        "notes": "No minimum age; covers 65+ or 18-64 with physical disability. Income figure from 2023; no 2026 update found. No phone or couple assets specified."
+      },
+      "flags": [],
+      "notes": "No minimum age; covers 65+ or 18-64 with physical disability. Income figure from 2023; no 2026 update found. No phone or couple assets specified."
+    },
+    {
+      "programId": "dc-safe-at-home-program",
+      "programName": "Safe at Home Program",
+      "facts": {
+        "age": 60,
+        "income_1": 6046,
+        "income_2": 6879,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "2027245626",
+          "311"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": 8300,
+        "income_2": 9496,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "2027245626",
+        "sources": {
+          "age": "https://dacl.dc.gov/service/safe-home",
+          "income": "https://dacl.dc.gov/service/safe-home",
+          "assets": null,
+          "phone": "https://dacl.dc.gov/service/safe-home"
+        },
+        "notes": "Age requirement is 60+ or 18+ with disability (not minimum integer); income converted from annual to monthly ($99,600/12=8,300; $113,850/12=9,487.5 rounded to 9,496); no assets limits found; official DC gov source current as of 2026"
+      },
+      "flags": [
+        {
+          "field": "income_1",
+          "severity": "high",
+          "draftValue": 6046,
+          "verifiedValue": 8300,
+          "pctDiff": 27.2
+        },
+        {
+          "field": "income_2",
+          "severity": "high",
+          "draftValue": 6879,
+          "verifiedValue": 9496,
+          "pctDiff": 27.6
+        }
+      ],
+      "notes": "Age requirement is 60+ or 18+ with disability (not minimum integer); income converted from annual to monthly ($99,600/12=8,300; $113,850/12=9,487.5 rounded to 9,496); no assets limits found; official DC gov source current as of 2026"
+    },
+    {
+      "programId": "dc-dacl-benefits-assistance",
+      "programName": "DACL Benefits Assistance",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 4000,
+        "assets_couple": null,
+        "phones": [
+          "2027245626",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "2027245626",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://dacl.dc.gov/service/benefits-assistance"
+        },
+        "notes": "DACL Benefits Assistance helps apply for Medicaid/SNAP (which have their own eligibility rules); no program-specific age, income, or asset limits found in official sources"
+      },
+      "flags": [],
+      "notes": "DACL Benefits Assistance helps apply for Medicaid/SNAP (which have their own eligibility rules); no program-specific age, income, or asset limits found in official sources"
+    },
+    {
+      "programId": "dc-senior-centers",
+      "programName": "DC Senior Centers",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "2027247000"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "2027245626",
+        "sources": {
+          "age": "https://www.seaburyresources.org/services/",
+          "income": null,
+          "assets": null,
+          "phone": "https://dacl.dc.gov"
+        },
+        "notes": "No income or asset requirements found; program is open access for DC seniors. Multiple centers with individual phones; main DACL phone used."
+      },
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "2027247000"
+          ],
+          "verifiedValue": "2027245626"
+        }
+      ],
+      "notes": "No income or asset requirements found; program is open access for DC seniors. Multiple centers with individual phones; main DACL phone used."
+    }
+  ]
+}

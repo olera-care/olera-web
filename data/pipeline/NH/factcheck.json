@@ -1,0 +1,612 @@
+{
+  "state": "NH",
+  "stateName": "New Hampshire",
+  "checkedAt": "2026-04-14T01:00:22.604Z",
+  "total": 18,
+  "skipped": 0,
+  "parseErrors": 0,
+  "errors": 0,
+  "programsWithFlags": 1,
+  "totalFlags": 2,
+  "highSeverityFlags": 2,
+  "programs": [
+    {
+      "programId": "nh-medicaid-aged-blind-disabled",
+      "programName": "Medicaid for Aged, Blind, Disabled (ABD)",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 7500,
+        "assets_couple": null,
+        "phones": [
+          "8008523345",
+          "8003182596"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "18008523345",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://www.healthinsurance.org/medicaid/new-hampshire/"
+        },
+        "notes": "No official .gov source found for ABD program details including age, income, or assets; non-gov sources provide conflicting or LTC-specific data. Phone from reliable source citing state application process."
+      },
+      "flags": [],
+      "notes": "No official .gov source found for ABD program details including age, income, or assets; non-gov sources provide conflicting or LTC-specific data. Phone from reliable source citing state application process."
+    },
+    {
+      "programId": "nh-cfi-waiver",
+      "programName": "Choices for Independence (CFI) Waiver",
+      "facts": {
+        "age": 18,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "18666349412",
+          "6032719700",
+          "6035169300"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 18,
+        "income_1": 2901,
+        "income_2": 5802,
+        "assets_individual": 2500,
+        "assets_couple": 5000,
+        "phone": "8666349412",
+        "sources": {
+          "age": "https://www.medicaidplanningassistance.org/new-hampshire-choices-for-independence/",
+          "income": "https://www.medicaidplanningassistance.org/new-hampshire-choices-for-independence/",
+          "assets": "https://www.medicaidplanningassistance.org/new-hampshire-choices-for-independence/",
+          "phone": "https://nhcare-c.org/choices-for-independence/"
+        },
+        "notes": "All values are from 2025 per source [1]; no 2026 updates found. Age requirement is 18-64 with disability OR 65+. Income limits shown are individual ($2,901/month) and couple both applicants ($5,802/month). Phone number is Aging and Disability Resource Center (ADRC) per source [4]. Program remains active as of search results."
+      },
+      "flags": [],
+      "notes": "All values are from 2025 per source [1]; no 2026 updates found. Age requirement is 18-64 with disability OR 65+. Income limits shown are individual ($2,901/month) and couple both applicants ($5,802/month). Phone number is Aging and Disability Resource Center (ADRC) per source [4]. Program remains active as of search results."
+    },
+    {
+      "programId": "nh-pace-comprehensive-care",
+      "programName": "NH PACE (Program of All-Inclusive Care for the Elderly)",
+      "facts": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "6032719389",
+          "8666349412",
+          "1800"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://www.cms.gov/medicare/medicaid-coordination/about/pace",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No PACE program operating in New Hampshire as of 2026 per authoritative sources; age is federal standard. No NH-specific .gov or state agency source found for program details; no income/assets/phone available."
+      },
+      "flags": [],
+      "notes": "No PACE program operating in New Hampshire as of 2026 per authoritative sources; age is federal standard. No NH-specific .gov or state agency source found for program details; no income/assets/phone available."
+    },
+    {
+      "programId": "nh-medicare-savings-programs",
+      "programName": "Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), Qualified Individual (QI/SLMB-135)",
+      "facts": {
+        "age": null,
+        "income_1": 1660,
+        "income_2": 2239,
+        "assets_individual": 9090,
+        "assets_couple": 13630,
+        "phones": [
+          "8006334227"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": 1235,
+        "income_2": 1663,
+        "assets_individual": 9090,
+        "assets_couple": 13630,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": "https://www.medicareresources.org/states/new-hampshire-guide-content/",
+          "assets": "https://www.medicareresources.org/states/new-hampshire-guide-content/",
+          "phone": null
+        },
+        "notes": "Values from nonprofit source specific to NH; unclear if current for 2026 as federal FPL updates annually; no official NH .gov or CMS 2026 limits found; QI/SLMB-135 has separate higher limits of 1660/2239"
+      },
+      "flags": [
+        {
+          "field": "income_1",
+          "severity": "high",
+          "draftValue": 1660,
+          "verifiedValue": 1235,
+          "pctDiff": 25.6
+        },
+        {
+          "field": "income_2",
+          "severity": "high",
+          "draftValue": 2239,
+          "verifiedValue": 1663,
+          "pctDiff": 25.7
+        }
+      ],
+      "notes": "Values from nonprofit source specific to NH; unclear if current for 2026 as federal FPL updates annually; no official NH .gov or CMS 2026 limits found; QI/SLMB-135 has separate higher limits of 1660/2239"
+    },
+    {
+      "programId": "nh-snap-food-benefits",
+      "programName": "SNAP (Supplemental Nutrition Assistance Program)",
+      "facts": {
+        "age": 60,
+        "income_1": 2608,
+        "income_2": 3526,
+        "assets_individual": 4500,
+        "assets_couple": 4500,
+        "phones": [
+          "8773477627",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": [
+        3
+      ],
+      "flags": [],
+      "notes": null
+    },
+    {
+      "programId": "nh-liheap-energy-assistance",
+      "programName": "LIHEAP (Low-Income Home Energy Assistance Program)",
+      "facts": {
+        "age": null,
+        "income_1": 3967,
+        "income_2": 5187,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "6032230043",
+          "6034363896",
+          "6034352500",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": 3967,
+        "income_2": 5187,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": "https://www.snapscreener.com/liheap/new-hampshire",
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No statewide phone number found; contact local agencies. Income limits from 2025-2026 program year sources citing 60% NH state median income."
+      },
+      "flags": [],
+      "notes": "No statewide phone number found; contact local agencies. Income limits from 2025-2026 program year sources citing 60% NH state median income."
+    },
+    {
+      "programId": "nh-weatherization-assistance-program",
+      "programName": "Weatherization Assistance Program (WAP)",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "6034352500",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "6034352500",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://straffordcap.org/weatherization-assistance-program/"
+        },
+        "notes": "Phone number found for Strafford County CAP (one local administrator). Search results do not contain official eligibility thresholds (age, income limits, asset limits) for NH WAP. Results indicate eligibility varies by local Community Action Agency and that income guidelines exist but specific thresholds are not provided in retrieved sources. NH Department of Energy administers the program statewide; direct contact with state agency or review of official NH DOE WAP documentation would be needed for current eligibility criteria and primary state phone number."
+      },
+      "flags": [],
+      "notes": "Phone number found for Strafford County CAP (one local administrator). Search results do not contain official eligibility thresholds (age, income limits, asset limits) for NH WAP. Results indicate eligibility varies by local Community Action Agency and that income guidelines exist but specific thresholds are not provided in retrieved sources. NH Department of Energy administers the program statewide; direct contact with state agency or review of official NH DOE WAP documentation would be needed for current eligibility criteria and primary state phone number."
+    },
+    {
+      "programId": "nh-ship-medicare-counseling",
+      "programName": "SHIP (State Health Insurance Assistance Program)",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "18666349412"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8666349412",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://www.shiphelp.org/ships/new-hampshire/,https://www.cms.gov/contacts/nh-ship-servicelink-resource-center/general-beneficiary-contact/1562141"
+        },
+        "notes": "SHIP has no age, income, or asset limits; it provides free counseling to Medicare-eligible individuals. Phone confirmed from multiple sources including CMS."
+      },
+      "flags": [],
+      "notes": "SHIP has no age, income, or asset limits; it provides free counseling to Medicare-eligible individuals. Phone confirmed from multiple sources including CMS."
+    },
+    {
+      "programId": "nh-meals-on-wheels",
+      "programName": "Meals on Wheels (Elderly Nutrition Program)",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://capbm.org/Meals-On-Wheels",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No statewide uniform eligibility or central phone; varies by local provider. No income/assets limits found for 60+; donation-based. No .gov sources in results."
+      },
+      "flags": [],
+      "notes": "No statewide uniform eligibility or central phone; varies by local provider. No income/assets limits found for 60+; donation-based. No .gov sources in results."
+    },
+    {
+      "programId": "nh-family-caregiver-support",
+      "programName": "Family Caregiver Support Program",
+      "facts": {
+        "age": 18,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8666349412",
+          "6032289680",
+          "8008263700"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 18,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8666349412",
+        "sources": {
+          "age": "https://www.caregiver.org/connecting-caregivers/services-by-state/new-hampshire/",
+          "income": null,
+          "assets": null,
+          "phone": "https://nhfv.org/resources/the-nh-family-caregiver-support-program/"
+        },
+        "notes": "No income or asset limits found in sources; program eligibility appears not means-tested. Age from nonprofit citing state program."
+      },
+      "flags": [],
+      "notes": "No income or asset limits found in sources; program eligibility appears not means-tested. Age from nonprofit citing state program."
+    },
+    {
+      "programId": "nh-scsep-employment",
+      "programName": "SCSEP (Senior Community Service Employment Program)",
+      "facts": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8778725627",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://a4td.org/wp-content/uploads/2026/03/New-Hampshire-Press-Release.pdf",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No income, assets, or phone found in sources; A4TD nonprofit operates NH SCSEP as of March 2026 per their press release citing federal grant"
+      },
+      "flags": [],
+      "notes": "No income, assets, or phone found in sources; A4TD nonprofit operates NH SCSEP as of March 2026 per their press release citing federal grant"
+    },
+    {
+      "programId": "nh-legal-assistance-seniors",
+      "programName": "Legal Assistance for Older Adults",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "18883539944",
+          "18006395290",
+          "711"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "18883539944",
+        "sources": {
+          "age": "https://www.603legalaid.org/nhlas-justice-in-aging-project",
+          "income": null,
+          "assets": null,
+          "phone": "https://static1.1.sqspcdn.com/static/f/995823/22610779/1367587806667/Senior+Law+Project+Brochure.pdf?token=XcTQuLxAMdY37izXtTSm7MTxVk4%3D"
+        },
+        "notes": "Program appears to be NH Legal Assistance's Justice in Aging Project or Senior Law Project for age 60+; sources dated (2021, 2011); no current 2026 income/assets data found; general NHLA phone 8006395290 also listed but SLP-specific used"
+      },
+      "flags": [],
+      "notes": "Program appears to be NH Legal Assistance's Justice in Aging Project or Senior Law Project for age 60+; sources dated (2021, 2011); no current 2026 income/assets data found; general NHLA phone 8006395290 also listed but SLP-specific used"
+    },
+    {
+      "programId": "nh-long-term-care-ombudsman",
+      "programName": "Long-Term Care Ombudsman Program",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8004425640",
+          "6032714375"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8004425640",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://www.cms.gov/contacts/long-term-care-ombudsman-new-hampshire/general-beneficiary-contact/1553901"
+        },
+        "notes": "Program has no age, income, or asset eligibility tests; phone from official CMS .gov source"
+      },
+      "flags": [],
+      "notes": "Program has no age, income, or asset eligibility tests; phone from official CMS .gov source"
+    },
+    {
+      "programId": "nh-adult-day-services",
+      "programName": "Adult Day Services",
+      "facts": {
+        "age": 18,
+        "income_1": 2901,
+        "income_2": null,
+        "assets_individual": 2500,
+        "assets_couple": 157920,
+        "phones": [
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No authoritative data found on eligibility criteria (age, income, assets) or application phone number for Adult Day Services in NH as of 2026 from official .gov or cited sources in search results"
+      },
+      "flags": [],
+      "notes": "No authoritative data found on eligibility criteria (age, income, assets) or application phone number for Adult Day Services in NH as of 2026 from official .gov or cited sources in search results"
+    },
+    {
+      "programId": "nh-easterseals-in-home-care",
+      "programName": "Easterseals NH In-Home Care & Health Services",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "6038459318",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "6038459318",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://eastersealsnh.org/programs/senior-services/in-home-care-health-services/"
+        },
+        "notes": "Only phone number found in search results. No eligibility criteria (age, income, or asset limits) are specified in the provided sources. Search results do not contain .gov or state agency sources; all results are from Easterseals NH nonprofit organization website. To verify current eligibility requirements and confirm program details, direct contact via phone or official state agency sources would be necessary."
+      },
+      "flags": [],
+      "notes": "Only phone number found in search results. No eligibility criteria (age, income, or asset limits) are specified in the provided sources. Search results do not contain .gov or state agency sources; all results are from Easterseals NH nonprofit organization website. To verify current eligibility requirements and confirm program details, direct contact via phone or official state agency sources would be necessary."
+    },
+    {
+      "programId": "nh-caregiver-respite-volunteer-programs",
+      "programName": "Caregiver Respite and Senior Volunteer Programs",
+      "facts": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "18666349412"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://capbm.org/Senior-Companion",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No single unified 'Caregiver Respite and Senior Volunteer Programs' found with all eligibility details; AmeriCorps Senior Companion matches volunteer age 55+ and provides respite, but income guidelines unspecified and no phone; other programs like NH Family Caregiver Support (phone 8666349412) lack age/income details in results; no 2026 updates or .gov confirmation of income/assets."
+      },
+      "flags": [],
+      "notes": "No single unified 'Caregiver Respite and Senior Volunteer Programs' found with all eligibility details; AmeriCorps Senior Companion matches volunteer age 55+ and provides respite, but income guidelines unspecified and no phone; other programs like NH Family Caregiver Support (phone 8666349412) lack age/income details in results; no 2026 updates or .gov confirmation of income/assets."
+    },
+    {
+      "programId": "nh-americorps-senior-companion",
+      "programName": "AmeriCorps Senior Companion Program (NH)",
+      "facts": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "6032253295",
+          "18008565525",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 55,
+        "income_1": 25760,
+        "income_2": 34840,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "18008565525",
+        "sources": {
+          "age": "https://capbm.org/Senior-Companion",
+          "income": "https://www.manchesternh.gov/Departments/Senior-Services/AmeriCorps-Senior-Companion-Program",
+          "assets": null,
+          "phone": "https://www.manchesternh.gov/Departments/Senior-Services/AmeriCorps-Senior-Companion-Program"
+        },
+        "notes": "No assets test found; income from Manchester NH city site (local gov), may be outdated as of 2026"
+      },
+      "flags": [],
+      "notes": "No assets test found; income from Manchester NH city site (local gov), may be outdated as of 2026"
+    },
+    {
+      "programId": "nh-monadnock-at-home-community-services",
+      "programName": "Monadnock at Home Community Services",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "Program is a membership-based service for seniors with no stated age, income, or asset eligibility requirements in sources; no phone number or .gov sources found"
+      },
+      "flags": [],
+      "notes": "Program is a membership-based service for seniors with no stated age, income, or asset eligibility requirements in sources; no phone number or .gov sources found"
+    }
+  ]
+}

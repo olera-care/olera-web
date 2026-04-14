@@ -1,9 +1,9 @@
 {
   "state": "CO",
   "stateName": "Colorado",
-  "draftedAt": "2026-04-13T21:50:19.517Z",
+  "draftedAt": "2026-04-13T22:29:50.189Z",
   "total": 13,
-  "successful": 12,
+  "successful": 13,
   "programs": [
     {
       "id": "co-medicare-savings-programs",
@@ -1599,8 +1599,139 @@
       "draftedAt": "2026-04-13"
     },
     {
+      "id": "co-ltc-ombudsman",
       "name": "Long-Term Care Ombudsman Program",
-      "_error": "batch: canceled"
+      "shortName": "LTC Ombudsman",
+      "tagline": "Free advocacy if your parent is in a nursing home or assisted living and facing care problems, rights violations, or unsafe conditions.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "State: https://www.coombudsman.org",
+            "type": "service-area"
+          },
+          {
+            "name": "Boulder: Erica Corson, 303-441-1170",
+            "type": "service-area"
+          },
+          {
+            "name": "Pueblo: SRDA, 719-601-6282",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent lives in a Colorado nursing home or assisted living facility and faces quality of care issues, medication problems, abuse, or violations of their rights, the Long-Term Care Ombudsman provides free advocacy services. Ombudsmen visit nursing homes weekly and assisted living facilities at least twice monthly to investigate complaints and resolve problems.\n\nThe service is completely free with no income or asset requirements. Anyone can contact an ombudsman — family members, facility staff, or concerned individuals — but all interventions are resident-directed and confidential, meaning your parent must agree to the advocacy. Because ombudsmen specialize in facility regulations and resident rights, they can often resolve issues that families struggle with alone.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Parent lives in Colorado nursing home or assisted living",
+          "No income or asset limits",
+          "Free service",
+          "Available to families and residents"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Parent must reside in a licensed skilled nursing home or assisted living facility in Colorado"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call your local ombudsman office directly — no forms or applications needed, and you can get immediate help.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local ombudsman",
+            "description": "Visit coombudsman.org and use 'Find an Ombudsman' to locate your regional office, or call the state coordinator at 720-925-8609."
+          },
+          {
+            "step": 2,
+            "title": "Contact your ombudsman directly",
+            "description": "Call, email, or visit in person. No appointment necessary for urgent complaints."
+          },
+          {
+            "step": 3,
+            "title": "Describe the problem",
+            "description": "Explain the care issue, rights violation, or concern. The ombudsman will work with your parent to determine next steps."
+          }
+        ],
+        "processingTime": "Immediate assistance for complaints",
+        "waitlist": null,
+        "tip": "Keep notes on specific incidents — dates, staff names, and what happened — to help the ombudsman investigate effectively.",
+        "urls": [
+          {
+            "label": "Find Your Local Ombudsman",
+            "url": "https://www.coombudsman.org"
+          }
+        ]
+      },
+      "documentsNeeded": null,
+      "contacts": [
+        {
+          "label": "State Ombudsman Coordinator",
+          "phone": "(720) 925-8609",
+          "description": "General information and referrals to local offices",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Boulder County Ombudsman",
+          "phone": "(303) 441-1170",
+          "description": "Advocacy for Boulder County facilities",
+          "hours": "Mon-Fri 8am-5pm"
+        },
+        {
+          "label": "Pueblo SRDA Ombudsman",
+          "phone": "(719) 601-6282",
+          "description": "Advocacy for Pueblo area facilities",
+          "hours": "Business hours"
+        }
+      ],
+      "applicationNotes": null,
+      "relatedPrograms": [
+        "Adult Protective Services",
+        "Colorado Department of Public Health Long-Term Care Licensing",
+        "Medicare.gov Nursing Home Compare"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can I contact the ombudsman without my parent's permission?",
+          "answer": "Yes, anyone can contact an ombudsman to report concerns. However, the ombudsman cannot take action or investigate without your parent's consent. If your parent has dementia or cannot make decisions, the ombudsman will work within legal guidelines to protect their interests."
+        },
+        {
+          "question": "What if the facility retaliates against my parent for filing a complaint?",
+          "answer": "Retaliation is illegal and ombudsmen are trained to prevent it. They work confidentially when possible and monitor situations closely. If retaliation occurs, the ombudsman can escalate to licensing authorities and other regulatory agencies."
+        },
+        {
+          "question": "Does the ombudsman only handle serious abuse cases?",
+          "answer": "No, ombudsmen handle all types of concerns — from medication mix-ups and poor food quality to staff attitude problems and billing issues. No concern is too small if it affects your parent's quality of life or rights."
+        },
+        {
+          "question": "How long does it take to resolve a complaint?",
+          "answer": "Simple issues like room temperature or meal concerns may be resolved within days. More complex problems involving care plans or discharge disputes can take weeks. The ombudsman will keep you updated on progress and timeline."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": null,
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": false,
+        "visualTone": "minimal"
+      },
+      "icon": "Scales",
+      "phone": "(720) 925-8609",
+      "sourceUrl": "https://www.coombudsman.org",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
     },
     {
       "id": "co-old-age-pension",

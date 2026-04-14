@@ -1,9 +1,9 @@
 {
   "state": "MS",
   "stateName": "Mississippi",
-  "draftedAt": "2026-04-13T21:50:19.548Z",
+  "draftedAt": "2026-04-13T22:29:50.213Z",
   "total": 14,
-  "successful": 13,
+  "successful": 14,
   "programs": [
     {
       "id": "ms-medicaid-elderly-disabled",
@@ -1516,8 +1516,185 @@
       "draftedAt": "2026-04-13"
     },
     {
+      "id": "ms-scsep-employment",
       "name": "Senior Community Service Employment Program (SCSEP)",
-      "_error": "batch: canceled"
+      "shortName": "SCSEP Employment",
+      "tagline": "Part-time paid work experience and job training for unemployed adults 55+ with limited income",
+      "programType": "employment",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "City of Jackson Senior Services (Hinds, Rankin, Scott, Warren): (601) 960-0419, kimberlym@city.jackson.ms.us",
+            "type": "service-area"
+          },
+          {
+            "name": "Copiah-Lincoln Community College (Adams, Amite, Claiborne, Copiah, Franklin, Jefferson, Lawrence, Lincoln, Pike, Simpson, Smith, Walthall, Wilkinson): (601) 643-8671, brenda.orr@colin.edu",
+            "type": "service-area"
+          },
+          {
+            "name": "East Central Planning and Development District (Clarke, Jasper, Kemper, Lauderdale, Neshoba): (601) 683-2007, rjcoleman@ecpdd.org",
+            "type": "service-area"
+          },
+          {
+            "name": "Southern Mississippi Planning and Development District (Forrest, George, Greene, Hancock, Harrison, Jackson, Jones, Lamar, Marion, Pearl River, Perry, Stone, Wayne): (228) 314-1433, jhale@smpdd.com",
+            "type": "service-area"
+          },
+          {
+            "name": "Southern Foundation for Homeless Children (Pearl River, Jones, Harrison, Jefferson Davis, Forrest, Covington): via southernfoundationfhc.com",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 55+ and unemployed with limited income, SCSEP provides paid part-time work at community organizations while they build job skills for permanent employment. Your parent would earn minimum wage (currently $7.25/hour in Mississippi) for about 20 hours per week at nonprofit sites like schools, hospitals, or senior centers — potentially $600–800/month while gaining work experience and training.\n\nBecause SCSEP combines immediate income with job placement services, participants get both financial support and career development. Veterans, people over 65, and those with disabilities get enrollment priority. The program operates through regional partners across Mississippi, so availability depends on your parent's county and local funding levels.\n\nThis isn't permanent employment — it's designed as a bridge to unsubsidized jobs in the community. Participants receive on-the-job training and employment assistance through American Job Centers to help them transition to regular employment.",
+      "savingsRange": "",
+      "savingsSource": "Paid employment opportunity",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Currently unemployed",
+          "Family income below 125% federal poverty level",
+          "U.S. citizen or authorized to work"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Currently unemployed",
+          "U.S. citizen or authorized to work in the United States",
+          "Priority given to veterans and qualified spouses, then individuals over 65, with disabilities, low literacy, limited English proficiency, rural residents, homeless or at risk of homelessness"
+        ],
+        "povertyLevelReference": "125% FPL"
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Contact your county's SCSEP provider directly by phone — no statewide online application available.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your county's SCSEP provider",
+            "description": "Mississippi divides SCSEP by county. Check which organization serves your parent's county from the contact list, as not all counties are covered."
+          },
+          {
+            "step": 2,
+            "title": "Call your regional provider directly",
+            "description": "Contact your county's SCSEP administrator by phone or email. For example, if in Hinds County, call City of Jackson Senior Services at (601) 960-0419."
+          },
+          {
+            "step": 3,
+            "title": "Complete the application",
+            "description": "Provide income verification, proof of unemployment, and age documentation. Veterans should bring DD-214 or other military service records for priority consideration."
+          },
+          {
+            "step": 4,
+            "title": "Wait for placement notification",
+            "description": "If accepted, you'll be matched with a host site (like a school, hospital, or community organization) based on your skills and local availability."
+          }
+        ],
+        "processingTime": "Not specified — varies by region and funding availability",
+        "waitlist": "May vary by region depending on local funding and demand",
+        "tip": "Veterans get priority enrollment, so bring military service documentation if applicable.",
+        "urls": []
+      },
+      "documentsNeeded": [
+        "Valid photo ID or birth certificate to verify age 55+",
+        "Social Security card",
+        "Proof of unemployment status (termination letter, unemployment benefits letter, or self-attestation)",
+        "Income documentation for all household members (pay stubs, Social Security award letters, pension statements)",
+        "Proof of U.S. citizenship or work authorization",
+        "DD-214 or other military service records (if veteran)",
+        "Proof of current address (utility bill, lease agreement, or mail)"
+      ],
+      "contacts": [
+        {
+          "label": "City of Jackson Senior Services",
+          "phone": "(601) 960-0419",
+          "description": "Serves Hinds, Rankin, Scott, Warren counties",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Copiah-Lincoln Community College",
+          "phone": "(601) 643-8671",
+          "description": "Serves 13 counties including Adams, Lincoln, Pike, Simpson",
+          "hours": "Business hours"
+        },
+        {
+          "label": "East Central Planning District",
+          "phone": "(601) 683-2007",
+          "description": "Serves Clarke, Jasper, Kemper, Lauderdale, Neshoba counties",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Southern Mississippi Planning District",
+          "phone": "(228) 314-1433",
+          "description": "Serves 13 counties including Harrison, Jackson, Forrest",
+          "hours": "Business hours"
+        }
+      ],
+      "applicationNotes": [
+        "Not all Mississippi counties have SCSEP coverage — if your county isn't listed, contact CWI Works for information about other employment programs",
+        "Veterans and their qualified spouses get first priority, followed by people over 65 and those with disabilities",
+        "This is part-time work (typically 20 hours/week) designed as a stepping stone to regular employment, not permanent income",
+        "Each regional provider may have different wait times and host site availability based on local funding and partnerships"
+      ],
+      "relatedPrograms": [
+        "WIOA Adult Program",
+        "SNAP Employment and Training",
+        "Workforce Innovation and Opportunity Act (WIOA)",
+        "American Job Centers"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent work at SCSEP if they're already receiving Social Security?",
+          "answer": "Yes, but they must still meet the unemployment requirement and income limits. Social Security earnings may affect whether they qualify under the 125% federal poverty level income threshold for their household size."
+        },
+        {
+          "question": "What if our county isn't covered by any of the SCSEP providers?",
+          "answer": "Contact CWI Works to ask about other employment programs for older adults. SCSEP doesn't operate in all Mississippi counties due to funding limitations."
+        },
+        {
+          "question": "How long can my parent stay in the SCSEP program?",
+          "answer": "SCSEP is designed as temporary employment to help people transition to unsubsidized jobs. The goal is to move participants into regular community employment, though specific time limits aren't detailed in available sources."
+        },
+        {
+          "question": "Does my veteran parent automatically get accepted?",
+          "answer": "Veterans get priority consideration but still must meet age, income, and unemployment requirements. Priority means they'll be considered first when openings are available, not guaranteed acceptance."
+        },
+        {
+          "question": "What kind of work sites can my parent expect?",
+          "answer": "SCSEP participants work at nonprofit and public organizations like schools, hospitals, senior centers, libraries, and community service agencies. The specific placement depends on your parent's skills and what's available locally."
+        },
+        {
+          "question": "Can I apply for SCSEP and unemployment benefits at the same time?",
+          "answer": "You'll need to check with both programs about benefit interactions. Since SCSEP provides paid employment, it may affect unemployment benefit eligibility depending on hours worked and earnings."
+        },
+        {
+          "question": "What happens if my parent gets injured while working at their SCSEP site?",
+          "answer": "SCSEP participants should be covered under workers' compensation, but verify this coverage with your regional provider when enrolling. Ask specifically about injury policies and procedures."
+        },
+        {
+          "question": "How does SCSEP help with finding permanent employment?",
+          "answer": "Participants receive on-the-job training at their host site plus employment assistance through American Job Centers. This includes resume help, interview skills, and job placement services to transition to unsubsidized work."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "Briefcase",
+      "phone": "(601) 960-0419",
+      "sourceUrl": "https://www.dol.gov/agencies/eta/seniors",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
     },
     {
       "id": "ms-legal-services-senior-aid",

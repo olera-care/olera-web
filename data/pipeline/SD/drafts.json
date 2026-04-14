@@ -1,9 +1,9 @@
 {
   "state": "SD",
   "stateName": "South Dakota",
-  "draftedAt": "2026-04-13T21:50:19.565Z",
+  "draftedAt": "2026-04-13T22:29:50.223Z",
   "total": 16,
-  "successful": 14,
+  "successful": 16,
   "programs": [
     {
       "id": "sd-medicaid-seniors-disabled",
@@ -897,8 +897,178 @@
       "draftedAt": "2026-04-13"
     },
     {
+      "id": "sd-lieap-energy-assistance",
       "name": "Low Income Energy Assistance Program (LIEAP)",
-      "_error": "batch: canceled"
+      "shortName": "LIEAP Energy Help",
+      "tagline": "One-time payment help with heating bills for South Dakota families earning up to $2,152/month",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Central: DSS Office of Energy Assistance, 700 Governors Drive, Pierre, SD 57501.",
+            "type": "service-area"
+          },
+          {
+            "name": "Weatherization: Four community action programs by county (list available on DSS site).[5]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent struggles with high heating bills, South Dakota's Low Income Energy Assistance Program (LIEAP) provides a one-time payment directly to their utility company or energy supplier. The program helps households earning up to 200% of the federal poverty level — that's roughly $2,152/month for a single person or $2,904 for a couple in 2026.\n\nBecause LIEAP pays the utility company directly, your parent won't handle cash — the benefit goes straight toward reducing their heating bill. Households already receiving SNAP automatically qualify without additional income verification. The program also offers related services: $1,025 cooling assistance for LIEAP recipients who pay their own electric bill, emergency crisis assistance for families facing shutoffs, and weatherization services to reduce future energy costs.\n\nFunding is limited each year, so applications may close when money runs out. Apply early in fall or winter when the program opens to ensure your parent gets help with heating costs.",
+      "savingsRange": "",
+      "savingsSource": "One-time supplemental payment varies by household income, size, and fuel type",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Household income at or below 200% federal poverty level",
+          "Responsible for heating costs (direct pay or included in rent)",
+          "All household members 18+ must sign application",
+          "SNAP recipients automatically qualify"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 7,
+            "monthlyLimit": 1876
+          },
+          {
+            "householdSize": 8,
+            "monthlyLimit": 1918
+          },
+          {
+            "householdSize": 9,
+            "monthlyLimit": 1960
+          },
+          {
+            "householdSize": 10,
+            "monthlyLimit": 2036
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be responsible for heating costs (paid directly to supplier or included in rent)",
+          "Application must be signed by all household members age 18+",
+          "Subject to funding availability"
+        ],
+        "povertyLevelReference": "200% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online at SD.gov, by mail, or email — processing time varies but apply early as funding is limited.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Gather required documents",
+            "description": "Collect proof of household income for the 3 calendar months prior to your application month for everyone in the household, plus proof of home heating and electric costs."
+          },
+          {
+            "step": 2,
+            "title": "Complete the Low Income Energy Assistance Application",
+            "description": "Apply online at https://www.sd.gov/cs?id=sc_cat_item&sys_id=a254bd6edbf7f410b2fb93d4f3961974 or download the form to mail or email."
+          },
+          {
+            "step": 3,
+            "title": "Submit your application",
+            "description": "Mail to South Dakota Department of Social Services, Office of Energy Assistance, 700 Governors Drive, Pierre, SD 57501, or scan and email to DSSHeat@state.sd.us."
+          },
+          {
+            "step": 4,
+            "title": "Wait for processing",
+            "description": "DSS will review your application and contact you if additional information is needed. Payment goes directly to your energy supplier if approved."
+          }
+        ],
+        "processingTime": "Not specified — apply early as funding is limited and may close when depleted",
+        "waitlist": "Possible for Weatherization due to limited funds",
+        "tip": "If your parent receives SNAP, mention this on the application — they're automatically eligible without additional income verification.",
+        "urls": [
+          {
+            "label": "Apply Online for LIEAP",
+            "url": "https://www.sd.gov/cs?id=sc_cat_item&sys_id=a254bd6edbf7f410b2fb93d4f3961974"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Proof of household income for the 3 calendar months prior to application month for all household members",
+        "Pay stubs or wage statements for employed household members",
+        "Social Security award letters for recipients",
+        "Unemployment benefits statements",
+        "Pension or retirement income documentation",
+        "SNAP award letter if receiving benefits",
+        "Most recent heating bill (gas, propane, oil, or electric)",
+        "Most recent electric bill if separate from heating",
+        "Rent receipt showing heat included (if applicable)",
+        "Lease agreement showing utility arrangements"
+      ],
+      "contacts": [
+        {
+          "label": "DSS Office of Energy Assistance",
+          "phone": null,
+          "description": "Mail applications to 700 Governors Drive, Pierre, SD 57501 or email DSSHeat@state.sd.us",
+          "hours": "Business hours for mail and email"
+        },
+        {
+          "label": "South Dakota 2-1-1",
+          "phone": "2-1-1",
+          "description": "Free helpline for information about energy assistance and other social services",
+          "hours": "24 hours, 7 days a week"
+        }
+      ],
+      "applicationNotes": [
+        "Households where all members receive SNAP are automatically categorically eligible — no separate income verification needed",
+        "Roommates sharing a utility bill count as one household for application purposes",
+        "Crisis assistance (ECIP) requires an active LIEAP case plus an emergency like shutoff notice",
+        "Weatherization services require landlord permission for renters and may require landlord contribution"
+      ],
+      "relatedPrograms": [
+        "SNAP (Food Assistance)",
+        "Weatherization Assistance Program",
+        "Emergency Crisis Intervention Program (ECIP)",
+        "Cooling Assistance Program"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent apply if they pay heat as part of their rent?",
+          "answer": "Yes, households are eligible if heating costs are included in rent. You'll need to provide a rent receipt or lease agreement showing that heat is included in the rental payment."
+        },
+        {
+          "question": "What if my parent already receives SNAP benefits?",
+          "answer": "If all household members receive SNAP, your parent is automatically eligible for LIEAP without additional income verification. Make sure to mention SNAP benefits on the application."
+        },
+        {
+          "question": "How much money will my parent receive?",
+          "answer": "LIEAP provides a one-time payment that varies by household income, size, and fuel type. The exact amount isn't fixed — it depends on available funding and your parent's specific situation. Payment goes directly to the utility or energy supplier."
+        },
+        {
+          "question": "What happens if the program runs out of money before my parent applies?",
+          "answer": "LIEAP has limited funding each year and applications may close when funds are depleted. Apply as early as possible when the program opens in fall or winter to ensure your parent gets assistance."
+        },
+        {
+          "question": "Can my parent get help with cooling costs too?",
+          "answer": "Yes, if your parent receives LIEAP and pays their own electric bill, they may qualify for $1,025 in cooling assistance through a separate program. This helps with air conditioning costs during hot weather."
+        },
+        {
+          "question": "What if my parent faces a utility shutoff emergency?",
+          "answer": "If your parent has an active LIEAP case and faces an emergency like a shutoff notice, they may qualify for Emergency Crisis Intervention Program (ECIP) for additional immediate help."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "income-table",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": false,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "Lightning",
+      "phone": null,
+      "sourceUrl": "https://dss.sd.gov/economicassistance/energy_weatherization_assistance.aspx",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
     },
     {
       "id": "sd-weatherization-assistance",
@@ -1896,8 +2066,127 @@
       "draftedAt": "2026-04-13"
     },
     {
+      "id": "sd-long-term-care-ombudsman",
       "name": "Long-Term Care Ombudsman",
-      "_error": "batch: canceled"
+      "shortName": "Ombudsman",
+      "tagline": "Free advocacy when your parent faces problems in nursing homes or assisted living facilities in South Dakota.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "State office in Pierre; local ombudsmen statewide via Department of Human Services",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent lives in a South Dakota nursing home, assisted living facility, or community living home and faces problems with care, billing, or treatment, the Long-Term Care Ombudsman provides free advocacy to resolve conflicts. The ombudsman investigates complaints, educates families about residents' rights, and mediates disputes to ensure your parent receives fair treatment.\n\nThis service is available to any family member or resident in long-term care facilities statewide. Because ombudsmen are trained advocates who understand facility regulations, they can often resolve issues faster than families working alone. No income limits apply — the service is completely free regardless of your parent's financial situation.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Parent lives in SD nursing home, assisted living, or community living home",
+          "No income or asset limits",
+          "Family members can request help",
+          "Available statewide"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Parent must be residing in a nursing home, assisted living community, or community living home in South Dakota"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call the ombudsman hotline for immediate assistance — no forms or applications required.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the Long-Term Care Ombudsman",
+            "description": "Contact 605-773-3656 or toll-free 1-855-642-3055 to speak with an ombudsman about your parent's situation."
+          },
+          {
+            "step": 2,
+            "title": "Describe the problem",
+            "description": "Explain what's happening at your parent's facility — whether it's care issues, billing disputes, or other concerns."
+          },
+          {
+            "step": 3,
+            "title": "Ombudsman begins advocacy",
+            "description": "The ombudsman will investigate, contact the facility if needed, and work to resolve the issue while keeping you informed."
+          }
+        ],
+        "processingTime": "Immediate assistance upon contact",
+        "waitlist": null,
+        "tip": "You don't need to wait for a crisis — ombudsmen also provide education about residents' rights and can answer questions about what to expect from your parent's facility.",
+        "urls": [
+          {
+            "label": "South Dakota Ombudsman Program",
+            "url": "https://dhs.sd.gov/ltss/ombudsman-program"
+          }
+        ]
+      },
+      "documentsNeeded": null,
+      "contacts": [
+        {
+          "label": "Long-Term Care Ombudsman",
+          "phone": "(605) 773-3656",
+          "description": "Direct line for advocacy and complaint resolution",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Toll-Free Ombudsman Line",
+          "phone": "(855) 642-3055",
+          "description": "Free statewide access to ombudsman services",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Email Contact",
+          "phone": "LTCO@state.sd.us",
+          "description": "Email for non-urgent concerns and information requests",
+          "hours": "Email response during business hours"
+        }
+      ],
+      "applicationNotes": null,
+      "relatedPrograms": [
+        "Medicaid Long-Term Care",
+        "Adult Protective Services",
+        "Aging and Disability Services"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can I contact the ombudsman if my parent hasn't complained directly?",
+          "answer": "Yes, family members can request ombudsman assistance even if your parent hasn't filed a complaint themselves. The ombudsman will work with you to understand the situation and determine the best approach to help your parent."
+        },
+        {
+          "question": "What if the facility retaliates against my parent after we file a complaint?",
+          "answer": "Retaliation against residents for filing complaints is illegal. If you suspect retaliation, contact the ombudsman immediately at 605-773-3656. They can investigate retaliation claims and work to protect your parent's rights and safety."
+        },
+        {
+          "question": "How is the ombudsman different from calling the facility's administrator?",
+          "answer": "The ombudsman is an independent advocate who doesn't work for the facility. Because they understand residents' rights and facility regulations, they can often resolve issues that families can't solve by working directly with facility staff."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": null,
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": false,
+        "hasDocumentChecklist": false,
+        "visualTone": "minimal"
+      },
+      "icon": "Scales",
+      "phone": "(605) 773-3656",
+      "sourceUrl": "https://dhs.sd.gov/ltss/ombudsman-program",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
     },
     {
       "id": "sd-senior-companions",

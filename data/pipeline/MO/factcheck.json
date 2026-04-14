@@ -1,0 +1,630 @@
+{
+  "state": "MO",
+  "stateName": "Missouri",
+  "checkedAt": "2026-04-14T00:58:22.443Z",
+  "total": 17,
+  "skipped": 0,
+  "parseErrors": 0,
+  "errors": 0,
+  "programsWithFlags": 5,
+  "totalFlags": 7,
+  "highSeverityFlags": 2,
+  "programs": [
+    {
+      "programId": "mo-healthnet-medicaid",
+      "programName": "MO HealthNet (Medicaid)",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 3000,
+        "assets_couple": 6000,
+        "phones": [
+          "8553739994",
+          "8003182596"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8553739994",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://www.medicaidplanningassistance.org/medicaid-eligibility-missouri/"
+        },
+        "notes": "No minimum age requirement; eligibility based on categories including children, adults 19-64, seniors 65+, etc. No countable asset limits found in official sources for general MO HealthNet; may apply only to specific long-term care programs. Phone from non-.gov source citing state info."
+      },
+      "flags": [],
+      "notes": "No minimum age requirement; eligibility based on categories including children, adults 19-64, seniors 65+, etc. No countable asset limits found in official sources for general MO HealthNet; may apply only to specific long-term care programs. Phone from non-.gov source citing state info."
+    },
+    {
+      "programId": "mo-structured-family-caregiving-waiver",
+      "programName": "Structured Family Caregiving Waiver",
+      "facts": {
+        "age": 21,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 6068.8,
+        "assets_couple": null,
+        "phones": [
+          "8553734636",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 21,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 6068,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://mydss.mo.gov/mhd/waiver/structured-family-caregiving",
+          "income": null,
+          "assets": "https://www.medicaidplanningassistance.org/missouri-structured-family-caregiving/",
+          "phone": null
+        },
+        "notes": "Age confirmed by official MO DSS site; assets from 2025 non-gov source citing MO Medicaid rules (waiver active, renewal notice Dec 2025); no official phone or income limits found; waiver expires 06/30/2025 per federal site but renewal in progress"
+      },
+      "flags": [],
+      "notes": "Age confirmed by official MO DSS site; assets from 2025 non-gov source citing MO Medicaid rules (waiver active, renewal notice Dec 2025); no official phone or income limits found; waiver expires 06/30/2025 per federal site but renewal in progress"
+    },
+    {
+      "programId": "mo-pace-elderly-care",
+      "programName": "Missouri PACE (Program of All-Inclusive Care for the Elderly)",
+      "facts": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 2000,
+        "assets_couple": null,
+        "phones": [],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://mydss.mo.gov/mhd/PACE-participants",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No authoritative current data found for income or asset limits; PACE eligibility focuses on nursing home level of care and community living ability rather than financial tests"
+      },
+      "flags": [],
+      "notes": "No authoritative current data found for income or asset limits; PACE eligibility focuses on nursing home level of care and community living ability rather than financial tests"
+    },
+    {
+      "programId": "mo-medicare-savings-program",
+      "programName": "Medicare Savings Program (MSP)",
+      "facts": {
+        "age": null,
+        "income_1": 1325,
+        "income_2": 1783,
+        "assets_individual": 9660,
+        "assets_couple": 14470,
+        "phones": [
+          "8553734636",
+          "8006334227"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "18553734636",
+        "sources": {
+          "age": null,
+          "income": "https://mydss.mo.gov/medicare-cost-savings-programs",
+          "assets": "https://mydss.mo.gov/medicare-cost-savings-programs",
+          "phone": "https://mo.db101.org/mo/programs/health_coverage/how_health/program2c.htm"
+        },
+        "notes": "No current 2026 income or asset limits found in official MO DSS sources; state site confirms limits exist but does not list values. Phone from state-linked source."
+      },
+      "flags": [],
+      "notes": "No current 2026 income or asset limits found in official MO DSS sources; state site confirms limits exist but does not list values. Phone from state-linked source."
+    },
+    {
+      "programId": "mo-snap-food-benefits",
+      "programName": "Supplemental Nutrition Assistance Program (SNAP)",
+      "facts": {
+        "age": 60,
+        "income_1": 1415,
+        "income_2": 1903,
+        "assets_individual": 4500,
+        "assets_couple": 4500,
+        "phones": [
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": 1580,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8553734636",
+        "sources": {
+          "age": null,
+          "income": "https://snapbenefitshelp.com/snap-benefits/missouri",
+          "assets": null,
+          "phone": "https://mydss.mo.gov/healthy-snap-resources"
+        },
+        "notes": "No authoritative .gov sources found for income or asset limits as of 2026; income from non-.gov citing federal limits. SNAP still active, with Healthy SNAP waiver starting Oct 2026 restricting some foods. Work requirements expanded to age 64 per secondary source."
+      },
+      "flags": [
+        {
+          "field": "income_1",
+          "severity": "medium",
+          "draftValue": 1415,
+          "verifiedValue": 1580,
+          "pctDiff": 10.4
+        },
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "211"
+          ],
+          "verifiedValue": "8553734636"
+        }
+      ],
+      "notes": "No authoritative .gov sources found for income or asset limits as of 2026; income from non-.gov citing federal limits. SNAP still active, with Healthy SNAP waiver starting Oct 2026 restricting some foods. Work requirements expanded to age 64 per secondary source."
+    },
+    {
+      "programId": "mo-liheap-energy-assistance",
+      "programName": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "facts": {
+        "age": null,
+        "income_1": 2839,
+        "income_2": 3713,
+        "assets_individual": 3000,
+        "assets_couple": 3000,
+        "phones": [
+          "5732006655",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 3000,
+        "assets_couple": 3000,
+        "phone": "8553734636",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": "https://mydss.mo.gov/utility-assistance/liheap",
+          "phone": "https://mydss.mo.gov/utility-assistance/liheap"
+        },
+        "notes": "No income limits found in search results; official state site references 'income guidelines for your household size' but does not list values. Asset limit applies uniformly to households. No age requirement for eligibility."
+      },
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "5732006655",
+            "211"
+          ],
+          "verifiedValue": "8553734636"
+        }
+      ],
+      "notes": "No income limits found in search results; official state site references 'income guidelines for your household size' but does not list values. Asset limit applies uniformly to households. No age requirement for eligibility."
+    },
+    {
+      "programId": "mo-weatherization-assistance-program",
+      "programName": "Weatherization Assistance Program (WAP)",
+      "facts": {
+        "age": null,
+        "income_1": 2152,
+        "income_2": 2913,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No specific 2026 income limits, asset limits, or phone number found in sources; eligibility is up to 200% FPL per household size but exact USD values not provided in retrievable data"
+      },
+      "flags": [],
+      "notes": "No specific 2026 income limits, asset limits, or phone number found in sources; eligibility is up to 200% FPL per household size but exact USD values not provided in retrievable data"
+    },
+    {
+      "programId": "missouri-ship",
+      "programName": "Missouri State Health Insurance Assistance Program (Missouri SHIP)",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "18003903330",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "18003903330",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://www.shiphelp.org/ships/missouri/"
+        },
+        "notes": "Program provides free Medicare counseling with no age, income, or asset limits; phone from nonprofit citing official program"
+      },
+      "flags": [],
+      "notes": "Program provides free Medicare counseling with no age, income, or asset limits; phone from nonprofit citing official program"
+    },
+    {
+      "programId": "mo-csfp-commodity-food",
+      "programName": "Commodity Supplemental Food Program (CSFP)",
+      "facts": {
+        "age": 60,
+        "income_1": 1957,
+        "income_2": 2644,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8007336251",
+          "8162704100"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://health.mo.gov/living/wellness/nutrition/foodprograms/csfp/",
+          "income": "https://health.mo.gov/living/wellness/nutrition/foodprograms/csfp/",
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No specific income dollar amounts or assets limits found in sources for 2026; program states income at 150% FPL but no table or exact figures provided. No statewide phone number identified."
+      },
+      "flags": [],
+      "notes": "No specific income dollar amounts or assets limits found in sources for 2026; program states income at 150% FPL but no table or exact figures provided. No statewide phone number identified."
+    },
+    {
+      "programId": "mo-alzheimers-caregiver-resource-program",
+      "programName": "Alzheimer's Association Caregiver Resource Program",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8002723900",
+          "5737516400"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "5734157343",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://health.mo.gov/seniors/dementia-caregiving/"
+        },
+        "notes": "Program is Missouri Caregiver Program (not Alzheimer's Association Caregiver Resource Program); no age, income, or asset limits per official state site; phone from MO DHSS for current administrator (CAB)"
+      },
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "8002723900",
+            "5737516400"
+          ],
+          "verifiedValue": "5734157343"
+        }
+      ],
+      "notes": "Program is Missouri Caregiver Program (not Alzheimer's Association Caregiver Resource Program); no age, income, or asset limits per official state site; phone from MO DHSS for current administrator (CAB)"
+    },
+    {
+      "programId": "mo-scsep-senior-employment",
+      "programName": "Senior Community Service Employment Program (SCSEP)",
+      "facts": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "5735264542",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "5735264542",
+        "sources": {
+          "age": "https://health.mo.gov/seniors/senioremployment/",
+          "income": "https://health.mo.gov/seniors/senioremployment/",
+          "assets": null,
+          "phone": "https://health.mo.gov/seniors/senioremployment/"
+        },
+        "notes": "Income eligibility is 125% federal poverty level (no specific dollar amounts or assets found); program active as of 2026 per state source"
+      },
+      "flags": [],
+      "notes": "Income eligibility is 125% federal poverty level (no specific dollar amounts or assets found); program active as of 2026 per state source"
+    },
+    {
+      "programId": "mo-legal-services-eastern-missouri-older-adults",
+      "programName": "Legal Services of Eastern Missouri (Advocates for Older Adults Program)",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8004440514",
+          "3145344200",
+          "8002355503"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8004440514",
+        "sources": {
+          "age": "https://lsem.org/advocates-for-older-adults/",
+          "income": null,
+          "assets": null,
+          "phone": "https://lsem.org/advocates-for-older-adults/"
+        },
+        "notes": "No income or asset limits specified in sources for this program; general low-income eligibility implied but not quantified"
+      },
+      "flags": [],
+      "notes": "No income or asset limits specified in sources for this program; general low-income eligibility implied but not quantified"
+    },
+    {
+      "programId": "mo-ltc-ombudsman",
+      "programName": "Long-Term Care Ombudsman Program",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8003093282",
+          "5735260727"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8003093282",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://www.cms.gov/contacts/long-term-care-ombudsman-missouri/general-beneficiary-contact/1553881"
+        },
+        "notes": "Program is free advocacy service with no age, income, or asset eligibility requirements"
+      },
+      "flags": [],
+      "notes": "Program is free advocacy service with no age, income, or asset eligibility requirements"
+    },
+    {
+      "programId": "mo-rx-prescription-assistance",
+      "programName": "Missouri Rx Program (MoRx)",
+      "facts": {
+        "age": null,
+        "income_1": 1276,
+        "income_2": 1711,
+        "assets_individual": 11710,
+        "assets_couple": 23410,
+        "phones": [
+          "8553734636",
+          "1800"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8003751406",
+        "sources": {
+          "age": null,
+          "income": "https://mydss.mo.gov/mhd/morx-general-faqs",
+          "assets": "https://mydss.mo.gov/mhd/morx-general-faqs",
+          "phone": "https://mydss.mo.gov/mhd/morx-general-faqs"
+        },
+        "notes": "Official .gov sources (mydss.mo.gov) confirm MoRx exists but provide no current 2026 income or asset limits; non-.gov sources list outdated annual incomes only (no monthly, no assets); phone from multiple sources including official site"
+      },
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "8553734636",
+            "1800"
+          ],
+          "verifiedValue": "8003751406"
+        }
+      ],
+      "notes": "Official .gov sources (mydss.mo.gov) confirm MoRx exists but provide no current 2026 income or asset limits; non-.gov sources list outdated annual incomes only (no monthly, no assets); phone from multiple sources including official site"
+    },
+    {
+      "programId": "mo-property-tax-credit-circuit-breaker",
+      "programName": "Missouri Property Tax Credit (Circuit Breaker)",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8002436060",
+          "6362070847"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": 30000,
+        "income_2": 34000,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://www.stlouis-mo.gov/government/departments/human-services/aging-services/property-tax-credit.cfm",
+          "income": "https://dor.mo.gov/faq/taxation/individual/property-tax-credit-claim.html",
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No minimum age requirement; eligibility for 65+ or 18-64 with SSI/SSD/Veterans Disability. No assets test or phone found in sources. Proposed changes not enacted as of search results."
+      },
+      "flags": [],
+      "notes": "No minimum age requirement; eligibility for 65+ or 18-64 with SSI/SSD/Veterans Disability. No assets test or phone found in sources. Proposed changes not enacted as of search results."
+    },
+    {
+      "programId": "mo-aged-disabled-waiver",
+      "programName": "Aged and Disabled Waiver (ADW)",
+      "facts": {
+        "age": 63,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 5000,
+        "assets_couple": 10000,
+        "phones": [
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 63,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 6068,
+        "assets_couple": 6068,
+        "phone": null,
+        "sources": {
+          "age": "https://www.medicaidplanningassistance.org/missouri-aged-disabled-waiver/",
+          "income": null,
+          "assets": "https://www.medicaidplanningassistance.org/missouri-aged-disabled-waiver/",
+          "phone": null
+        },
+        "notes": "Age requirement is 63+ (or 65+ depending on disability status; see source). Income limits exist but specific 2026 countable income limits not found in retrieved sources. Asset limits are per applicant; for couples both spouses can have up to $6,068.80 each if both are applicants. Official phone number not found in retrieved sources. Program is active and approved through 06/30/2028."
+      },
+      "flags": [
+        {
+          "field": "assets_individual",
+          "severity": "high",
+          "draftValue": 5000,
+          "verifiedValue": 6068,
+          "pctDiff": 17.6
+        },
+        {
+          "field": "assets_couple",
+          "severity": "high",
+          "draftValue": 10000,
+          "verifiedValue": 6068,
+          "pctDiff": 39.3
+        }
+      ],
+      "notes": "Age requirement is 63+ (or 65+ depending on disability status; see source). Income limits exist but specific 2026 countable income limits not found in retrieved sources. Asset limits are per applicant; for couples both spouses can have up to $6,068.80 each if both are applicants. Official phone number not found in retrieved sources. Program is active and approved through 06/30/2028."
+    },
+    {
+      "programId": "mo-silp-senior-independent-living",
+      "programName": "Senior Independent Living Program (SILP)",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "5737516400"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://oa.mo.gov/sites/default/files/dhss_senior_independent_living_program.pdf",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No authoritative data found for income, assets, or phone; program active as of 2026 per recent bid"
+      },
+      "flags": [],
+      "notes": "No authoritative data found for income, assets, or phone; program active as of 2026 per recent bid"
+    }
+  ]
+}

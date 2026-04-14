@@ -1,0 +1,751 @@
+{
+  "state": "HI",
+  "stateName": "Hawaii",
+  "checkedAt": "2026-04-14T00:54:25.934Z",
+  "total": 21,
+  "skipped": 1,
+  "parseErrors": 0,
+  "errors": 0,
+  "programsWithFlags": 7,
+  "totalFlags": 8,
+  "highSeverityFlags": 4,
+  "programs": [
+    {
+      "programId": "hi-medquest-medicaid-seniors-disabled",
+      "programName": "Med-QUEST (Medicaid for seniors/disabled)",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 2000,
+        "assets_couple": null,
+        "phones": [
+          "8776285076"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 2000,
+        "assets_couple": null,
+        "phone": "18003168005",
+        "sources": {
+          "age": "https://www.medicaidlongtermcare.org/eligibility/hawaii/",
+          "income": null,
+          "assets": "https://www.medicaidlongtermcare.org/eligibility/hawaii/",
+          "phone": "https://medicaideligibilitycalculator.com/medicaid-eligibility/hawaii/"
+        },
+        "notes": "No official .gov source found for asset limits or phone; values from secondary sources citing 2026 Med-QUEST ABD program. Income limits not specified as fixed dollar amounts in sources."
+      },
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "8776285076"
+          ],
+          "verifiedValue": "18003168005"
+        }
+      ],
+      "notes": "No official .gov source found for asset limits or phone; values from secondary sources citing 2026 Med-QUEST ABD program. Income limits not specified as fixed dollar amounts in sources."
+    },
+    {
+      "programId": "hi-kupuna-care-program",
+      "programName": "Kūpuna Care Program",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8086432372",
+          "8086430899"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://www.hawaiicommunityfoundation.org/strengthening/kupuna-aging-in-place",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No official .gov or state agency source found for Kūpuna Care Program details like eligibility criteria or phone; private providers and grant programs appear instead. Age 65+ mentioned only for a separate HCF grant program."
+      },
+      "flags": [],
+      "notes": "No official .gov or state agency source found for Kūpuna Care Program details like eligibility criteria or phone; private providers and grant programs appear instead. Age 65+ mentioned only for a separate HCF grant program."
+    },
+    {
+      "programId": "hi-sage-plus-medicare-counseling",
+      "programName": "Sage PLUS Program (PACE equivalent)",
+      "skipped": true,
+      "reason": "no verifiable facts",
+      "flags": []
+    },
+    {
+      "programId": "hi-medicare-savings-programs-qmb-slmb-qi",
+      "programName": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "facts": {
+        "age": null,
+        "income_1": 1550,
+        "income_2": 2095,
+        "assets_individual": 9950,
+        "assets_couple": 14910,
+        "phones": [
+          "8085877500",
+          "18003168005",
+          "18885369117"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": 1947,
+        "income_2": 2645,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": "https://benefitsnow.ai/benefits/hawaii/medicare-savings-programs",
+          "assets": null,
+          "phone": null
+        },
+        "notes": "Income limits for Hawaii MSPs (QMB, SLMB, QI-1) are based on 135% of Federal Poverty Level per 2026 HHS guidelines. Asset limits and official application phone number not found in provided search results. Search results show conflicting asset limit information from non-current sources (2021 data showing $9,430 individual/$14,130 couple for QMB, and older federal standards). No authoritative 2026 asset limits or official state phone number retrieved. Recommend contacting Hawaii Department of Human Services or Medicare.gov directly for current asset limits and application phone number."
+      },
+      "flags": [
+        {
+          "field": "income_1",
+          "severity": "high",
+          "draftValue": 1550,
+          "verifiedValue": 1947,
+          "pctDiff": 20.4
+        },
+        {
+          "field": "income_2",
+          "severity": "high",
+          "draftValue": 2095,
+          "verifiedValue": 2645,
+          "pctDiff": 20.8
+        }
+      ],
+      "notes": "Income limits for Hawaii MSPs (QMB, SLMB, QI-1) are based on 135% of Federal Poverty Level per 2026 HHS guidelines. Asset limits and official application phone number not found in provided search results. Search results show conflicting asset limit information from non-current sources (2021 data showing $9,430 individual/$14,130 couple for QMB, and older federal standards). No authoritative 2026 asset limits or official state phone number retrieved. Recommend contacting Hawaii Department of Human Services or Medicare.gov directly for current asset limits and application phone number."
+    },
+    {
+      "programId": "hi-snap-food-benefits",
+      "programName": "SNAP (Supplemental Nutrition Assistance Program)",
+      "facts": {
+        "age": 60,
+        "income_1": 2998,
+        "income_2": 4054,
+        "assets_individual": 0,
+        "assets_couple": 0,
+        "phones": [
+          "8556431643",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": 2998,
+        "income_2": 4054,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "18556431643",
+        "sources": {
+          "age": null,
+          "income": "https://www.snapscreener.com/guides/hawaii",
+          "assets": null,
+          "phone": "https://humanservices.hawaii.gov/bessd/snap/"
+        },
+        "notes": "Income limits are gross monthly for Oct 1, 2025-Sept 30, 2026 from nonprofit citing federal data; no explicit asset limits found in sources (Hawaii expanded eligibility may exempt many); no age minimum"
+      },
+      "flags": [],
+      "notes": "Income limits are gross monthly for Oct 1, 2025-Sept 30, 2026 from nonprofit citing federal data; no explicit asset limits found in sources (Hawaii expanded eligibility may exempt many); no age minimum"
+    },
+    {
+      "programId": "hi-liheap-energy-assistance",
+      "programName": "Low Income Home Energy Assistance Program (LIHEAP)",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8084886834",
+          "8088470804",
+          "8086964261",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": "https://humanservices.hawaii.gov/bessd/liheap/",
+          "assets": null,
+          "phone": "https://www.hawaiianelectric.com/billing-and-payment/payment-assistance/low-income-programs/h-heap"
+        },
+        "notes": "Program renamed to H-HEAP (Hawaii Home Energy Assistance Program), formerly LIHEAP. No single official main phone number found; multiple local agency numbers listed. No age, assets, or specific income limits with 2026 values in sources."
+      },
+      "flags": [],
+      "notes": "Program renamed to H-HEAP (Hawaii Home Energy Assistance Program), formerly LIHEAP. No single official main phone number found; multiple local agency numbers listed. No age, assets, or specific income limits with 2026 values in sources."
+    },
+    {
+      "programId": "hi-weatherization-assistance-program",
+      "programName": "Weatherization Assistance Program",
+      "facts": {
+        "age": null,
+        "income_1": 2600,
+        "income_2": 3520,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8085214531",
+        "sources": {
+          "age": null,
+          "income": "https://labor.hawaii.gov/ocs/files/2025/04/WAP-Policies-and-Procedures-Updated-04.10.2025-1.pdf",
+          "assets": null,
+          "phone": "https://www.hcapweb.org/weatherization-assistance-program/"
+        },
+        "notes": "Income limit is 200% of Federal Poverty Guidelines (not fixed dollar amount in sources provided). Monthly income limits vary by household size and are set annually by federal poverty guidelines; specific dollar amounts for household sizes 1 and 2 not provided in retrieved sources. No age limit found. No asset limits found in sources. Phone number is for Honolulu Community Action Program (HCAP), primary WAP administrator for Oahu; Hawaii County Economic Opportunity Council (HCEOC) serves Big Island with different contact info. State administrator is Hawaii Office of Community Services (OCS) at labor.hawaii.gov."
+      },
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "211"
+          ],
+          "verifiedValue": "8085214531"
+        }
+      ],
+      "notes": "Income limit is 200% of Federal Poverty Guidelines (not fixed dollar amount in sources provided). Monthly income limits vary by household size and are set annually by federal poverty guidelines; specific dollar amounts for household sizes 1 and 2 not provided in retrieved sources. No age limit found. No asset limits found in sources. Phone number is for Honolulu Community Action Program (HCAP), primary WAP administrator for Oahu; Hawaii County Economic Opportunity Council (HCEOC) serves Big Island with different contact info. State administrator is Hawaii Office of Community Services (OCS) at labor.hawaii.gov."
+    },
+    {
+      "programId": "hi-ship-medicare-counseling",
+      "programName": "Hawaii SHIP (State Health Insurance Assistance Program)",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8085867299",
+          "18888759229",
+          "18668104379"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "18888759229",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://www.shiphelp.org/ships/hawaii/,https://health.hawaii.gov/eoa/home/hawaiiship/,https://www.hawaiiship.org/blog/medicare-help-is-just-a-call-away-how-hawaii-ship-supports-you-and-your-%CA%BBohana/,https://www.hawaiiship.org/information/multi-language-resources/english/"
+        },
+        "notes": "Hawaii SHIP is a counseling program for Medicare beneficiaries with no age, income, or asset limits; phone is toll-free main contact number"
+      },
+      "flags": [],
+      "notes": "Hawaii SHIP is a counseling program for Medicare beneficiaries with no age, income, or asset limits; phone is toll-free main contact number"
+    },
+    {
+      "programId": "hi-home-delivered-meals-kupuna",
+      "programName": "Home-Delivered Meals (via Kūpuna Aging in Place grantees)",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8083568519",
+          "8089886747",
+          "8082150073",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://www.hawaiicommunityfoundation.org/strengthening/kupuna-aging-in-place",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "Program is Kūpuna Aging in Place (KAP), a multi-year grant program administered by Hawaii Community Foundation supporting organizations that provide home-delivered meals and other services. Age requirement of 65+ found in official HCF source. Income guidelines exist (program targets low- to moderate-income kūpuna) but specific thresholds not provided in available sources. No official phone number for direct application found; applications are submitted online through HCF Grants Portal. Current funding cycle is 2026-2029 with application deadline of March 20, 2026 (already passed as of query date). No .gov source available; primary source is Hawaii Community Foundation official website."
+      },
+      "flags": [
+        {
+          "field": "age",
+          "severity": "high",
+          "draftValue": 60,
+          "verifiedValue": 65
+        }
+      ],
+      "notes": "Program is Kūpuna Aging in Place (KAP), a multi-year grant program administered by Hawaii Community Foundation supporting organizations that provide home-delivered meals and other services. Age requirement of 65+ found in official HCF source. Income guidelines exist (program targets low- to moderate-income kūpuna) but specific thresholds not provided in available sources. No official phone number for direct application found; applications are submitted online through HCF Grants Portal. Current funding cycle is 2026-2029 with application deadline of March 20, 2026 (already passed as of query date). No .gov source available; primary source is Hawaii Community Foundation official website."
+    },
+    {
+      "programId": "hi-caregiver-support-eoa",
+      "programName": "Caregiver Support (via Executive Office on Aging)",
+      "facts": {
+        "age": 18,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8087687700",
+          "8089618626"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8086432372",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://hawaiiadrc.org"
+        },
+        "notes": "No eligibility criteria found in sources for age, income, or assets; phone from ADRC (EOA-affiliated); Kupuna Caregivers Program mentioned but no details on financial tests"
+      },
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "8087687700",
+            "8089618626"
+          ],
+          "verifiedValue": "8086432372"
+        }
+      ],
+      "notes": "No eligibility criteria found in sources for age, income, or assets; phone from ADRC (EOA-affiliated); Kupuna Caregivers Program mentioned but no details on financial tests"
+    },
+    {
+      "programId": "hi-scsep-employment-training",
+      "programName": "Retired Senior Volunteer Program (RSVP, related to SCSEP)",
+      "facts": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8089618730",
+          "8083234320",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://elderlyaffairs.com/rsvp/",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "RSVP is a volunteer program with no income or assets test; SCSEP is separate paid program"
+      },
+      "flags": [],
+      "notes": "RSVP is a volunteer program with no income or assets test; SCSEP is separate paid program"
+    },
+    {
+      "programId": "hi-senior-legal-helpline",
+      "programName": "Senior Legal Helpline (via Area Agencies on Aging)",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "5360011",
+          "18885360011",
+          "5364302"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://hcoahawaii.org",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No specific 'Senior Legal Helpline' found via Area Agencies on Aging; general services for age 60+ via AAAs/EOA have no income/assets limits stated; Legal Aid Hawaii Elder Law Services (8085364302) is separate nonprofit for 60+ with no eligibility tests cited"
+      },
+      "flags": [],
+      "notes": "No specific 'Senior Legal Helpline' found via Area Agencies on Aging; general services for age 60+ via AAAs/EOA have no income/assets limits stated; Legal Aid Hawaii Elder Law Services (8085364302) is separate nonprofit for 60+ with no eligibility tests cited"
+    },
+    {
+      "programId": "hi-ltc-ombudsman-program",
+      "programName": "Long-Term Care Ombudsman Program (LTCOP)",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "18882292231",
+          "8085867268",
+          "8085860100"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "1888229231",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://www.hi-ltc-ombudsman.org/contact/"
+        },
+        "notes": "Program has no age, income, or asset eligibility requirements; it is an advocacy service open to all long-term care residents. Statewide toll-free helpline confirmed from official program site."
+      },
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "18882292231",
+            "8085867268",
+            "8085860100"
+          ],
+          "verifiedValue": "1888229231"
+        }
+      ],
+      "notes": "Program has no age, income, or asset eligibility requirements; it is an advocacy service open to all long-term care residents. Statewide toll-free helpline confirmed from official program site."
+    },
+    {
+      "programId": "hi-kahi-malama-care-coordination",
+      "programName": "Kahi Malama – A Place of Caring",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8089618626",
+          "8083234390",
+          "8086432372"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8089618626",
+        "sources": {
+          "age": "https://hcoahawaii.org",
+          "income": null,
+          "assets": null,
+          "phone": "https://hcoahawaii.org"
+        },
+        "notes": "No income or asset limits found in sources; phone is Hilo main number for HCOA/Kahi Malama"
+      },
+      "flags": [],
+      "notes": "No income or asset limits found in sources; phone is Hilo main number for HCOA/Kahi Malama"
+    },
+    {
+      "programId": "hi-ead-honolulu-adrc",
+      "programName": "Elderly Affairs Division (EAD) / Honolulu ADRC",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8087687700",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8087687700",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://www.honolulu.gov/dcs/ead/"
+        },
+        "notes": "No age, income, or asset limits found in sources; program serves seniors, persons with disabilities, and caregivers without specified eligibility tests. Phone from official city site."
+      },
+      "flags": [],
+      "notes": "No age, income, or asset limits found in sources; program serves seniors, persons with disabilities, and caregivers without specified eligibility tests. Phone from official city site."
+    },
+    {
+      "programId": "kauai-agency-elderly-affairs",
+      "programName": "Kaua'i Agency on Elderly Affairs",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8082414470"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8082414470",
+        "sources": {
+          "age": "https://www.kauai.gov/Government/Departments-Agencies/Agency-on-Elderly-Affairs",
+          "income": null,
+          "assets": null,
+          "phone": "https://www.kauai.gov/Government/Departments-Agencies/Agency-on-Elderly-Affairs"
+        },
+        "notes": "No income or asset limits found in sources; agency serves older adults 60+ as Area Agency on Aging with no specified means-testing for general services"
+      },
+      "flags": [],
+      "notes": "No income or asset limits found in sources; agency serves older adults 60+ as Area Agency on Aging with no specified means-testing for general services"
+    },
+    {
+      "programId": "hi-home-community-services-eoa",
+      "programName": "Home and Community Services (Statewide via EOA)",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 2000,
+        "assets_couple": 3000,
+        "phones": [
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://health.hawaii.gov/eoa/home/home-and-community-services/",
+          "income": null,
+          "assets": null,
+          "phone": "https://health.hawaii.gov/eoa/home/home-and-community-services/"
+        },
+        "notes": "No countable asset or income limits found in sources; program provides services statewide via EOA county offices for age 60+; multiple county phones listed, no single statewide main phone; contact county offices for eligibility details which may reference SSI/Medicaid"
+      },
+      "flags": [],
+      "notes": "No countable asset or income limits found in sources; program provides services statewide via EOA county offices for age 60+; multiple county phones listed, no single statewide main phone; contact county offices for eligibility details which may reference SSI/Medicaid"
+    },
+    {
+      "programId": "hi-transportation-friends-kupuna",
+      "programName": "Transportation Friends for Kupuna (TFK)",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://www.catholiccharitieshawaii.org/transportation-friends-for-kupuna/",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No income or asset requirements found; program appears free for eligible seniors 60+ living independently on Oahu. No .gov sources; official program site used."
+      },
+      "flags": [],
+      "notes": "No income or asset requirements found; program appears free for eligible seniors 60+ living independently on Oahu. No .gov sources; official program site used."
+    },
+    {
+      "programId": "hi-senior-companion-program",
+      "programName": "Senior Companion Program",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8088320340"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8088320340",
+        "sources": {
+          "age": "https://humanservices.hawaii.gov/ssd/home/adult-services/adult-services/",
+          "income": null,
+          "assets": null,
+          "phone": "https://humanservices.hawaii.gov/ssd/home/adult-services/adult-services/"
+        },
+        "notes": "Program is active as of 2026. Specific income and asset limits are not detailed in official .gov sources provided; sources only state 'meet income and other program requirements.' Age requirement (55+) and phone number are confirmed from official Hawaii Department of Human Services website."
+      },
+      "flags": [
+        {
+          "field": "age",
+          "severity": "high",
+          "draftValue": 60,
+          "verifiedValue": 55
+        }
+      ],
+      "notes": "Program is active as of 2026. Specific income and asset limits are not detailed in official .gov sources provided; sources only state 'meet income and other program requirements.' Age requirement (55+) and phone number are confirmed from official Hawaii Department of Human Services website."
+    },
+    {
+      "programId": "hi-foster-grandparent-program",
+      "programName": "Foster Grandparent Program",
+      "facts": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8088325169",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8088325169",
+        "sources": {
+          "age": "https://humanservices.hawaii.gov/foster-grandparent-program/",
+          "income": null,
+          "assets": null,
+          "phone": "https://humanservices.hawaii.gov/foster-grandparent-program/"
+        },
+        "notes": "No income or assets details found in sources; program active as of search results"
+      },
+      "flags": [],
+      "notes": "No income or assets details found in sources; program active as of search results"
+    },
+    {
+      "programId": "hi-memory-mentor-program",
+      "programName": "Memory Mentor Program",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8085274777",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8085274777",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://www.catholiccharitieshawaii.org/hawaii-circle-of-care-for-dementia/,https://hawaiidementia.org/caregiving/we-cant-afford-care-what-do-i-do/"
+        },
+        "notes": "Program is free with no age, income, or asset limits specified in sources; phone is Senior Help Line/Intake Line for Memory Mentor via Catholic Charities Hawaii"
+      },
+      "flags": [],
+      "notes": "Program is free with no age, income, or asset limits specified in sources; phone is Senior Help Line/Intake Line for Memory Mentor via Catholic Charities Hawaii"
+    }
+  ]
+}

@@ -1,0 +1,584 @@
+{
+  "state": "SD",
+  "stateName": "South Dakota",
+  "checkedAt": "2026-04-14T01:14:33.507Z",
+  "total": 16,
+  "skipped": 0,
+  "parseErrors": 0,
+  "errors": 0,
+  "programsWithFlags": 4,
+  "totalFlags": 5,
+  "highSeverityFlags": 4,
+  "programs": [
+    {
+      "programId": "sd-medicaid-seniors-disabled",
+      "programName": "South Dakota Medicaid for Seniors/Disabled",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 2000,
+        "assets_couple": 4000,
+        "phones": [
+          "8552566742"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 2000,
+        "assets_couple": 3000,
+        "phone": null,
+        "sources": {
+          "age": "https://www.medicaidlongtermcare.org/eligibility/south_dakota/",
+          "income": null,
+          "assets": "https://www.medicaidplanningassistance.org/medicaid-eligibility-south-dakota/",
+          "phone": null
+        },
+        "notes": "No official .gov source found for 2026 limits; values from nonprofit sites citing ABD Medicaid for seniors/disabled. Income limits exist but query specifies assets. No phone found."
+      },
+      "flags": [
+        {
+          "field": "assets_couple",
+          "severity": "high",
+          "draftValue": 4000,
+          "verifiedValue": 3000,
+          "pctDiff": 25
+        }
+      ],
+      "notes": "No official .gov source found for 2026 limits; values from nonprofit sites citing ABD Medicaid for seniors/disabled. Income limits exist but query specifies assets. No phone found."
+    },
+    {
+      "programId": "sd-hope-waiver",
+      "programName": "HOPE Waiver (Home & Community-Based Options and Person Centered Excellence)",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 2000,
+        "assets_couple": 126420,
+        "phones": [
+          "8336639673",
+          "6057733165"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": 2313,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8336639673",
+        "sources": {
+          "age": "https://dhs.sd.gov/ltss/hope-waiver",
+          "income": "https://careforth.com/blog/what-is-the-south-dakota-medicaid-hope-waiver/",
+          "assets": null,
+          "phone": "https://dakotaathome.sd.gov/search/c4275e52-8d7a-5a6e-afc4-48062b9f7f4c"
+        },
+        "notes": "No minimum age; open to 18+ with disability or 65+. No countable asset limits found in sources. Income from non-.gov citing state rules. Program active through 2026 with renewal anticipated Oct 2026."
+      },
+      "flags": [],
+      "notes": "No minimum age; open to 18+ with disability or 65+. No countable asset limits found in sources. Income from non-.gov citing state rules. Program active through 2026 with renewal anticipated Oct 2026."
+    },
+    {
+      "programId": "sd-pace-all-inclusive-care",
+      "programName": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "facts": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "6057733656",
+          "8668545465",
+          "7035351565"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No PACE program operating in South Dakota as of 2026; feasibility study exists but no implementation"
+      },
+      "flags": [],
+      "notes": "No PACE program operating in South Dakota as of 2026; feasibility study exists but no implementation"
+    },
+    {
+      "programId": "sd-medicare-savings-programs",
+      "programName": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "facts": {
+        "age": null,
+        "income_1": 1350,
+        "income_2": 1824,
+        "assets_individual": 9430,
+        "assets_couple": 14130,
+        "phones": [
+          "18779995612",
+          "18774862048"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": 1694,
+        "income_2": 2300,
+        "assets_individual": 9660,
+        "assets_couple": 14470,
+        "phone": "8779995612",
+        "sources": {
+          "age": null,
+          "income": "https://benefitsnow.ai/benefits/south-dakota/medicare-savings-programs",
+          "assets": "https://www.medicareresources.org/states/south-dakota-guide-content/",
+          "phone": "https://dss.sd.gov/formsandpubs/docs/MEDELGBLTY/MedicareSavingsProgramBrochureEntire.pdf"
+        },
+        "notes": "Income from 2026 FPL-based table (QMB at 135% FPL); assets federal limits used by SD; state PDF appears outdated; no official SD.gov 2026 limits found"
+      },
+      "flags": [
+        {
+          "field": "income_1",
+          "severity": "high",
+          "draftValue": 1350,
+          "verifiedValue": 1694,
+          "pctDiff": 20.3
+        },
+        {
+          "field": "income_2",
+          "severity": "high",
+          "draftValue": 1824,
+          "verifiedValue": 2300,
+          "pctDiff": 20.7
+        }
+      ],
+      "notes": "Income from 2026 FPL-based table (QMB at 135% FPL); assets federal limits used by SD; state PDF appears outdated; no official SD.gov 2026 limits found"
+    },
+    {
+      "programId": "sd-csfp-senior-food-box",
+      "programName": "SNAP/Food Assistance (Senior Box Program/CSFP)",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "6058533656",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://doe.sd.gov/cans/csfp.aspx",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No statewide phone found; local contacts like 6056924979 exist. Income is at or below 150% FPL per SD DOE, but no numeric values with URL."
+      },
+      "flags": [],
+      "notes": "No statewide phone found; local contacts like 6056924979 exist. Income is at or below 150% FPL per SD DOE, but no numeric values with URL."
+    },
+    {
+      "programId": "sd-lieap-energy-assistance",
+      "programName": "Low Income Energy Assistance Program (LIEAP)",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": "https://dss.sd.gov/economicassistance/energy_weatherization_assistance.aspx",
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No phone number found in sources; no age, asset, or specific income limits (only % FPL referenced); official DSS site has household size table but values not fully extractable here"
+      },
+      "flags": [],
+      "notes": "No phone number found in sources; no age, asset, or specific income limits (only % FPL referenced); official DSS site has household size table but values not fully extractable here"
+    },
+    {
+      "programId": "sd-weatherization-assistance",
+      "programName": "Weatherization Assistance",
+      "facts": {
+        "age": null,
+        "income_1": 2152,
+        "income_2": 2920,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "6053481460",
+          "6056987654"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": "https://dss.sd.gov/economicassistance/energy_weatherization_assistance.aspx",
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No specific monthly income limits or phone number found in sources; eligibility based on income below 200% FPL (annual), often categorical via LIEAP; contact local community action programs per county"
+      },
+      "flags": [],
+      "notes": "No specific monthly income limits or phone number found in sources; eligibility based on income below 200% FPL (annual), often categorical via LIEAP; contact local community action programs per county"
+    },
+    {
+      "programId": "sd-shiine-medicare-counseling",
+      "programName": "Senior Health Information and Insurance Education (SHIINE)",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8005368197",
+          "18888545321"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8005368197",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://www.cms.gov/contacts/senior-health-information-insurance-education-shiine/general-beneficiary-contact/1562206"
+        },
+        "notes": "SHIINE is a free Medicare counseling program with no age, income, or asset eligibility limits; multiple phone numbers found from sources, CMS .gov lists 8005368197 as toll-free main contact"
+      },
+      "flags": [],
+      "notes": "SHIINE is a free Medicare counseling program with no age, income, or asset eligibility limits; multiple phone numbers found from sources, CMS .gov lists 8005368197 as toll-free main contact"
+    },
+    {
+      "programId": "sd-meals-on-wheels",
+      "programName": "Meals on Wheels",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "6053333305",
+          "8336639673",
+          "8003059681"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://activegenerations.org/nutrition-program/meals-on-wheels/",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No statewide uniform phone number or income/assets limits found; program operates via local providers with suggested donations only. Some western SD areas transitioned providers as of Oct 2024."
+      },
+      "flags": [],
+      "notes": "No statewide uniform phone number or income/assets limits found; program operates via local providers with suggested donations only. Some western SD areas transitioned providers as of Oct 2024."
+    },
+    {
+      "programId": "sd-hope-waiver-respite-care",
+      "programName": "Respite Care/Caregiver Support (HOPE Waiver & Family Support 360)",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 2000,
+        "assets_couple": 2000,
+        "phones": [
+          "8336639673",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": 2313,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8336639673",
+        "sources": {
+          "age": "https://dakotaathome.sd.gov/search/c4275e52-8d7a-5a6e-afc4-48062b9f7f4c",
+          "income": "https://careforth.com/blog/what-is-the-south-dakota-medicaid-hope-waiver/",
+          "assets": null,
+          "phone": "https://dakotaathome.sd.gov/search/c4275e52-8d7a-5a6e-afc4-48062b9f7f4c"
+        },
+        "notes": "No minimum age; program serves 65+ or 18+ with disability. No countable asset limits found in sources. Income from non-.gov citing FBR x3. HOPE Waiver active through 2026."
+      },
+      "flags": [],
+      "notes": "No minimum age; program serves 65+ or 18+ with disability. No countable asset limits found in sources. Income from non-.gov citing FBR x3. HOPE Waiver active through 2026."
+    },
+    {
+      "programId": "sd-scsep-employment",
+      "programName": "Senior Community Service Employment Program (SCSEP)",
+      "facts": {
+        "age": 55,
+        "income_1": 1630,
+        "income_2": 2054,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://dlr.sd.gov/workforce_services/individuals/scsep/participants.aspx",
+          "income": "https://dlr.sd.gov/workforce_services/individuals/scsep/participants.aspx",
+          "assets": null,
+          "phone": null
+        },
+        "notes": "Income limit is 125% of federal poverty level (no specific monthly USD amounts found for 2026); no assets or phone data available"
+      },
+      "flags": [],
+      "notes": "Income limit is 125% of federal poverty level (no specific monthly USD amounts found for 2026); no assets or phone data available"
+    },
+    {
+      "programId": "sd-legal-aid-seniors",
+      "programName": "Legal Aid for Seniors",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8552873510",
+          "6053369230",
+          "8009523015",
+          "6054443719"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8009523015",
+        "sources": {
+          "age": "https://atg.sd.gov/victim/seniors/legalservices.aspx",
+          "income": null,
+          "assets": null,
+          "phone": "https://ujs.sd.gov/self-help/get-legal-help/"
+        },
+        "notes": "Program guarantees legal service to people age 60 and over 'regardless of income or resources' per official AG source. Income and asset limits are not applicable. Phone number is for East River Legal Services (eastern SD); Dakota Plains Legal Services serves western SD and reservations. Specific income thresholds for general legal aid programs exist but do not apply to the age 60+ program specifically."
+      },
+      "flags": [],
+      "notes": "Program guarantees legal service to people age 60 and over 'regardless of income or resources' per official AG source. Income and asset limits are not applicable. Phone number is for East River Legal Services (eastern SD); Dakota Plains Legal Services serves western SD and reservations. Specific income thresholds for general legal aid programs exist but do not apply to the age 60+ program specifically."
+    },
+    {
+      "programId": "sd-long-term-care-ombudsman",
+      "programName": "Long-Term Care Ombudsman",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "6057733656",
+          "8556423055"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8668545465",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://dakotaathome.sd.gov/search/c5a84daf-cd8f-5ac5-bad2-b72b20ac7b97"
+        },
+        "notes": "Program has no age, income, or asset eligibility requirements; open to any LTC resident. Phone from state DHS-linked site."
+      },
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "6057733656",
+            "8556423055"
+          ],
+          "verifiedValue": "8668545465"
+        }
+      ],
+      "notes": "Program has no age, income, or asset eligibility requirements; open to any LTC resident. Phone from state DHS-linked site."
+    },
+    {
+      "programId": "sd-senior-companions",
+      "programName": "Senior Companions of South Dakota",
+      "facts": {
+        "age": 21,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8882391210",
+          "6053611133",
+          "6057218884",
+          "6053366748"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8882391210",
+        "sources": {
+          "age": "https://dakotaathome.sd.gov/search/093e3a44-8a59-5f21-bf9f-34c3adcf9671",
+          "income": null,
+          "assets": null,
+          "phone": "https://www.good-sam.com/senior-companions"
+        },
+        "notes": "Age requirement is for volunteers (Senior Companions), not clients; no income/assets details found; phone from sponsor site"
+      },
+      "flags": [
+        {
+          "field": "age",
+          "severity": "high",
+          "draftValue": 21,
+          "verifiedValue": 55
+        }
+      ],
+      "notes": "Age requirement is for volunteers (Senior Companions), not clients; no income/assets details found; phone from sponsor site"
+    },
+    {
+      "programId": "sd-60s-plus-dining",
+      "programName": "60's Plus Dining",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "6052566518",
+          "6052566518107"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "6052566518",
+        "sources": {
+          "age": "https://sixtiesplusdining.com/home/",
+          "income": "https://sixtiesplusdining.com/home/",
+          "assets": "https://sixtiesplusdining.com/home/",
+          "phone": "https://sixtiesplusdining.com/contact/"
+        },
+        "notes": "No .gov sources found; program run by ICAP nonprofit with consistent details across sites. No income or asset limits."
+      },
+      "flags": [],
+      "notes": "No .gov sources found; program run by ICAP nonprofit with consistent details across sites. No income or asset limits."
+    },
+    {
+      "programId": "sd-senior-box-program-csfp",
+      "programName": "Senior Box Program (CSFP)",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "6053322331",
+          "6052257410",
+          "6058864030"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://doe.sd.gov/cans/csfp.aspx",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No statewide phone or specific income/asset limits found; varies by local agency. Official SD DOE site confirms age 60+ and income <=150% FPL but no exact numbers."
+      },
+      "flags": [],
+      "notes": "No statewide phone or specific income/asset limits found; varies by local agency. Official SD DOE site confirms age 60+ and income <=150% FPL but no exact numbers."
+    }
+  ]
+}

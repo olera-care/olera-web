@@ -1,0 +1,502 @@
+{
+  "state": "KS",
+  "stateName": "Kansas",
+  "checkedAt": "2026-04-14T00:55:51.422Z",
+  "total": 14,
+  "skipped": 0,
+  "parseErrors": 0,
+  "errors": 0,
+  "programsWithFlags": 4,
+  "totalFlags": 4,
+  "highSeverityFlags": 1,
+  "programs": [
+    {
+      "programId": "ks-kancare-frail-elderly-waiver",
+      "programName": "KanCare Frail Elderly Waiver (FE Waiver)",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "7852964986",
+          "8007924884",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://www.medicaidplanningassistance.org/kansas-frail-elderly-waiver/",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No authoritative data found for income or assets limits; no official phone number located in results"
+      },
+      "flags": [],
+      "notes": "No authoritative data found for income or assets limits; no official phone number located in results"
+    },
+    {
+      "programId": "ks-pace-comprehensive-care",
+      "programName": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "facts": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 2000,
+        "assets_couple": null,
+        "phones": [],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 55,
+        "income_1": 3000,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8007267450",
+        "sources": {
+          "age": "https://kansaspace.org",
+          "income": "https://kansaspace.org",
+          "assets": null,
+          "phone": "https://midlandcare.org/services/pace/"
+        },
+        "notes": "Age requirement of 55+ and monthly income threshold of $3,000 found on Kansas PACE official website. Asset limits not specified in available search results. Phone number is for Midland Care PACE provider in Kansas. Federal PACE program details may be available through CMS or KDADS but not fully detailed in provided search results."
+      },
+      "flags": [],
+      "notes": "Age requirement of 55+ and monthly income threshold of $3,000 found on Kansas PACE official website. Asset limits not specified in available search results. Phone number is for Midland Care PACE provider in Kansas. Federal PACE program details may be available through CMS or KDADS but not fully detailed in provided search results."
+    },
+    {
+      "programId": "ks-medicare-savings-programs-qmb-slmb-qi",
+      "programName": "Medicare Savings Programs (MSP) including QMB, SLMB, QI",
+      "facts": {
+        "age": null,
+        "income_1": 1275,
+        "income_2": 1724,
+        "assets_individual": 9430,
+        "assets_couple": 14130,
+        "phones": [
+          "18007924884"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "18007924884",
+        "sources": {
+          "age": null,
+          "income": "https://www.medicare.gov/basics/costs/help/medicare-savings-programs",
+          "assets": null,
+          "phone": "https://www.kansaslegalservices.org/sites/kansaslegalservices.org/files/kc-2700-medicare-savings-program-brochure_0.pdf"
+        },
+        "notes": "No 2026 Kansas-specific income or asset limits found in authoritative sources; federal limits listed on medicare.gov but values not extractable from results. Phone from Kansas Legal Services PDF."
+      },
+      "flags": [],
+      "notes": "No 2026 Kansas-specific income or asset limits found in authoritative sources; federal limits listed on medicare.gov but values not extractable from results. Phone from Kansas Legal Services PDF."
+    },
+    {
+      "programId": "ks-snap-food-assistance",
+      "programName": "Food Assistance (SNAP)",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 4250,
+        "assets_couple": 4250,
+        "phones": [
+          "18883694777",
+          "211",
+          "18002215689"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "18337652003",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://www.dcf.ks.gov/services/ees/pages/food/foodassistance.aspx"
+        },
+        "notes": "No authoritative current data found for age, income, or asset limits in search results; SNAP typically has no asset test since 2008 Broad-Based Categorical Eligibility and no minimum age (available to all ages); phone from official KS DCF site"
+      },
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "18883694777",
+            "211",
+            "18002215689"
+          ],
+          "verifiedValue": "18337652003"
+        }
+      ],
+      "notes": "No authoritative current data found for age, income, or asset limits in search results; SNAP typically has no asset test since 2008 Broad-Based Categorical Eligibility and no minimum age (available to all ages); phone from official KS DCF site"
+    },
+    {
+      "programId": "ks-liheap-energy-assistance",
+      "programName": "Low-Income Energy Assistance Program (LIHEAP)",
+      "facts": {
+        "age": null,
+        "income_1": 1956,
+        "income_2": 2644,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8883694777",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": 1956,
+        "income_2": 2644,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": "https://www.kansasgasservice.com/save-money/assistance-programs/low-income-energy-assistance-program",
+          "assets": null,
+          "phone": null
+        },
+        "notes": "Program is LIEAP (not LIHEAP); no age, assets, or phone found in sources"
+      },
+      "flags": [],
+      "notes": "Program is LIEAP (not LIHEAP); no age, assets, or phone found in sources"
+    },
+    {
+      "programId": "ks-weatherization-assistance-program",
+      "programName": "Weatherization Assistance Program",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8004320303",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "18007524422",
+        "sources": {
+          "age": null,
+          "income": "https://content.dcf.ks.gov/ees/keesm/current/keesm13500.htm",
+          "assets": "https://content.dcf.ks.gov/ees/keesm/current/keesm13500.htm",
+          "phone": "https://kshousingcorp.org/events/public-hearing-2026-weatherization-state-plan/"
+        },
+        "notes": "No age, specific income dollar amounts, or asset limits found; program has no resource test. Phone from official KHRC 2026 plan hearing page."
+      },
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "8004320303",
+            "211"
+          ],
+          "verifiedValue": "18007524422"
+        }
+      ],
+      "notes": "No age, specific income dollar amounts, or asset limits found; program has no resource test. Phone from official KHRC 2026 plan hearing page."
+    },
+    {
+      "programId": "ks-shick-medicare-counseling",
+      "programName": "Senior Health Insurance Counseling for Kansas (SHICK)",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "18008605260",
+          "3166600126",
+          "9137158856",
+          "18004322703"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8008605260",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://www.cms.gov/contacts/senior-health-insurance-counseling-kansas-shick/general-beneficiary-contact/1562076"
+        },
+        "notes": "SHICK is a counseling and assistance program, not a benefits program with eligibility criteria. No age, income, or asset limits found in search results. Phone number confirmed from official CMS and state agency sources. Program remains active as of 2026."
+      },
+      "flags": [],
+      "notes": "SHICK is a counseling and assistance program, not a benefits program with eligibility criteria. No age, income, or asset limits found in search results. Phone number confirmed from official CMS and state agency sources. Program remains active as of 2026."
+    },
+    {
+      "programId": "ks-senior-nutrition-program",
+      "programName": "Kansas Senior Nutrition Program (Home-Delivered and Congregate Meals)",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8552002372",
+          "7852960373"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://www.coronavirus.kdheks.gov/CivicAlerts.asp?AID=1590&ARC=1594",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "Search results do not contain data for 'Kansas Senior Nutrition Program (Home-Delivered and Congregate Meals)'; found data for Kansas Senior Farmers Market Nutrition Program instead. No authoritative 2026 data or matching program details located."
+      },
+      "flags": [],
+      "notes": "Search results do not contain data for 'Kansas Senior Nutrition Program (Home-Delivered and Congregate Meals)'; found data for Kansas Senior Farmers Market Nutrition Program instead. No authoritative 2026 data or matching program details located."
+    },
+    {
+      "programId": "ks-caregiver-support-programs",
+      "programName": "Caregiver Support Programs",
+      "facts": {
+        "age": 18,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "18552002372",
+          "7852427200"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8552002372",
+        "sources": {
+          "age": "https://nekaaa.org/caregiver-help/",
+          "income": null,
+          "assets": null,
+          "phone": "https://www.aarp.org/states/kansas/caregiver-resources/"
+        },
+        "notes": "Age refers to care recipient (60+) per NFCSP; no income/assets limits found in sources; phone from KDADS Kansas Caregivers"
+      },
+      "flags": [
+        {
+          "field": "age",
+          "severity": "high",
+          "draftValue": 18,
+          "verifiedValue": 60
+        }
+      ],
+      "notes": "Age refers to care recipient (60+) per NFCSP; no income/assets limits found in sources; phone from KDADS Kansas Caregivers"
+    },
+    {
+      "programId": "ks-scsep-senior-employment",
+      "programName": "Senior Community Service Employment Program (SCSEP)",
+      "facts": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "3167716750",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "3167716750",
+        "sources": {
+          "age": "https://www.dol.gov/agencies/eta/seniors",
+          "income": null,
+          "assets": null,
+          "phone": "https://www.kansascommerce.gov/program/workforce-services/state-of-kansas-senior-employment-services/"
+        },
+        "notes": "Age requirement is 55 or older per federal DOL source. Income limit is 125% of federal poverty level (not a fixed dollar amount; varies annually). No asset limits found in search results. Phone number is for Wichita Workforce Center, the Kansas contact point for SCSEP. Program is active as of 2026 per search results."
+      },
+      "flags": [],
+      "notes": "Age requirement is 55 or older per federal DOL source. Income limit is 125% of federal poverty level (not a fixed dollar amount; varies annually). No asset limits found in search results. Phone number is for Wichita Workforce Center, the Kansas contact point for SCSEP. Program is active as of 2026 per search results."
+    },
+    {
+      "programId": "ks-legal-services-seniors",
+      "programName": "Kansas Legal Services (Legal Aid for Seniors)",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "18883535337",
+          "18007236953",
+          "9138263160",
+          "9138262830"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": [
+        10
+      ],
+      "flags": [],
+      "notes": null
+    },
+    {
+      "programId": "ks-long-term-care-ombudsman",
+      "programName": "Long-Term Care Ombudsman Program",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "18776628362",
+          "7852963017"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8776628362",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://www.cms.gov/contacts/long-term-care-ombudsman-kansas/general-beneficiary-contact/1553841"
+        },
+        "notes": "Program has no age, income, or asset eligibility requirements; it is an advocacy service open to all long-term care residents"
+      },
+      "flags": [],
+      "notes": "Program has no age, income, or asset eligibility requirements; it is an advocacy service open to all long-term care residents"
+    },
+    {
+      "programId": "ks-senior-care-act-services",
+      "programName": "Senior Care Act Services",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8552002372",
+          "7852964986"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://klrd.gov/wp-content/uploads/2025/08/KDADS-26_proposed_20250605_20250811-Senior-Care-Act-services.pdf",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No authoritative data found for income or asset limits; program active as of 2026 per state sources, administered by area agencies on aging"
+      },
+      "flags": [],
+      "notes": "No authoritative data found for income or asset limits; program active as of 2026 per state sources, administered by area agencies on aging"
+    },
+    {
+      "programId": "ks-senior-citizen-law-project",
+      "programName": "Senior Citizen Law Project (SCLP)",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "316"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "3162673975",
+        "sources": {
+          "age": "https://www.kansaslegalservices.org/page/57/programs-seniors",
+          "income": null,
+          "assets": null,
+          "phone": "https://www.kansaslegalservices.org/page/57/programs-seniors"
+        },
+        "notes": "No income or asset limits found in sources; program targets those with greatest need but no specific thresholds provided"
+      },
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "316"
+          ],
+          "verifiedValue": "3162673975"
+        }
+      ],
+      "notes": "No income or asset limits found in sources; program targets those with greatest need but no specific thresholds provided"
+    }
+  ]
+}

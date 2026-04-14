@@ -1,9 +1,9 @@
 {
   "state": "WA",
   "stateName": "Washington",
-  "draftedAt": "2026-04-13T21:50:19.570Z",
+  "draftedAt": "2026-04-13T22:29:50.226Z",
   "total": 21,
-  "successful": 19,
+  "successful": 21,
   "programs": [
     {
       "id": "wa-apple-health-medicaid",
@@ -2241,8 +2241,124 @@
       "draftedAt": "2026-04-13"
     },
     {
+      "id": "wa-long-term-care-ombudsman",
       "name": "Washington State Long-Term Care Ombudsman Program (LTCOP)",
-      "_error": "batch: canceled"
+      "shortName": "LTC Ombudsman",
+      "tagline": "Free advocate for your parent in nursing homes, assisted living, or adult family homes when care issues arise.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Pierce County Long-Term Care Ombudsman: 253-798-3789 or [email protected]",
+            "type": "service-area"
+          },
+          {
+            "name": "Statewide map of regional contacts available at waombudsman.org",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent lives in a Washington nursing home, assisted living facility, or adult family home, they automatically have access to a free advocate when problems arise. The Long-Term Care Ombudsman Program investigates complaints about quality of care, abuse, financial exploitation, improper transfers, and violations of resident rights.\n\nBecause ombudsmen are required by law to act only with your parent's consent, they provide confidential advocacy that prioritizes the resident's wishes. You, your parent, or facility staff can contact the ombudsman — no application or eligibility requirements beyond living in a licensed long-term care facility in Washington.\n\nOmbudsmen regularly visit facilities statewide and are required to post their contact information in every nursing home, assisted living facility, and adult family home. Response times vary by region based on staffing and volunteer availability.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Resident of licensed WA long-term care facility",
+          "No age or income requirements",
+          "Free confidential service"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be a resident of a licensed long-term care facility in Washington (nursing home, assisted living, adult family home, or enhanced services facility)"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your regional ombudsman office directly — no application needed, service begins immediately.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call your regional ombudsman",
+            "description": "Pierce County residents call 253-798-3789. All other regions use the contact finder at waombudsman.org to find your local office."
+          },
+          {
+            "step": 2,
+            "title": "Explain the situation",
+            "description": "Describe the care issue, rights violation, or concern. Family members can call on behalf of a resident."
+          },
+          {
+            "step": 3,
+            "title": "Ombudsman investigates",
+            "description": "The advocate will visit the facility, review the situation, and work toward resolution with facility staff and your parent's consent."
+          }
+        ],
+        "processingTime": "Investigation begins immediately — resolution timing varies by case complexity",
+        "waitlist": null,
+        "tip": "Check that your parent's facility has posted current ombudsman contact information in a visible location — facilities are legally required to display this.",
+        "urls": [
+          {
+            "label": "Regional Contact Finder",
+            "url": "https://waombudsman.org"
+          }
+        ]
+      },
+      "documentsNeeded": null,
+      "contacts": [
+        {
+          "label": "Pierce County LTC Ombudsman",
+          "phone": "(253) 798-3789",
+          "description": "Direct line for Pierce County long-term care facilities",
+          "hours": "Contact for current hours"
+        },
+        {
+          "label": "Washington State Ombudsman",
+          "phone": "See waombudsman.org",
+          "description": "Regional contacts for all other Washington counties",
+          "hours": "Varies by region"
+        }
+      ],
+      "applicationNotes": null,
+      "relatedPrograms": [
+        "Washington Adult Protective Services",
+        "DSHS Aging and Long-Term Support Administration",
+        "Washington SHIBA (health insurance counseling)"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can I contact the ombudsman if my parent doesn't want me to?",
+          "answer": "You can call to discuss your concerns, but ombudsmen must get your parent's consent before taking any action. Because the program is resident-directed, the advocate works for your parent, not the family. However, ombudsmen can provide general information about resident rights and facility requirements without violating confidentiality."
+        },
+        {
+          "question": "What happens if the facility retaliates against my parent for filing a complaint?",
+          "answer": "Retaliation against residents for filing complaints is illegal under federal and state law. The ombudsman will investigate any suspected retaliation and can work with regulatory agencies to address violations. Facilities cannot discharge, transfer, or otherwise punish residents for exercising their rights or working with advocates."
+        },
+        {
+          "question": "How is this different from calling the state inspection hotline?",
+          "answer": "Ombudsmen focus on resident advocacy and informal resolution, while state inspectors investigate regulatory violations and can issue citations. The ombudsman often resolves issues faster through facility collaboration, but serious violations may require both ombudsman advocacy and formal state investigation. Your ombudsman can help determine the best approach."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": null,
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": false,
+        "visualTone": "minimal"
+      },
+      "icon": "Scales",
+      "phone": "(253) 798-3789",
+      "sourceUrl": "https://waombudsman.org",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
     },
     {
       "id": "wa-state-parks-senior-limited-income-pass",
@@ -2485,8 +2601,131 @@
       "draftedAt": "2026-04-13"
     },
     {
+      "id": "wa-charity-care-program",
       "name": "Washington Charity Care Program",
-      "_error": "batch: canceled"
+      "shortName": "Charity Care",
+      "tagline": "Free or discounted hospital bills if your parent's income is below $94,000 for a family of four",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false
+      },
+      "intro": "If your parent faces high hospital bills in Washington, they may qualify for free or heavily discounted care regardless of insurance status. All licensed hospitals in Washington must provide charity care to patients earning up to 300% of the federal poverty level (about $47,000 for a single person in 2026), with partial discounts for those earning slightly more.\n\nBecause this program covers both insured and uninsured patients, your parent can qualify even if they have Medicare or private insurance but face high deductibles or co-pays. The program applies to inpatient hospital stays and emergency room visits at any licensed acute care or psychiatric hospital in the state. Each hospital sets its own specific policies within state guidelines, so income thresholds and asset limits may vary slightly between facilities.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Income at or below 300% federal poverty level for free care",
+          "Income 301-350% federal poverty level for 75% discount",
+          "Must exhaust other insurance coverage first",
+          "No citizenship requirement"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must have exhausted any third-party coverage (insurance, Medicaid, etc.) before qualifying",
+          "Care must be medically necessary or emergent",
+          "No citizenship requirement—all patients regardless of status can qualify if otherwise eligible"
+        ],
+        "povertyLevelReference": "300% FPL for free care, 301-350% FPL for 75% discount"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply directly to the hospital where your parent received care—no deadline, can apply during hospitalization or after discharge.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact the hospital's financial assistance department",
+            "description": "Call the billing or financial assistance department at the hospital where your parent received care. Ask specifically for 'Charity Care' or financial assistance programs. The phone number is on the hospital website or billing statement."
+          },
+          {
+            "step": 2,
+            "title": "Request and complete the application",
+            "description": "Each hospital has its own Charity Care application form (some call it 'Bridge Assistance' or 'Financial Assistance'). You can get this in-person, by phone, mail, or often download it from the hospital's website."
+          },
+          {
+            "step": 3,
+            "title": "Gather required documents",
+            "description": "Submit income documentation like tax returns, bank statements, and pay stubs. If your parent was denied Medicaid, include that determination letter."
+          },
+          {
+            "step": 4,
+            "title": "Submit application with documents",
+            "description": "Return completed application and supporting documents to the hospital's financial assistance department. Collection activity stops while your application is reviewed."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Apply as early as possible—during hospitalization or shortly after—to prevent debt collection activity.",
+        "urls": []
+      },
+      "documentsNeeded": [
+        "Most recently filed income tax return",
+        "Two months of checking and savings account statements",
+        "One month of current pay stubs",
+        "Copy of Medicaid eligibility determination (approval or denial)",
+        "If unemployed: unemployment income documentation",
+        "If household includes dependents: guardianship papers for dependent adults, foster children, or adopted children"
+      ],
+      "contacts": [
+        {
+          "label": "Washington State Charity Care Information",
+          "phone": "(360) 236-4210",
+          "description": "General program information and hospital policy inquiries",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Charity Care Email Inquiries",
+          "phone": null,
+          "description": "Email charitycare@doh.wa.gov for general program questions",
+          "hours": "Email response during business days"
+        }
+      ],
+      "applicationNotes": [
+        "Each hospital has different income thresholds and asset limits within state guidelines—check your specific hospital's policy for exact numbers",
+        "Charity Care does not cover independent contractors like radiologists or anesthesiologists who may bill separately, even if they work in the hospital"
+      ],
+      "relatedPrograms": [
+        "Washington Apple Health (Medicaid)",
+        "Medicare Extra Help",
+        "SNAP Food Benefits"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent apply if they already have Medicare or private insurance?",
+          "answer": "Yes. Because many patients with insurance still face high deductibles or co-pays, Washington Charity Care can help cover the remaining patient responsibility after insurance pays. The hospital will bill insurance first, then apply charity care to any remaining balance based on your parent's income level."
+        },
+        {
+          "question": "What if my parent received care at a hospital but also saw specialists who aren't hospital employees?",
+          "answer": "Charity Care only covers services provided directly by the hospital. Independent contractors like radiologists, anesthesiologists, or consulting specialists may bill separately and are not covered by the hospital's charity care program. You'll need to contact these providers directly about their own financial assistance programs."
+        },
+        {
+          "question": "Is there a deadline to apply for charity care?",
+          "answer": "No, there's no deadline. Your parent can apply while still hospitalized or even months after discharge. However, applying promptly helps prevent debt collection activity, which is suspended while the charity care application is being reviewed."
+        },
+        {
+          "question": "Can I apply on behalf of my aging parent?",
+          "answer": "Yes, family members can apply for charity care on behalf of a patient. You'll need the patient's consent and may need to provide documentation of your authority to act on their behalf, such as power of attorney documents."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": false,
+        "hasDocumentChecklist": true,
+        "visualTone": "warm"
+      },
+      "icon": "Hospital",
+      "phone": "(360) 236-4210",
+      "sourceUrl": "https://www.doh.wa.gov/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
     },
     {
       "id": "wa-hen-housing-assistance",

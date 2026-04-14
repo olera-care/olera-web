@@ -1,9 +1,9 @@
 {
   "state": "TN",
   "stateName": "Tennessee",
-  "draftedAt": "2026-04-13T21:50:19.566Z",
+  "draftedAt": "2026-04-13T22:29:50.224Z",
   "total": 12,
-  "successful": 11,
+  "successful": 12,
   "programs": [
     {
       "id": "tn-medicare-savings-programs",
@@ -563,8 +563,153 @@
       "draftedAt": "2026-04-13"
     },
     {
+      "id": "tn-ship-medicare-counseling",
       "name": "Tennessee State Health Insurance Assistance Program (TN SHIP)",
-      "_error": "batch: canceled"
+      "shortName": "TN SHIP",
+      "tagline": "Free one-on-one Medicare counseling to help your parent choose the right plan and apply for cost-saving programs.",
+      "programType": "navigator",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Nine regional SHIP offices statewide[3]",
+            "type": "service-area"
+          },
+          {
+            "name": "Aging Commission of the Mid-South (Shelby, Fayette, Lauderdale, Tipton counties): 901-222-4111 or 877-801-0044[3]",
+            "type": "service-area"
+          },
+          {
+            "name": "Upper Cumberland SHIP (14-county region): (931) 432-4150 or (931) 345-3635[7]",
+            "type": "service-area"
+          },
+          {
+            "name": "Statewide coordination: Tennessee Commission on Aging and Disability[3]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is overwhelmed by Medicare plan choices or struggling with premium costs, TN SHIP provides free, unbiased counseling to help them navigate their options. Because Medicare has dozens of plan variations and cost-saving programs that most people don't know about, having an expert review your parent's specific situation can save hundreds of dollars per year.\n\nTN SHIP counselors help your parent compare Medicare Part D prescription plans, Medicare Advantage options, and Medigap policies. More importantly, they help apply for programs that can dramatically reduce Medicare costs — like Medicare Savings Programs that cover premiums and Extra Help that reduces prescription costs. The service is completely free and available to anyone on Medicare, regardless of income.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+ or any age on Medicare due to disability",
+          "Must be Medicare-eligible",
+          "No income or asset limits"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be enrolled in or eligible for Medicare"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call the statewide helpline at 1-877-801-0044 for immediate counseling — no application or forms required.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the statewide TN SHIP helpline",
+            "description": "Call 1-877-801-0044 to speak with a counselor. They'll review your parent's current Medicare coverage and specific needs over the phone."
+          },
+          {
+            "step": 2,
+            "title": "Schedule one-on-one counseling if needed",
+            "description": "For complex situations, the counselor may schedule an in-person or extended phone session. Nine regional offices serve different areas of Tennessee."
+          },
+          {
+            "step": 3,
+            "title": "Get help applying for cost-saving programs",
+            "description": "The counselor will help your parent apply for Medicare Savings Programs, Extra Help with prescription costs, or other programs that reduce Medicare expenses."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Call during Medicare Open Enrollment (October 15 - December 7) for plan comparisons, but counseling is available year-round for urgent issues.",
+        "urls": [
+          {
+            "label": "TN SHIP Official Page",
+            "url": "https://www.tn.gov/disability-and-aging/disability-aging-programs/tn-ship.html"
+          },
+          {
+            "label": "Request Counseling Online",
+            "url": "https://www.tn.gov/disability-and-aging/disability-aging-programs/tn-ship.html"
+          }
+        ]
+      },
+      "documentsNeeded": null,
+      "contacts": [
+        {
+          "label": "TN SHIP Statewide Helpline",
+          "phone": "(877) 801-0044",
+          "description": "Free Medicare counseling and plan comparison",
+          "hours": "Monday-Friday, business hours"
+        },
+        {
+          "label": "TTY Line",
+          "phone": "(800) 848-0299",
+          "description": "For hearing-impaired callers",
+          "hours": "Monday-Friday, business hours"
+        },
+        {
+          "label": "Aging Commission of the Mid-South",
+          "phone": "(901) 222-4111",
+          "description": "Serves Shelby, Fayette, Lauderdale, and Tipton counties",
+          "hours": "Monday-Friday, business hours"
+        },
+        {
+          "label": "Upper Cumberland SHIP",
+          "phone": "(931) 432-4150",
+          "description": "Serves 14-county Upper Cumberland region",
+          "hours": "Monday-Friday, business hours"
+        }
+      ],
+      "applicationNotes": null,
+      "relatedPrograms": [
+        "Tennessee Medicaid",
+        "Medicare Savings Programs (QMB, SLMB, QI)",
+        "Extra Help (Low Income Subsidy)",
+        "Senior Medicare Patrol"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Will the counselor try to sell my parent a specific Medicare plan?",
+          "answer": "No. TN SHIP counselors are federally required to be unbiased and do not sell insurance or receive commissions. They'll explain all options but won't recommend specific insurance companies or push any particular plan."
+        },
+        {
+          "question": "Can I call on behalf of my parent if they're not comfortable with phone calls?",
+          "answer": "Yes, family members can call for general information and to schedule appointments. For detailed plan reviews involving personal medical information, your parent may need to be present or provide verbal consent during the call."
+        },
+        {
+          "question": "What if my parent just became Medicare-eligible and has an ACA Marketplace plan?",
+          "answer": "Your parent must cancel their Marketplace plan when Medicare starts or face penalties and coverage gaps. TN SHIP counselors help coordinate this transition and ensure your parent enrolls in appropriate Medicare coverage before the Marketplace plan ends."
+        },
+        {
+          "question": "Is there really no cost for this service, even for higher-income seniors?",
+          "answer": "Correct. TN SHIP counseling is completely free regardless of your parent's income level. The program is federally funded specifically to provide unbiased Medicare education to all beneficiaries."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": false,
+        "visualTone": "minimal"
+      },
+      "icon": "Compass",
+      "phone": "(877) 801-0044",
+      "sourceUrl": "https://www.tn.gov/disability-and-aging/disability-aging-programs/tn-ship.html",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
     },
     {
       "id": "tn-meals-on-wheels",

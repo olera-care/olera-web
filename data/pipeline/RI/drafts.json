@@ -1,9 +1,9 @@
 {
   "state": "RI",
   "stateName": "Rhode Island",
-  "draftedAt": "2026-04-13T21:50:19.563Z",
+  "draftedAt": "2026-04-13T22:29:50.221Z",
   "total": 17,
-  "successful": 16,
+  "successful": 17,
   "programs": [
     {
       "id": "ri-medicaid-ltss-elderly",
@@ -746,8 +746,206 @@
       "draftedAt": "2026-04-13"
     },
     {
+      "id": "ri-snap-food-benefits",
       "name": "Supplemental Nutrition Assistance Program (SNAP)",
-      "_error": "batch: canceled"
+      "shortName": "SNAP Food Benefits",
+      "tagline": "Up to $291 monthly for groceries if your parent is 60+ on a fixed income",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local DHS/Department of Social Services offices across RI",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and struggling with grocery costs, SNAP provides monthly benefits loaded on an EBT card for food purchases at authorized stores. Because Rhode Island expanded eligibility for seniors, your parent may qualify with income up to $2,608/month (200% of federal poverty level) — much higher than standard SNAP limits.\n\nMaximum benefits are around $291/month for one person, $535/month for two people. Your parent's actual amount depends on their income after deductions for medical expenses over $35/month, rent, and utilities. Because seniors get higher medical deductions, many receive more benefits than younger households with similar incomes.\n\nRhode Island waives asset limits for households with seniors or disabled members. Your parent's home, retirement savings, and Social Security don't disqualify them — only monthly income matters for most applicants.",
+      "savingsRange": "$1,200 – $3,500/year",
+      "savingsSource": "Monthly SNAP benefits of $100–291 for individuals, scaled by household size and income",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Income below $2,608/month (single person)",
+          "No asset limits in Rhode Island",
+          "U.S. citizen or qualified non-citizen"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2608
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 3540
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 4472
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 5404
+          }
+        ],
+        "assetLimits": {
+          "individual": 0,
+          "couple": 0,
+          "countedAssets": [],
+          "exemptAssets": [
+            "Primary home",
+            "Retirement savings (401k, IRA)",
+            "Most vehicles",
+            "Social Security benefits"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Rhode Island resident",
+          "Include all household members who buy and prepare food together",
+          "For simplified ESAP process: all adults 60+ or disabled with no earned income"
+        ],
+        "povertyLevelReference": "200% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online through the Rhode Island DHS portal or by phone — processing takes up to 30 days, or 36 months for simplified ESAP applications.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Choose your application method",
+            "description": "Seniors with no earned income can use the simplified ESAP form for 36-month certification. Others use the standard SNAP application at dhs.ri.gov/programs-and-services/supplemental-nutrition-assistance-program-snap."
+          },
+          {
+            "step": 2,
+            "title": "Gather required documents",
+            "description": "You'll need ID, proof of residency, income statements (Social Security, pension), and expense documentation (rent, utilities, medical costs over $35/month)."
+          },
+          {
+            "step": 3,
+            "title": "Submit your application",
+            "description": "Apply online, call 401-462-5300 or 1-855-697-4347, or visit your local DHS office. Include all household members who buy and prepare food together."
+          },
+          {
+            "step": 4,
+            "title": "Complete eligibility interview",
+            "description": "DHS will schedule a phone or in-person interview to verify information and calculate benefits based on income and allowable deductions."
+          },
+          {
+            "step": 5,
+            "title": "Receive EBT card",
+            "description": "If approved, benefits are loaded monthly on an EBT card for use at authorized grocery stores and retailers."
+          }
+        ],
+        "processingTime": "30 days for standard applications, expedited processing available for urgent cases",
+        "waitlist": null,
+        "tip": "Medical expenses over $35/month can significantly increase your parent's benefits — keep receipts for prescriptions, insurance premiums, and doctor visits.",
+        "urls": [
+          {
+            "label": "Rhode Island DHS SNAP Portal",
+            "url": "https://dhs.ri.gov/programs-and-services/supplemental-nutrition-assistance-program-snap"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Valid government-issued photo ID",
+        "Proof of Rhode Island residency (utility bill, lease, bank statement)",
+        "Social Security cards for all household members",
+        "Most recent Social Security award letter",
+        "Pension or retirement income statements",
+        "Bank statements for all accounts (last 3 months)",
+        "Rent receipt or mortgage statement",
+        "Utility bills (electric, gas, water)",
+        "Medical expense receipts over $35/month (prescriptions, insurance premiums, doctor visits)",
+        "Health insurance documentation",
+        "Citizenship or immigration status documents for all household members",
+        "Vehicle registration if household owns cars"
+      ],
+      "contacts": [
+        {
+          "label": "Rhode Island DHS SNAP Line",
+          "phone": "(401) 462-5300",
+          "description": "SNAP applications and questions",
+          "hours": "Mon-Fri 8am-4pm ET"
+        },
+        {
+          "label": "RI Benefits Hotline",
+          "phone": "1-855-697-4347",
+          "description": "General benefits assistance and applications",
+          "hours": "Mon-Fri 8am-4pm ET"
+        },
+        {
+          "label": "Rhode Island 2-1-1",
+          "phone": "2-1-1",
+          "description": "Free helpline for all social services and benefits",
+          "hours": "24 hours, 7 days a week"
+        }
+      ],
+      "applicationNotes": [
+        "SSI recipients are automatically eligible and can fast-track their applications",
+        "Households with all adults 60+ and no earned income qualify for simplified ESAP with 36-month certification periods",
+        "Higher medical deductions for seniors often result in more benefits than younger households with similar incomes",
+        "Rhode Island's expanded income limits (200% FPL) mean many seniors qualify who wouldn't in other states"
+      ],
+      "relatedPrograms": [
+        "Low Income Home Energy Assistance Program (LIHEAP)",
+        "Commodity Supplemental Food Program",
+        "Senior Farmers Market Nutrition Program",
+        "Meals on Wheels"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house and retirement savings if they apply for SNAP?",
+          "answer": "Yes. Rhode Island waives asset limits for households with members 60+ or disabled. Your parent's home, 401(k), IRA, Social Security benefits, and most vehicles don't count against eligibility. Only monthly income matters for qualification."
+        },
+        {
+          "question": "What if my parent lives with me but we don't share meals?",
+          "answer": "Only include household members who buy and prepare food together. If your parent buys their own groceries and prepares separate meals, they can apply as a one-person household even if living in your home. This often results in higher benefits."
+        },
+        {
+          "question": "How do medical expenses affect my parent's SNAP benefits?",
+          "answer": "Medical expenses over $35/month increase benefits significantly. Include insurance premiums, prescription costs, doctor visits, and medical equipment. A senior with $100/month in medical expenses may receive $50-100 more monthly than someone with no medical deduction."
+        },
+        {
+          "question": "Can I apply for SNAP on behalf of my elderly parent?",
+          "answer": "Yes, you can apply as their authorized representative with written permission. You'll need to sign forms during the application process and can handle the eligibility interview. Call 401-462-5300 to discuss the representative process."
+        },
+        {
+          "question": "What's the difference between regular SNAP and ESAP for seniors?",
+          "answer": "ESAP (Elderly Simplified Application Project) is for households where all adults are 60+ or disabled with no earned income. It offers 36-month certification instead of 12 months, simplified reporting, and a shorter application form."
+        },
+        {
+          "question": "Can my parent get SNAP if their Social Security is $1,800/month?",
+          "answer": "Likely yes. Rhode Island allows gross income up to $2,608/month for seniors (200% FPL). After deductions for medical expenses, rent, and utilities, your parent's net income may qualify them for benefits even with higher Social Security payments."
+        },
+        {
+          "question": "What happens if my parent's income changes after they're approved?",
+          "answer": "Report significant changes within 10 days by calling 401-462-5300. Increases in Social Security or pension may reduce benefits, while increased medical expenses may increase them. ESAP recipients only report changes annually."
+        },
+        {
+          "question": "How quickly can my parent get benefits if they're approved?",
+          "answer": "Benefits are typically loaded on the EBT card within 7-10 days of approval. For expedited cases (very low income, urgent food needs), benefits can be available within 7 days of application. The card works immediately at authorized stores."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "savings",
+        "eligibilityDisplay": "income-table",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "BowlFood",
+      "phone": "(401) 462-5300",
+      "sourceUrl": "https://dhs.ri.gov/programs-and-services/supplemental-nutrition-assistance-program-snap",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
     },
     {
       "id": "ri-liheap-energy-assistance",

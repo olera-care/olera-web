@@ -1,9 +1,9 @@
 {
   "state": "CA",
   "stateName": "California",
-  "draftedAt": "2026-04-13T21:50:19.513Z",
+  "draftedAt": "2026-04-13T22:29:50.186Z",
   "total": 17,
-  "successful": 16,
+  "successful": 17,
   "programs": [
     {
       "id": "ca-medi-cal-medicare-savings-programs",
@@ -1954,8 +1954,134 @@
       "draftedAt": "2026-04-13"
     },
     {
+      "id": "ca-long-term-care-ombudsman",
       "name": "Long-Term Care Ombudsman Program",
-      "_error": "batch: canceled"
+      "shortName": "Ombudsman Program",
+      "tagline": "Free advocacy when your parent faces problems with nursing home or assisted living care quality, safety, or rights.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "35 local ombudsman programs throughout California",
+            "type": "service-area"
+          },
+          {
+            "name": "Administered by California Department of Aging (state level)",
+            "type": "service-area"
+          },
+          {
+            "name": "Services provided locally by contracted agencies",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent lives in a California nursing home, assisted living facility, or residential care home, they have access to free advocacy services when problems arise with care quality, safety, or their rights as a resident. The Long-Term Care Ombudsman Program provides independent advocates who investigate complaints, mediate conflicts with facility staff, and ensure your parent's voice is heard in care decisions.\n\nThis is not a financial assistance program — ombudsman representatives are trained advocates who work directly with residents and facilities to resolve issues like inadequate care, billing disputes, unsafe conditions, or violations of resident rights. The program serves all 2,252 long-term care facilities in California through 35 local offices, with both professional staff and extensively trained volunteers (minimum 36 hours of training plus supervised internship).\n\nImportantly, ombudsman representatives advocate for what your parent wants, not necessarily what family members prefer. If there's disagreement between you and your parent about care decisions, the ombudsman will support your parent's expressed wishes.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Resident of California long-term care facility",
+          "No income or age requirements",
+          "Family members can request services on behalf of residents"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be a resident of a nursing home, residential care facility for the elderly, adult residential facility, or intermediate care facility in California"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call the 24/7 statewide CRISISline at 1-800-231-4024 — no application needed, services begin immediately.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the statewide CRISISline",
+            "description": "Dial 1-800-231-4024 (available 24 hours, 7 days a week). Residents, family members, friends, or facility staff can all make complaints on behalf of residents."
+          },
+          {
+            "step": 2,
+            "title": "Or contact your local ombudsman office",
+            "description": "Call the state office at (916) 419-7510 (8am-5pm) or find your county-specific ombudsman office at aging.ca.gov/Programs_and_Services/Long-Term_Care_Ombudsman/. All facilities are required to post local ombudsman contact information."
+          },
+          {
+            "step": 3,
+            "title": "Describe the situation",
+            "description": "Explain the care issue, safety concern, billing dispute, or rights violation. The ombudsman representative will begin investigation and advocacy immediately — no forms or waiting period required."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Keep notes about specific incidents, including dates, times, and staff members involved — this helps ombudsman representatives investigate more effectively.",
+        "urls": [
+          {
+            "label": "California Department of Aging Ombudsman Program",
+            "url": "https://aging.ca.gov/Programs_and_Services/Long-Term_Care_Ombudsman/"
+          }
+        ]
+      },
+      "documentsNeeded": null,
+      "contacts": [
+        {
+          "label": "Statewide CRISISline",
+          "phone": "1-800-231-4024",
+          "description": "24/7 hotline for all long-term care complaints and advocacy requests",
+          "hours": "24 hours, 7 days a week"
+        },
+        {
+          "label": "State Ombudsman Office",
+          "phone": "(916) 419-7510",
+          "description": "California Department of Aging central office for program information",
+          "hours": "Mon-Fri 8am-5pm PT"
+        },
+        {
+          "label": "San Diego County Example",
+          "phone": "(800) 640-4661",
+          "description": "Example of county-specific ombudsman office — find your county's number on the state website",
+          "hours": "Hours vary by county"
+        }
+      ],
+      "applicationNotes": null,
+      "relatedPrograms": [
+        "Adult Protective Services",
+        "California Department of Public Health Licensing and Certification",
+        "Medicare.gov Nursing Home Compare"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can I call the ombudsman about my parent's facility even if my parent doesn't want me to get involved?",
+          "answer": "Yes, you can make the initial complaint, but the ombudsman will work according to your parent's expressed wishes, not yours. If your parent doesn't want advocacy services or disagrees with your concerns, the ombudsman will respect their decision and may not be able to take action you want them to take."
+        },
+        {
+          "question": "What's the difference between calling the ombudsman versus reporting to Adult Protective Services?",
+          "answer": "Ombudsman representatives focus on advocacy, mediation, and resolving conflicts within the facility system. Adult Protective Services investigates suspected abuse or neglect as a law enforcement matter. For immediate safety concerns or suspected abuse, call Adult Protective Services first. For care quality issues, billing disputes, or rights violations, start with the ombudsman."
+        },
+        {
+          "question": "Will the facility retaliate against my parent if I file a complaint with the ombudsman?",
+          "answer": "Retaliation against residents for ombudsman complaints is illegal under federal and state law. Ombudsman representatives are trained to monitor for retaliation and can take action if it occurs. However, you can request that complaints be handled confidentially when possible."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": false,
+        "visualTone": "minimal"
+      },
+      "icon": "Scales",
+      "phone": "1-800-231-4024",
+      "sourceUrl": "https://aging.ca.gov/Programs_and_Services/Long-Term_Care_Ombudsman/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
     },
     {
       "id": "ca-ssp-supplemental-payment",

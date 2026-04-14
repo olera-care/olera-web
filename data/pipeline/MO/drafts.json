@@ -1,9 +1,9 @@
 {
   "state": "MO",
   "stateName": "Missouri",
-  "draftedAt": "2026-04-13T21:50:19.547Z",
+  "draftedAt": "2026-04-13T22:29:50.211Z",
   "total": 17,
-  "successful": 16,
+  "successful": 17,
   "programs": [
     {
       "id": "mo-healthnet-medicaid",
@@ -1013,8 +1013,204 @@
       "draftedAt": "2026-04-13"
     },
     {
+      "id": "mo-liheap-energy-assistance",
       "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
-      "_error": "batch: canceled"
+      "shortName": "LIHEAP Energy Assistance",
+      "tagline": "Help paying heating and cooling bills when your parent's income makes utilities unaffordable",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local contracted agencies; examples: CMCA (cmca.us), Ameren participating agencies",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent struggles to pay heating or cooling bills on a fixed income, LIHEAP provides direct payments to their energy company. The program pays $153 to $495 toward regular heating costs, plus up to $800 for winter emergencies and $300 for summer cooling crises.\n\nYour parent qualifies if their gross monthly income is below $2,839 for a single person or $3,713 for a couple (2025 limits), and they have $3,000 or less in countable assets like bank accounts and investments. Because priority goes to households with someone age 60+ or disabled, older adults get earlier application windows starting October 1.\n\nBecause funding is limited and distributed first-come, first-served within priority groups, applying early in the season maximizes your parent's chances of receiving assistance before funds run out.",
+      "savingsRange": "$153 – $800/year in 2025",
+      "savingsSource": "Regular heating assistance ranges $153-$495; crisis assistance up to $800 winter, $300 summer",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Income below $2,839/month (single) or $3,713/month (couple)",
+          "Assets under $3,000",
+          "Missouri resident",
+          "U.S. citizen or legal resident"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2839
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 3713
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 4587
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 5461
+          },
+          {
+            "householdSize": 5,
+            "monthlyLimit": 6335
+          },
+          {
+            "householdSize": 6,
+            "monthlyLimit": 7209
+          }
+        ],
+        "assetLimits": {
+          "individual": 3000,
+          "couple": 3000,
+          "countedAssets": [
+            "Bank accounts",
+            "Investments",
+            "Retirement accounts"
+          ],
+          "exemptAssets": [],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Missouri resident",
+          "U.S. citizen or legally admitted for permanent residence",
+          "Be responsible for paying the utility bill",
+          "Provide Social Security numbers for all household members"
+        ],
+        "povertyLevelReference": "60% of state median income"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact your local LIHEAP agency to apply, with priority periods starting October 1 for elderly and disabled households.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local agency",
+            "description": "Use the agency finder on your utility company's website (like Ameren.com) or contact the Energy Assistance Line at (573) 200-6655 to locate your nearest contracted agency."
+          },
+          {
+            "step": 2,
+            "title": "Check priority periods",
+            "description": "Elderly (60+) and disabled households can apply starting October 1 or November 1. All other households start December 1. Apply as early as possible since funds are limited."
+          },
+          {
+            "step": 3,
+            "title": "Gather required documents",
+            "description": "Collect pay stubs from the prior month, utility bills, Social Security numbers for all household members, and proof of residency and citizenship status."
+          },
+          {
+            "step": 4,
+            "title": "Submit application",
+            "description": "Contact your local agency to complete the LIHEAP application in person, by phone, or by mail. SNAP recipients still need to provide utility bills and Social Security numbers."
+          },
+          {
+            "step": 5,
+            "title": "Wait for processing",
+            "description": "Agencies process applications after program start dates. If approved, payments go directly to your energy supplier."
+          }
+        ],
+        "processingTime": "Eligibility notifications and payments begin after October 1 for priority households, with exact timing varying by local agency",
+        "waitlist": "Funds are limited and distributed first-come, first-served within priority periods. Programs may exhaust funding before all eligible applicants receive assistance",
+        "tip": "SNAP recipients still need to apply separately for LIHEAP and must provide utility bills and Social Security numbers",
+        "urls": [
+          {
+            "label": "Missouri Department of Social Services Energy Assistance",
+            "url": "https://dss.mo.gov/fsd/energy-assistance"
+          },
+          {
+            "label": "Ameren LIHEAP Information",
+            "url": "https://www.ameren.com/bill/assistance/liheap"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Valid government-issued photo ID",
+        "Proof of Missouri residency (utility bill, lease, or state-issued document)",
+        "Proof of U.S. citizenship or legal residency for all household members",
+        "Social Security cards for all household members",
+        "Pay stubs or income statements from the month prior to application",
+        "Most recent electric bill",
+        "Most recent gas or heating fuel bill",
+        "Bank statements for all accounts (last 3 months)",
+        "Investment account statements",
+        "Retirement account statements",
+        "Social Security award letters for all recipients",
+        "Pension or other retirement income statements"
+      ],
+      "contacts": [
+        {
+          "label": "Energy Assistance Line",
+          "phone": "(573) 200-6655",
+          "description": "Option 1 for application status, Option 2 for crisis assistance",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Missouri 2-1-1",
+          "phone": "2-1-1",
+          "description": "Free helpline for all social services and local agency referrals",
+          "hours": "24 hours, 7 days a week"
+        }
+      ],
+      "applicationNotes": [
+        "Priority households (age 60+, disabled, families with children) have earlier application windows starting October 1 or November 1",
+        "Crisis assistance for disconnection notices or emergency situations may be processed more quickly than regular heating assistance",
+        "Income is calculated based on the month prior to application, so September income counts for October applications",
+        "Everyone listed on the utility bill counts as a household member, which differs from SNAP household rules"
+      ],
+      "relatedPrograms": [
+        "Weatherization Assistance Program",
+        "SNAP Food Benefits",
+        "Medicaid",
+        "Housing Choice Voucher Program"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can I apply for both regular heating assistance and crisis assistance?",
+          "answer": "Yes, these are separate components of LIHEAP. Regular heating assistance provides $153-$495 for the heating season, while crisis assistance provides up to $800 for winter emergencies and $300 for summer cooling crises when you face disconnection or need emergency repairs."
+        },
+        {
+          "question": "What if my parent's income changes after they apply?",
+          "answer": "You must reapply every year for LIHEAP benefits. If income or household circumstances change during the benefit year, contact your local agency to determine if you need to submit a new application. Changes may affect eligibility or benefit amounts."
+        },
+        {
+          "question": "Does the $3,000 asset limit include my parent's house?",
+          "answer": "The $3,000 limit applies to countable assets like bank accounts, investments, and retirement accounts. The research doesn't specify whether the home is exempt, so contact your local LIHEAP agency at (573) 200-6655 for clarification on which assets count toward this limit."
+        },
+        {
+          "question": "Can I apply on behalf of my elderly parent?",
+          "answer": "Yes, if you live in the household and are responsible for paying the utility bill, you can be included on the application. You must be over 18 and provide your own information as part of the household. Contact your local agency to discuss the specific application process for your situation."
+        },
+        {
+          "question": "How long does it take to receive the energy assistance payment?",
+          "answer": "Payments are made directly to your energy supplier after eligibility is determined and program start dates begin (post-October 1 for elderly/disabled). Processing time varies by local agency and the month you apply, with earlier applications typically processed faster."
+        },
+        {
+          "question": "What if funds run out before my application is processed?",
+          "answer": "LIHEAP has limited funding each year and operates on a first-come, first-served basis within priority periods. If funds are exhausted, you won't receive assistance that year. This is why applying as early as possible during your priority window is crucial."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "savings",
+        "eligibilityDisplay": "income-table",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "Lightning",
+      "phone": "(573) 200-6655",
+      "sourceUrl": "https://dss.mo.gov/fsd/energy-assistance",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
     },
     {
       "id": "mo-weatherization-assistance-program",

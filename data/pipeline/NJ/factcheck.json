@@ -1,0 +1,293 @@
+{
+  "state": "NJ",
+  "stateName": "New Jersey",
+  "checkedAt": "2026-04-14T01:00:33.403Z",
+  "total": 8,
+  "skipped": 0,
+  "parseErrors": 0,
+  "errors": 0,
+  "programsWithFlags": 1,
+  "totalFlags": 2,
+  "highSeverityFlags": 2,
+  "programs": [
+    {
+      "programId": "nj-stay-nj-property-tax-relief",
+      "programName": "Stay NJ",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "6092926400",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 65,
+        "income_1": 500000,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://www.nj.gov/treasury/taxation/staynj/index.shtml",
+          "income": "https://www.nj.gov/treasury/taxation/staynj/index.shtml",
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No assets test or phone number found in sources; no income_2 or couple-specific income limit specified"
+      },
+      "flags": [],
+      "notes": "No assets test or phone number found in sources; no income_2 or couple-specific income limit specified"
+    },
+    {
+      "programId": "nj-senior-freeze-property-tax",
+      "programName": "Senior Freeze (Property Tax Reimbursement)",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8008826597",
+          "8003234400",
+          "711"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "18008826597",
+        "sources": {
+          "age": "https://www.nj.gov/treasury/taxation/ptr/[1]",
+          "income": null,
+          "assets": null,
+          "phone": "https://www.kiplinger.com/taxes/new-jersey-senior-freeze-program-checks[2]"
+        },
+        "notes": "No current 2026 income or asset limits found in sources; official NJ.gov pages reference 2024/2025 eligibility without specifying numerical values"
+      },
+      "flags": [],
+      "notes": "No current 2026 income or asset limits found in sources; official NJ.gov pages reference 2024/2025 eligibility without specifying numerical values"
+    },
+    {
+      "programId": "nj-jacc-community-caregiving",
+      "programName": "Jersey Assistance for Community Caregiving (JACC)",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 40000,
+        "assets_couple": 60000,
+        "phones": [
+          "18772223737",
+          "9087881361",
+          "9084756591"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": 4855,
+        "income_2": 6582,
+        "assets_individual": 40000,
+        "assets_couple": 60000,
+        "phone": "18772223737",
+        "sources": {
+          "age": "https://www.nj.gov/humanservices/doas/services/a-k/jacc/",
+          "income": "https://www.nj.gov/humanservices/doas/services/a-k/jacc/",
+          "assets": "https://www.nj.gov/humanservices/doas/services/a-k/jacc/",
+          "phone": "https://www.nj.gov/humanservices/doas/services/a-k/jacc/"
+        },
+        "notes": ""
+      },
+      "flags": [],
+      "notes": null
+    },
+    {
+      "programId": "nj-paad-prescription-assistance",
+      "programName": "Pharmaceutical Assistance to the Aged & Disabled (PAAD)",
+      "facts": {
+        "age": 65,
+        "income_1": 4579,
+        "income_2": 5199,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8666572835",
+          "18007929745",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": 54943,
+        "income_2": 62390,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "18007929745",
+        "sources": {
+          "age": "https://www.nj.gov/humanservices/doas/services/l-p/paad/",
+          "income": "https://www.nj.gov/humanservices/doas/services/l-p/paad/",
+          "assets": null,
+          "phone": "https://www.nj.gov/humanservices/doas/services/l-p/paad/"
+        },
+        "notes": "Income limits are annual, not monthly; no assets test mentioned in sources"
+      },
+      "flags": [
+        {
+          "field": "income_1",
+          "severity": "high",
+          "draftValue": 4579,
+          "verifiedValue": 54943,
+          "pctDiff": 91.7
+        },
+        {
+          "field": "income_2",
+          "severity": "high",
+          "draftValue": 5199,
+          "verifiedValue": 62390,
+          "pctDiff": 91.7
+        }
+      ],
+      "notes": "Income limits are annual, not monthly; no assets test mentioned in sources"
+    },
+    {
+      "programId": "nj-lifeline-utility-credit",
+      "programName": "Lifeline Credit",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 65,
+        "income_1": 54943,
+        "income_2": 62390,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://www.nj.gov/humanservices/doas/services/l-p/lifeline-utility/",
+          "income": "https://www.nj.gov/humanservices/doas/services/l-p/lifeline-utility/",
+          "assets": null,
+          "phone": null
+        },
+        "notes": "Age is minimum for standard eligibility via PAAD (65 or 18-64 with SSDI); no assets test specified; data current for 2026 from official NJ.gov source"
+      },
+      "flags": [],
+      "notes": "Age is minimum for standard eligibility via PAAD (65 or 18-64 with SSDI); no assets test specified; data current for 2026 from official NJ.gov source"
+    },
+    {
+      "programId": "nj-statewide-respite-care",
+      "programName": "New Jersey Statewide Respite Care Program",
+      "facts": {
+        "age": 18,
+        "income_1": 2982,
+        "income_2": 5964,
+        "assets_individual": 40000,
+        "assets_couple": 60000,
+        "phones": [
+          "18772223737",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 18,
+        "income_1": 2982,
+        "income_2": 5964,
+        "assets_individual": 40000,
+        "assets_couple": 60000,
+        "phone": "18772223737",
+        "sources": {
+          "age": "https://www.atlanticcountynj.gov/government/county-departments/department-of-human-services/division-of-intergenerational-services/statewide-respite-care-program",
+          "income": "https://www.nj.gov/humanservices/doas/services/q-z/srcp/",
+          "assets": "https://www.nj.gov/humanservices/doas/services/q-z/srcp/",
+          "phone": "https://www.nj.gov/humanservices/doas/services/q-z/srcp/"
+        },
+        "notes": "Income and assets updated for 2026 per official NJ.gov source; some county sites show prior year figures (e.g., $2742/$5484)"
+      },
+      "flags": [],
+      "notes": "Income and assets updated for 2026 per official NJ.gov source; some county sites show prior year figures (e.g., $2742/$5484)"
+    },
+    {
+      "programId": "nj-alzheimers-adult-day-services",
+      "programName": "Alzheimer's Adult Day Services Program",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 18,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://www.nj.gov/humanservices/doas/services/a-k/aads/",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "Program active as of 2026 per official NJ.gov source. Age is minimum requirement. Income and asset guidelines referenced but specific limits/thresholds not detailed in sources. No central application phone; contact centers directly or Aging and Disability Resource Connection at 1-877-222-3737."
+      },
+      "flags": [],
+      "notes": "Program active as of 2026 per official NJ.gov source. Age is minimum requirement. Income and asset guidelines referenced but specific limits/thresholds not detailed in sources. No central application phone; contact centers directly or Aging and Disability Resource Connection at 1-877-222-3737."
+    },
+    {
+      "programId": "nj-senior-ezpass-discount",
+      "programName": "Senior Citizen E-ZPass Discount",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "7327505300",
+          "18882886865",
+          "8569682000"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8882886865",
+        "sources": {
+          "age": "https://seniordiscount.njta.gov",
+          "income": null,
+          "assets": null,
+          "phone": "https://seniordiscount.njta.gov"
+        },
+        "notes": "Program is active as of April 2026. No income or asset limits found in official sources. Age requirement consistently stated as 65 years or older across all official NJTA sources. Phone number (1-888-288-6865) is the NJ E-ZPass Customer Service Center listed on official NJTA Senior Citizen Discount Application page."
+      },
+      "flags": [],
+      "notes": "Program is active as of April 2026. No income or asset limits found in official sources. Age requirement consistently stated as 65 years or older across all official NJTA sources. Phone number (1-888-288-6865) is the NJ E-ZPass Customer Service Center listed on official NJTA Senior Citizen Discount Application page."
+    }
+  ]
+}

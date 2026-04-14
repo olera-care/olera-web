@@ -1,9 +1,9 @@
 {
   "state": "KS",
   "stateName": "Kansas",
-  "draftedAt": "2026-04-13T21:50:19.539Z",
+  "draftedAt": "2026-04-13T22:29:50.204Z",
   "total": 14,
-  "successful": 13,
+  "successful": 14,
   "programs": [
     {
       "id": "ks-kancare-frail-elderly-waiver",
@@ -1031,8 +1031,195 @@
       "draftedAt": "2026-04-13"
     },
     {
+      "id": "ks-weatherization-assistance-program",
       "name": "Weatherization Assistance Program",
-      "_error": "batch: canceled"
+      "shortName": "Weatherization Assistance",
+      "tagline": "Free home energy upgrades that can cut your parent's heating and cooling bills year-round.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "KHRC primary: https://kshousingcorp.org/weatherization-assistance[1].",
+            "type": "service-area"
+          },
+          {
+            "name": "NCRPC[3].",
+            "type": "service-area"
+          },
+          {
+            "name": "SEK-CAP (Southeast Kansas)[4].",
+            "type": "service-area"
+          },
+          {
+            "name": "SCKEDD (South Central KS counties: Butler, Chautauqua, etc.)[8].",
+            "type": "service-area"
+          },
+          {
+            "name": "Evergy area agencies[6].",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent struggles with high energy bills, Kansas's Weatherization Assistance Program provides free home energy upgrades including insulation, air sealing, and heating system improvements. Your parent pays nothing — trained professionals perform a certified energy audit and install weatherization measures at no cost.\n\nThe program prioritizes households where someone receives SSI, TANF, or LIEAP, but also serves families with incomes up to 200% of Federal Poverty Guidelines. Because the program covers all materials and professional installation, your parent gets energy efficiency improvements they might not otherwise afford. Homeowners and renters both qualify, though renters need landlord permission.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Income up to 200% Federal Poverty Guidelines",
+          "Active electric and gas utilities required",
+          "No weatherization in past 15 years",
+          "Homeowners or renters with landlord permission"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must occupy the home with active utilities (electric and gas)",
+          "Home not scheduled for demolition within 12 months",
+          "No previous weatherization within 15 years (unless disaster damage not covered by insurance)",
+          "No major health/safety issues like mold, asbestos, or structural problems",
+          "Renters need landlord permission and rent stability agreement"
+        ],
+        "povertyLevelReference": "200% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply through your local regional provider — processing time varies by region and demand.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your regional provider",
+            "description": "Kansas uses regional agencies. Download the standardized application at https://kshousingcorp.org/wp-content/uploads/2023/05/Standardized-Weatherization-Application.pdf or contact your local provider directly."
+          },
+          {
+            "step": 2,
+            "title": "Gather income verification",
+            "description": "Collect pay stubs, SSI letters, TANF documentation, or unemployment benefits from the past 3 months for all household members. If no income, you'll need a notarized Affidavit of No Income."
+          },
+          {
+            "step": 3,
+            "title": "Complete application",
+            "description": "Fill out the standardized form with household information, utility company names and account numbers. Renters must also complete a landlord release form."
+          },
+          {
+            "step": 4,
+            "title": "Submit to local agency",
+            "description": "Submit by mail, email, or in-person to your regional provider. North Central: (800) 432-0303, Southeast Kansas: https://sek-cap.com/services/weatherization/, South Central: SCKEDD online portal."
+          },
+          {
+            "step": 5,
+            "title": "Wait for energy audit",
+            "description": "If approved, a certified energy auditor will visit the home to assess what improvements are needed before any work begins."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Priority goes to households already receiving SSI, TANF, or LIEAP — mention these benefits prominently if your parent receives them.",
+        "urls": [
+          {
+            "label": "Standardized Application Form",
+            "url": "https://kshousingcorp.org/wp-content/uploads/2023/05/Standardized-Weatherization-Application.pdf"
+          },
+          {
+            "label": "KHRC Weatherization Page",
+            "url": "https://kshousingcorp.org/weatherization-assistance"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Income verification for all household members from past 3 months (pay stubs, Social Security award letters, TANF documentation, unemployment benefits)",
+        "Names, birth dates, and gender for all household members",
+        "Utility company names and account numbers for electric and gas service",
+        "Landlord contact information and signed permission form (renters only)",
+        "Notarized Affidavit of No Income (if applicable)",
+        "Proof of SSI, TANF, or LIEAP participation within past 12 months (if applicable)",
+        "Documentation showing home ownership or rental agreement",
+        "Utility bills showing active electric and gas service"
+      ],
+      "contacts": [
+        {
+          "label": "NCRPC (North Central Kansas)",
+          "phone": "(800) 432-0303",
+          "description": "Weatherization applications for north central Kansas counties",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Kansas Housing Resources Corporation",
+          "phone": null,
+          "description": "State program administrator — use website to find local provider",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Kansas 2-1-1",
+          "phone": "2-1-1",
+          "description": "Help finding local weatherization providers statewide",
+          "hours": "24 hours, 7 days a week"
+        }
+      ],
+      "applicationNotes": [
+        "Each region has different providers — you must apply through the agency serving your parent's county, not directly to the state",
+        "Households receiving SSI, TANF, or LIEAP get priority processing over income-qualified applicants",
+        "Renters need landlord agreement not to raise rent for 2 years after weatherization — this can be a deal-breaker",
+        "If your parent's home was weatherized more than 15 years ago, they may qualify again, but previous measures won't be repeated"
+      ],
+      "relatedPrograms": [
+        "LIEAP (Low Income Energy Assistance Program)",
+        "Emergency Repair Program",
+        "Kansas Housing Assistance Program"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent apply if they're a renter?",
+          "answer": "Yes, but the landlord must give written permission and agree not to raise rent for 2 years after weatherization. Many landlords refuse this requirement, so get their agreement in writing before applying."
+        },
+        {
+          "question": "What if my parent's home was weatherized 10 years ago?",
+          "answer": "They cannot get weatherized again until 15 years have passed since the original work, unless there was disaster damage not covered by insurance. The program also won't repeat any measures that were previously installed."
+        },
+        {
+          "question": "Will this affect my parent's other benefits like Medicaid or SNAP?",
+          "answer": "No. Weatherization services don't count as income and won't affect eligibility for other government programs. The energy savings may actually help stretch their monthly budget."
+        },
+        {
+          "question": "What if my parent has both electric and gas heat but only electric is active?",
+          "answer": "Both electric and gas utilities must be active to qualify. If gas service is disconnected or never connected, your parent won't be eligible until both utilities are working."
+        },
+        {
+          "question": "Can I apply on behalf of my elderly parent?",
+          "answer": "Yes, family members can complete the application, but your parent must occupy the home and you'll need their signature on forms. The income verification must be in your parent's name."
+        },
+        {
+          "question": "How long is the wait after being approved?",
+          "answer": "The sources don't specify wait times, which vary significantly by region and season. High-priority households (SSI, TANF, LIEAP recipients) typically get served first. Contact your local provider for current timelines."
+        },
+        {
+          "question": "What if the energy auditor finds safety problems like mold or asbestos?",
+          "answer": "Major health and safety issues disqualify the home from weatherization services. The program won't address these problems — your parent would need to resolve them first through other means before reapplying."
+        },
+        {
+          "question": "Can my parent get weatherization if they're planning to move in the next year?",
+          "answer": "No. The home cannot be designated for acquisition or clearance within 12 months. Your parent must plan to continue living there to qualify for the free improvements."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "Lightning",
+      "phone": "(800) 432-0303",
+      "sourceUrl": "https://kshousingcorp.org/weatherization-assistance",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
     },
     {
       "id": "ks-shick-medicare-counseling",

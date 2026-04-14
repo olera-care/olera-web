@@ -1,13 +1,206 @@
 {
   "state": "NV",
   "stateName": "Nevada",
-  "draftedAt": "2026-04-13T21:50:19.557Z",
+  "draftedAt": "2026-04-13T22:29:50.217Z",
   "total": 18,
-  "successful": 17,
+  "successful": 18,
   "programs": [
     {
+      "id": "nv-medicaid-long-term-care",
       "name": "Nevada Medicaid",
-      "_error": "batch: canceled"
+      "shortName": "Nevada Medicaid",
+      "tagline": "Covers nursing home care and home health services for Nevada seniors who qualify for long-term care.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Nevada Division of Welfare and Supportive Services (DWSS) offices statewide",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs daily help with bathing, dressing, or medication management, Nevada Medicaid can cover their long-term care costs — whether in a nursing home or at home through community-based services. Your parent must meet strict income and asset limits, plus qualify for Nursing Facility Level of Care (a clinical assessment confirming they need daily assistance with basic activities).\n\nBecause Nevada Medicaid covers ongoing care costs as long as your parent remains eligible, this can provide financial protection for families facing potentially unlimited care expenses. Income limits for 2026: $2,982/month for single applicants, $2,523/month for married applicants whose spouse doesn't need care. Asset limits: $2,000 for single applicants, with higher limits for married couples.\n\nYour parent will contribute most of their income toward care costs, keeping only $163/month for personal needs if in a nursing home. Home and Community-Based Services waivers allow care at home but often have waitlists due to limited slots.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+",
+          "Income below $2,982/month (single)",
+          "Assets under $2,000 (single)",
+          "Needs daily care assistance",
+          "Nevada resident"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 2000,
+          "couple": 4000,
+          "countedAssets": [
+            "Bank accounts",
+            "Investments",
+            "Stocks and bonds",
+            "Additional vehicles"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "One vehicle",
+            "Personal belongings",
+            "Pre-paid burial contracts"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "Must qualify for Nursing Facility Level of Care — a clinical assessment determining your parent needs daily help with activities like bathing, dressing, eating, toileting, or medication management",
+        "otherRequirements": [
+          "Nevada resident",
+          "U.S. citizen or qualified legal resident"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online through Access Nevada or call (775) 684-3600 — processing times vary but coverage can be retroactive up to 3 months.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Start your application",
+            "description": "Apply online at https://accessnevada.dwss.nv.gov/ or call Nevada Medicaid Services at (775) 684-3600. You can also visit your local DWSS office or Aging and Disability Resource Center."
+          },
+          {
+            "step": 2,
+            "title": "Submit required documents",
+            "description": "Provide proof of income, assets, residency, and identity. Include medical records that demonstrate your parent's need for daily care assistance."
+          },
+          {
+            "step": 3,
+            "title": "Complete functional assessment",
+            "description": "Your parent will be assessed for Nursing Facility Level of Care through evaluation of Activities of Daily Living (ADLs) and Instrumental ADLs."
+          },
+          {
+            "step": 4,
+            "title": "Choose care setting",
+            "description": "If approved, select nursing home care or apply for Home and Community-Based Services waiver (which may have a waitlist)."
+          },
+          {
+            "step": 5,
+            "title": "Set up income contribution",
+            "description": "Your parent will contribute most of their monthly income toward care costs, keeping $163/month personal allowance if in nursing home."
+          }
+        ],
+        "processingTime": "Varies; can take longer than expected, but coverage may be retroactive 3 months prior to approval",
+        "waitlist": "Possible for Home and Community-Based Services waivers due to limited slots; nursing home coverage typically no waitlist",
+        "tip": "Ask about usual processing timeframes when you submit your application, as times vary by region and individual circumstances.",
+        "urls": [
+          {
+            "label": "Access Nevada Application Portal",
+            "url": "https://accessnevada.dwss.nv.gov/"
+          },
+          {
+            "label": "Nevada Medicaid Information",
+            "url": "https://www.dss.nv.gov/programs/medical/"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Birth certificate or other proof of age",
+        "Social Security card",
+        "Proof of Nevada residency (utility bill, lease, or state-issued document)",
+        "Social Security award letters for all income sources",
+        "Pension or retirement income statements",
+        "Bank statements for all accounts (last 3 months)",
+        "Investment account statements (stocks, bonds, annuities)",
+        "Vehicle titles and registration",
+        "Property deeds or tax statements",
+        "Life insurance policies with cash values",
+        "Pre-need burial contracts or irrevocable burial trusts",
+        "Medicare cards (both parts if dual eligible)",
+        "Medical records documenting functional limitations",
+        "Documentation of current care needs or services",
+        "Power of attorney documents if someone else is applying"
+      ],
+      "contacts": [
+        {
+          "label": "Nevada Medicaid Services",
+          "phone": "(775) 684-3600",
+          "description": "Primary Medicaid application and eligibility questions",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Nevada 2-1-1",
+          "phone": "2-1-1",
+          "description": "General social services helpline and local resource referrals",
+          "hours": "24 hours, 7 days a week"
+        },
+        {
+          "label": "Nevada Aging and Disability Services",
+          "phone": "(775) 687-4210",
+          "description": "Information about long-term care options and assessments",
+          "hours": "Mon-Fri 8am-5pm PT"
+        }
+      ],
+      "applicationNotes": [
+        "Coverage can be retroactive up to 3 months before approval, so apply as soon as you think your parent might qualify",
+        "Home and Community-Based Services waivers have limited slots — ask about current waitlist length for your region when applying",
+        "Your parent's primary home is exempt from asset limits but subject to estate recovery after death",
+        "Even if your parent enters a nursing home temporarily, maintain the Medicaid application as they may need ongoing coverage"
+      ],
+      "relatedPrograms": [
+        "Nevada SNAP (food assistance)",
+        "Medicare Savings Programs",
+        "Low Income Home Energy Assistance Program (LIHEAP)",
+        "Supplemental Security Income (SSI)"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if it's worth more than $2,000?",
+          "answer": "Yes, your parent's primary home is exempt from the $2,000 asset limit while they live there or intend to return. However, Nevada may place a lien on the home for estate recovery after your parent's death. The state can recover Medicaid costs from the estate, though some protections exist for surviving spouses and dependent children."
+        },
+        {
+          "question": "What happens to my parent's Social Security check if they're in a nursing home?",
+          "answer": "Your parent must contribute almost all of their monthly income toward nursing home costs, keeping only $163/month for personal needs. They also keep Medicare premiums if they have dual Medicare-Medicaid coverage. For example, if your parent receives $2,000/month in Social Security, $1,837 goes to the nursing home and they keep $163."
+        },
+        {
+          "question": "How long is the waitlist for home care services really?",
+          "answer": "Waitlist length varies by region and specific waiver program, but it can range from several months to multiple years due to limited slots. Nursing home coverage typically has no waitlist. Ask your local DWSS office about current waitlist times for Home and Community-Based Services waivers in your area."
+        },
+        {
+          "question": "Can I apply for Nevada Medicaid and Medicare Savings Programs at the same time?",
+          "answer": "Yes, you can and should apply for both if your parent is 65+ and has Medicare. Medicare Savings Programs help pay Medicare premiums and may have higher income limits than Medicaid. Use the same Access Nevada portal or mention both programs when calling (775) 684-3600."
+        },
+        {
+          "question": "What if my parent's income is $50 over the limit?",
+          "answer": "Your parent may still qualify through a 'spend-down' process where they pay medical expenses each month to reduce their countable income below the limit. For example, if the limit is $2,982 and your parent has $3,032 in income, they'd need to pay $50 in medical costs monthly to qualify."
+        },
+        {
+          "question": "Can I apply on behalf of my elderly parent who has dementia?",
+          "answer": "Yes, adult children can apply for their parents, but you'll need legal authority such as power of attorney for financial matters. If your parent doesn't have these documents and lacks capacity to sign them, you may need to pursue guardianship through Nevada courts before applying for benefits."
+        },
+        {
+          "question": "What happens if my parent's needs change after they're on Medicaid?",
+          "answer": "Nevada Medicaid conducts periodic reassessments to ensure your parent still meets Nursing Facility Level of Care requirements. If their condition improves significantly, they might lose long-term care coverage but could still qualify for regular Medicaid health benefits. If needs increase, additional services may become available."
+        },
+        {
+          "question": "Does the assisted living waiver cover room and board costs?",
+          "answer": "No, Nevada's Assisted Living Waiver covers personal care services, nursing, and care coordination but not room and board costs. Your parent must pay for housing separately from their income, benefits, or family contributions. This is different from nursing home coverage, which includes room and board."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "asset-focused",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "Bed",
+      "phone": "(775) 684-3600",
+      "sourceUrl": "https://www.dss.nv.gov/programs/medical/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
     },
     {
       "id": "nv-hcbs-waiver",

@@ -86,14 +86,17 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 - All 50 states + DC explored and researched
 
 ### What's next
-1. **Merge PR #536 to staging** — the benefits module + welcome page + Slack/activity integration + latency fix are all working now. Ready for QA on staging.
-2. **Fix profile completeness for intake users** (deferred bug) — currently shows ~24% because checks don't count `state`, `income_range`, `medicaid_status`. Fix would either add new field checks OR write `care_types`/`payment_methods` from the intake API.
-3. **Add `plainLabel` to pipeline prompt** — auto-generate a 4-5 word plain-English label per program (e.g., "Help paying for home care") so provider page descriptions are human-first, not tagline-derived.
-4. **Daily digest includes benefits completions** (Layer 3 deferred from session 77 Slack work) — small addition to `/api/cron/daily-digest` to count `benefits_completed` events alongside leads/claims/disputes.
-3. **Re-run v3 pipeline on all states** — SD + TX validated, full batch for v3-quality content. Benefits module dynamically reflects whatever's in the library.
-4. **Admin review guide** — embed quality-check directions directly in the admin dashboard.
-5. Apply approved MI drafts
-6. Review draft quality with Chantel
+1. **Wait for retry batch to land** (`msgbatch_018KaqzKb8Jq7xvGBEXCvphs`, 33 requests, ETA ~10-15 min) — merges fixed drafts back into drafts.json by index
+2. **Factcheck sweep across all 50 states** — `for s in AL AK ... WY DC; do node scripts/benefits-pipeline.js --state $s --phase factcheck --run; done`. Cost ~$3 Perplexity, ~13 min serial. Produces `factcheck.json` per state with flags.
+3. **Triage factcheck flags** — high-severity ones (income/age/asset mismatches) need human review before publishing
+4. **Commit all post-retry state** — retry results + factcheck outputs
+5. **Phase C**: admin review queue wiring for factcheck flags (medium effort — admin dashboard already has review/approve UI, need to wire factcheck.json into it)
+6. **Phase D state page badge** — small effort, needs prop wiring from `/senior-benefits/[state]/page.tsx` route caller to StatePageV3
+7. **Review draft quality with Chantel** — now that all 50 states have v3 content, she can sample
+8. **Merge PR #536 to staging** — benefits module + welcome page, separate from this QA work
+9. **Fix profile completeness for intake users** (deferred bug) — currently ~24% because checks don't count `state`, `income_range`, `medicaid_status`
+10. **Add `plainLabel` to pipeline prompt** — auto-generate a 4-5 word plain-English label per program so provider page descriptions are human-first, not tagline-derived
+11. **Daily digest includes benefits completions** (Layer 3 deferred from session 77)
 
 ### Other active work (different branches)
 - Provider page benefits module (`fond-hypatia`, PR #536) — in testing on Vercel
@@ -246,6 +249,52 @@ The deep dive. Restrained, lets content breathe. Reads like a well-researched ar
 ---
 
 ## Session Log
+
+### 2026-04-13 (Session 78, evening) — Batch Run Landed: 595/628 v3 + Phase D + Retry in Flight
+
+**Branch:** `vigilant-zhukovsky` | **Latest commit:** `351fbded`
+
+**The big win:** First real batch through the Anthropic Message Batches API drafted **595 of 628 programs at v3 quality across all 50 states (94.7%)**. Full v3 enrichment: structuredEligibility, documentsNeeded, contacts, layoutIntent, applicationNotes populated. Matches Texas/Chantel quality standard we'd only had on one state before.
+
+**How it actually landed (not the plan):**
+- Fired first 628-batch at 18:11 UTC. Attempted cancel + kill at 18:24 to apply hardening.
+- Cancel reached Anthropic but the kill didn't land in time. The process kept polling.
+- First batch actually completed at 21:31 UTC — 595 succeeded, 33 canceled (the cancel partially took effect on requests that hadn't started yet).
+- Ingest ran at 21:50 UTC, wrote 49 drafts.json files with 95% v3 coverage.
+- Re-fired hardened batch at 18:26 in parallel — canceled it once we realized first batch had succeeded.
+- Lesson: always verify `ps` shows the process is dead after kill; SIGTERM doesn't always interrupt a polling loop.
+
+**Phase D shipped:** `components/waiver-library/ContentStatusBadge.tsx` — Wikipedia-style "Auto-researched — facts last verified {date}" line. Shows only for `pipeline-draft` or `under-review`; hidden for approved/hand-curated. Wired into `ProgramPageV3` under the hero tagline. Both generic `/senior-benefits/` and Texas `/texas/benefits/` routes share the component — both get the badge automatically. StatePageV3 variant deferred (needs prop wiring from route caller).
+
+**Pipeline hardening in this stretch:**
+- Export `claudeChat` so batch script can use its 529 retry logic for state overview serial pass (was using raw fetch with no retries).
+- Track `expectedByState` through `buildRequests → ingestResults → writeDraftFiles`. Hole-filling and success-rate denominators now use the authoritative count, not inferred max-index. Defends against Anthropic silently returning fewer results than submitted.
+- FAQ shape normalization in `finalizeProgramDraft`: coerce `{q,a}` to `{question,answer}` at ingest (Claude occasionally returns short keys; renderers expect long keys).
+- Schema drift fixes: `icon?: string | null` on `PipelineDraft`, widen `contacts.description/hours` to allow null. Applied to both the generator source (benefits-pipeline.js) AND the serialized data/pipeline-drafts.ts AND WaiverProgram.contacts (fixed ContactCards prop type error).
+- Fixed 9 existing `{q,a}` FAQ entries in data/pipeline-drafts.ts via Edit replace_all.
+
+**Troubleshoot skill invoked twice:**
+1. **Stuck batch deep dive:** First 14-request canary stuck at `processing: 14` for 65+ min. Ran 3-variant diagnostic (beta header on/off, snapshot vs alias model, 20 vs 8192 max_tokens). All 3 ended in 155–187s. Root cause: queue pressure — submitted during Anthropic overload window. Resubmitted after load cleared, ended in 9.5 min. Not a code bug.
+2. **Fresh-eyes audit of ingest:** Found real bug — `programCount` inferred from max index, silently drops missing results. Fixed with `expectedByState` pre-initialization.
+
+**Retry in flight:** `msgbatch_018KaqzKb8Jq7xvGBEXCvphs` (task `bei115wtj`). 33 requests targeting only `_error` entries. New `--retry-errors` flag on `benefits-batch-draft.js` reads existing drafts.json, matches failed programs by name against dive data, submits only those, merges results back by index (preserves the 595 good drafts). Expected ~10-15 min, ~$0.25.
+
+**Next after retry lands:**
+1. Factcheck sweep across all 50 states — `for s in ...; do node scripts/benefits-pipeline.js --state $s --phase factcheck --run; done`. ~$3 Perplexity, ~13 min serial. This is the QA gate — will surface per-state flags on drafted facts (income limits, ages, phones).
+2. Triage factcheck results — high-severity flags need human review before publishing.
+3. Phase C: admin review queue wiring for factcheck flags (deferred, medium effort).
+4. Phase D state page badge (deferred, small effort, needs route-level prop wiring).
+
+**Decisions made (in this stretch):**
+
+| Date | Decision | Rationale |
+| 2026-04-13 | `ContentStatusBadge` is a trust signal, not a warning | Wikipedia "last edited" precedent. Pipeline-drafted content is honest about its provenance; showing that transparently protects credibility as content scales. Hidden for approved/hand-curated so trusted content doesn't wear a "draft" label. |
+| 2026-04-13 | Ingest tracks `expectedByState` instead of inferring counts | Anthropic SHOULD return all submitted results, but silently returning fewer is a realistic failure mode (especially on partial cancels). Inferred counts would look like a clean partial run and trigger safety guards incorrectly. Authoritative counts prevent silent data loss. |
+| 2026-04-13 | `--retry-errors` flag rather than one-shot script | Targeted retry is a class of work that will recur — every batch will have some failures (cancels, 529s, parse errors). Paying the ~30 min to build it as a flag pays off on every future run. |
+| 2026-04-13 | Let the first "canceled" batch's output stand, don't re-run | 595/628 at v3 is 95% coverage. The failed 33 are from batch-cancel interaction, not quality issues. Re-running everything would waste $4+ and achieve roughly the same result. Retry-only is $0.25 and surgical. |
+| 2026-04-13 | Schema fix belongs in the generator source AND the generated file | `data/pipeline-drafts.ts` is auto-generated but we need the build to pass NOW. Editing both ensures the next regeneration preserves the fix while the current file is valid. Same applies to the WaiverProgram type in `data/waiver-library.ts` for downstream components. |
+
+---
 
 ### 2026-04-13 (Session 78, continued) — Benefits QA: Factcheck Built, Batch API Integrated, 48-State Run Fired
 

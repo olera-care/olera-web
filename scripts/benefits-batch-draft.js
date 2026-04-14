@@ -56,6 +56,7 @@ function parseArgs() {
     includeTx: false,
     resume: null,
     dryRun: false,
+    retryErrors: false,
     pollInterval: 30000,
     help: false,
   };
@@ -64,6 +65,7 @@ function parseArgs() {
     if (a === '--include-tx') { opts.includeTx = true; continue; }
     if (a === '--resume') { opts.resume = args[++i]; continue; }
     if (a === '--dry-run') { opts.dryRun = true; continue; }
+    if (a === '--retry-errors') { opts.retryErrors = true; continue; }
     if (a === '--poll-interval') { opts.pollInterval = parseInt(args[++i]) * 1000; continue; }
     if (a === '--help' || a === '-h') { opts.help = true; continue; }
     if (/^[A-Z]{2}$/i.test(a)) { opts.states.push(a.toUpperCase()); continue; }
@@ -166,6 +168,124 @@ function buildRequests(stateCodes) {
   }
 
   return { requests, metadata, skipped, expectedByState };
+}
+
+// ---- Retry-errors mode: build requests only for existing _error entries ----
+
+function buildRetryRequests(stateCodes) {
+  const requests = [];
+  const metadata = {};
+  const skipped = [];
+  // For retry mode we pre-load each state's existing drafts.json — ingest will
+  // merge new results INTO the existing drafts rather than writing from scratch.
+  const existingByState = {};
+
+  for (const stateCode of stateCodes) {
+    const dirName = stateCode;
+    const existing = pipeline.readJson(dirName, 'drafts.json');
+    const dive = pipeline.readJson(dirName, 'dive.json');
+    const classify = pipeline.readJson(dirName, 'classify.json');
+
+    if (!existing || !Array.isArray(existing.programs)) {
+      skipped.push({ stateCode, reason: 'no existing drafts.json' });
+      continue;
+    }
+    if (!dive || !classify) {
+      skipped.push({ stateCode, reason: 'missing dive or classify' });
+      continue;
+    }
+
+    const errorIndices = [];
+    existing.programs.forEach((p, i) => {
+      if (p && (p._error || p._parseError)) errorIndices.push(i);
+    });
+
+    if (errorIndices.length === 0) continue;
+
+    existingByState[stateCode] = existing;
+
+    const entity = {
+      stateCode,
+      name: pipeline.STATE_NAMES[stateCode],
+      isState: true,
+      dirName,
+    };
+    const classifications = classify.programs || [];
+    const draftedAt = new Date().toISOString().split('T')[0];
+
+    for (const idx of errorIndices) {
+      const failedProg = existing.programs[idx];
+      // Find the matching dive entry by name (dive is the source of truth for research)
+      const diveProg = (dive.programs || []).find((dp) => dp && !dp._error && !dp._parseError && dp.name === failedProg.name);
+      if (!diveProg) {
+        skipped.push({ stateCode, reason: `no dive entry for "${failedProg.name}" at index ${idx}` });
+        continue;
+      }
+      const classification = classifications.find((c) => c.name === diveProg.name) || {};
+      const built = pipeline.buildProgramDraftPrompt(entity, diveProg, classification, draftedAt);
+      const customId = `${stateCode}__retry__${String(idx).padStart(3, '0')}`;
+
+      requests.push({
+        custom_id: customId,
+        params: {
+          model: MODEL,
+          max_tokens: built.tokenLimit,
+          messages: [{ role: 'user', content: built.prompt }],
+        },
+      });
+
+      metadata[customId] = {
+        stateCode,
+        index: idx,
+        prog: diveProg,
+        classification,
+        draftedAt,
+        tokenLimit: built.tokenLimit,
+        retry: true,
+      };
+    }
+  }
+
+  return { requests, metadata, skipped, existingByState };
+}
+
+// Merge retry results INTO existing drafts.json (not a full overwrite).
+// Only the indices that were retried get updated. Untouched programs stay.
+function mergeRetryResults(results, metadata, existingByState) {
+  let updated = 0;
+  let stillFailed = 0;
+
+  for (const r of results) {
+    const meta = metadata[r.custom_id];
+    if (!meta) continue;
+    const existing = existingByState[meta.stateCode];
+    if (!existing) continue;
+
+    if (r.result && r.result.type === 'succeeded') {
+      const content = r.result.message.content?.[0]?.text || '';
+      const finalized = pipeline.finalizeProgramDraft(content, meta.prog, meta.classification, meta.draftedAt);
+      if (finalized._parseError) {
+        stillFailed++;
+        continue;
+      }
+      existing.programs[meta.index] = finalized;
+      updated++;
+    } else {
+      stillFailed++;
+    }
+  }
+
+  // Recount success per state and write file
+  for (const [stateCode, existing] of Object.entries(existingByState)) {
+    existing.draftedAt = new Date().toISOString();
+    existing.successful = existing.programs.filter((p) => !p._error && !p._parseError).length;
+    existing.total = existing.programs.length;
+    const outPath = path.join(PIPELINE_ROOT, stateCode, 'drafts.json');
+    fs.writeFileSync(outPath, JSON.stringify(existing, null, 2));
+    console.log(`  ✓ ${stateCode}: merged — ${existing.successful}/${existing.total} programs`);
+  }
+
+  console.log(`\n  Retry merge: ${updated} fixed, ${stillFailed} still failing`);
 }
 
 // ---- Anthropic batch API ----
@@ -412,6 +532,44 @@ async function main() {
 
   const states = discoverStates(opts);
   console.log(`  Target states: ${states.length} (${states.join(', ')})`);
+
+  // Retry-errors mode: a shorter flow that only submits _error programs
+  // and merges results back into existing drafts.json files. No state overview
+  // regeneration (they were already generated from the successful drafts).
+  if (opts.retryErrors) {
+    console.log(`  Mode: retry-errors (only failed programs from existing drafts.json)`);
+    const retry = buildRetryRequests(states);
+    console.log(`  Built ${retry.requests.length} retry requests across ${Object.keys(retry.existingByState).length} states`);
+    if (retry.skipped.length) {
+      console.log(`  Skipped: ${retry.skipped.map(s => `${s.stateCode} (${s.reason})`).join(', ')}`);
+    }
+    if (opts.dryRun) {
+      console.log(`\n  DRY RUN. Would submit ${retry.requests.length} retry requests.`);
+      const byStateCount = {};
+      for (const r of retry.requests) {
+        const s = r.custom_id.split('__')[0];
+        byStateCount[s] = (byStateCount[s] || 0) + 1;
+      }
+      for (const [s, n] of Object.entries(byStateCount).sort()) console.log(`    ${s}: ${n}`);
+      process.exit(0);
+    }
+    if (!retry.requests.length) {
+      console.log(`\n  No failed programs to retry.`);
+      process.exit(0);
+    }
+    const batch = await submitBatch(retry.requests);
+    console.log(`\n  Polling every ${opts.pollInterval / 1000}s (resume: ${batch.id})...`);
+    const final = await pollBatch(batch.id, opts.pollInterval);
+    console.log(`\n  Downloading results from ${final.results_url}`);
+    const results = await downloadResults(final.results_url);
+    console.log(`  Downloaded ${results.length} results`);
+    mergeRetryResults(results, retry.metadata, retry.existingByState);
+    console.log(`\n  Regenerating pipeline-summary.ts + pipeline-drafts.ts...`);
+    pipeline.generatePipelineSummary();
+    pipeline.generatePipelineDrafts();
+    console.log(`\n  Done.`);
+    return;
+  }
 
   const { requests, metadata, skipped, expectedByState } = buildRequests(states);
   console.log(`  Built ${requests.length} draft requests across ${Object.keys(new Set(requests.map(r => r.custom_id.split('__')[0]))).size} states`);

@@ -76,11 +76,14 @@ export default function CandidateBrowsePage() {
     fetchCandidates(0, false);
   }, [fetchCandidates]);
 
-  // After returning from Stripe checkout, verify subscription and refresh auth
+  // After returning from Stripe checkout, verify subscription and refresh auth.
+  // No isProvider gate: the verify endpoint is idempotent and finds the provider
+  // profile server-side. Gating on activeProfile.type caused false negatives
+  // when the user's active profile was family-type at the moment they returned.
   useEffect(() => {
     if (hasVerified.current) return;
     const params = new URLSearchParams(window.location.search);
-    if (params.get("upgraded") !== "true" || !isProvider) return;
+    if (params.get("upgraded") !== "true") return;
     hasVerified.current = true;
 
     // Clear the query param from URL
@@ -91,16 +94,24 @@ export default function CandidateBrowsePage() {
     // Verify subscription with Stripe and refresh auth context
     (async () => {
       try {
-        await fetch("/api/medjobs/verify-subscription", { method: "POST" });
+        const res = await fetch("/api/medjobs/verify-subscription", { method: "POST" });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || data?.activated !== true) {
+          console.warn(
+            "[medjobs/candidates] verify-subscription did not activate:",
+            { status: res.status, body: data }
+          );
+        } else {
+          console.log("[medjobs/candidates] subscription activated:", data.subscriptionId);
+        }
         await refreshAccountData();
-        // Re-fetch candidates with new access tier (now paid = full profiles)
         setPage(0);
         fetchCandidates(0, false);
-      } catch {
-        // Silent — webhook may still activate later
+      } catch (err) {
+        console.warn("[medjobs/candidates] verify-subscription fetch failed:", err);
       }
     })();
-  }, [isProvider, refreshAccountData, fetchCandidates]);
+  }, [refreshAccountData, fetchCandidates]);
 
   // Infinite scroll — intersection observer
   useEffect(() => {

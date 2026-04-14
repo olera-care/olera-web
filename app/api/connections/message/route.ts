@@ -251,6 +251,7 @@ export async function POST(request: Request) {
             recipientType: isFamily ? "family" : "provider",
             providerId: !isFamily ? recipientProfileId : undefined,
             emailLogId: msgEmailLogId ?? undefined,
+            recipientProfileId,
           });
         }
 
@@ -280,6 +281,7 @@ export async function POST(request: Request) {
                 messageType: "new_message",
                 recipientType: recipientProfile?.type === "family" ? "family" : "provider",
                 profileId: recipientProfileId,
+                notificationType: recipientProfile?.type === "family" ? "messages_and_responses" : "messages",
               });
             }
           }

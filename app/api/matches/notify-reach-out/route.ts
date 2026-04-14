@@ -144,6 +144,7 @@ export async function POST(request: Request) {
       recipientType: "family",
       providerId: account.active_profile_id,
       emailLogId: reachOutEmailLogId ?? undefined,
+      recipientProfileId: toProfileId,
     });
 
     // Slack alert (fire-and-forget)

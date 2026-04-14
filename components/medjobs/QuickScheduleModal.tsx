@@ -244,6 +244,9 @@ export default function QuickScheduleModal({
   const [format, setFormat] = useState<InterviewFormat>("video");
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
+  const [showAltTime, setShowAltTime] = useState(false);
+  const [altDate, setAltDate] = useState("");
+  const [altTime, setAltTime] = useState("");
   const [notes, setNotes] = useState("");
 
   // Step 2: Provider info
@@ -323,6 +326,7 @@ export default function QuickScheduleModal({
 
     try {
       const proposedTime = new Date(`${selectedDate}T${selectedTime}`).toISOString();
+      const alternativeTime = altDate && altTime ? new Date(`${altDate}T${altTime}`).toISOString() : undefined;
 
       const res = await fetch("/api/medjobs/interviews/quick", {
         method: "POST",
@@ -331,6 +335,7 @@ export default function QuickScheduleModal({
           studentProfileId: candidate.id,
           type: format === "flexible" ? "video" : format,
           proposedTime,
+          alternativeTime,
           notes: notes.trim() || undefined,
           provider: {
             email: email.trim().toLowerCase(),
@@ -363,7 +368,7 @@ export default function QuickScheduleModal({
     } finally {
       setSubmitting(false);
     }
-  }, [canSubmit, selectedDate, selectedTime, format, notes, candidate.id, email, organization, city, state, selectedOrg]);
+  }, [canSubmit, selectedDate, selectedTime, altDate, altTime, format, notes, candidate.id, email, organization, city, state, selectedOrg]);
 
   const handleCitySelect = useCallback((selectedCity: string, selectedState: string) => {
     setCity(selectedCity);
@@ -400,6 +405,9 @@ export default function QuickScheduleModal({
       setFormat("video");
       setSelectedDate("");
       setSelectedTime("");
+      setShowAltTime(false);
+      setAltDate("");
+      setAltTime("");
       setNotes("");
       setOrganization("");
       setSelectedOrg(null);
@@ -477,6 +485,53 @@ export default function QuickScheduleModal({
             label="Select time"
           />
         </div>
+      </div>
+
+      {/* Alternative time - progressive disclosure */}
+      <div className="mt-6">
+        {!showAltTime ? (
+          <button
+            type="button"
+            onClick={() => setShowAltTime(true)}
+            className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Offer another time
+          </button>
+        ) : (
+          <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
+            <div className="flex items-center justify-between mb-3">
+              <label className="text-sm font-medium text-gray-700">
+                Alternative time
+              </label>
+              <button
+                type="button"
+                onClick={() => { setShowAltTime(false); setAltDate(""); setAltTime(""); }}
+                className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                Remove
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <StyledDropdown
+                options={dateOptions}
+                value={altDate}
+                onChange={setAltDate}
+                placeholder="Select date"
+                label="Select alternative date"
+              />
+              <StyledDropdown
+                options={timeOptions}
+                value={altTime}
+                onChange={setAltTime}
+                placeholder="Select time"
+                label="Select alternative time"
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Notes */}
@@ -699,6 +754,12 @@ export default function QuickScheduleModal({
             <span>When</span>
             <span className="font-medium">{formatDateDisplay(selectedDate)}, {formatTimeSlot(selectedTime)}</span>
           </div>
+          {altDate && altTime && (
+            <div className="flex justify-between">
+              <span>Alternative</span>
+              <span className="font-medium">{formatDateDisplay(altDate)}, {formatTimeSlot(altTime)}</span>
+            </div>
+          )}
           <div className="flex justify-between">
             <span>Format</span>
             <span className="font-medium capitalize">{format === "in_person" ? "In person" : format}</span>

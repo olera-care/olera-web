@@ -1,5 +1,6 @@
 import { Resend } from "resend";
 import { createClient } from "@supabase/supabase-js";
+import { shouldSendNotification, isControllableNotification, getPrefKeyForEmailType } from "./notification-prefs";
 
 const FROM_ADDRESS = "Olera <noreply@olera.care>";
 
@@ -46,6 +47,8 @@ export interface SendEmailOptions {
   emailLogId?: string;
   /** File attachments (e.g. .ics calendar invites) */
   attachments?: Array<{ filename: string; content: string; encoding?: string; type?: string }>;
+  /** Recipient's profile ID for checking notification preferences. If provided, controllable notifications will respect user preferences. */
+  recipientProfileId?: string;
 }
 
 function getServiceDb() {
@@ -166,7 +169,7 @@ export async function reserveEmailLogId(options: {
  */
 export async function sendEmail(
   options: SendEmailOptions
-): Promise<{ success: boolean; error?: string; emailLogId?: string }> {
+): Promise<{ success: boolean; error?: string; emailLogId?: string; skipped?: boolean }> {
   const resend = getResend();
   if (!resend) {
     console.error("[email] RESEND_API_KEY not configured");
@@ -183,7 +186,27 @@ export async function sendEmail(
     providerId,
     metadata,
     emailLogId: existingLogId,
+    recipientProfileId,
   } = options;
+
+  // Check notification preferences for controllable (activity-based) notifications
+  // Marketing and transactional emails bypass this check and always send
+  if (recipientProfileId && emailType && isControllableNotification(emailType, recipientType)) {
+    const prefKey = getPrefKeyForEmailType(emailType, recipientType);
+    if (prefKey) {
+      const shouldSend = await shouldSendNotification(recipientProfileId, prefKey, "email");
+      if (!shouldSend) {
+        console.log(`[email] Skipped ${emailType} to ${Array.isArray(to) ? to.join(", ") : to} - user preference disabled`);
+        // Update pre-reserved log entry if exists
+        // Using status "failed" with explanatory message since schema only supports sent/failed
+        // This prevents the log from staying "pending" forever
+        if (existingLogId) {
+          updateEmailLog(existingLogId, { status: "failed", errorMessage: "Skipped: user notification preference disabled" });
+        }
+        return { success: true, skipped: true, emailLogId: existingLogId ?? undefined };
+      }
+    }
+  }
 
   const recipient = Array.isArray(to) ? to.join(", ") : to;
 

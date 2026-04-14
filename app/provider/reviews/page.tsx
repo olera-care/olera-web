@@ -8,7 +8,7 @@ import type { OrganizationMetadata } from "@/lib/types";
 
 // ── Types ──
 
-type TabFilter = "send_request" | "sent_requests";
+type ViewState = "landing" | "form";
 
 interface SentRequest {
   id: string;
@@ -99,6 +99,22 @@ function PlayIcon({ className = "w-5 h-5" }: { className?: string }) {
   );
 }
 
+function ArrowLeftIcon({ className = "w-5 h-5" }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+    </svg>
+  );
+}
+
+function XIcon({ className = "w-5 h-5" }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+    </svg>
+  );
+}
+
 function MoreIcon({ className = "w-5 h-5" }: { className?: string }) {
   return (
     <svg className={className} fill="currentColor" viewBox="0 0 20 20">
@@ -134,10 +150,12 @@ function VideoPanel() {
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
-      {/* Section header */}
-      <div className="px-5 pt-5 pb-4">
-        <h2 className="text-base font-semibold text-gray-900">How to get more reviews</h2>
-        <p className="text-sm text-gray-500 mt-0.5">2 min watch</p>
+      {/* Section header - consistent styling */}
+      <div className="px-5 lg:px-6 pt-5 lg:pt-6 pb-4">
+        <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">
+          Learn
+        </h2>
+        <p className="text-[15px] font-semibold text-gray-900">How to get more reviews</p>
       </div>
       <div className="aspect-video relative">
         {isPlaying ? (
@@ -151,12 +169,13 @@ function VideoPanel() {
         ) : (
           <button
             onClick={() => setIsPlaying(true)}
-            className="absolute inset-0 w-full h-full group"
+            className="absolute inset-0 w-full h-full group focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+            aria-label="Play video: How to get more reviews"
           >
             {/* YouTube thumbnail */}
             <img
               src="https://img.youtube.com/vi/cb3TMkMNe3I/maxresdefault.jpg"
-              alt="Video thumbnail"
+              alt=""
               className="w-full h-full object-cover"
               onError={(e) => {
                 // Fallback to hqdefault if maxresdefault doesn't exist
@@ -167,17 +186,232 @@ function VideoPanel() {
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
             {/* Play button */}
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-16 h-16 rounded-full bg-white/95 shadow-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
-                <PlayIcon className="w-7 h-7 text-gray-900 ml-1" />
+              <div className="w-14 h-14 rounded-full bg-white/95 shadow-lg flex items-center justify-center group-hover:scale-110 group-focus-visible:scale-110 transition-transform duration-200">
+                <PlayIcon className="w-6 h-6 text-gray-900 ml-0.5" />
               </div>
             </div>
-            {/* Title overlay */}
-            <div className="absolute bottom-0 left-0 right-0 p-4">
-              <p className="text-white font-medium text-sm">How to get more Google reviews</p>
-              <p className="text-white/70 text-xs mt-0.5">2 min watch</p>
+            {/* Duration badge */}
+            <div className="absolute bottom-3 right-3">
+              <span className="px-2 py-1 rounded bg-black/70 text-white text-xs font-medium">
+                2 min
+              </span>
             </div>
           </button>
         )}
+      </div>
+    </div>
+  );
+}
+
+// ── Landing View (Value-First) ──
+
+function LandingView({
+  city,
+  onRequestReview,
+}: {
+  city: string | null;
+  onRequestReview: () => void;
+}) {
+  return (
+    <div className="flex flex-col">
+      {/* Hero image with premium polish */}
+      <div className="relative -mx-5 -mt-5 lg:-mx-6 lg:-mt-6 overflow-hidden">
+        <div className="aspect-[16/10] sm:aspect-[16/9] relative">
+          <img
+            src="/Reviews-image.png"
+            alt="Caregiver helping senior"
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          {/* Warm gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-white via-white/5 to-transparent" />
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="pt-5 pb-1 text-center">
+        {/* Compelling stat with subtle visual treatment */}
+        <div className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-amber-50/80 border border-amber-100/60 mb-6">
+          <StarIcon className="w-4 h-4 text-amber-500 shrink-0" />
+          <p className="text-sm text-gray-700">
+            Providers{city ? ` in ${city.length > 20 ? city.slice(0, 18) + "…" : city}` : ""} with 10+ reviews get{" "}
+            <span className="font-semibold text-gray-900">3x more inquiries</span>
+          </p>
+        </div>
+
+        {/* CTA Button - primary brand color */}
+        <button
+          type="button"
+          onClick={onRequestReview}
+          className="w-full py-3.5 rounded-xl bg-primary-600 text-white text-[15px] font-semibold hover:bg-primary-700 transition-all duration-200 active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 shadow-sm hover:shadow-md"
+        >
+          Request a Review
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── Stats Card (Sidebar) ──
+
+function StatsCard({
+  totalSent,
+  thisMonth,
+  isLoading,
+  onViewAll,
+}: {
+  totalSent: number;
+  thisMonth: number;
+  isLoading: boolean;
+  onViewAll: () => void;
+}) {
+  // Loading skeleton
+  if (isLoading) {
+    return (
+      <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-5 lg:p-6">
+        <div className="h-3 w-20 bg-gray-100 rounded animate-pulse mb-5" />
+        <div className="flex items-baseline gap-6 mb-5">
+          <div>
+            <div className="h-8 w-10 bg-gray-100 rounded animate-pulse mb-1" />
+            <div className="h-4 w-20 bg-gray-50 rounded animate-pulse" />
+          </div>
+          <div className="h-8 w-px bg-gray-100" />
+          <div>
+            <div className="h-8 w-8 bg-gray-100 rounded animate-pulse mb-1" />
+            <div className="h-4 w-16 bg-gray-50 rounded animate-pulse" />
+          </div>
+        </div>
+        <div className="h-4 w-28 bg-gray-50 rounded animate-pulse" />
+      </div>
+    );
+  }
+
+  // Empty state with icon and animation
+  if (totalSent === 0) {
+    return (
+      <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-5 lg:p-6">
+        <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">
+          Your Activity
+        </h2>
+        <div className="flex flex-col items-center text-center py-2">
+          <div
+            className="w-12 h-12 rounded-xl bg-primary-50 border border-primary-100/50 flex items-center justify-center mb-3"
+            style={{ animation: "statsFloat 3s ease-in-out infinite" }}
+          >
+            <MailIcon className="w-5 h-5 text-primary-500" />
+          </div>
+          <p className="text-sm text-gray-500 leading-relaxed">
+            No requests sent yet.
+            <br />
+            <span className="text-gray-600 font-medium">Start building your reviews!</span>
+          </p>
+        </div>
+        <style jsx>{`
+          @keyframes statsFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-5 lg:p-6">
+      <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-5">
+        Your Activity
+      </h2>
+
+      {/* Stats grid - horizontal on mobile, stacked labels */}
+      <div className="flex items-baseline gap-6 mb-5">
+        <div>
+          <p className="text-3xl font-display font-bold text-gray-900 tracking-tight">{totalSent}</p>
+          <p className="text-sm text-gray-500 mt-0.5">requests sent</p>
+        </div>
+        <div className="h-8 w-px bg-gray-100" />
+        <div>
+          <p className="text-3xl font-display font-bold text-gray-900 tracking-tight">{thisMonth}</p>
+          <p className="text-sm text-gray-500 mt-0.5">this month</p>
+        </div>
+      </div>
+
+      {/* View all link with hover animation */}
+      <button
+        type="button"
+        onClick={onViewAll}
+        className="text-[13px] text-primary-600 hover:text-primary-700 font-semibold transition-colors inline-flex items-center gap-1.5 group"
+      >
+        View all requests
+        <svg className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+        </svg>
+      </button>
+    </div>
+  );
+}
+
+// ── Sent Requests Modal ──
+
+function SentRequestsModal({
+  isOpen,
+  onClose,
+  requests,
+  onFlag,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  requests: SentRequest[];
+  onFlag: (reviewId: string) => Promise<void>;
+}) {
+  // Close on escape key
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    if (isOpen) {
+      document.addEventListener("keydown", handleEscape);
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.removeEventListener("keydown", handleEscape);
+        document.body.style.overflow = "";
+      };
+    }
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+      {/* Backdrop - subtle blur */}
+      <div
+        className="absolute inset-0 bg-black/40 backdrop-blur-[2px] animate-backdrop-in"
+        onClick={onClose}
+        aria-hidden="true"
+      />
+
+      {/* Modal with scale-in animation */}
+      <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[85vh] flex flex-col animate-modal-in">
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-gray-100">
+          <h2 className="text-lg font-semibold text-gray-900">Sent Requests</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-2 -m-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-primary-200"
+            aria-label="Close modal"
+          >
+            <XIcon className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Content with better scroll */}
+        <div className="flex-1 overflow-y-auto overscroll-contain p-4 sm:p-5">
+          <SentRequestsList
+            requests={requests}
+            isLoading={false}
+            error={null}
+            onFlag={onFlag}
+          />
+        </div>
       </div>
     </div>
   );
@@ -967,21 +1201,31 @@ function SentRequestsList({
 // ── Main Page ──
 
 export default function ProviderReviewsPage() {
-  const [activeTab, setActiveTab] = useState<TabFilter>("send_request");
+  const [view, setView] = useState<ViewState>("landing");
   const [requests, setRequests] = useState<SentRequest[]>([]);
   const [isLoadingRequests, setIsLoadingRequests] = useState(true);
   const [requestsError, setRequestsError] = useState<string | null>(null);
   const [remainingRequests, setRemainingRequests] = useState(3);
   const [creditsUsed, setCreditsUsed] = useState(0);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [showSentModal, setShowSentModal] = useState(false);
 
   // Get provider profile from auth context
   const profile = useProviderProfile();
   const providerSlug = profile?.slug || null;
+  const providerCity = profile?.city || null;
 
   // Check if provider has Google Place ID
   const metadata = profile?.metadata as OrganizationMetadata | undefined;
   const hasGooglePlaceId = !!(metadata?.google_metadata?.place_id);
+
+  // Calculate stats
+  const totalSent = requests.length;
+  const thisMonth = requests.filter((r) => {
+    const d = new Date(r.sentAt);
+    const now = new Date();
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  }).length;
 
   // Fetch requests and credits info
   const fetchRequests = useCallback(async () => {
@@ -1033,11 +1277,6 @@ export default function ProviderReviewsPage() {
     );
   }, []);
 
-  const TABS: { id: TabFilter; label: string; count?: number }[] = [
-    { id: "send_request", label: "Send Request" },
-    { id: "sent_requests", label: "Sent", count: requests.length },
-  ];
-
   return (
     <>
       <style jsx global>{`
@@ -1055,6 +1294,20 @@ export default function ProviderReviewsPage() {
         .animate-success-bounce {
           animation: success-bounce 0.4s ease-out;
         }
+        @keyframes backdrop-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        .animate-backdrop-in {
+          animation: backdrop-in 0.2s ease-out;
+        }
+        @keyframes modal-in {
+          from { opacity: 0; transform: scale(0.95) translateY(8px); }
+          to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .animate-modal-in {
+          animation: modal-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
       `}</style>
 
       <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
@@ -1069,65 +1322,61 @@ export default function ProviderReviewsPage() {
             </p>
           </div>
 
-          {/* Tabs - matches Q&A and Connections style */}
-          <div className="mb-4 lg:mb-5">
-            <div
-              className="flex gap-0.5 bg-vanilla-50 border border-warm-100/60 p-0.5 rounded-xl w-max"
-              role="tablist"
-              aria-label="Review request tabs"
-            >
-              {TABS.map((tab) => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={activeTab === tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`px-5 py-2.5 rounded-lg text-[15px] font-semibold transition-all min-h-[44px] ${
-                    activeTab === tab.id
-                      ? "bg-white text-gray-900 shadow-sm"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-white/50"
-                  }`}
-                >
-                  {tab.label}
-                  {tab.count !== undefined && tab.count > 0 && (
-                    <span className={`ml-2 px-2 py-0.5 rounded-md text-xs font-semibold ${
-                      activeTab === tab.id ? "bg-vanilla-100 text-gray-600" : "bg-warm-100/50 text-gray-500"
-                    }`}>
-                      {tab.count}
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
+          {/* Mobile: Stats card at top */}
+          <div className="lg:hidden mb-4">
+            <StatsCard
+              totalSent={totalSent}
+              thisMonth={thisMonth}
+              isLoading={isLoadingRequests}
+              onViewAll={() => setShowSentModal(true)}
+            />
           </div>
 
-          {/* Content grid - matches Q&A layout */}
+          {/* Content grid */}
           <div className="lg:grid lg:grid-cols-[1fr,340px] lg:gap-8 lg:items-start">
-            {/* Main content */}
-            <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-5 lg:p-6 mb-6 lg:mb-0">
-              {activeTab === "send_request" && (
-                <SendRequestForm
-                  onSuccess={handleSendSuccess}
-                  providerSlug={providerSlug || undefined}
-                  remainingRequests={remainingRequests}
-                  creditsUsed={creditsUsed}
-                  onUpgradeRequired={() => setShowUpgradeModal(true)}
-                  hasGooglePlaceId={hasGooglePlaceId}
+            {/* Main content card - overflow-hidden for hero image clipping */}
+            <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-5 lg:p-6 mb-6 lg:mb-0 overflow-hidden">
+              {view === "landing" ? (
+                <LandingView
+                  city={providerCity}
+                  onRequestReview={() => setView("form")}
                 />
-              )}
-              {activeTab === "sent_requests" && (
-                <SentRequestsList
-                  requests={requests}
-                  isLoading={isLoadingRequests}
-                  error={requestsError}
-                  onFlag={handleFlagReview}
-                />
+              ) : (
+                <div className="animate-fade-in">
+                  {/* Back button with hover background */}
+                  <button
+                    type="button"
+                    onClick={() => setView("landing")}
+                    className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 font-medium mb-5 -ml-2 px-2 py-1.5 rounded-lg hover:bg-gray-50 transition-all duration-150 group"
+                  >
+                    <ArrowLeftIcon className="w-4 h-4 transition-transform duration-150 group-hover:-translate-x-0.5" />
+                    Back
+                  </button>
+
+                  {/* Form */}
+                  <SendRequestForm
+                    onSuccess={handleSendSuccess}
+                    providerSlug={providerSlug || undefined}
+                    remainingRequests={remainingRequests}
+                    creditsUsed={creditsUsed}
+                    onUpgradeRequired={() => setShowUpgradeModal(true)}
+                    hasGooglePlaceId={hasGooglePlaceId}
+                  />
+                </div>
               )}
             </div>
 
-            {/* Video panel */}
-            <div className="hidden lg:block sticky top-24">
+            {/* Desktop sidebar */}
+            <div className="hidden lg:flex lg:flex-col lg:gap-6 lg:sticky lg:top-24">
+              {/* Stats card */}
+              <StatsCard
+                totalSent={totalSent}
+                thisMonth={thisMonth}
+                isLoading={isLoadingRequests}
+                onViewAll={() => setShowSentModal(true)}
+              />
+
+              {/* Video panel */}
               <VideoPanel />
             </div>
           </div>
@@ -1138,6 +1387,14 @@ export default function ProviderReviewsPage() {
           </div>
         </div>
       </div>
+
+      {/* Sent Requests Modal */}
+      <SentRequestsModal
+        isOpen={showSentModal}
+        onClose={() => setShowSentModal(false)}
+        requests={requests}
+        onFlag={handleFlagReview}
+      />
 
       {/* Upgrade Modal */}
       {showUpgradeModal && (

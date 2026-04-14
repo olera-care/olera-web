@@ -52,6 +52,8 @@ function parseArgs() {
     expansionDir: path.resolve(process.env.HOME, 'Desktop/TJ-hq/Olera/Provider Database/Expansion'),
     dedupCsv: null, // deprecated: now queries Supabase live instead of stale CSV
     resume: false,
+    force: false,       // bypass providers_ready.json cache + "already in DB" skip guards (reprocess mode)
+    citiesFilter: null, // explicit city allowlist for reprocess mode (e.g. "Bourne,MA;Nanuet,NY")
     dryRun: false,
     concurrency: 5,
     watch: false,
@@ -65,6 +67,8 @@ function parseArgs() {
       case '--expansion-dir': opts.expansionDir = args[++i]; break;
       case '--dedup-csv':   opts.dedupCsv = args[++i]; break;
       case '--resume':      opts.resume = true; break;
+      case '--force':       opts.force = true; break;
+      case '--cities':      opts.citiesFilter = args[++i]; break;
       case '--dry-run':     opts.dryRun = true; break;
       case '--concurrency': opts.concurrency = parseInt(args[++i]) || 5; break;
       case '--watch':       opts.watch = true; break;
@@ -91,6 +95,11 @@ Options:
   --expansion-dir <dir> Base expansion directory (default: ~/Desktop/TJ-hq/.../Expansion)
   --dedup-csv <path>    Path to full provider export CSV for dedup
   --resume              Skip cities already marked Complete in Notion
+  --force               Bypass providers_ready.json cache + "already in DB" skip guards.
+                        Required for reprocess mode. Use with --cities to scope safely.
+  --cities <list>       Explicit city allowlist, semicolon-delimited: "City1,ST;City2,ST".
+                        Filters the --batch city list down to just these. Use with --force
+                        for reprocess mode so you don't reprocess the entire Expansion dir.
   --dry-run             Print what would happen without executing
   --concurrency <n>     Max parallel API calls per service (default: 5)
   --watch               Stream clean phase: wait up to 90m for each city's discovery CSV to appear (overlaps discovery+clean)
@@ -1490,6 +1499,41 @@ async function main() {
   if (!cities || cities.length === 0) {
     console.error('ERROR: No cities found. Check --batch path.');
     process.exit(1);
+  }
+
+  // --cities filter: narrow the list to an explicit allowlist (reprocess mode).
+  // Format: "City1,ST;City2,ST" — matches by (city, state) case-insensitively.
+  if (opts.citiesFilter) {
+    const keyOf = c => `${c.city.toLowerCase()}|${c.state.toUpperCase()}`;
+    const allowlist = new Set(
+      opts.citiesFilter.split(';').map(pair => {
+        const [city, state] = pair.split(',').map(s => (s || '').trim());
+        if (!city || !state) return null;
+        return `${city.toLowerCase()}|${state.toUpperCase()}`;
+      }).filter(Boolean)
+    );
+    const originalCount = cities.length;
+    const originalSample = cities.slice(0, 10).map(c => `${c.city},${c.state}`).join('; ');
+    cities = cities.filter(c => allowlist.has(keyOf(c)));
+    console.log(`  --cities filter: ${originalCount} → ${cities.length} cities`);
+    if (cities.length === 0) {
+      console.error(`ERROR: --cities filter matched 0 cities. Allowlist: ${[...allowlist].join(', ')}`);
+      console.error(`  Available city keys (first 10 from --batch): ${originalSample}`);
+      process.exit(1);
+    }
+    const matched = new Set(cities.map(keyOf));
+    const missing = [...allowlist].filter(key => !matched.has(key));
+    if (missing.length) {
+      console.warn(`  WARN: --cities requested but not found in --batch: ${missing.join(', ')}`);
+    }
+  }
+
+  if (opts.force) {
+    console.log(`  --force mode: providers_ready.json cache and "already in DB" skip guards are BYPASSED.`);
+    if (!opts.citiesFilter) {
+      console.warn(`  WARN: --force without --cities will reprocess EVERY city in --batch. This is usually wrong.`);
+      console.warn(`        Pass --cities "City1,ST;City2,ST" to scope the reprocess.`);
+    }
   }
 
   // Cost/time estimates

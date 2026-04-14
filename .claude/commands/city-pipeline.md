@@ -263,30 +263,33 @@ The pipeline's idempotency guards (`providers_ready.json` cache, "already in DB"
 - A previous run produced a cached `providers_ready.json` that you no longer trust
 - You fixed a pipeline-script bug and want to re-run affected cities
 
-**Reprocess pre-flight checklist (do these BEFORE launching the script):**
+**Reprocess command (one-liner, as of 2026-04-14):**
 
-1. **Audit soft-deleted rows** for each target city. Get a baseline count to verify the rerun actually reduces it:
+```bash
+cd ~/Desktop/olera-web && node scripts/pipeline-batch.js \
+  --batch ~/Desktop/TJ-hq/Olera/Provider\ Database/Expansion \
+  --cities "Bourne,MA;Nanuet,NY;North Bellmore,NY" \
+  --force \
+  --phase all \
+  > /tmp/pipeline-reprocess.log 2>&1
+```
+
+- `--cities` narrows the 1000+ cities in the Expansion dir down to the explicit allowlist. Format: semicolon-delimited `City,ST;City,ST` (case-insensitive, matches by the `parseBatchMd`/`readyCityList` keys). If any of the requested cities are missing from `--batch`, the script prints a WARN but proceeds with the found ones. Mandatory pairing with `--force` — the script will warn (not fail) if you pass `--force` without `--cities`.
+- `--force` bypasses BOTH cache layers: the `providers_ready.json` skip guard in `phaseClean` AND the "already in DB" count skip guard in `phaseLoad`. Without it, the script will silently report success with stale data.
+
+**Before running reprocess, still do these manual steps:**
+
+1. **Audit soft-deleted row counts** for each target city — this is how you verify the rerun actually did something:
    ```javascript
    const { count } = await supabase.from('olera-providers')
      .select('*', { count: 'exact', head: true })
      .like('provider_id', `${citySlug}-${stateSlug}-%`);
    ```
+   Compare before/after.
 
-2. **Delete the stale cache** — the clean phase will SKIP any city whose `providers_ready.json` already exists:
-   ```bash
-   rm "~/Desktop/TJ-hq/Olera/Provider Database/Expansion/{City}-{ST}/providers_ready.json"
-   ```
+2. **Reset Notion status** back to `Upload to Backend` for the target cities and uncheck all `Done: *` boxes. The pipeline script does NOT touch Notion — you (or a subagent, per sizing rules above) handle Notion writes. Without this step, the pages stay green in the Notion board while the data was replaced underneath, which creates confusion later.
 
-3. **Scope the rerun to only your target cities.** The processing script walks the entire Expansion directory and runs every city. With a full dir that's 1000+ cities (most will SKIP from cache but it's noisy and fragile). For 1-10 target cities, build a temp symlink dir:
-   ```bash
-   mkdir -p /tmp/pipeline-repro
-   ln -sfn "~/Desktop/TJ-hq/.../Expansion/Target-City-ST" /tmp/pipeline-repro/
-   node scripts/pipeline-batch.js --batch /tmp/pipeline-repro --phase all
-   ```
-
-4. **Reset Notion status** back to `Upload to Backend` for the target cities and uncheck all `Done: *` boxes. Doing step 4 alone without steps 1-3 will NOT actually reprocess anything — the caches will still skip.
-
-5. **Use `--force` on clean phase** if you skipped step 2. This rebuilds `providers_ready.json` from scratch instead of trusting the cache.
+**Gotcha — re-running clean against an already-loaded city produces zero providers.** Because the dedup set is loaded live from Supabase (filtered to `deleted=false`), the city's own active providers are in the dedup set and will dedup the incoming fresh discovery to ~zero. This is the idempotency guard working as intended, but it means reprocess for a *fully loaded and enriched* city requires also soft-deleting the existing rows first, or the clean phase will produce a nearly empty `providers_ready.json`. Practical rule: reprocess is for cities whose previous run was bad (most providers soft-deleted, few active). If a city is fully loaded and you want to refresh it, that's a different workflow — plan for it separately.
 
 **Pipeline-script behavior notes for reprocess:**
 - `phaseClean` dedup query filters out soft-deleted rows (fixed 2026-04-14) — a previously-soft-deleted provider will NOT block its own re-import.

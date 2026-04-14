@@ -27,9 +27,53 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 
 ## Current Focus
 
+**Pipeline reprocess safety + scale fixes** (branch: `fix/pipeline-reprocess-safety-and-scale`, PR #546) — robustness work surfaced by a 3-city reprocess batch on 2026-04-14. Ships four script bugs + `--force`/`--cities` flags + skill doc overhaul.
+
 **Provider Page Benefits Module** (branch: `fond-hypatia`, PR #536) — bridging provider discovery and benefits discovery.
 
 **Benefits Pipeline v3** (branch: `eager-ride`, merged) — discovery platform state pages + tabbed program pages + Chantel-depth content.
+
+### Session 2026-04-14 — 3-city reprocess + pipeline hardening
+
+**Ran:** city-pipeline for North Bellmore NY, Bourne MA, Nanuet NY. Bourne/Nanuet were already marked Complete in Notion from April 4-5 but had essentially zero active providers in Supabase, hence the reprocess.
+
+**3 cities shipped** (loaded, enriched, Notion marked Complete):
+- Bourne, MA: 16 active (23 loaded, 7 soft-deleted by entity verification as false positives)
+- Nanuet, NY: 8 active (23 loaded, 15 false positives)
+- North Bellmore, NY: 4 active (8 loaded, 4 false positives)
+- Total: 28 active providers, ~$12 cost, ~15 min wall clock after fixes
+
+**4 pipeline-script bugs found and fixed** (PR #546):
+1. `phaseClean` dedup query missing `.eq('deleted', false)` — any previously-soft-deleted provider was blocking its own re-import via the dedup name set. Latent since #424 (2026-03-26).
+2. `phaseLoad` "already in DB" count missing `.eq('deleted', false)` — cities with only soft-deleted rows were being SKIP'd with a false "already exists" message. Latent since #424.
+3. Slug collision set unpaginated — PostgREST's implicit 10K row cap meant `slugSet` saw only ~11.5% of the 86K-row database, so new uploads could silently collide on the unique slug constraint at upsert time. Latent scale bug.
+4. `perplexityChat` had no retry logic — any 429/5xx killed the call. Prior batch runs lost ~85% of providers to transient 429s. Now retries up to 5 times with exponential backoff.
+
+**2 CLI flags added** for reprocess mode:
+- `--force`: bypasses `providers_ready.json` cache + "already in DB" skip guard. Was referenced in 3 places in the code but never set by any CLI arg — completely dead code.
+- `--cities "City1,ST;City2,ST"`: explicit allowlist filter for the city list. Lets you scope a `--force` run to specific cities instead of the whole Expansion dir.
+
+Together: reprocess is now a one-liner (`--batch Expansion --cities "Bourne,MA" --force --phase all`) instead of the 5-step symlink+delete-cache+reset-Notion dance.
+
+**Skill doc (`.claude/commands/city-pipeline.md`) overhaul:**
+- New "Reprocess Mode" section with one-line command + the "re-running clean against a fully-loaded city produces zero providers" gotcha (dedup set correctly eliminates the city's own active providers)
+- New "Fix the pattern, not the line" rule — grep the whole file before relaunching when you find a pipeline bug
+- Stage 2 launch command switched from `| tail -N` (buffers, blinds operator) to raw redirect + Monitor pattern
+- Notion inline vs subagent sizing guidance (≤20 cities inline, >20 subagent, >100 subagent mandatory)
+
+**Post-mortem** (what went wrong, mostly process not script):
+- I piped first clean launch through `tail -200` → zero visibility for the whole phase. Dumb.
+- Spawned a Notion subagent for 3 pages when inline would've been faster (it also hit permissions error and died)
+- Found bug #1, fixed it, relaunched, then hit bug #2 (same pattern) — should have grep'd for the full pattern first
+- Monitor timeout sized too long for discovery → stale "monitor expired" notifications 9 min after work actually finished
+- The cache layers (`providers_ready.json` + "already in DB") silently masked both script bugs, costing an extra launch cycle to diagnose
+
+**Deferred (open follow-ups):**
+- `--dry-run` flag doesn't actually dry-run clean phase — it executed during my testing. Small follow-up.
+- Directory naming inconsistency in `discovery-batch.py` (space vs hyphen) — opportunistic fix
+- Stale `olera.com/{category}/{state}/{city}` URL pattern in skill doc — known-good cities 404 on those URLs, routing may have changed. Cosmetic until the live site check matters again.
+- Dedup architecture redesign (move to DB-side SQL instead of 60MB+ in-memory Set) — standalone planning session when dedup starts actually hurting. Not urgent.
+- "Refresh mode" for fully-loaded cities — reprocess mode only works for cities with mostly-soft-deleted rows. Refreshing a fully-active city needs a different workflow that soft-deletes existing rows first.
 
 ### What's shipped (v3 — Session 72, Apr 10)
 - **StatePageV3** (`components/waiver-library/StatePageV3.tsx`): Full redesign from editorial article to discovery platform

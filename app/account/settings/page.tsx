@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import Modal from "@/components/ui/Modal";
+import GooglePlaceSearch from "@/components/providers/GooglePlaceSearch";
 
 type SettingsTab = "account" | "notifications";
 
@@ -129,7 +130,8 @@ export default function AccountSettingsPage() {
   // Google Business Profile (providers only)
   const googleMetadata = (meta.google_metadata || {}) as { place_id?: string };
   const hasGooglePlaceId = !!googleMetadata.place_id;
-  const [googlePlaceIdInput, setGooglePlaceIdInput] = useState("");
+  const [googlePlaceIdInput, setGooglePlaceIdInput] = useState<string | null>(null);
+  const [googleSelectedName, setGoogleSelectedName] = useState<string | null>(null);
   const [googleSaving, setGoogleSaving] = useState(false);
   const [googleError, setGoogleError] = useState("");
   const [showGoogleConfirm, setShowGoogleConfirm] = useState(false);
@@ -318,7 +320,7 @@ export default function AccountSettingsPage() {
 
   // ── Google Business Profile connection ──
   const handleGoogleConnect = async () => {
-    if (!googlePlaceIdInput.trim()) return;
+    if (!googlePlaceIdInput) return;
     setGoogleSaving(true);
     setGoogleError("");
 
@@ -326,7 +328,7 @@ export default function AccountSettingsPage() {
       const res = await fetch("/api/provider/google-business", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ place_id_or_url: googlePlaceIdInput.trim() }),
+        body: JSON.stringify({ place_id_or_url: googlePlaceIdInput }),
       });
 
       const data = await res.json();
@@ -334,7 +336,8 @@ export default function AccountSettingsPage() {
 
       await refreshAccountData();
       setShowGoogleConfirm(false);
-      setGooglePlaceIdInput("");
+      setGooglePlaceIdInput(null);
+      setGoogleSelectedName(null);
     } catch (err) {
       setGoogleError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -583,7 +586,7 @@ export default function AccountSettingsPage() {
                           Connect your Google Business Profile to have review requests direct families to leave reviews on Google instead of Olera.
                         </p>
 
-                        {showGoogleConfirm ? (
+                        {showGoogleConfirm && googleSelectedName ? (
                           /* ── Confirmation step ── */
                           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
                             <div className="flex items-start gap-3 mb-3">
@@ -592,10 +595,10 @@ export default function AccountSettingsPage() {
                               </svg>
                               <div>
                                 <p className="text-sm font-semibold text-amber-900">
-                                  This cannot be changed later
+                                  Connect &quot;{googleSelectedName}&quot;?
                                 </p>
                                 <p className="text-sm text-amber-700 mt-1">
-                                  Once connected, you&apos;ll need to contact support to change your Google Business Profile.
+                                  This cannot be changed later. Once connected, you&apos;ll need to contact support to change your Google Business Profile.
                                 </p>
                               </div>
                             </div>
@@ -611,6 +614,8 @@ export default function AccountSettingsPage() {
                                 type="button"
                                 onClick={() => {
                                   setShowGoogleConfirm(false);
+                                  setGooglePlaceIdInput(null);
+                                  setGoogleSelectedName(null);
                                   setGoogleError("");
                                 }}
                                 disabled={googleSaving}
@@ -621,7 +626,7 @@ export default function AccountSettingsPage() {
                               <button
                                 type="button"
                                 onClick={handleGoogleConnect}
-                                disabled={googleSaving || !googlePlaceIdInput.trim()}
+                                disabled={googleSaving || !googlePlaceIdInput}
                                 className="px-4 py-2 bg-gray-900 hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-sm font-medium text-white transition-colors"
                               >
                                 {googleSaving ? "Connecting..." : "Yes, connect permanently"}
@@ -629,40 +634,21 @@ export default function AccountSettingsPage() {
                             </div>
                           </div>
                         ) : (
-                          /* ── Input step ── */
+                          /* ── Search step ── */
                           <div>
-                            <label htmlFor="googlePlaceId" className="block text-sm font-medium text-gray-700 mb-1.5">
-                              Google Place ID
-                            </label>
-                            <div className="flex gap-3">
-                              <input
-                                id="googlePlaceId"
-                                type="text"
-                                value={googlePlaceIdInput}
-                                onChange={(e) => setGooglePlaceIdInput(e.target.value)}
-                                placeholder="ChIJ..."
-                                className="flex-1 text-base border border-gray-200 rounded-lg px-3 py-2 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-transparent placeholder:text-gray-300"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => setShowGoogleConfirm(true)}
-                                disabled={!googlePlaceIdInput.trim()}
-                                className="px-4 py-2 bg-gray-900 hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg text-sm font-medium text-white transition-colors shrink-0"
-                              >
-                                Connect
-                              </button>
-                            </div>
-                            <p className="text-xs text-gray-500 mt-2">
-                              Your Place ID starts with &quot;ChIJ&quot;.{" "}
-                              <a
-                                href="https://developers.google.com/maps/documentation/places/web-service/place-id#find-id"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-primary-600 hover:text-primary-700 underline"
-                              >
-                                How to find your Place ID
-                              </a>
-                            </p>
+                            <GooglePlaceSearch
+                              value={null}
+                              selectedName={null}
+                              onSelect={(placeId, name) => {
+                                setGooglePlaceIdInput(placeId);
+                                setGoogleSelectedName(name);
+                                setShowGoogleConfirm(true);
+                              }}
+                              onClear={() => {
+                                setGooglePlaceIdInput(null);
+                                setGoogleSelectedName(null);
+                              }}
+                            />
                           </div>
                         )}
                       </div>

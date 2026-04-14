@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import ReviewUpgradeModal from "@/components/provider/ReviewUpgradeModal";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
@@ -22,6 +23,14 @@ interface SentRequest {
   hasReview: boolean;
   reviewRating: number | null;
   reviewFlagged: boolean;
+}
+
+interface HighlightedReview {
+  id: string;
+  reviewerName: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
 }
 
 // ── Helpers ──
@@ -136,6 +145,80 @@ function StarIcon({ className = "w-4 h-4" }: { className?: string }) {
     <svg className={className} fill="currentColor" viewBox="0 0 20 20">
       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
     </svg>
+  );
+}
+
+// ── New Review Highlight Card ──
+
+function NewReviewCard({
+  review,
+  providerSlug,
+  onDismiss,
+}: {
+  review: HighlightedReview;
+  providerSlug: string | null;
+  onDismiss: () => void;
+}) {
+  return (
+    <div className="bg-gradient-to-br from-primary-50 to-primary-100/50 rounded-2xl border border-primary-200/60 p-5 lg:p-6 mb-6 animate-fade-in">
+      {/* Header */}
+      <div className="flex items-center gap-2 mb-4">
+        <span className="text-lg">🎉</span>
+        <h2 className="text-[15px] font-semibold text-gray-900">
+          New review from {review.reviewerName}
+        </h2>
+      </div>
+
+      {/* Stars */}
+      <div className="flex items-center gap-0.5 mb-3">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <StarIcon
+            key={star}
+            className={`w-5 h-5 ${
+              star <= review.rating ? "text-amber-400" : "text-gray-200"
+            }`}
+          />
+        ))}
+      </div>
+
+      {/* Review text */}
+      <p className="text-[15px] text-gray-700 leading-relaxed mb-5">
+        "{review.comment}"
+      </p>
+
+      {/* Actions */}
+      <div className="flex items-center justify-between">
+        <button
+          type="button"
+          onClick={onDismiss}
+          className="text-sm text-gray-500 hover:text-gray-700 font-medium transition-colors"
+        >
+          Dismiss
+        </button>
+        {providerSlug && (
+          <Link
+            href={`/provider/${providerSlug}`}
+            target="_blank"
+            className="text-sm text-primary-600 hover:text-primary-700 font-semibold transition-colors inline-flex items-center gap-1.5 group"
+          >
+            View
+            <svg
+              className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"
+              />
+            </svg>
+          </Link>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -1201,6 +1284,9 @@ function SentRequestsList({
 // ── Main Page ──
 
 export default function ProviderReviewsPage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
   const [view, setView] = useState<ViewState>("landing");
   const [requests, setRequests] = useState<SentRequest[]>([]);
   const [isLoadingRequests, setIsLoadingRequests] = useState(true);
@@ -1209,6 +1295,7 @@ export default function ProviderReviewsPage() {
   const [creditsUsed, setCreditsUsed] = useState(0);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showSentModal, setShowSentModal] = useState(false);
+  const [highlightedReview, setHighlightedReview] = useState<HighlightedReview | null>(null);
 
   // Get provider profile from auth context
   const profile = useProviderProfile();
@@ -1218,6 +1305,58 @@ export default function ProviderReviewsPage() {
   // Check if provider has Google Place ID
   const metadata = profile?.metadata as OrganizationMetadata | undefined;
   const hasGooglePlaceId = !!(metadata?.google_metadata?.place_id);
+
+  // Fetch highlighted review if ?id= param is present
+  const reviewIdParam = searchParams.get("id");
+  useEffect(() => {
+    if (!reviewIdParam) return;
+
+    async function fetchHighlightedReview() {
+      try {
+        // Try fetching from reviews table first (authenticated reviews)
+        let res = await fetch(`/api/reviews/${reviewIdParam}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.review) {
+            setHighlightedReview({
+              id: data.review.id,
+              reviewerName: data.review.reviewer_name,
+              rating: data.review.rating,
+              comment: data.review.comment || data.review.review_text || "",
+              createdAt: data.review.created_at,
+            });
+            return;
+          }
+        }
+
+        // Fallback: try olera_reviews table
+        res = await fetch(`/api/olera-reviews/${reviewIdParam}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.review) {
+            setHighlightedReview({
+              id: data.review.id,
+              reviewerName: data.review.reviewer_name,
+              rating: data.review.rating,
+              comment: data.review.review_text || "",
+              createdAt: data.review.created_at,
+            });
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch highlighted review:", err);
+      }
+    }
+
+    fetchHighlightedReview();
+  }, [reviewIdParam]);
+
+  // Dismiss the highlighted review and clear URL param
+  const handleDismissHighlight = useCallback(() => {
+    setHighlightedReview(null);
+    // Remove ?id= from URL without page reload
+    router.replace("/provider/reviews", { scroll: false });
+  }, [router]);
 
   // Calculate stats
   const totalSent = requests.length;
@@ -1321,6 +1460,15 @@ export default function ProviderReviewsPage() {
               Help families find you.
             </p>
           </div>
+
+          {/* Highlighted new review (from magic link) */}
+          {highlightedReview && (
+            <NewReviewCard
+              review={highlightedReview}
+              providerSlug={providerSlug}
+              onDismiss={handleDismissHighlight}
+            />
+          )}
 
           {/* Mobile: Stats card at top */}
           <div className="lg:hidden mb-4">

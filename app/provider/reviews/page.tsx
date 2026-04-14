@@ -214,13 +214,13 @@ function LandingView({
 }) {
   return (
     <div className="flex flex-col">
-      {/* Hero image with premium polish */}
+      {/* Hero image - compact aspect ratio */}
       <div className="relative -mx-5 -mt-5 lg:-mx-6 lg:-mt-6 overflow-hidden">
-        <div className="aspect-[16/10] sm:aspect-[16/9] relative">
+        <div className="aspect-[5/2] sm:aspect-[3/1] relative">
           <img
             src="/Reviews-image.png"
             alt="Caregiver helping senior"
-            className="absolute inset-0 w-full h-full object-cover"
+            className="absolute inset-0 w-full h-full object-cover object-center"
           />
           {/* Warm gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-white via-white/5 to-transparent" />
@@ -238,11 +238,11 @@ function LandingView({
           </p>
         </div>
 
-        {/* CTA Button - primary brand color */}
+        {/* CTA Button - content-width, centered */}
         <button
           type="button"
           onClick={onRequestReview}
-          className="w-full py-3.5 rounded-xl bg-primary-600 text-white text-[15px] font-semibold hover:bg-primary-700 transition-all duration-200 active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 shadow-sm hover:shadow-md"
+          className="px-8 py-3 rounded-xl bg-primary-600 text-white text-[15px] font-semibold hover:bg-primary-700 transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 shadow-sm hover:shadow-md"
         >
           Request a Review
         </button>

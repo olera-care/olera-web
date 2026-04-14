@@ -102,13 +102,13 @@ export default function OrganizationSearch({
 
       // Merge and deduplicate results
       const merged: SearchResult[] = [];
-      const seenSlugs = new Set<string>();
+      const seenIds = new Set<string>();
 
       // Add business_profiles results first (they may be more authoritative)
       for (const bp of bpResults || []) {
         const slug = bp.slug || bp.id;
-        if (!seenSlugs.has(slug)) {
-          seenSlugs.add(slug);
+        if (!seenIds.has(bp.id)) {
+          seenIds.add(bp.id);
           merged.push({
             id: bp.id,
             name: bp.display_name,
@@ -131,8 +131,8 @@ export default function OrganizationSearch({
         const alreadyHasBp = (bpResults || []).some(
           (bp) => bp.source_provider_id === op.provider_id
         );
-        if (!alreadyHasBp && !seenSlugs.has(slug)) {
-          seenSlugs.add(slug);
+        if (!alreadyHasBp && !seenIds.has(op.provider_id)) {
+          seenIds.add(op.provider_id);
           // Get first image from pipe-separated list
           const firstImage = op.provider_images?.split("|")[0]?.trim() || null;
           merged.push({

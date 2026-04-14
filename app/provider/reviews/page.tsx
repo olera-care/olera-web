@@ -1315,7 +1315,7 @@ export default function ProviderReviewsPage() {
           {/* Page header */}
           <div className="mb-5 lg:mb-8">
             <h1 className="text-2xl lg:text-[28px] font-display font-bold text-gray-900 tracking-tight">
-              Review Requests
+              Reviews
             </h1>
             <p className="text-[15px] text-gray-500 mt-1.5 leading-relaxed">
               Ask happy clients to leave a Google review.

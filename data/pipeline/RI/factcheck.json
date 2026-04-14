@@ -1,0 +1,621 @@
+{
+  "state": "RI",
+  "stateName": "Rhode Island",
+  "checkedAt": "2026-04-14T10:08:32.307Z",
+  "total": 17,
+  "skipped": 0,
+  "parseErrors": 0,
+  "errors": 0,
+  "programsWithFlags": 5,
+  "totalFlags": 8,
+  "highSeverityFlags": 5,
+  "programs": [
+    {
+      "programId": "ri-medicaid-ltss-elderly",
+      "programName": "Rhode Island Medicaid (Long-Term Services and Supports for Elderly)",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 4000,
+        "assets_couple": 8000,
+        "phones": [],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 65,
+        "income_1": 2982,
+        "income_2": null,
+        "assets_individual": 4000,
+        "assets_couple": 8000,
+        "phone": null,
+        "sources": {
+          "age": "https://www.medicaidplanningassistance.org/rhode-island-long-term-services-supports/",
+          "income": "https://www.medicaidplanningassistance.org/medicaid-eligibility-rhode-island/",
+          "assets": "https://eohhs.ri.gov/consumer/health-care/long-term-services-and-supports",
+          "phone": null
+        },
+        "notes": "Income is monthly limit for individual; assets from official state site. No official .gov age or couple assets URL found, but consistent across sources. 2026 values per sources."
+      },
+      "flags": [],
+      "notes": "Income is monthly limit for individual; assets from official state site. No official .gov age or couple assets URL found, but consistent across sources. 2026 values per sources."
+    },
+    {
+      "programId": "ri-class-waiver",
+      "programName": "Rhode Island Community Living and Attendant Services Waiver (CLASS)",
+      "facts": {
+        "age": null,
+        "income_1": 2982,
+        "income_2": null,
+        "assets_individual": 4000,
+        "assets_couple": null,
+        "phones": [
+          "8556974347",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "The Rhode Island Community Living and Attendant Services Waiver (CLASS) program is not identified in the provided search results. Search results contain information about Rhode Island's Medicaid Long-Term Services and Supports (LTSS) programs, unemployment tuition waivers, and health insurance waivers, but do not reference a program specifically named 'CLASS' or provide eligibility criteria for such a program. To obtain accurate current information about this program, direct contact with the Rhode Island Department of Human Services (EOHHS) or the state Medicaid agency is recommended."
+      },
+      "flags": [],
+      "notes": "The Rhode Island Community Living and Attendant Services Waiver (CLASS) program is not identified in the provided search results. Search results contain information about Rhode Island's Medicaid Long-Term Services and Supports (LTSS) programs, unemployment tuition waivers, and health insurance waivers, but do not reference a program specifically named 'CLASS' or provide eligibility criteria for such a program. To obtain accurate current information about this program, direct contact with the Rhode Island Department of Human Services (EOHHS) or the state Medicaid agency is recommended."
+    },
+    {
+      "programId": "ri-pace-elderly-care",
+      "programName": "PACE (Program of All-Inclusive Care for the Elderly)",
+      "facts": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 2000,
+        "assets_couple": null,
+        "phones": [
+          "4014341400",
+          "4016544176",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "4014341400",
+        "sources": {
+          "age": "https://rielderinfo.com/pace-ri/",
+          "income": null,
+          "assets": null,
+          "phone": "https://rielderinfo.com/pace-ri/"
+        },
+        "notes": "Search results confirm minimum age 55 and primary phone number. Income and asset limits not found in provided search results; these details may require direct contact with PACE-RI or access to official eligibility documentation not included in this search set. Program is active as of 2026 with four operational locations statewide."
+      },
+      "flags": [],
+      "notes": "Search results confirm minimum age 55 and primary phone number. Income and asset limits not found in provided search results; these details may require direct contact with PACE-RI or access to official eligibility documentation not included in this search set. Program is active as of 2026 with four operational locations statewide."
+    },
+    {
+      "programId": "ri-medicare-savings-programs",
+      "programName": "Medicare Savings Programs (MSP)",
+      "facts": {
+        "age": 65,
+        "income_1": 1683,
+        "income_2": 2275,
+        "assets_individual": 9950,
+        "assets_couple": 14910,
+        "phones": [
+          "4014620311",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": [
+        1
+      ],
+      "flags": [],
+      "notes": null
+    },
+    {
+      "programId": "ri-snap-food-benefits",
+      "programName": "Supplemental Nutrition Assistance Program (SNAP)",
+      "facts": {
+        "age": 60,
+        "income_1": 2608,
+        "income_2": 3540,
+        "assets_individual": 0,
+        "assets_couple": 0,
+        "phones": [
+          "4014625300",
+          "18556974347",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": 3261,
+        "income_2": 4410,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://dhs.ri.gov/programs-and-services/supplemental-nutrition-assistance-program-snap/supplemental-nutrition-0",
+          "income": "https://www.snapscreener.com/guides/rhode-island",
+          "assets": "https://www.snapscreener.com/guides/rhode-island",
+          "phone": null
+        },
+        "notes": "SNAP has no asset test for households with seniors (60+); gross income limits apply at 200% FPL for senior households per state DHS but snapscreener shows expanded 185% figures current Oct 2025-Sep 2026; exact 200% monthly for hh2 not in results, used snapscreener as current; phone not found in results"
+      },
+      "flags": [
+        {
+          "field": "income_1",
+          "severity": "high",
+          "draftValue": 2608,
+          "verifiedValue": 3261,
+          "pctDiff": 20
+        },
+        {
+          "field": "income_2",
+          "severity": "high",
+          "draftValue": 3540,
+          "verifiedValue": 4410,
+          "pctDiff": 19.7
+        }
+      ],
+      "notes": "SNAP has no asset test for households with seniors (60+); gross income limits apply at 200% FPL for senior households per state DHS but snapscreener shows expanded 185% figures current Oct 2025-Sep 2026; exact 200% monthly for hh2 not in results, used snapscreener as current; phone not found in results"
+    },
+    {
+      "programId": "ri-liheap-energy-assistance",
+      "programName": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "facts": {
+        "age": null,
+        "income_1": 3521,
+        "income_2": 4604,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "4012732000",
+          "4014371000",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "4019214968",
+        "sources": {
+          "age": null,
+          "income": "https://dhs.ri.gov/programs-and-services/energy-assistance-programs-heating/ffy-2026-low-income-guidelines",
+          "assets": null,
+          "phone": "https://economicprogressri.org/resources/low-income-home-energy-water-assistance"
+        },
+        "notes": "Income limits exist (60% of Rhode Island State Median Income) but specific dollar amounts for household sizes are not provided in search results. The official FFY 2026 eligibility chart PDF is referenced but content not retrievable. Program has no age requirement and does not count resources/assets. Phone number provided is the general CAP agency locator line; local CAP agencies handle applications."
+      },
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "4012732000",
+            "4014371000",
+            "211"
+          ],
+          "verifiedValue": "4019214968"
+        }
+      ],
+      "notes": "Income limits exist (60% of Rhode Island State Median Income) but specific dollar amounts for household sizes are not provided in search results. The official FFY 2026 eligibility chart PDF is referenced but content not retrievable. Program has no age requirement and does not count resources/assets. Phone number provided is the general CAP agency locator line; local CAP agencies handle applications."
+    },
+    {
+      "programId": "ri-weatherization-assistance-program",
+      "programName": "Weatherization Assistance Program",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "211",
+          "4017234520"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": [
+        7
+      ],
+      "flags": [],
+      "notes": null
+    },
+    {
+      "programId": "ri-ship-medicare-counseling",
+      "programName": "State Health Insurance Assistance Program (SHIP)",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "18888848721",
+          "4014620740",
+          "211",
+          "4013495760"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8888848721",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://oha.ri.gov/Medicare"
+        },
+        "notes": "SHIP has no age, income, or asset eligibility limits; open to Medicare beneficiaries, families, caregivers"
+      },
+      "flags": [],
+      "notes": "SHIP has no age, income, or asset eligibility limits; open to Medicare beneficiaries, families, caregivers"
+    },
+    {
+      "programId": "ri-meals-on-wheels",
+      "programName": "Meals on Wheels of Rhode Island",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "4013516700"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "4013516700",
+        "sources": {
+          "age": "https://vets.ri.gov/node/1151",
+          "income": null,
+          "assets": null,
+          "phone": "https://vets.ri.gov/node/1151"
+        },
+        "notes": "No income or asset limits found in sources"
+      },
+      "flags": [],
+      "notes": "No income or asset limits found in sources"
+    },
+    {
+      "programId": "ri-caregiver-respite-support",
+      "programName": "Caregiver/Respite Support",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "4014217833",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "4014217833",
+        "sources": {
+          "age": null,
+          "income": "https://oha.ri.gov/resources/caregiver-supportsrespite/carebreaks",
+          "assets": null,
+          "phone": "https://oha.ri.gov/resources/caregiver-supportsrespite/carebreaks"
+        },
+        "notes": "Program is Lifespan Respite Care Program / CareBreaks via RI Office of Healthy Aging; income-based sliding scale exists but specific limits not found in sources; phone is for CareBreaks, primary contact for older adult caregivers"
+      },
+      "flags": [],
+      "notes": "Program is Lifespan Respite Care Program / CareBreaks via RI Office of Healthy Aging; income-based sliding scale exists but specific limits not found in sources; phone is for CareBreaks, primary contact for older adult caregivers"
+    },
+    {
+      "programId": "ri-scsep-employment-program",
+      "programName": "Senior Community Service Employment Program (SCSEP)",
+      "facts": {
+        "age": 55,
+        "income_1": 1569,
+        "income_2": 2125,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "4014628000",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 55,
+        "income_1": 1406,
+        "income_2": 1888,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://www.dol.gov/agencies/eta/seniors",
+          "income": "https://www.dol.gov/agencies/eta/seniors",
+          "assets": null,
+          "phone": null
+        },
+        "notes": "Age and income limits (125% of federal poverty level) are confirmed from federal DOL source. Monthly income limits calculated from 2026 federal poverty guidelines (assuming $16,870 annual for individual, $22,660 for couple at 125% threshold). Rhode Island SCSEP contact information not found in search results; recommend contacting RI Department of Labor & Training or local SCSEP grantee directly via https://dlt.ri.gov/individuals/jobseeker-resources-2025. Program remains active as of 2026 per NCOA source noting ongoing federal funding."
+      },
+      "flags": [
+        {
+          "field": "income_1",
+          "severity": "medium",
+          "draftValue": 1569,
+          "verifiedValue": 1406,
+          "pctDiff": 10.4
+        },
+        {
+          "field": "income_2",
+          "severity": "medium",
+          "draftValue": 2125,
+          "verifiedValue": 1888,
+          "pctDiff": 11.2
+        }
+      ],
+      "notes": "Age and income limits (125% of federal poverty level) are confirmed from federal DOL source. Monthly income limits calculated from 2026 federal poverty guidelines (assuming $16,870 annual for individual, $22,660 for couple at 125% threshold). Rhode Island SCSEP contact information not found in search results; recommend contacting RI Department of Labor & Training or local SCSEP grantee directly via https://dlt.ri.gov/individuals/jobseeker-resources-2025. Program remains active as of 2026 per NCOA source noting ongoing federal funding."
+    },
+    {
+      "programId": "ri-legal-aid-seniors",
+      "programName": "Legal Aid for Seniors",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "4012742652",
+          "4018462264",
+          "4014217799",
+          "4014217758",
+          "4018313150"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "4012742652",
+        "sources": {
+          "age": "https://rielderinfo.com/legal-help-for-seniors-in-ri/",
+          "income": null,
+          "assets": null,
+          "phone": "https://oha.ri.gov/what-we-do/connect/legal-assistance"
+        },
+        "notes": "Program is Rhode Island Legal Services Senior Citizens Program; no income or asset limits specified in sources for seniors pathway"
+      },
+      "flags": [],
+      "notes": "Program is Rhode Island Legal Services Senior Citizens Program; no income or asset limits specified in sources for seniors pathway"
+    },
+    {
+      "programId": "ri-long-term-care-ombudsman",
+      "programName": "Long-Term Care Ombudsman Program",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "4017853340",
+          "18883510808",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "18883510808",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://oha.ri.gov/resources/fraud-and-abuse/ombudsman-program"
+        },
+        "notes": "Program has no age, income, or asset eligibility requirements; open to seniors in long-term care facilities"
+      },
+      "flags": [],
+      "notes": "Program has no age, income, or asset eligibility requirements; open to seniors in long-term care facilities"
+    },
+    {
+      "programId": "ri-pharmaceutical-assistance-elderly",
+      "programName": "Rhode Island Pharmaceutical Assistance for the Elderly (RIPAE)",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "4014623000",
+          "4014620560",
+          "4014624444",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 65,
+        "income_1": 39002,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "4014623000",
+        "sources": {
+          "age": "https://oha.ri.gov/media/2966/download?language=en",
+          "income": "https://oha.ri.gov/media/2966/download?language=en",
+          "assets": null,
+          "phone": "https://economicprogressri.org/resources/ri-pharmaceutical-assistance-for-elderly-program"
+        },
+        "notes": "Program serves seniors 65+ and disabled adults 55-64; senior-specific minimum age is 65. Income_1 represents Level 1 threshold (lowest income category) for single individuals as of 2026. No resource/asset test exists for RIPAE. Phone number sourced from state agency contact (OHA). income_2 not applicable as query requests single senior pathway values."
+      },
+      "flags": [],
+      "notes": "Program serves seniors 65+ and disabled adults 55-64; senior-specific minimum age is 65. Income_1 represents Level 1 threshold (lowest income category) for single individuals as of 2026. No resource/asset test exists for RIPAE. Phone number sourced from state agency contact (OHA). income_2 not applicable as query requests single senior pathway values."
+    },
+    {
+      "programId": "ri-at-home-cost-share-program",
+      "programName": "At HOME Cost Share Program",
+      "facts": {
+        "age": 65,
+        "income_1": 1569,
+        "income_2": 2129,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "4014624444",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 65,
+        "income_1": 2127,
+        "income_2": 2873,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "4014624444",
+        "sources": {
+          "age": "https://oha.ri.gov/resources/home-care/home-cost-share",
+          "income": "https://oha.ri.gov/resources/home-care/home-cost-share",
+          "assets": "https://oha.ri.gov/resources/home-care/home-cost-share",
+          "phone": "https://oha.ri.gov/resources/home-care/home-cost-share"
+        },
+        "notes": "Program eligibility expanded April 5, 2022 to include ages 19-64 with Alzheimer's/related dementia diagnosis, but senior pathway requires age 65+. Income limit capped at 250% FPL; calculated from 2026 FPL guidelines ($14,580 single, $29,960 couple). No asset limit per official source. Most recent official data from 2022 press release and OHA website; 2026 FPL figures applied per standard federal poverty guideline updates."
+      },
+      "flags": [
+        {
+          "field": "income_1",
+          "severity": "high",
+          "draftValue": 1569,
+          "verifiedValue": 2127,
+          "pctDiff": 26.2
+        },
+        {
+          "field": "income_2",
+          "severity": "high",
+          "draftValue": 2129,
+          "verifiedValue": 2873,
+          "pctDiff": 25.9
+        }
+      ],
+      "notes": "Program eligibility expanded April 5, 2022 to include ages 19-64 with Alzheimer's/related dementia diagnosis, but senior pathway requires age 65+. Income limit capped at 250% FPL; calculated from 2026 FPL guidelines ($14,580 single, $29,960 couple). No asset limit per official source. Most recent official data from 2022 press release and OHA website; 2026 FPL figures applied per standard federal poverty guideline updates."
+    },
+    {
+      "programId": "ri-hcc-senior-companion-program",
+      "programName": "HCC Senior Companion Program",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "4014620569",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "4014620569",
+        "sources": {
+          "age": "https://oha.ri.gov/get-involved/volunteering/senior-companions",
+          "income": null,
+          "assets": null,
+          "phone": "https://oha.ri.gov/get-involved/volunteering/senior-companions"
+        },
+        "notes": "Program serves frail seniors via volunteers age 55+; no income/assets eligibility found for senior clients"
+      },
+      "flags": [
+        {
+          "field": "age",
+          "severity": "high",
+          "draftValue": 60,
+          "verifiedValue": 55
+        }
+      ],
+      "notes": "Program serves frail seniors via volunteers age 55+; no income/assets eligibility found for senior clients"
+    },
+    {
+      "programId": "ri-point-ltss-entry",
+      "programName": "The POINT",
+      "facts": {
+        "age": 65,
+        "income_1": 2982,
+        "income_2": null,
+        "assets_individual": 4000,
+        "assets_couple": null,
+        "phones": [
+          "4014624444",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "4014624444",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://oha.ri.gov/get-help"
+        },
+        "notes": "The POINT (Rhode Island Aging and Disability Resource Center) is an information and referral service with no age, income, or asset eligibility tests; it serves older adults, people with disabilities, and caregivers without financial qualifications"
+      },
+      "flags": [],
+      "notes": "The POINT (Rhode Island Aging and Disability Resource Center) is an information and referral service with no age, income, or asset eligibility tests; it serves older adults, people with disabilities, and caregivers without financial qualifications"
+    }
+  ]
+}

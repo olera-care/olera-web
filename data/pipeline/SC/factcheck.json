@@ -1,0 +1,480 @@
+{
+  "state": "SC",
+  "stateName": "South Carolina",
+  "checkedAt": "2026-04-14T10:08:52.884Z",
+  "total": 14,
+  "skipped": 0,
+  "parseErrors": 0,
+  "errors": 0,
+  "programsWithFlags": 3,
+  "totalFlags": 3,
+  "highSeverityFlags": 0,
+  "programs": [
+    {
+      "programId": "sc-community-choices-waiver",
+      "programName": "Community Choices Waiver",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8885490820",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8885490820",
+        "sources": {
+          "age": "https://www.scdhhs.gov/resources/waivers/community-choices-cc-waiver",
+          "income": null,
+          "assets": null,
+          "phone": "https://www.medicaidplanningassistance.org/south-carolina-community-choices-waiver/"
+        },
+        "notes": "Waiver expires 06/30/2026 with renewal proposed effective 07/01/2026; no income/assets limits found in sources"
+      },
+      "flags": [],
+      "notes": "Waiver expires 06/30/2026 with renewal proposed effective 07/01/2026; no income/assets limits found in sources"
+    },
+    {
+      "programId": "sc-medicare-savings-programs",
+      "programName": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "facts": {
+        "age": 65,
+        "income_1": 1350,
+        "income_2": 1824,
+        "assets_individual": 9660,
+        "assets_couple": 14470,
+        "phones": [
+          "18885490820"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": [
+        1
+      ],
+      "flags": [],
+      "notes": null
+    },
+    {
+      "programId": "sc-snap-food-benefits",
+      "programName": "SNAP (Food Assistance)",
+      "facts": {
+        "age": 60,
+        "income_1": 2608,
+        "income_2": 3526,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8888980055",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": 2608,
+        "income_2": 3526,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8038987602",
+        "sources": {
+          "age": null,
+          "income": "https://www.snapscreener.com/guides/south-carolina",
+          "assets": null,
+          "phone": "https://dss.sc.gov/news/new-federal-snap-work-requirements-take-effect-in-south-carolina/"
+        },
+        "notes": "SNAP has no age test for seniors; program serves all income-eligible households. Income limits shown are for expanded eligibility (households where all adults are 60+ or have disability). Standard federal limits are lower. Asset limits not published in search results. Work requirements expanded Feb 1, 2026 but do not apply to households with members 60+ or disabled."
+      },
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "8888980055",
+            "211"
+          ],
+          "verifiedValue": "8038987602"
+        }
+      ],
+      "notes": "SNAP has no age test for seniors; program serves all income-eligible households. Income limits shown are for expanded eligibility (households where all adults are 60+ or have disability). Standard federal limits are lower. Asset limits not published in search results. Work requirements expanded Feb 1, 2026 but do not apply to households with members 60+ or disabled."
+    },
+    {
+      "programId": "sc-liheap-energy-assistance",
+      "programName": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "facts": {
+        "age": null,
+        "income_1": 2666,
+        "income_2": 3486,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8666746327",
+          "8037340662",
+          "8037946778"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": 2666,
+        "income_2": 3486,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8037340662",
+        "sources": {
+          "age": null,
+          "income": "https://www.snapscreener.com/liheap/south-carolina",
+          "assets": null,
+          "phone": "https://energyfundsforall.org/low-income-home-energy-assistance-program-liheap-iija/"
+        },
+        "notes": "LIHEAP has no age requirement; program serves all low-income households regardless of age, including senior caregivers. Income limits are current for 2026 per SNAP Screener source. No asset test found in official sources. Phone number is Governor's Office of Economic Opportunity main line for SC LIHEAP administration. Program remains active as of April 2026."
+      },
+      "flags": [],
+      "notes": "LIHEAP has no age requirement; program serves all low-income households regardless of age, including senior caregivers. Income limits are current for 2026 per SNAP Screener source. No asset test found in official sources. Phone number is Governor's Office of Economic Opportunity main line for SC LIHEAP administration. Program remains active as of April 2026."
+    },
+    {
+      "programId": "sc-weatherization-assistance",
+      "programName": "Weatherization Assistance Program",
+      "facts": {
+        "age": null,
+        "income_1": 2610,
+        "income_2": 3530,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [],
+        "hasVerifiableFacts": true
+      },
+      "verified": [
+        2
+      ],
+      "flags": [],
+      "notes": null
+    },
+    {
+      "programId": "sc-ship-i-care",
+      "programName": "SHIP / I-Care",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8008689095"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8008689095",
+        "sources": {
+          "age": "https://www.getcaresc.com/guide/insurance-counseling-medicaremedicaid",
+          "income": null,
+          "assets": null,
+          "phone": "https://www.cms.gov/contacts/i-care-insurance-counseling-assistance-and-referrals-elders/general-beneficiary-contact/1562201"
+        },
+        "notes": "Program is counseling service for Medicare beneficiaries (age 65+); no income or asset limits found in sources"
+      },
+      "flags": [],
+      "notes": "Program is counseling service for Medicare beneficiaries (age 65+); no income or asset limits found in sources"
+    },
+    {
+      "programId": "sc-congregate-home-delivered-meals",
+      "programName": "Congregate Meals / Home Delivered Meals",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8642429733",
+          "8004344036",
+          "8644893868",
+          "8648851000"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://aging.sc.gov/programs-initiatives/senior-nutrition-program",
+          "income": "https://www.scacog.org/nutrition-program",
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No statewide application phone found; contact local Area Agencies on Aging. Income/assets not considered."
+      },
+      "flags": [],
+      "notes": "No statewide application phone found; contact local Area Agencies on Aging. Income/assets not considered."
+    },
+    {
+      "programId": "sc-legal-assistance-seniors",
+      "programName": "Legal Assistance for Seniors",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "18883465592",
+          "8037996653"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8008689095",
+        "sources": {
+          "age": "https://aging.sc.gov/programs-initiatives/legal-assistance-older-adults",
+          "income": null,
+          "assets": null,
+          "phone": "https://aging.sc.gov/programs-initiatives/legal-assistance-older-adults"
+        },
+        "notes": "Program serves seniors 60+ with greatest economic or social need. Specific income and asset limits not published in official sources retrieved. Phone number is South Carolina Department on Aging main line for legal assistance inquiries."
+      },
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "18883465592",
+            "8037996653"
+          ],
+          "verifiedValue": "8008689095"
+        }
+      ],
+      "notes": "Program serves seniors 60+ with greatest economic or social need. Specific income and asset limits not published in official sources retrieved. Phone number is South Carolina Department on Aging main line for legal assistance inquiries."
+    },
+    {
+      "programId": "sc-long-term-care-ombudsman",
+      "programName": "Long-Term Care Ombudsman Program",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8008689095",
+          "8037349900"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "18008689095",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://aging.sc.gov/programs-initiatives/long-term-care-ombudsman-program"
+        },
+        "notes": "Program has no age, income, or asset eligibility requirements; open to residents of long-term care facilities and their families."
+      },
+      "flags": [],
+      "notes": "Program has no age, income, or asset eligibility requirements; open to residents of long-term care facilities and their families."
+    },
+    {
+      "programId": "sc-homestead-exemption-property-tax",
+      "programName": "Homestead Exemption (State Property Tax Assistance)",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8038985709",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://www.scstatehouse.gov/sess126_2025-2026/bills/4599.htm",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "Current law (as of April 2026) sets senior age at 65; multiple bills to change exemption amount/age are pending and not enacted"
+      },
+      "flags": [],
+      "notes": "Current law (as of April 2026) sets senior age at 65; multiple bills to change exemption amount/age are pending and not enacted"
+    },
+    {
+      "programId": "sc-esap-food-benefits",
+      "programName": "Elderly Simplified Application Project (ESAP)",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "18888980055",
+        "sources": {
+          "age": "https://dss.sc.gov/assistance-programs/snap/how-do-i-apply/help-for-the-elderly/",
+          "income": null,
+          "assets": null,
+          "phone": "https://dss.sc.gov/media/uy3fslax/dss-form-3809-nov-19-lottery-and-gambling.pdf"
+        },
+        "notes": "Program active as of 2026 per available data; no specific income/assets limits detailed in sources for ESAP seniors"
+      },
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "211"
+          ],
+          "verifiedValue": "18888980055"
+        }
+      ],
+      "notes": "Program active as of 2026 per available data; no specific income/assets limits detailed in sources for ESAP seniors"
+    },
+    {
+      "programId": "sc-senior-farmers-market-nutrition",
+      "programName": "Senior Farmers Market Nutrition Program (SFMNP)",
+      "facts": {
+        "age": 60,
+        "income_1": 2769,
+        "income_2": 3769,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8038981760",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://www.myccnb.com/sfmnp/",
+          "income": "https://www.myccnb.com/sfmnp/",
+          "assets": null,
+          "phone": null
+        },
+        "notes": "Program will return in 2026 per sources; no specific 2026 income limits or phone found in current sources"
+      },
+      "flags": [],
+      "notes": "Program will return in 2026 per sources; no specific 2026 income limits or phone found in current sources"
+    },
+    {
+      "programId": "sc-vantage-point",
+      "programName": "Vantage Point",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8438570111",
+          "8433838632",
+          "8665053331"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8433838632",
+        "sources": {
+          "age": "https://aging.sc.gov/sites/default/files/documents/events/2023-2027%20Area%20Plan%20%20Update-Vantage%20Point_Pee%20Dee%20Region.pdf",
+          "income": null,
+          "assets": null,
+          "phone": "https://www.caresouth-carolina.com/seniors"
+        },
+        "notes": "No income or asset limits found in sources; phone from official provider site citing Vantage Point services"
+      },
+      "flags": [],
+      "notes": "No income or asset limits found in sources; phone from official provider site citing Vantage Point services"
+    },
+    {
+      "programId": "sc-senior-medicare-patrol",
+      "programName": "Senior Medicare Patrol",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "18008689095",
+          "18004478477",
+          "18009949422"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8008689095",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://aging.sc.gov/programs-initiatives/medicare-and-medicare-fraud"
+        },
+        "notes": "SMP is an education and fraud prevention program for Medicare beneficiaries, families, and caregivers with no age, income, or asset eligibility requirements"
+      },
+      "flags": [],
+      "notes": "SMP is an education and fraud prevention program for Medicare beneficiaries, families, and caregivers with no age, income, or asset eligibility requirements"
+    }
+  ]
+}

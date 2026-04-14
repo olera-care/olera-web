@@ -1,15 +1,15 @@
 {
   "state": "SD",
   "stateName": "South Dakota",
-  "draftedAt": "2026-04-09T09:42:24.260Z",
+  "draftedAt": "2026-04-13T22:29:50.223Z",
   "total": 16,
-  "successful": 4,
+  "successful": 16,
   "programs": [
     {
-      "id": "south-dakota-medicaid-seniors-disabled",
+      "id": "medicaid-seniors-disabled",
       "name": "South Dakota Medicaid for Seniors/Disabled",
-      "shortName": "SD Medicaid",
-      "tagline": "If your parent needs nursing home care or long-term support at home, South Dakota Medicaid can cover services Medicare doesn't pay for.",
+      "shortName": "SD Medicaid LTC",
+      "tagline": "Comprehensive medical coverage plus nursing home care and home health services for seniors and disabled adults who meet income and asset limits.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -22,29 +22,20 @@
           }
         ]
       },
-      "intro": "If your parent is 65+ or disabled and needs nursing home care or daily help at home, South Dakota Medicaid covers long-term care services that Medicare doesn't pay for — including nursing home stays, home health aides, personal care attendants, and home modifications to help your parent live safely at home. This program fills the gap when your parent needs ongoing daily care but doesn't qualify for full Medicare coverage.\n\nTo qualify, your parent must meet both financial limits and clinical requirements. They need a medical assessment showing they require \"Nursing Home Level of Care\" (meaning they need daily help with bathing, dressing, medication management, or similar tasks). The income limits are higher than regular Medicaid because this program recognizes that long-term care is expensive — up to $2,901/month for a single person in 2026.\n\nIf your parent receives SSI, they automatically qualify financially, but still need the medical assessment for long-term care services. The program also protects spouses from impoverishment — if only one spouse needs care, the healthy spouse can keep up to $148,620 in assets and the family home.",
+      "intro": "If your parent is 65+ or disabled and needs long-term care, South Dakota Medicaid covers services Medicare doesn't — including nursing home care, home health aides, personal attendant services, and home modifications. Because this program covers both medical care and long-term supports under one umbrella, your parent won't need to coordinate between separate providers or worry about coverage gaps.\n\nIncome limit: $2,901/month for a single person, $5,802/month for married couples both applying (2026). Asset limit: $2,000 for singles, with spousal protections up to $148,620 for the community spouse. Your parent must also meet Nursing Home Level of Care (a clinical assessment of whether they need daily help with bathing, dressing, medication management, or other activities of daily living).\n\nIf your parent receives SSI, they automatically qualify for basic Medicaid. However, long-term care services require the separate clinical assessment and may have different income thresholds.",
       "savingsRange": "",
       "savingsSource": "Free service",
-      "savingsVerified": true,
+      "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
           "Age 65+ or disabled",
           "Income below $2,901/month (single)",
-          "Assets below $2,000 (single)",
+          "Assets under $2,000 (single)",
           "Needs daily care assistance",
           "South Dakota resident"
         ],
         "ageRequirement": "65+",
-        "incomeTable": [
-          {
-            "householdSize": 1,
-            "monthlyLimit": 2901
-          },
-          {
-            "householdSize": 2,
-            "monthlyLimit": 5802
-          }
-        ],
+        "incomeTable": null,
         "assetLimits": {
           "individual": 2000,
           "couple": 4000,
@@ -64,495 +55,464 @@
           ],
           "homeEquityCap": 713000
         },
-        "functionalRequirement": "Must need Nursing Home Level of Care (clinical assessment showing you need daily help with bathing, dressing, medication management, or similar basic activities)",
+        "functionalRequirement": "Must meet Nursing Home Level of Care (clinical assessment showing need for daily help with bathing, dressing, medication management, or other activities of daily living)",
         "otherRequirements": [
           "South Dakota resident",
           "U.S. citizen or qualified immigrant",
-          "Valid Social Security Number"
+          "Valid Social Security Number",
+          "Assign rights to medical support/payment"
         ],
         "povertyLevelReference": null
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at dss.sd.gov/applyonline or call 1-855-256-6742 — processing takes 45 days for most applications.",
+        "summary": "Apply online at dss.sd.gov/applyonline or call 1-855-256-6742 — processing takes 45 days, or up to 90 days if disability determination is needed.",
         "steps": [
           {
             "step": 1,
-            "title": "Gather financial documents",
-            "description": "Collect 3 months of bank statements, Social Security award letters, and proof of any other income or assets"
+            "title": "Gather required documents",
+            "description": "Collect proof of income, assets, residency, and medical records showing your parent's care needs. Having everything ready speeds up processing."
           },
           {
             "step": 2,
-            "title": "Submit Medicaid application",
-            "description": "Apply online at dss.sd.gov/applyonline, call 1-855-256-6742, or visit your local DSS office"
+            "title": "Submit application",
+            "description": "Apply online at dss.sd.gov/applyonline, call 1-855-256-6742, or visit your local DSS office. You can also mail the completed application to any DSS office."
           },
           {
             "step": 3,
-            "title": "Complete medical assessment",
-            "description": "DSS will arrange for a clinical evaluation to determine if your parent meets Nursing Home Level of Care requirements"
+            "title": "Complete clinical assessment",
+            "description": "DSS will arrange for a medical professional to assess whether your parent meets Nursing Home Level of Care requirements for long-term services."
           },
           {
             "step": 4,
-            "title": "Interview with caseworker",
-            "description": "Discuss your parent's care needs and living situation with DSS staff to determine appropriate services"
+            "title": "Follow up on processing",
+            "description": "Applications take 45 days for most cases, 90 days if disability determination is required. DSS will contact you if additional documentation is needed."
           }
         ],
         "processingTime": "45 days for most applications; 90 days if disability determination required",
         "waitlist": null,
-        "tip": "If your parent receives SSI, mention this upfront — they automatically meet the financial requirements and can skip some income verification steps.",
+        "tip": "If your parent is already receiving SSI, mention this upfront — they automatically qualify for basic Medicaid and the process may be faster.",
         "urls": [
           {
             "label": "Apply Online",
             "url": "http://dss.sd.gov/applyonline"
-          },
-          {
-            "label": "Medicaid Eligibility Info",
-            "url": "https://dss.sd.gov/economicassistance/medical_eligibility.aspx"
           }
         ]
       },
-      "contentSections": [
+      "documentsNeeded": [
+        "Social Security cards for all household members",
+        "Birth certificate or other proof of age",
+        "Proof of South Dakota residency (utility bill, lease, or state-issued document)",
+        "Social Security award letter or other income statements",
+        "Pension or retirement income statements",
+        "Bank statements for all accounts (last 3 months)",
+        "Investment documents (stocks, bonds, annuities)",
+        "Property documents (deeds, tax statements)",
+        "Vehicle titles and registration",
+        "Life insurance policies with face values",
+        "Burial plot deeds or pre-need burial contracts",
+        "Medical records documenting disability or care needs",
+        "Proof of citizenship or immigration status",
+        "Medicare card if applicable",
+        "Documentation of any trusts or legal arrangements"
+      ],
+      "contacts": [
         {
-          "type": "income-table",
-          "heading": "Income Limits for Long-Term Care Medicaid",
-          "rows": [
-            {
-              "category": "Single person",
-              "monthlyLimit": "$2,901",
-              "yearlyLimit": "$34,812"
-            },
-            {
-              "category": "Married couple (both applying)",
-              "monthlyLimit": "$5,802",
-              "yearlyLimit": "$69,624"
-            },
-            {
-              "category": "Married couple (one applying)",
-              "monthlyLimit": "$2,901 for applicant",
-              "yearlyLimit": "Spousal protections apply"
-            }
-          ],
-          "footnote": "2026 limits. Community spouse can keep additional income and assets under spousal impoverishment rules."
+          "label": "SD DSS Benefits Line",
+          "phone": "(855) 256-6742",
+          "description": "Medicaid applications and eligibility questions",
+          "hours": "Mon-Fri 8am-5pm CT"
         },
         {
-          "type": "what-counts",
-          "heading": "Asset Limits: What Counts",
-          "included": [
-            "Bank accounts and savings",
-            "Stocks, bonds, and investments",
-            "Second vehicles",
-            "Income-producing property",
-            "Cash value of life insurance over $1,500"
-          ],
-          "excluded": [
-            "Primary home (up to $713,000 equity if intent to return)",
-            "One vehicle for transportation",
-            "Personal belongings and household items",
-            "Burial plots and irrevocable burial trusts",
-            "Life insurance with face value under $1,500"
-          ]
-        },
-        {
-          "type": "tier-comparison",
-          "heading": "Medicaid Coverage Tiers",
-          "tiers": [
-            {
-              "name": "Regular Medicaid",
-              "description": "Basic medical coverage",
-              "incomeLimit": "Up to 138% FPL (~$2,163/month)",
-              "coverage": "Doctor visits, hospital stays, prescriptions"
-            },
-            {
-              "name": "Long-Term Care Medicaid",
-              "description": "Comprehensive long-term support",
-              "incomeLimit": "Up to $2,901/month",
-              "coverage": "Nursing home care, home health aides, personal care, home modifications, plus all regular medical"
-            }
-          ]
-        },
-        {
-          "type": "documents",
-          "heading": "What to Bring",
-          "categories": [
-            {
-              "name": "Identity",
-              "items": [
-                "Birth certificate",
-                "Social Security card",
-                "Photo ID",
-                "Proof of South Dakota residency"
-              ]
-            },
-            {
-              "name": "Financial",
-              "items": [
-                "3 months of bank statements",
-                "Social Security award letter",
-                "Pay stubs or pension statements",
-                "Property deeds",
-                "Life insurance policies"
-              ]
-            },
-            {
-              "name": "Medical",
-              "items": [
-                "Medical records showing need for daily care",
-                "Disability determination (if under 65)",
-                "Current medication list",
-                "Recent hospital or nursing home records"
-              ]
-            }
-          ]
-        },
-        {
-          "type": "callout",
-          "tone": "tip",
-          "text": "If your parent's income is slightly over the limit, they may still qualify through a \"spend-down\" process — paying their excess income toward medical bills until they meet the monthly limit."
-        },
-        {
-          "type": "callout",
-          "tone": "warning",
-          "text": "You must present your Medicaid card for services or providers may deny coverage. Keep the card current and notify DSS of any address changes immediately."
+          "label": "Local DSS Office",
+          "phone": null,
+          "description": "In-person assistance and application submission",
+          "hours": "Varies by location"
         }
       ],
+      "applicationNotes": [
+        "SSI recipients automatically qualify for basic Medicaid but still need the clinical assessment for long-term care services",
+        "If your parent's income is slightly over the limit, they may still qualify through medical spend-down — DSS will calculate this",
+        "Spousal impoverishment rules protect the community spouse's income and assets — married couples should ask about these protections",
+        "Applications can be delayed if medical records are incomplete — submit all relevant doctor visits and hospital stays"
+      ],
+      "relatedPrograms": [
+        "South Dakota SNAP (Food Benefits)",
+        "South Dakota LIHEAP (Energy Assistance)",
+        "South Dakota Medicare Extra Help",
+        "South Dakota Senior Companion Program"
+      ],
+      "contentSections": [],
       "faqs": [
         {
-          "question": "Can Mom keep her house if she qualifies for Medicaid long-term care?",
-          "answer": "Yes, if your mom intends to return home or if a spouse/disabled child lives there. The home is exempt up to $713,000 in equity value. If she permanently moves to a nursing home with no intent to return, the state may place a lien on the home to recover costs after death."
+          "question": "Can my parent keep their house if it's worth more than the $2,000 asset limit?",
+          "answer": "Yes, the primary home is exempt up to $713,000 in equity if your parent intends to return home. The house doesn't count toward the $2,000 asset limit even if they're currently in a nursing home."
         },
         {
-          "question": "What if Dad's income is just over the $2,901 limit?",
-          "answer": "He may still qualify through \"spend-down\" — paying his excess monthly income toward medical bills until he reaches the limit. For example, if his income is $3,200, he'd pay $299 toward medical costs each month to qualify."
+          "question": "What if my parent's income is $3,000/month — just over the $2,901 limit?",
+          "answer": "They may still qualify through medical spend-down. DSS calculates how much of their medical expenses bring their 'countable income' below the limit. Call 855-256-6742 to have DSS run this calculation."
         },
         {
-          "question": "My parents are married but only Mom needs nursing home care. Will Dad lose everything?",
-          "answer": "No. Spousal impoverishment rules protect the healthy spouse. Dad can keep up to $148,620 in assets (2026 limit) plus the home and one car. He can also keep enough income to live on — these protections prevent the healthy spouse from becoming impoverished."
+          "question": "Can I apply for Medicaid on behalf of my parent who has dementia?",
+          "answer": "Yes, family members can apply on behalf of incapacitated parents. You'll need to provide documentation of your authority (power of attorney, guardianship papers, or representative payee status) along with the application."
         },
         {
-          "question": "Does this cover care at home or just nursing homes?",
-          "answer": "Both. South Dakota Medicaid covers nursing home care, but also home-based services like personal care attendants, home health aides, and home modifications to help your parent live safely at home. The goal is to provide care in the least restrictive setting."
+          "question": "How does the Nursing Home Level of Care assessment work?",
+          "answer": "A medical professional evaluates whether your parent needs daily help with activities like bathing, dressing, eating, or medication management. This can be done in your parent's home, at a facility, or based on medical records from their doctor."
         },
         {
-          "question": "My parent receives SSI. Do they automatically qualify?",
-          "answer": "They automatically meet the financial requirements, but still need a medical assessment to qualify for long-term care services. SSI recipients get regular Medicaid automatically, but need to prove they require \"Nursing Home Level of Care\" for enhanced services."
+          "question": "What happens to my parent's spouse if only one needs Medicaid?",
+          "answer": "Spousal impoverishment rules protect the community spouse. They can keep up to $148,620 in assets and have higher income protections. DSS will calculate exactly what the non-applicant spouse can retain."
         },
         {
-          "question": "How long does the medical assessment take?",
-          "answer": "The overall application process takes 45 days for most cases, 90 days if disability determination is needed. The medical assessment is part of this timeline — DSS will arrange for a clinical evaluation to determine if your parent needs daily care assistance."
+          "question": "Can my parent get home care services or is this only for nursing homes?",
+          "answer": "Medicaid covers both nursing home care and home-based services like personal attendants, home health aides, and home modifications. The same clinical assessment qualifies your parent for either setting based on their preference and safety."
+        },
+        {
+          "question": "What if my parent already has Medicare — do they need both?",
+          "answer": "Yes, Medicaid covers services Medicare doesn't — especially long-term care, personal attendants, and extended nursing home stays. Your parent keeps their Medicare and Medicaid pays for what Medicare doesn't cover."
+        },
+        {
+          "question": "How long does coverage last once approved?",
+          "answer": "Coverage continues as long as your parent meets eligibility requirements. DSS conducts periodic reviews (usually annually) to verify income, assets, and ongoing medical need for long-term care services."
         }
       ],
-      "phone": "1-855-256-6742",
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "asset-focused",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "Stethoscope",
+      "phone": "(855) 256-6742",
       "sourceUrl": "https://dss.sd.gov/economicassistance/medical_eligibility.aspx",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-09"
+      "draftedAt": "2026-04-13"
     },
     {
-      "id": "south-dakota-hope-waiver",
+      "id": "hope-waiver",
       "name": "HOPE Waiver (Home & Community-Based Options and Person Centered Excellence)",
       "shortName": "HOPE Waiver",
-      "tagline": "Get in-home care, respite services, and meals for your parent instead of nursing home placement — if they qualify for nursing facility level care.",
+      "tagline": "Services to help your parent stay home instead of moving to a nursing facility",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
         "type": "state",
         "stateVariation": false
       },
-      "intro": "If your parent needs daily help with bathing, dressing, or medication management but wants to stay home, South Dakota's HOPE Waiver can provide in-home care services, respite care, adult day programs, and meals. Because this waiver covers people who qualify for nursing facility level care, your parent must need significant daily assistance to be eligible.\n\nThe program serves people 65+ or adults with qualifying Social Security disabilities. Income limit: $2,901/month for single applicants (2025). Your parent can have up to $2,000 in countable assets. The program is capped at 1,834 people statewide, so availability varies.",
+      "intro": "If your parent needs daily help with bathing, dressing, or medication management but wants to stay home, the HOPE Waiver covers in-home care, adult day services, respite care, and assisted living as alternatives to nursing facility placement. Your parent must qualify for nursing home level of care and meet strict income limits ($2,901/month for 2025) and asset limits ($2,000 for singles).\n\nBecause South Dakota caps enrollment at 1,834 people statewide, there may be a waitlist. Services are individualized based on your parent's support plan — there are no fixed dollar amounts or hour limits. The program covers everything from personal care to meal delivery to adult day programs, all coordinated through one team instead of managing multiple providers separately.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
-          "Age 65+ or disabled",
-          "Income below $2,901/month",
-          "Assets under $2,000",
-          "Needs nursing facility level care",
+          "Age 65+ or qualifying disability",
+          "Income below $2,901/month (2025)",
+          "Assets under $2,000 (singles)",
+          "Needs nursing home level of care",
           "South Dakota resident"
         ],
         "ageRequirement": "65+",
-        "incomeTable": [
-          {
-            "householdSize": 1,
-            "monthlyLimit": 2901
-          }
-        ],
+        "incomeTable": null,
         "assetLimits": {
           "individual": 2000,
-          "couple": 2000,
+          "couple": 126420,
           "countedAssets": [
-            "Cash in checking/savings accounts",
-            "Accessible financial resources"
+            "Cash in checking and savings accounts",
+            "Stocks and bonds",
+            "Investment accounts"
           ],
           "exemptAssets": [
-            "Primary home (if living in it or intend to return)",
-            "Home where spouse or disabled child lives"
+            "Primary home (up to $730,000 equity)",
+            "One vehicle",
+            "Household goods",
+            "Burial funds up to $1,500"
           ],
           "homeEquityCap": 730000
         },
-        "functionalRequirement": "Must need nursing facility level care (daily help with bathing, dressing, medication management, or similar personal care needs)",
+        "functionalRequirement": "Must need daily help with activities like bathing, dressing, or medication management (nursing facility level of care assessment)",
         "otherRequirements": [
-          "South Dakota resident",
-          "Cannot currently live in nursing facility or hospital",
-          "Must receive at least one waiver service monthly"
+          "Cannot currently live in nursing home or hospital",
+          "Must receive at least one waiver service monthly",
+          "Must participate in ongoing assessments"
         ],
-        "povertyLevelReference": "300% Federal Benefit Rate"
+        "povertyLevelReference": "300% of Federal Benefit Rate"
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call Dakota at Home at (833) 663-9673 — they handle the entire application process including assessments.",
+        "summary": "Call Dakota at Home at (833) 663-9673 to start the assessment process — no specific processing timeline provided.",
         "steps": [
           {
             "step": 1,
-            "title": "Call Dakota at Home",
-            "description": "Call (833) 663-9673 to start your application and schedule initial assessment."
+            "title": "Contact Dakota at Home",
+            "description": "Call (833) 663-9673 to request HOPE Waiver services and schedule initial assessment"
           },
           {
             "step": 2,
-            "title": "Complete assessment",
-            "description": "LTSS Case Management Specialist evaluates your parent's functional needs using the Home Care Assessment tool."
+            "title": "Complete functional assessment",
+            "description": "LTSS Case Management Specialist completes Home Care Assessment (HCA) tool to determine if you meet nursing facility level of care"
           },
           {
             "step": 3,
             "title": "Financial eligibility review",
-            "description": "SD DSS Long Term Care Benefits Specialist reviews income and assets against program limits."
+            "description": "SD DSS Long Term Care Benefits Specialist reviews income and assets against program limits"
           },
           {
             "step": 4,
-            "title": "Care plan development",
-            "description": "If approved, team creates Individual Support Plan based on your parent's specific needs."
+            "title": "Support plan development",
+            "description": "If approved, individual support plan is prepared based on your specific care needs"
+          },
+          {
+            "step": 5,
+            "title": "Service coordination",
+            "description": "Begin receiving at least one waiver service monthly to maintain eligibility"
           }
         ],
-        "processingTime": "Not specified — ask when you call",
-        "waitlist": "Program capped at 1,834 people statewide — verify current availability when applying",
-        "tip": "Have your parent's Social Security income, bank statements, and medical information ready when you call.",
-        "urls": []
+        "processingTime": "Not specified — contact Dakota at Home for current timeline",
+        "waitlist": "Program capped at 1,834 concurrent recipients statewide — current waitlist status unknown",
+        "tip": "Call as soon as possible if your parent needs nursing home level care — the enrollment cap means earlier applications have better chances.",
+        "urls": [
+          {
+            "label": "Dakota at Home Referral Form",
+            "url": "https://dss.sd.gov/"
+          }
+        ]
       },
-      "contentSections": [
+      "documentsNeeded": [
+        "Social Security cards for applicant and spouse",
+        "Medicare card (both parts A and B)",
+        "Proof of South Dakota residency (utility bill, lease, or state ID)",
+        "Most recent Social Security award letter",
+        "Pension or retirement income statements",
+        "Bank statements for all accounts (last 3 months)",
+        "Investment documents (stocks, bonds, annuities)",
+        "Property deeds and tax statements",
+        "Vehicle titles and registration",
+        "Life insurance policies with cash values",
+        "Pre-need burial contracts",
+        "Medical records documenting functional limitations",
+        "Current medication list",
+        "Documentation of current care needs and services"
+      ],
+      "contacts": [
         {
-          "type": "income-table",
-          "heading": "2025 Income Limits",
-          "rows": [
-            {
-              "householdSize": "Single applicant",
-              "monthlyLimit": "$2,901",
-              "yearlyLimit": "$34,812"
-            },
-            {
-              "householdSize": "Married (each spouse evaluated separately)",
-              "monthlyLimit": "$2,901 per person",
-              "yearlyLimit": "$34,812 per person"
-            }
-          ],
-          "footnote": "2025 limits based on 300% Federal Benefit Rate. Limits adjust annually in January."
+          "label": "Dakota at Home",
+          "phone": "(833) 663-9673",
+          "description": "HOPE Waiver applications and service coordination",
+          "hours": "Business hours (call for specific times)"
         },
         {
-          "type": "what-counts",
-          "heading": "Asset Limits: What Counts Toward $2,000 Limit",
-          "included": [
-            "Cash in checking and savings accounts",
-            "Stocks, bonds, mutual funds",
-            "Additional properties or land",
-            "Vehicles beyond one car"
-          ],
-          "excluded": [
-            "Primary home (if your parent lives there or intends to return)",
-            "Home where spouse, minor child, or disabled child lives",
-            "One vehicle",
-            "Personal belongings and household items",
-            "Burial funds up to certain limits"
-          ]
-        },
-        {
-          "type": "tier-comparison",
-          "heading": "Available Services Through HOPE Waiver",
-          "tiers": [
-            {
-              "name": "In-Home Services",
-              "description": "Personal care assistance, homemaker services, medication management help",
-              "incomeLimit": "Same eligibility for all services",
-              "coverage": "Based on individual assessment and care plan"
-            },
-            {
-              "name": "Respite & Caregiver Support",
-              "description": "Temporary care relief for family caregivers, caregiver training and support",
-              "incomeLimit": "Same eligibility for all services",
-              "coverage": "Hours determined by support plan"
-            },
-            {
-              "name": "Community Services",
-              "description": "Adult day services, nutrition/meals, transportation assistance, assisted living",
-              "incomeLimit": "Same eligibility for all services",
-              "coverage": "Service mix tailored to individual needs"
-            }
-          ]
-        },
-        {
-          "type": "documents",
-          "heading": "What to Gather Before Calling",
-          "categories": [
-            {
-              "name": "Financial Information",
-              "items": [
-                "Social Security award letters",
-                "Bank statements for all accounts",
-                "Pension or retirement income documentation",
-                "Property deeds and mortgage information"
-              ]
-            },
-            {
-              "name": "Medical Information",
-              "items": [
-                "List of current medications",
-                "Recent hospital or nursing home stays",
-                "Physician contact information",
-                "Documentation of daily care needs"
-              ]
-            }
-          ]
-        },
-        {
-          "type": "callout",
-          "tone": "warning",
-          "text": "The HOPE Waiver is capped at 1,834 people statewide. Even if your parent qualifies, they may be placed on a waitlist. Apply as early as possible if your parent's care needs are increasing."
-        },
-        {
-          "type": "callout",
-          "tone": "tip",
-          "text": "Your parent cannot be living in a nursing facility when they apply — this program is specifically designed to help people avoid nursing home placement by providing services at home or in community settings."
+          "label": "SD Department of Social Services",
+          "phone": "(605) 773-3165",
+          "description": "General questions about long-term care programs",
+          "hours": "Mon-Fri 8am-5pm CT"
         }
       ],
+      "applicationNotes": [
+        "You cannot apply if your parent currently lives in a nursing home, hospital, or ICF/MR facility — this is only for community-based care",
+        "Income limits adjust annually in January — verify current year limits before applying to avoid automatic denial",
+        "The $730,000 home equity limit applies even if the home is otherwise exempt — high-value homes may disqualify applicants",
+        "Program approval expires September 30, 2026 — verify renewal status if applying close to this date"
+      ],
+      "relatedPrograms": [
+        "South Dakota Medicaid",
+        "SNAP (Food Assistance)",
+        "LIHEAP (Energy Assistance)",
+        "Medicare Savings Programs"
+      ],
+      "contentSections": [],
       "faqs": [
         {
-          "question": "Can my parent keep their house if they qualify for the HOPE Waiver?",
-          "answer": "Yes, your parent's home is exempt from the $2,000 asset limit if they live in it or intend to return. However, home equity cannot exceed $730,000 (2025 limit). If your parent's home equity is higher, they may not qualify."
+          "question": "Can my parent keep their house if it's worth more than $2,000?",
+          "answer": "Yes, the primary home is exempt from the $2,000 asset limit as long as your parent lives in it or intends to return. However, home equity cannot exceed $730,000 (2025 limit). If home equity is higher, your parent won't qualify even though the house itself is exempt."
         },
         {
-          "question": "What if my parent's income is just over $2,901 per month?",
-          "answer": "They will not qualify. The income limit is strictly enforced at $2,901/month for 2025. However, if your parent is married, only the applicant spouse's income counts toward the limit — the other spouse's income is not included."
+          "question": "What if my parent is married but only one spouse needs the waiver?",
+          "answer": "Each spouse is evaluated individually for income (each can earn up to $2,901/month in 2025). For assets, the applicant spouse must have $2,000 or less, while the non-applicant spouse can keep up to $126,420. Up to $3,160.50 of joint monthly income can be allocated to the non-applicant spouse."
         },
         {
-          "question": "How do they determine if my parent needs 'nursing facility level care'?",
-          "answer": "A specialist will assess your parent using the Home Care Assessment tool, evaluating their ability to handle daily activities like bathing, dressing, medication management, and mobility. They must need significant daily assistance to qualify."
+          "question": "How long is the waitlist really?",
+          "answer": "South Dakota caps enrollment at 1,834 people statewide, but current waitlist length isn't publicly reported. Call Dakota at Home at (833) 663-9673 for current availability. Because the cap is hard, getting on the list early matters."
         },
         {
-          "question": "What happens if my parent gets approved but then doesn't use any services for a month?",
-          "answer": "They will lose eligibility. Your parent must receive at least one waiver service every month to stay in the program. Passive enrollment without using services is not allowed."
+          "question": "Can I apply while my parent is still in the hospital?",
+          "answer": "You can start the application process while hospitalized, but your parent cannot be approved or receive services until they're discharged to a community setting. The waiver only covers community-based care, not institutional care."
         },
         {
-          "question": "Can my parent choose which services they receive through the waiver?",
-          "answer": "Services are determined through an Individual Support Plan based on your parent's assessed needs. While the plan is personalized, services must match their level of care requirements as determined by the assessment."
+          "question": "What happens if my parent's income goes over the limit after approval?",
+          "answer": "Your parent would lose eligibility if income exceeds $2,901/month (2025 limit). Income limits adjust annually in January, so small Social Security increases may not affect eligibility, but significant income changes like pension increases could disqualify them."
         },
         {
-          "question": "What if there's a waitlist — how long might we wait?",
-          "answer": "Wait times are not specified because they depend on when current participants leave the program. The program is capped at 1,834 people statewide. Contact Dakota at Home at (833) 663-9673 to ask about current availability in your area."
+          "question": "Can my parent get HOPE Waiver services and still live in assisted living?",
+          "answer": "Yes, assisted living is one of the covered services under the waiver. The waiver can help pay for assisted living as an alternative to nursing facility placement, as long as your parent meets all other eligibility requirements."
+        },
+        {
+          "question": "What's the minimum amount of services my parent must use to stay eligible?",
+          "answer": "Your parent must receive at least one waiver service at least once per month. This could be personal care, adult day services, respite care, or any other covered service. Passive enrollment without using services isn't allowed."
+        },
+        {
+          "question": "Can a family member apply on behalf of an elderly parent?",
+          "answer": "Yes, family members can help with the application process, but the assessment and eligibility determination will focus on your parent's needs and financial situation. Call Dakota at Home at (833) 663-9673 to discuss how to proceed as the caregiver."
         }
       ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "asset-focused",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": false,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "House",
       "phone": "(833) 663-9673",
-      "sourceUrl": "https://dss.sd.gov",
+      "sourceUrl": "https://dss.sd.gov/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-09"
+      "draftedAt": "2026-04-13"
     },
     {
-      "id": "south-dakota-pace-elderly-care",
+      "id": "pace-all-inclusive-care",
       "name": "Program of All-Inclusive Care for the Elderly (PACE)",
       "shortName": "PACE",
-      "tagline": "All-in-one medical care and support services that let your parent stay home instead of moving to a nursing home.",
+      "tagline": "Comprehensive medical and social services that keep your parent living at home instead of a nursing home.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
         "type": "local",
         "stateVariation": false
       },
-      "intro": "PACE is not currently available in South Dakota. This comprehensive program coordinates all medical care, daily support, and social services through one team — letting people who qualify for nursing home care stay in their own homes instead. Because PACE covers everything from doctor visits to meals to transportation under one program, your parent wouldn't need to coordinate between separate providers or worry about coverage gaps. The program serves people 55+ who need nursing home level of care (daily help with bathing, dressing, or medication management) but can live safely at home with support. While South Dakota has conducted feasibility studies for PACE, no providers currently operate in the state.",
+      "intro": "If your parent is 55+ and needs nursing home level care but wants to stay in their community, PACE provides everything under one roof — primary care, specialists, adult day care, home care, transportation, meals, and even hospital care when needed. Because PACE coordinates all services through one interdisciplinary team (doctor, nurse, therapists, social worker, dietician), your parent won't juggle multiple providers or insurance approvals.\n\nPACE has no income limits and serves anyone 55+ who qualifies medically, though most participants have both Medicare and Medicaid. The program is designed to keep 95% of participants living in the community rather than nursing homes.\n\nPACE is not currently available in South Dakota. The state has conducted feasibility studies but has no active PACE providers or service areas yet.",
       "savingsRange": "",
-      "savingsSource": "Free service coordination",
+      "savingsSource": "Comprehensive service package",
       "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
           "Age 55+",
-          "Need nursing home level of care",
-          "Live in PACE service area",
-          "Not available in South Dakota"
+          "Needs nursing home level care",
+          "Must live near PACE center",
+          "Not available in South Dakota yet"
         ],
         "ageRequirement": "55+",
         "incomeTable": null,
         "assetLimits": null,
-        "functionalRequirement": "Must be certified by the state as needing nursing home level of care (a clinical assessment of whether your parent needs daily help with bathing, dressing, or medication management)",
+        "functionalRequirement": "Must be certified by the state as needing nursing home level care (clinical assessment of whether your parent needs daily help with bathing, dressing, medication management, or other activities of daily living)",
         "otherRequirements": [
           "Live in a PACE service area near a PACE center",
-          "Able to live safely in the community with PACE support"
+          "Able to live safely in the community with PACE support",
+          "Currently not available in South Dakota"
         ],
         "povertyLevelReference": null
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "PACE is not currently available in South Dakota — no application process exists in the state.",
+        "summary": "PACE is not currently available in South Dakota, but you can get information about future availability through the state aging network.",
         "steps": [
           {
             "step": 1,
-            "title": "Check availability",
-            "description": "PACE has no active providers in South Dakota. You would need to move to a state with PACE centers."
+            "title": "Contact South Dakota Department of Human Services",
+            "description": "Call (605) 773-3656 to ask about PACE implementation status and timeline in South Dakota."
           },
           {
             "step": 2,
-            "title": "Contact other states",
-            "description": "If considering relocation, find PACE providers at cms.gov/medicare/medicaid-coordination/about/pace"
+            "title": "Connect with your Area Agency on Aging",
+            "description": "Call (866) 854-5465 for information about current alternatives to PACE in your region."
           },
           {
             "step": 3,
-            "title": "Explore alternatives",
-            "description": "Contact South Dakota Department of Human Services at 605-773-3165 for similar home and community-based services available in the state"
+            "title": "Consider neighboring states",
+            "description": "If you're near state borders, ask about PACE availability in neighboring states, though service areas are typically limited to specific geographic regions."
           }
         ],
-        "processingTime": "Not applicable — program not available in South Dakota",
+        "processingTime": "Program not available - contact state for implementation timeline",
         "waitlist": null,
-        "tip": "Focus on South Dakota's home and community-based waiver programs, which provide similar support to help your parent stay home.",
+        "tip": "While waiting for PACE availability, explore home and community-based waiver programs that provide similar services to help your parent age in place.",
         "urls": [
           {
-            "label": "National PACE information",
+            "label": "National PACE Information",
             "url": "https://www.cms.gov/medicare/medicaid-coordination/about/pace"
           }
         ]
       },
-      "contentSections": [
+      "documentsNeeded": null,
+      "contacts": [
         {
-          "type": "callout",
-          "tone": "warning",
-          "text": "PACE is not available in South Dakota. The state has conducted feasibility studies but no PACE centers currently operate here. Look into South Dakota's home and community-based waiver programs for similar support services."
+          "label": "SD Department of Human Services",
+          "phone": "(605) 773-3656",
+          "description": "State agency for PACE implementation questions",
+          "hours": "Mon-Fri 8am-5pm CT"
+        },
+        {
+          "label": "SD Aging & Disability Services",
+          "phone": "(866) 854-5465",
+          "description": "Information about alternative home and community services",
+          "hours": "Mon-Fri 8am-5pm CT"
+        },
+        {
+          "label": "National PACE Association",
+          "phone": "(703) 535-1565",
+          "description": "General PACE program information and advocacy",
+          "hours": "Mon-Fri 9am-5pm ET"
         }
       ],
+      "applicationNotes": [
+        "South Dakota has conducted feasibility studies for PACE but no providers have been approved yet",
+        "If you live near state borders, check whether neighboring states have PACE programs in your area",
+        "Home and community-based waiver programs may provide similar services while PACE is unavailable",
+        "PACE programs typically have limited geographic service areas even when available"
+      ],
+      "relatedPrograms": [
+        "Medicaid Home and Community-Based Services Waiver",
+        "Area Agency on Aging Services",
+        "Adult Day Services",
+        "Home Health Care"
+      ],
+      "contentSections": [],
       "faqs": [
         {
-          "question": "Why isn't PACE available in South Dakota?",
-          "answer": "PACE requires approved providers and designated service areas. South Dakota has conducted feasibility studies for PACE but no organizations have established operational programs yet."
+          "question": "Can my parent get PACE services if we live in South Dakota?",
+          "answer": "No, PACE is not currently available in South Dakota. The state has conducted feasibility studies but no PACE providers have been approved or begun operating yet. Contact the South Dakota Department of Human Services at (605) 773-3656 for updates on implementation timeline."
         },
         {
-          "question": "What similar programs does South Dakota offer?",
-          "answer": "South Dakota offers home and community-based waiver programs through Medicaid that provide similar support services to help people avoid nursing home placement. Contact the Department of Human Services for details."
+          "question": "What alternatives exist while PACE isn't available in South Dakota?",
+          "answer": "Your parent may qualify for Medicaid Home and Community-Based Services waivers, Area Agency on Aging programs, or private adult day services. Call (866) 854-5465 to explore current options that help seniors age in place. These programs may not be as comprehensive as PACE but can provide similar individual services."
         },
         {
-          "question": "Could we move to a state with PACE?",
-          "answer": "Yes, but your parent would need to live in the specific PACE service area and near a PACE center. They'd also need to re-establish residency and go through that state's assessment process."
+          "question": "If we move to a state with PACE, can my parent enroll immediately?",
+          "answer": "Your parent would need to establish residency in a PACE service area and complete the medical assessment process, which takes about 30 days. PACE enrollment is voluntary and available year-round, unlike Medicare plans with enrollment periods. However, not all areas within PACE states have service coverage."
         },
         {
-          "question": "If PACE comes to South Dakota, how would it work?",
-          "answer": "PACE would become your parent's sole source of Medicare and Medicaid services if they're dually eligible. They could disenroll anytime, but while enrolled, all care would go through the PACE team."
+          "question": "Does PACE replace Medicare and Medicaid or work alongside them?",
+          "answer": "For dually eligible participants (those with both Medicare and Medicaid), PACE becomes the sole source of Medicare and Medicaid services. Your parent can disenroll anytime and return to regular Medicare/Medicaid. Private pay participants keep their Medicare and pay PACE directly for additional services."
         },
         {
-          "question": "Who typically uses PACE?",
-          "answer": "Most PACE participants are dually eligible for Medicare and Medicaid and need nursing home level of care. About 95% of participants live in the community rather than nursing homes."
+          "question": "What does 'nursing home level of care' actually mean for PACE eligibility?",
+          "answer": "This means your parent needs help with activities like bathing, dressing, eating, toileting, or medication management that would typically require nursing home placement. A state assessor evaluates your parent's functional abilities and medical needs. The goal is serving people who need significant care but can live safely in the community with support."
+        },
+        {
+          "question": "How much does PACE cost if my parent isn't on Medicaid?",
+          "answer": "PACE has no income limits, so higher-income seniors pay privately. Costs vary by location and services needed, but typically range from $4,000-6,000 per month. This is often less expensive than nursing home care plus it allows community living. Medicare may cover some medical services even for private pay participants."
         }
       ],
-      "phone": "605-773-3165",
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": false,
+        "hasDocumentChecklist": false,
+        "visualTone": "editorial"
+      },
+      "icon": "House",
+      "phone": "(605) 773-3656",
       "sourceUrl": "https://dhs.sd.gov",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-09"
+      "draftedAt": "2026-04-13"
     },
     {
-      "id": "south-dakota-medicare-savings-programs",
+      "id": "medicare-savings-programs",
       "name": "Medicare Savings Programs (QMB, SLMB, QI)",
       "shortName": "Medicare Savings Programs",
-      "tagline": "If your parent's Medicare premiums and medical bills are overwhelming, these programs can pay $2,200+ annually in Medicare costs.",
+      "tagline": "Help paying Medicare premiums, deductibles, and copays if your parent's income is below $1,781/month",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -565,15 +525,15 @@
           }
         ]
       },
-      "intro": "If your parent struggles to pay Medicare premiums, deductibles, or copays, South Dakota's Medicare Savings Programs can help. These programs pay your parent's Medicare Part B premium ($185/month in 2026) and may cover all Medicare deductibles and copays depending on which program they qualify for.\n\nThere are three programs with different income limits: QMB provides the most help (covering all Medicare costs), while SLMB and QI cover premiums only. Because your parent automatically qualifies for Extra Help with prescription drug costs once enrolled, they'll pay no more than $12.65 per medication.\n\nIncome limits range from $1,350/month for individuals (QMB) up to approximately $1,715/month (QI). Your parent must already have Medicare Part A or B to qualify.",
-      "savingsRange": "$2,220 – $4,500/year in 2026",
-      "savingsSource": "Medicare Part B premiums ($185/month = $2,220/year) plus potential deductibles and copays",
+      "intro": "If your parent struggles to pay Medicare premiums or copays, Medicare Savings Programs can cover these costs entirely. These three programs — QMB, SLMB, and QI — pay Medicare Part B premiums (around $185/month in 2026) directly to Medicare, and QMB also covers all deductibles and copays your parent would normally pay at the doctor or hospital.\n\nTo qualify, your parent must have Medicare and meet income limits: $1,350/month for QMB (the most comprehensive), up to $1,715/month for QI (premium help only). Because enrollment automatically qualifies your parent for Extra Help with prescription drug costs (copays as low as $12.65 per medication), the total savings can exceed $3,000 annually.\n\nThe QI program has limited funding and operates first-come, first-served, so applying early in the year improves chances of approval. All three programs require annual income and asset verification.",
+      "savingsRange": "$2,220 – $3,600/year in 2026",
+      "savingsSource": "Medicare Part B premiums ($2,220/year) plus potential deductibles, copays, and Extra Help prescription savings",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
-          "Has Medicare Part A or B",
-          "Income below $1,715/month (varies by program)",
-          "Assets under $9,950 (individual) or $14,910 (couple)",
+          "Must have Medicare Part A or B",
+          "Income below $1,350-$1,715/month (varies by program)",
+          "Assets below $9,430 (single) or $14,130 (couple)",
           "South Dakota resident"
         ],
         "ageRequirement": null,
@@ -588,15 +548,16 @@
           }
         ],
         "assetLimits": {
-          "individual": 9950,
-          "couple": 14910,
+          "individual": 9430,
+          "couple": 14130,
           "countedAssets": [
             "Checking and savings accounts",
-            "Certificates of deposit"
+            "Certificates of deposit",
+            "Stocks and bonds"
           ],
           "exemptAssets": [
             "Primary home",
-            "One car",
+            "One vehicle",
             "Burial plots",
             "Irrevocable burial trusts"
           ],
@@ -604,204 +565,2121 @@
         },
         "functionalRequirement": null,
         "otherRequirements": [
-          "Must be entitled to or receiving Medicare Part A and/or B",
-          "U.S. citizen or qualified immigrant",
-          "Must reside in South Dakota"
+          "Must be U.S. citizen or qualified immigrant",
+          "Must reside in South Dakota",
+          "QI program requires annual reapplication with priority given to previous recipients"
         ],
         "povertyLevelReference": "100-135% FPL"
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Call DSS at 1-877-999-5612 to start your application — processing typically takes 45 days.",
+        "summary": "Apply by phone at 1-877-999-5612 or download the application form — processing typically takes 45 days",
         "steps": [
           {
             "step": 1,
             "title": "Gather required documents",
-            "description": "Collect Medicare card, Social Security number, bank statements, and proof of income from the past month."
+            "description": "Collect Medicare card, Social Security number, bank statements from last 3 months, and proof of income like Social Security award letters or pay stubs"
           },
           {
             "step": 2,
-            "title": "Contact DSS or download application",
-            "description": "Call 1-877-999-5612 for phone application or download the Medicare Savings Programs application from the DSS website."
+            "title": "Choose application method",
+            "description": "Call DSS at 1-877-999-5612 to apply by phone, download the 'Application for Medicare Savings Programs' form from dss.sd.gov, or visit your local DSS office for in-person help"
           },
           {
             "step": 3,
-            "title": "Submit completed application",
-            "description": "Mail or deliver application with documents to your local DSS office, or complete over the phone."
+            "title": "Submit complete application",
+            "description": "Mail completed forms to your local DSS office or submit by phone. Include all required documentation to avoid delays"
           },
           {
             "step": 4,
-            "title": "Wait for determination",
-            "description": "DSS will review your application and notify you of the decision. If approved, benefits typically start the month after approval."
+            "title": "Follow up on processing",
+            "description": "DSS will review your application and contact you if additional information is needed. Processing typically takes up to 45 days"
           }
         ],
-        "processingTime": "Approximately 45 days",
-        "waitlist": "QI program has first-come, first-served enrollment with possible waitlist if funding is exhausted",
-        "tip": "If your parent's income seems too high, apply anyway — South Dakota uses income disregards (like a $20 monthly deduction) that might make them eligible.",
+        "processingTime": "Up to 45 days for most applications",
+        "waitlist": "QI program has limited funding with first-come, first-served enrollment; priority given to previous year recipients",
+        "tip": "Apply for QI early in the calendar year when funding is most available",
         "urls": [
           {
             "label": "Download Application Form",
             "url": "https://dss.sd.gov/formsandpubs/docs/MEDELGBLTY/270Medicaresavingsapplication.pdf"
           },
           {
-            "label": "DSS Medicare Savings Info",
+            "label": "Medicaid Eligibility Information",
             "url": "https://dss.sd.gov/medicaid/Eligibility/default.aspx"
           }
         ]
       },
+      "documentsNeeded": [
+        "Social Security card",
+        "Medicare card (Parts A and B)",
+        "Most recent Social Security award letter",
+        "Bank statements for all accounts (last 3 months)",
+        "Pay stubs or other proof of income (last 30 days)",
+        "Proof of South Dakota residency (utility bill or lease)",
+        "Birth certificate or proof of age",
+        "Immigration documents (if applicable)",
+        "Investment statements (stocks, bonds, CDs)",
+        "Property deeds or tax statements",
+        "Vehicle titles and registration",
+        "Life insurance policies with cash values",
+        "Irrevocable burial trust agreements",
+        "Pre-need burial contracts"
+      ],
+      "contacts": [
+        {
+          "label": "South Dakota DSS Benefits Line",
+          "phone": "1-877-999-5612",
+          "description": "Apply for Medicare Savings Programs or check application status",
+          "hours": "Monday-Friday, business hours"
+        },
+        {
+          "label": "TTY/TDD Line",
+          "phone": "1-877-486-2048",
+          "description": "Hearing impaired services for benefits applications",
+          "hours": "Monday-Friday, business hours"
+        },
+        {
+          "label": "SHIINE Counseling",
+          "phone": "1-877-999-5612",
+          "description": "Free Medicare counseling and application assistance",
+          "hours": "Varies by local volunteer availability"
+        }
+      ],
+      "applicationNotes": [
+        "QI program funding is limited — apply early in the calendar year for best chance of approval",
+        "Income limits use 'countable income' after standard disregards like the first $20 of monthly income",
+        "Previous QI recipients get priority for the following year, but must still reapply annually",
+        "Approval for any Medicare Savings Program automatically enrolls your parent in Extra Help for prescription drug coverage"
+      ],
+      "relatedPrograms": [
+        "Extra Help (Low Income Subsidy)",
+        "South Dakota Medicaid",
+        "SNAP (Food Benefits)",
+        "LIHEAP (Energy Assistance)"
+      ],
       "contentSections": [
         {
           "type": "tier-comparison",
-          "heading": "Three Program Levels",
-          "tiers": [
-            {
-              "name": "QMB (Qualified Medicare Beneficiary)",
-              "description": "Most comprehensive coverage",
-              "incomeLimit": "$1,350/month individual, $1,824/month couple",
-              "coverage": "Pays Medicare Part A and B premiums, deductibles, coinsurance, and copays"
-            },
-            {
-              "name": "SLMB (Specified Low-Income Medicare Beneficiary)",
-              "description": "Premium assistance only",
-              "incomeLimit": "Approximately $1,526/month individual (higher than QMB)",
-              "coverage": "Pays Medicare Part B premiums only ($185/month in 2026)"
-            },
-            {
-              "name": "QI (Qualifying Individual)",
-              "description": "Premium assistance with annual reapplication",
-              "incomeLimit": "Up to $1,715/month individual, $2,400/month couple",
-              "coverage": "Pays Medicare Part B premiums only, requires yearly reapplication"
-            }
-          ]
-        },
-        {
-          "type": "what-counts",
-          "heading": "Asset Limits: What Counts",
-          "included": [
-            "Checking and savings account balances",
-            "Certificates of deposit",
-            "Cash on hand"
-          ],
-          "excluded": [
-            "Your parent's primary home (any value)",
-            "One car (any value)",
-            "Burial plots for immediate family",
-            "Irrevocable burial trusts",
-            "Personal belongings and household items"
-          ]
-        },
-        {
-          "type": "documents",
-          "heading": "What to Bring",
-          "categories": [
-            {
-              "name": "Identity & Medicare",
-              "items": [
-                "Social Security number or immigrant documentation",
-                "Medicare card or proof of Medicare entitlement",
-                "ID and proof of South Dakota residency"
-              ]
-            },
-            {
-              "name": "Financial",
-              "items": [
-                "Bank statements from all accounts",
-                "Proof of income (Social Security statements, paystubs, pension statements)",
-                "Documentation of any other resources or investments"
-              ]
-            }
-          ]
-        },
-        {
-          "type": "callout",
-          "tone": "warning",
-          "text": "QI program has limited federal funding and uses first-come, first-served enrollment. If you think your parent qualifies, apply early in the year. QI also requires annual reapplication — mark your calendar."
-        },
-        {
-          "type": "callout",
-          "tone": "tip",
-          "text": "Income and asset limits change every year. Even if your parent didn't qualify last year, they might qualify now. Call DSS at 1-877-999-5612 to check current limits before assuming they're ineligible."
+          "title": "Program Comparison",
+          "content": {
+            "programs": [
+              {
+                "name": "QMB (Qualified Medicare Beneficiary)",
+                "incomeLimit": "$1,350/month (individual), $1,824/month (couple)",
+                "benefits": "Pays Medicare Part A & B premiums, deductibles, coinsurance, and copays",
+                "notes": "Most comprehensive coverage"
+              },
+              {
+                "name": "SLMB (Specified Low-Income Beneficiary)",
+                "incomeLimit": "~$1,526/month (individual), higher for couples",
+                "benefits": "Pays Medicare Part B premiums only",
+                "notes": "Must have both Medicare Parts A and B"
+              },
+              {
+                "name": "QI (Qualifying Individual)",
+                "incomeLimit": "$1,781/month (individual), $2,400/month (couple)",
+                "benefits": "Pays Medicare Part B premiums only",
+                "notes": "Limited funding, first-come first-served, annual reapplication required"
+              }
+            ]
+          }
         }
       ],
       "faqs": [
         {
-          "question": "What if my parent's income is just over the limit?",
-          "answer": "Apply anyway. South Dakota uses income 'disregards' — they subtract $20 from monthly income before checking eligibility. Other disregards may apply depending on your parent's situation. The worst that can happen is they say no."
+          "question": "Can my parent keep their house and car if they qualify?",
+          "answer": "Yes. The primary home is completely exempt from asset limits regardless of value. One vehicle per household is also exempt. Only countable assets like bank accounts, CDs, and investments count toward the $9,430 limit for individuals."
         },
         {
-          "question": "Can my parent keep their house if they qualify?",
-          "answer": "Yes. Your parent's primary home doesn't count toward the asset limit, regardless of its value. They can also keep one car of any value, burial plots, and personal belongings."
+          "question": "What's the real difference between these three programs?",
+          "answer": "QMB covers everything Medicare doesn't pay — premiums, deductibles, copays at doctors and hospitals. SLMB and QI only cover the monthly Medicare Part B premium (around $185 in 2026). QMB has the lowest income limit but provides the most comprehensive coverage."
         },
         {
-          "question": "Will this affect my parent's other benefits?",
-          "answer": "No, Medicare Savings Programs won't reduce Social Security, Medicare, or other benefits. In fact, your parent automatically qualifies for Extra Help with prescription drug costs, which can save hundreds more per year."
+          "question": "How likely is my parent to get into the QI program?",
+          "answer": "QI has limited federal funding allocated to South Dakota each year. Previous recipients get priority, but must reapply annually. New applicants have the best chance by applying early in the calendar year when funding is available."
         },
         {
-          "question": "What's the difference between the three programs?",
-          "answer": "QMB covers all Medicare costs but has the lowest income limit ($1,350/month). SLMB and QI only cover the $185/month Part B premium but allow higher incomes. QI requires reapplying every year and has limited funding."
+          "question": "Can I apply for my parent if they have dementia?",
+          "answer": "Yes, family members can apply on behalf of elderly parents. You'll need to provide all required documentation and may need to show legal authority to act on their behalf, such as power of attorney."
         },
         {
-          "question": "How long does it take to get approved?",
-          "answer": "Typically 45 days from when DSS receives your complete application. If approved, benefits usually start the month after approval. For QI, apply early in the year since funding can run out."
+          "question": "Will this affect my parent's other benefits like Social Security?",
+          "answer": "No, Medicare Savings Programs don't affect Social Security, pensions, or other income. In fact, enrollment automatically qualifies your parent for Extra Help with prescription drug costs, adding more savings."
         },
         {
-          "question": "What if my parent lives in assisted living or a nursing home?",
-          "answer": "They can still qualify for Medicare Savings Programs. The income and asset limits are the same regardless of where they live. These programs help with Medicare costs, which are separate from long-term care costs."
+          "question": "What happens if my parent's income changes after enrollment?",
+          "answer": "You must report significant income changes to DSS within 30 days. Small changes may not affect eligibility, but large increases could result in losing benefits. All programs require annual renewal regardless."
+        },
+        {
+          "question": "How does the $20 income disregard work?",
+          "answer": "South Dakota excludes the first $20 of monthly income when calculating eligibility. So if your parent receives $1,370 in Social Security, only $1,350 counts toward the QMB income limit of $1,350/month."
+        },
+        {
+          "question": "Can my parent have both Medicare Savings Programs and regular Medicaid?",
+          "answer": "Yes, many people qualify for both. Having QMB, SLMB, or QI can actually help your parent qualify for full Medicaid benefits in some cases, since Medicare costs are already covered."
         }
       ],
+      "layoutIntent": {
+        "aboutHighlight": "savings",
+        "eligibilityDisplay": "income-table",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "ShieldCheck",
       "phone": "1-877-999-5612",
       "sourceUrl": "https://dss.sd.gov/medicaid/Eligibility/default.aspx",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-09"
+      "draftedAt": "2026-04-13"
     },
     {
+      "id": "csfp-senior-food-box",
       "name": "SNAP/Food Assistance (Senior Box Program/CSFP)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "shortName": "Senior Food Box",
+      "tagline": "Free monthly box of USDA foods for South Dakota seniors 60+ with limited income",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Feeding South Dakota ( statewide service area, example Miller: 605-853-3656).",
+            "type": "service-area"
+          },
+          {
+            "name": "Local agencies via SD Department of Education.",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and lives on a fixed income in South Dakota, they can receive a free monthly box of USDA foods through the Commodity Supplemental Food Program (CSFP). Each box contains non-perishable items like cheese, juice, oats, cereal, rice, pasta, peanut butter, beans, canned meat or fish, fruits, vegetables, and often a canned entree like beef stew. Income must be at or below 150% of federal poverty guidelines — higher than SNAP's 130% limit.\n\nThis program is separate from SNAP benefits, so your parent can receive both simultaneously if they qualify for each. Because CSFP uses local distribution sites with varying schedules, you'll need to call your regional agency to find pickup locations and times in your area.\n\nUnlike regular food stamps, CSFP provides a fixed monthly box rather than a card for grocery shopping. The program is designed specifically for seniors and has no asset limits — only income matters for qualification.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Income at or below 150% federal poverty level",
+          "South Dakota resident",
+          "Must live in participating service area"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be a South Dakota resident",
+          "Must reside in a participating service area designated by local agencies"
+        ],
+        "povertyLevelReference": "150% FPL"
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your local distribution agency to apply — no online application available.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local agency",
+            "description": "Call Feeding South Dakota at 605-853-3656 (Miller location example) or contact the SD Department of Education to find agencies in your area."
+          },
+          {
+            "step": 2,
+            "title": "Gather required documents",
+            "description": "Collect picture ID, proof of address (recent mail), and documentation of gross monthly household income before taxes."
+          },
+          {
+            "step": 3,
+            "title": "Complete short application",
+            "description": "Apply by phone or visit the local distribution site in person. The application is brief and focuses on basic eligibility information."
+          },
+          {
+            "step": 4,
+            "title": "Schedule pickup",
+            "description": "Once approved, your local agency will tell you when and where to pick up your monthly food box."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Call ahead to confirm your local agency has boxes available and to get exact pickup times — distribution schedules vary by location.",
+        "urls": []
+      },
+      "documentsNeeded": [
+        "Picture ID (driver's license, state ID, or passport)",
+        "Proof of current South Dakota address (recent utility bill, lease, or official mail)",
+        "Social Security award letter showing monthly benefit amount",
+        "Pension or retirement income statements",
+        "Most recent pay stubs if still working",
+        "Bank statements showing any interest income",
+        "Documentation of any other household income sources"
+      ],
+      "contacts": [
+        {
+          "label": "Feeding South Dakota (Miller)",
+          "phone": "(605) 853-3656",
+          "description": "Example local distribution site — call for Miller area service",
+          "hours": "Call for distribution schedule"
+        },
+        {
+          "label": "SD Department of Education CSFP",
+          "phone": null,
+          "description": "Statewide program administration and local agency referrals",
+          "hours": "Business hours"
+        },
+        {
+          "label": "South Dakota 2-1-1",
+          "phone": "2-1-1",
+          "description": "Find local food assistance and other senior services",
+          "hours": "24 hours, 7 days a week"
+        }
+      ],
+      "applicationNotes": [
+        "Income is calculated as gross monthly amount before taxes — this includes Social Security, pensions, and any part-time work",
+        "South Dakota uses 150% of federal poverty guidelines rather than the typical 130% limit used for SNAP benefits",
+        "Availability depends on local agency stock levels — some areas may have waiting periods during high-demand months",
+        "All household members must be 60+ since 2014 — the program no longer serves women, infants, and children"
+      ],
+      "relatedPrograms": [
+        "SNAP (Food Stamps)",
+        "Meals on Wheels",
+        "Senior Farmers Market Nutrition Program",
+        "LIHEAP Energy Assistance"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent get both SNAP benefits and the senior food box?",
+          "answer": "Yes, these are separate programs and your parent can receive both simultaneously if they qualify for each. CSFP has higher income limits (150% of poverty level) than SNAP (130%), so some seniors who don't qualify for SNAP may still get the food box."
+        },
+        {
+          "question": "What if my parent lives in assisted living — can they still get the food box?",
+          "answer": "Yes, as long as they live in a participating service area and meet income requirements. They'll need to arrange their own transportation to the pickup site or have someone collect the box for them on their behalf."
+        },
+        {
+          "question": "How often does my parent need to reapply or prove eligibility?",
+          "answer": "The research doesn't specify recertification periods for South Dakota. Contact your local agency at the time of application to understand how long the approval lasts and when you'll need to provide updated income information."
+        },
+        {
+          "question": "What happens if my parent's income goes up slightly — do they immediately lose benefits?",
+          "answer": "Income changes should be reported to your local agency, but minor fluctuations may not affect eligibility since the program uses 150% of federal poverty guidelines. Call your distribution site to discuss specific income changes."
+        },
+        {
+          "question": "Can I apply on behalf of my elderly parent who has memory problems?",
+          "answer": "Contact your local distribution agency to discuss representation options. Many programs allow adult children to apply for parents who cannot manage their own affairs, but specific authorization requirements vary by agency."
+        },
+        {
+          "question": "What if there's no distribution site near my parent's rural location?",
+          "answer": "Service areas are designated by local agencies and may not cover all rural areas. Call the SD Department of Education or Feeding South Dakota to find the closest participating agency or ask about transportation options some sites may offer."
+        },
+        {
+          "question": "Does the food box contain fresh produce or just shelf-stable items?",
+          "answer": "The program provides non-perishable USDA foods including canned fruits and vegetables, but not fresh produce. The box typically includes cheese, juice, oats, cereal, rice, pasta, peanut butter, beans, canned meat or fish, and often a canned entree."
+        },
+        {
+          "question": "What if my parent has dietary restrictions or food allergies?",
+          "answer": "The food box contents are standardized USDA foods and cannot be customized for individual dietary needs. Your parent can choose which items to use from the box, but the program doesn't offer alternative foods for allergies or medical diets."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "BowlFood",
+      "phone": "(605) 853-3656",
+      "sourceUrl": "https://doe.sd.gov/cans/csfp.aspx",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
     },
     {
+      "id": "lieap-energy-assistance",
       "name": "Low Income Energy Assistance Program (LIEAP)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "shortName": "LIEAP Energy Help",
+      "tagline": "One-time payment help with heating bills for South Dakota families earning up to $2,152/month",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Central: DSS Office of Energy Assistance, 700 Governors Drive, Pierre, SD 57501.",
+            "type": "service-area"
+          },
+          {
+            "name": "Weatherization: Four community action programs by county (list available on DSS site).[5]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent struggles with high heating bills, South Dakota's Low Income Energy Assistance Program (LIEAP) provides a one-time payment directly to their utility company or energy supplier. The program helps households earning up to 200% of the federal poverty level — that's roughly $2,152/month for a single person or $2,904 for a couple in 2026.\n\nBecause LIEAP pays the utility company directly, your parent won't handle cash — the benefit goes straight toward reducing their heating bill. Households already receiving SNAP automatically qualify without additional income verification. The program also offers related services: $1,025 cooling assistance for LIEAP recipients who pay their own electric bill, emergency crisis assistance for families facing shutoffs, and weatherization services to reduce future energy costs.\n\nFunding is limited each year, so applications may close when money runs out. Apply early in fall or winter when the program opens to ensure your parent gets help with heating costs.",
+      "savingsRange": "",
+      "savingsSource": "One-time supplemental payment varies by household income, size, and fuel type",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Household income at or below 200% federal poverty level",
+          "Responsible for heating costs (direct pay or included in rent)",
+          "All household members 18+ must sign application",
+          "SNAP recipients automatically qualify"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 7,
+            "monthlyLimit": 1876
+          },
+          {
+            "householdSize": 8,
+            "monthlyLimit": 1918
+          },
+          {
+            "householdSize": 9,
+            "monthlyLimit": 1960
+          },
+          {
+            "householdSize": 10,
+            "monthlyLimit": 2036
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be responsible for heating costs (paid directly to supplier or included in rent)",
+          "Application must be signed by all household members age 18+",
+          "Subject to funding availability"
+        ],
+        "povertyLevelReference": "200% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online at SD.gov, by mail, or email — processing time varies but apply early as funding is limited.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Gather required documents",
+            "description": "Collect proof of household income for the 3 calendar months prior to your application month for everyone in the household, plus proof of home heating and electric costs."
+          },
+          {
+            "step": 2,
+            "title": "Complete the Low Income Energy Assistance Application",
+            "description": "Apply online at https://www.sd.gov/cs?id=sc_cat_item&sys_id=a254bd6edbf7f410b2fb93d4f3961974 or download the form to mail or email."
+          },
+          {
+            "step": 3,
+            "title": "Submit your application",
+            "description": "Mail to South Dakota Department of Social Services, Office of Energy Assistance, 700 Governors Drive, Pierre, SD 57501, or scan and email to DSSHeat@state.sd.us."
+          },
+          {
+            "step": 4,
+            "title": "Wait for processing",
+            "description": "DSS will review your application and contact you if additional information is needed. Payment goes directly to your energy supplier if approved."
+          }
+        ],
+        "processingTime": "Not specified — apply early as funding is limited and may close when depleted",
+        "waitlist": "Possible for Weatherization due to limited funds",
+        "tip": "If your parent receives SNAP, mention this on the application — they're automatically eligible without additional income verification.",
+        "urls": [
+          {
+            "label": "Apply Online for LIEAP",
+            "url": "https://www.sd.gov/cs?id=sc_cat_item&sys_id=a254bd6edbf7f410b2fb93d4f3961974"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Proof of household income for the 3 calendar months prior to application month for all household members",
+        "Pay stubs or wage statements for employed household members",
+        "Social Security award letters for recipients",
+        "Unemployment benefits statements",
+        "Pension or retirement income documentation",
+        "SNAP award letter if receiving benefits",
+        "Most recent heating bill (gas, propane, oil, or electric)",
+        "Most recent electric bill if separate from heating",
+        "Rent receipt showing heat included (if applicable)",
+        "Lease agreement showing utility arrangements"
+      ],
+      "contacts": [
+        {
+          "label": "DSS Office of Energy Assistance",
+          "phone": null,
+          "description": "Mail applications to 700 Governors Drive, Pierre, SD 57501 or email DSSHeat@state.sd.us",
+          "hours": "Business hours for mail and email"
+        },
+        {
+          "label": "South Dakota 2-1-1",
+          "phone": "2-1-1",
+          "description": "Free helpline for information about energy assistance and other social services",
+          "hours": "24 hours, 7 days a week"
+        }
+      ],
+      "applicationNotes": [
+        "Households where all members receive SNAP are automatically categorically eligible — no separate income verification needed",
+        "Roommates sharing a utility bill count as one household for application purposes",
+        "Crisis assistance (ECIP) requires an active LIEAP case plus an emergency like shutoff notice",
+        "Weatherization services require landlord permission for renters and may require landlord contribution"
+      ],
+      "relatedPrograms": [
+        "SNAP (Food Assistance)",
+        "Weatherization Assistance Program",
+        "Emergency Crisis Intervention Program (ECIP)",
+        "Cooling Assistance Program"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent apply if they pay heat as part of their rent?",
+          "answer": "Yes, households are eligible if heating costs are included in rent. You'll need to provide a rent receipt or lease agreement showing that heat is included in the rental payment."
+        },
+        {
+          "question": "What if my parent already receives SNAP benefits?",
+          "answer": "If all household members receive SNAP, your parent is automatically eligible for LIEAP without additional income verification. Make sure to mention SNAP benefits on the application."
+        },
+        {
+          "question": "How much money will my parent receive?",
+          "answer": "LIEAP provides a one-time payment that varies by household income, size, and fuel type. The exact amount isn't fixed — it depends on available funding and your parent's specific situation. Payment goes directly to the utility or energy supplier."
+        },
+        {
+          "question": "What happens if the program runs out of money before my parent applies?",
+          "answer": "LIEAP has limited funding each year and applications may close when funds are depleted. Apply as early as possible when the program opens in fall or winter to ensure your parent gets assistance."
+        },
+        {
+          "question": "Can my parent get help with cooling costs too?",
+          "answer": "Yes, if your parent receives LIEAP and pays their own electric bill, they may qualify for $1,025 in cooling assistance through a separate program. This helps with air conditioning costs during hot weather."
+        },
+        {
+          "question": "What if my parent faces a utility shutoff emergency?",
+          "answer": "If your parent has an active LIEAP case and faces an emergency like a shutoff notice, they may qualify for Emergency Crisis Intervention Program (ECIP) for additional immediate help."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "income-table",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": false,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "Lightning",
+      "phone": null,
+      "sourceUrl": "https://dss.sd.gov/economicassistance/energy_weatherization_assistance.aspx",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
     },
     {
+      "id": "weatherization-assistance",
       "name": "Weatherization Assistance",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "shortName": "Weatherization Help",
+      "tagline": "Free home weatherization services that can save your parent $372 annually on energy bills — insulation, air sealing, and heating system repairs.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Community Action Agencies by county (full list/map at dss.sd.gov/economicassistance/energy_weatherization_assistance.aspx and dss.sd.gov/formsandpubs/docs/ENERGY/weatherizationbro.pdf)[1][2].",
+            "type": "service-area"
+          },
+          {
+            "name": "Examples: WSDCA, GROW South Dakota, Inter-Lakes Community Action Partnership[4][5][7].",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent struggles with high heating bills, they may qualify for free home weatherization services that save an average of $372 per year on energy costs. The program provides weather-stripping, caulking, insulation, and heating system repairs or replacements — all at no cost to families earning up to 200% of the federal poverty level.\n\nPriority goes to seniors, people with disabilities, and families with children under 19. Because this is a one-time service with limited funding, waiting lists are common, and homes cannot receive services if they were weatherized within the past 15 years.\n\nThe program operates through four Community Action Agencies across South Dakota — you must contact the specific agency serving your parent's county, not the state office directly.",
+      "savingsRange": "$372/year in 2026",
+      "savingsSource": "Average annual household energy savings from South Dakota Department of Social Services",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Annual household income up to 200% of federal poverty level",
+          "Priority for seniors, disabled, families with children under 19",
+          "Home cannot have been weatherized in past 15 years",
+          "Renters need written landlord permission"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2152
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2920
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 3688
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 4456
+          },
+          {
+            "householdSize": 5,
+            "monthlyLimit": 5224
+          },
+          {
+            "householdSize": 6,
+            "monthlyLimit": 5992
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Home must not have received weatherization services in the previous 15 years",
+          "Renters need written landlord permission and landlord must contribute 1/3 of costs",
+          "Home must pass energy audit and be feasible for rehabilitation",
+          "Proof of ownership required for owner-occupied homes (deed or property tax notice)"
+        ],
+        "povertyLevelReference": "200% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact the Community Action Agency serving your parent's county — each county has a specific agency that handles applications.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your county's Community Action Agency",
+            "description": "Check the county map at dss.sd.gov/economicassistance/energy_weatherization_assistance.aspx. Examples: WSDCA serves western counties (605-348-1460), GROW SD serves northeast area (605-698-7654), Inter-Lakes CAP serves southeast counties."
+          },
+          {
+            "step": 2,
+            "title": "Download and complete the application",
+            "description": "Get the South Dakota Weatherization Assistance Application at dss.sd.gov/formsandpubs/docs/ENERGY/WeatherizationApplication.pdf or request one from your county agency."
+          },
+          {
+            "step": 3,
+            "title": "Gather required documents",
+            "description": "Collect proof of all household income from the last 3 months, proof of home ownership (deed or property tax notice) or landlord permission for renters, and heating/electric bills."
+          },
+          {
+            "step": 4,
+            "title": "Submit completed application",
+            "description": "Submit to your county agency by mail, email, or in-person drop-off. All adults 18+ must sign the application. Include LIEAP CID if receiving Energy Assistance to speed processing."
+          },
+          {
+            "step": 5,
+            "title": "Wait for eligibility determination",
+            "description": "If approved, you'll be scheduled for an energy audit to determine which weatherization services are needed. Due to limited funds, you may be placed on a waiting list."
+          }
+        ],
+        "processingTime": "Processing time varies by agency; energy audit conducted after eligibility is confirmed",
+        "waitlist": "Waiting lists common due to limited federal funding",
+        "tip": "If your parent receives LIEAP (Low Income Energy Assistance), they are automatically income-eligible, which can speed up the process.",
+        "urls": [
+          {
+            "label": "South Dakota Weatherization Application",
+            "url": "https://dss.sd.gov/formsandpubs/docs/ENERGY/WeatherizationApplication.pdf"
+          },
+          {
+            "label": "Find Your County Agency",
+            "url": "https://dss.sd.gov/economicassistance/energy_weatherization_assistance.aspx"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Proof of all household income for last 3 months (wage stubs, Social Security checks, pension statements)",
+        "Tax returns for self-employed household members",
+        "Proof of home ownership (deed or property tax notice)",
+        "Written landlord permission if renting",
+        "Most recent heating bill",
+        "Most recent electric bill",
+        "LIEAP Customer ID if receiving Energy Assistance",
+        "Signed application by all adults 18 and older in household"
+      ],
+      "contacts": [
+        {
+          "label": "WSDCA (Western SD Counties)",
+          "phone": "(605) 348-1460",
+          "description": "Weatherization services for western South Dakota counties",
+          "hours": "Business hours, Mon-Fri"
+        },
+        {
+          "label": "GROW South Dakota (Northeast Area)",
+          "phone": "(605) 698-7654",
+          "description": "Weatherization services for Sisseton area and northeast counties",
+          "hours": "Business hours, Mon-Fri"
+        },
+        {
+          "label": "SD Department of Social Services",
+          "phone": "Contact county agency directly",
+          "description": "State office does not process applications — must contact county agency",
+          "hours": "Varies by agency"
+        }
+      ],
+      "applicationNotes": [
+        "Each county is served by a different Community Action Agency — you cannot apply to the state office directly",
+        "Renters must get written landlord permission before applying, and landlords typically contribute 1/3 of project costs",
+        "If your parent already receives LIEAP energy assistance, include their Customer ID to streamline income verification",
+        "Applications are denied if incomplete or missing required documentation — submit everything together"
+      ],
+      "relatedPrograms": [
+        "LIEAP (Low Income Energy Assistance Program)",
+        "Emergency Energy Assistance",
+        "Utility Customer Assistance Programs"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent apply if they rent their home?",
+          "answer": "Yes, but only with written landlord permission. The landlord typically must contribute 1/3 of the weatherization costs, though this may be waived if the household income is very low. Get the landlord's written approval before applying."
+        },
+        {
+          "question": "What if our house was weatherized 10 years ago?",
+          "answer": "Your parent is not eligible. Homes cannot receive weatherization services if they were weatherized within the previous 15 years, regardless of who paid for or performed the work."
+        },
+        {
+          "question": "How long is the waiting list really?",
+          "answer": "Waiting times vary by county agency and available federal funding. Because funds are limited and demand is high, waits of several months are common. Priority goes to seniors, people with disabilities, and families with children under 19."
+        },
+        {
+          "question": "Can I apply on behalf of my elderly parent?",
+          "answer": "Your parent must sign the application themselves, along with any other adults 18+ in the household. You can help gather documents and submit the application, but all adult household members must personally sign."
+        },
+        {
+          "question": "What happens if the energy audit shows the house needs more work than weatherization covers?",
+          "answer": "The program only provides weatherization services and incidental repairs needed to protect the weatherization materials. Major structural repairs or renovations are not covered. The audit determines what work is feasible within program guidelines."
+        },
+        {
+          "question": "Can my parent apply for this and LIEAP energy assistance at the same time?",
+          "answer": "Yes, and it's actually helpful. LIEAP recipients are automatically income-eligible for weatherization, which can speed up processing. Include the LIEAP Customer ID on the weatherization application if your parent receives energy assistance."
+        },
+        {
+          "question": "What if we live right on the county border — which agency do we contact?",
+          "answer": "Contact the agency serving the county where your parent's home is located, not where they receive mail or have other services. Check the county map at dss.sd.gov to confirm which Community Action Agency serves that specific county."
+        },
+        {
+          "question": "Do we have to pay anything upfront or get reimbursed later?",
+          "answer": "No upfront costs for eligible homeowners. The services are completely free. Renters' landlords typically pay 1/3 of costs, but the tenant pays nothing. All work is completed before any payment is required from landlords."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "savings",
+        "eligibilityDisplay": "income-table",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "Lightning",
+      "phone": "(605) 348-1460",
+      "sourceUrl": "https://dss.sd.gov/economicassistance/energy_weatherization_assistance.aspx",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
     },
     {
+      "id": "shiine-medicare-counseling",
       "name": "Senior Health Information and Insurance Education (SHIINE)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "shortName": "SHIINE Counseling",
+      "tagline": "Free one-on-one help choosing Medicare plans and avoiding overpaying for coverage.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "South Dakota Department of Social Services, 700 Governors Drive, Pierre SD 57501-2291 (state office); regional coordinators in three regions (Western/Central, others unspecified in sources)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is confused by Medicare choices or worried they're paying too much for prescription coverage, SHIINE provides free, unbiased counseling to help them compare plans and save money. Trained volunteer counselors help with Medicare Parts A/B, Part D prescription drugs, Medicare Advantage plans, Medigap policies, and Medicare Savings Programs that can reduce premiums and copays.\n\nBecause SHIINE counselors aren't affiliated with insurance companies, they can give honest advice about which plans actually fit your parent's needs and budget. The service is available to all Medicare beneficiaries in South Dakota, those approaching Medicare eligibility at 65, and their family caregivers — no income limits or paperwork required.\n\nSHIINE also helps with Low Income Subsidy enrollment for prescription drug help and provides fraud prevention education through the Senior Medicare Patrol program. During Medicare Open Enrollment (October 15 - December 7), expect higher demand for appointments as people review their Part D and Medicare Advantage options.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Medicare beneficiary in South Dakota",
+          "Approaching Medicare eligibility",
+          "Caregiver of someone on Medicare",
+          "No income or asset limits"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be a Medicare beneficiary in South Dakota, approaching Medicare eligibility, or a caregiver of someone on/approaching Medicare"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call the toll-free number to schedule a counseling appointment — no forms or documents required.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call SHIINE",
+            "description": "Call (800) 536-8197 or 1-888-854-5321, Monday-Friday 9:00am-4:30pm CT. Tell them you need Medicare counseling."
+          },
+          {
+            "step": 2,
+            "title": "Schedule appointment",
+            "description": "Choose between phone counseling or in-person meeting with a trained volunteer counselor in your area."
+          },
+          {
+            "step": 3,
+            "title": "Attend counseling session",
+            "description": "Bring your current Medicare card and any insurance materials. The counselor will help compare plans and explain your options."
+          }
+        ],
+        "processingTime": "Immediate counseling appointment scheduling",
+        "waitlist": null,
+        "tip": "During Medicare Open Enrollment (October 15 - December 7), call early in the day for faster appointment scheduling.",
+        "urls": [
+          {
+            "label": "SHIINE Website",
+            "url": "https://dhs.sd.gov/en/ltss/shiine"
+          },
+          {
+            "label": "Alternative SHIINE Site",
+            "url": "https://www.shiine.net"
+          }
+        ]
+      },
+      "documentsNeeded": null,
+      "contacts": [
+        {
+          "label": "SHIINE Counseling",
+          "phone": "(800) 536-8197",
+          "description": "Free Medicare counseling and plan comparison",
+          "hours": "Mon-Fri 9:00am-4:30pm CT"
+        },
+        {
+          "label": "SHIINE Alternative Line",
+          "phone": "1-888-854-5321",
+          "description": "Medicare help and Low Income Subsidy assistance",
+          "hours": "Mon-Fri 9:00am-4:30pm CT"
+        },
+        {
+          "label": "Email Contact",
+          "phone": null,
+          "description": "caitlin.christensen@state.sd.us for questions",
+          "hours": "Business hours"
+        }
+      ],
+      "applicationNotes": null,
+      "relatedPrograms": [
+        "Medicare Savings Programs (QMB/SLMB/QI)",
+        "Low Income Subsidy for prescription drugs",
+        "Medicaid",
+        "Senior Medicare Patrol fraud prevention"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent get help even if they already have Medicare coverage?",
+          "answer": "Yes. SHIINE counselors help people who are already on Medicare compare their current plans to see if they could save money or get better coverage. This is especially valuable during Open Enrollment when plans change their costs and coverage for the next year."
+        },
+        {
+          "question": "Will the counselor try to sell my parent insurance?",
+          "answer": "No. SHIINE counselors are volunteers who cannot have active insurance licenses and aren't affiliated with insurance companies. They provide unbiased education to help your parent understand their options without trying to sell anything."
+        },
+        {
+          "question": "What's the difference between calling SHIINE and talking to Medicare directly?",
+          "answer": "Medicare's 1-800-MEDICARE line provides general information, but SHIINE counselors can do personalized plan comparisons using your parent's specific medications, doctors, and budget. SHIINE also helps with state-specific programs like Medicare Savings Programs that Medicare's national line may not know about in detail."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": false,
+        "visualTone": "minimal"
+      },
+      "icon": "Compass",
+      "phone": "(800) 536-8197",
+      "sourceUrl": "https://dhs.sd.gov/en/ltss/shiine",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
     },
     {
+      "id": "meals-on-wheels",
       "name": "Meals on Wheels",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "shortName": "Meals on Wheels",
+      "tagline": "Hot, nutritious meals delivered to your parent's home Monday through Friday if they're 60+ and homebound.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Meals on Wheels Western South Dakota",
+            "type": "service-area"
+          },
+          {
+            "name": "Meals on Wheels Sioux Falls - W. 46th Street",
+            "type": "service-area"
+          },
+          {
+            "name": "Active Generations",
+            "type": "service-area"
+          },
+          {
+            "name": "The Center, Tabor SD",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and has trouble cooking or shopping for themselves, Meals on Wheels delivers one hot, nutritious meal to their home Monday through Friday. The suggested donation is $4.25–$5.25 per meal, but no one is denied for inability to pay.\n\nBecause South Dakota operates Meals on Wheels through local providers rather than one statewide system, you'll need to contact the specific organization serving your parent's community. The key requirement is that your parent must be homebound — unable to cook or shop independently — not just age alone. Coverage varies by area, with some communities offering private pay options at around $15 per meal if donation-based slots are full.\n\nIf your parent is under 60, they cannot access standard Meals on Wheels but may qualify for similar services through Dakota at Home, which requires a separate eligibility assessment for disability or other qualifying conditions.",
+      "savingsRange": "",
+      "savingsSource": "Free service with suggested donations",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Homebound and unable to cook/shop",
+          "No strict income limits",
+          "Suggested donations accepted but not required"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must be homebound and unable to cook or shop independently due to age, disability, or health conditions",
+        "otherRequirements": [
+          "Spouse of 60+ participant may qualify regardless of age",
+          "Must live in area served by local Meals on Wheels provider"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your local Meals on Wheels provider directly — enrollment can often begin immediately if meals are available in your area.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local provider",
+            "description": "Call Active Generations at (605) 333-3305 or 1-833-663-9673 for Sioux Falls area, or visit dakotaathome.sd.gov to find providers in other communities."
+          },
+          {
+            "step": 2,
+            "title": "Complete intake assessment",
+            "description": "Provider will assess your parent's ability to cook and shop independently, dietary needs, and delivery logistics."
+          },
+          {
+            "step": 3,
+            "title": "Schedule delivery",
+            "description": "Meals typically begin within days if slots available. Provider will arrange delivery schedule and discuss suggested donation amounts."
+          }
+        ],
+        "processingTime": "Immediate enrollment encouraged where available",
+        "waitlist": null,
+        "tip": "Call early in the day Monday through Friday for fastest response from local providers.",
+        "urls": [
+          {
+            "label": "Dakota at Home Referral Portal",
+            "url": "https://dakotaathome.sd.gov/"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Valid photo ID or driver's license",
+        "Proof of age (birth certificate if ID doesn't show age)",
+        "Doctor's note describing mobility or health limitations if under 60",
+        "Contact information for emergency contact or family member",
+        "List of dietary restrictions or food allergies",
+        "Proof of income if applying for reduced suggested donations"
+      ],
+      "contacts": [
+        {
+          "label": "Active Generations",
+          "phone": "(605) 333-3305",
+          "description": "Meals on Wheels for Sioux Falls and surrounding areas",
+          "hours": "Mon-Fri 8am-5pm CT"
+        },
+        {
+          "label": "Active Generations Toll-Free",
+          "phone": "(833) 663-9673",
+          "description": "Alternate number for Active Generations service area",
+          "hours": "Mon-Fri 8am-5pm CT"
+        },
+        {
+          "label": "Dakota at Home",
+          "phone": "(800) 305-9681",
+          "description": "Statewide referral service to find local providers",
+          "hours": "Mon-Fri 8am-5pm CT"
+        }
+      ],
+      "applicationNotes": [
+        "Each community has different providers — Active Generations serves Sioux Falls area, while western SD has separate Meals on Wheels organizations",
+        "Limited meals available in each area means some communities may have waiting periods or offer private pay options first",
+        "If your parent is under 60, they must go through Dakota at Home for disability assessment rather than standard Meals on Wheels eligibility"
+      ],
+      "relatedPrograms": [
+        "SNAP (food assistance)",
+        "Commodity Supplemental Food Program",
+        "Senior Farmers Market Nutrition Program"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "What if my parent lives in a rural area without Meals on Wheels coverage?",
+          "answer": "Not all South Dakota communities have Meals on Wheels providers. Call Dakota at Home at (800) 305-9681 to check coverage in your parent's specific area and ask about alternative meal programs or transportation to congregate dining sites."
+        },
+        {
+          "question": "Can my parent get meals if they can't afford the suggested donation?",
+          "answer": "Yes. Programs specifically state that no one is denied meals for inability to pay suggested donations of $4.25–$5.25. However, Medicaid/SSI recipients are often prioritized for donation-based slots."
+        },
+        {
+          "question": "What happens if my 58-year-old parent is disabled and homebound?",
+          "answer": "Your parent cannot access standard Meals on Wheels but may qualify through Dakota at Home. Call them at (800) 305-9681 for a separate disability assessment and referral to appropriate meal programs."
+        },
+        {
+          "question": "How quickly can meal delivery start once approved?",
+          "answer": "If meals are available in your area, delivery often begins within days of enrollment. However, some communities have limited slots and may put new applicants on private pay ($15/meal) while waiting for donation-funded openings."
+        },
+        {
+          "question": "Can I apply for my parent who has dementia?",
+          "answer": "Yes. Family members routinely arrange Meals on Wheels for parents who cannot manage the process themselves. The provider will work with you on delivery logistics and any special dietary needs."
+        },
+        {
+          "question": "What if my parent only needs meals temporarily after a hospital stay?",
+          "answer": "Meals on Wheels accepts both short-term and long-term participants. Many people use the service temporarily during recovery periods. Contact the local provider to discuss your parent's specific timeline and needs."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "warm"
+      },
+      "icon": "BowlFood",
+      "phone": "(605) 333-3305",
+      "sourceUrl": "https://dakotaathome.sd.gov/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
     },
     {
+      "id": "hope-waiver-respite-care",
       "name": "Respite Care/Caregiver Support (HOPE Waiver & Family Support 360)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "shortName": "HOPE Waiver Respite",
+      "tagline": "Get paid respite care and support services so your parent can stay home instead of entering a nursing facility",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Dakota at Home statewide",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs nursing home-level care but wants to stay home, South Dakota's HOPE Waiver can cover respite care, adult day services, in-home assistance, and caregiver support. Because this Medicaid waiver covers comprehensive home and community services, your parent avoids nursing facility placement while you get the help you need as their caregiver.\n\nYour parent qualifies if they're 65+ (or 18+ with qualifying disability), have income up to $2,901/month, assets under $2,000, and need nursing facility-level care as determined by clinical assessment. The program is capped at 1,834 recipients statewide, creating waitlists when full.\n\nServices include respite care (temporary relief for family caregivers), adult day programs, meal delivery, transportation, safety modifications, and assisted living facility placement if needed. One case management team coordinates all services, eliminating the need to manage multiple providers yourself.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+ or 18+ with qualifying disability",
+          "Income up to $2,901/month (2025)",
+          "Assets under $2,000",
+          "Needs nursing facility level of care",
+          "South Dakota resident"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 2000,
+          "couple": 2000,
+          "countedAssets": [
+            "Cash and checking/savings accounts",
+            "Accessible investments and resources"
+          ],
+          "exemptAssets": [
+            "Primary home (if intent to return and equity ≤$730,000)",
+            "Home where spouse, minor child, or disabled child lives",
+            "Pre-need burial contracts"
+          ],
+          "homeEquityCap": 730000
+        },
+        "functionalRequirement": "Must meet Nursing Facility Level of Care (clinical assessment showing your parent needs daily help with activities like bathing, dressing, medication management, or has cognitive impairment requiring supervision)",
+        "otherRequirements": [
+          "South Dakota resident",
+          "Cannot live in hospital, nursing facility, or ICF/MR",
+          "Must receive at least one waiver service monthly",
+          "Complete Home Care Assessment (HCA) tool evaluation"
+        ],
+        "povertyLevelReference": "300% of Federal Benefit Rate"
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call Dakota at Home at (833) 663-9673 to start the application — processing time varies based on assessment scheduling.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call Dakota at Home",
+            "description": "Call (833) 663-9673 to request a HOPE Waiver application and schedule your parent's needs assessment."
+          },
+          {
+            "step": 2,
+            "title": "Complete intake paperwork",
+            "description": "Submit the Dakota At Home Referral form with income, asset, and medical documentation."
+          },
+          {
+            "step": 3,
+            "title": "Schedule clinical assessment",
+            "description": "A Case Management Specialist will visit your parent to complete the Home Care Assessment (HCA) tool to determine nursing facility level of care."
+          },
+          {
+            "step": 4,
+            "title": "Wait for eligibility determination",
+            "description": "Dakota at Home reviews clinical and financial eligibility. If approved but no slots available, your parent joins the waitlist."
+          },
+          {
+            "step": 5,
+            "title": "Begin services",
+            "description": "Once a slot opens, work with your assigned case manager to select providers and start services within 30 days."
+          }
+        ],
+        "processingTime": "Not specified in sources",
+        "waitlist": "Program capped at 1,834 concurrent recipients statewide — waitlists occur when full",
+        "tip": "Apply even if you expect a waitlist — your parent's priority level and regional availability can affect wait times significantly.",
+        "urls": [
+          {
+            "label": "South Dakota DSS Long Term Services",
+            "url": "https://dss.sd.gov"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Social Security cards for your parent and spouse",
+        "Medicare card (both parts)",
+        "Most recent Social Security award letter",
+        "Bank statements for all accounts (last 3 months)",
+        "Proof of South Dakota residency (utility bill or lease)",
+        "Medical records documenting need for daily assistance",
+        "Current medication list",
+        "Investment documents (stocks, bonds, annuities)",
+        "Property documents (deeds, tax statements)",
+        "Life insurance policies with cash values",
+        "Vehicle titles and registration",
+        "Pre-need burial contracts if applicable",
+        "Pension or retirement income statements",
+        "Documentation of disability if under age 65"
+      ],
+      "contacts": [
+        {
+          "label": "Dakota at Home",
+          "phone": "(833) 663-9673",
+          "description": "HOPE Waiver applications and case management",
+          "hours": "Business hours"
+        },
+        {
+          "label": "South Dakota 2-1-1",
+          "phone": "2-1-1",
+          "description": "General information about all social services",
+          "hours": "24 hours, 7 days a week"
+        }
+      ],
+      "applicationNotes": [
+        "The program has strict slot limits — apply as soon as your parent meets eligibility to join any waitlist early",
+        "You must use at least one waiver service monthly or risk losing eligibility, even during waitlist periods",
+        "Income and asset limits update annually based on Federal Benefit Rate changes — verify current limits before applying",
+        "Home equity over $730,000 disqualifies unless spouse, minor child, or disabled child lives there"
+      ],
+      "relatedPrograms": [
+        "Medicaid Long-Term Care State Plan Services",
+        "Adult Day Services",
+        "Supplemental Security Income (SSI)",
+        "SNAP Food Benefits"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if it's worth more than $2,000?",
+          "answer": "Yes, the primary home is exempt from the $2,000 asset limit if your parent intends to return and the equity is $730,000 or less. If your parent's spouse, minor child, or disabled child lives there, there's no equity limit. The house only counts toward the $2,000 if your parent has no intent to return and none of these family members live there."
+        },
+        {
+          "question": "How long is the waitlist really?",
+          "answer": "The program caps enrollment at 1,834 people statewide, so waitlists develop when full. South Dakota doesn't publish specific wait times, but they vary by region and your parent's priority level. Call Dakota at Home at (833) 663-9673 for current estimates in your area."
+        },
+        {
+          "question": "Can I apply for my parent if they have dementia?",
+          "answer": "Yes, family members can apply on behalf of parents who cannot manage their own affairs due to cognitive impairment. You may need to provide legal documentation like power of attorney. The Case Management Specialist will work with you as the responsible party throughout the process."
+        },
+        {
+          "question": "What happens if my parent's income increases after enrollment?",
+          "answer": "Your parent must report income changes within 30 days. If monthly income exceeds $2,901, they'll lose HOPE Waiver eligibility. However, if the increase is temporary or they qualify for income deductions, they may maintain eligibility. The case manager will reassess annually."
+        },
+        {
+          "question": "Can my parent get both HOPE Waiver and regular Medicaid services?",
+          "answer": "HOPE Waiver recipients automatically qualify for standard Medicaid benefits like doctor visits, hospital care, and prescriptions. The waiver adds home and community services on top of regular Medicaid. You cannot combine HOPE with other Medicaid waivers simultaneously."
+        },
+        {
+          "question": "What if my parent needs more care than the waiver provides?",
+          "answer": "The case manager reassesses needs annually and can adjust service levels. If your parent's needs exceed what home and community services can safely provide, they may need to transition to nursing facility care. The waiver cannot continue if nursing facility placement becomes necessary for safety."
+        },
+        {
+          "question": "Do I have to use specific providers for respite care?",
+          "answer": "Yes, all providers must have contracts with South Dakota DHS and Medicaid enrollment for long-term services and supports. Your case manager will provide a list of approved providers in your area. You cannot hire family members or unlicensed individuals through the waiver."
+        },
+        {
+          "question": "What's the difference between HOPE Waiver and Family Support 360?",
+          "answer": "The research sources don't clearly define Family Support 360 as separate from HOPE Waiver services. Call Dakota at Home at (833) 663-9673 to clarify whether Family Support 360 is a branded component of HOPE Waiver or a separate caregiver support program with different eligibility rules."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "waitlist",
+        "eligibilityDisplay": "asset-focused",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "HandHeart",
+      "phone": "(833) 663-9673",
+      "sourceUrl": "https://dss.sd.gov",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
     },
     {
+      "id": "scsep-employment",
       "name": "Senior Community Service Employment Program (SCSEP)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "shortName": "SCSEP",
+      "tagline": "Part-time community service work at minimum wage for unemployed adults 55+ with very low income",
+      "programType": "employment",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "South Dakota Department of Labor and Regulation (DLR) local offices in West River, East River, and Central areas",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 55+, unemployed, and has very low income (under $19,563/year for a single person in 2023), SCSEP provides part-time community service work averaging 20 hours per week at minimum wage. Because the program includes job training and placement assistance, your parent gains work experience while earning income and building skills for permanent employment.\n\nSCSEP is only available in three regions of South Dakota: West River, East River, and Central areas (check the coverage map on the DLR website first). Veterans, those 65+, disabled individuals, and rural residents get priority enrollment. The program provides free annual physical exams and supports independence through structured work and social activities.",
+      "savingsRange": "$3,100 – $4,200/year",
+      "savingsSource": "Part-time minimum wage work averaging 20 hours/week",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Annual income under 125% Federal Poverty Level",
+          "Currently unemployed",
+          "Resident of covered areas only"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1630
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2054
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 2776
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 3349
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be unemployed",
+          "Eligible to work in the United States",
+          "Must live in West River, East River, or Central coverage areas"
+        ],
+        "povertyLevelReference": "125% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Download the SCSEP application form from the DLR website or pick up at local DLR offices in covered areas.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Check coverage area",
+            "description": "Verify your parent lives in West River, East River, or Central areas using the coverage map at dlr.sd.gov/workforce_services/individuals/scsep/participants.aspx"
+          },
+          {
+            "step": 2,
+            "title": "Download application",
+            "description": "Get the SCSEP application form (Adobe PDF) from the DLR website or pick up at any DLR local office in your coverage area"
+          },
+          {
+            "step": 3,
+            "title": "Gather documents",
+            "description": "Collect proof of age, residency, income, unemployment status, and work eligibility (ID, pay stubs, tax returns)"
+          },
+          {
+            "step": 4,
+            "title": "Submit application",
+            "description": "Return completed application to your local DLR office or contact workforce experts at DLR for assistance"
+          }
+        ],
+        "processingTime": "Not specified",
+        "waitlist": "May vary by region due to limited coverage areas",
+        "tip": "Veterans and their qualified spouses get first priority, followed by those 65+, disabled, rural residents, and other priority categories",
+        "urls": [
+          {
+            "label": "SCSEP Application Page",
+            "url": "https://dlr.sd.gov/workforce_services/individuals/scsep/participants.aspx"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Valid government-issued photo ID",
+        "Proof of age (birth certificate or passport)",
+        "Proof of South Dakota residency in covered areas",
+        "Social Security card",
+        "Proof of current unemployment status",
+        "Work authorization documents (if not US citizen)",
+        "Pay stubs from last 30 days (if any recent work)",
+        "Most recent tax return or tax transcript",
+        "Bank statements (last 3 months)",
+        "Social Security award letter (if receiving benefits)",
+        "Pension or retirement income statements",
+        "Any other income documentation for all household members"
+      ],
+      "contacts": [
+        {
+          "label": "South Dakota Department of Labor",
+          "phone": null,
+          "description": "Contact your local DLR office in West River, East River, or Central areas for SCSEP application assistance",
+          "hours": "Business hours vary by office"
+        }
+      ],
+      "applicationNotes": [
+        "Priority enrollment goes to veterans/qualified spouses first, then those 65+, disabled, rural residents, homeless/at-risk, low literacy, or with low employment prospects",
+        "Income limits are based on total family income and update annually — verify current Federal Poverty Level amounts",
+        "This is workforce transition assistance, not permanent employment — the goal is to move to unsubsidized employment",
+        "You must be completely unemployed to qualify — cannot have any current employment"
+      ],
+      "relatedPrograms": [
+        "SNAP Food Benefits",
+        "LIHEAP Energy Assistance",
+        "Workforce Innovation and Opportunity Act (WIOA)",
+        "American Job Centers"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent apply if they live in Sioux Falls or Rapid City?",
+          "answer": "Only if they're in the covered service areas. SCSEP is limited to West River, East River, and Central regions — not all of South Dakota. Check the coverage map on the DLR website to see if their specific location qualifies."
+        },
+        {
+          "question": "What if my parent has been unemployed for years — does that hurt their chances?",
+          "answer": "No, long-term unemployment actually helps. People with low employment prospects are in the priority category for enrollment, along with veterans, those 65+, and rural residents."
+        },
+        {
+          "question": "Can my parent keep their Social Security while working through SCSEP?",
+          "answer": "Yes, but Social Security has earnings limits that could reduce benefits if your parent earns too much. For 2026, people under full retirement age can earn $23,400 before losing $1 in benefits for every $2 earned above the limit."
+        },
+        {
+          "question": "How long can my parent stay in the SCSEP program?",
+          "answer": "SCSEP is designed as workforce transition — the goal is to move participants into regular employment. The program provides training and job placement assistance to help participants find permanent work."
+        },
+        {
+          "question": "What type of community service work would my parent do?",
+          "answer": "Common placements include work at nonprofit organizations, schools, government agencies, or community service organizations. The specific assignment depends on your parent's skills, interests, and what's available in your area."
+        },
+        {
+          "question": "Does my parent's house or savings count toward the income limit?",
+          "answer": "No asset limits are mentioned in South Dakota's SCSEP guidelines — only the annual family income limit of 125% of Federal Poverty Level matters for eligibility."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "income-table",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "Briefcase",
+      "phone": null,
+      "sourceUrl": "https://dlr.sd.gov/workforce_services/individuals/scsep/participants.aspx",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
     },
     {
+      "id": "legal-aid-seniors",
       "name": "Legal Aid for Seniors",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "shortName": "Legal Aid",
+      "tagline": "Free legal help for seniors facing elder abuse, guardianship issues, or long-term care problems.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Dakota Plains Legal Services (DPLS)",
+            "type": "service-area"
+          },
+          {
+            "name": "East River Legal Services (ERLS)",
+            "type": "service-area"
+          },
+          {
+            "name": "Access to Justice (A2J)",
+            "type": "service-area"
+          },
+          {
+            "name": "DHS Legal Services for Vulnerable Older Adults",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and facing legal problems like elder abuse, guardianship disputes, or long-term care issues, they may qualify for free legal assistance in South Dakota. Because seniors 60 and older bypass income requirements at most providers, your parent can get help regardless of their financial situation.\n\nThe program provides three levels of service: legal advice over the phone, brief services like document preparation, or full court representation depending on the case. Your parent's location determines which provider serves them — Dakota Plains Legal Services covers western and central counties, while East River Legal Services handles 33 eastern counties including Minnehaha and Lincoln.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+ (no income limit)",
+          "South Dakota resident",
+          "Civil legal issue",
+          "Case fits program priorities"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must live in provider's service area",
+          "Case must involve elder abuse, long-term care, guardianship, or consumer issues",
+          "U.S. citizen or permanent legal resident"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online at sdlawhelp.org or call your regional provider — initial screening determines if you qualify.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Apply online or by phone",
+            "description": "Complete the intake application at sdlawhelp.org/apply, or call East River Legal Services at (800) 952-3015 for eastern counties, or find your Dakota Plains Legal Services office for western/central counties."
+          },
+          {
+            "step": 2,
+            "title": "Complete eligibility screening",
+            "description": "Provide proof of income, residence, and details about your legal issue. Seniors 60+ skip income requirements but still need qualifying case types."
+          },
+          {
+            "step": 3,
+            "title": "Wait for attorney referral",
+            "description": "If eligible and resources are available, you'll be connected with an attorney. Not all eligible cases are accepted due to limited staff and federal priority rules."
+          }
+        ],
+        "processingTime": "Initial screening completed during intake, attorney referral depends on staff availability",
+        "waitlist": "Subject to staff and volunteer availability — no formal waitlist system",
+        "tip": "Apply even if you're unsure about eligibility — the screening process determines if your case qualifies.",
+        "urls": [
+          {
+            "label": "Apply Online",
+            "url": "https://www.sdlawhelp.org/apply"
+          },
+          {
+            "label": "Dakota Plains Legal Services",
+            "url": "https://www.dpls.org/eligibility"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Valid government-issued photo ID",
+        "Proof of South Dakota residency (utility bill or lease)",
+        "Proof of income (Social Security award letter, pay stubs, or tax returns)",
+        "Permanent resident card if applicable",
+        "Details of your legal issue including relevant paperwork",
+        "Documentation related to your case (contracts, court papers, correspondence)"
+      ],
+      "contacts": [
+        {
+          "label": "East River Legal Services",
+          "phone": "(605) 336-9230",
+          "description": "Serves 33 eastern counties including Sioux Falls area",
+          "hours": "Business hours"
+        },
+        {
+          "label": "East River Legal Services Toll-Free",
+          "phone": "(800) 952-3015",
+          "description": "Toll-free line for eastern South Dakota",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Access to Justice",
+          "phone": "(855) 287-3510",
+          "description": "Statewide referral service",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Disaster Legal Hotline",
+          "phone": "(605) 444-3719",
+          "description": "Emergency legal assistance",
+          "hours": "As needed during disasters"
+        }
+      ],
+      "applicationNotes": null,
+      "relatedPrograms": [
+        "Adult Protective Services",
+        "Long-Term Care Ombudsman",
+        "SHIP Medicare Counseling"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can I apply on behalf of my elderly parent?",
+          "answer": "You can help your parent apply, but the legal client must be your parent since they're the one with the legal issue. The attorney-client relationship will be with your parent, though they can authorize you to receive information about their case."
+        },
+        {
+          "question": "What if my parent lives in a county not served by these providers?",
+          "answer": "Contact Access to Justice at (855) 287-3510 for statewide referrals, or apply online at sdlawhelp.org — they'll direct you to the correct provider or give you a referral to private attorneys if no legal aid is available in your area."
+        },
+        {
+          "question": "Will the attorney go to court with my parent or just give advice?",
+          "answer": "It depends on your case and available resources. Services range from phone advice only to brief document preparation to full court representation as counsel of record. The level of service is determined during the intake process based on case priority and staff availability."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": null,
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "warm"
+      },
+      "icon": "Scales",
+      "phone": "(855) 287-3510",
+      "sourceUrl": "https://www.dpls.org/eligibility",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
     },
     {
+      "id": "long-term-care-ombudsman",
       "name": "Long-Term Care Ombudsman",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "shortName": "Ombudsman",
+      "tagline": "Free advocacy when your parent faces problems in nursing homes or assisted living facilities in South Dakota.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "State office in Pierre; local ombudsmen statewide via Department of Human Services",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent lives in a South Dakota nursing home, assisted living facility, or community living home and faces problems with care, billing, or treatment, the Long-Term Care Ombudsman provides free advocacy to resolve conflicts. The ombudsman investigates complaints, educates families about residents' rights, and mediates disputes to ensure your parent receives fair treatment.\n\nThis service is available to any family member or resident in long-term care facilities statewide. Because ombudsmen are trained advocates who understand facility regulations, they can often resolve issues faster than families working alone. No income limits apply — the service is completely free regardless of your parent's financial situation.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Parent lives in SD nursing home, assisted living, or community living home",
+          "No income or asset limits",
+          "Family members can request help",
+          "Available statewide"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Parent must be residing in a nursing home, assisted living community, or community living home in South Dakota"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call the ombudsman hotline for immediate assistance — no forms or applications required.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the Long-Term Care Ombudsman",
+            "description": "Contact 605-773-3656 or toll-free 1-855-642-3055 to speak with an ombudsman about your parent's situation."
+          },
+          {
+            "step": 2,
+            "title": "Describe the problem",
+            "description": "Explain what's happening at your parent's facility — whether it's care issues, billing disputes, or other concerns."
+          },
+          {
+            "step": 3,
+            "title": "Ombudsman begins advocacy",
+            "description": "The ombudsman will investigate, contact the facility if needed, and work to resolve the issue while keeping you informed."
+          }
+        ],
+        "processingTime": "Immediate assistance upon contact",
+        "waitlist": null,
+        "tip": "You don't need to wait for a crisis — ombudsmen also provide education about residents' rights and can answer questions about what to expect from your parent's facility.",
+        "urls": [
+          {
+            "label": "South Dakota Ombudsman Program",
+            "url": "https://dhs.sd.gov/ltss/ombudsman-program"
+          }
+        ]
+      },
+      "documentsNeeded": null,
+      "contacts": [
+        {
+          "label": "Long-Term Care Ombudsman",
+          "phone": "(605) 773-3656",
+          "description": "Direct line for advocacy and complaint resolution",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Toll-Free Ombudsman Line",
+          "phone": "(855) 642-3055",
+          "description": "Free statewide access to ombudsman services",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Email Contact",
+          "phone": "LTCO@state.sd.us",
+          "description": "Email for non-urgent concerns and information requests",
+          "hours": "Email response during business hours"
+        }
+      ],
+      "applicationNotes": null,
+      "relatedPrograms": [
+        "Medicaid Long-Term Care",
+        "Adult Protective Services",
+        "Aging and Disability Services"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can I contact the ombudsman if my parent hasn't complained directly?",
+          "answer": "Yes, family members can request ombudsman assistance even if your parent hasn't filed a complaint themselves. The ombudsman will work with you to understand the situation and determine the best approach to help your parent."
+        },
+        {
+          "question": "What if the facility retaliates against my parent after we file a complaint?",
+          "answer": "Retaliation against residents for filing complaints is illegal. If you suspect retaliation, contact the ombudsman immediately at 605-773-3656. They can investigate retaliation claims and work to protect your parent's rights and safety."
+        },
+        {
+          "question": "How is the ombudsman different from calling the facility's administrator?",
+          "answer": "The ombudsman is an independent advocate who doesn't work for the facility. Because they understand residents' rights and facility regulations, they can often resolve issues that families can't solve by working directly with facility staff."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": null,
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": false,
+        "hasDocumentChecklist": false,
+        "visualTone": "minimal"
+      },
+      "icon": "Scales",
+      "phone": "(605) 773-3656",
+      "sourceUrl": "https://dhs.sd.gov/ltss/ombudsman-program",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
     },
     {
+      "id": "senior-companions",
       "name": "Senior Companions of South Dakota",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "shortName": "Senior Companions",
+      "tagline": "Free companionship visits and light help for aging parents who live alone or need caregiver relief.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Sioux Falls and Rapid City regional offices with statewide service",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent lives alone, is recovering from a hospital stay, or you need respite as their caregiver, Senior Companions provides free friendship visits and light assistance. Trained volunteers visit 10-15 hours per week to provide companionship, help with daily activities like meal preparation and light housekeeping, and transportation to medical appointments or grocery shopping.\n\nThis program specifically serves people with disabilities, those lacking other assistance, people living alone, or those recovering from hospital or nursing home stays. Because volunteers are matched based on availability and your parent's needs, there's no income test for your parent — the program focuses on need-based criteria like living situation and health status.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 21+ (no upper limit)",
+          "No income limits for clients",
+          "Need-based: living alone, disabilities, or caregiver respite",
+          "Services provided in homes or apartments"
+        ],
+        "ageRequirement": "21+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must have disability, lack other assistance, live alone, be recovering from hospital/nursing home, have terminal illness, Alzheimer's or related disorders, or need caregiver respite",
+          "Must live in home or apartment (not facility)"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your regional office for a needs assessment — no formal application required.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call your regional office",
+            "description": "Sioux Falls area: (605) 361-1133 or toll-free (888) 239-1210. Rapid City area: (605) 721-8884. You can also contact referring agencies like Active Generations Sioux Falls at (605) 336-6748 or Avera@Home Pierre at (605) 280-8768."
+          },
+          {
+            "step": 2,
+            "title": "Complete needs assessment",
+            "description": "Staff will assess your parent's living situation, assistance needs, and whether they meet criteria like living alone, having disabilities, or needing caregiver respite."
+          },
+          {
+            "step": 3,
+            "title": "Get matched with volunteer",
+            "description": "If accepted, your parent will be matched with a trained volunteer companion based on availability and compatibility."
+          }
+        ],
+        "processingTime": "Not specified — depends on volunteer availability in your area",
+        "waitlist": null,
+        "tip": "Ask about volunteer availability in your specific area when you call — service depends on having trained volunteers nearby.",
+        "urls": [
+          {
+            "label": "Official Program Information",
+            "url": "https://www.good-sam.com/senior-companions"
+          }
+        ]
+      },
+      "documentsNeeded": null,
+      "contacts": [
+        {
+          "label": "Sioux Falls Regional Office",
+          "phone": "(605) 361-1133",
+          "description": "Primary contact for eastern South Dakota",
+          "hours": "Not specified"
+        },
+        {
+          "label": "Toll-Free Line",
+          "phone": "(888) 239-1210",
+          "description": "Statewide access number",
+          "hours": "Not specified"
+        },
+        {
+          "label": "Rapid City Regional Office",
+          "phone": "(605) 721-8884",
+          "description": "Primary contact for western South Dakota",
+          "hours": "Not specified"
+        },
+        {
+          "label": "Active Generations Sioux Falls",
+          "phone": "(605) 336-6748",
+          "description": "Referring agency for Sioux Falls area",
+          "hours": "Not specified"
+        }
+      ],
+      "applicationNotes": null,
+      "relatedPrograms": [
+        "South Dakota Aging and Disability Services",
+        "Area Agencies on Aging",
+        "Meals on Wheels"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "What's the difference between this and hiring a home care aide?",
+          "answer": "Senior Companions focuses on friendship and light assistance, not professional healthcare. Volunteers provide companionship, help with daily activities like meal prep and light housekeeping, and transportation for errands. They cannot provide medical care or personal care like bathing or medication management."
+        },
+        {
+          "question": "How many hours per week will my parent get help?",
+          "answer": "Volunteers typically serve 10-15 hours per week and usually work with 2-4 clients. The exact schedule depends on your parent's needs and the volunteer's availability. Each volunteer can serve up to 40 hours per week total across all their clients."
+        },
+        {
+          "question": "Can my parent get this service if they live with family?",
+          "answer": "The program prioritizes people living alone, but also serves those needing caregiver respite. If you're the primary caregiver and need relief, your parent may qualify even if living with family. Call your regional office to discuss your specific situation."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": false,
+        "visualTone": "minimal"
+      },
+      "icon": "HandHeart",
+      "phone": "(888) 239-1210",
+      "sourceUrl": "https://www.good-sam.com/senior-companions",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
     },
     {
+      "id": "60s-plus-dining",
       "name": "60's Plus Dining",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "shortName": "60's Plus Dining",
+      "tagline": "If your parent lives in east-central South Dakota and is 60+, they can get nutritious meals delivered free or eat at community sites with just a suggested $5 donation.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Inter-Lakes Community Action Partnership (ICAP), 111 N Van Eps Ave, Madison SD 57042",
+            "type": "service-area"
+          },
+          {
+            "name": "Various sites in 10 counties via sixtiesplusdining.com",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and lives in one of 10 east-central South Dakota counties, they can get nutritious meals through multiple options with no income requirements. The program offers congregate meals at community sites, a pre-paid Star Card for flexible meal purchases, home-delivered hot meals Monday through Friday for homebound seniors, and weekly frozen meal packs with 7 meals plus bread, milk, and juice.\n\nThe suggested donation is $5 per meal or $35 per frozen pack, but no one is turned away regardless of ability to pay. There are no meal limits, and spouses and caregivers of any age can also participate. Because this is donation-based rather than income-tested, your parent can start receiving meals immediately without financial documentation or waiting periods.\n\nThis program only serves Brookings, Codington, Clark, Deuel, Grant, Hamlin, Kingsbury, Lake, Miner, and Moody counties. Home-delivered meals require your parent to be homebound due to illness or frailty.",
+      "savingsRange": "",
+      "savingsSource": "Free service with suggested donation",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "South Dakota resident in 10 east-central counties",
+          "No income limits",
+          "Spouses and caregivers any age eligible"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Home-delivered meals require being homebound due to illness or frailty",
+        "otherRequirements": [
+          "Must live in Brookings, Codington, Clark, Deuel, Grant, Hamlin, Kingsbury, Lake, Miner, or Moody County"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call the program director to register — no documents required and you can start receiving meals immediately.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the Program Director",
+            "description": "Contact Stacie Santema at 605-256-6518 Ext 107 to discuss meal options and register your parent."
+          },
+          {
+            "step": 2,
+            "title": "Complete Nutrition Assessment",
+            "description": "Fill out a simple registration form and nutrition assessment during your call or at a meal site."
+          },
+          {
+            "step": 3,
+            "title": "Choose Meal Options",
+            "description": "Select from congregate meals at community sites, Star Card for flexible dining, home delivery (if homebound), or frozen meal packs."
+          },
+          {
+            "step": 4,
+            "title": "Find Your Local Sites",
+            "description": "Visit sixtiesplusdining.com/contact/ to find meal sites and delivery areas in your county."
+          }
+        ],
+        "processingTime": "Immediate enrollment — meals can start right away",
+        "waitlist": null,
+        "tip": "If your parent is homebound, mention this during registration to arrange home delivery rather than expecting them to travel to meal sites.",
+        "urls": [
+          {
+            "label": "Find Local Sites",
+            "url": "https://sixtiesplusdining.com/contact/"
+          },
+          {
+            "label": "Program Information",
+            "url": "https://sixtiesplusdining.com/"
+          }
+        ]
+      },
+      "documentsNeeded": null,
+      "contacts": [
+        {
+          "label": "Program Director Stacie Santema",
+          "phone": "(605) 256-6518 Ext 107",
+          "description": "Registration, meal options, and general program questions",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Inter-Lakes Community Action Partnership",
+          "phone": "(605) 256-6518",
+          "description": "Main office for 60's Plus Dining program",
+          "hours": "Business hours"
+        }
+      ],
+      "applicationNotes": [
+        "Spouses and caregivers under 60 can also receive meals — useful if you're caring for your parent on-site",
+        "Home delivery is only available if your parent is homebound due to illness or frailty — they'll assess this during registration",
+        "The program operates only in 10 counties — don't confuse with statewide programs like Senior Food Box which has income requirements"
+      ],
+      "relatedPrograms": [
+        "SNAP (Supplemental Nutrition Assistance Program)",
+        "Senior Food Box",
+        "WIC (Women, Infants, and Children)"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent get both congregate meals and home delivery?",
+          "answer": "Yes, your parent can access multiple meal options as their needs change. If they become homebound later, they can switch from congregate meals to home delivery. Contact Stacie Santema at 605-256-6518 Ext 107 to adjust their meal plan."
+        },
+        {
+          "question": "What if my parent can't afford the $5 suggested donation?",
+          "answer": "No one is turned away regardless of ability to pay. The $5 donation is completely optional. Your parent will receive the same nutritious meals whether they donate or not."
+        },
+        {
+          "question": "Does this program work with other food assistance like SNAP?",
+          "answer": "Yes, your parent can receive 60's Plus Dining meals while also getting SNAP benefits or using food banks. These programs complement each other and there are no restrictions on combining them."
+        },
+        {
+          "question": "How do we know if our county is covered?",
+          "answer": "The program only serves Brookings, Codington, Clark, Deuel, Grant, Hamlin, Kingsbury, Lake, Miner, and Moody counties. If your parent lives outside these 10 east-central counties, they won't be eligible but should check for other local meal programs through their Area Agency on Aging."
+        },
+        {
+          "question": "What happens if my parent moves to assisted living?",
+          "answer": "Contact the program director to discuss options. If the assisted living facility is in one of the 10 covered counties and allows outside meal delivery, your parent may be able to continue the program depending on their specific situation."
+        },
+        {
+          "question": "Can I sign up my parent if they have dementia?",
+          "answer": "Yes, family members can register on behalf of elderly parents. When you call 605-256-6518 Ext 107, explain your parent's situation and they'll work with you to set up appropriate meal services, especially home delivery if your parent can't safely attend congregate sites."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": false,
+        "visualTone": "warm"
+      },
+      "icon": "BowlFood",
+      "phone": "(605) 256-6518",
+      "sourceUrl": "https://sixtiesplusdining.com/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
     },
     {
+      "id": "senior-box-program-csfp",
       "name": "Senior Box Program (CSFP)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "shortName": "Senior Box Program",
+      "tagline": "Free monthly box of groceries for parents 60+ living on limited income in select South Dakota counties.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Salvation Army Sioux Falls (900 N. Cliff Ave, Sioux Falls; Minnehaha/Lincoln Counties)",
+            "type": "service-area"
+          },
+          {
+            "name": "Feeding South Dakota (1003 6th Ave SW, Aberdeen; broader SD)",
+            "type": "service-area"
+          },
+          {
+            "name": "Salvation Army Watertown (621 4th St SE, Watertown; Clark/Codington/Deuel/Grant/Hamlin Counties)",
+            "type": "service-area"
+          },
+          {
+            "name": "Brookings Area United Way (Brookings County)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and lives in select South Dakota counties, they can receive a free monthly box of groceries through the Senior Box Program. Each box contains about 40 pounds of USDA foods including cereals, canned meat, fruits, vegetables, instant milk, peanut butter, pasta, rice, and cheese — delivered at no cost for 6-12 months.\n\nBecause this program is run by local agencies rather than the state, your parent must live in a participating county to qualify. Income must be at or below 130-150% of federal poverty guidelines (exact limits vary by provider). Unlike some food programs, there are no asset limits — only age, income, and location matter.\n\nYour parent cannot participate in both this program and WIC, but they can combine it with SNAP benefits. Some providers offer home delivery for homebound seniors.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Income at or below 130-150% federal poverty level",
+          "Must live in participating county",
+          "Cannot receive WIC"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must live in a county served by participating providers",
+          "Cannot participate in WIC simultaneously"
+        ],
+        "povertyLevelReference": "130-150% FPL"
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your local provider during distribution hours or office hours — no statewide application.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local provider",
+            "description": "Determine which agency serves your county. Sioux Falls area: Salvation Army at 605-332-2331. Watertown area: Salvation Army at 605-886-4030. Aberdeen area: Feeding South Dakota at 605-225-7410. Brookings County: United Way."
+          },
+          {
+            "step": 2,
+            "title": "Call during distribution hours",
+            "description": "Many agencies take applications during monthly distribution times. Sioux Falls: 2nd Thursday 10am-3pm. Watertown: 4th Friday 9am-12pm. Call ahead to confirm current schedule."
+          },
+          {
+            "step": 3,
+            "title": "Provide required documentation",
+            "description": "Bring proof of age, income verification, and proof that you live in the service area. Each provider may have slightly different requirements."
+          }
+        ],
+        "processingTime": "Same-day enrollment during distribution hours if documentation is complete",
+        "waitlist": "Possible due to local capacity limits — varies by county and provider",
+        "tip": "Call before the distribution day to confirm requirements and avoid waiting in line with incomplete documentation.",
+        "urls": []
+      },
+      "documentsNeeded": [
+        "Valid government-issued photo ID showing age 60+",
+        "Proof of income from all sources (Social Security letter, pension statements, pay stubs)",
+        "Proof of residency in the service area (utility bill, lease, or mail with current address)",
+        "Names and dates of birth for all household members"
+      ],
+      "contacts": [
+        {
+          "label": "Salvation Army Sioux Falls",
+          "phone": "(605) 332-2331",
+          "description": "Serves Minnehaha and Lincoln Counties",
+          "hours": "Call for current distribution schedule"
+        },
+        {
+          "label": "Feeding South Dakota Aberdeen",
+          "phone": "(605) 225-7410",
+          "description": "Serves broader South Dakota areas",
+          "hours": "Mon-Fri business hours"
+        },
+        {
+          "label": "Salvation Army Watertown",
+          "phone": "(605) 886-4030",
+          "description": "Serves Clark, Codington, Deuel, Grant, and Hamlin Counties",
+          "hours": "Call for current distribution schedule"
+        }
+      ],
+      "applicationNotes": null,
+      "relatedPrograms": [
+        "SNAP Food Benefits",
+        "LIHEAP Energy Assistance",
+        "Meals on Wheels"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent get the Senior Box if they already receive SNAP benefits?",
+          "answer": "Yes, your parent can participate in both programs simultaneously. The Senior Box Program is designed to supplement other food assistance, not replace it. However, they cannot participate in WIC at the same time."
+        },
+        {
+          "question": "What if my parent is homebound and can't pick up the food box?",
+          "answer": "Some providers offer home delivery for homebound seniors, but this varies by location and capacity. Call your local provider to ask about delivery options. Family members may also be able to pick up boxes on behalf of enrolled participants."
+        },
+        {
+          "question": "How long can my parent stay in the program?",
+          "answer": "Enrollment typically lasts 6-12 months, after which your parent may need to reapply. The exact length depends on the local provider and current capacity. There's no lifetime limit on participation as long as they continue to meet eligibility requirements."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": null,
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "minimal"
+      },
+      "icon": "Bread",
+      "phone": "(605) 332-2331",
+      "sourceUrl": "https://www.fns.usda.gov/csfp",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
     }
   ],
-  "stateOverview": null
+  "stateOverview": {
+    "intro": "South Dakota offers 14 programs that can help your aging parent stay independent and reduce your family's care costs. These range from financial benefits like Medicaid and SNAP food assistance to free resources like Medicare counseling and companionship visits. The state's HOPE Waiver program is particularly valuable — it can pay for home care services that cost thousands monthly out-of-pocket, keeping your parent home instead of moving to a nursing facility.\n\nMost benefit programs have income limits around $1,500-2,000/month for a single person, but several free resources are available regardless of income. Start by checking if your parent qualifies for Medicaid — it opens the door to the most comprehensive coverage and home care services.",
+    "startHere": [
+      {
+        "name": "South Dakota Medicaid for Seniors/Disabled",
+        "programId": "medicaid-seniors",
+        "why": "Covers medical care plus nursing home and home health services if your parent meets income limits."
+      },
+      {
+        "name": "Medicare Savings Programs",
+        "programId": "medicare-savings",
+        "why": "Can eliminate Medicare premiums and copays if your parent's income is below $1,781/month."
+      },
+      {
+        "name": "HOPE Waiver",
+        "programId": "hope-waiver",
+        "why": "Pays for home care services to keep your parent out of nursing facilities."
+      },
+      {
+        "name": "Senior Health Information and Insurance Education (SHIINE)",
+        "programId": "shiine",
+        "why": "Free help choosing Medicare plans — available to all seniors regardless of income."
+      }
+    ],
+    "byNeed": [
+      {
+        "need": "Help paying for home care",
+        "programs": [
+          "HOPE Waiver",
+          "PACE"
+        ],
+        "description": "Programs that pay for services to keep your parent living at home instead of a nursing facility."
+      },
+      {
+        "need": "Food assistance",
+        "programs": [
+          "Senior Box Program (CSFP)",
+          "60's Plus Dining",
+          "Meals on Wheels"
+        ],
+        "description": "Free groceries, meal delivery, and community dining for seniors 60+."
+      },
+      {
+        "need": "Medicare and medical costs",
+        "programs": [
+          "Medicare Savings Programs",
+          "SHIINE"
+        ],
+        "description": "Help paying Medicare expenses and choosing the right coverage."
+      },
+      {
+        "need": "Home repairs and utilities",
+        "programs": [
+          "Weatherization Assistance"
+        ],
+        "description": "Free weatherization that can save $372 annually on energy bills."
+      },
+      {
+        "need": "Caregiver relief and support",
+        "programs": [
+          "Respite Care/Caregiver Support",
+          "Senior Companions of South Dakota"
+        ],
+        "description": "Paid respite care and free companionship to give you breaks from caregiving."
+      },
+      {
+        "need": "Legal help and advocacy",
+        "programs": [
+          "Legal Aid for Seniors"
+        ],
+        "description": "Free legal assistance for elder abuse, guardianship, and long-term care issues."
+      }
+    ],
+    "quickFacts": [
+      "Most South Dakota benefit programs have income limits between $1,500-2,000/month for a single person",
+      "The Senior Box Program and some dining programs only operate in select counties — coverage varies by location",
+      "Several free resources like SHIINE and Senior Companions are available regardless of your parent's income",
+      "PACE is available statewide and combines medical care with home services under one program"
+    ],
+    "resourcesVsBenefits": "South Dakota's programs split into two categories: benefits that require income/asset qualification (like Medicaid, SNAP, and weatherization assistance) and free resources available to all seniors (like SHIINE Medicare counseling, Senior Companions visits, and Legal Aid). Even if your parent's income is too high for financial benefits, they can still access the free resources for Medicare help, companionship, and legal assistance."
+  }
 }

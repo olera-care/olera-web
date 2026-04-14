@@ -1,0 +1,519 @@
+{
+  "state": "NC",
+  "stateName": "North Carolina",
+  "checkedAt": "2026-04-14T10:06:55.023Z",
+  "total": 15,
+  "skipped": 1,
+  "parseErrors": 0,
+  "errors": 0,
+  "programsWithFlags": 4,
+  "totalFlags": 7,
+  "highSeverityFlags": 5,
+  "programs": [
+    {
+      "programId": "nc-medicaid-hcbs-waivers",
+      "programName": "NC Medicaid Home and Community-Based Services (HCBS) Waivers",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 2000,
+        "assets_couple": null,
+        "phones": [
+          "211",
+          "8882450179"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": [
+        6
+      ],
+      "flags": [],
+      "notes": null
+    },
+    {
+      "programId": "nc-pace-comprehensive-care",
+      "programName": "NC Program of All-Inclusive Care for the Elderly (PACE)",
+      "facts": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 2000,
+        "assets_couple": null,
+        "phones": [
+          "9198554340",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://www.ncpace.org/PACE-Programs-in-NC",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No authoritative data found on financial eligibility limits or phone number from official NC or federal sources; PACE nationally has no asset test and uses Medicaid eligibility for income"
+      },
+      "flags": [],
+      "notes": "No authoritative data found on financial eligibility limits or phone number from official NC or federal sources; PACE nationally has no asset test and uses Medicaid eligibility for income"
+    },
+    {
+      "programId": "nc-medicare-savings-programs",
+      "programName": "NC Medicare Savings Programs (QMB, SLMB, QI)",
+      "facts": {
+        "age": 65,
+        "income_1": 1350,
+        "income_2": 1824,
+        "assets_individual": 9950,
+        "assets_couple": 14910,
+        "phones": [
+          "8882450179",
+          "211",
+          "8006334227"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": [
+        1
+      ],
+      "flags": [],
+      "notes": null
+    },
+    {
+      "programId": "nc-snap-food-benefits",
+      "programName": "NC Food and Nutrition Services (FNS)/SNAP",
+      "facts": {
+        "age": 60,
+        "income_1": 1133,
+        "income_2": 1526,
+        "assets_individual": 4500,
+        "assets_couple": 4500,
+        "phones": [
+          "9198554800",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": 1696,
+        "income_2": 2292,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "9107983500",
+        "sources": {
+          "age": null,
+          "income": "https://www.nhcgov.com/1274/Food-and-Nutrition-ServicesSNAP",
+          "assets": null,
+          "phone": "https://www.nhcgov.com/1274/Food-and-Nutrition-ServicesSNAP"
+        },
+        "notes": "SNAP/FNS has no age requirement or asset test for seniors; income limits are gross monthly at 130% FPL for household size from county site valid Oct 2025-Sep 2026; phone is county-specific"
+      },
+      "flags": [
+        {
+          "field": "income_1",
+          "severity": "high",
+          "draftValue": 1133,
+          "verifiedValue": 1696,
+          "pctDiff": 33.2
+        },
+        {
+          "field": "income_2",
+          "severity": "high",
+          "draftValue": 1526,
+          "verifiedValue": 2292,
+          "pctDiff": 33.4
+        },
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "9198554800",
+            "211"
+          ],
+          "verifiedValue": "9107983500"
+        }
+      ],
+      "notes": "SNAP/FNS has no age requirement or asset test for seniors; income limits are gross monthly at 130% FPL for household size from county site valid Oct 2025-Sep 2026; phone is county-specific"
+    },
+    {
+      "programId": "nc-liheap-energy-assistance",
+      "programName": "NC Low-Income Energy Assistance Program (LIHEAP)",
+      "facts": {
+        "age": 60,
+        "income_1": 1427,
+        "income_2": 1930,
+        "assets_individual": 2250,
+        "assets_couple": 2250,
+        "phones": [
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": 1956,
+        "income_2": 2644,
+        "assets_individual": 2250,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://wcti12.com/news/local/ncdhhs-opens-applications-for-2026-low-income-energy-assistance-program",
+          "income": "https://www.snapscreener.com/liheap/north-carolina",
+          "assets": "https://www.doa.nc.gov/divisions/american-indian-affairs/low-income-energy-assistance-program",
+          "phone": null
+        },
+        "notes": "Income limits from non-.gov source citing senior/disabled household pathway; assets from DOA site (may be outdated); no 2026-specific official NCDHHS income table found; no distinction for couple assets"
+      },
+      "flags": [
+        {
+          "field": "income_1",
+          "severity": "high",
+          "draftValue": 1427,
+          "verifiedValue": 1956,
+          "pctDiff": 27
+        },
+        {
+          "field": "income_2",
+          "severity": "high",
+          "draftValue": 1930,
+          "verifiedValue": 2644,
+          "pctDiff": 27
+        }
+      ],
+      "notes": "Income limits from non-.gov source citing senior/disabled household pathway; assets from DOA site (may be outdated); no 2026-specific official NCDHHS income table found; no distinction for couple assets"
+    },
+    {
+      "programId": "nc-weatherization-assistance-program",
+      "programName": "NC Weatherization Assistance Program",
+      "facts": {
+        "age": null,
+        "income_1": 2608,
+        "income_2": 3525,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "9197131570",
+          "3369040338"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": 2510,
+        "income_2": 3407,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": "https://www.deq.nc.gov/energy-climate/state-energy-office/weatherization-assistance-program/eligibility-guidelines",
+          "assets": null,
+          "phone": null
+        },
+        "notes": "Income limits from 200% FPL table on official NC DEQ site (annual figures divided by 12 and rounded: 30120/12=2510, 40880/12=3406.666→3407). No age minimum or asset test specified. No single official statewide phone; contact local providers via DEQ tool. Program active for FY2026 per official sources."
+      },
+      "flags": [],
+      "notes": "Income limits from 200% FPL table on official NC DEQ site (annual figures divided by 12 and rounded: 30120/12=2510, 40880/12=3406.666→3407). No age minimum or asset test specified. No single official statewide phone; contact local providers via DEQ tool. Program active for FY2026 per official sources."
+    },
+    {
+      "programId": "nc-home-delivered-meals",
+      "programName": "NC Home-Delivered Meals (County-Specific Programs)",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "211",
+          "7044321111",
+          "7043363144"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://www.ncdhhs.gov/divisions/aging/congregate-and-home-delivered-meals",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "Program is county-specific with consistent 60+ age threshold for seniors across multiple county .gov sites (e.g., Wake, Burke, Onslow, Granville); no statewide income/assets tests found; no single official application phone as programs are administered locally"
+      },
+      "flags": [],
+      "notes": "Program is county-specific with consistent 60+ age threshold for seniors across multiple county .gov sites (e.g., Wake, Burke, Onslow, Granville); no statewide income/assets tests found; no single official application phone as programs are administered locally"
+    },
+    {
+      "programId": "nc-lifespan-respite-family-caregiver-support",
+      "programName": "NC Lifespan Respite Program / Family Caregiver Support",
+      "facts": {
+        "age": 18,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8282655434",
+          "8282655434139",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8282655434",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "http://www.highcountryaging.org/services/lifespan-respite-vouchers"
+        },
+        "notes": "NC Lifespan Respite Program serves caregivers of individuals of ANY age (not age-restricted to seniors). No age, income, or asset eligibility criteria are specified in official sources. Program is application-based with funding limitations. Phone number is for Caregiver Program Coordinator Tammy Nelson at High Country Area Agency on Aging (ext. 139). Alternative contact: lifespan@hccog.org. Program provides up to $750/calendar year in respite care vouchers. Applicants must be referred by a local professional organization and use funds within 90 days."
+      },
+      "flags": [],
+      "notes": "NC Lifespan Respite Program serves caregivers of individuals of ANY age (not age-restricted to seniors). No age, income, or asset eligibility criteria are specified in official sources. Program is application-based with funding limitations. Phone number is for Caregiver Program Coordinator Tammy Nelson at High Country Area Agency on Aging (ext. 139). Alternative contact: lifespan@hccog.org. Program provides up to $750/calendar year in respite care vouchers. Applicants must be referred by a local professional organization and use funds within 90 days."
+    },
+    {
+      "programId": "nc-senior-community-service-employment-program",
+      "programName": "NC Senior Community Service Employment Program (SCSEP)",
+      "facts": {
+        "age": 55,
+        "income_1": 1693,
+        "income_2": 2289,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://www.ncdhhs.gov/divisions/aging/senior-community-services-employment-program[8];https://www.dol.gov/agencies/eta/seniors[3]",
+          "income": "https://www.ncdhhs.gov/divisions/aging/senior-community-services-employment-program[8]",
+          "assets": null,
+          "phone": null
+        },
+        "notes": "Income limit is 125% FPL (no specific monthly USD figure found); no NC-specific phone in sources; state page last modified 09/23/2025"
+      },
+      "flags": [],
+      "notes": "Income limit is 125% FPL (no specific monthly USD figure found); no NC-specific phone in sources; state page last modified 09/23/2025"
+    },
+    {
+      "programId": "nc-legal-assistance-for-older-adults",
+      "programName": "NC Legal Assistance for Older Adults",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "18775797562",
+          "18662195262"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8775797562",
+        "sources": {
+          "age": "https://legalaidnc.org/topic/other/for-seniors/",
+          "income": null,
+          "assets": null,
+          "phone": "https://legalaidnc.org/topic/other/for-seniors/"
+        },
+        "notes": "Seniors 60+ exempt from income limitations; no assets test mentioned"
+      },
+      "flags": [],
+      "notes": "Seniors 60+ exempt from income limitations; no assets test mentioned"
+    },
+    {
+      "programId": "nc-long-term-care-ombudsman",
+      "programName": "NC Long-Term Care Ombudsman Program",
+      "skipped": true,
+      "reason": "no verifiable facts",
+      "flags": []
+    },
+    {
+      "programId": "nc-homestead-exemption",
+      "programName": "North Carolina Homestead Exemption",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8772523052"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 65,
+        "income_1": 38800,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://www.franklincountync.gov/413/Property-Tax-Relief",
+          "income": "https://www.franklincountync.gov/413/Property-Tax-Relief",
+          "assets": null,
+          "phone": null
+        },
+        "notes": "Income limit of $38,800 cited for 2026 tax year by county site citing state statute; state bill proposes increase to $48,000 starting July 1, 2026, status unclear. No statewide application phone found."
+      },
+      "flags": [],
+      "notes": "Income limit of $38,800 cited for 2026 tax year by county site citing state statute; state bill proposes increase to $48,000 starting July 1, 2026, status unclear. No statewide application phone found."
+    },
+    {
+      "programId": "nc-long-term-care-medicaid",
+      "programName": "North Carolina Long-Term Care Medicaid",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 2000,
+        "assets_couple": 3000,
+        "phones": [
+          "18882450179",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 2000,
+        "assets_couple": 2000,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": "https://thecarecompass.org/medicaid-north-carolina.html",
+          "phone": null
+        },
+        "notes": "No official .gov source found for 2026 LTC Medicaid details; used current nonprofit citing official limits. Nursing home Medicaid has no age test for seniors but requires nursing facility level of care. Income has no fixed cap (must be < nursing home rate). Assets for couple reflect $2000 applicant + CSRA; both-applying may differ per source."
+      },
+      "flags": [
+        {
+          "field": "assets_couple",
+          "severity": "high",
+          "draftValue": 3000,
+          "verifiedValue": 2000,
+          "pctDiff": 33.3
+        }
+      ],
+      "notes": "No official .gov source found for 2026 LTC Medicaid details; used current nonprofit citing official limits. Nursing home Medicaid has no age test for seniors but requires nursing facility level of care. Income has no fixed cap (must be < nursing home rate). Assets for couple reflect $2000 applicant + CSRA; both-applying may differ per source."
+    },
+    {
+      "programId": "nc-project-care-dementia-caregiver-support",
+      "programName": "Project C.A.R.E. (Caregiver Alternatives to Running on Empty)",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "211",
+          "7044321111",
+          "8282655434"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "9843656992",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://www.ruralhealthinfo.org/project-examples/819"
+        },
+        "notes": "Project C.A.R.E. is a dementia-specific caregiver support program with no apparent age, income, or asset eligibility requirements based on available official sources. The program serves family caregivers of individuals with Alzheimer's disease and related dementias across all 100 North Carolina counties. Phone number obtained from state project director contact information. No financial eligibility criteria found in official NC DHHS documentation or RFA materials."
+      },
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "211",
+            "7044321111",
+            "8282655434"
+          ],
+          "verifiedValue": "9843656992"
+        }
+      ],
+      "notes": "Project C.A.R.E. is a dementia-specific caregiver support program with no apparent age, income, or asset eligibility requirements based on available official sources. The program serves family caregivers of individuals with Alzheimer's disease and related dementias across all 100 North Carolina counties. Phone number obtained from state project director contact information. No financial eligibility criteria found in official NC DHHS documentation or RFA materials."
+    },
+    {
+      "programId": "nc-special-assistance-in-home",
+      "programName": "State-County Special Assistance - In Home",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "211",
+          "9192503835",
+          "9192127549"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://www.wake.gov/departments-government/health-human-services/programs-assistance/senior-and-adult-services/special-assistance-home",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No statewide official phone number found; contact local DSS. Income below FPL per county site, but no numeric value with URL. Official manuals are PDFs without extractable specifics here."
+      },
+      "flags": [],
+      "notes": "No statewide official phone number found; contact local DSS. Income below FPL per county site, but no numeric value with URL. Official manuals are PDFs without extractable specifics here."
+    }
+  ]
+}

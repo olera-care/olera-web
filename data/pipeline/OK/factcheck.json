@@ -1,0 +1,445 @@
+{
+  "state": "OK",
+  "stateName": "Oklahoma",
+  "checkedAt": "2026-04-14T10:07:34.814Z",
+  "total": 13,
+  "skipped": 0,
+  "parseErrors": 0,
+  "errors": 0,
+  "programsWithFlags": 1,
+  "totalFlags": 2,
+  "highSeverityFlags": 1,
+  "programs": [
+    {
+      "programId": "ok-medicaid-soonercare",
+      "programName": "Oklahoma Medicaid SoonerCare",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 2000,
+        "assets_couple": null,
+        "phones": [
+          "8009877767"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 2000,
+        "assets_couple": 4000,
+        "phone": "18009877767",
+        "sources": {
+          "age": "https://oklahoma.gov/okdhs/services/health/soonercare.html",
+          "income": null,
+          "assets": "https://www.medicaidplanningassistance.org/medicaid-eligibility-oklahoma/",
+          "phone": "https://oklahoma.gov/ohca/individuals/mysoonercare.html"
+        },
+        "notes": "Age 65+ is the senior-specific threshold for SoonerCare eligibility. Income limits vary by category (Aged/Blind/Disabled pathway does not have published income caps in search results; only institutional/HCBS waiver asset limits found). Asset limits ($2,000 individual / $4,000 couple) apply to institutional Medicaid and HCBS waivers for seniors. Income guidelines for other SoonerCare categories (children, pregnant women, expansion adults) are not applicable to senior pathway and were excluded per instructions."
+      },
+      "flags": [],
+      "notes": "Age 65+ is the senior-specific threshold for SoonerCare eligibility. Income limits vary by category (Aged/Blind/Disabled pathway does not have published income caps in search results; only institutional/HCBS waiver asset limits found). Asset limits ($2,000 individual / $4,000 couple) apply to institutional Medicaid and HCBS waivers for seniors. Income guidelines for other SoonerCare categories (children, pregnant women, expansion adults) are not applicable to senior pathway and were excluded per instructions."
+    },
+    {
+      "programId": "ok-advantage-waiver-hcbs",
+      "programName": "Home and Community-Based Services (HCBS) Waivers (ADvantage Waiver)",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 2000,
+        "assets_couple": 2000,
+        "phones": [
+          "8005220310",
+          "9184779080"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 65,
+        "income_1": 2982,
+        "income_2": 2982,
+        "assets_individual": 2000,
+        "assets_couple": 4000,
+        "phone": "8004354711",
+        "sources": {
+          "age": "https://oklahoma.gov/ohca/individuals/programs/advantage-waiver-program.html",
+          "income": "https://www.medicaidplanningassistance.org/oklahoma-advantage-waiver/",
+          "assets": "https://www.medicaidplanningassistance.org/oklahoma-advantage-waiver/",
+          "phone": "https://oklahoma.gov/okdhs/services/cap/advantage-services.html"
+        },
+        "notes": "Income and assets from non-.gov source citing official limits, updated for 2026; assets for couple inferred as 2000 per spouse when both apply"
+      },
+      "flags": [
+        {
+          "field": "assets_couple",
+          "severity": "high",
+          "draftValue": 2000,
+          "verifiedValue": 4000,
+          "pctDiff": 50
+        },
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "8005220310",
+            "9184779080"
+          ],
+          "verifiedValue": "8004354711"
+        }
+      ],
+      "notes": "Income and assets from non-.gov source citing official limits, updated for 2026; assets for couple inferred as 2000 per spouse when both apply"
+    },
+    {
+      "programId": "ok-pace-comprehensive-care",
+      "programName": "Programs of All-Inclusive Care for the Elderly (PACE)",
+      "facts": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 2000,
+        "assets_couple": null,
+        "phones": [
+          "4055227044",
+          "4055213646"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://www.spartnerships.com/oklahoma-rural-pace-program-expansion/",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No authoritative OK-specific income or asset limits found in sources; PACE eligibility typically follows Medicaid nursing facility level of care with no strict asset test for seniors per federal guidelines, but state details unavailable. Phone for one provider only (4056093688), no official main application number."
+      },
+      "flags": [],
+      "notes": "No authoritative OK-specific income or asset limits found in sources; PACE eligibility typically follows Medicaid nursing facility level of care with no strict asset test for seniors per federal guidelines, but state details unavailable. Phone for one provider only (4056093688), no official main application number."
+    },
+    {
+      "programId": "ok-medicare-savings-programs",
+      "programName": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "facts": {
+        "age": null,
+        "income_1": 1235,
+        "income_2": 1663,
+        "assets_individual": 9090,
+        "assets_couple": 13630,
+        "phones": [
+          "4055213646",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": [
+        5
+      ],
+      "flags": [],
+      "notes": null
+    },
+    {
+      "programId": "ok-snap-food-benefits",
+      "programName": "Supplemental Nutrition Assistance Program (SNAP)",
+      "facts": {
+        "age": 60,
+        "income_1": 1255,
+        "income_2": 1703,
+        "assets_individual": 4250,
+        "assets_couple": 4250,
+        "phones": [
+          "8777600114",
+          "211",
+          "8778234369"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No authoritative 2026 data found in search results for SNAP eligibility details in Oklahoma; sources confirm program ongoing with purchase restrictions but no income/asset/age thresholds provided"
+      },
+      "flags": [],
+      "notes": "No authoritative 2026 data found in search results for SNAP eligibility details in Oklahoma; sources confirm program ongoing with purchase restrictions but no income/asset/age thresholds provided"
+    },
+    {
+      "programId": "ok-liheap-energy-assistance",
+      "programName": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "facts": {
+        "age": null,
+        "income_1": 1695,
+        "income_2": 2291,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "4055225050",
+          "4052472425"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": 1696,
+        "income_2": 2292,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "4055225050",
+        "sources": {
+          "age": null,
+          "income": "https://oklahoma.gov/okdhs/services/liheap/utilityservicesliheapmain.html",
+          "assets": null,
+          "phone": "https://oklahoma.gov/okdhs/services/liheap/utilityservicesliheapmain.html"
+        },
+        "notes": "LIHEAP in Oklahoma has no age requirement and does not appear to have asset limits based on available official sources. Income limits are monthly maximums as published by Oklahoma Human Services for FY2026. Phone number (405-522-5050) is the official state contact for life-threatening energy crisis assistance and general inquiries. Program remains active as of April 2026 with three components: Winter Heating, Summer Cooling, and Energy Crisis Assistance Program (ECAP)."
+      },
+      "flags": [],
+      "notes": "LIHEAP in Oklahoma has no age requirement and does not appear to have asset limits based on available official sources. Income limits are monthly maximums as published by Oklahoma Human Services for FY2026. Phone number (405-522-5050) is the official state contact for life-threatening energy crisis assistance and general inquiries. Program remains active as of April 2026 with three components: Winter Heating, Summer Cooling, and Energy Crisis Assistance Program (ECAP)."
+    },
+    {
+      "programId": "ok-home-delivered-meals",
+      "programName": "Home-Delivered Meals (Meals on Wheels)",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "211",
+          "8002522412"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://www.mealsonwheelsokc.org/applyforservices",
+          "income": "https://www.mealsonwheelsokc.org/applyforservices",
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No official phone number found in sources; program has no income or asset tests but prioritizes below 2026 poverty guidelines"
+      },
+      "flags": [],
+      "notes": "No official phone number found in sources; program has no income or asset tests but prioritizes below 2026 poverty guidelines"
+    },
+    {
+      "programId": "ok-respite-voucher-programs",
+      "programName": "Respite Voucher Programs in Oklahoma",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "4052712710",
+          "8005221064",
+          "8005221075",
+          "8774410434"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "4052712710",
+        "sources": {
+          "age": null,
+          "income": "https://oklahoma.gov/okdhs/services/dds/rvpp.html",
+          "assets": null,
+          "phone": "https://soonersuccess.ouhsc.edu/Services-Programs/Respite/OKDHS-DDS-Respite-Voucher-Program"
+        },
+        "notes": "Program targets developmental disabilities, not seniors/aging parents; no age, asset limits found; income limit of $75,000 AGI for caregiver applies but not slotted; phone from SoonerSuccess site tied to OKDHS/DHS"
+      },
+      "flags": [],
+      "notes": "Program targets developmental disabilities, not seniors/aging parents; no age, asset limits found; income limit of $75,000 AGI for caregiver applies but not slotted; phone from SoonerSuccess site tied to OKDHS/DHS"
+    },
+    {
+      "programId": "ok-scsep-employment-program",
+      "programName": "Senior Community Service Employment Program (SCSEP)",
+      "facts": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "4055212281",
+          "4055225050"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "4055212281",
+        "sources": {
+          "age": "https://oklahoma.gov/okdhs/services/aging/scommsep.html",
+          "income": null,
+          "assets": null,
+          "phone": "https://oklahoma.gov/okdhs/services/aging/scommsep.html"
+        },
+        "notes": "Program is active as of 2026. Age requirement is clearly 55+ across all sources. Income eligibility exists (125% federal poverty level per DOL source) but specific dollar thresholds are not provided in retrieved sources. No asset limits found in search results. Phone number is Oklahoma Department of Human Services – Aging Services main contact line for SCSEP."
+      },
+      "flags": [],
+      "notes": "Program is active as of 2026. Age requirement is clearly 55+ across all sources. Income eligibility exists (125% federal poverty level per DOL source) but specific dollar thresholds are not provided in retrieved sources. No asset limits found in search results. Phone number is Oklahoma Department of Human Services – Aging Services main contact line for SCSEP."
+    },
+    {
+      "programId": "ok-legal-assistance-seniors",
+      "programName": "Legal Assistance for Seniors (Legal Aid Services of Oklahoma)",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "18554886814",
+          "18885345243",
+          "9184284357"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8554886814",
+        "sources": {
+          "age": "https://legalaidok.org/programs/senior-legal-help/",
+          "income": null,
+          "assets": null,
+          "phone": "https://legalaidok.org/programs/senior-legal-help/"
+        },
+        "notes": "Program is OK-SPLASH (Oklahoma Sixty-Plus Legal Aid Services Helpline); no income or asset limits specified for seniors in sources"
+      },
+      "flags": [],
+      "notes": "Program is OK-SPLASH (Oklahoma Sixty-Plus Legal Aid Services Helpline); no income or asset limits specified for seniors in sources"
+    },
+    {
+      "programId": "ok-advantage-waiver-program",
+      "programName": "ADvantage Waiver Program",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 2000,
+        "assets_couple": null,
+        "phones": [
+          "4055213646",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 2000,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://oklahoma.gov/ohca/individuals/programs/ltcs/advantage-waiver-program.html",
+          "income": null,
+          "assets": "https://www.medicaidplanningassistance.org/oklahoma-advantage-waiver/",
+          "phone": null
+        },
+        "notes": "Income/assets values from non-.gov source citing Medicaid rules; 2025 figures shown (2026 not in sources); no official phone found; waiver expires 06/30/2026 per federal approval"
+      },
+      "flags": [],
+      "notes": "Income/assets values from non-.gov source citing Medicaid rules; 2025 figures shown (2026 not in sources); no official phone found; waiver expires 06/30/2026 per federal approval"
+    },
+    {
+      "programId": "ok-chore-services-title-iii",
+      "programName": "Oklahoma Chore Services (Older Americans Act Title III)",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://oklahoma.gov/okdhs/services/cap/older-americans-act.html",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No income, assets, or phone details found in official sources; program prioritizes low-income but no specific limits stated"
+      },
+      "flags": [],
+      "notes": "No income, assets, or phone details found in official sources; program prioritizes low-income but no specific limits stated"
+    },
+    {
+      "programId": "ok-senior-farmers-market-nutrition-program",
+      "programName": "Senior Farmers' Market Nutrition Program (SFMNP)",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://www.fns.usda.gov/sfmnp/senior-farmers-market-nutrition-program",
+          "income": "https://www.fns.usda.gov/sfmnp/senior-farmers-market-nutrition-program",
+          "assets": null,
+          "phone": null
+        },
+        "notes": "Age from federal SFMNP definition (generally 60); state-specific Oklahoma details confirm program active for 2026 but no explicit age listed in state sources found"
+      },
+      "flags": [],
+      "notes": "Age from federal SFMNP definition (generally 60); state-specific Oklahoma details confirm program active for 2026 but no explicit age listed in state sources found"
+    }
+  ]
+}

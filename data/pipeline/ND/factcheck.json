@@ -1,0 +1,107 @@
+{
+  "state": "ND",
+  "stateName": "North Dakota",
+  "checkedAt": "2026-04-14T10:06:58.833Z",
+  "total": 3,
+  "skipped": 0,
+  "parseErrors": 0,
+  "errors": 0,
+  "programsWithFlags": 1,
+  "totalFlags": 1,
+  "highSeverityFlags": 0,
+  "programs": [
+    {
+      "programId": "nd-basic-care-assistance-program",
+      "programName": "North Dakota Basic Care Assistance Program (BCAP)",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 3000,
+        "assets_couple": null,
+        "phones": [
+          "8666146005"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": [
+        6
+      ],
+      "flags": [],
+      "notes": null
+    },
+    {
+      "programId": "nd-aging-in-community-project",
+      "programName": "North Dakota Aging in Community (AIC) Project",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No eligibility criteria (age threshold, income, assets) or phone number found in sources; program appears open to older adults in rural areas without specified tests. Prefer official NDSU source: https://www.ndsu.edu/agriculture/extension/programs/aging-community-program"
+      },
+      "flags": [],
+      "notes": "No eligibility criteria (age threshold, income, assets) or phone number found in sources; program appears open to older adults in rural areas without specified tests. Prefer official NDSU source: https://www.ndsu.edu/agriculture/extension/programs/aging-community-program"
+    },
+    {
+      "programId": "nd-assistive-senior-safety-program",
+      "programName": "ND Assistive Senior Safety Program",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8007355400"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8008954728",
+        "sources": {
+          "age": "https://ndassistive.org/senior-safety-program/",
+          "income": null,
+          "assets": null,
+          "phone": "https://ndassistive.org/senior-safety-program/"
+        },
+        "notes": "No income or asset limits mentioned in sources; program funded via Older Americans Act through ND Dept of Human Services."
+      },
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "8007355400"
+          ],
+          "verifiedValue": "8008954728"
+        }
+      ],
+      "notes": "No income or asset limits mentioned in sources; program funded via Older Americans Act through ND Dept of Human Services."
+    }
+  ]
+}

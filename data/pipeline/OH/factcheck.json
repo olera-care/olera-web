@@ -1,0 +1,458 @@
+{
+  "state": "OH",
+  "stateName": "Ohio",
+  "checkedAt": "2026-04-14T10:07:16.263Z",
+  "total": 12,
+  "skipped": 0,
+  "parseErrors": 0,
+  "errors": 0,
+  "programsWithFlags": 3,
+  "totalFlags": 5,
+  "highSeverityFlags": 4,
+  "programs": [
+    {
+      "programId": "oh-medicaid-aged-blind-disabled",
+      "programName": "Medicaid for the Aged, Blind, or Disabled (ABD)",
+      "facts": {
+        "age": 65,
+        "income_1": 794,
+        "income_2": 1191,
+        "assets_individual": 2000,
+        "assets_couple": 3000,
+        "phones": [
+          "8003248680"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 65,
+        "income_1": 994,
+        "income_2": 1491,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8003248680",
+        "sources": {
+          "age": "https://medicaid.ohio.gov/families-and-individuals/citizen-programs-and-initiatives/aged-blind-disabled",
+          "income": "https://dam.assets.ohio.gov/image/upload/medicaid.ohio.gov/Families,%20Individuals/Programs/whoQualifies/2026_Aged_Blind_Disabled_Individuals.pdf",
+          "assets": null,
+          "phone": "https://www.healthinsurance.org/medicaid/ohio/"
+        },
+        "notes": "Age threshold is 65+ for seniors in ABD Medicaid. Income limits are based on SSI benefit rates (100% FBR): $994 individual, $1,491 couple for 2026. Asset limits not published in retrieved sources; Ohio ABD is described as 'income and resource based' but specific countable asset caps are not provided in available search results. Phone number 800-324-8680 is listed for Ohio Medicaid enrollment."
+      },
+      "flags": [
+        {
+          "field": "income_1",
+          "severity": "high",
+          "draftValue": 794,
+          "verifiedValue": 994,
+          "pctDiff": 20.1
+        },
+        {
+          "field": "income_2",
+          "severity": "high",
+          "draftValue": 1191,
+          "verifiedValue": 1491,
+          "pctDiff": 20.1
+        }
+      ],
+      "notes": "Age threshold is 65+ for seniors in ABD Medicaid. Income limits are based on SSI benefit rates (100% FBR): $994 individual, $1,491 couple for 2026. Asset limits not published in retrieved sources; Ohio ABD is described as 'income and resource based' but specific countable asset caps are not provided in available search results. Phone number 800-324-8680 is listed for Ohio Medicaid enrollment."
+    },
+    {
+      "programId": "oh-passport-waiver",
+      "programName": "PASSPORT Waiver",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "18002664346",
+          "6146457250",
+          "211",
+          "16144666190"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": 2901,
+        "income_2": null,
+        "assets_individual": 2000,
+        "assets_couple": 32828,
+        "phone": "8556926994",
+        "sources": {
+          "age": "https://www.medicaidplanningassistance.org/ohio-passport-waiver/",
+          "income": "https://www.medicaidplanningassistance.org/ohio-passport-waiver/",
+          "assets": "https://mombahc.com/7-key-steps-to-qualify-for-ohio-passport-home-care/",
+          "phone": "https://info4seniors.org/public-notice-passport-waiver-renewal/"
+        },
+        "notes": "Age 60 is the minimum for seniors; physically disabled persons aged 60-64 also qualify. Income limit of $2,901/month (2025 rate, adjusted annually in January) applies to individual applicants regardless of marital status. For married couples where both are applicants, each spouse is evaluated individually at $2,901/month; non-applicant spouse income allowance varies based on shelter/utility costs but cannot exceed $3,948/month total. Asset limits are from 2024 data; current 2026 limits not found in search results. Phone number is toll-free for voicemail requests."
+      },
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "18002664346",
+            "6146457250",
+            "211",
+            "16144666190"
+          ],
+          "verifiedValue": "8556926994"
+        }
+      ],
+      "notes": "Age 60 is the minimum for seniors; physically disabled persons aged 60-64 also qualify. Income limit of $2,901/month (2025 rate, adjusted annually in January) applies to individual applicants regardless of marital status. For married couples where both are applicants, each spouse is evaluated individually at $2,901/month; non-applicant spouse income allowance varies based on shelter/utility costs but cannot exceed $3,948/month total. Asset limits are from 2024 data; current 2026 limits not found in search results. Phone number is toll-free for voicemail requests."
+    },
+    {
+      "programId": "oh-pace-all-inclusive-care",
+      "programName": "Ohio Program of All-Inclusive Care for the Elderly (PACE)",
+      "facts": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8446406446"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://aging.ohio.gov/PACE",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No income or asset limits found in sources; uses institutional Medicaid financial eligibility standards if seeking Medicaid assistance. Program active and expanding as of 2026."
+      },
+      "flags": [],
+      "notes": "No income or asset limits found in sources; uses institutional Medicaid financial eligibility standards if seeking Medicaid assistance. Program active and expanding as of 2026."
+    },
+    {
+      "programId": "oh-medicare-savings-programs",
+      "programName": "Medicare Savings Programs (QMB, SLMB, QI-1)",
+      "facts": {
+        "age": null,
+        "income_1": 1350,
+        "income_2": 1824,
+        "assets_individual": 9950,
+        "assets_couple": 14910,
+        "phones": [
+          "18003248680",
+          "18446406446"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 9950,
+        "assets_couple": 14910,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": "https://benefitscheckup.org/program/health_oh_msp_medicare_premium",
+          "phone": null
+        },
+        "notes": "Multiple programs (QMB, SLMB, QI-1) with different income limits; no single value and no 2026 Ohio official source found for income. Assets consistent across sources for Ohio."
+      },
+      "flags": [],
+      "notes": "Multiple programs (QMB, SLMB, QI-1) with different income limits; no single value and no 2026 Ohio official source found for income. Assets consistent across sources for Ohio."
+    },
+    {
+      "programId": "oh-snap-food-benefits",
+      "programName": "Ohio SNAP (Supplemental Nutrition Assistance Program)",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 4500,
+        "assets_couple": 4500,
+        "phones": [
+          "8666633225"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No authoritative data found on senior-specific age threshold, countable assets, or phone in search results; SNAP generally has no asset test for most households and eligibility is income-based with gross/net limits varying by household size"
+      },
+      "flags": [],
+      "notes": "No authoritative data found on senior-specific age threshold, countable assets, or phone in search results; SNAP generally has no asset test for most households and eligibility is income-based with gross/net limits varying by household size"
+    },
+    {
+      "programId": "oh-heap-energy-assistance",
+      "programName": "Home Energy Assistance Program (HEAP)",
+      "facts": {
+        "age": null,
+        "income_1": 5049,
+        "income_2": 6816,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "18002820880",
+          "18008605799",
+          "18009454250",
+          "711"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": 1479,
+        "income_2": 1992,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8002820880",
+        "sources": {
+          "age": null,
+          "income": "https://development.ohio.gov/individual/energy-assistance/1-home-energy-assistance-program",
+          "assets": null,
+          "phone": "https://www.peakofohio.com/local-news/heating-assistance-available-through-2026/"
+        },
+        "notes": "HEAP has no age requirement; program serves all eligible low-income households regardless of age. Income limits shown are for July 2025–May 2026 period (175% FPG for households ≤8 members). No asset test found in official sources. Program administration transferred to Ohio Department of Job and Family Services effective April 6, 2026. Current application deadline is May 31, 2026."
+      },
+      "flags": [
+        {
+          "field": "income_1",
+          "severity": "high",
+          "draftValue": 5049,
+          "verifiedValue": 1479,
+          "pctDiff": 70.7
+        },
+        {
+          "field": "income_2",
+          "severity": "high",
+          "draftValue": 6816,
+          "verifiedValue": 1992,
+          "pctDiff": 70.8
+        }
+      ],
+      "notes": "HEAP has no age requirement; program serves all eligible low-income households regardless of age. Income limits shown are for July 2025–May 2026 period (175% FPG for households ≤8 members). No asset test found in official sources. Program administration transferred to Ohio Department of Job and Family Services effective April 6, 2026. Current application deadline is May 31, 2026."
+    },
+    {
+      "programId": "oh-weatherization-assistance-program",
+      "programName": "Weatherization Assistance Program (WAP)",
+      "facts": {
+        "age": null,
+        "income_1": 2608,
+        "income_2": 3525,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8008481300",
+          "6142522799",
+          "7405948499",
+          "4197845393"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": 2608,
+        "income_2": 3525,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": "https://development.ohio.gov/individual/energy-assistance/6-home-weatherization-assistance-program",
+          "assets": null,
+          "phone": null
+        },
+        "notes": "Program transitioning to Ohio Dept of Job and Family Services as of April 6, 2026; no statewide phone or asset limits found; priority for seniors over 60 but no age minimum"
+      },
+      "flags": [],
+      "notes": "Program transitioning to Ohio Dept of Job and Family Services as of April 6, 2026; no statewide phone or asset limits found; priority for seniors over 60 but no age minimum"
+    },
+    {
+      "programId": "oh-oshiip-medicare-counseling",
+      "programName": "Ohio Senior Health Insurance Information Program (OSHIIP)",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8006861578"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8006861578",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://insurance.ohio.gov/consumers/medicare/01-oshiip"
+        },
+        "notes": "OSHIIP is a free counseling program for Medicare beneficiaries with no age, income, or asset eligibility requirements"
+      },
+      "flags": [],
+      "notes": "OSHIIP is a free counseling program for Medicare beneficiaries with no age, income, or asset eligibility requirements"
+    },
+    {
+      "programId": "oh-home-delivered-meals-aging-network",
+      "programName": "Home-Delivered Meals (via Ohio Aging Network)",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "18002664346",
+          "6145256200",
+          "3308327220"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://www.williamscountyoh.gov/169/Home-Delivered-Meals,https://www.areaagingsolutions.org/programs-services/home-delivered-and-congregate-meals/",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "Age confirmed via Ohio AAA sites citing OAA standards; no statewide income/assets tests or phone found in official sources"
+      },
+      "flags": [],
+      "notes": "Age confirmed via Ohio AAA sites citing OAA standards; no statewide income/assets tests or phone found in official sources"
+    },
+    {
+      "programId": "oh-nfcsp-caregiver-support",
+      "programName": "National Family Caregiver Support Program (NFCSP)",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8662435678",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8662435678",
+        "sources": {
+          "age": "https://aging.ohio.gov/care-and-living/caregiver-support/caregiver-support-program-1",
+          "income": null,
+          "assets": null,
+          "phone": "https://aging.ohio.gov/care-and-living/caregiver-support/caregiver-support-program-1"
+        },
+        "notes": "NFCSP has no financial requirements (income/assets). Age 60+ applies to senior caregiving pathway. Phone number is Ohio-specific Area Agency on Aging connector line per official Ohio Department of Aging source. Program remains active as of 2026."
+      },
+      "flags": [],
+      "notes": "NFCSP has no financial requirements (income/assets). Age 60+ applies to senior caregiving pathway. Phone number is Ohio-specific Area Agency on Aging connector line per official Ohio Department of Aging source. Program remains active as of 2026."
+    },
+    {
+      "programId": "oh-scsep-employment",
+      "programName": "Senior Community Service Employment Program (SCSEP)",
+      "facts": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "6144665500",
+          "9378400055",
+          "3308327220",
+          "7403535238",
+          "3307820978"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://aging.ohio.gov/care-and-living/staying-active/staying-active-catalog/senior-community-services-employment-program",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No statewide phone or specific income/assets limits found; contact local providers like VANTAGE Aging for eligibility details. Program active as of 2026 per state sources."
+      },
+      "flags": [],
+      "notes": "No statewide phone or specific income/assets limits found; contact local providers like VANTAGE Aging for eligibility details. Program active as of 2026 per state sources."
+    },
+    {
+      "programId": "oh-legal-assistance-seniors",
+      "programName": "Legal Assistance for Seniors (via Ohio Legal Services)",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "5133454160",
+          "18004886070"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "18004886070",
+        "sources": {
+          "age": "https://www.proseniors.org/legal-services/legal-hotline/",
+          "income": null,
+          "assets": null,
+          "phone": "https://aging.ohio.gov/care-and-living/get-help/understand-your-benefits/legal-issues-and-assistance-1"
+        },
+        "notes": "Ohio Legal Services refers to statewide legal aid network; primary senior program is Ohio's Legal Helpline via Pro Seniors (age 60+, no income/assets test)"
+      },
+      "flags": [],
+      "notes": "Ohio Legal Services refers to statewide legal aid network; primary senior program is Ohio's Legal Helpline via Pro Seniors (age 60+, no income/assets test)"
+    }
+  ]
+}

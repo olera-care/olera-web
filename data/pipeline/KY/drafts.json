@@ -1,343 +1,2675 @@
 {
   "state": "KY",
   "stateName": "Kentucky",
-  "draftedAt": "2026-04-09T09:33:47.512Z",
-  "total": 2,
-  "successful": 2,
+  "draftedAt": "2026-04-13T22:29:50.206Z",
+  "total": 16,
+  "successful": 16,
   "programs": [
     {
-      "id": "kentucky-pace-senior-community-care",
-      "name": "Senior CommUnity Care of Kentucky (PACE)",
-      "shortName": "Kentucky PACE",
-      "tagline": "All medical care, medications, and home services coordinated under one program for parents who need nursing home-level care but want to stay home.",
+      "id": "medicaid-long-term-care",
+      "name": "Kentucky Medicaid",
+      "shortName": "Kentucky Medicaid",
+      "tagline": "If your parent needs daily care help and has limited income, Medicaid can cover nursing home costs or home-based services.",
       "programType": "benefit",
-      "complexity": "deep",
+      "complexity": "medium",
       "geographicScope": {
-        "type": "local",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Louisville: 960 S 4th St, Louisville KY 40203; (502) 676-7515",
-            "type": "service-area"
-          },
-          {
-            "name": "Northern KY: 47 Cavalier Blvd., Suite 140, Florence, KY 41042; (859) 970-2450",
-            "type": "service-area"
-          }
-        ]
+        "type": "state"
       },
-      "intro": "If your parent needs nursing home-level care but wants to stay at home, Kentucky PACE provides all their medical care, medications, therapies, and home services under one coordinated program. Because PACE becomes your parent's sole healthcare provider, they won't need to coordinate between separate doctors, specialists, and services — one interdisciplinary team manages everything from primary care to prescription drugs to transportation.\n\nPACE is only available in specific Kentucky counties: Jefferson County (Louisville area) and Boone, Kenton, and Campbell Counties (Northern Kentucky). Your parent must be 55+ and certified by the state to need nursing home level of care, but still be able to live safely in the community with PACE services. Parents with both Medicare and Medicaid get 100% coverage, while those with Medicare-only pay fees.",
+      "intro": "If your parent is 65+ and needs help with daily activities like bathing, dressing, or medication management, Kentucky Medicaid can cover the full cost of nursing home care or home-based services. This isn't regular Medicaid — it's specifically for long-term care when your parent needs significant daily assistance.\n\nKentucky Medicaid covers nursing home costs entirely, or provides home-based services like personal care, adult day care, meal delivery, and home modifications through waiver programs. Your parent can have income up to $2,982/month and assets up to $2,000 (with spousal protections allowing the community spouse to keep $31,584–$162,660 in assets).\n\nThe key requirement is proving Nursing Facility Level of Care — that your parent needs help with at least 3 activities of daily living or has cognitive issues like dementia. Home-based waiver services may have waitlists, but nursing home coverage is available immediately if a bed is open.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
-          "Age 55+",
-          "Need nursing home level of care",
-          "Can live safely at home with services",
-          "Must live in Jefferson, Boone, Kenton, or Campbell County"
+          "Age 65+",
+          "Income below $2,982/month",
+          "Assets below $2,000 (individual)",
+          "Needs help with 3+ daily activities",
+          "Kentucky resident"
         ],
-        "ageRequirement": "55+",
+        "ageRequirement": "65+",
         "incomeTable": null,
-        "assetLimits": null,
-        "functionalRequirement": "Must be certified by the state to need nursing home level of care (a clinical assessment of whether your parent needs daily help with bathing, dressing, medication management, or other activities of daily living)",
+        "assetLimits": {
+          "individual": 2000,
+          "couple": 4000,
+          "countedAssets": [
+            "Bank accounts",
+            "Investment accounts",
+            "Cash",
+            "Additional vehicles",
+            "Non-exempt property"
+          ],
+          "exemptAssets": [
+            "Primary home (if equity under $713,000)",
+            "One vehicle",
+            "Personal belongings",
+            "Burial plots and prepaid burial funds up to $1,500",
+            "Life insurance up to $1,500 face value"
+          ],
+          "homeEquityCap": 713000
+        },
+        "functionalRequirement": "Must need help with at least 3 activities of daily living (bathing, dressing, eating, toileting, transferring, continence) or have cognitive/behavioral issues like dementia requiring supervision",
         "otherRequirements": [
-          "Must reside in Jefferson County (Louisville) or Boone, Kenton, Campbell Counties (Northern KY)",
-          "Must be able to live safely in the community at enrollment time with PACE services"
+          "Kentucky resident",
+          "US citizen or qualified immigrant",
+          "Must pass Nursing Facility Level of Care assessment"
         ],
         "povertyLevelReference": null
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Call your local PACE center to start the eligibility assessment — processing time varies by individual situation.",
+        "summary": "Apply online at kynect.ky.gov or call 1-855-306-8959, then complete a medical assessment — takes 45-90 days total.",
         "steps": [
           {
             "step": 1,
-            "title": "Call your local PACE center",
-            "description": "Louisville: (502) 676-7515. Northern KY: (859) 970-2450. They'll explain the program and schedule an initial assessment."
+            "title": "Start your application",
+            "description": "Apply online at kynect.ky.gov (use the prescreening tool first) or call 1-855-306-8959. You can also visit your local DCBS office — find locations at chfs.ky.gov."
           },
           {
             "step": 2,
-            "title": "Complete eligibility assessment",
-            "description": "PACE staff will evaluate whether your parent meets nursing home level of care requirements and can live safely in the community."
+            "title": "Submit required documents",
+            "description": "Gather income, asset, and medical documentation. Submit everything at once to avoid delays. Your local DCBS office can help with document requirements."
           },
           {
             "step": 3,
-            "title": "Verify Medicaid eligibility (if applicable)",
-            "description": "If your parent has Medicaid, call (800) 807-1301 or visit KYHealth-Net to confirm current eligibility status."
+            "title": "Complete medical assessment",
+            "description": "Schedule the Nursing Facility Level of Care assessment through form HP-001A. This determines if your parent qualifies for long-term care services."
           },
           {
             "step": 4,
-            "title": "Attend enrollment meeting",
-            "description": "Review all services, payment structure, and complete enrollment paperwork at the PACE center."
+            "title": "Choose services if approved",
+            "description": "If approved, choose between nursing home care (immediate if bed available) or home-based waiver services (may have waitlist depending on your region)."
           }
         ],
-        "processingTime": "Not specified",
-        "waitlist": null,
-        "tip": "Visit the PACE center in person to see the adult day services and meet staff before enrolling — this helps you understand what your parent's daily experience will be like.",
-        "urls": []
+        "processingTime": "45-90 days typical, varies by completeness of application and assessment scheduling",
+        "waitlist": "Possible waitlist for home-based waiver services — varies by region and specific waiver program",
+        "tip": "If your parent's income exceeds $2,982/month, you'll need to set up a Qualified Income Trust (Miller Trust) — consult an elder law attorney before applying.",
+        "urls": [
+          {
+            "label": "Kentucky Medicaid Application",
+            "url": "https://kynect.ky.gov"
+          },
+          {
+            "label": "Find Local DCBS Office",
+            "url": "https://chfs.ky.gov"
+          }
+        ]
       },
+      "documentsNeeded": [
+        "Birth certificate or passport for proof of age and citizenship",
+        "Proof of Kentucky residency (utility bill, lease, or state-issued document)",
+        "Social Security award letters for all income sources",
+        "Bank statements for all accounts (last 3 months)",
+        "Investment account statements (stocks, bonds, annuities, trusts)",
+        "Property deeds and current tax assessments",
+        "Vehicle titles and current market value assessments",
+        "Life insurance policies with face values",
+        "Pre-need burial contracts or irrevocable burial trust documents",
+        "Medical records documenting functional limitations and care needs",
+        "Current medication list and prescribing physician information",
+        "Marriage certificate if applying with spouse",
+        "Power of attorney documents if someone else is applying"
+      ],
+      "contacts": [
+        {
+          "label": "Kynect Customer Service",
+          "phone": "(855) 306-8959",
+          "description": "Kentucky Medicaid applications and questions",
+          "hours": "Mon-Fri 7am-9pm, Sat 9am-4pm ET"
+        },
+        {
+          "label": "Kentucky 2-1-1",
+          "phone": "2-1-1",
+          "description": "Free helpline for all Kentucky social services and local DCBS offices",
+          "hours": "24 hours, 7 days a week"
+        }
+      ],
+      "applicationNotes": [
+        "The 60-month look-back period means any gifts or asset transfers in the past 5 years may create penalty periods — gather records of all transfers",
+        "Community spouse asset protection varies from $31,584 to $162,660 — higher amounts require a fair hearing but are often approved",
+        "Home-based waiver services are assessed one-at-a-time based on need, unlike nursing home care which provides comprehensive services immediately",
+        "Many families unknowingly spend down assets when they might already qualify — apply even if you think assets are too high"
+      ],
+      "relatedPrograms": [
+        "Kentucky SNAP (Food Benefits)",
+        "Kentucky Energy Assistance (LIHEAP)",
+        "Kentucky Medicare Savings Program",
+        "Area Agency on Aging Services"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if it's worth more than the $2,000 asset limit?",
+          "answer": "Yes, the primary home is exempt from asset limits as long as your parent intends to return and the home equity is under $713,000. Even if your parent moves to a nursing home, the house remains protected if there's intent to return or if a spouse, disabled child, or caregiver child lives there."
+        },
+        {
+          "question": "What if my parent's Social Security is $3,200/month — over the $2,982 limit?",
+          "answer": "Your parent can still qualify by setting up a Qualified Income Trust (also called a Miller Trust). The excess income ($218 in this case) goes into the trust, and your parent pays it toward their care costs. You'll need an elder law attorney to set this up properly."
+        },
+        {
+          "question": "How long is the waitlist for home-based services really?",
+          "answer": "Waitlist length varies significantly by region and specific waiver program — some areas have immediate openings while others may have several months' wait. Nursing home coverage is available immediately if a bed is open. Ask your DCBS office about current wait times in your area."
+        },
+        {
+          "question": "Can I apply for my parent if they have dementia and can't manage paperwork?",
+          "answer": "Yes, family members can apply on behalf of parents who cannot manage their own affairs. You'll need to provide documentation of your authority to act (power of attorney) or the state may require guardianship proceedings depending on your parent's capacity."
+        },
+        {
+          "question": "Will Medicaid take my parent's house after they die?",
+          "answer": "Kentucky may seek estate recovery from the home's value after death, but only after the surviving spouse dies and if no qualifying children live there. Many protections exist, and proper planning can minimize recovery. Consult an elder law attorney about estate recovery rules."
+        },
+        {
+          "question": "What's the difference between nursing home Medicaid and the waiver programs?",
+          "answer": "Nursing home Medicaid covers all care costs immediately if a bed is available. Waiver programs provide home-based services like personal care and adult day care, but you receive services one-at-a-time based on assessment, and there may be waitlists. Both require the same income and asset limits."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "asset-focused",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "warm"
+      },
+      "icon": "Bed",
+      "phone": "(855) 306-8959",
+      "sourceUrl": "https://kynect.ky.gov",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "hcbs-waivers",
+      "name": "Kentucky Home and Community-Based Services (HCBS) Waivers",
+      "shortName": "HCBS Waivers",
+      "tagline": "Get Medicaid-funded home care services so your parent can avoid nursing home placement while receiving daily assistance.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "state"
+      },
+      "intro": "If your parent needs daily help with bathing, dressing, or medication management but wants to stay home, Kentucky's HCBS Waivers can provide personal care assistance, homemaker services, and adult day health programs through Medicaid. This program serves people who would otherwise need nursing home level care — a physician must certify in writing that nursing facility admission would occur without these services.\n\nServices are individualized based on your parent's needs and can include respite care for family caregivers, home modifications, meal delivery, and emergency response systems. Your parent may need to pay part of the cost based on their income after allowing $694 for personal needs and deductions for medical expenses. Income limit: $2,152/month gross, though a Qualifying Income Trust can help if income exceeds this amount.\n\nCritical: There is currently a waiting list for services. Placement is determined by when the completed application is received, so apply immediately even if services aren't needed right now.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+ or disabled at any age",
+          "Income under $2,152/month",
+          "Medicaid eligible",
+          "Needs nursing facility level care",
+          "Currently has a waiting list"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must meet nursing facility level of care requirements — a physician must certify in writing that nursing facility services would be needed without waiver services. Assessed based on medical diagnosis, age-related dependencies, and daily care needs.",
+        "otherRequirements": [
+          "Must be eligible for Medicaid",
+          "5-year lookback period applies to asset transfers"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply for Medicaid first, then the waiver — total process can be done online at kynect or by calling (855) 306-8959.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Apply for Medicaid",
+            "description": "First, get Medicaid financial eligibility through kynect (Kentucky's portal), call DCBS at (855) 306-8959, or visit your county DCBS office in person."
+          },
+          {
+            "step": 2,
+            "title": "Get physician certification",
+            "description": "Have your parent's doctor complete written certification that nursing facility services would be ordered without waiver services."
+          },
+          {
+            "step": 3,
+            "title": "Apply for waiver services",
+            "description": "Once Medicaid-eligible, complete the HCB waiver application online at kynect, or visit an Aging and Disability Resource Center or Community Mental Health Center."
+          },
+          {
+            "step": 4,
+            "title": "Complete assessment",
+            "description": "An Access and Functional Needs Assessment will be conducted to evaluate your parent's level of care and support needs."
+          }
+        ],
+        "processingTime": "Processing time not specified in available sources",
+        "waitlist": "Currently has a waiting list — placement determined by date completed application is received",
+        "tip": "Apply immediately even if services aren't needed right now, since there's a waiting list and placement goes by application date.",
+        "urls": [
+          {
+            "label": "Kentucky kynect portal",
+            "url": "https://kynect.ky.gov"
+          },
+          {
+            "label": "Official HCBS program page",
+            "url": "https://chfs.ky.gov/agencies/dms/dca/pages/hcb-waiver.aspx"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Proof of citizenship (birth certificate, passport, or naturalization papers)",
+        "Government-issued photo ID",
+        "Social Security card",
+        "Most recent Social Security award letter or pension statements",
+        "Bank statements for all accounts (last 3 months)",
+        "Documentation of all other income sources",
+        "Health insurance card (Medicare, private insurance)",
+        "Health insurance premium statements",
+        "Medical bills and out-of-pocket medical expenses",
+        "Physician certification that nursing facility services would be ordered without waiver services",
+        "Documentation of all assets and resources"
+      ],
+      "contacts": [
+        {
+          "label": "DCBS Benefits Line",
+          "phone": "(855) 306-8959",
+          "description": "Initial Medicaid application and eligibility questions",
+          "hours": "Business hours"
+        },
+        {
+          "label": "DAIL Information Line",
+          "phone": "(877) 315-0589",
+          "description": "HCB program information and questions",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Lincoln Trail ADRC",
+          "phone": "(270) 737-6082",
+          "description": "General waiver program information and local assistance",
+          "hours": "Business hours"
+        }
+      ],
+      "applicationNotes": [
+        "You must apply at the DCBS office in the county where your parent lives — applications cannot be processed across county lines",
+        "The physician certification requirement is strict — make sure the doctor understands they must certify that nursing facility admission would happen without waiver services",
+        "If income exceeds $2,152/month, you'll need to establish a Qualifying Income Trust before approval — this adds time and complexity to the process",
+        "Patient liability (cost-sharing) will be calculated after approval based on income minus deductions — this amount must be paid to the waiver provider monthly"
+      ],
+      "relatedPrograms": [
+        "Kentucky Medicaid",
+        "PACE (Program of All-Inclusive Care for the Elderly)",
+        "Kentucky SNAP benefits",
+        "LIHEAP energy assistance"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house while on the HCBS waiver?",
+          "answer": "Yes, the family home is generally exempt from asset limits while your parent lives there. However, Kentucky has a 5-year lookback period for asset transfers, so be cautious about transferring property before applying. The state's Estate Recovery program may seek repayment from the home after death."
+        },
+        {
+          "question": "What if my parent's income is $2,200/month — just over the limit?",
+          "answer": "Your parent can still qualify by establishing a Qualifying Income Trust (QIT), which redirects excess income to meet the $2,152 limit. This adds complexity to the application process, so consider working with an elder law attorney to set this up properly."
+        },
+        {
+          "question": "How long is the waiting list really?",
+          "answer": "The sources don't specify current wait times, but there is an active waiting list statewide. Placement is determined strictly by when your completed application is received, not by urgency of need. Call (877) 315-0589 to ask about current wait estimates in your area."
+        },
+        {
+          "question": "Can I apply on behalf of my parent who has dementia?",
+          "answer": "Yes, family members can apply for parents who cannot complete the process themselves. You'll need to indicate this during the application and may need legal documentation of your authority to act on their behalf, especially for financial matters."
+        },
+        {
+          "question": "What happens if my parent's care needs increase after enrollment?",
+          "answer": "Services can be adjusted based on changing needs through reassessment. The case manager will work with your family to modify the care plan. However, if needs decrease significantly, your parent might no longer qualify for nursing facility level of care."
+        },
+        {
+          "question": "Can my parent have both Medicare and HCBS waiver services?",
+          "answer": "Yes, your parent keeps Medicare for medical services while the HCBS waiver covers long-term care services that Medicare doesn't pay for, like personal care assistance and homemaker services. These programs work together, not in competition."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "waitlist",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "warm"
+      },
+      "icon": "House",
+      "phone": "(855) 306-8959",
+      "sourceUrl": "https://chfs.ky.gov/agencies/dms/dca/pages/hcb-waiver.aspx",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "kentucky-pace",
+      "name": "Kentucky PACE",
+      "shortName": "Kentucky PACE",
+      "tagline": "All-in-one medical and long-term care that keeps your parent at home instead of a nursing facility.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "state"
+      },
+      "intro": "If your parent is 55+ and needs nursing home-level care but wants to stay at home, Kentucky PACE provides everything under one roof — primary care, specialists, prescriptions, therapies, home care, meals, and transportation. Because PACE covers all medical care through one coordinated team, your parent won't juggle multiple doctors or insurance approvals.\n\nPACE is only available in select Kentucky counties through three regional providers. If your parent has both Medicare and Medicaid, all services are free. Medicare-only participants pay monthly fees ranging from $200-900 or more depending on their care needs.\n\nThe catch: PACE becomes your parent's sole source of Medicare and Medicaid services. All non-emergency care must go through their PACE center, or your family pays out-of-pocket.",
+      "savingsRange": "",
+      "savingsSource": "Free service for dual-eligible participants",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Need nursing home level of care",
+          "Live in PACE service area",
+          "Able to live safely at home with support"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must be certified by Kentucky as needing nursing home level of care (requires assessment showing need for daily help with activities like bathing, dressing, medication management, or mobility)",
+        "otherRequirements": [
+          "Live in the service area of one of Kentucky's three PACE providers",
+          "Able to live safely in the community with PACE services and support",
+          "Cannot be enrolled in Medicare Advantage, Medicare prescription drug plan, or hospice care"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your regional PACE provider directly — they handle intake, assessment, and enrollment paperwork.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your PACE provider",
+            "description": "Check if your parent lives in a PACE service area: Senior CommUnity Care (Louisville area), Horizon PACE (14 counties including Warren, Madison, Pulaski), or Care Guide Partners (6 counties including Hardin, Nelson, Bullitt)."
+          },
+          {
+            "step": 2,
+            "title": "Call for intake",
+            "description": "Contact your provider directly — Senior CommUnity Care at (502) 676-7550, or call (800) 807-1301 to verify Medicaid eligibility and get provider contact info."
+          },
+          {
+            "step": 3,
+            "title": "Home or center assessment",
+            "description": "An enrollment coordinator visits your parent's home or schedules a center visit to assess care needs and determine nursing home level certification."
+          },
+          {
+            "step": 4,
+            "title": "Complete enrollment",
+            "description": "The PACE team handles all enrollment paperwork, develops your parent's care plan, and coordinates Medicare/Medicaid transitions."
+          }
+        ],
+        "processingTime": "Processing time varies by provider and involves intake, clinical assessment, care plan development, and enrollment coordination",
+        "waitlist": null,
+        "tip": "If your parent has both Medicare and Medicaid, verify their Medicaid status before calling — dual eligibility means free PACE services.",
+        "urls": [
+          {
+            "label": "Kentucky PACE Program Information",
+            "url": "https://chfs.ky.gov/agencies/dail/Pages/pace.aspx"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Medicare card (both Part A and Part B)",
+        "Medicaid card or verification letter if applicable",
+        "Social Security card",
+        "Valid government-issued photo ID",
+        "Proof of Kentucky residency (utility bill, lease, or state-issued document)",
+        "Current medication list from doctor or pharmacy",
+        "Recent medical records or hospital discharge summaries",
+        "List of current healthcare providers and specialists",
+        "Health insurance information for any supplemental coverage"
+      ],
+      "contacts": [
+        {
+          "label": "Senior CommUnity Care PACE",
+          "phone": "(502) 676-7550",
+          "description": "Louisville area PACE provider",
+          "hours": "Contact for hours"
+        },
+        {
+          "label": "Kentucky Medicaid Verification",
+          "phone": "(800) 807-1301",
+          "description": "Verify Medicaid eligibility and get PACE provider contacts",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Kentucky Department for Aging",
+          "phone": "(502) 564-6930",
+          "description": "General aging services and program information",
+          "hours": "Mon-Fri 8am-4:30pm ET"
+        }
+      ],
+      "applicationNotes": [
+        "Only available in select counties — confirm your parent lives in a PACE service area before applying",
+        "PACE becomes the sole source of Medicare/Medicaid services — your parent cannot use outside providers for covered services",
+        "Medicare-only participants pay monthly fees while dual-eligible (Medicare + Medicaid) participants receive all services at no cost"
+      ],
+      "relatedPrograms": [
+        "Kentucky Medicaid Waiver Programs",
+        "Area Development Districts Aging Services",
+        "Kentucky Family Caregiver Support Program"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent keep seeing their current doctor after enrolling in PACE?",
+          "answer": "No, your parent must receive all care through the PACE center's medical team. PACE assigns a primary care physician and coordinates all specialists within their network. Emergency care at any hospital is covered, but routine care must go through PACE or your family pays out-of-pocket."
+        },
+        {
+          "question": "What if we live in Kentucky but not in a PACE service area?",
+          "answer": "Kentucky PACE is only available through three regional providers covering about 20 counties total. If your parent lives outside these service areas, they cannot enroll in PACE. Call (800) 807-1301 to confirm if your county is covered and explore other waiver programs."
+        },
+        {
+          "question": "How much will my Medicare-only parent pay for PACE services?",
+          "answer": "Medicare-only participants pay monthly fees estimated between $200-900 or potentially $7,000+ for full private pay, depending on their care needs. The exact amount varies by provider and your parent's care plan. Dual-eligible participants (Medicare + Medicaid) pay nothing."
+        },
+        {
+          "question": "Can my parent leave PACE if they don't like the program?",
+          "answer": "Yes, enrollment is voluntary and your parent can disenroll at any time. The PACE team coordinates the transition back to regular Medicare and Medicaid services. However, they'll need to find new doctors since PACE physicians typically don't accept patients outside the program."
+        },
+        {
+          "question": "What happens if my parent needs nursing home care while in PACE?",
+          "answer": "PACE covers nursing home care when medically necessary, and the interdisciplinary team makes placement decisions. Because PACE participants are already certified as needing nursing home level of care, transitions are coordinated within the program without separate applications or waiting periods."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "warm"
+      },
+      "icon": "Stethoscope",
+      "phone": "(800) 807-1301",
+      "sourceUrl": "https://chfs.ky.gov/agencies/dail/Pages/pace.aspx",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "medicare-savings-programs-qmb-slmb-qi",
+      "name": "Kentucky Medicare Savings Programs (QMB, SLMB, QI)",
+      "shortName": "Medicare Savings Programs",
+      "tagline": "If your parent has Medicare and low income, Kentucky can pay their premiums and out-of-pocket costs — up to thousands per year in savings.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "state"
+      },
+      "intro": "If your Medicare-enrolled parent struggles with monthly premiums, deductibles, and copays, Kentucky's Medicare Savings Programs can eliminate these costs entirely. The three programs — QMB, SLMB, and QI — cover different portions of Medicare expenses based on your parent's income level, with potential savings of hundreds to thousands of dollars per year.\n\nThe most comprehensive program, QMB (Qualified Medicare Beneficiary), covers all Medicare premiums, deductibles, and copayments for people with incomes up to $1,325/month for singles or $1,783/month for couples. SLMB and QI programs have higher income limits but only cover Medicare Part B premiums. Because QMB operates like a free Medicare Supplement policy, it provides the greatest financial relief for families dealing with high medical costs.\n\nAll three programs require assets below $9,660 for individuals or $14,470 for couples. Income limits change every April 1st, and the QI program has finite funding that can run out during the year — so applying early matters.",
+      "savingsRange": "$100 – $3,000+/year in 2026",
+      "savingsSource": "Medicare premium and cost-sharing elimination based on program tier",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Must have Medicare Part A and/or Part B",
+          "Income below $1,781/month (single) or $2,400/month (couple)",
+          "Assets under $9,660 (single) or $14,470 (couple)",
+          "Kentucky resident"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1325,
+            "program": "QMB"
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 1783,
+            "program": "QMB"
+          },
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1585,
+            "program": "SLMB"
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2135,
+            "program": "SLMB"
+          },
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1781,
+            "program": "QI"
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2400,
+            "program": "QI"
+          }
+        ],
+        "assetLimits": {
+          "individual": 9660,
+          "couple": 14470,
+          "countedAssets": [
+            "Bank accounts",
+            "Investments",
+            "Property other than primary home"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "One vehicle",
+            "Burial funds"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be enrolled in Medicare Part A and/or Part B",
+          "Must be a Kentucky resident",
+          "Income and assets must be under program limits"
+        ],
+        "povertyLevelReference": "100-135% FPL depending on program tier"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply through Kentucky Cabinet for Health and Family Services in person or by mail — processing time varies.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact Kentucky Medicaid Services",
+            "description": "Call Kentucky Cabinet for Health and Family Services, Department of Medicaid Services. The main office handles Medicare Savings Program applications statewide."
+          },
+          {
+            "step": 2,
+            "title": "Request application forms",
+            "description": "Ask specifically for Medicare Savings Program application materials. Reference Form MAP16 (Medicare Savings Program Fact Sheet) if needed."
+          },
+          {
+            "step": 3,
+            "title": "Gather required documents",
+            "description": "Collect Medicare card, income proof (Social Security statements, pay stubs), asset documentation (bank statements, property records), and Kentucky residency proof."
+          },
+          {
+            "step": 4,
+            "title": "Submit application",
+            "description": "Mail completed application and documents or visit a local CHFS office. Keep copies of everything you submit."
+          },
+          {
+            "step": 5,
+            "title": "Follow up on processing",
+            "description": "Contact the office if you don't hear back within 45 days. QI program applicants should apply early in the year due to limited funding."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": "QI program may have delays once block-grant funds are exhausted",
+        "tip": "Apply for QI early in the calendar year — funding is limited and runs out",
+        "urls": [
+          {
+            "label": "Kentucky Medicare Savings Programs",
+            "url": "https://chfs.ky.gov/agencies/dms/dpo/epb/Pages/msp.aspx"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Medicare card (both Part A and Part B if enrolled)",
+        "Social Security award letter or most recent statement",
+        "Pay stubs from last 30 days (if still working)",
+        "Bank statements for all accounts (last 3 months)",
+        "Investment statements (stocks, bonds, CDs, savings bonds)",
+        "Property tax statements for any real estate owned",
+        "Vehicle titles and registration",
+        "Life insurance policies with cash values",
+        "Proof of Kentucky residency (utility bill, lease, or state ID)",
+        "Birth certificate or other proof of age"
+      ],
+      "contacts": [
+        {
+          "label": "Kentucky Cabinet for Health and Family Services",
+          "phone": null,
+          "description": "Department of Medicaid Services - handles Medicare Savings Program applications",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Medicare.gov",
+          "phone": "(800) 633-4227",
+          "description": "Federal Medicare helpline for general Medicare questions",
+          "hours": "24 hours, 7 days a week"
+        }
+      ],
+      "applicationNotes": [
+        "QI program funding comes from a finite federal block grant — once exhausted, even eligible applicants cannot receive benefits until the next funding cycle",
+        "QMB automatically qualifies your parent for Medicare Part D Extra Help prescription drug assistance",
+        "Income limits include a $20 disregard that's already factored into the stated amounts",
+        "Providers cannot legally bill QMB beneficiaries for Medicare deductibles or coinsurance — if this happens, contact Kentucky Medicaid Services"
+      ],
+      "relatedPrograms": [
+        "Kentucky Medicaid",
+        "Medicare Part D Extra Help",
+        "Kentucky SNAP",
+        "LIHEAP Kentucky"
+      ],
       "contentSections": [
         {
-          "type": "county-directory",
-          "heading": "PACE Centers",
-          "offices": [
-            {
-              "name": "Louisville PACE Center",
-              "type": "service-area",
-              "phone": "(502) 676-7515",
-              "address": "960 S 4th St, Louisville KY 40203"
-            },
-            {
-              "name": "Northern Kentucky PACE Center",
-              "type": "service-area",
-              "phone": "(859) 970-2450",
-              "address": "47 Cavalier Blvd., Suite 140, Florence, KY 41042"
-            }
-          ]
-        },
-        {
-          "type": "documents",
-          "heading": "What to Bring",
-          "categories": [
-            {
-              "name": "Insurance",
-              "items": [
-                "Medicare card",
-                "Medicaid card (if your parent has Medicaid)",
-                "Any supplemental insurance cards"
-              ]
-            },
-            {
-              "name": "Medical",
-              "items": [
-                "Current medication list",
-                "Recent medical records or hospital discharge summaries",
-                "Documentation of current healthcare needs"
-              ]
-            }
-          ]
-        },
-        {
-          "type": "callout",
-          "tone": "tip",
-          "text": "Once your parent enrolls in PACE, all non-emergency medical care must go through PACE providers to be covered. They cannot use other doctors or specialists outside the PACE network."
+          "type": "comparison",
+          "title": "Three Program Tiers",
+          "content": "QMB (up to $1,325/month single): Covers all Medicare premiums, deductibles, and copayments. SLMB ($1,326-$1,585/month single): Covers Medicare Part B premiums only. QI ($1,586-$1,781/month single): Covers Medicare Part B premiums only, but funding is limited."
         }
       ],
       "faqs": [
         {
-          "question": "What if my parent has Medicare but not Medicaid?",
-          "answer": "Your parent can still enroll in PACE, but they'll pay monthly fees instead of getting 100% coverage. The PACE center can explain the specific fee structure during your enrollment meeting."
+          "question": "Can my parent have all three programs at once?",
+          "answer": "No — these are three income tiers of the same program. Your parent will qualify for the highest tier their income allows. QMB provides the most benefits, QI provides the least."
         },
         {
-          "question": "Can my parent keep seeing their current doctors?",
-          "answer": "No. PACE becomes your parent's sole healthcare provider. They must use PACE doctors, specialists, and services for all non-emergency care to maintain coverage."
+          "question": "What happens if my parent's house is worth more than the asset limit?",
+          "answer": "The primary home doesn't count toward the $9,660/$14,470 asset limits. Only countable assets like bank accounts, investments, and additional property matter for eligibility."
         },
         {
-          "question": "What happens if my parent needs to go to the hospital?",
-          "answer": "PACE covers all hospital care, but the PACE team coordinates and manages the hospitalization. Your parent will typically return to PACE services after discharge rather than other providers."
+          "question": "Will SLMB or QI help with Medicare deductibles and copays?",
+          "answer": "No — only QMB covers deductibles and copayments. SLMB and QI only pay the Medicare Part B premium ($174.70/month in 2026). If your parent has high medical costs, QMB provides much greater value."
         },
         {
-          "question": "Does my parent have to attend the adult day services?",
-          "answer": "Adult day services are part of PACE, but attendance requirements vary by individual care plan. The PACE team works with you and your parent to determine the right level of participation."
+          "question": "How often does my parent need to reapply?",
+          "answer": "Income limits change every April 1st based on federal poverty levels, so annual renewal is typically required. Kentucky will send renewal notices, but families should track income changes throughout the year."
         },
         {
-          "question": "What if we move to a different county in Kentucky?",
-          "answer": "PACE is only available in Jefferson County and Boone, Kenton, Campbell Counties. If your parent moves outside these areas, they'll lose PACE coverage and need to find other healthcare providers."
+          "question": "Can I apply on behalf of my elderly parent?",
+          "answer": "Yes, adult children can help with applications or apply as authorized representatives. You'll need to provide documentation showing you're authorized to act on their behalf."
         },
         {
-          "question": "Can my parent disenroll from PACE if they don't like it?",
-          "answer": "Yes, your parent can disenroll from PACE, but they'll need to arrange new Medicare and Medicaid providers since PACE becomes their sole source of coverage during enrollment."
+          "question": "What if the QI program runs out of money?",
+          "answer": "QI uses finite federal block grant funding that can be exhausted during the year. Apply early in January for the best chance of approval. QMB and SLMB don't have this funding limitation."
         }
       ],
-      "phone": "(502) 676-7515",
-      "sourceUrl": "https://chfs.ky.gov/agencies/dail/Pages/pace.aspx",
+      "layoutIntent": {
+        "aboutHighlight": "savings",
+        "eligibilityDisplay": "income-table",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": false,
+        "hasDocumentChecklist": true,
+        "visualTone": "warm"
+      },
+      "icon": "Money",
+      "phone": null,
+      "sourceUrl": "https://chfs.ky.gov/agencies/dms/dpo/epb/Pages/msp.aspx",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-09"
+      "draftedAt": "2026-04-13"
     },
     {
-      "id": "kentucky-grandparent-caregiver-program",
-      "name": "Kentucky Family Caregiver Program (Grandparents Raising Grandchildren)",
-      "shortName": "Grandparent Caregiver Program",
-      "tagline": "If you're raising your grandchild, Kentucky provides support services and grants for clothing, school supplies, and respite care.",
+      "id": "snap-food-benefits",
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "shortName": "SNAP",
+      "tagline": "Monthly grocery assistance for Kentucky seniors 60+ on fixed incomes",
       "programType": "benefit",
-      "complexity": "deep",
+      "complexity": "medium",
       "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
+        "type": "state"
+      },
+      "intro": "If your parent is 60+ and struggling with grocery costs, Kentucky SNAP provides monthly assistance loaded onto an EBT card. Your parent could receive $100-400+ per month for groceries, depending on household income and size. The average single senior gets around $188 monthly.\n\nKentucky has simplified rules for seniors and disabled adults — your parent can qualify even with higher income if they have significant medical or housing expenses. Because Kentucky waives the standard asset test for most households, your parent can keep their home, car, and retirement savings while still receiving food assistance.",
+      "savingsRange": "$2,256 - $4,980/year in 2026",
+      "savingsSource": "Average monthly SNAP benefit of $188 to maximum benefit amounts based on household size",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Income below $2,608/month (single)",
+          "U.S. citizen or qualified non-citizen",
+          "Lives in Kentucky"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": [
           {
-            "name": "Local Area Agencies on Aging and Independent Living",
-            "type": "service-area"
+            "householdSize": 1,
+            "monthlyLimit": 2608
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 3526
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 4442
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 5358
+          },
+          {
+            "householdSize": 5,
+            "monthlyLimit": 6276
+          },
+          {
+            "householdSize": 6,
+            "monthlyLimit": 7192
+          },
+          {
+            "householdSize": 7,
+            "monthlyLimit": 8108
+          }
+        ],
+        "assetLimits": {
+          "individual": null,
+          "couple": null,
+          "countedAssets": [
+            "Bank accounts",
+            "Cash"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "Vehicles",
+            "Retirement savings accounts"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must live together and share food preparation with household members",
+          "No work requirements for seniors 60+"
+        ],
+        "povertyLevelReference": "200% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online at kybenefits.ky.gov or call 1-855-306-8959 — processing typically takes 30 days with an interview required.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Choose application method",
+            "description": "Apply online at kybenefits.ky.gov (fastest), call 1-855-306-8959, or visit your local DCBS office. If your parent has no earned income and is elderly or disabled, ask about ESAP (simplified process)."
+          },
+          {
+            "step": 2,
+            "title": "Complete the application",
+            "description": "Provide household information, income details, and expenses. Include all people who live together and buy/prepare food together."
+          },
+          {
+            "step": 3,
+            "title": "Submit required documents",
+            "description": "Upload documents online or mail to your local DCBS office. Include income statements, ID, and proof of medical/housing expenses."
+          },
+          {
+            "step": 4,
+            "title": "Complete the interview",
+            "description": "DCBS will schedule a phone interview to review your application. This is required for all applicants."
+          },
+          {
+            "step": 5,
+            "title": "Receive decision",
+            "description": "You'll get an approval letter with benefit amount and EBT card, or denial letter with appeal rights. Benefits typically start within 30 days of application."
+          }
+        ],
+        "processingTime": "30 days standard processing, expedited benefits available for crisis situations",
+        "waitlist": null,
+        "tip": "Track medical expenses like Medicare premiums and prescription costs — these deductions can significantly increase your parent's benefit amount.",
+        "urls": [
+          {
+            "label": "Kentucky Benefits Portal",
+            "url": "https://kybenefits.ky.gov"
+          },
+          {
+            "label": "Find Local DCBS Office",
+            "url": "https://chfs.ky.gov/agencies/dcbs/dfs/nab/Pages/snap.aspx"
           }
         ]
       },
-      "intro": "If you're a Kentucky grandparent raising your grandchild because the parents can't, this program connects you with support groups, counseling, and practical help. You'll get assistance accessing services your family needs, plus training on navigating the system.\n\nIf your household income is at or below 150% of the federal poverty level, you may also qualify for grants or vouchers per grandchild each year. These cover clothing, school supplies, respite care, legal services, and medical expenses that aren't covered elsewhere. The grandchild must be 18 or younger, live in your home, and neither parent can live with you.",
+      "documentsNeeded": [
+        "Valid photo ID for applicant",
+        "Social Security cards for all household members",
+        "Social Security award letter or benefit statement",
+        "Pension or retirement income statements",
+        "Bank statements for all accounts (last 3 months)",
+        "Proof of Kentucky residency (utility bill or lease)",
+        "Medicare card and premium statements",
+        "Prescription drug plan documents and costs",
+        "Medical expense receipts (last 3 months)",
+        "Rent receipt or mortgage statement",
+        "Utility bills (electric, gas, water, phone)",
+        "Property tax statements if homeowner"
+      ],
+      "contacts": [
+        {
+          "label": "Kentucky SNAP Hotline",
+          "phone": "1-855-306-8959",
+          "description": "SNAP applications and questions",
+          "hours": "Mon-Fri 8am-4:30pm ET"
+        },
+        {
+          "label": "Kentucky 2-1-1",
+          "phone": "2-1-1",
+          "description": "General assistance finding local resources",
+          "hours": "24 hours, 7 days a week"
+        }
+      ],
+      "applicationNotes": [
+        "ESAP (simplified process) available for elderly/disabled households with no earned income — fewer documents required and less frequent recertification",
+        "Adult children over 21 can be counted as separate households if they prepare their own meals, which may increase your parent's benefits",
+        "Medical deductions include Medicare premiums, prescription costs, and other out-of-pocket medical expenses — keep receipts",
+        "Kentucky doesn't count your home, vehicles, or most retirement savings as assets, unlike some other states"
+      ],
+      "relatedPrograms": [
+        "LIHEAP (Energy Assistance)",
+        "Commodity Supplemental Food Program",
+        "Medicaid",
+        "Kentucky Weatherization Program"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent get SNAP if they own their home outright?",
+          "answer": "Yes. Kentucky doesn't count your parent's home as an asset for SNAP eligibility, regardless of its value. They can also keep their car and most retirement savings accounts without affecting their benefits."
+        },
+        {
+          "question": "What if my parent lives with me but we buy groceries separately?",
+          "answer": "If your parent is over 60 and purchases and prepares food separately from the rest of the household, they can apply as a one-person household. This often results in higher benefits than being counted as part of a larger household."
+        },
+        {
+          "question": "How much will my parent actually receive each month?",
+          "answer": "Benefits depend on net income after deductions for medical expenses and housing costs. A typical single senior receives around $188/month, but this can be much higher if they have significant medical or housing expenses that reduce their countable income."
+        },
+        {
+          "question": "Can I apply for SNAP on behalf of my elderly parent?",
+          "answer": "Yes, if your parent cannot apply themselves due to age or disability. You'll need to be designated as their authorized representative. Call 1-855-306-8959 to discuss the process and required documentation."
+        },
+        {
+          "question": "What happens if my parent's Social Security increases next year?",
+          "answer": "SNAP benefits automatically adjust when income changes. Your parent will need to report the increase within 10 days, and DCBS will recalculate their benefits. Small increases often don't eliminate benefits entirely due to medical and housing deductions."
+        },
+        {
+          "question": "Can my parent use SNAP benefits to buy groceries online?",
+          "answer": "Yes, Kentucky SNAP recipients can use their EBT cards for online grocery purchases at approved retailers like Amazon, Walmart, and Kroger. They cannot use benefits for delivery fees, but can pay those separately."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "savings",
+        "eligibilityDisplay": "income-table",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "warm"
+      },
+      "icon": "BowlFood",
+      "phone": "1-855-306-8959",
+      "sourceUrl": "https://chfs.ky.gov/agencies/dcbs/dfs/nab/Pages/snap.aspx",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "energy-assistance-liheap",
+      "name": "Kentucky Energy Assistance Program (LIHEAP)",
+      "shortName": "Kentucky LIHEAP",
+      "tagline": "Help paying heating and cooling bills if your parent's income is low and they're facing high energy costs",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "state"
+      },
+      "intro": "If your parent struggles to pay heating or cooling bills on a fixed income, Kentucky's LIHEAP program provides direct payments to utility companies to help cover energy costs. The program offers both regular seasonal assistance (typically November-December for heating) and crisis help when your parent faces disconnection or has run out of fuel.\n\nYour parent may qualify if household income is at or below 150% of the Federal Poverty Level and they have less than $2,000 in liquid assets. Because funds are distributed first-come, first-served until depleted, applying early in the season increases chances of receiving assistance.\n\nThe program operates through 23 Community Action Agencies across all 120 Kentucky counties. Crisis assistance runs January 6-March 27 in some areas, while summer cooling assistance may be available if funds remain after winter distributions.",
       "savingsRange": "",
-      "savingsSource": "Free service with potential grants for qualifying families",
+      "savingsSource": "One-time payment varies by income and fuel type",
       "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
-          "Kentucky resident",
-          "Raising grandchild (blood/marriage/adoption)",
-          "Grandchild 18 or younger",
-          "Parents don't live in home",
-          "Not receiving Kinship Care payments"
+          "Income at or below 150% Federal Poverty Level",
+          "Less than $2,000 in liquid assets",
+          "Responsible for home energy costs",
+          "Kentucky resident"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 2000,
+          "couple": 2000,
+          "countedAssets": [
+            "Bank accounts",
+            "Savings",
+            "Cash",
+            "Stocks and bonds"
+          ],
+          "exemptAssets": [
+            "Home",
+            "One vehicle",
+            "Medical assets if catastrophic illness up to $4,000"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must live in Kentucky and apply in county of residence",
+          "Must be directly responsible for home energy costs or undesignated portion of rent",
+          "For crisis assistance: within 4 days of running out of bulk fuel OR have past due/disconnect notice OR face eviction if heat included in rent OR have 10 days or less of prepaid electric"
+        ],
+        "povertyLevelReference": "150% FPL"
+      },
+      "applicationGuide": {
+        "method": "in-person",
+        "summary": "Contact your county's Community Action Agency by phone or visit their office — funds are distributed first-come, first-served.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your county's Community Action Agency",
+            "description": "Visit casoky.org/locations to find the agency serving your parent's county. Each of Kentucky's 120 counties is served by one of 23 agencies."
+          },
+          {
+            "step": 2,
+            "title": "Call or visit the local agency",
+            "description": "Contact the agency directly by phone or visit their office. Some agencies may have specific application days or hours for LIHEAP."
+          },
+          {
+            "step": 3,
+            "title": "Complete the application",
+            "description": "Fill out the agency-provided application form. Bring all required documents with you to avoid delays."
+          },
+          {
+            "step": 4,
+            "title": "Submit required documentation",
+            "description": "Provide proof of Social Security numbers, income from the previous month, current utility bills, and crisis documentation if applying for emergency assistance."
+          }
+        ],
+        "processingTime": "Not specified — applications processed first-come, first-served until funds are depleted",
+        "waitlist": null,
+        "tip": "Apply as early as possible when the program opens each season since funds are limited and distributed on a first-come, first-served basis.",
+        "urls": [
+          {
+            "label": "Find Local Community Action Agency",
+            "url": "https://casoky.org/locations"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Social Security cards or Permanent Residence cards (Green Cards) for all household members",
+        "Proof of all household income from the preceding month (Social Security letters, pay stubs, pension statements)",
+        "Most current electric bill",
+        "Account number and name on account for main heating fuel",
+        "Account number and name on electric account",
+        "For crisis assistance: disconnect notice, past-due notice, or eviction notice if heat included in rent",
+        "For crisis assistance: proof of 4 days or less of bulk fuel remaining or 10 days or less of prepaid electric"
+      ],
+      "contacts": [
+        {
+          "label": "Kentucky 2-1-1",
+          "phone": "2-1-1",
+          "description": "Information and referral to local Community Action Agencies",
+          "hours": "24 hours, 7 days a week"
+        },
+        {
+          "label": "Cabinet for Health and Family Services",
+          "phone": "(502) 564-3703",
+          "description": "State LIHEAP program information",
+          "hours": "Mon-Fri 8am-4:30pm ET"
+        }
+      ],
+      "applicationNotes": [
+        "Crisis assistance has different eligibility requirements — you must have a disconnect notice, be within 4 days of running out of fuel, or face eviction if heat is included in rent",
+        "Previous LIHEAP assistance does not disqualify your parent from receiving crisis assistance in the same year",
+        "Some agencies use 130% of Federal Poverty Level for subsidy assistance during November-December rather than the standard 150%",
+        "If a household member has a catastrophic illness, liquid asset limit increases to $4,000 if assets are being used for medical expenses"
+      ],
+      "relatedPrograms": [
+        "Kentucky Weatherization Assistance Program",
+        "Kentucky Supplemental Nutrition Assistance Program (SNAP)",
+        "Kentucky Medicaid",
+        "Low Income Home Water Assistance Program"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent apply for both regular LIHEAP and crisis assistance in the same year?",
+          "answer": "Yes, receiving regular LIHEAP subsidy assistance does not disqualify your parent from crisis assistance later in the year. Crisis assistance has separate funding and different eligibility requirements focused on emergency situations like disconnect notices or running out of fuel."
+        },
+        {
+          "question": "What happens if my parent's assets are slightly over $2,000 due to medical expenses?",
+          "answer": "If a household member has a catastrophic illness and assets are being used for medical expenses or living costs related to the illness, the liquid asset limit increases to $4,000. You'll need to document the medical condition and show how the assets are being used for related expenses."
+        },
+        {
+          "question": "Does it matter which utility company my parent uses?",
+          "answer": "No, LIHEAP works with all utility companies and fuel providers in Kentucky. The program makes payments directly to the utility or fuel provider on your parent's behalf, regardless of whether it's electric, gas, propane, coal, or other heating fuel."
+        },
+        {
+          "question": "What if my parent rents and heat is included in the rent?",
+          "answer": "Your parent can still qualify if they pay an undesignated portion of rent that includes heating costs. For crisis assistance, they would need an eviction notice related to unpaid rent that includes heating. You'll need a statement from the landlord confirming heat is included in rent."
+        },
+        {
+          "question": "How early in the season should we apply?",
+          "answer": "Apply as soon as the program opens in your area, typically in November for regular assistance. Funds are distributed first-come, first-served and agencies may run out of money before the season ends. Contact your local Community Action Agency in October to ask about their specific start date."
+        },
+        {
+          "question": "Can I apply on behalf of my elderly parent who has dementia?",
+          "answer": "You can assist your parent with the application process, but the agency will need to verify who has legal authority to act on their behalf. Bring documentation of power of attorney, guardianship, or other legal authorization if you're applying without your parent present."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": null,
+        "eligibilityDisplay": "asset-focused",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "warm"
+      },
+      "icon": "Lightning",
+      "phone": "2-1-1",
+      "sourceUrl": "https://chfs.ky.gov/agencies/dcbs/dfs/pdb/Pages/liheap.aspx",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "weatherization-assistance-program",
+      "name": "Kentucky Weatherization Assistance Program",
+      "shortName": "KY Weatherization",
+      "tagline": "Free home energy improvements that can cut your parent's heating and cooling bills by hundreds of dollars annually.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "state"
+      },
+      "intro": "If your parent struggles with high energy bills, Kentucky's Weatherization Assistance Program provides free home improvements that can significantly reduce heating and cooling costs. The program covers everything from sealing ductwork to insulation upgrades, with all work determined by a professional energy audit of your parent's home.\n\nYour parent may qualify if household income is at or below 200% of the federal poverty level ($48,240 annually for a single person in recent guidelines) or if they received TANF or K-TAP cash assistance in the past 12 months. The program prioritizes elderly applicants, disabled individuals, and households with young children — meaning your parent may move up the waitlist faster.\n\nApplications are handled through local Community Action Agencies across Kentucky's 20-22 regions. Because this is a federal energy conservation program, availability and wait times vary by area, but all eligible work is completed at no cost to your parent.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Income at or below 200% of poverty level",
+          "Own or rent the home they live in",
+          "Home not weatherized since 1994",
+          "Landlord permission required if renting"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2010
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2705
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 3400
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 4095
+          },
+          {
+            "householdSize": 5,
+            "monthlyLimit": 4790
+          },
+          {
+            "householdSize": 6,
+            "monthlyLimit": 5485
+          },
+          {
+            "householdSize": 7,
+            "monthlyLimit": 6121
+          },
+          {
+            "householdSize": 8,
+            "monthlyLimit": 6815
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must live in the home to be weatherized",
+          "Home cannot have been weatherized on or after September 30, 1994",
+          "Must provide proof of U.S. citizenship or legal residency",
+          "Renters need written landlord permission"
+        ],
+        "povertyLevelReference": "200% FPL"
+      },
+      "applicationGuide": {
+        "method": "in-person",
+        "summary": "Apply in person at your local Community Action Agency office — processing is prioritized every six months based on need.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local Community Action Agency",
+            "description": "Call Community Action Kentucky at the number listed or Kentucky Housing Corporation to locate your regional office. Examples: Northern Kentucky Community Action Commission at (859) 581-6607, Boyd County at (606) 405-0019."
+          },
+          {
+            "step": 2,
+            "title": "Gather required documents",
+            "description": "Collect 30 days of income proof, Social Security cards for all household members, property deed or mobile home title, and 12 months of utility bills if available."
+          },
+          {
+            "step": 3,
+            "title": "Submit application in person",
+            "description": "Visit your local Community Action Agency office to complete Form WX800 (Application and Prioritization for Weatherization Services). Bring all documentation."
+          },
+          {
+            "step": 4,
+            "title": "Wait for prioritization",
+            "description": "Applications are ranked using a point system every six months. Elderly, disabled, and households with young children receive higher priority scores."
+          },
+          {
+            "step": 5,
+            "title": "Schedule energy audit",
+            "description": "Once selected, a certified energy auditor will evaluate your parent's home to determine which improvements will provide the most energy savings."
+          }
+        ],
+        "processingTime": "Applications are prioritized at least every six months, but specific processing timeline varies by region",
+        "waitlist": "Applications remain active until services are provided or applicant is no longer eligible — wait times vary significantly by region",
+        "tip": "If your parent receives TANF or K-TAP benefits, bring that documentation as it provides an alternative way to qualify regardless of income level.",
+        "urls": [
+          {
+            "label": "Kentucky Housing Corporation Weatherization",
+            "url": "https://www.kyhousing.org/Partners/Developers/Single-Family/Weatherization-Assistance/Pages/default.aspx"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Proof of household gross income for past 30 days (pay stubs, Social Security statements, retirement/pension verification letters)",
+        "Social Security cards for all household members",
+        "Copies of deed or mobile home title",
+        "Current utility bills (12 months preferred)",
+        "Birth certificate and photo ID or passport (proof of U.S. citizenship)",
+        "Permanent Resident I-155 Card if applicable (qualified alien status)",
+        "Date of birth documentation for all household members",
+        "Proof of disability documentation if applicable",
+        "LIHEAP, TANF, or K-TAP documentation if received",
+        "Food stamp program documentation if applicable",
+        "Written landlord permission if renting"
+      ],
+      "contacts": [
+        {
+          "label": "Northern Kentucky Community Action",
+          "phone": "(859) 581-6607",
+          "description": "Weatherization services for Northern Kentucky region",
+          "hours": "Business hours - call for specific schedule"
+        },
+        {
+          "label": "Northeast Kentucky Community Action (Boyd County)",
+          "phone": "(606) 405-0019",
+          "description": "Weatherization services for Northeast Kentucky region",
+          "hours": "Business hours - call for specific schedule"
+        },
+        {
+          "label": "Kentucky 2-1-1",
+          "phone": "2-1-1",
+          "description": "Free helpline to find your local Community Action Agency",
+          "hours": "24 hours, 7 days a week"
+        }
+      ],
+      "applicationNotes": [
+        "Income limits vary by local Community Action Agency — some use 125% of poverty level instead of 200%, so verify with your specific regional office",
+        "Eligibility expires after 12 months if work hasn't begun — you'll need to re-verify income and eligibility to continue",
+        "Emergency priority is given to households with children at risk of removal due to substandard dwelling conditions",
+        "Renters must have landlord sign permission documents before any work can begin on the property"
+      ],
+      "relatedPrograms": [
+        "Kentucky LIHEAP (Low Income Home Energy Assistance)",
+        "Kentucky SNAP (Food Benefits)",
+        "Kentucky Medicaid"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "What if my parent's landlord won't give written permission for the weatherization work?",
+          "answer": "Without landlord permission, your parent cannot receive weatherization services as a renter. The program requires landlords to sign documents granting permission before any work begins. Try explaining that the improvements increase property value at no cost to the landlord. If the landlord still refuses, your parent won't be eligible for this program."
+        },
+        {
+          "question": "Can my parent apply if their home was weatherized 20 years ago?",
+          "answer": "It depends on exactly when the work was done. Homes weatherized on or after September 30, 1994 are generally ineligible. However, homes weatherized before October 1, 1993 may qualify for re-weatherization. You'll need documentation of when the previous work occurred to determine eligibility."
+        },
+        {
+          "question": "How long will my parent really wait for weatherization services?",
+          "answer": "Wait times vary significantly by region and your parent's priority level. Applications are prioritized every six months using a point system, with elderly and disabled applicants receiving higher priority. Some areas may have shorter waits, while others could take a year or more depending on funding and demand."
+        },
+        {
+          "question": "What happens if my parent's income changes while they're on the waitlist?",
+          "answer": "Eligibility remains valid for 12 months from the date it was verified. If 12 months pass without work beginning, your parent must re-verify their income and eligibility to continue. If income rises above the limits during this time, they may no longer qualify for services."
+        },
+        {
+          "question": "Can I apply on behalf of my elderly parent who has difficulty traveling to the Community Action Agency office?",
+          "answer": "The program requires the applicant to reside in the home being weatherized, but the research doesn't specify whether family members can submit applications on behalf of parents. Contact your local Community Action Agency directly to ask about accommodation options for elderly or disabled applicants who have difficulty visiting the office."
+        },
+        {
+          "question": "What if my parent's income is slightly above the limit but they received K-TAP benefits last year?",
+          "answer": "Your parent may still qualify through the alternative eligibility pathway. The program accepts households where any member received TANF or K-TAP cash assistance within the 12 months prior to application, regardless of current income level. Bring documentation of the K-TAP benefits when applying."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "income-table",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "warm"
+      },
+      "icon": "Lightning",
+      "phone": "2-1-1",
+      "sourceUrl": "https://www.kyhousing.org/Partners/Developers/Single-Family/Weatherization-Assistance/Pages/default.aspx",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "ship-medicare-counseling",
+      "name": "Kentucky State Health Insurance Assistance Program (SHIP)",
+      "shortName": "Kentucky SHIP",
+      "tagline": "Free Medicare counseling to help your parent navigate coverage options and save money on healthcare costs",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "state"
+      },
+      "intro": "If your parent is struggling with Medicare decisions — comparing Part D plans, understanding Medigap options, or figuring out if Medicare Advantage makes sense — Kentucky SHIP provides free, personalized counseling from trained volunteers who don't sell insurance.\n\nSHIP counselors help with Medicare Parts A, B, C, and D questions, Medicare Savings Programs that can reduce premiums and copays, prescription drug assistance programs, and long-term care insurance guidance. Because counselors are unbiased and represent no insurance companies, they focus solely on finding the best coverage for your parent's specific health needs and budget.\n\nThe service is available to all Medicare beneficiaries, their families, and caregivers statewide with no income or asset limits. Counseling is provided by phone or in-person through local partners across all 120 Kentucky counties.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Medicare-eligible seniors",
+          "Family members and caregivers",
+          "No income or asset limits",
+          "All Kentucky residents"
         ],
         "ageRequirement": null,
         "incomeTable": null,
         "assetLimits": null,
         "functionalRequirement": null,
         "otherRequirements": [
-          "Must be primary caregiver for grandchild related by blood, marriage, or adoption",
-          "Grandchild must live in your home",
-          "Neither parent can reside in the household",
-          "Cannot be receiving monthly Kinship Care payments"
+          "Medicare beneficiaries, disabled individuals, their family members, and caregivers"
         ],
-        "povertyLevelReference": "150% FPL (for financial assistance only)"
+        "povertyLevelReference": null
       },
       "applicationGuide": {
-        "method": "multiple",
-        "summary": "Contact your local Area Agency on Aging — no forms required to start, and processing time varies by region.",
+        "method": "phone",
+        "summary": "Call the statewide hotline — no application needed, counseling provided immediately when you contact them.",
         "steps": [
           {
             "step": 1,
-            "title": "Find your local Area Agency on Aging",
-            "description": "Visit chfs.ky.gov to locate your regional office, or call them directly to get connected to your local coordinator."
+            "title": "Call the Kentucky SHIP hotline",
+            "description": "Call (877) 293-7447 and choose option #2 for SHIP, or call (502) 564-6930 and ask for a SHIP counselor. Available Monday through Friday, 8am-4:30pm ET."
           },
           {
             "step": 2,
-            "title": "Schedule an intake appointment",
-            "description": "Your coordinator will assess your situation and explain which services you qualify for — both free support services and potential grants."
+            "title": "Provide basic information",
+            "description": "Give your parent's full name, date of birth, Medicare number, and contact information to verify their Medicare eligibility."
           },
           {
             "step": 3,
-            "title": "Gather relationship and income documentation",
-            "description": "Bring proof of your relationship to the grandchild, household income, and confirmation that parents don't live in your home."
+            "title": "Discuss your Medicare questions",
+            "description": "Explain what Medicare decisions you need help with — plan comparisons, cost concerns, coverage changes, or enrollment deadlines."
           },
           {
             "step": 4,
-            "title": "Complete program enrollment",
-            "description": "Your coordinator will help you access immediate services and apply for any grants or vouchers your family qualifies for."
+            "title": "Get personalized guidance",
+            "description": "The counselor will review your parent's specific situation and provide unbiased recommendations tailored to their health needs and budget."
+          }
+        ],
+        "processingTime": "No processing time — counseling provided immediately during your phone call",
+        "waitlist": null,
+        "tip": "Have your parent's Medicare card, current prescription list, and preferred doctors/hospitals ready when you call for the most personalized advice.",
+        "urls": [
+          {
+            "label": "Kentucky SHIP Official Page",
+            "url": "https://chfs.ky.gov/agencies/dail/Pages/ship.aspx"
+          }
+        ]
+      },
+      "documentsNeeded": null,
+      "contacts": [
+        {
+          "label": "Kentucky SHIP Statewide Hotline",
+          "phone": "(877) 293-7447",
+          "description": "Choose option #2 for SHIP counseling",
+          "hours": "Mon-Fri 8am-4:30pm ET"
+        },
+        {
+          "label": "Alternative SHIP Line",
+          "phone": "(502) 564-6930",
+          "description": "Ask for SHIP counselor",
+          "hours": "Mon-Fri 8am-4:30pm ET"
+        },
+        {
+          "label": "KIPDA (Louisville Area)",
+          "phone": "(502) 266-5571",
+          "description": "Local SHIP counseling for Jefferson County and surrounding areas",
+          "hours": "Mon-Fri 8am-5pm ET"
+        }
+      ],
+      "applicationNotes": [
+        "Counselors will refer you to local in-person meetings if you prefer face-to-face assistance",
+        "SHIP counselors cannot enroll you in plans directly — they provide guidance so you can make informed decisions",
+        "Services rely on trained volunteers, so availability may vary during peak enrollment periods (October-December)"
+      ],
+      "relatedPrograms": [
+        "Kentucky Medicaid",
+        "Medicare Savings Programs (QMB/SLMB)",
+        "Kentucky Prescription Assistance Program (KPAP)",
+        "Social Services Block Grant"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can I get help choosing between Medicare Advantage and traditional Medicare with a Medigap policy?",
+          "answer": "Yes, SHIP counselors specialize in this exact comparison. They'll review your parent's current doctors, prescription drugs, and health conditions to show you the total costs under each option. Call (877) 293-7447 option #2 with your parent's Medicare card and current prescription list."
+        },
+        {
+          "question": "Will the counselor try to sell my parent insurance or push specific companies?",
+          "answer": "No. SHIP counselors are trained volunteers who represent no insurance companies and cannot sell policies. Their only goal is helping you find the most appropriate and affordable coverage for your parent's specific situation."
+        },
+        {
+          "question": "Can I call on behalf of my elderly parent who has trouble using the phone?",
+          "answer": "Yes, family members and caregivers can call SHIP for guidance about a parent's Medicare options. The counselor may need to speak directly with your parent for some specific benefit information, but they routinely work with adult children helping their parents."
+        },
+        {
+          "question": "Is there a deadline for when I need to call, or can I get help year-round?",
+          "answer": "SHIP counseling is available year-round, but if your parent needs to change Medicare plans, Open Enrollment runs October 15 - December 7 annually. Special circumstances (like moving or losing other coverage) may create other enrollment opportunities throughout the year."
+        },
+        {
+          "question": "Can SHIP help if my parent is already enrolled in Medicare but having problems with coverage or costs?",
+          "answer": "Absolutely. SHIP counselors help with ongoing Medicare issues including claim denials, coverage gaps, premium payment problems, and understanding Medicare rights. They can also help you find programs that reduce Medicare costs if your parent qualifies."
+        },
+        {
+          "question": "What if I live in a rural area — is SHIP available throughout Kentucky?",
+          "answer": "Yes, SHIP serves all 120 Kentucky counties. The statewide hotline connects you with counselors familiar with your area. For in-person meetings, they'll refer you to local partners or arrange visits through regional agencies."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": false,
+        "hasDocumentChecklist": false,
+        "visualTone": "warm"
+      },
+      "icon": "Compass",
+      "phone": "(877) 293-7447",
+      "sourceUrl": "https://chfs.ky.gov/agencies/dail/Pages/ship.aspx",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "meals-on-wheels",
+      "name": "Kentucky Meals on Wheels",
+      "shortName": "Meals on Wheels",
+      "tagline": "Daily meal delivery to your parent's home when they can't cook for themselves",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "state"
+      },
+      "intro": "If your parent is 60+ and struggling to prepare meals due to illness, disability, or homebound status, Kentucky Meals on Wheels delivers one nutritionally balanced meal to their door Monday through Friday. Some providers deliver two meals daily for $30 per week ($6 per day).\n\nThis isn't a single statewide program — each region operates independently with different costs, service areas, and requirements. Your parent's spouse of any age and disabled dependents may also qualify. Because providers focus on homebound seniors, your parent typically can't own a car or easily leave home to qualify.\n\nMost programs require a home visit assessment to determine eligibility and may re-evaluate every 6 months. Income isn't always a factor, though some providers adjust fees based on ability to pay.",
+      "savingsRange": "$1,560 – $3,120/year in 2026",
+      "savingsSource": "Based on $30/week cost reported by Lexington provider for two meals daily",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Unable to prepare own meals",
+          "Homebound or transportation-limited",
+          "Live in provider's service area"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Unable to prepare or provide own meals due to disability, illness, or incapacitating condition",
+        "otherRequirements": [
+          "Must be homebound or unable to attend congregate meal sites",
+          "No one else in household able to cook",
+          "Must reside within local provider's delivery zone"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your local Area Agency on Aging or Meals on Wheels provider — most require a home visit within a week to assess eligibility.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local provider",
+            "description": "Kentucky has regional providers. Examples: Northern Kentucky Area Development District (859-283-1885), Meals on Wheels Lexington (mealsonwheelslex.org), or Capital City Activity Center for Frankfort area."
+          },
+          {
+            "step": 2,
+            "title": "Call to request service",
+            "description": "Explain your parent's situation and inability to prepare meals. Ask about their specific service area, costs, and requirements."
+          },
+          {
+            "step": 3,
+            "title": "Schedule home assessment",
+            "description": "A coordinator will visit your parent's home to complete the application and determine eligibility. This visit is required by most providers."
+          },
+          {
+            "step": 4,
+            "title": "Provide required documents",
+            "description": "Bring proof of age, residence, medical information about dietary restrictions, and emergency contacts. Some providers may request financial documents."
+          }
+        ],
+        "processingTime": "Within a week for some providers, longer if waitlist exists",
+        "waitlist": "Some programs have waitlists that extend processing time",
+        "tip": "Call multiple providers if you're near regional boundaries — service areas vary and one may have immediate availability.",
+        "urls": [
+          {
+            "label": "Kentucky Nutrition Services Directory",
+            "url": "https://chfs.ky.gov/agencies/dail/Pages/nutrition.aspx"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Birth certificate or other proof of age",
+        "Proof of residence (utility bill or lease agreement)",
+        "Medical information documenting inability to prepare meals",
+        "List of dietary restrictions and special needs",
+        "Emergency contact information",
+        "Financial documents (may be required by some providers)"
+      ],
+      "contacts": [
+        {
+          "label": "Northern Kentucky Area Development District",
+          "phone": "(859) 283-1885",
+          "description": "Meals on Wheels for Northern Kentucky region",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Kentucky Aging and Disability Services",
+          "phone": "2-1-1",
+          "description": "General information and local provider referrals",
+          "hours": "24 hours, 7 days a week"
+        }
+      ],
+      "applicationNotes": [
+        "Each region has different costs — some are free while others charge up to $30 per week for enhanced service",
+        "Car ownership or ability to easily leave home may disqualify your parent from home-delivered meals",
+        "Some areas don't accommodate special diets — ask about dietary restrictions during initial call",
+        "Programs typically re-evaluate eligibility every 6 months to ensure continued need"
+      ],
+      "relatedPrograms": [
+        "Kentucky SNAP (food benefits)",
+        "Senior Farmers Market Nutrition Program",
+        "Commodity Supplemental Food Program"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "What if my parent can drive but just doesn't want to cook anymore?",
+          "answer": "Most programs require homebound status or inability to attend congregate meal sites. If your parent can drive, they likely won't qualify for home delivery. However, many providers offer congregate meals at senior centers that may be a better fit."
+        },
+        {
+          "question": "Can I apply on behalf of my parent who has dementia?",
+          "answer": "Yes, family members can refer someone who qualifies. The home assessment coordinator will work with you to complete the application and determine your parent's needs. Having power of attorney or guardianship documents will be helpful."
+        },
+        {
+          "question": "How much will this cost and do all providers charge the same?",
+          "answer": "Costs vary dramatically by provider. Some offer free meals, while others charge up to $30 per week. Meals on Wheels Lexington charges $30/week for two meals daily, while other regions may be free or have different fee structures based on ability to pay."
+        },
+        {
+          "question": "What happens if my parent's health improves and they can cook again?",
+          "answer": "Most programs re-evaluate eligibility every 6 months. If your parent's condition improves and they can prepare meals independently, they may no longer qualify for home delivery. They can always reapply if their situation changes."
+        },
+        {
+          "question": "Can my parent get meals on weekends or holidays?",
+          "answer": "Standard delivery is Monday through Friday, including weekday holidays. Weekend delivery isn't typically available through these programs. Some providers may deliver extra meals on Friday to cover the weekend."
+        },
+        {
+          "question": "What if we live in a rural area without delivery service?",
+          "answer": "Service areas vary by provider and some rural areas may not have coverage. Call your regional Area Agency on Aging to confirm availability in your specific location. They may have alternative programs or suggestions for meal assistance."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "warm"
+      },
+      "icon": "BowlFood",
+      "phone": "(859) 283-1885",
+      "sourceUrl": "https://chfs.ky.gov/agencies/dail/Pages/nutrition.aspx",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "national-family-caregiver-support",
+      "name": "National Family Caregiver Support Program / Kentucky Family Caregiver Program",
+      "shortName": "Family Caregiver Support",
+      "tagline": "Free respite care, support groups, and caregiver training for families caring for aging parents or raising grandchildren.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "state"
+      },
+      "intro": "If you're caring for an aging parent or raising a grandchild, Kentucky offers two programs that provide respite care, support groups, and caregiver training at no cost. The National Family Caregiver Support Program serves any family caregiver — with no income limits — while the Kentucky Family Caregiver Program specifically helps grandparents and relatives with limited income (under $2,128/month for a single household in 2026).\n\nBoth programs provide temporary relief from caregiving (respite care), help connecting to other services, educational workshops, and support group matching. Because these are service programs rather than cash benefits, families receive direct support like a few hours of respite care per week or connections to other caregivers in similar situations.\n\nThe key difference: if your household income exceeds 150% of the federal poverty level, you can only access the National program. If you're a grandparent raising grandchildren and earn less than the income limit, you may qualify for additional targeted support through the Kentucky program.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Caring for parent 60+ OR raising grandchild under 18",
+          "Income limits apply only to Kentucky program (grandparents)",
+          "Care recipient needs help with daily activities",
+          "Must live in eligible Kentucky counties"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2128
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2878
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 3628
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 4398
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": "Care recipient must need help with Activities of Daily Living (bathing, dressing, eating) or Instrumental Activities of Daily Living (managing money, preparing meals, taking medication). For respite care, must meet 'frail' definition: impaired in 2+ daily activities OR requires supervision due to cognitive impairment.",
+        "otherRequirements": [
+          "Caregiver must be family member or informal care provider",
+          "Care recipient must be 60+ OR any age with Alzheimer's/dementia",
+          "For grandparent caregivers: child's biological/adoptive parents cannot live in home",
+          "Must be related by blood, marriage, or adoption (for Kentucky program)"
+        ],
+        "povertyLevelReference": "150% FPL"
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Contact your regional Area Agency on Aging by phone — no formal application required for initial services.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your regional Area Agency on Aging",
+            "description": "Search online for 'Area Agency on Aging' plus your county name. Kentucky has regional AAAs like KIPDA (Louisville area), NKADD (Northern Kentucky), and LCADD (Central Kentucky)."
+          },
+          {
+            "step": 2,
+            "title": "Call your local AAA office",
+            "description": "Explain that you need family caregiver support services. Ask specifically about both the National Family Caregiver Support Program and Kentucky Family Caregiver Program to determine which applies."
+          },
+          {
+            "step": 3,
+            "title": "Complete functional assessment",
+            "description": "A case manager will assess your care recipient's needs for daily living activities. This determines which services you can access, especially respite care."
+          },
+          {
+            "step": 4,
+            "title": "Provide income documentation (if applying for Kentucky program)",
+            "description": "Submit proof of household income if you're a grandparent or relative caregiver seeking Kentucky Family Caregiver Program benefits."
           }
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Even if your income is too high for grants, you still qualify for free support services like counseling and resource navigation.",
+        "tip": "Start with the National program if you're unsure about income limits — it has broader eligibility and no income restrictions.",
         "urls": [
           {
-            "label": "Kentucky Family Caregiver Program",
-            "url": "https://prd.webapps.chfs.ky.gov/kyfaces/Kinship/KFCP"
-          },
-          {
-            "label": "Find Local Agency",
+            "label": "Kentucky Cabinet for Health and Family Services",
             "url": "https://chfs.ky.gov/agencies/dail/Pages/caregiversupport.aspx"
           }
         ]
       },
-      "contentSections": [
+      "documentsNeeded": [
+        "Valid photo ID for caregiver",
+        "Proof of relationship to care recipient (birth certificate, marriage certificate, or adoption papers)",
+        "Proof of residency in eligible Kentucky county (utility bill or lease)",
+        "Income documentation for last 30 days (pay stubs, Social Security award letter, pension statements) - Kentucky program only",
+        "Care recipient's medical documentation showing need for daily assistance",
+        "Proof of care recipient's age (birth certificate or Medicare card)"
+      ],
+      "contacts": [
         {
-          "type": "documents",
-          "heading": "What to Bring",
-          "categories": [
-            {
-              "name": "Relationship Proof",
-              "items": [
-                "Birth certificate showing grandparent-grandchild relationship",
-                "Marriage certificate (if related through marriage)",
-                "Adoption papers (if applicable)"
-              ]
-            },
-            {
-              "name": "Household Information",
-              "items": [
-                "Proof of Kentucky residency",
-                "Documentation that parents don't live in the home",
-                "Grandchild's birth certificate or school records showing age"
-              ]
-            },
-            {
-              "name": "Financial (for grants only)",
-              "items": [
-                "Household income documentation for all adults",
-                "Confirmation you're not receiving Kinship Care payments"
-              ]
-            }
-          ]
+          "label": "Kentucky 2-1-1",
+          "phone": "2-1-1",
+          "description": "Free helpline to find your local Area Agency on Aging",
+          "hours": "24 hours, 7 days a week"
         },
         {
-          "type": "callout",
-          "tone": "tip",
-          "text": "You cannot receive both this program's financial assistance and Kinship Care payments at the same time. Compare both programs to see which provides more support for your situation."
+          "label": "KIPDA (Louisville area)",
+          "phone": "(502) 266-5571",
+          "description": "Serves Jefferson, Oldham, Henry, Trimble, Spencer, Shelby, Hardin counties",
+          "hours": "Mon-Fri 8am-5pm ET"
+        },
+        {
+          "label": "NKADD (Northern Kentucky)",
+          "phone": "(859) 283-1885",
+          "description": "Serves Boone, Campbell, Carroll, Gallatin, Grant, Kenton, Owen, Pendleton counties",
+          "hours": "Mon-Fri 8am-5pm ET"
         }
       ],
+      "applicationNotes": [
+        "Two separate programs with different rules — National has no income limit, Kentucky program limited to 150% poverty level for grandparent/relative caregivers",
+        "Cannot receive Kentucky Family Caregiver Program benefits if already getting Kinship Care payments",
+        "Biological or adoptive parents cannot live in the home for grandparent caregivers to qualify for Kentucky program",
+        "Respite care hours and specific service amounts vary by region — ask your local AAA what's available in your area"
+      ],
+      "relatedPrograms": [
+        "Kinship Care Program",
+        "Kentucky Homecare Program",
+        "Adult Day Health Care",
+        "Meals on Wheels"
+      ],
+      "contentSections": [],
       "faqs": [
         {
-          "question": "What if I'm already getting Kinship Care payments?",
-          "answer": "You cannot receive both financial benefits at the same time. However, you may still qualify for the free support services like counseling and resource navigation. Compare both programs to see which provides more total value for your family."
+          "question": "Can I get help from both the National and Kentucky programs at the same time?",
+          "answer": "No, you cannot receive benefits from both programs simultaneously. The Kentucky Family Caregiver Program is specifically for grandparents and relatives with household income under 150% of federal poverty level. If you exceed that income limit, you can only access the National Family Caregiver Support Program, which has no income restrictions but serves all types of family caregivers."
         },
         {
-          "question": "Can the grandchild's parent visit or stay temporarily?",
-          "answer": "Parents cannot reside in the household to qualify, but the program doesn't specify restrictions on visits. Check with your local coordinator about temporary stays or frequent visits that might affect eligibility."
+          "question": "What if my parent's biological child (my sibling) lives in my home while I care for their child?",
+          "answer": "You would not qualify for the Kentucky Family Caregiver Program if the child's biological or adoptive parents live in your household. This is a strict rule that disqualifies many multi-generational families. However, you may still qualify for the National Family Caregiver Support Program if you're caring for a grandchild or other relative under 18."
         },
         {
-          "question": "What if my income is just over 150% of the poverty level?",
-          "answer": "You'll still qualify for all the free services — support groups, counseling, training, and help accessing other resources. Only the grants and vouchers have income limits."
+          "question": "How many hours of respite care can I actually get per week?",
+          "answer": "The research shows respite care is available but doesn't specify exact hours per week — this varies by region and your local Area Agency on Aging's resources. When you call your AAA, ask specifically about respite care availability and whether there are waiting lists in your area."
         },
         {
-          "question": "Do I qualify if I adopted my grandchild or if they're my step-grandchild?",
-          "answer": "Yes, you qualify if the grandchild is related by blood, marriage, or adoption. This includes step-grandchildren and legally adopted grandchildren."
+          "question": "What's the difference between Activities of Daily Living and Instrumental Activities of Daily Living?",
+          "answer": "Activities of Daily Living (ADLs) are basic self-care tasks like bathing, dressing, eating, and using the bathroom. Instrumental Activities of Daily Living (IADLs) are more complex tasks like managing money, preparing meals, taking medication, and using the phone. Your care recipient needs help with these activities to qualify for services."
         },
         {
-          "question": "How much are the grants worth each year?",
-          "answer": "The program doesn't publish specific dollar amounts. Your local coordinator will explain what grants and vouchers are available based on your needs and their current funding."
+          "question": "Can I apply if my parent has Alzheimer's but is under 60?",
+          "answer": "Yes, the National Family Caregiver Support Program covers care recipients of any age who have Alzheimer's disease or related dementia. The standard age 60+ requirement is waived for dementia cases. You would need to provide medical documentation of the Alzheimer's diagnosis."
         },
         {
-          "question": "What if I'm raising multiple grandchildren?",
-          "answer": "You can receive separate grants or vouchers per grandchild per fiscal year, as long as each child meets the age and residency requirements and your household qualifies financially."
+          "question": "What happens if my income changes after I'm enrolled in the Kentucky program?",
+          "answer": "You must report income changes to your local Area Agency on Aging. If your household income rises above 150% of federal poverty level, you would lose eligibility for the Kentucky Family Caregiver Program but could transition to the National Family Caregiver Support Program, which has no income limits."
         }
       ],
-      "phone": null,
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "income-table",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "warm"
+      },
+      "icon": "HandHeart",
+      "phone": "2-1-1",
       "sourceUrl": "https://chfs.ky.gov/agencies/dail/Pages/caregiversupport.aspx",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-09"
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "senior-community-service-employment",
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "shortName": "SCSEP Kentucky",
+      "tagline": "Part-time paid training at nonprofits for unemployed adults 55+ to build job skills and income",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "state"
+      },
+      "intro": "If your parent is 55+ and unemployed with limited income, SCSEP provides part-time paid training positions (15-20 hours per week) at nonprofit organizations and government agencies. Your parent earns minimum wage while learning job skills, getting resume help, and working toward permanent employment.\n\nTo qualify, your parent's household income must be at or below 125% of federal poverty guidelines (exact amounts vary by household size and are updated annually). The program prioritizes veterans, those over 65, people with disabilities, and rural residents, but others can apply if slots are available.\n\nKentucky's program is managed by regional providers, so availability depends on where your parent lives. Some areas have waitlists due to limited funding slots.",
+      "savingsRange": "$3,100 – $6,200/year in 2026",
+      "savingsSource": "15-20 hours/week at federal minimum wage ($7.25/hour)",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Unemployed or poor job prospects",
+          "Income at 125% federal poverty level",
+          "Kentucky resident",
+          "Work-eligible in US"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be unemployed or have poor employment prospects",
+          "Kentucky resident",
+          "Eligible to work in the United States",
+          "Priority given to veterans, individuals over 65, those with disabilities, low literacy, rural residents, or homeless"
+        ],
+        "povertyLevelReference": "125% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact your regional provider by phone to check availability and start the application process.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your regional provider",
+            "description": "Kentucky has different providers by county. Lexington area: call Goodwill at 833-439-7759. Eastern counties: call Big Sandy CAP at 606-789-6517. Northern Kentucky: call NKCAC at 859-581-6607. Western counties: contact WKAS via wkas-ky.org."
+          },
+          {
+            "step": 2,
+            "title": "Call to check availability",
+            "description": "Ask about current openings and waitlist status. Providers enroll about 2 participants per month due to funding limits."
+          },
+          {
+            "step": 3,
+            "title": "Complete application",
+            "description": "Some providers offer pre-applications online (NKCAC has one at nkcac.org). Others require phone or in-person applications."
+          },
+          {
+            "step": 4,
+            "title": "Provide required documents",
+            "description": "Bring proof of age, income verification, Kentucky residency, work eligibility, and veteran/disability status if claiming priority."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": "Possible waitlist due to limited slots — providers enroll about 2 participants per month",
+        "tip": "Ask about priority status if your parent is a veteran, over 65, has a disability, or lives in a rural area — this can reduce wait times.",
+        "urls": [
+          {
+            "label": "NKCAC Pre-Application",
+            "url": "https://nkcac.org"
+          },
+          {
+            "label": "Kentucky SCSEP Information",
+            "url": "https://chfs.ky.gov/agencies/dail/Pages/scsep.aspx"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Valid photo ID or driver's license (proof of age)",
+        "Social Security card or work authorization documents",
+        "Proof of Kentucky residency (utility bill, lease agreement, or state-issued document)",
+        "Income verification for all household members (Social Security award letters, pay stubs, or tax returns)",
+        "Bank statements for all accounts (last 3 months)",
+        "DD-214 or military discharge papers (if claiming veteran priority)",
+        "Disability documentation from Social Security or medical provider (if claiming disability priority)",
+        "Birth certificates for all household members"
+      ],
+      "contacts": [
+        {
+          "label": "Goodwill Kentucky (Lexington area)",
+          "phone": "(833) 439-7759",
+          "description": "Serves central Kentucky region",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Big Sandy Area CAP (Eastern KY)",
+          "phone": "(606) 789-6517",
+          "description": "Serves Elliott, Floyd, Johnson, Lawrence, Letcher, Magoffin, Martin, Pike, Rowan counties",
+          "hours": "Business hours"
+        },
+        {
+          "label": "NKCAC (Northern KY)",
+          "phone": "(859) 581-6607",
+          "description": "Serves northern Kentucky counties",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Audubon Area Community Services",
+          "phone": "(270) 686-1607",
+          "description": "Serves Henderson, Ohio, Union, Webster, Butler, Edmonson, Hart, Warren, Breckinridge, Grayson, Hardin, Larue, Meade counties",
+          "hours": "Business hours"
+        }
+      ],
+      "applicationNotes": [
+        "Not all Kentucky counties are served — contact providers to confirm coverage in your parent's area",
+        "Priority applicants (veterans, over 65, disabled, rural residents) typically get faster placement than general applicants",
+        "This is a temporary training program designed to lead to permanent employment elsewhere, not long-term SCSEP work",
+        "Income limits are updated annually based on federal poverty guidelines — verify current amounts when applying"
+      ],
+      "relatedPrograms": [
+        "SNAP (Food Benefits)",
+        "LIHEAP (Energy Assistance)",
+        "Kentucky Health Benefits Exchange",
+        "Medicaid"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent apply if they're currently working part-time?",
+          "answer": "No, SCSEP requires participants to be unemployed or have very poor employment prospects. If your parent is currently working, they would not qualify for the program. The program is specifically designed for people who need job training and income assistance."
+        },
+        {
+          "question": "What if there's no SCSEP provider in my parent's county?",
+          "answer": "Kentucky's SCSEP program has coverage gaps. If your parent's county isn't served by any of the regional providers, they cannot participate in SCSEP. Contact the closest provider to confirm whether they cover your parent's area or if there are plans to expand."
+        },
+        {
+          "question": "How long can my parent stay in the SCSEP program?",
+          "answer": "SCSEP is designed as temporary job training to help participants find permanent employment. The goal is to transition to unsubsidized work, not to provide long-term SCSEP employment. Specific time limits vary by provider and individual progress toward employment goals."
+        },
+        {
+          "question": "Does my parent get health insurance or other benefits through SCSEP?",
+          "answer": "SCSEP participants earn minimum wage for 15-20 hours per week, but the program doesn't specify health insurance or other employee benefits. Participants remain eligible for other programs like Medicaid based on their income level. Contact your regional provider for specific benefit details."
+        },
+        {
+          "question": "What types of work placements are available through SCSEP?",
+          "answer": "SCSEP places participants at nonprofit organizations and public agencies for on-the-job training. Specific positions depend on community needs and available host sites in your area. Contact your regional provider to learn about current placement opportunities and types of work available."
+        },
+        {
+          "question": "Can I apply for SCSEP and other programs like SNAP at the same time?",
+          "answer": "Yes, SCSEP participants can apply for and receive other benefits like SNAP, Medicaid, and LIHEAP. The part-time income from SCSEP will be counted when determining eligibility for other programs, but it shouldn't disqualify your parent from most assistance programs due to the low income level."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "warm"
+      },
+      "icon": "Briefcase",
+      "phone": "(833) 439-7759",
+      "sourceUrl": "https://chfs.ky.gov/agencies/dail/Pages/scsep.aspx",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "legal-aid-seniors",
+      "name": "Kentucky Legal Aid for Seniors",
+      "shortName": "Legal Aid",
+      "tagline": "Free legal help with Medicaid eligibility, asset transfers, and elder law issues for seniors 60+",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "state"
+      },
+      "intro": "If your parent is 60+ and needs help navigating Medicaid long-term care eligibility, asset transfers, or other elder law issues, Kentucky's regional legal aid programs provide free civil legal assistance. Because these programs prioritize seniors with the greatest need — including low-income elderly, rural residents, and caregivers of dementia patients — your parent may qualify for one-on-one legal services without paying attorney fees.\n\nFour regional organizations serve different counties across Kentucky, with income limits typically ranging from 125% to 200% of federal poverty guidelines depending on your location. Services include help with Medicaid applications, asset protection strategies, undue hardship waivers, and housing or safety issues. Legal aid attorneys can visit your parent at home, meet by phone, or provide services at local centers.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Low income (125-200% of poverty level)",
+          "Live in Kentucky",
+          "Civil legal issues"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must live in a county served by one of the four regional legal aid organizations",
+          "Priority given to minorities, rural residents, disabled seniors, and caregivers of dementia patients"
+        ],
+        "povertyLevelReference": "125-200% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call your regional legal aid office for intake — no formal application required, and income disclosure is not mandatory.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your regional office",
+            "description": "Kentucky has four regional legal aid programs. Western Kentucky calls 800-782-1924 (Bowling Green). Louisville area calls 502-584-1254. Lexington and central Kentucky calls 859-431-8200. Eastern Kentucky calls 866-277-5733 (Prestonsburg)."
+          },
+          {
+            "step": 2,
+            "title": "Call for intake screening",
+            "description": "Explain your parent's legal issue — Medicaid eligibility, asset transfers, housing problems, or other civil matters. Staff will determine if your case fits their service area and priorities."
+          },
+          {
+            "step": 3,
+            "title": "Schedule consultation",
+            "description": "If accepted, you'll be matched with an attorney for phone consultation, home visit, or office meeting. Legal aid prioritizes seniors with greatest need and institutionalized older persons."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Even if your parent's income seems too high, call anyway — income disclosure is not required for eligibility determination, and programs may have flexibility.",
+        "urls": [
+          {
+            "label": "Kentucky Legal Aid eligibility screening",
+            "url": "https://kyjustice.org"
+          },
+          {
+            "label": "Legal Aid Society (Louisville area)",
+            "url": "https://yourlegalaid.org"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Information about your parent's legal issue (Medicaid denial, asset transfer question, housing problem)",
+        "Income information if available (Social Security letter, pension statements)",
+        "Asset documentation for Medicaid cases (bank statements, property deeds, insurance policies)",
+        "Marriage certificate if spouse is involved in asset planning",
+        "Medical documentation showing nursing facility level of care need",
+        "Any existing legal documents (wills, power of attorney, trust agreements)"
+      ],
+      "contacts": [
+        {
+          "label": "Western Kentucky Legal Aid (Bowling Green)",
+          "phone": "(270) 782-1924",
+          "description": "Serves western Kentucky counties",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Western Kentucky Legal Aid toll-free",
+          "phone": "(800) 782-1924",
+          "description": "Same as above, toll-free line",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Legal Aid Society (Louisville)",
+          "phone": "(502) 584-1254",
+          "description": "Serves Louisville metro and 15 surrounding counties",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Kentucky Legal Aid (Lexington)",
+          "phone": "(859) 431-8200",
+          "description": "Serves central Kentucky including 28 counties",
+          "hours": "Business hours"
+        },
+        {
+          "label": "AppalReD Legal Aid (Prestonsburg)",
+          "phone": "(866) 277-5733",
+          "description": "Serves eastern and south-central Kentucky, 36 counties",
+          "hours": "Business hours"
+        }
+      ],
+      "applicationNotes": [
+        "Your parent cannot be denied services for refusing to disclose income or resources — financial information helps but isn't required",
+        "Institutionalized seniors (in nursing homes or hospitals) receive priority for legal services",
+        "If your parent made asset transfers within the last 5 years, contact legal aid before applying for Medicaid — they may help obtain undue hardship waivers"
+      ],
+      "relatedPrograms": [
+        "Kentucky Medicaid",
+        "Medicare SHIP Counseling",
+        "Adult Protective Services",
+        "Area Agency on Aging"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can I call legal aid on behalf of my parent who has dementia?",
+          "answer": "Yes, family caregivers can contact legal aid for seniors who cannot advocate for themselves. Legal aid programs specifically prioritize caregivers of dementia patients. You may need to provide medical documentation of your parent's condition and establish your authority to act on their behalf."
+        },
+        {
+          "question": "What if my parent's income seems too high for legal aid?",
+          "answer": "Income limits vary by county and legal aid organization (125-200% of poverty level), but seniors cannot be denied for refusing to disclose financial information. Call your regional office anyway — programs have flexibility for seniors with greatest need, and income disclosure is not mandatory."
+        },
+        {
+          "question": "My parent transferred money to family members — can legal aid still help with Medicaid?",
+          "answer": "Yes, this is exactly what legal aid attorneys handle. Asset transfers within 5 years can create Medicaid ineligibility periods, but legal aid can help apply for undue hardship waivers or develop strategies to minimize penalties. Contact them before applying for Medicaid."
+        },
+        {
+          "question": "Does legal aid serve all counties in Kentucky?",
+          "answer": "Legal aid serves most but not all Kentucky counties through four regional organizations. Call the office closest to your parent's county — Bowling Green for western Kentucky, Louisville for metro area, Lexington for central Kentucky, or Prestonsburg for eastern Kentucky. They'll tell you if your county is covered."
+        },
+        {
+          "question": "How long does it take to get legal help once I call?",
+          "answer": "Processing times aren't specified, but institutionalized seniors and those with urgent legal deadlines receive priority. During intake, explain if your parent faces immediate deadlines like Medicaid application appeals or housing eviction notices to potentially expedite services."
+        },
+        {
+          "question": "Can legal aid help if my parent is already in a nursing home?",
+          "answer": "Yes, institutionalized older persons receive priority for legal aid services. Legal aid attorneys can help with Medicaid spend-down strategies, asset protection, appeals of coverage denials, or quality of care issues. They can meet with your parent at the facility."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "warm"
+      },
+      "icon": "Scales",
+      "phone": "(800) 782-1924",
+      "sourceUrl": "https://kycourts.gov/Legal-Help/Pages/Civil-Legal-Aid-Programs.aspx",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "long-term-care-ombudsman",
+      "name": "Kentucky Long-Term Care Ombudsman Program",
+      "shortName": "LTC Ombudsman",
+      "tagline": "Free advocacy if your parent is in a nursing home, personal care home, or family care home and facing problems with care or treatment.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "state"
+      },
+      "intro": "If your parent lives in a nursing home, personal care home, or family care home in Kentucky and is experiencing problems with their care, treatment, or rights, the Long-Term Care Ombudsman Program provides free advocacy and complaint resolution. Ombudsmen investigate issues like poor care quality, billing problems, resident rights violations, or facility policy disputes.\n\nThe program serves all 120 Kentucky counties through 15 regional districts, with no income or asset limits. Services are completely free and confidential. Ombudsmen can only act with your parent's permission (or yours if you're their authorized representative), but they have legal authority to access facility records, interview staff, and seek remedies through administrative or legal channels.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Resident of nursing home, personal care home, or family care home in Kentucky",
+          "No income limits",
+          "No asset limits",
+          "Free for all qualifying residents"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be a current resident or applicant to a nursing home, personal care home, or family care home in Kentucky",
+          "Complaints can be filed by the resident, family member, or authorized representative"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your county's ombudsman directly — no formal application needed, and services begin immediately upon contact.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your county's ombudsman",
+            "description": "Visit https://chfs.ky.gov/agencies/dail/Pages/ltcomb.aspx or call the State Ombudsman at (859) 277-9215 for your local contact. Each of Kentucky's 120 counties has a designated ombudsman through 15 regional districts."
+          },
+          {
+            "step": 2,
+            "title": "Call your local ombudsman",
+            "description": "Explain your parent's situation and concerns. No forms required — the ombudsman will take your complaint over the phone and begin investigating with your parent's permission."
+          },
+          {
+            "step": 3,
+            "title": "Provide complaint details",
+            "description": "Be specific about dates, staff involved, and what happened. The ombudsman may request access to facility records during their investigation, but only with proper authorization."
+          }
+        ],
+        "processingTime": "Investigations begin immediately upon contact; timeline varies based on complaint complexity and required follow-up",
+        "waitlist": null,
+        "tip": "Keep a written record of incidents with dates and names — this helps ombudsmen investigate more effectively.",
+        "urls": [
+          {
+            "label": "Kentucky Ombudsman County Listings",
+            "url": "https://chfs.ky.gov/agencies/dail/Pages/ltcomb.aspx"
+          }
+        ]
+      },
+      "documentsNeeded": null,
+      "contacts": [
+        {
+          "label": "State Long-Term Care Ombudsman",
+          "phone": "(859) 277-9215",
+          "description": "Statewide coordination and county referrals",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Big Sandy District Ombudsman",
+          "phone": "(606) 886-2374",
+          "description": "Serves Floyd, Johnson, Lawrence, Magoffin, Martin, Pike counties",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Big Sandy District Toll-Free",
+          "phone": "(800) 737-2723",
+          "description": "Toll-free line for Big Sandy region",
+          "hours": "Business hours"
+        }
+      ],
+      "applicationNotes": [
+        "Ombudsmen must have resident authorization to investigate — they cannot act against your parent's wishes even if family requests help",
+        "Services are only for facility-based care (nursing homes, personal care homes, family care homes) — not for home-based or community care issues",
+        "All services are confidential, but ombudsmen work with facility administration to resolve problems, so complete anonymity may not be possible",
+        "Contact your regional district office rather than the state office for faster local response"
+      ],
+      "relatedPrograms": [
+        "Kentucky Adult Protective Services",
+        "Kentucky SHIP (Medicare counseling)",
+        "Kentucky Medicaid Long-Term Care"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can I file a complaint on behalf of my parent who has dementia?",
+          "answer": "Yes, if you are your parent's legal guardian or authorized representative. If not, you can still contact the ombudsman to express concerns, but they will need to speak with your parent directly to get permission before investigating. Ombudsmen are trained to work with residents who have cognitive impairments."
+        },
+        {
+          "question": "What if the nursing home retaliates against my parent for filing a complaint?",
+          "answer": "Retaliation is illegal under federal and state law. Ombudsmen specifically monitor for retaliation and can take immediate action if it occurs, including involving regulatory agencies. Kentucky ombudsmen have legal authority to investigate and seek remedies for retaliation."
+        },
+        {
+          "question": "How is this different from calling the state health department about facility problems?",
+          "answer": "Ombudsmen focus on resident rights and individual problem-solving, while health departments handle regulatory violations and facility licensing. Ombudsmen often work faster for individual complaints and can coordinate with regulatory agencies when needed. You can contact both if appropriate."
+        },
+        {
+          "question": "Can the ombudsman help with billing disputes or Medicare/Medicaid issues?",
+          "answer": "Yes, ombudsmen help with billing problems, improper charges, and insurance issues related to facility care. They can also refer you to other resources like SHIP (Medicare counseling) for complex insurance questions while handling the facility-specific aspects of billing disputes."
+        },
+        {
+          "question": "What happens if my parent wants to move to a different facility?",
+          "answer": "Ombudsmen can help residents understand their rights regarding transfers and discharges, ensure proper notice is given, and verify that any transfer is appropriate and legal. They can also help resolve problems that might eliminate the need to move if the issues can be fixed."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": false,
+        "visualTone": "warm"
+      },
+      "icon": "Scales",
+      "phone": "(859) 277-9215",
+      "sourceUrl": "https://chfs.ky.gov/agencies/dail/Pages/ltcomb.aspx",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "hcb-waiver",
+      "name": "Home and Community Based (HCB) Waiver",
+      "shortName": "HCB Waiver",
+      "tagline": "Medicaid waiver covering home care, meal delivery, and home modifications so your parent can stay home instead of moving to a nursing facility",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "state"
+      },
+      "intro": "If your parent needs daily help with bathing, dressing, or medication management but wants to stay home, Kentucky's HCB Waiver covers the services that would otherwise require nursing home placement. The program provides attendant care, home-delivered meals, personal emergency response systems, and minor home modifications — all at no cost to families who qualify.\n\nYour parent must first qualify for Medicaid (special financial rules apply that are more generous than regular Medicaid) and meet nursing facility level of care requirements. Because this waiver has a waitlist with priority given by application date, apply as early as possible even if you're not sure about timing.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+ or have physical disability",
+          "Meet nursing facility level of care",
+          "Qualify for Medicaid",
+          "Currently has waitlist"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must meet nursing facility level of care (clinical assessment showing your parent needs daily help with bathing, dressing, medication management, or other activities that would require nursing home admission)",
+        "otherRequirements": [
+          "Must qualify for Medicaid using special HCB waiver financial rules",
+          "Must be at risk of nursing facility placement without waiver services"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply for Medicaid first through kynect, then submit HCB waiver application — expect waitlist placement by application date.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Apply for Medicaid first",
+            "description": "Visit kynect.ky.gov or call Department for Community Based Services at (855) 306-8959. You must qualify for Medicaid before applying for HCB waiver services."
+          },
+          {
+            "step": 2,
+            "title": "Submit HCB waiver application",
+            "description": "Contact Aging and Disability Resource Center, Community Mental Health Center, or mail application to Division of Community Alternatives, 275 East Main St., 6 W-B, Frankfort, KY 40621."
+          },
+          {
+            "step": 3,
+            "title": "Complete level of care assessment",
+            "description": "State assessor will evaluate whether your parent meets nursing facility level of care requirements through clinical assessment."
+          },
+          {
+            "step": 4,
+            "title": "Wait for services to begin",
+            "description": "You'll be placed on waitlist by application date. Services begin when your slot becomes available."
+          }
+        ],
+        "processingTime": "Processing time not specified — placement on waitlist occurs after completed application",
+        "waitlist": "Currently has waitlist with priority given by application receipt date",
+        "tip": "Apply early even if you're not ready for services yet — waitlist position is determined by application date, not when you're ready to start services.",
+        "urls": [
+          {
+            "label": "kynect (Medicaid application)",
+            "url": "https://kynect.ky.gov"
+          },
+          {
+            "label": "HCB Waiver information",
+            "url": "https://chfs.ky.gov/agencies/dms/dca/pages/hcb-waiver.aspx"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Social Security card",
+        "Birth certificate or proof of age",
+        "Kentucky residency documentation",
+        "Medicare card (both parts)",
+        "Social Security award letter",
+        "Bank statements for all accounts (last 3 months)",
+        "Proof of any other income (pensions, retirement accounts)",
+        "Medical records showing need for daily assistance",
+        "Current medications list",
+        "Healthcare provider contact information",
+        "Insurance cards (all health coverage)",
+        "Property deeds or rental agreements"
+      ],
+      "contacts": [
+        {
+          "label": "DCBS Medicaid Line",
+          "phone": "(855) 306-8959",
+          "description": "Medicaid application and eligibility questions",
+          "hours": "Mon-Fri 8am-6pm ET"
+        },
+        {
+          "label": "DAIL HCB Information",
+          "phone": "(877) 315-0589",
+          "description": "HCB waiver program questions and local office referrals",
+          "hours": "Mon-Fri 8am-4:30pm ET"
+        },
+        {
+          "label": "Kentucky 2-1-1",
+          "phone": "2-1-1",
+          "description": "General help finding local ADRC or Community Mental Health Centers",
+          "hours": "24 hours, 7 days a week"
+        }
+      ],
+      "applicationNotes": [
+        "You must be Medicaid-eligible before applying for HCB waiver — start with Medicaid application first",
+        "Waitlist priority is strictly by application date, so apply as soon as you think services might be needed",
+        "This waiver is specifically for physical disabilities and aging — different waivers exist for intellectual/developmental disabilities",
+        "Services are designed around your parent's individual goals for staying in the community"
+      ],
+      "relatedPrograms": [
+        "Kentucky Medicaid",
+        "SNAP Food Benefits",
+        "LIHEAP Energy Assistance",
+        "Medicare Savings Programs"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "How long is the waitlist really?",
+          "answer": "Kentucky doesn't publish specific waitlist timeframes, but placement is strictly by application date. The earlier you apply, the sooner services can begin when funding becomes available. You can apply even if you're not ready for services immediately."
+        },
+        {
+          "question": "Can my parent keep their house and still qualify?",
+          "answer": "Yes, the family home is typically exempt from Medicaid asset calculations. Special HCB waiver financial rules apply that are more generous than regular Medicaid, though specific limits aren't detailed in program materials."
+        },
+        {
+          "question": "What if my parent doesn't need all the services offered?",
+          "answer": "Services are individualized based on your parent's specific needs and goals. You don't have to use every available service — case management helps determine which combination works best for your situation."
+        },
+        {
+          "question": "Can I apply for my parent if they have dementia?",
+          "answer": "Yes, family members can apply on behalf of elderly parents who cannot manage the application process themselves. You may need to provide documentation of your authority to act on their behalf."
+        },
+        {
+          "question": "What happens if my parent's needs change after enrollment?",
+          "answer": "Case management includes ongoing assessment and service plan updates. If your parent needs more or different services, the care plan can be modified. If they no longer need waiver-level care, they can transition off the program."
+        },
+        {
+          "question": "Can my parent be on this waiver and still go to their regular doctors?",
+          "answer": "Yes, this waiver provides home and community services but doesn't replace your parent's existing medical care. They keep their regular doctors and continue receiving Medicare and Medicaid covered medical services."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "warm"
+      },
+      "icon": "House",
+      "phone": "(877) 315-0589",
+      "sourceUrl": "https://chfs.ky.gov/agencies/dms/dca/pages/hcb-waiver.aspx",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "money-follows-person",
+      "name": "Money Follows the Person (Kentucky Transitions)",
+      "shortName": "Kentucky Transitions",
+      "tagline": "Helps your parent move from a nursing home back to their own home with enhanced support services for one year.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "state"
+      },
+      "intro": "If your parent is in a nursing home but wants to return home or move to an apartment, Kentucky Transitions can make it happen. The program covers moving costs, security deposits, furniture, and provides enhanced home care services for 365 days after transition. Your parent must have been in the nursing home for at least 60 days and be enrolled in Kentucky Medicaid.\n\nBecause Kentucky Transitions provides enhanced federal funding for the first year, your parent gets extra personal care hours, adult day care, home health visits, and other services beyond what regular Medicaid covers. You can even hire family members as paid caregivers through the self-direction option. After the first year, services continue through standard Kentucky Medicaid home and community-based waivers.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Currently in nursing home 60+ days",
+          "Already enrolled in Kentucky Medicaid",
+          "Needs nursing home level care",
+          "Wants to move to community"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 2000,
+          "couple": null,
+          "countedAssets": [
+            "Bank accounts",
+            "Secondary properties",
+            "Investments"
+          ],
+          "exemptAssets": [
+            "Primary home (if intent to return)",
+            "One vehicle",
+            "Personal belongings",
+            "Certain life insurance"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "Must need Nursing Facility Level of Care (a clinical assessment of whether your parent needs daily help with bathing, dressing, or medication management) but be able to live in the community with home-based services.",
+        "otherRequirements": [
+          "Residing in Medicaid-funded nursing home or similar facility for at least 60 consecutive days",
+          "Enrolled in Kentucky Medicaid for at least one day before transition",
+          "Expresses desire to move to community (own home, relative's home, apartment, or small group home with maximum 4 residents)"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Start with a referral to your local Area Agency on Aging — you, your parent, or nursing home staff can make the referral.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Make initial referral",
+            "description": "Contact your local Area Agency on Aging, Aging and Disability Resource Center, or visit https://chfs.ky.gov/agencies/dms/dca/Pages/kytransitions.aspx to find your regional contact agency."
+          },
+          {
+            "step": 2,
+            "title": "Gather required documents",
+            "description": "Collect proof of Medicaid enrollment, documentation of 60+ days in facility, evidence of Nursing Facility Level of Care need, and transition plan details including housing arrangements."
+          },
+          {
+            "step": 3,
+            "title": "Complete assessment",
+            "description": "Work with the contact agency to verify eligibility and develop a transition plan that includes housing, support services, and any needed equipment or modifications."
+          },
+          {
+            "step": 4,
+            "title": "Coordinate transition",
+            "description": "Once approved, the program covers moving expenses, security deposits, furniture, and arranges enhanced home care services to begin on your transition date."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": "Possible waitlist — typical for Money Follows the Person programs, but no specific Kentucky wait times available",
+        "tip": "Nursing home discharge planners often know about this program and can help initiate the referral process.",
+        "urls": [
+          {
+            "label": "Kentucky Transitions Program",
+            "url": "https://chfs.ky.gov/agencies/dms/dca/Pages/kytransitions.aspx"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Proof of Kentucky Medicaid enrollment",
+        "Documentation showing 60+ consecutive days in nursing home or intermediate care facility",
+        "Evidence of Nursing Facility Level of Care determination",
+        "Income verification for Medicaid (Social Security award letter, pension statements)",
+        "Bank statements for all accounts (last 3 months)",
+        "Asset documentation (property deeds, vehicle titles, investment statements)",
+        "Transition housing plan (lease agreement, homeownership documents, or family housing arrangement)",
+        "List of needed support services and equipment for community living"
+      ],
+      "contacts": [
+        {
+          "label": "Kentucky Department for Medicaid Services",
+          "phone": null,
+          "description": "Main program administration - use website to find local contact agency",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Kentucky 2-1-1",
+          "phone": "2-1-1",
+          "description": "Free helpline to connect with local Area Agencies on Aging and other resources",
+          "hours": "24 hours, 7 days a week"
+        }
+      ],
+      "applicationNotes": [
+        "The program is officially called 'Kentucky Transitions' — not generic Money Follows the Person — when speaking with state agencies",
+        "Enhanced federal funding lasts exactly 365 days from transition date, then services continue through standard Kentucky Medicaid waivers like ABI or HCBW",
+        "Services after transition depend on available waiver slots, so waiver availability in your area may limit service options",
+        "Your parent must already be Medicaid-enrolled and institutionalized — this program cannot prevent nursing home placement"
+      ],
+      "relatedPrograms": [
+        "Kentucky Medicaid Home and Community-Based Waivers",
+        "Acquired Brain Injury (ABI) Waiver",
+        "Home and Community-Based Waiver (HCBW)",
+        "Kentucky Medicaid Long-Term Care"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if it's worth more than $2,000?",
+          "answer": "Yes, the primary home is exempt from the $2,000 asset limit if your parent intends to return to it. The home equity value doesn't count toward Medicaid asset limits. However, if they plan to live elsewhere permanently, the home may need to be sold or transferred according to Medicaid rules."
+        },
+        {
+          "question": "What happens after the 365 days of enhanced funding ends?",
+          "answer": "Services continue through standard Kentucky Medicaid home and community-based waivers like ABI or HCBW, but without the extra benefits. Your parent will still receive necessary care, but may have fewer service hours or options than during the first transition year."
+        },
+        {
+          "question": "Can I hire myself or another family member as my parent's paid caregiver?",
+          "answer": "Yes, through the self-direction option, you can choose services and hire caregivers including relatives. This allows family members to be compensated for providing care that would otherwise be delivered by agency staff."
+        },
+        {
+          "question": "What if my parent has been in the nursing home for less than 60 days?",
+          "answer": "They don't qualify yet — the 60 consecutive days is a firm requirement. However, you can start the referral process before the 60 days are complete so everything is ready when they become eligible."
+        },
+        {
+          "question": "Does the program cover nursing home costs if my parent needs to return to the facility?",
+          "answer": "The program focuses on community transition, but your parent remains eligible for nursing home care through Kentucky Medicaid if their needs change and community services are no longer sufficient."
+        },
+        {
+          "question": "Are there regional differences in wait times or available services?",
+          "answer": "Yes, the program is administered through local contact agencies like Area Agencies on Aging, which can lead to differences in processing times and available service providers by region. Contact your local agency for area-specific information."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "asset-focused",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "warm"
+      },
+      "icon": "House",
+      "phone": null,
+      "sourceUrl": "https://chfs.ky.gov/agencies/dms/dca/Pages/kytransitions.aspx",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
+    },
+    {
+      "id": "senior-meals-program",
+      "name": "State-Funded Senior Meals Program",
+      "shortName": "Senior Meals",
+      "tagline": "Free daily meals delivered to your parent's home or at local senior centers throughout Kentucky.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "state"
+      },
+      "intro": "If your parent is 60+ and struggling to prepare nutritious meals, Kentucky's Senior Meals Program provides one balanced meal per day — either delivered to their home or served at local senior centers. Because the program prioritizes homebound and isolated seniors, your parent can get home-delivered meals if they're unable to attend congregate sites due to illness or disability and have no one at home to help prepare meals.\n\nThe program also includes monthly food boxes worth approximately $50 through the Commodity Supplemental Food Program (CSFP) — but this component has income limits of 130% of the federal poverty level. The main meal program has no income restrictions for anyone 60+. Because services are administered through local Area Agencies on Aging, availability and waitlists vary by region.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Kentucky resident",
+          "No income limit for meals",
+          "Income limit for food boxes",
+          "Homebound status for home delivery"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "For home-delivered meals: Must be unable to attend congregate sites due to illness or incapacitating disability, with no one in the home able to prepare nutritious meals regularly",
+        "otherRequirements": [
+          "Kentucky resident",
+          "Valid ID required for CSFP food boxes",
+          "Priority given to frail and isolated individuals for home-delivered meals"
+        ],
+        "povertyLevelReference": "130% FPL for CSFP food boxes only"
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call the statewide hotline at 1-877-925-0037 to connect with your local Area Agency on Aging — no formal application needed.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the statewide hotline",
+            "description": "Call 1-877-925-0037 to reach Kentucky's Area Agency on Aging network. They'll connect you to your local provider based on your parent's address."
+          },
+          {
+            "step": 2,
+            "title": "Contact your local provider",
+            "description": "Your local Area Agency on Aging will assess availability in your area. Some regions may have waitlists for home-delivered meals."
+          },
+          {
+            "step": 3,
+            "title": "Schedule assessment if needed",
+            "description": "For home-delivered meals, your parent may need a brief assessment to confirm they're homebound and unable to prepare meals safely."
+          },
+          {
+            "step": 4,
+            "title": "Apply for food boxes separately",
+            "description": "If interested in monthly CSFP food boxes, contact your local food bank or Area Agency about income verification (130% federal poverty level required)."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": "Some areas may have waiting lists — availability varies by region",
+        "tip": "Call during business hours and have your parent's address ready — services are organized by county and the hotline will route you to the right local office.",
+        "urls": []
+      },
+      "documentsNeeded": [
+        "Valid government-issued photo ID (driver's license, passport, or Permanent Resident Card)",
+        "Proof of age (birth certificate, driver's license, or passport)",
+        "Proof of Kentucky residency (utility bill, lease, or other official document)",
+        "Income documentation for CSFP food boxes if applicable (Social Security award letter, pension statements, or pay stubs)",
+        "Medical documentation if requesting home-delivered meals (physician statement about homebound status may be helpful)"
+      ],
+      "contacts": [
+        {
+          "label": "Kentucky Area Agencies on Aging Hotline",
+          "phone": "(877) 925-0037",
+          "description": "Statewide hotline to connect with local meal programs",
+          "hours": "Business hours, Monday-Friday"
+        },
+        {
+          "label": "Boyd County Community Center",
+          "phone": "(606) 739-6349",
+          "description": "Local senior meals and nutrition services",
+          "hours": "Call for hours"
+        },
+        {
+          "label": "Carter County Senior Services",
+          "phone": "(606) 474-4179",
+          "description": "Local senior meals and nutrition services",
+          "hours": "Call for hours"
+        },
+        {
+          "label": "Greenup County Senior Services",
+          "phone": "(606) 473-6244",
+          "description": "Local senior meals and nutrition services",
+          "hours": "Call for hours"
+        }
+      ],
+      "applicationNotes": [
+        "Not all counties offer both home-delivered and congregate meals — ask about what's available in your parent's area",
+        "Spouses of any age are eligible if their partner is 60+, but priority goes to the most frail and isolated seniors",
+        "CSFP food boxes supplement but don't replace all food needs — your parent can use SNAP benefits alongside this program",
+        "Home-delivered meals have stricter eligibility than congregate meals — if your parent can safely get to a senior center, they may need to choose that option"
+      ],
+      "relatedPrograms": [
+        "SNAP Food Benefits",
+        "Kentucky LIHEAP Energy Assistance",
+        "Area Agency on Aging Services",
+        "Medicare Nutrition Therapy"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Can my parent get both home-delivered meals and the monthly food boxes?",
+          "answer": "Yes, if they qualify for both. The main meal program has no income limits for anyone 60+, but the CSFP food boxes require income below 130% of the federal poverty level. Contact your local Area Agency to apply for both programs separately."
+        },
+        {
+          "question": "What if my parent can drive but doesn't like to cook — do they qualify for home delivery?",
+          "answer": "Probably not. Home-delivered meals are reserved for seniors who are homebound due to illness or disability AND have no one in the home to help prepare meals. If your parent can safely travel, they'd need to attend congregate meal sites at senior centers or other community locations."
+        },
+        {
+          "question": "How long is the waitlist for home-delivered meals?",
+          "answer": "Waitlists vary significantly by county — some areas have immediate availability while others may have months-long waits. Call 1-877-925-0037 to check current availability in your parent's specific area and ask about priority status for the most isolated seniors."
+        },
+        {
+          "question": "Can I apply on behalf of my elderly parent who has dementia?",
+          "answer": "Yes, family members can contact the Area Agency on Aging hotline on behalf of elderly parents. You'll need your parent's address and basic information. If formal guardianship is involved, mention that when you call 1-877-925-0037."
+        },
+        {
+          "question": "What's actually in the monthly CSFP food box?",
+          "answer": "The CSFP boxes contain approximately $50 worth of USDA foods including canned fruits and vegetables, canned meats, pasta, rice, beans, peanut butter, juices, cereals, cheese, and milk. The exact contents may vary month to month based on availability."
+        },
+        {
+          "question": "What happens if my parent's health improves and they can cook again?",
+          "answer": "Contact your local Area Agency on Aging to update their status. They may transition from home-delivered meals to congregate dining at local senior centers, which often provides social interaction along with nutrition. The program can adapt as your parent's needs change."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "warm"
+      },
+      "icon": "BowlFood",
+      "phone": "(877) 925-0037",
+      "sourceUrl": "https://chfs.ky.gov/agencies/dail/Pages/nutrition.aspx",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-13"
     }
   ],
   "stateOverview": {
-    "intro": "Kentucky offers 2 key programs for family caregivers, ranging from comprehensive medical care coordination to support for grandparents raising grandchildren. These are qualification-based benefit programs that provide direct services and financial assistance if your situation meets specific criteria. Both programs focus on keeping families together and providing wraparound support rather than simple cash payments.",
+    "intro": "Kentucky offers 15 state and federal programs to help your aging parent access healthcare, home care, food assistance, and financial support. These range from income-qualified benefits like SNAP (up to $300/month for groceries) and Medicaid waivers (covering thousands in home care costs) to free resources like Medicare counseling and legal aid available regardless of income. Most income-qualified programs use federal poverty guidelines — typically requiring income below $2,000-3,000/month for a single person, though limits vary by program. Start with the programs below based on your parent's most urgent needs, then explore additional options that might provide unexpected savings or support.",
     "startHere": [
       {
-        "name": "Senior CommUnity Care of Kentucky (PACE)",
-        "programId": "senior-community-care-kentucky-pace",
-        "why": "Covers all medical care, medications, and home services under one coordinated program if your parent needs nursing home-level care."
+        "name": "Kentucky Medicare Savings Programs (QMB, SLMB, QI)",
+        "programId": "kentucky-medicare-savings-programs",
+        "why": "Can save thousands annually on Medicare premiums and out-of-pocket costs if your parent has limited income."
       },
       {
-        "name": "Kentucky Family Caregiver Program (Grandparents Raising Grandchildren)",
-        "programId": "kentucky-family-caregiver-program-grandparents-raising-grandchildren",
-        "why": "Provides direct support services and grants for clothing, school supplies, and respite care if you're raising your grandchild."
+        "name": "Kentucky Home and Community-Based Services (HCBS) Waivers",
+        "programId": "kentucky-hcbs-waivers",
+        "why": "Covers home care services through Medicaid so your parent can avoid nursing home placement while getting daily assistance."
+      },
+      {
+        "name": "SNAP (Supplemental Nutrition Assistance Program)",
+        "programId": "snap-kentucky",
+        "why": "Provides immediate monthly grocery assistance for seniors 60+ on fixed incomes."
+      },
+      {
+        "name": "Kentucky State Health Insurance Assistance Program (SHIP)",
+        "programId": "kentucky-ship",
+        "why": "Free Medicare counseling available to everyone — can identify coverage gaps and savings opportunities."
       }
     ],
     "byNeed": [
       {
-        "need": "Comprehensive medical care coordination",
+        "need": "Help paying for home care",
         "programs": [
-          "Senior CommUnity Care of Kentucky (PACE)"
+          "Kentucky Home and Community-Based Services (HCBS) Waivers",
+          "Home and Community Based (HCB) Waiver",
+          "Money Follows the Person (Kentucky Transitions)"
         ],
-        "description": "All-in-one medical care, medications, and home services for parents who need nursing home-level care."
+        "description": "Medicaid-funded services that cover personal care, home modifications, and support to keep your parent at home."
       },
       {
-        "need": "Support for grandparents raising grandchildren",
+        "need": "Food assistance",
         "programs": [
-          "Kentucky Family Caregiver Program (Grandparents Raising Grandchildren)"
+          "SNAP (Supplemental Nutrition Assistance Program)",
+          "Kentucky Meals on Wheels",
+          "State-Funded Senior Meals Program"
         ],
-        "description": "Direct services and grants for basic needs when you're the primary caregiver for your grandchild."
+        "description": "Monthly grocery benefits plus free meal delivery or pickup at senior centers."
+      },
+      {
+        "need": "Healthcare cost relief",
+        "programs": [
+          "Kentucky Medicare Savings Programs (QMB, SLMB, QI)",
+          "Kentucky PACE"
+        ],
+        "description": "Programs that pay Medicare premiums and costs, or provide all-in-one medical and long-term care."
+      },
+      {
+        "need": "Utility bill assistance",
+        "programs": [
+          "Kentucky Energy Assistance Program (LIHEAP)",
+          "Kentucky Weatherization Assistance Program"
+        ],
+        "description": "Help paying heating and cooling bills plus free home improvements to reduce energy costs."
+      },
+      {
+        "need": "Free advice and advocacy",
+        "programs": [
+          "Kentucky State Health Insurance Assistance Program (SHIP)",
+          "Kentucky Legal Aid for Seniors",
+          "Kentucky Long-Term Care Ombudsman Program",
+          "National Family Caregiver Support Program / Kentucky Family Caregiver Program"
+        ],
+        "description": "No-cost counseling, legal help, and advocacy services available regardless of income."
+      },
+      {
+        "need": "Employment for older adults",
+        "programs": [
+          "Senior Community Service Employment Program (SCSEP)"
+        ],
+        "description": "Part-time paid training positions for unemployed adults 55+ to build job skills and income."
       }
     ],
     "quickFacts": [
-      "Kentucky's PACE program coordinates all medical care under one team to eliminate provider coordination for high-need seniors",
-      "The state provides specific support for grandparents who have become primary caregivers for their grandchildren",
-      "Both available programs focus on comprehensive support services rather than simple cash assistance"
+      "Most income-qualified Kentucky programs follow federal poverty guidelines — typically requiring income below $2,000-3,000/month for a single person",
+      "Kentucky participates in Money Follows the Person, helping seniors transition from nursing homes back to community living",
+      "Free resources like SHIP Medicare counseling and legal aid are available to all Kentucky seniors regardless of income"
     ],
-    "resourcesVsBenefits": "Kentucky's available programs are qualification-based benefits that require meeting specific criteria — like needing nursing home-level care for PACE or being a grandparent raising a grandchild for the Family Caregiver Program. Both provide comprehensive services and support rather than universal resources available to all caregivers."
+    "resourcesVsBenefits": "Kentucky programs fall into two categories: income-qualified benefits that require meeting financial limits (like SNAP, Medicaid waivers, and Medicare Savings Programs), and free resources available to everyone regardless of income (like SHIP Medicare counseling, Legal Aid for Seniors, and the Long-Term Care Ombudsman). Start with free resources since there's no financial screening, then explore income-qualified benefits if your parent meets the guidelines."
   }
 }

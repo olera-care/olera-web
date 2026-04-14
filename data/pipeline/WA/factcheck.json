@@ -1,0 +1,729 @@
+{
+  "state": "WA",
+  "stateName": "Washington",
+  "checkedAt": "2026-04-14T10:11:04.499Z",
+  "total": 21,
+  "skipped": 0,
+  "parseErrors": 0,
+  "errors": 0,
+  "programsWithFlags": 4,
+  "totalFlags": 5,
+  "highSeverityFlags": 2,
+  "programs": [
+    {
+      "programId": "wa-apple-health-medicaid",
+      "programName": "Apple Health",
+      "facts": {
+        "age": 65,
+        "income_1": 1835,
+        "income_2": 2490,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8775012233",
+          "8003182596"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8005623022",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://www.coordinatedcarehealth.com/members/medicaid/how-to-enroll.html"
+        },
+        "notes": "Apple Health is Washington's Medicaid program; no senior-specific age threshold (covers all ages including 55+ via general Medicaid pathways); no fixed income limits found (means-tested via application); phone from official enrollment partner citing Health Care Authority"
+      },
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "8775012233",
+            "8003182596"
+          ],
+          "verifiedValue": "8005623022"
+        }
+      ],
+      "notes": "Apple Health is Washington's Medicaid program; no senior-specific age threshold (covers all ages including 55+ via general Medicaid pathways); no fixed income limits found (means-tested via application); phone from official enrollment partner citing Health Care Authority"
+    },
+    {
+      "programId": "wa-medicaid-personal-care-mpc",
+      "programName": "Medicaid Personal Care (MPC) Program",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 2000,
+        "assets_couple": null,
+        "phones": [
+          "8559234633",
+          "211",
+          "8775012233"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": 994,
+        "income_2": null,
+        "assets_individual": 2000,
+        "assets_couple": null,
+        "phone": "18775012233",
+        "sources": {
+          "age": null,
+          "income": "https://www.medicaidplanningassistance.org/washington-medicaid-personal-care/",
+          "assets": "https://www.medicaidplanningassistance.org/medicaid-eligibility-washington/",
+          "phone": "https://www.medicaidplanningassistance.org/washington-medicaid-personal-care/"
+        },
+        "notes": "No official .gov sources found in results; values from medicaidplanningassistance.org citing state Medicaid rules. Program serves elderly (seniors) or disabled 18+ with no senior-specific age minimum stated. Assets from general WA Medicaid LTC context."
+      },
+      "flags": [],
+      "notes": "No official .gov sources found in results; values from medicaidplanningassistance.org citing state Medicaid rules. Program serves elderly (seniors) or disabled 18+ with no senior-specific age minimum stated. Assets from general WA Medicaid LTC context."
+    },
+    {
+      "programId": "wa-mac-waiver",
+      "programName": "Medicaid Alternative Care (MAC) Waiver",
+      "facts": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 2000,
+        "assets_couple": null,
+        "phones": [],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 55,
+        "income_1": 1835,
+        "income_2": 2489,
+        "assets_individual": 2000,
+        "assets_couple": 3000,
+        "phone": null,
+        "sources": {
+          "age": "https://www.medicaidplanningassistance.org/washington-medicaid-alternative-care/",
+          "income": "https://www.washingtonlawhelp.org/km/tailored-supports-older-adults-tsoa-and-medicaid-alternative-care-mac-programs",
+          "assets": "https://www.washingtonlawhelp.org/km/tailored-supports-older-adults-tsoa-and-medicaid-alternative-care-mac-programs",
+          "phone": null
+        },
+        "notes": "Income limits (138% of federal poverty level) and asset limits apply only if applicant is not already enrolled in a Medicaid program without resource limits. Asset limits exclude home, car, and personal items. Phone contact information not found in retrieved sources."
+      },
+      "flags": [],
+      "notes": "Income limits (138% of federal poverty level) and asset limits apply only if applicant is not already enrolled in a Medicaid program without resource limits. Asset limits exclude home, car, and personal items. Phone contact information not found in retrieved sources."
+    },
+    {
+      "programId": "wa-pace-elderly-care",
+      "programName": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "facts": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 2000,
+        "assets_couple": null,
+        "phones": [
+          "2063205325",
+          "8449010094",
+          "8007352900",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "2063205325",
+        "sources": {
+          "age": "https://www.providence.org/services/pace-and-adult-day-programs/elderplace-in-wa",
+          "income": null,
+          "assets": null,
+          "phone": "https://www.providence.org/services/pace-and-adult-day-programs/elderplace-in-wa"
+        },
+        "notes": "No financial limits found in sources; check official WA DSHS PACE page at https://www.dshs.wa.gov/altsa/program-all-inclusive-care-elderly-pace for current details. Providence source dated 2019."
+      },
+      "flags": [],
+      "notes": "No financial limits found in sources; check official WA DSHS PACE page at https://www.dshs.wa.gov/altsa/program-all-inclusive-care-elderly-pace for current details. Providence source dated 2019."
+    },
+    {
+      "programId": "wa-medicare-savings-programs-qmb-slmb-qi",
+      "programName": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "facts": {
+        "age": 65,
+        "income_1": 1463,
+        "income_2": 1984,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8005623022",
+          "2062638400",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://www.medicare.gov/basics/costs/help/medicare-savings-programs",
+          "income": "https://www.washingtonlawhelp.org/en/medicare-savings-programs-help-paying-medicare-costs",
+          "assets": null,
+          "phone": null
+        },
+        "notes": "Multiple income limits by program (QMB: $1463/1, $1984/2; SLMB: $1596/1, $2167/2; QI higher); no single limit or assets/phone found for WA; federal age 65 for Medicare eligibility"
+      },
+      "flags": [],
+      "notes": "Multiple income limits by program (QMB: $1463/1, $1984/2; SLMB: $1596/1, $2167/2; QI higher); no single limit or assets/phone found for WA; federal age 65 for Medicare eligibility"
+    },
+    {
+      "programId": "wa-basic-food-program",
+      "programName": "Basic Food Program (Washington State SNAP)",
+      "facts": {
+        "age": null,
+        "income_1": 2608,
+        "income_2": 3525,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8003222588",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": 2608,
+        "income_2": 3525,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "18775012233",
+        "sources": {
+          "age": null,
+          "income": "https://kingcounty.gov/en/dept/dph/health-safety/health-centers-programs-services/access-outreach-program/basic-food-program",
+          "assets": null,
+          "phone": "https://snapbenefitshelp.com/snap-benefits/washington"
+        },
+        "notes": "Income limits from King County (local gov) at 200% FPL; no 2026-specific updates found in results; phone from non-gov citing DSHS; no asset test applies to most SNAP households"
+      },
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "8003222588",
+            "211"
+          ],
+          "verifiedValue": "18775012233"
+        }
+      ],
+      "notes": "Income limits from King County (local gov) at 200% FPL; no 2026-specific updates found in results; phone from non-gov citing DSHS; no asset test applies to most SNAP households"
+    },
+    {
+      "programId": "wa-liheap-energy-assistance",
+      "programName": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": "https://www.commerce.wa.gov/community-opportunities/liheap/",
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No official statewide phone number found; contact local providers. No age, assets, or specific senior pathway requirements. Income at 150% FPL per state plan."
+      },
+      "flags": [],
+      "notes": "No official statewide phone number found; contact local providers. No age, assets, or specific senior pathway requirements. Income at 150% FPL per state plan."
+    },
+    {
+      "programId": "wa-weatherization-assistance-program",
+      "programName": "Weatherization Assistance Program (WAP)",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "5094527145"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": "https://www.commerce.wa.gov/weatherization/",
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No age, asset limits, or statewide phone found in official sources; income up to 200% FPL, 60% SMI, or 80% AMI; apply via local agencies with county phones listed at source; priority for seniors in some local providers"
+      },
+      "flags": [],
+      "notes": "No age, asset limits, or statewide phone found in official sources; income up to 200% FPL, 60% SMI, or 80% AMI; apply via local agencies with county phones listed at source; priority for seniors in some local providers"
+    },
+    {
+      "programId": "wa-ship-medicare-counseling",
+      "programName": "Health Insurance Counseling and Advocacy Program (HICAP/SHIP)",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8005626900",
+          "3605860241"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "18005626900",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://www.shiphelp.org/ships/washington/"
+        },
+        "notes": "HICAP/SHIP (SHIBA in WA) has no age, income, or asset eligibility limits; open to Medicare beneficiaries, families, caregivers"
+      },
+      "flags": [],
+      "notes": "HICAP/SHIP (SHIBA in WA) has no age, income, or asset eligibility limits; open to Medicare beneficiaries, families, caregivers"
+    },
+    {
+      "programId": "wa-home-delivered-meals",
+      "programName": "Home Delivered Meals",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "3605335100",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "3605335100",
+        "sources": {
+          "age": "https://www.o3a.org/programs/nutrition-transportation/senior-nutrition-programs/",
+          "income": null,
+          "assets": null,
+          "phone": "https://www.o3a.org/programs/nutrition-transportation/senior-nutrition-programs/"
+        },
+        "notes": "Home Delivered Meals in Washington is administered through multiple regional providers (O3A in coastal counties, Sound Generations in King County, etc.) with varying eligibility criteria. Age 60+ is the standard senior threshold across programs; O3A also serves 55+ American Indian/Alaska Native seniors. Income limits exist (O3A: 185% FPL) but are not consistently documented across all providers in search results. No asset limits found in authoritative sources. Phone number is O3A Senior Nutrition Coordinator for Clallam, Jefferson, Grays Harbor, Pacific Counties. For statewide information, WA 211 (https://search.wa211.org/) aggregates 76 providers but does not list centralized phone. Sound Generations (King County) accepts applications online; Mom's Meals requires contacting case manager/health plan. No single unified state program phone number identified."
+      },
+      "flags": [],
+      "notes": "Home Delivered Meals in Washington is administered through multiple regional providers (O3A in coastal counties, Sound Generations in King County, etc.) with varying eligibility criteria. Age 60+ is the standard senior threshold across programs; O3A also serves 55+ American Indian/Alaska Native seniors. Income limits exist (O3A: 185% FPL) but are not consistently documented across all providers in search results. No asset limits found in authoritative sources. Phone number is O3A Senior Nutrition Coordinator for Clallam, Jefferson, Grays Harbor, Pacific Counties. For statewide information, WA 211 (https://search.wa211.org/) aggregates 76 providers but does not list centralized phone. Sound Generations (King County) accepts applications online; Mom's Meals requires contacting case manager/health plan. No single unified state program phone number identified."
+    },
+    {
+      "programId": "wa-family-caregiver-support",
+      "programName": "Family Caregiver Support Program",
+      "facts": {
+        "age": 18,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8004223263",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No authoritative data found for 'Family Caregiver Support Program' eligibility details (age, income, assets, phone) as of 2026 from .gov or cited official sources; search results discuss WA Cares Fund (launches July 2026, no senior age test mentioned, work-based eligibility) and other caregiver services without matching program specifics."
+      },
+      "flags": [],
+      "notes": "No authoritative data found for 'Family Caregiver Support Program' eligibility details (age, income, assets, phone) as of 2026 from .gov or cited official sources; search results discuss WA Cares Fund (launches July 2026, no senior age test mentioned, work-based eligibility) and other caregiver services without matching program specifics."
+    },
+    {
+      "programId": "wa-scsep-employment-program",
+      "programName": "Senior Community Service Employment Program (SCSEP)",
+      "facts": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "4253664457",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://www.dol.gov/agencies/eta/seniors",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "Age requirement (55+) confirmed from federal DOL source. Income limit of 125% of federal poverty level is documented but specific dollar amounts vary annually by family size and are not provided in search results. No asset limits found in search results. Phone number for Washington state SCSEP not found in search results; Goodwill WA listing shows program currently on hold. AARP Foundation operates SCSEP in Washington with phone (206) 624-6698 but this is a nonprofit grantee, not official state agency line. Recommend contacting Washington Department of Employment Security or DOL directly for current Washington-specific phone number and income thresholds."
+      },
+      "flags": [],
+      "notes": "Age requirement (55+) confirmed from federal DOL source. Income limit of 125% of federal poverty level is documented but specific dollar amounts vary annually by family size and are not provided in search results. No asset limits found in search results. Phone number for Washington state SCSEP not found in search results; Goodwill WA listing shows program currently on hold. AARP Foundation operates SCSEP in Washington with phone (206) 624-6698 but this is a nonprofit grantee, not official state agency line. Recommend contacting Washington Department of Employment Security or DOL directly for current Washington-specific phone number and income thresholds."
+    },
+    {
+      "programId": "wa-legal-aid-seniors",
+      "programName": "Legal Aid for Seniors",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8883877111",
+          "8882011014"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "18883877111",
+        "sources": {
+          "age": "https://www.altcwashington.com/legal-services/",
+          "income": null,
+          "assets": null,
+          "phone": "https://www.altcwashington.com/legal-services/"
+        },
+        "notes": "CLEAR*Sr via NJP (Northwest Justice Project) is WA's primary statewide legal aid hotline for seniors 60+; phone for seniors 60+ regardless of income, assets may apply but no specific limits found"
+      },
+      "flags": [],
+      "notes": "CLEAR*Sr via NJP (Northwest Justice Project) is WA's primary statewide legal aid hotline for seniors 60+; phone for seniors 60+ regardless of income, assets may apply but no specific limits found"
+    },
+    {
+      "programId": "wa-long-term-care-ombudsman",
+      "programName": "Washington State Long-Term Care Ombudsman Program (LTCOP)",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "2537983789"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8005626028",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://mschelps.org/gethelp/ltcop/"
+        },
+        "notes": "Program serves seniors in long-term care facilities with no age, income, or asset eligibility requirements"
+      },
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "2537983789"
+          ],
+          "verifiedValue": "8005626028"
+        }
+      ],
+      "notes": "Program serves seniors in long-term care facilities with no age, income, or asset eligibility requirements"
+    },
+    {
+      "programId": "wa-state-parks-senior-limited-income-pass",
+      "programName": "Washington State Parks Senior Citizen Limited Income Pass",
+      "facts": {
+        "age": 62,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 62,
+        "income_1": 40000,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://benefitscheckup.org/program/discount_wa_state_park_disc_pass",
+          "income": "https://benefitscheckup.org/program/discount_wa_state_park_disc_pass",
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No official .gov source found in results; values from nonprofit citing state program. No 2026 changes indicated."
+      },
+      "flags": [],
+      "notes": "No official .gov source found in results; values from nonprofit citing state program. No 2026 changes indicated."
+    },
+    {
+      "programId": "wa-lifetime-disabled-veteran-pass",
+      "programName": "Lifetime Disabled Veteran Pass",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "3609028844",
+          "8008336388"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "3609028844",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://www.thereflector.com/stories/washington-state-parks-offers-lifetime-disabled-veteran-pass-program,322657"
+        },
+        "notes": "Phone from recent news citing state parks contact; prefer official parks.wa.gov application page for primary source"
+      },
+      "flags": [],
+      "notes": "Phone from recent news citing state parks contact; prefer official parks.wa.gov application page for primary source"
+    },
+    {
+      "programId": "wa-charity-care-program",
+      "programName": "Washington Charity Care Program",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "3602364210"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": [
+        3
+      ],
+      "flags": [],
+      "notes": null
+    },
+    {
+      "programId": "wa-hen-housing-assistance",
+      "programName": "Housing and Essential Needs (HEN) Referral Program",
+      "facts": {
+        "age": 18,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8775012233",
+          "2063285755",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8775012233",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://blog.homelessinfo.org/wp-content/uploads/DSHS-HEN-Referral-By-County.pdf"
+        },
+        "notes": "HEN program does not have a senior-specific age threshold (55+). Program eligibility is based on temporary incapacity/disability and inability to work for 90+ days, not age. Minimum age requirement is 18 (general population). No senior pathway exists. Income and asset limits not specified in available sources. Program appears active as of 2026."
+      },
+      "flags": [],
+      "notes": "HEN program does not have a senior-specific age threshold (55+). Program eligibility is based on temporary incapacity/disability and inability to work for 90+ days, not age. Minimum age requirement is 18 (general population). No senior pathway exists. Income and asset limits not specified in available sources. Program appears active as of 2026."
+    },
+    {
+      "programId": "wa-abd-cash-assistance",
+      "programName": "Aged, Blind, or Disabled (ABD) Cash Assistance Program",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 6000,
+        "assets_couple": 6000,
+        "phones": [
+          "2063285755"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 12000,
+        "assets_couple": 12000,
+        "phone": null,
+        "sources": {
+          "age": "https://palouseresources.org/service/aged-blind-or-disabled-abd-cash-assistance-program",
+          "income": null,
+          "assets": "https://blog.homelessinfo.org/aged-blind-and-disabled-abd-and-housing-and-essential-needs-hen-training-september-10-2025/",
+          "phone": null
+        },
+        "notes": "Age 65+ is the senior-specific threshold; program also serves blind individuals and disabled adults of any age. Asset limit of $12,000 updated from $6,000 in 2024. No income test found in search results. Official phone number not available in provided sources. Search results do not include .gov URLs; most authoritative source is Washington Department of Social and Health Services via Palouse Resources (dated 05/02/2025) and homeless services training materials (dated 09/10/2025)."
+      },
+      "flags": [
+        {
+          "field": "assets_individual",
+          "severity": "high",
+          "draftValue": 6000,
+          "verifiedValue": 12000,
+          "pctDiff": 50
+        },
+        {
+          "field": "assets_couple",
+          "severity": "high",
+          "draftValue": 6000,
+          "verifiedValue": 12000,
+          "pctDiff": 50
+        }
+      ],
+      "notes": "Age 65+ is the senior-specific threshold; program also serves blind individuals and disabled adults of any age. Asset limit of $12,000 updated from $6,000 in 2024. No income test found in search results. Official phone number not available in provided sources. Search results do not include .gov URLs; most authoritative source is Washington Department of Social and Health Services via Palouse Resources (dated 05/02/2025) and homeless services training materials (dated 09/10/2025)."
+    },
+    {
+      "programId": "wa-cares-fund",
+      "programName": "WA Cares Fund",
+      "facts": {
+        "age": 18,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://wacaresfund.wa.gov/pilot",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No age, income, or asset tests found for seniors; eligibility based on work contributions and care needs per official pilot link. Benefits available July 2026 statewide."
+      },
+      "flags": [],
+      "notes": "No age, income, or asset tests found for seniors; eligibility based on work contributions and care needs per official pilot link. Benefits available July 2026 statewide."
+    },
+    {
+      "programId": "wa-seattle-gold-card-discounts",
+      "programName": "Seattle Gold Card (Age-Friendly Discount Program)",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "2065825011"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://www.seattle.gov/agefriendly/collaborative-efforts/discounts",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No income or asset tests; no official phone number listed, apply online or in person"
+      },
+      "flags": [],
+      "notes": "No income or asset tests; no official phone number listed, apply online or in person"
+    }
+  ]
+}

@@ -1,0 +1,524 @@
+{
+  "state": "FL",
+  "stateName": "Florida",
+  "checkedAt": "2026-04-14T10:00:04.064Z",
+  "total": 14,
+  "skipped": 0,
+  "parseErrors": 0,
+  "errors": 0,
+  "programsWithFlags": 4,
+  "totalFlags": 6,
+  "highSeverityFlags": 2,
+  "programs": [
+    {
+      "programId": "fl-smmc-ltc-hcbs-waivers",
+      "programName": "Statewide Medicaid Managed Care Long-Term Care Program (SMMC-LTC) HCBS Waivers",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 2000,
+        "assets_couple": null,
+        "phones": [
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "180096ELDER",
+        "sources": {
+          "age": "https://elderaffairs.org/programs-and-services/statewide-medicaid-managed-care-long-term-care-program/",
+          "income": null,
+          "assets": null,
+          "phone": "https://www.aaapbtc.org/state-medicaid-managed-care-for-long-term-care-smmcltc/"
+        },
+        "notes": "No specific countable asset limit or income thresholds found in provided sources for seniors; financial eligibility determined by DCF per Medicaid rules. Phone is statewide Elder Helpline (1-800-96-ELDER or 1-800-963-5337) for screening."
+      },
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "211"
+          ],
+          "verifiedValue": "180096"
+        }
+      ],
+      "notes": "No specific countable asset limit or income thresholds found in provided sources for seniors; financial eligibility determined by DCF per Medicaid rules. Phone is statewide Elder Helpline (1-800-96-ELDER or 1-800-963-5337) for screening."
+    },
+    {
+      "programId": "fl-pace-comprehensive-care",
+      "programName": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "facts": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 2000,
+        "assets_couple": null,
+        "phones": [
+          "7869337223",
+          "8009558771",
+          "18009635337"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://ahca.myflorida.com/medicaid/medicaid-policy-quality-and-operations/medicaid-policy-and-quality/medicaid-policy/federal-authorities/federal-waivers/program-of-all-inclusive-care-for-the-elderly",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No asset or income limits found in sources; PACE typically uses Medicaid financial eligibility which varies by individual circumstances"
+      },
+      "flags": [],
+      "notes": "No asset or income limits found in sources; PACE typically uses Medicaid financial eligibility which varies by individual circumstances"
+    },
+    {
+      "programId": "fl-medicare-savings-programs",
+      "programName": "Medicaid Medicare Savings Programs (QMB, SLMB, QI)",
+      "facts": {
+        "age": null,
+        "income_1": 1350,
+        "income_2": 1824,
+        "assets_individual": 9950,
+        "assets_couple": 14910,
+        "phones": [
+          "18774116810",
+          "18006334227",
+          "18009635337"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": 1305,
+        "income_2": 1763,
+        "assets_individual": 9950,
+        "assets_couple": 14910,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": "https://benefitscheckup.org/program/health_fl_msp_medicare_savings",
+          "assets": "https://benefitscheckup.org/program/health_fl_msp_medicare_savings",
+          "phone": null
+        },
+        "notes": "Income from QMB (lowest limit, applies to seniors); assets uniform across QMB/SLMB/QI per source citing Florida DCF; 2025 figures used as 2026 specifics not found in results"
+      },
+      "flags": [],
+      "notes": "Income from QMB (lowest limit, applies to seniors); assets uniform across QMB/SLMB/QI per source citing Florida DCF; 2025 figures used as 2026 specifics not found in results"
+    },
+    {
+      "programId": "fl-snap-food-benefits",
+      "programName": "SNAP (Supplemental Nutrition Assistance Program)",
+      "facts": {
+        "age": 60,
+        "income_1": 1255,
+        "income_2": 1703,
+        "assets_individual": 4500,
+        "assets_couple": 4500,
+        "phones": [
+          "18667622237",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 65,
+        "income_1": 2610,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://www.propertyexemption.com/guides/food-stamps-florida-snap-guide/",
+          "income": "https://www.propertyexemption.com/guides/food-stamps-florida-snap-guide/",
+          "assets": null,
+          "phone": null
+        },
+        "notes": "SNAP has no asset test; income limits from non-.gov source citing 2026 values. No official .gov source found for exact 2026 income limits or phone in results. Age 65+ exempt from work rules (senior pathway)."
+      },
+      "flags": [
+        {
+          "field": "age",
+          "severity": "high",
+          "draftValue": 60,
+          "verifiedValue": 65
+        },
+        {
+          "field": "income_1",
+          "severity": "high",
+          "draftValue": 1255,
+          "verifiedValue": 2610,
+          "pctDiff": 51.9
+        }
+      ],
+      "notes": "SNAP has no asset test; income limits from non-.gov source citing 2026 values. No official .gov source found for exact 2026 income limits or phone in results. Age 65+ exempt from work rules (senior pathway)."
+    },
+    {
+      "programId": "fl-liheap-energy-assistance",
+      "programName": "LIHEAP (Low-Income Home Energy Assistance Program)",
+      "facts": {
+        "age": null,
+        "income_1": 2679,
+        "income_2": 3504,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "211",
+          "7725678000",
+          "5613554792",
+          "4075931900"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": 2679,
+        "income_2": 3504,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": "https://www.snapscreener.com/liheap/florida",
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No official .gov source found in results; snapscreener.com provides current monthly income limits citing LIHEAP data. No age, assets, or phone from authoritative sources. Program active for 2025-2026."
+      },
+      "flags": [],
+      "notes": "No official .gov source found in results; snapscreener.com provides current monthly income limits citing LIHEAP data. No age, assets, or phone from authoritative sources. Program active for 2025-2026."
+    },
+    {
+      "programId": "fl-weatherization-assistance-program",
+      "programName": "Weatherization Assistance Program (WAP)",
+      "facts": {
+        "age": null,
+        "income_1": 2430,
+        "income_2": 3287,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": 2590,
+        "income_2": 3500,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://www.cfcaa.org/weatherization/",
+          "income": "https://www.cfcaa.org/weatherization/",
+          "assets": null,
+          "phone": null
+        },
+        "notes": "Income limits calculated as 200% of 2026 federal poverty guidelines ($31,080 annual for 1 person = $2,590 monthly; $42,000 for 2 = $3,500 monthly, rounded to integer); no official Florida state WAP page with exact 2026 figures found in results"
+      },
+      "flags": [
+        {
+          "field": "income_1",
+          "severity": "medium",
+          "draftValue": 2430,
+          "verifiedValue": 2590,
+          "pctDiff": 6.2
+        },
+        {
+          "field": "income_2",
+          "severity": "medium",
+          "draftValue": 3287,
+          "verifiedValue": 3500,
+          "pctDiff": 6.1
+        }
+      ],
+      "notes": "Income limits calculated as 200% of 2026 federal poverty guidelines ($31,080 annual for 1 person = $2,590 monthly; $42,000 for 2 = $3,500 monthly, rounded to integer); no official Florida state WAP page with exact 2026 figures found in results"
+    },
+    {
+      "programId": "fl-shine-medicare-counseling",
+      "programName": "SHINE (Serving Health Insurance Needs of Elders)",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "18009635337"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://www.floridashine.org"
+        },
+        "notes": "SHINE is a free counseling program with no age, income, or asset eligibility requirements found in sources; no official main phone number listed, contact via form or local counselor"
+      },
+      "flags": [],
+      "notes": "SHINE is a free counseling program with no age, income, or asset eligibility requirements found in sources; no official main phone number listed, contact via form or local counselor"
+    },
+    {
+      "programId": "fl-home-delivered-meals-on-wheels",
+      "programName": "Home Delivered Meals (Meals on Wheels)",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "180096",
+          "9545181818"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://discover.pbc.gov/communityservices/seniorservices/pages/nutrition-program.aspx",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No statewide eligibility found; Meals on Wheels in Florida is locally administered with varying criteria (e.g., 60+ in Palm Beach County). No income/assets tests or central phone identified in sources."
+      },
+      "flags": [],
+      "notes": "No statewide eligibility found; Meals on Wheels in Florida is locally administered with varying criteria (e.g., 60+ in Palm Beach County). No income/assets tests or central phone identified in sources."
+    },
+    {
+      "programId": "fl-adi-respite-services",
+      "programName": "Alzheimer's Disease Initiative (ADI) Respite Services",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8009635337",
+          "9543576622"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8009635337",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://reach.med.fsu.edu/florida-department-of-elder-affairs-alzheimers-disease-initiative/"
+        },
+        "notes": "ADI serves individuals aged 18+ with probable ADRD; no senior-specific age threshold (55+) exists. No income or asset limits found in available sources. Phone number is Elder Helpline for local AAA contact. Eligibility details require direct contact with Area Agency on Aging."
+      },
+      "flags": [],
+      "notes": "ADI serves individuals aged 18+ with probable ADRD; no senior-specific age threshold (55+) exists. No income or asset limits found in available sources. Phone number is Elder Helpline for local AAA contact. Eligibility details require direct contact with Area Agency on Aging."
+    },
+    {
+      "programId": "fl-scsep-employment",
+      "programName": "Senior Community Service Employment Program (SCSEP)",
+      "facts": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8558502525",
+          "8665006587",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://elderaffairs.org/programs-and-services/senior-community-service-employment-program-scsep/",
+          "income": "https://elderaffairs.org/programs-and-services/senior-community-service-employment-program-scsep/",
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No phone number found in sources; income is 125% poverty guidelines but specific limits not numeric for 2026"
+      },
+      "flags": [],
+      "notes": "No phone number found in sources; income is 125% poverty guidelines but specific limits not numeric for 2026"
+    },
+    {
+      "programId": "fl-area-agency-legal-services",
+      "programName": "Legal Aid for Seniors (Area Agency Legal Services)",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8888957873",
+          "9547658955",
+          "8504142000"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8888957873",
+        "sources": {
+          "age": "https://law.elderaffairs.org/legal-services/florida-senior-legal-helpline/",
+          "income": null,
+          "assets": null,
+          "phone": "https://law.elderaffairs.org/legal-services/florida-senior-legal-helpline/"
+        },
+        "notes": "Program is Florida Senior Legal Helpline, funded by Florida Dept of Elder Affairs; income screening mentioned but no specific limits found in sources"
+      },
+      "flags": [],
+      "notes": "Program is Florida Senior Legal Helpline, funded by Florida Dept of Elder Affairs; income screening mentioned but no specific limits found in sources"
+    },
+    {
+      "programId": "fl-home-care-elderly-hce",
+      "programName": "Home Care for the Elderly (HCE) Program",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 2000,
+        "assets_couple": null,
+        "phones": [
+          "18009635337",
+          "8504142000"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8009635337",
+        "sources": {
+          "age": "https://elderaffairs.org/programs-and-services/home-care-for-the-elderly-hce-program/",
+          "income": null,
+          "assets": null,
+          "phone": "https://elderaffairs.org/programs-and-services/home-care-for-the-elderly-hce-program/"
+        },
+        "notes": "HCE Program eligibility requires age 60+, income below ICP standard, and ICP asset limitation, but official .gov source does not specify the numeric asset or income thresholds. Phone number extracted from official Elder Affairs source (Elder Helpline 1-800-96-ELDER). Program is active as of 2026 and serves seniors in family-type living arrangements as alternative to institutional care."
+      },
+      "flags": [],
+      "notes": "HCE Program eligibility requires age 60+, income below ICP standard, and ICP asset limitation, but official .gov source does not specify the numeric asset or income thresholds. Phone number extracted from official Elder Affairs source (Elder Helpline 1-800-96-ELDER). Program is active as of 2026 and serves seniors in family-type living arrangements as alternative to institutional care."
+    },
+    {
+      "programId": "fl-cce-community-care-elderly",
+      "programName": "Community Care for the Elderly (CCE) Program",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "18009635337",
+        "sources": {
+          "age": "https://elderaffairs.org/programs-and-services/community-care-for-the-elderly-cce-program/",
+          "income": null,
+          "assets": null,
+          "phone": "https://elderaffairs.org/programs-and-services/community-care-for-the-elderly-cce-program/"
+        },
+        "notes": "CCE program eligibility requires age 60+ AND functional impairment (determined by comprehensive assessment). No income or asset limits found in official sources. Phone number is Elder Helpline (1-800-96-ELDER) provided by Florida Department of Elder Affairs for CCE inquiries."
+      },
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "211"
+          ],
+          "verifiedValue": "18009635337"
+        }
+      ],
+      "notes": "CCE program eligibility requires age 60+ AND functional impairment (determined by comprehensive assessment). No income or asset limits found in official sources. Phone number is Elder Helpline (1-800-96-ELDER) provided by Florida Department of Elder Affairs for CCE inquiries."
+    },
+    {
+      "programId": "fl-elder-options-home-services",
+      "programName": "Elder Options",
+      "facts": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 2000,
+        "assets_couple": 3000,
+        "phones": [
+          "180096",
+          "18002622243",
+          "18009635337"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8002622243",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://agingresources.org/elder-helpline/"
+        },
+        "notes": "Elder Options is an Area Agency on Aging (AAA) and Aging & Disability Resource Center (ADRC) that provides information, referrals, and counseling for seniors and caregivers in 16 North Central Florida counties. It is not itself a direct-benefit program with eligibility criteria (age, income, asset limits). Rather, it serves as a point of entry and counselor for multiple underlying programs (Medicaid, Medicare, CARES, in-home services, etc.), each with their own eligibility rules. The search results do not contain specific age, income, or asset thresholds for Elder Options itself. To obtain eligibility details, applicants must contact Elder Options or the Florida Department of Elder Affairs to discuss specific programs they may qualify for."
+      },
+      "flags": [],
+      "notes": "Elder Options is an Area Agency on Aging (AAA) and Aging & Disability Resource Center (ADRC) that provides information, referrals, and counseling for seniors and caregivers in 16 North Central Florida counties. It is not itself a direct-benefit program with eligibility criteria (age, income, asset limits). Rather, it serves as a point of entry and counselor for multiple underlying programs (Medicaid, Medicare, CARES, in-home services, etc.), each with their own eligibility rules. The search results do not contain specific age, income, or asset thresholds for Elder Options itself. To obtain eligibility details, applicants must contact Elder Options or the Florida Department of Elder Affairs to discuss specific programs they may qualify for."
+    }
+  ]
+}

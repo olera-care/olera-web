@@ -1,0 +1,386 @@
+{
+  "state": "CT",
+  "stateName": "Connecticut",
+  "checkedAt": "2026-04-14T09:59:32.760Z",
+  "total": 10,
+  "skipped": 0,
+  "parseErrors": 0,
+  "errors": 0,
+  "programsWithFlags": 2,
+  "totalFlags": 4,
+  "highSeverityFlags": 2,
+  "programs": [
+    {
+      "programId": "ct-husky-health-medicaid-seniors",
+      "programName": "HUSKY Health (Medicaid for seniors/disabled)",
+      "facts": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 1600,
+        "assets_couple": 2400,
+        "phones": [
+          "8772844911",
+          "211",
+          "8556266632"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 65,
+        "income_1": 851,
+        "income_2": 1153,
+        "assets_individual": 1600,
+        "assets_couple": 2400,
+        "phone": null,
+        "sources": {
+          "age": "https://portal.ct.gov/HUSKY/How-to-Qualify",
+          "income": "https://portal.ct.gov/HUSKY/How-to-Qualify",
+          "assets": "https://portal.ct.gov/HUSKY/How-to-Qualify",
+          "phone": null
+        },
+        "notes": "Income is monthly; assets are countable financial assets. No 2026 changes confirmed in sources; phone not found."
+      },
+      "flags": [],
+      "notes": "Income is monthly; assets are countable financial assets. No 2026 changes confirmed in sources; phone not found."
+    },
+    {
+      "programId": "ct-chcpe-medicare-savings",
+      "programName": "Connecticut Home Care Program for Elders (CHCPE) - Medicare Savings",
+      "facts": {
+        "age": 65,
+        "income_1": 1956,
+        "income_2": 2647,
+        "assets_individual": 35766,
+        "assets_couple": 47688,
+        "phones": [
+          "18556266632",
+          "2037575449",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 65,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 48798,
+        "assets_couple": 65064,
+        "phone": "8004455394",
+        "sources": {
+          "age": "https://portal.ct.gov/dss/health-and-home-care/connecticut-home-care-program-for-elders/connecticut-home-care-program-for-elders-chcpe",
+          "income": null,
+          "assets": "https://www.sharinglaw.net/~sharingl/elder/HomeCareCT.htm",
+          "phone": "https://www.sharinglaw.net/~sharingl/elder/HomeCareCT.htm"
+        },
+        "notes": "CHCPE has state-funded and Medicaid waiver components with different financial rules; state-funded assets from 2026-cited source. Income limits not found in official sources. Medicare Savings Program is separate."
+      },
+      "flags": [
+        {
+          "field": "assets_individual",
+          "severity": "high",
+          "draftValue": 35766,
+          "verifiedValue": 48798,
+          "pctDiff": 26.7
+        },
+        {
+          "field": "assets_couple",
+          "severity": "high",
+          "draftValue": 47688,
+          "verifiedValue": 65064,
+          "pctDiff": 26.7
+        },
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "18556266632",
+            "2037575449",
+            "211"
+          ],
+          "verifiedValue": "8004455394"
+        }
+      ],
+      "notes": "CHCPE has state-funded and Medicaid waiver components with different financial rules; state-funded assets from 2026-cited source. Income limits not found in official sources. Medicare Savings Program is separate."
+    },
+    {
+      "programId": "ct-pace-comprehensive-care",
+      "programName": "Program of All-Inclusive Care for the Elderly (CT PACE)",
+      "facts": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "211",
+          "7035351565"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://www.ncbi.nlm.nih.gov/sites/books/NBK597375/",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No operational CT PACE program as of 2026; planning/pilot stage only. Age from national PACE standard."
+      },
+      "flags": [],
+      "notes": "No operational CT PACE program as of 2026; planning/pilot stage only. Age from national PACE standard."
+    },
+    {
+      "programId": "ct-snap-food-benefits",
+      "programName": "SNAP (Supplemental Nutrition Assistance Program)",
+      "facts": {
+        "age": 60,
+        "income_1": 2608,
+        "income_2": 3526,
+        "assets_individual": 4500,
+        "assets_couple": 4500,
+        "phones": [
+          "211",
+          "8774234746",
+          "8556266632"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 60,
+        "income_1": 2608,
+        "income_2": 3526,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8556263632",
+        "sources": {
+          "age": "https://portal.ct.gov/dss/snap/supplemental-nutrition-assistance-program---snap",
+          "income": "https://www.snapscreener.com/guides/connecticut",
+          "assets": null,
+          "phone": "https://portal.ct.gov/dss/knowledge-base/articles/general-information/federal-updates-hr1?language=en_US"
+        },
+        "notes": "Age 60+ qualifies for alternative eligibility pathway (Net Income and Asset tests) if over gross income limit. Gross income limits shown are 200% of federal poverty level for Oct. 1, 2025–Sept. 30, 2026. Asset limits not specified in retrieved official Connecticut SNAP sources; federal SNAP has asset limits but Connecticut sources do not explicitly state countable asset thresholds. Phone number extracted from video transcript (855-626-3632)."
+      },
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "211",
+            "8774234746",
+            "8556266632"
+          ],
+          "verifiedValue": "8556263632"
+        }
+      ],
+      "notes": "Age 60+ qualifies for alternative eligibility pathway (Net Income and Asset tests) if over gross income limit. Gross income limits shown are 200% of federal poverty level for Oct. 1, 2025–Sept. 30, 2026. Asset limits not specified in retrieved official Connecticut SNAP sources; federal SNAP has asset limits but Connecticut sources do not explicitly state countable asset thresholds. Phone number extracted from video transcript (855-626-3632)."
+    },
+    {
+      "programId": "ct-energy-assistance-ceap",
+      "programName": "Connecticut Energy Assistance Program (CEAP)",
+      "facts": {
+        "age": null,
+        "income_1": 3980,
+        "income_2": 5205,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "2037568151",
+          "2032350278",
+          "8604960622",
+          "8607389138"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": "https://uwc.211ct.org/connecticut-energy-assistance-program-2023-2024/",
+          "assets": "https://uwc.211ct.org/connecticut-energy-assistance-program-2023-2024/",
+          "phone": "https://portal.ct.gov/heatinghelp/connecticut-energy-assistance-program-ceap"
+        },
+        "notes": "No specific monthly income limits or phone number found in sources for 2025-2026; income based on 60% SMI (annual figures not detailed); no assets test; contact local CAA for phone/help"
+      },
+      "flags": [],
+      "notes": "No specific monthly income limits or phone number found in sources for 2025-2026; income based on 60% SMI (annual figures not detailed); no assets test; contact local CAA for phone/help"
+    },
+    {
+      "programId": "ct-weatherization-assistance",
+      "programName": "Weatherization Assistance Program",
+      "facts": {
+        "age": null,
+        "income_1": 3252,
+        "income_2": 4253,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": "https://portal.ct.gov/deep/business-and-financial-assistance/grants-financial-assistance/weatherization-assistance-program",
+          "assets": null,
+          "phone": null
+        },
+        "notes": "Program active for PY2026 with 60% SMI eligibility (same as CEAP/LIHEAP); no specific 2026 monthly income figures or SMI table found in sources; no age/assets tests; apply via 211 or DEEP.Weatherization@ct.gov"
+      },
+      "flags": [],
+      "notes": "Program active for PY2026 with 60% SMI eligibility (same as CEAP/LIHEAP); no specific 2026 monthly income figures or SMI table found in sources; no age/assets tests; apply via 211 or DEEP.Weatherization@ct.gov"
+    },
+    {
+      "programId": "ct-choices-ship",
+      "programName": "CHOICES (CT SHIP)",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8009949422",
+          "2037858533"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "18009949422",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://portal.ct.gov/ads/programs-and-services/choices"
+        },
+        "notes": "CHOICES (CT SHIP) is a free counseling program with no age, income, or asset eligibility limits; it serves Medicare beneficiaries, families, and caregivers of all ages and income levels"
+      },
+      "flags": [],
+      "notes": "CHOICES (CT SHIP) is a free counseling program with no age, income, or asset eligibility limits; it serves Medicare beneficiaries, families, and caregivers of all ages and income levels"
+    },
+    {
+      "programId": "ct-statewide-respite-care",
+      "programName": "Connecticut Statewide Respite Care Program",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 156253,
+        "assets_couple": null,
+        "phones": [
+          "8009949422",
+          "8608873561",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": 57339,
+        "income_2": null,
+        "assets_individual": 152442,
+        "assets_couple": null,
+        "phone": "18009949422",
+        "sources": {
+          "age": null,
+          "income": "https://uwc.211ct.org/connecticut-statewide-respite-care-program/",
+          "assets": "https://uwc.211ct.org/connecticut-statewide-respite-care-program/",
+          "phone": "https://portal.ct.gov/ads/knowledge-base/articles/independent-living-services/healthy-living-services/connecticut-statewide-respite-care"
+        },
+        "notes": "Income and assets from 211ct.org (reviewed Aug 2025, cites CT Dept of Aging); appears current as of 2026. No age specified; targets Alzheimer's/related dementia."
+      },
+      "flags": [],
+      "notes": "Income and assets from 211ct.org (reviewed Aug 2025, cites CT Dept of Aging); appears current as of 2026. No age specified; targets Alzheimer's/related dementia."
+    },
+    {
+      "programId": "ct-scsep-employment-training",
+      "programName": "Senior Community Service Employment Program (SCSEP)",
+      "facts": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "2034612154",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://portal.ct.gov/ads/knowledge-base/articles/employment-services/for-job-seekers/jobs-for-older-adults",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "Income limit is 125% FPL per sources but specific dollar values not provided; no statewide main phone found, only local contacts"
+      },
+      "flags": [],
+      "notes": "Income limit is 125% FPL per sources but specific dollar values not provided; no statewide main phone found, only local contacts"
+    },
+    {
+      "programId": "ct-long-term-care-ombudsman",
+      "programName": "Long Term Care Ombudsman Program",
+      "facts": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phones": [
+          "8604245200",
+          "18663881888",
+          "211"
+        ],
+        "hasVerifiableFacts": true
+      },
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "18663881888",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://portal.ct.gov/ltcop/ombudsman"
+        },
+        "notes": "No age, income, or asset eligibility requirements; program open to residents of long-term care facilities (seniors and individuals with disabilities) with no financial tests"
+      },
+      "flags": [],
+      "notes": "No age, income, or asset eligibility requirements; program open to residents of long-term care facilities (seniors and individuals with disabilities) with no financial tests"
+    }
+  ]
+}

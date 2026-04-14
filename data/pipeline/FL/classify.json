@@ -1,45 +1,34 @@
 {
   "state": "FL",
   "stateName": "Florida",
-  "classifiedAt": "2026-04-09T09:30:14.020Z",
-  "total": 16,
+  "classifiedAt": "2026-04-13T17:44:00.538Z",
+  "total": 14,
   "typeSummary": {
-    "benefit": 13,
-    "resource": 2,
-    "employment": 1
+    "benefit": 11,
+    "resource": 1,
+    "employment": 1,
+    "navigator": 1
   },
   "scopeSummary": {
-    "state": 9,
+    "state": 5,
     "local": 3,
-    "federal": 4
+    "federal": 6
   },
   "complexitySummary": {
-    "deep": 10,
-    "medium": 4,
+    "deep": 12,
     "simple": 2
   },
   "programs": [
     {
-      "name": "Statewide Medicaid Managed Care Long Term Care Program",
+      "name": "Statewide Medicaid Managed Care Long-Term Care Program (SMMC-LTC) HCBS Waivers",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Local Aging and Disability Resource Centers (ADRCs)",
-            "type": "service-area"
-          },
-          {
-            "name": "Managed Care Plans selected via enrollment broker",
-            "type": "service-area"
-          }
-        ]
+        "stateVariation": false
       },
       "complexity": "deep",
       "recommendedSections": [
         "prose",
-        "income-table",
         "what-counts",
         "documents",
         "county-directory",
@@ -47,7 +36,7 @@
       ],
       "signals": {
         "benefitType": "service",
-        "hasIncomeTiers": true,
+        "hasIncomeTiers": false,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": true,
@@ -63,11 +52,11 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Florida PACE Centers (Miami-Dade area)",
+            "name": "Florida PACE Centers (Miami-Dade and potentially expanding)",
             "type": "service-area"
           },
           {
-            "name": "Miami Jewish Health Systems (Miami-Dade and Broward)",
+            "name": "Check AHCA for current operational sites",
             "type": "service-area"
           }
         ]
@@ -92,7 +81,7 @@
       }
     },
     {
-      "name": "Medicare Savings Programs (MSP)",
+      "name": "Medicaid Medicare Savings Programs (QMB, SLMB, QI)",
       "programType": "benefit",
       "geographicScope": {
         "type": "federal",
@@ -103,7 +92,6 @@
         "prose",
         "income-table",
         "what-counts",
-        "tier-comparison",
         "documents",
         "county-directory",
         "callout"
@@ -114,69 +102,71 @@
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "SNAP Food Assistance",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "in_kind",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
         "hasMultipleTiers": false,
         "isStatewide": true
       }
     },
     {
-      "name": "Florida Emergency Home Energy Assistance Program (EHEAP)",
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
       "programType": "benefit",
       "geographicScope": {
-        "type": "local",
-        "stateVariation": false,
+        "type": "federal",
+        "stateVariation": true,
         "localEntities": [
           {
-            "name": "Hillsborough County Community Resource Centers[2]",
-            "type": "service-area"
-          },
-          {
-            "name": "Jacksonville Parks & Rec Senior Services (630-2489)[3]",
-            "type": "service-area"
-          },
-          {
-            "name": "St. Johns County offices[4]",
-            "type": "service-area"
-          },
-          {
-            "name": "Senior Resource Alliance (Orange/Osceola/Brevard/Seminole)[6]",
-            "type": "service-area"
-          },
-          {
-            "name": "Palm Beach County DOSS (multiple offices, 561-355-4746)[7]",
+            "name": "Local DCF Service Centers (statewide; locator: https://www.myflfamilies.com/service-centers/)",
             "type": "service-area"
           }
         ]
       },
-      "complexity": "medium",
+      "complexity": "deep",
       "recommendedSections": [
         "prose",
         "income-table",
+        "what-counts",
+        "documents",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "LIHEAP (Low-Income Home Energy Assistance Program)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Indian River/Okeechobee: Economic Opportunities Council (https://eocofirc.net/liheap/).",
+            "type": "service-area"
+          },
+          {
+            "name": "Palm Beach: Community Action (https://discover.pbc.gov/communityservices/communityaction/pages/utility-assistance.aspx).",
+            "type": "service-area"
+          },
+          {
+            "name": "Osceola: Osceola Generations (https://osceolagenerations.org/low-income-home-energy-assistance-program/).",
+            "type": "service-area"
+          },
+          {
+            "name": "Hillsborough: https://hcfl.gov/residents/human-services/financial-assistance/apply-for-energy-assistance.",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
         "documents",
         "county-directory",
         "callout"
@@ -184,11 +174,55 @@
       "signals": {
         "benefitType": "financial",
         "hasIncomeTiers": true,
-        "hasAssetLimits": false,
+        "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
         "hasMultipleTiers": false,
         "isStatewide": false
+      }
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "You Thrive Florida (Hillsborough, Hernando, Pasco, Polk, Sumter, Citrus, Volusia)[1]",
+            "type": "service-area"
+          },
+          {
+            "name": "Capital Area Community Action Agency (Franklin, Gulf, Gadsden, Jefferson, Leon, Wakulla)[4]",
+            "type": "service-area"
+          },
+          {
+            "name": "Central Florida Community Action Agency[5]",
+            "type": "service-area"
+          },
+          {
+            "name": "Miami-Dade County program[6]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
       }
     },
     {
@@ -199,11 +233,7 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Florida Department of Elder Affairs, 4040 Esplanade Way, Suite 280-S, Tallahassee, FL 32399[1]",
-            "type": "service-area"
-          },
-          {
-            "name": "Local Area Agencies on Aging via www.floridashine.org[3]",
+            "name": "Florida Department of Elder Affairs, 4040 Esplanade Way, Suite 280-S, Tallahassee, FL 32399; local Area Agencies on Aging (e.g., Area Agency on Aging Palm Beach/Treasure Coast, Area Agency on Aging for SWFL, Senior Connection Center in Tampa)[1][3][4][6]",
             "type": "service-area"
           }
         ]
@@ -224,26 +254,22 @@
       }
     },
     {
-      "name": "Home-Delivered Meals",
+      "name": "Home Delivered Meals (Meals on Wheels)",
       "programType": "benefit",
       "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
+        "type": "federal",
+        "stateVariation": true,
         "localEntities": [
           {
-            "name": "Local Aging and Disability Resource Centers (ADRCs)",
+            "name": "Local ADRCs (find via 1-800-96-ELDER)",
             "type": "service-area"
           },
           {
-            "name": "Area Agencies on Aging",
+            "name": "Feeding South Florida (South FL)",
             "type": "service-area"
           },
           {
-            "name": "SMMC LTC Plans",
-            "type": "service-area"
-          },
-          {
-            "name": "Mom's Meals (Medicaid/Medicare partner)",
+            "name": "Mom's Meals (statewide for qualifying plans)",
             "type": "service-area"
           }
         ]
@@ -253,7 +279,6 @@
         "prose",
         "income-table",
         "what-counts",
-        "tier-comparison",
         "documents",
         "county-directory",
         "callout"
@@ -263,32 +288,45 @@
         "hasIncomeTiers": true,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
-        "isStatewide": true
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": false,
+        "isStatewide": false
       }
     },
     {
-      "name": "Respite for Elders Living in Everyday Families (RELIEF)",
+      "name": "Alzheimer's Disease Initiative (ADI) Respite Services",
       "programType": "benefit",
       "geographicScope": {
-        "type": "local",
-        "stateVariation": false
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "11 AAAs as Aging and Disability Resource Centers (ADRCs)",
+            "type": "service-area"
+          },
+          {
+            "name": "Examples: Broward County Elderly Services (954-357-6622), specific providers like Heartland of Boca Raton[2][3]",
+            "type": "service-area"
+          }
+        ]
       },
-      "complexity": "medium",
+      "complexity": "deep",
       "recommendedSections": [
         "prose",
         "income-table",
-        "what-counts"
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
       ],
       "signals": {
         "benefitType": "service",
         "hasIncomeTiers": true,
         "hasAssetLimits": true,
-        "hasRegionalVariation": false,
-        "hasFunctionalReq": false,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
         "hasMultipleTiers": false,
-        "isStatewide": false
+        "isStatewide": true
       }
     },
     {
@@ -303,7 +341,7 @@
             "type": "service-area"
           },
           {
-            "name": "AARP Foundation (primary contractor)",
+            "name": "AARP Foundation",
             "type": "service-area"
           },
           {
@@ -311,7 +349,7 @@
             "type": "service-area"
           },
           {
-            "name": "National Urban League (NUL)",
+            "name": "National Urban League (NUL)[1]",
             "type": "service-area"
           }
         ]
@@ -325,7 +363,7 @@
       "signals": {
         "benefitType": "employment",
         "hasIncomeTiers": true,
-        "hasAssetLimits": false,
+        "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
         "hasMultipleTiers": true,
@@ -333,14 +371,38 @@
       }
     },
     {
-      "name": "Long-Term Care Ombudsman Program",
-      "programType": "resource",
+      "name": "Legal Aid for Seniors (Area Agency Legal Services)",
+      "programType": "navigator",
       "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
+        "type": "local",
+        "stateVariation": false,
         "localEntities": [
           {
-            "name": "14 district offices coordinated by the Department of Elder Affairs; contact central toll-free number for local routing.",
+            "name": "Florida Senior Legal Helpline (statewide intake)",
+            "type": "service-area"
+          },
+          {
+            "name": "Coast to Coast Legal Aid (Broward)",
+            "type": "service-area"
+          },
+          {
+            "name": "Broward Legal Aid (Broward)",
+            "type": "service-area"
+          },
+          {
+            "name": "Community Legal Services (Brevard, Citrus, Flagler, Hernando, Lake, Marion, Orange, Osceola, Putnam, Seminole, Sumter, Volusia)",
+            "type": "service-area"
+          },
+          {
+            "name": "Legal Aid Society of Palm Beach County",
+            "type": "service-area"
+          },
+          {
+            "name": "Bay Area Legal Services (Helpline operator)",
+            "type": "service-area"
+          },
+          {
+            "name": "Others via elderaffairs.org provider list[1][2][3][4][5][6][7]",
             "type": "service-area"
           }
         ]
@@ -348,27 +410,27 @@
       "complexity": "simple",
       "recommendedSections": [
         "prose",
-        "county-directory"
+        "provider-list"
       ],
       "signals": {
-        "benefitType": "advocacy",
+        "benefitType": "service",
         "hasIncomeTiers": false,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
         "hasMultipleTiers": false,
-        "isStatewide": true
+        "isStatewide": false
       }
     },
     {
-      "name": "Home Care for the Elderly",
+      "name": "Home Care for the Elderly (HCE) Program",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Local DOEA Aging and Disability Resource Centers (ADRCs)",
+            "name": "Local Aging and Disability Resource Centers (ADRCs), DOEA contractors",
             "type": "service-area"
           }
         ]
@@ -380,7 +442,8 @@
         "what-counts",
         "tier-comparison",
         "documents",
-        "county-directory"
+        "county-directory",
+        "callout"
       ],
       "signals": {
         "benefitType": "service",
@@ -393,117 +456,11 @@
       }
     },
     {
-      "name": "Optional State Supplementation (OSS)",
+      "name": "Community Care for the Elderly (CCE) Program",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Local DCF offices (e.g., regional service centers).",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "what-counts",
-        "tier-comparison",
-        "documents",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "financial",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Homestead Exemption for Seniors",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Local County Property Appraiser offices (e.g., Monroe: mcpafl.org, Lee: leepa.org, Duval: jacksonville.gov/departments/property-appraiser)",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "documents",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "financial",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Florida Discount Drug Card Program",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Over 60,000 pharmacies statewide and nationwide[3][4]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "medium",
-      "recommendedSections": [
-        "prose",
-        "what-counts",
-        "documents",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "financial",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": false,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Alzheimer's Disease Initiative (ADI)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "11 Area Agencies on Aging (AAAs)",
-            "type": "service-area"
-          },
-          {
-            "name": "17 Memory Disorder Clinics across 13 service areas",
-            "type": "service-area"
-          },
-          {
-            "name": "Local examples: Broward County Elderly Services",
-            "type": "service-area"
-          }
-        ]
+        "stateVariation": false
       },
       "complexity": "deep",
       "recommendedSections": [
@@ -525,37 +482,35 @@
       }
     },
     {
-      "name": "RELIEF Program (Respite for Elders Living in Everyday Families)",
+      "name": "Elder Options",
       "programType": "benefit",
       "geographicScope": {
-        "type": "state",
+        "type": "local",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Contact local Aging and Disability Resource Center (ADRC) or Elder Helpline[5]",
-            "type": "service-area"
-          },
-          {
-            "name": "11 area agencies on aging (AAA)[6]",
+            "name": "Local Aging and Disability Resource Centers (ADRCs); Elder Options at agingresources.org",
             "type": "service-area"
           }
         ]
       },
-      "complexity": "medium",
+      "complexity": "deep",
       "recommendedSections": [
         "prose",
         "what-counts",
+        "tier-comparison",
         "documents",
-        "county-directory"
+        "county-directory",
+        "callout"
       ],
       "signals": {
         "benefitType": "service",
         "hasIncomeTiers": false,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": true,
+        "isStatewide": false
       }
     }
   ]

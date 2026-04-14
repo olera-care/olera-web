@@ -15,6 +15,7 @@ import { useSavedPrograms } from "@/hooks/use-saved-programs";
 import { Vault, Phone, Info, CaretDown, ArrowSquareOut, BookmarkSimple, CheckCircle, FileText, Clock, HourglassHigh, MapPin, ArrowsClockwise, Globe, ShareNetwork, Printer, Check, Stethoscope, House as HouseIcon, Wheelchair, Tooth, Eye, Car, FirstAid, Pill, HandCoins, Wrench, Users, Heart } from "@phosphor-icons/react";
 import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
 import { ProgramIcon } from "@/lib/program-icon";
+import { ContentStatusBadge } from "@/components/waiver-library/ContentStatusBadge";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Design atoms — shared visual vocabulary from the state page, adapted
@@ -404,7 +405,7 @@ function StepJourney({ steps }: { steps: { step: number; title: string; descript
 
 // --- Contact Cards ---
 
-function ContactCards({ contacts }: { contacts: { label: string; description?: string; phone?: string | null; hours?: string }[] }) {
+function ContactCards({ contacts }: { contacts: { label: string; description?: string | null; phone?: string | null; hours?: string | null }[] }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
       {contacts.map((c, i) => (
@@ -916,9 +917,9 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
         <HeaderAccent />
         <div className="relative max-w-2xl mx-auto px-6 lg:px-8">
           <nav className="flex items-center gap-1.5 text-sm text-gray-400 mb-6">
-            <Link href="/senior-benefits" className="hover:text-gray-600 transition-colors">Benefits Hub</Link>
+            <Link href="/benefits" className="hover:text-gray-600 transition-colors">Benefits Hub</Link>
             <span>›</span>
-            <Link href={`/senior-benefits/${state.id}`} className="hover:text-gray-600 transition-colors">{state.name}</Link>
+            <Link href={`/benefits/${state.id}`} className="hover:text-gray-600 transition-colors">{state.name}</Link>
             <span>›</span>
             <span className="text-gray-600">{program.shortName}</span>
           </nav>
@@ -944,6 +945,12 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
               ) : program.savingsSource === "Free service" ? (
                 <p className="mt-3 text-sm font-medium text-emerald-600">Free — no cost to you</p>
               ) : null}
+              <ContentStatusBadge
+                contentStatus={program.contentStatus}
+                draftedAt={program.draftedAt}
+                reviewedAt={program.reviewedAt}
+                className="mt-3"
+              />
             </div>
             <div className="flex items-center gap-1 shrink-0 mt-2">
               <button
@@ -1242,7 +1249,7 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
                   {relatedPrograms.map((name, i) => {
                     const slug = findProgramSlug(name, state);
                     return slug ? (
-                      <Link key={i} href={`/senior-benefits/${state.id}/${slug}`} className="text-sm font-medium text-primary-700 bg-primary-50 px-3 py-1.5 rounded-full hover:bg-primary-100 transition-colors">
+                      <Link key={i} href={`/benefits/${state.id}/${slug}`} className="text-sm font-medium text-primary-700 bg-primary-50 px-3 py-1.5 rounded-full hover:bg-primary-100 transition-colors">
                         {name}
                       </Link>
                     ) : (

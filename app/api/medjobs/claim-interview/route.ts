@@ -28,13 +28,13 @@ export async function GET(request: NextRequest) {
   const interviewId = url.searchParams.get("interviewId");
 
   if (!token || !interviewId) {
-    return errorResponse(`Missing link parameters. token=${!!token} interviewId=${!!interviewId}`);
+    return errorResponse("Missing link parameters.");
   }
 
   // 1. Validate token (HMAC + expiry)
   const validation = validateClaimToken(token);
   if (!validation.valid) {
-    return errorResponse(`Token validation failed: ${validation.error}`);
+    return errorResponse(validation.error || "Invalid or expired link.");
   }
   const { email } = validation;
   const normalizedEmail = email.trim().toLowerCase();
@@ -43,7 +43,8 @@ export async function GET(request: NextRequest) {
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!supabaseUrl || !anonKey || !serviceKey) {
-    return errorResponse(`Server configuration error: url=${!!supabaseUrl} anon=${!!anonKey} service=${!!serviceKey}`);
+    console.error("[claim-interview] missing env vars");
+    return errorResponse("Server configuration error.");
   }
 
   const admin = createClient(supabaseUrl, serviceKey);
@@ -56,7 +57,8 @@ export async function GET(request: NextRequest) {
     .eq("id", interviewId)
     .single();
   if (!interview) {
-    return errorResponse(`Interview not found. id=${interviewId} dbError=${interviewLookupError?.message ?? "(none)"}`);
+    console.error("[claim-interview] interview lookup failed:", interviewLookupError?.message);
+    return errorResponse("Interview not found.");
   }
 
   const { data: providerProfile, error: profileLookupError } = await admin
@@ -65,10 +67,12 @@ export async function GET(request: NextRequest) {
     .eq("id", interview.provider_profile_id)
     .single();
   if (!providerProfile) {
-    return errorResponse(`Provider profile not found. id=${interview.provider_profile_id} dbError=${profileLookupError?.message ?? "(none)"}`);
+    console.error("[claim-interview] provider profile lookup failed:", profileLookupError?.message);
+    return errorResponse("Provider profile not found.");
   }
   if (providerProfile.email?.toLowerCase() !== normalizedEmail) {
-    return errorResponse(`Email mismatch. token=${normalizedEmail} profile=${providerProfile.email}`);
+    console.error("[claim-interview] email mismatch");
+    return errorResponse("This link does not match the invited email.");
   }
 
   // 3. Create or resolve the auth user
@@ -207,32 +211,22 @@ export async function GET(request: NextRequest) {
 }
 
 function errorResponse(message: string) {
-  // TEMPORARY DIAGNOSTIC: status 200 with a loud DEBUG marker so we can tell
-  // whether this route is even being invoked. If you see the orange box,
-  // this route IS running and the message tells you exactly which check
-  // failed. If you see Olera's "404 Page not found", this route was never
-  // reached and something else is intercepting.
   const html = `<!doctype html>
-<html><head><meta charset="utf-8"><title>DEBUG: claim-interview</title>
+<html><head><meta charset="utf-8"><title>Link error</title>
 <style>
-  body { font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 48px 24px; background: #fff7ed; color: #111; }
-  .card { max-width: 560px; margin: 0 auto; background: white; border: 3px solid #f97316; border-radius: 16px; padding: 32px; }
-  h1 { font-size: 22px; margin: 0 0 8px; color: #c2410c; }
-  pre { background: #f3f4f6; padding: 12px; border-radius: 8px; font-size: 13px; overflow-x: auto; white-space: pre-wrap; word-break: break-all; }
-  a { display: inline-block; margin-top: 16px; padding: 10px 20px; background: #111; color: white; text-decoration: none; border-radius: 8px; font-weight: 500; }
+  body { font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 48px 24px; background: #fafaf8; color: #111; }
+  .card { max-width: 420px; margin: 0 auto; background: white; border: 1px solid #e5e7eb; border-radius: 16px; padding: 32px; text-align: center; }
+  h1 { font-size: 20px; margin: 0 0 8px; }
+  p { color: #6b7280; margin: 0 0 24px; }
+  a { display: inline-block; padding: 10px 20px; background: #111; color: white; text-decoration: none; border-radius: 8px; font-weight: 500; }
 </style></head>
 <body><div class="card">
-  <h1>🔍 DEBUG: claim-interview route hit</h1>
-  <p><strong>Failure reason:</strong></p>
-  <pre>${escapeHtml(message)}</pre>
-  <p style="margin-top:20px;color:#6b7280;font-size:13px">
-    This is a temporary diagnostic page. The fact you're seeing it means the
-    <code>/api/medjobs/claim-interview</code> route IS being invoked.
-  </p>
+  <h1>Link error</h1>
+  <p>${escapeHtml(message)}</p>
   <a href="/">Go home</a>
 </div></body></html>`;
   return new NextResponse(html, {
-    status: 200,
+    status: 400,
     headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" },
   });
 }

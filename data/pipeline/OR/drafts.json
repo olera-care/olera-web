@@ -6,7 +6,7 @@
   "successful": 15,
   "programs": [
     {
-      "id": "or-opi-m-medicaid-home-care",
+      "id": "opi-m-medicaid-home-care",
       "name": "OPI-M (Medicaid-funded)",
       "shortName": "OPI-M Home Care",
       "tagline": "If your parent needs help with daily tasks but doesn't qualify for regular Medicaid, this Oregon program provides in-home care at higher income limits.",
@@ -195,7 +195,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "or-pace-elderly-care",
+      "id": "pace-elderly-care",
       "name": "Program of All-Inclusive Care for the Elderly (PACE)",
       "shortName": "PACE",
       "tagline": "If your parent needs nursing home-level care but wants to stay at home, PACE covers all medical and long-term care through one coordinated team.",
@@ -351,7 +351,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "or-medicare-savings-programs",
+      "id": "medicare-savings-programs",
       "name": "Medicare Savings Programs (MSP)",
       "shortName": "Medicare Savings",
       "tagline": "Help paying Medicare premiums, deductibles, and co-pays if your parent's monthly income is under $1,800.",
@@ -563,7 +563,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "or-snap-food-benefits",
+      "id": "snap-food-benefits",
       "name": "SNAP Food Benefits (Oregon)",
       "shortName": "SNAP Oregon",
       "tagline": "If your parent is on a fixed income, they may qualify for monthly grocery assistance — even if their income seems too high.",
@@ -768,7 +768,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "or-liheap-energy-assistance",
+      "id": "liheap-energy-assistance",
       "name": "Low Income Home Energy Assistance Program (LIHEAP) / Oregon Energy Assistance Program (OEAP)",
       "shortName": "LIHEAP Energy Assistance",
       "tagline": "If your parent struggles with heating or cooling bills, they may qualify for a one-time grant of $250–750 paid directly to their utility company.",
@@ -965,7 +965,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "or-weatherization-assistance-wap",
+      "id": "weatherization-assistance-wap",
       "name": "Low Income Weatherization Assistance Program (WAP)",
       "shortName": "Weatherization Assistance",
       "tagline": "Free home insulation, furnace repairs, and energy upgrades that can cut your parent's heating bills by hundreds per year",
@@ -1173,7 +1173,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "or-shiba-medicare-counseling",
+      "id": "shiba-medicare-counseling",
       "name": "Senior Health Insurance Benefits Assistance (SHIBA)",
       "shortName": "SHIBA Counseling",
       "tagline": "Free expert help navigating Medicare options, billing problems, and plan comparisons for Oregon residents",
@@ -1307,7 +1307,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "or-meals-on-wheels",
+      "id": "meals-on-wheels",
       "name": "Meals on Wheels",
       "shortName": "Meals on Wheels",
       "tagline": "Home-delivered meals and daily check-ins for parents who can't easily leave home or prepare food safely.",
@@ -1484,7 +1484,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "or-family-caregiver-assistance-support",
+      "id": "family-caregiver-assistance-support",
       "name": "Family Caregiver Assistance Program (FCAP) / Family Caregiver Support Program (FCSP)",
       "shortName": "Family Caregiver Programs",
       "tagline": "Get up to $500/month in services to help care for your aging parent at home, plus respite and support for yourself as a caregiver.",
@@ -1670,7 +1670,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "or-scsep-senior-employment",
+      "id": "scsep-senior-employment",
       "name": "Senior Community Service Employment Program (SCSEP)",
       "shortName": "SCSEP Employment",
       "tagline": "Part-time paid work experience for unemployed adults 55+ earning minimum wage while building skills for permanent employment.",
@@ -1840,7 +1840,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "or-legal-aid-services-laso",
+      "id": "legal-aid-services-laso",
       "name": "Legal Aid Services of Oregon (LASO)",
       "shortName": "Oregon Legal Aid",
       "tagline": "Free legal help for seniors with wills, housing problems, benefits issues, and protection from abuse.",
@@ -1992,7 +1992,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "or-long-term-care-ombudsman",
+      "id": "long-term-care-ombudsman",
       "name": "Long-term Care Ombudsman",
       "shortName": "Ombudsman Services",
       "tagline": "Free advocacy and complaint resolution if your parent lives in a nursing home or assisted living facility.",
@@ -2116,7 +2116,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "or-elderly-rental-assistance",
+      "id": "elderly-rental-assistance",
       "name": "Elderly Rental Assistance Program (ERA)",
       "shortName": "ERA",
       "tagline": "Rental assistance for Oregon seniors 58+ facing homelessness or housing instability.",
@@ -2272,7 +2272,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "or-senior-tuition-audit",
+      "id": "senior-tuition-audit",
       "name": "Oregon Senior Free Tuition Audit Program",
       "shortName": "Senior Tuition Audit",
       "tagline": "If your parent is 65+, they can audit college courses for free at Oregon public colleges and universities.",
@@ -2443,7 +2443,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "or-hrsn-health-social-needs",
+      "id": "hrsn-health-social-needs",
       "name": "Health Related Social Needs Benefits (HSRN)",
       "shortName": "HSRN Benefits",
       "tagline": "Oregon covers rent, utilities, home modifications, and medically tailored meals for OHP members in specific life transitions.",

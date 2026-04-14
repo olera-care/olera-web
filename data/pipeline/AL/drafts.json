@@ -6,7 +6,7 @@
   "successful": 16,
   "programs": [
     {
-      "id": "al-medicaid-elderly-disabled-waiver",
+      "id": "medicaid-elderly-disabled-waiver",
       "name": "Alabama Medicaid Elderly and Disabled Waiver",
       "shortName": "Elderly & Disabled Waiver",
       "tagline": "Home care services for parents at risk of nursing home placement — personal care, meals, and respite to help them stay home safely.",
@@ -197,7 +197,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "al-pace-comprehensive-care",
+      "id": "pace-comprehensive-care",
       "name": "Alabama PACE (Program of All-Inclusive Care for the Elderly)",
       "shortName": "Alabama PACE",
       "tagline": "If your parent needs nursing home-level care but wants to stay in the community, this program coordinates all medical and long-term care services under one team.",
@@ -366,7 +366,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "al-medicare-savings-programs-qmb-slmb-qi",
+      "id": "medicare-savings-programs-qmb-slmb-qi",
       "name": "Alabama Medicaid Medicare Savings Programs (QMB, SLMB, QI)",
       "shortName": "Medicare Savings Programs",
       "tagline": "Get help paying Medicare premiums, deductibles, and coinsurance if your parent's income is below $1,695/month",
@@ -609,7 +609,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "al-aesap-elderly-food-assistance",
+      "id": "aesap-elderly-food-assistance",
       "name": "Alabama Elderly Simplified Application Project (AESAP)",
       "shortName": "AESAP",
       "tagline": "If your parent is 60+ with no job income, they can apply for food assistance with a simplified 2-page form and no interview.",
@@ -791,7 +791,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "al-liheap-energy-assistance",
+      "id": "liheap-energy-assistance",
       "name": "Alabama LIHEAP (Low-Income Home Energy Assistance Program)",
       "shortName": "Alabama LIHEAP",
       "tagline": "Help paying heating and cooling bills for low-income households — up to $580 toward winter energy costs.",
@@ -980,7 +980,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "al-weatherization-assistance-program",
+      "id": "weatherization-assistance-program",
       "name": "Alabama Weatherization Assistance Program",
       "shortName": "Weatherization Assistance",
       "tagline": "Free home weatherization services can cut your parent's energy bills through professional insulation, air sealing, and HVAC repairs.",
@@ -1159,7 +1159,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "al-ship-medicare-counseling",
+      "id": "ship-medicare-counseling",
       "name": "Alabama SHIP (State Health Insurance Assistance Program)",
       "shortName": "Alabama SHIP",
       "tagline": "Free, personalized Medicare counseling to help your parent compare plans, understand benefits, and save money on healthcare.",
@@ -1280,7 +1280,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "al-elderly-nutrition-meals-on-wheels",
+      "id": "elderly-nutrition-meals-on-wheels",
       "name": "Elderly Nutrition Program (Meals on Wheels)",
       "shortName": "Meals on Wheels",
       "tagline": "Free hot meals delivered to your parent's home or served at local senior centers — no income requirements.",
@@ -1582,7 +1582,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "al-scsep-employment-training",
+      "id": "scsep-employment-training",
       "name": "Senior Community Service Employment Program (SCSEP)",
       "shortName": "SCSEP",
       "tagline": "If your parent is 55+ and unemployed, they can earn while training for permanent employment through community service work.",
@@ -1780,7 +1780,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "al-legal-services-seniors",
+      "id": "legal-services-seniors",
       "name": "Alabama Legal Services for Seniors",
       "shortName": "Legal Services",
       "tagline": "Free legal help for seniors 60+ on fixed incomes facing elder abuse, guardianship, housing, or Medicaid issues.",
@@ -1932,7 +1932,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "al-long-term-care-ombudsman",
+      "id": "long-term-care-ombudsman",
       "name": "Alabama Long-Term Care Ombudsman Program",
       "shortName": "Ombudsman Program",
       "tagline": "Get help resolving complaints about your parent's nursing home or assisted living facility care.",
@@ -2052,7 +2052,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "al-alabama-cares-program",
+      "id": "alabama-cares-program",
       "name": "Alabama Cares Program",
       "shortName": "Alabama Cares",
       "tagline": "Free respite care, counseling, and support services for family caregivers of aging parents or disabled relatives.",
@@ -2215,7 +2215,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "al-ed-medicaid-waiver",
+      "id": "ed-medicaid-waiver",
       "name": "Elderly and Disabled (E&D) Medicaid Waiver",
       "shortName": "E&D Waiver",
       "tagline": "Get home care services covered so your parent can avoid nursing home placement while staying in their own home.",
@@ -2396,7 +2396,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "al-senior-aides-program",
+      "id": "senior-aides-program",
       "name": "Senior Aides Program",
       "shortName": "Senior Aides",
       "tagline": "Home care assistance to help your aging parent avoid nursing home placement while staying safely at home.",
@@ -2599,7 +2599,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "al-seniorx-prescription-assistance",
+      "id": "seniorx-prescription-assistance",
       "name": "SenioRx Prescription Drug Assistance Program",
       "shortName": "SenioRx",
       "tagline": "Free prescription medications from drug companies if your parent has chronic conditions and limited coverage.",

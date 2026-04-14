@@ -6,7 +6,7 @@
   "successful": 12,
   "programs": [
     {
-      "id": "tn-medicare-savings-programs",
+      "id": "medicare-savings-programs",
       "name": "TennCare Medicare Savings Programs (QMB, SLMB, QI)",
       "shortName": "Medicare Savings Programs",
       "tagline": "Help paying your parent's Medicare premiums, deductibles, and copays if their income is below $1,715/month",
@@ -193,7 +193,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "tn-snap-food-benefits",
+      "id": "snap-food-benefits",
       "name": "Tennessee SNAP",
       "shortName": "SNAP Food Benefits",
       "tagline": "Monthly grocery money for seniors 60+ on fixed incomes — up to $415/month with no asset limits.",
@@ -382,7 +382,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "tn-liheap-energy-assistance",
+      "id": "liheap-energy-assistance",
       "name": "Tennessee LIHEAP",
       "shortName": "LIHEAP Energy Help",
       "tagline": "One-time payment of $174-$1,000 toward your parent's heating or cooling bills if their income is below $2,671/month (single person).",
@@ -563,7 +563,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "tn-ship-medicare-counseling",
+      "id": "ship-medicare-counseling",
       "name": "Tennessee State Health Insurance Assistance Program (TN SHIP)",
       "shortName": "TN SHIP",
       "tagline": "Free one-on-one Medicare counseling to help your parent choose the right plan and apply for cost-saving programs.",
@@ -712,7 +712,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "tn-meals-on-wheels",
+      "id": "meals-on-wheels",
       "name": "Tennessee Meals on Wheels",
       "shortName": "Meals on Wheels",
       "tagline": "Free daily meals delivered to your parent's home if they're 60+ and unable to prepare nutritious food safely.",
@@ -878,7 +878,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "tn-nfcsp-caregiver-support",
+      "id": "nfcsp-caregiver-support",
       "name": "National Family Caregiver Support Program (NFCSP)",
       "shortName": "NFCSP",
       "tagline": "Get up to 6 hours per week of free respite care plus caregiver training and support services when caring for an aging parent or family member with disabilities.",
@@ -1017,7 +1017,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "tn-scsep-employment",
+      "id": "scsep-employment",
       "name": "Senior Community Service Employment Program (SCSEP)",
       "shortName": "SCSEP",
       "tagline": "If your parent is 55+ and unemployed, they can get part-time paid work experience while developing job skills.",
@@ -1199,7 +1199,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "tn-senior-law-alliance",
+      "id": "senior-law-alliance",
       "name": "Tennessee Senior Law Alliance (TSLA) / Tennessee Senior Legal Helpline",
       "shortName": "TSLA Legal Help",
       "tagline": "Free legal help for Tennessee seniors 60+ — no income limits, covers everything from wills to benefit appeals.",
@@ -1342,7 +1342,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "tn-long-term-care-ombudsman",
+      "id": "long-term-care-ombudsman",
       "name": "Tennessee Long-Term Care Ombudsman Program",
       "shortName": "Ombudsman Program",
       "tagline": "Free advocate when your parent faces problems in nursing homes or assisted living facilities.",
@@ -1465,7 +1465,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "tn-options-community-living",
+      "id": "options-community-living",
       "name": "OPTIONS for Community Living",
       "shortName": "OPTIONS Tennessee",
       "tagline": "In-home care services for Tennessee parents who need help with daily activities like bathing, cooking, and housekeeping.",
@@ -1617,7 +1617,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "tn-senior-advocate-program",
+      "id": "senior-advocate-program",
       "name": "Senior Advocate Program",
       "shortName": "Senior Advocate",
       "tagline": "Get dedicated staff help navigating red tape when your parent falls through the cracks of other programs.",
@@ -1755,7 +1755,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "tn-ship-medicare-counseling",
+      "id": "ship-medicare-counseling",
       "name": "Tennessee State Health Insurance Assistance Program (TN SHIP) and Senior Medicare Patrol (SMP)",
       "shortName": "TN SHIP & SMP",
       "tagline": "Free one-on-one Medicare counseling to help your parent compare plans, avoid fraud, and maximize benefits",

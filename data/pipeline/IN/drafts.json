@@ -6,7 +6,7 @@
   "successful": 12,
   "programs": [
     {
-      "id": "in-hoosier-care-connect",
+      "id": "hoosier-care-connect",
       "name": "Hoosier Care Connect",
       "shortName": "Hoosier Care Connect",
       "tagline": "If your parent under 60 is blind or disabled and not on Medicare, this covers all their medical care with coordinated support.",
@@ -178,7 +178,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "in-pathways-aging-waiver",
+      "id": "pathways-aging-waiver",
       "name": "Indiana PathWays for Aging Waiver",
       "shortName": "PathWays Aging Waiver",
       "tagline": "Home care services to help your parent avoid nursing home placement if they're 60+ and need daily help with bathing, dressing, or medications.",
@@ -377,7 +377,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "in-pathways-aging-ltss",
+      "id": "pathways-aging-ltss",
       "name": "Indiana PathWays for Aging (PACE equivalent)",
       "shortName": "PathWays for Aging",
       "tagline": "Coordinated long-term care services that help your parent stay home instead of moving to a nursing facility.",
@@ -566,7 +566,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "in-medicare-savings-programs",
+      "id": "medicare-savings-programs",
       "name": "Healthy Indiana Plan Medicare Savings Programs (QMB, SLMB, QI)",
       "shortName": "Medicare Savings Programs",
       "tagline": "Get help paying Medicare premiums, deductibles, and copays if your parent's income is under $2,433/month",
@@ -782,7 +782,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "in-snap-food-benefits",
+      "id": "snap-food-benefits",
       "name": "SNAP (Supplemental Nutrition Assistance Program)",
       "shortName": "SNAP Food Benefits",
       "tagline": "If your parent is 60+ and on a fixed income, they may qualify for $100–400/month toward groceries.",
@@ -996,7 +996,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "in-weatherization-assistance-program",
+      "id": "weatherization-assistance-program",
       "name": "Indiana Weatherization Assistance Program (Wx)",
       "shortName": "Weatherization Assistance",
       "tagline": "Free energy efficiency upgrades for your parent's home if their income is below $28,660 for a single person.",
@@ -1312,7 +1312,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "in-meals-on-wheels",
+      "id": "meals-on-wheels",
       "name": "Meals on Wheels (Indiana)",
       "shortName": "Meals on Wheels",
       "tagline": "Home-delivered nutritious meals for parents who can't shop or cook safely on their own.",
@@ -1485,7 +1485,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "in-caregiver-respite-services",
+      "id": "caregiver-respite-services",
       "name": "Indiana Caregiver Respite Services",
       "shortName": "Respite Services",
       "tagline": "Temporary care relief for family caregivers through Indiana's Medicaid waiver programs.",
@@ -1660,7 +1660,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "in-scsep-employment-program",
+      "id": "scsep-employment-program",
       "name": "Senior Community Service Employment Program (SCSEP)",
       "shortName": "SCSEP Employment",
       "tagline": "If your parent is 55+ and looking for work, they can get paid job training at minimum wage while serving the community.",
@@ -1854,7 +1854,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "in-senior-legal-aid",
+      "id": "senior-legal-aid",
       "name": "Indiana Senior Legal Aid",
       "shortName": "Senior Legal Aid",
       "tagline": "Free legal help for seniors 60+ with wills, housing, benefits appeals, and nursing home rights.",
@@ -2009,7 +2009,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "in-long-term-care-ombudsman",
+      "id": "long-term-care-ombudsman",
       "name": "Indiana Long-Term Care Ombudsman Program",
       "shortName": "Long-Term Care Ombudsman",
       "tagline": "Free advocacy to protect your parent's rights and resolve problems in nursing homes or assisted living facilities.",

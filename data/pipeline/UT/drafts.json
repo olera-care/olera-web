@@ -6,7 +6,7 @@
   "successful": 13,
   "programs": [
     {
-      "id": "ut-medicaid-program",
+      "id": "medicaid-program",
       "name": "Utah Medicaid Program",
       "shortName": "Utah Medicaid",
       "tagline": "Covers nursing home care, home-based services, and medical costs for Utah seniors on limited incomes.",
@@ -239,7 +239,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ut-pace-elder-care",
+      "id": "pace-elder-care",
       "name": "Utah PACE (Program of All-Inclusive Care for the Elderly)",
       "shortName": "Utah PACE",
       "tagline": "All-in-one medical and long-term care under one team — but not currently available in Utah.",
@@ -349,7 +349,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ut-medicare-savings-programs",
+      "id": "medicare-savings-programs",
       "name": "Medicare Savings Programs (QMB, SLMB, QI)",
       "shortName": "Medicare Savings Programs",
       "tagline": "If your parent's monthly income is under $1,823, Medicare may cover their premiums, deductibles, and copays.",
@@ -590,7 +590,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ut-snap-food-benefits",
+      "id": "snap-food-benefits",
       "name": "Utah SNAP (Supplemental Nutrition Assistance Program)",
       "shortName": "Utah SNAP",
       "tagline": "Monthly grocery money for Utah seniors 60+ on fixed incomes — up to $415/month loaded on an EBT card.",
@@ -787,7 +787,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ut-liheap-heat-energy-assistance",
+      "id": "liheap-heat-energy-assistance",
       "name": "Utah LIHEAP (Low-Income Home Energy Assistance Program)",
       "shortName": "Utah HEAT",
       "tagline": "Get $190-$850 toward your parent's heating and cooling bills, plus crisis help up to $2,000",
@@ -1002,7 +1002,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ut-weatherization-assistance-program",
+      "id": "weatherization-assistance-program",
       "name": "Utah Weatherization Assistance Program",
       "shortName": "Weatherization Assistance",
       "tagline": "Free home energy improvements to reduce your parent's heating and cooling bills long-term",
@@ -1217,7 +1217,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ut-ship-medicare-counseling",
+      "id": "ship-medicare-counseling",
       "name": "Utah SHIP (State Health Insurance Assistance Program)",
       "shortName": "Utah SHIP",
       "tagline": "Free one-on-one Medicare counseling to help your parent navigate coverage options and find cost assistance programs.",
@@ -1349,7 +1349,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ut-meals-on-wheels",
+      "id": "meals-on-wheels",
       "name": "Utah Meals on Wheels",
       "shortName": "Meals on Wheels",
       "tagline": "Free home-delivered meals for parents 60+ who can't shop or cook due to mobility challenges",
@@ -1523,7 +1523,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ut-caregiver-support-program",
+      "id": "caregiver-support-program",
       "name": "Utah Caregiver Support Program (UCSP)",
       "shortName": "Caregiver Support",
       "tagline": "Up to $1,500/year in respite care, personal care aides, and support services for family caregivers.",
@@ -1712,7 +1712,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ut-scsep-employment",
+      "id": "scsep-employment",
       "name": "Senior Community Service Employment Program (SCSEP)",
       "shortName": "SCSEP Employment",
       "tagline": "Part-time paid work training for unemployed adults 55+ earning under $2,500/month for a family of two",
@@ -1898,7 +1898,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ut-legal-services-seniors",
+      "id": "legal-services-seniors",
       "name": "Utah Legal Services for Seniors",
       "shortName": "Legal Services",
       "tagline": "Free legal help for seniors 60+ with public benefits, elder abuse, housing, and estate planning issues.",
@@ -2049,7 +2049,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ut-long-term-care-ombudsman",
+      "id": "long-term-care-ombudsman",
       "name": "Utah Long-Term Care Ombudsman Program",
       "shortName": "Long-Term Care Ombudsman",
       "tagline": "Free advocacy for your parent if they're already in a nursing home, assisted living, or memory care facility.",
@@ -2174,7 +2174,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ut-aging-waiver",
+      "id": "aging-waiver",
       "name": "Utah Aging Waiver",
       "shortName": "Aging Waiver",
       "tagline": "Helps your parent get personal care, home modifications, and other services to stay home instead of moving to a nursing facility.",

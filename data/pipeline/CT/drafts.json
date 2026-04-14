@@ -6,7 +6,7 @@
   "successful": 10,
   "programs": [
     {
-      "id": "ct-husky-health-medicaid-seniors",
+      "id": "husky-health-medicaid-seniors",
       "name": "HUSKY Health (Medicaid for seniors/disabled)",
       "shortName": "HUSKY Health C",
       "tagline": "Comprehensive health coverage including long-term care for Connecticut seniors with limited income and assets",
@@ -234,7 +234,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ct-chcpe-medicare-savings",
+      "id": "chcpe-medicare-savings",
       "name": "Connecticut Home Care Program for Elders (CHCPE) - Medicare Savings",
       "shortName": "CHCPE Medicare Savings",
       "tagline": "Home care services to keep your parent out of a nursing home, plus Medicare premium savings.",
@@ -442,7 +442,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ct-pace-comprehensive-care",
+      "id": "pace-comprehensive-care",
       "name": "Program of All-Inclusive Care for the Elderly (CT PACE)",
       "shortName": "CT PACE",
       "tagline": "Your parent gets all medical care, medications, and support services through one coordinated team — no copays, no provider juggling.",
@@ -604,7 +604,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ct-snap-food-benefits",
+      "id": "snap-food-benefits",
       "name": "SNAP (Supplemental Nutrition Assistance Program)",
       "shortName": "SNAP Food Benefits",
       "tagline": "Up to $298 per month for groceries if your parent is on a fixed income",
@@ -825,7 +825,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ct-energy-assistance-ceap",
+      "id": "energy-assistance-ceap",
       "name": "Connecticut Energy Assistance Program (CEAP)",
       "shortName": "CEAP Energy Assistance",
       "tagline": "Help your parent get $295-$645 toward heating bills this winter, with emergency assistance available for fuel crises.",
@@ -1030,7 +1030,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ct-weatherization-assistance",
+      "id": "weatherization-assistance",
       "name": "Weatherization Assistance Program",
       "shortName": "Weatherization",
       "tagline": "Free home energy improvements worth up to $15,000 to reduce your parent's heating and cooling bills",
@@ -1215,7 +1215,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ct-choices-ship",
+      "id": "choices-ship",
       "name": "CHOICES (CT SHIP)",
       "shortName": "CHOICES Medicare Help",
       "tagline": "Free Medicare counseling to help your parent navigate plans, save money, and avoid enrollment mistakes.",
@@ -1337,7 +1337,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ct-statewide-respite-care",
+      "id": "statewide-respite-care",
       "name": "Connecticut Statewide Respite Care Program",
       "shortName": "CT Respite Care",
       "tagline": "Up to $7,500 annually to help pay for respite care when your parent has dementia",
@@ -1519,7 +1519,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ct-scsep-employment-training",
+      "id": "scsep-employment-training",
       "name": "Senior Community Service Employment Program (SCSEP)",
       "shortName": "SCSEP Job Training",
       "tagline": "Paid job training for unemployed adults 55+ — earn minimum wage while learning skills at nonprofits and public agencies",
@@ -1643,7 +1643,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ct-long-term-care-ombudsman",
+      "id": "long-term-care-ombudsman",
       "name": "Long Term Care Ombudsman Program",
       "shortName": "LTC Ombudsman",
       "tagline": "Free advocacy when your parent has problems with their nursing home or assisted living facility.",

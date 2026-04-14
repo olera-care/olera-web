@@ -6,7 +6,7 @@
   "successful": 3,
   "programs": [
     {
-      "id": "nd-basic-care-assistance-program",
+      "id": "basic-care-assistance-program",
       "name": "North Dakota Basic Care Assistance Program (BCAP)",
       "shortName": "BCAP",
       "tagline": "Helps cover the cost of basic care facility services for eligible North Dakota seniors and disabled adults.",
@@ -189,7 +189,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nd-aging-in-community-project",
+      "id": "aging-in-community-project",
       "name": "North Dakota Aging in Community (AIC) Project",
       "shortName": "AIC Project",
       "tagline": "Community volunteers help your parent stay safely at home in rural North Dakota — transportation, fall prevention, and local connections.",
@@ -329,7 +329,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nd-assistive-senior-safety-program",
+      "id": "assistive-senior-safety-program",
       "name": "ND Assistive Senior Safety Program",
       "shortName": "Senior Safety Program",
       "tagline": "Free safety devices and professional setup to help your parent stay safely at home",
@@ -468,7 +468,7 @@
     "startHere": [
       {
         "name": "ND Assistive Senior Safety Program",
-        "programId": "nd-assistive-senior-safety-program",
+        "programId": "assistive-senior-safety-program",
         "why": "No income requirements and provides immediate safety improvements with free professional installation."
       },
       {

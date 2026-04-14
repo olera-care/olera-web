@@ -6,7 +6,7 @@
   "successful": 14,
   "programs": [
     {
-      "id": "fl-smmc-ltc-hcbs-waivers",
+      "id": "smmc-ltc-hcbs-waivers",
       "name": "Statewide Medicaid Managed Care Long-Term Care Program (SMMC-LTC) HCBS Waivers",
       "shortName": "SMMC-LTC Waivers",
       "tagline": "Medicaid-covered home care services to keep your parent out of nursing home placement",
@@ -194,7 +194,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "fl-pace-comprehensive-care",
+      "id": "pace-comprehensive-care",
       "name": "Program of All-Inclusive Care for the Elderly (PACE)",
       "shortName": "PACE",
       "tagline": "All-inclusive medical care for your parent if they need nursing home level care but want to stay home.",
@@ -387,7 +387,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "fl-medicare-savings-programs",
+      "id": "medicare-savings-programs",
       "name": "Medicaid Medicare Savings Programs (QMB, SLMB, QI)",
       "shortName": "Medicare Savings Programs",
       "tagline": "If your parent is on Medicare with limited income, they could qualify for help paying premiums, deductibles, and copays",
@@ -595,7 +595,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "fl-snap-food-benefits",
+      "id": "snap-food-benefits",
       "name": "SNAP (Supplemental Nutrition Assistance Program)",
       "shortName": "SNAP Food Benefits",
       "tagline": "Up to $298/month for groceries if your parent is 60+ on a fixed income",
@@ -782,7 +782,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "fl-liheap-energy-assistance",
+      "id": "liheap-energy-assistance",
       "name": "LIHEAP (Low-Income Home Energy Assistance Program)",
       "shortName": "LIHEAP Energy Assistance",
       "tagline": "Get $400–$2,000 toward your parent's electric and gas bills if household income is under $2,679/month for one person.",
@@ -1008,7 +1008,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "fl-weatherization-assistance-program",
+      "id": "weatherization-assistance-program",
       "name": "Weatherization Assistance Program (WAP)",
       "shortName": "Weatherization Assistance",
       "tagline": "Free home energy improvements that can lower your parent's utility bills by hundreds of dollars annually",
@@ -1226,7 +1226,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "fl-shine-medicare-counseling",
+      "id": "shine-medicare-counseling",
       "name": "SHINE (Serving Health Insurance Needs of Elders)",
       "shortName": "SHINE",
       "tagline": "Free one-on-one help navigating Medicare choices, appeals, and prescription assistance for your parent.",
@@ -1350,7 +1350,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "fl-home-delivered-meals-on-wheels",
+      "id": "home-delivered-meals-on-wheels",
       "name": "Home Delivered Meals (Meals on Wheels)",
       "shortName": "Meals on Wheels",
       "tagline": "Get nutritious meals delivered to your parent's door if they can't shop or cook safely.",
@@ -1523,7 +1523,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "fl-adi-respite-services",
+      "id": "adi-respite-services",
       "name": "Alzheimer's Disease Initiative (ADI) Respite Services",
       "shortName": "ADI Respite",
       "tagline": "Get help caring for your parent with dementia — in-home respite, adult day care, and emergency relief when you need a break.",
@@ -1684,7 +1684,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "fl-scsep-employment",
+      "id": "scsep-employment",
       "name": "Senior Community Service Employment Program (SCSEP)",
       "shortName": "SCSEP Employment",
       "tagline": "If your parent is 55+ and unemployed with low income, they can earn minimum wage while training for permanent jobs.",
@@ -1867,7 +1867,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "fl-area-agency-legal-services",
+      "id": "area-agency-legal-services",
       "name": "Legal Aid for Seniors (Area Agency Legal Services)",
       "shortName": "Senior Legal Aid",
       "tagline": "Free legal help for seniors 60+ facing housing problems, benefit denials, or elder abuse.",
@@ -2034,7 +2034,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "fl-home-care-elderly-hce",
+      "id": "home-care-elderly-hce",
       "name": "Home Care for the Elderly (HCE) Program",
       "shortName": "HCE Program",
       "tagline": "In-home care services to help your parent avoid nursing home placement when they have a live-in family caregiver.",
@@ -2221,7 +2221,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "fl-cce-community-care-elderly",
+      "id": "cce-community-care-elderly",
       "name": "Community Care for the Elderly (CCE) Program",
       "shortName": "CCE Program",
       "tagline": "Free home care services to help your parent age in place instead of moving to a nursing home.",
@@ -2380,7 +2380,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "fl-elder-options-home-services",
+      "id": "elder-options-home-services",
       "name": "Elder Options",
       "shortName": "Elder Options",
       "tagline": "If your parent is 60+ and needs help staying home safely, they may qualify for in-home care, respite services, and alternatives to nursing home placement.",

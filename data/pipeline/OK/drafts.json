@@ -6,7 +6,7 @@
   "successful": 13,
   "programs": [
     {
-      "id": "ok-medicaid-soonercare",
+      "id": "medicaid-soonercare",
       "name": "Oklahoma Medicaid SoonerCare",
       "shortName": "SoonerCare",
       "tagline": "If your parent is 65+ and needs help paying for medical care, long-term care, or prescription drugs, Oklahoma Medicaid may cover these costs.",
@@ -191,7 +191,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ok-advantage-waiver-hcbs",
+      "id": "advantage-waiver-hcbs",
       "name": "Home and Community-Based Services (HCBS) Waivers (ADvantage Waiver)",
       "shortName": "ADvantage Waiver",
       "tagline": "Medicaid waiver program that pays for home care services to help your parent avoid nursing home placement.",
@@ -377,7 +377,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ok-pace-comprehensive-care",
+      "id": "pace-comprehensive-care",
       "name": "Programs of All-Inclusive Care for the Elderly (PACE)",
       "shortName": "PACE",
       "tagline": "All medical care, transportation, and meals coordinated under one program for parents who need nursing home-level care but want to stay home.",
@@ -574,7 +574,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ok-medicare-savings-programs",
+      "id": "medicare-savings-programs",
       "name": "Medicare Savings Programs (QMB, SLMB, QI)",
       "shortName": "Medicare Savings Programs",
       "tagline": "If your parent's monthly income is below $1,660, Oklahoma may pay their Medicare premiums and reduce their out-of-pocket costs.",
@@ -819,7 +819,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ok-snap-food-benefits",
+      "id": "snap-food-benefits",
       "name": "Supplemental Nutrition Assistance Program (SNAP)",
       "shortName": "SNAP Food Benefits",
       "tagline": "Monthly grocery assistance for seniors 60+ on fixed incomes — potentially $100-400/month on an EBT card.",
@@ -1032,7 +1032,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ok-liheap-energy-assistance",
+      "id": "liheap-energy-assistance",
       "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
       "shortName": "LIHEAP Energy Help",
       "tagline": "Get $40-$750 toward heating, cooling, or emergency utility bills if your parent qualifies by income",
@@ -1224,7 +1224,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ok-home-delivered-meals",
+      "id": "home-delivered-meals",
       "name": "Home-Delivered Meals (Meals on Wheels)",
       "shortName": "Meals on Wheels",
       "tagline": "Free hot meals delivered to your parent's door if they're homebound and can't prepare food safely.",
@@ -1399,7 +1399,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ok-respite-voucher-programs",
+      "id": "respite-voucher-programs",
       "name": "Respite Voucher Programs in Oklahoma",
       "shortName": "Respite Vouchers",
       "tagline": "Get financial vouchers to hire someone to watch your parent while you take a break from caregiving.",
@@ -1548,7 +1548,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ok-scsep-employment-program",
+      "id": "scsep-employment-program",
       "name": "Senior Community Service Employment Program (SCSEP)",
       "shortName": "SCSEP",
       "tagline": "Paid job training for unemployed adults 55+ to build skills for permanent employment",
@@ -1734,7 +1734,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ok-legal-assistance-seniors",
+      "id": "legal-assistance-seniors",
       "name": "Legal Assistance for Seniors (Legal Aid Services of Oklahoma)",
       "shortName": "Legal Aid Seniors",
       "tagline": "Free legal help for civil matters when your parent is 60+ and low-income.",
@@ -1864,7 +1864,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ok-advantage-waiver-program",
+      "id": "advantage-waiver-program",
       "name": "ADvantage Waiver Program",
       "shortName": "ADvantage Waiver",
       "tagline": "If your parent needs daily help with bathing, dressing, or medication but wants to stay home, this program can cover in-home care services instead of nursing home placement.",
@@ -2046,7 +2046,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ok-chore-services-title-iii",
+      "id": "chore-services-title-iii",
       "name": "Oklahoma Chore Services (Older Americans Act Title III)",
       "shortName": "Oklahoma Chore Services",
       "tagline": "Free heavy housework and yard maintenance for parents 60+ who have trouble managing their home independently.",
@@ -2187,7 +2187,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ok-senior-farmers-market-nutrition-program",
+      "id": "senior-farmers-market-nutrition-program",
       "name": "Senior Farmers' Market Nutrition Program (SFMNP)",
       "shortName": "Senior Farmers' Market",
       "tagline": "Your parent can get $50-100 per year for fresh fruits and vegetables at local farmers' markets.",

@@ -6,7 +6,7 @@
   "successful": 14,
   "programs": [
     {
-      "id": "mt-big-sky-waiver-program",
+      "id": "big-sky-waiver-program",
       "name": "Big Sky Waiver Program",
       "shortName": "Big Sky Waiver",
       "tagline": "Home care services for Montana seniors who qualify for nursing home level care but want to stay home",
@@ -198,7 +198,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "mt-cfcs-personal-care-services",
+      "id": "cfcs-personal-care-services",
       "name": "Community First Choice Services (CFCS) / Personal Care Services (PCS)",
       "shortName": "CFCS/PCS",
       "tagline": "Get paid help for your parent's daily care at home — bathing, dressing, and medication management covered by Medicaid.",
@@ -395,7 +395,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "mt-pace-comprehensive-care",
+      "id": "pace-comprehensive-care",
       "name": "Program of All-Inclusive Care for the Elderly (PACE)",
       "shortName": "PACE",
       "tagline": "Complete healthcare and support services under one program for parents who need nursing home level care but want to stay home",
@@ -550,7 +550,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "mt-medicaid-abd",
+      "id": "medicaid-abd",
       "name": "Medicaid for the Aged, Blind, and Disabled (ABD)",
       "shortName": "ABD Medicaid",
       "tagline": "If your parent is 65+, blind, or disabled, they may qualify for comprehensive health coverage including long-term care services",
@@ -741,7 +741,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "mt-medicare-savings-programs",
+      "id": "medicare-savings-programs",
       "name": "Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), Qualifying Individual (QI)",
       "shortName": "Medicare Savings Programs",
       "tagline": "If your parent's income is under $1,761/month, Montana will pay their Medicare premiums and potentially all Medicare out-of-pocket costs.",
@@ -974,7 +974,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "mt-snap-food-benefits",
+      "id": "snap-food-benefits",
       "name": "SNAP (Food Stamps)",
       "shortName": "SNAP Benefits",
       "tagline": "Monthly grocery assistance for seniors on fixed incomes — up to hundreds per month on an EBT card.",
@@ -1200,7 +1200,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "mt-liheap-energy-assistance",
+      "id": "liheap-energy-assistance",
       "name": "Montana Low Income Home Energy Assistance Program (LIHEAP)",
       "shortName": "Montana LIHEAP",
       "tagline": "Help your parent get one-time payments to cover heating bills and emergency energy costs during Montana winters.",
@@ -1399,7 +1399,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "mt-weatherization-assistance-program",
+      "id": "weatherization-assistance-program",
       "name": "Weatherization Assistance Program",
       "shortName": "Weatherization Assistance",
       "tagline": "Free home energy improvements that can cut your parent's heating bills by hundreds of dollars per year.",
@@ -1583,7 +1583,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "mt-ship-medicare-counseling",
+      "id": "ship-medicare-counseling",
       "name": "State Health Insurance Assistance Program (SHIP)",
       "shortName": "SHIP",
       "tagline": "Free Medicare counseling to help your parent choose the right plans and avoid costly mistakes",
@@ -1699,7 +1699,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "mt-meals-on-wheels",
+      "id": "meals-on-wheels",
       "name": "Meals on Wheels",
       "shortName": "Meals on Wheels",
       "tagline": "Hot, nutritious meals delivered to your parent's home 5 days a week if they're 60+ and unable to cook for themselves.",
@@ -1860,7 +1860,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "mt-big-sky-waiver-respite",
+      "id": "big-sky-waiver-respite",
       "name": "Respite Care (via Big Sky Waiver)",
       "shortName": "Big Sky Respite",
       "tagline": "Up to 30 days per year of temporary care for your parent so you can take a break from caregiving.",
@@ -2048,7 +2048,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "mt-scsep-employment",
+      "id": "scsep-employment",
       "name": "Senior Community Service Employment Program (SCSEP)",
       "shortName": "SCSEP",
       "tagline": "If your parent is 55+ and struggling to find work, they can earn minimum wage while gaining job skills through community service positions.",
@@ -2222,7 +2222,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "mt-legal-services-seniors",
+      "id": "legal-services-seniors",
       "name": "Legal Services for Seniors",
       "shortName": "Legal Services",
       "tagline": "Free help creating wills, powers of attorney, and other estate planning documents for Montana seniors 60+.",
@@ -2376,7 +2376,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "mt-long-term-care-ombudsman",
+      "id": "long-term-care-ombudsman",
       "name": "Long-Term Care Ombudsman Program",
       "shortName": "Ombudsman Program",
       "tagline": "Free advocacy and complaint resolution when your parent faces problems in nursing homes or assisted living facilities.",

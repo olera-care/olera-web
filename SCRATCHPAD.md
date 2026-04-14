@@ -255,6 +255,43 @@ The deep dive. Restrained, lets content breathe. Reads like a well-researched ar
 
 ## Session Log
 
+### 2026-04-14 (Session 78, ship day morning) — ReviewGuide + v2-as-default question
+
+**Branch:** `vigilant-zhukovsky` | **Latest commit:** `87947ca1`
+
+**ReviewGuide disclosure shipped** to admin benefits dashboard:
+- New local `ReviewGuide` component in `app/admin/benefits/page.tsx` with `variant: "state" | "program"`
+- Inserted in `StateDetail` header (above "State overview draft" disclosure) and inside expanded `ProgramPreview` panel
+- Native `<details>` — zero state management, zero localStorage, collapsed by default
+- **First pass (commit `c9028584`) was too quiet** — `text-[11px]` gray looked like whitespace, TJ couldn't find it on the preview. Confirmed via Vercel preview URL showing source commit.
+- **Tightened (commit `87947ca1`)**: now a vanilla-tinted pill with info icon + amber accent + rotating caret + "How to review this {variant}" label. Reads as a clickable affordance. Still a small pill, still not a banner.
+
+**Lesson learned:** "quiet UX" has two failure modes — obnoxious (what we avoided) and invisible (what we hit). Sweet spot is a low-contrast clickable affordance that reads as intentional, not ambient. One round trip cost because I didn't anticipate that "subtle gray text" on a busy admin page is indistinguishable from layout whitespace.
+
+**Push state:**
+- `vigilant-zhukovsky` branch pushed to `origin/vigilant-zhukovsky` (new remote)
+- Branch is 3 behind `origin/staging` (drift from other work merged today — will need pull/rebase or PR merge to reconcile)
+- PR URL: https://github.com/olera-care/olera-web/pull/new/vigilant-zhukovsky
+- Vercel auto-deployed preview at `olera-14zp4vhju-olera.vercel.app` (hash deployment, preview env, source `c9028584` — now also `87947ca1`)
+
+**Critical bug review done before TJ tested:**
+- 14 potential failure modes considered: Safari `::-webkit-details-marker`, Tailwind `group-open:` support, vanilla color class existence, double-numbering on `<ol>`, click bubbling on `<summary>` inside expanded row, SSR, function hoisting, etc.
+- Nothing confident-real found. Reported honestly: "I found nothing I'm confident is a real bug."
+- Real bug TJ surfaced: the guide was too subtle to FIND, not malfunctioning. Tightened per above.
+
+**Decisions made (this stretch):**
+
+| Date | Decision | Rationale |
+| 2026-04-14 | ReviewGuide is a static checklist, not data-driven | A data-driven guide ("this state has N flags") sounds smarter but couples the review UI to factcheck schema changes. A static 5-item checklist is durable, and the factcheck flag backstop is already available via the triage markdown. Static wins for maintainability. |
+| 2026-04-14 | Variant-specific label ("this state" / "this program") in the collapsed pill | Copy like "Spot-check guide" was abstract; "How to review this state" anchors the user to what the guide is FOR. Small copy change, outsized findability improvement. |
+| 2026-04-14 | Findable > quiet when they conflict | First pass optimized for "not obnoxious" at the cost of discoverability. Real users skim busy admin pages. Subtle pill with icon + border reads as a clickable affordance at a glance; plain gray text reads as whitespace. |
+
+**Next up question (from TJ):** "Let's make all the v2 pages the main pages on olera.care instead of the draft v1, both at state and program level. Does that make sense?"
+
+This needs clarification + verification before acting — see discussion below. Short version: the v3 components are ALREADY rendered on the main `/senior-benefits/{state}` URL when pipeline data exists (gated by `stateDrafts?.stateOverview` check). After today's batch, all 50 states + DC have overviews, so main URLs should already be v3. But TJ's framing suggests he's seeing something that doesn't match that. Need to trace a specific state's routing path and/or ask TJ which URL he's looking at to confirm.
+
+---
+
 ### 2026-04-14 (Session 78, night → ship day) — SBF Content Ship-Ready
 
 **Branch:** `vigilant-zhukovsky` | **Latest commit:** `a30b2756`

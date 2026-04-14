@@ -6,7 +6,7 @@
   "successful": 17,
   "programs": [
     {
-      "id": "ri-medicaid-ltss-elderly",
+      "id": "medicaid-ltss-elderly",
       "name": "Rhode Island Medicaid (Long-Term Services and Supports for Elderly)",
       "shortName": "RI Medicaid LTSS",
       "tagline": "If your parent needs daily help with bathing, dressing, or medication, this program covers nursing home care or in-home supports with strict asset limits.",
@@ -193,7 +193,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ri-class-waiver",
+      "id": "class-waiver",
       "name": "Rhode Island Community Living and Attendant Services Waiver (CLASS)",
       "shortName": "CLASS Waiver",
       "tagline": "Home care services that let your parent avoid nursing home placement while staying on Medicaid.",
@@ -361,7 +361,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ri-pace-elderly-care",
+      "id": "pace-elderly-care",
       "name": "PACE (Program of All-Inclusive Care for the Elderly)",
       "shortName": "PACE",
       "tagline": "Complete medical and daily care coordination for parents who need nursing home-level help but want to stay home",
@@ -554,7 +554,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ri-medicare-savings-programs",
+      "id": "medicare-savings-programs",
       "name": "Medicare Savings Programs (MSP)",
       "shortName": "Medicare Savings Programs",
       "tagline": "If your parent has Medicare and limited income, this program can pay their monthly Medicare premiums and medical costs.",
@@ -746,7 +746,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ri-snap-food-benefits",
+      "id": "snap-food-benefits",
       "name": "Supplemental Nutrition Assistance Program (SNAP)",
       "shortName": "SNAP Food Benefits",
       "tagline": "Up to $291 monthly for groceries if your parent is 60+ on a fixed income",
@@ -948,7 +948,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ri-liheap-energy-assistance",
+      "id": "liheap-energy-assistance",
       "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
       "shortName": "LIHEAP Energy Assistance",
       "tagline": "One-time grants paid directly to utility companies to help with heating bills for families earning under $42,252/year.",
@@ -1146,7 +1146,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ri-weatherization-assistance-program",
+      "id": "weatherization-assistance-program",
       "name": "Weatherization Assistance Program",
       "shortName": "Weatherization Program",
       "tagline": "Free home energy improvements that can lower your parent's utility bills by hundreds of dollars annually.",
@@ -1316,7 +1316,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ri-ship-medicare-counseling",
+      "id": "ship-medicare-counseling",
       "name": "State Health Insurance Assistance Program (SHIP)",
       "shortName": "SHIP",
       "tagline": "Free one-on-one help navigating Medicare options, appeals, and low-income programs for your parent.",
@@ -1444,7 +1444,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ri-meals-on-wheels",
+      "id": "meals-on-wheels",
       "name": "Meals on Wheels of Rhode Island",
       "shortName": "Meals on Wheels RI",
       "tagline": "Free home-delivered meals Monday through Friday if your parent is 60+ and homebound.",
@@ -1595,7 +1595,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ri-caregiver-respite-support",
+      "id": "caregiver-respite-support",
       "name": "Caregiver/Respite Support",
       "shortName": "Respite Care",
       "tagline": "Financial help for professional caregivers to give you a break from caring for your parent or disabled family member.",
@@ -1763,7 +1763,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ri-scsep-employment-program",
+      "id": "scsep-employment-program",
       "name": "Senior Community Service Employment Program (SCSEP)",
       "shortName": "SCSEP",
       "tagline": "Part-time paid work training for Rhode Island adults 55+ who need job skills and income",
@@ -1937,7 +1937,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ri-legal-aid-seniors",
+      "id": "legal-aid-seniors",
       "name": "Legal Aid for Seniors",
       "shortName": "Legal Aid",
       "tagline": "Free legal help for seniors 60+ with government benefit appeals, housing disputes, and consumer issues",
@@ -2097,7 +2097,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ri-long-term-care-ombudsman",
+      "id": "long-term-care-ombudsman",
       "name": "Long-Term Care Ombudsman Program",
       "shortName": "Care Ombudsman",
       "tagline": "Free advocacy to resolve problems with your parent's nursing home, assisted living, or home care provider.",
@@ -2220,7 +2220,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ri-pharmaceutical-assistance-elderly",
+      "id": "pharmaceutical-assistance-elderly",
       "name": "Rhode Island Pharmaceutical Assistance for the Elderly (RIPAE)",
       "shortName": "RIPAE",
       "tagline": "Help covering prescription costs during Medicare Part D's deductible period for Rhode Island seniors on fixed incomes.",
@@ -2400,7 +2400,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ri-at-home-cost-share-program",
+      "id": "at-home-cost-share-program",
       "name": "At HOME Cost Share Program",
       "shortName": "At HOME Cost Share",
       "tagline": "Subsidized home care and adult day services for Rhode Island seniors who don't qualify for Medicaid",
@@ -2610,7 +2610,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ri-hcc-senior-companion-program",
+      "id": "hcc-senior-companion-program",
       "name": "HCC Senior Companion Program",
       "shortName": "Senior Companion Program",
       "tagline": "Free trained volunteer companions help your parent with daily tasks and provide companionship if they're homebound or isolated.",
@@ -2733,7 +2733,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ri-point-ltss-entry",
+      "id": "point-ltss-entry",
       "name": "The POINT",
       "shortName": "The POINT",
       "tagline": "Single entry point for Rhode Island seniors who need help with daily activities to access home care and avoid nursing homes",

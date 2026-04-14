@@ -1,44 +1,113 @@
 import type { Metadata } from "next";
-import { notFound, redirect } from "next/navigation";
-import { getStateById, allStates } from "@/data/waiver-library";
-import { pipelineDrafts } from "@/data/pipeline-drafts";
-import { StatePageV2 } from "@/components/waiver-library/StatePageV2";
+import { notFound } from "next/navigation";
+import { getStateById, allStates, type StateData, type WaiverProgram } from "@/data/waiver-library";
+import { pipelineDrafts, type PipelineStateOverview, type PipelineDraft } from "@/data/pipeline-drafts";
+import { StatePageV3 } from "@/components/waiver-library/StatePageV3";
+import { createClient } from "@/lib/supabase/server";
 
 interface Props {
   params: Promise<{ slug: string }>;
 }
 
 /**
- * Resolve a slug to either a state or a region entity.
- *
- * Lookup order:
- * 1. Direct state id match (e.g., "michigan" → michigan state data)
- * 2. Region slug in pipeline-drafts (e.g., "miami-dade-county-fl")
+ * Convert a pipeline draft into a WaiverProgram shape for state-list rendering.
+ * This is the coercion layer that lets StatePageV3 render pipeline-sourced
+ * program metadata without depending on waiver-library entries.
  */
-function resolveSlug(slug: string) {
-  // Check if slug matches a state id (e.g., "michigan", "texas")
-  const state = getStateById(slug);
-  if (state && state.programs.length > 0) {
-    const drafts = pipelineDrafts[state.abbreviation];
+function draftToWaiverProgram(draft: PipelineDraft): WaiverProgram {
+  return {
+    id: draft.id,
+    name: draft.name,
+    shortName: draft.shortName,
+    tagline: draft.tagline,
+    description: draft.intro?.split(".")[0] || draft.tagline || "",
+    savingsRange: draft.savingsRange || "",
+    savingsSource: draft.savingsSource || "",
+    savingsVerified: draft.savingsVerified || false,
+    eligibilityHighlights: draft.structuredEligibility?.summary || [],
+    applicationSteps: (draft.applicationGuide?.steps || []).map((s) => ({
+      step: s.step,
+      title: s.title,
+      description: s.description,
+    })),
+    forms: [],
+    programType: draft.programType as WaiverProgram["programType"],
+    complexity: draft.complexity as WaiverProgram["complexity"],
+    geographicScope: draft.geographicScope as WaiverProgram["geographicScope"],
+    intro: draft.intro,
+    structuredEligibility: draft.structuredEligibility as WaiverProgram["structuredEligibility"],
+    applicationGuide: draft.applicationGuide as WaiverProgram["applicationGuide"],
+    contentSections: draft.contentSections as WaiverProgram["contentSections"],
+    faqs: draft.faqs,
+    phone: draft.phone || undefined,
+    sourceUrl: draft.sourceUrl || undefined,
+    contentStatus: draft.contentStatus as WaiverProgram["contentStatus"],
+    draftedAt: draft.draftedAt,
+    documentsNeeded: draft.documentsNeeded,
+    contacts: draft.contacts,
+    applicationNotes: draft.applicationNotes,
+    relatedPrograms: draft.relatedPrograms,
+    regionalApplications: draft.regionalApplications,
+    layoutIntent: draft.layoutIntent as WaiverProgram["layoutIntent"],
+    icon: draft.icon,
+  };
+}
+
+/**
+ * Resolve a slug to state data sourced entirely from pipeline drafts.
+ * Waiver-library is consulted only for state metadata (name, abbreviation).
+ * Programs are read directly from pipeline-drafts.ts.
+ */
+function resolveSlug(slug: string): {
+  type: "state";
+  state: StateData;
+  overview: PipelineStateOverview;
+  draftedAt: string;
+} | {
+  type: "region";
+  regionName: string;
+  parentState: string | null;
+  overview: PipelineStateOverview;
+  state: StateData;
+  draftedAt: string;
+} | null {
+  // State match — use waiver-library for name/abbreviation metadata only
+  const stateMetadata = getStateById(slug);
+  if (stateMetadata) {
+    const drafts = pipelineDrafts[stateMetadata.abbreviation];
     if (drafts?.stateOverview) {
-      return { type: "state" as const, state, overview: drafts.stateOverview };
+      // Build a state object where programs come from pipeline, metadata from waiver-library
+      const state: StateData = {
+        ...stateMetadata,
+        programs: (drafts.programs || []).map(draftToWaiverProgram),
+      };
+      return {
+        type: "state",
+        state,
+        overview: drafts.stateOverview,
+        draftedAt: drafts.draftedAt,
+      };
     }
-    // State exists but no v2 overview — redirect to existing state page
-    return { type: "state-redirect" as const, stateId: slug };
   }
 
-  // Check if slug matches a region in pipeline-drafts
-  for (const [key, drafts] of Object.entries(pipelineDrafts)) {
+  // Region match (counties, metros, non-state entities in pipeline-drafts)
+  for (const [, drafts] of Object.entries(pipelineDrafts)) {
     if (drafts.isRegion && drafts.slug === slug && drafts.stateOverview) {
-      // Build a synthetic state-like object for the region
+      // Build a synthetic StateData for the region using pipeline program data
+      const state: StateData = {
+        id: drafts.slug,
+        name: drafts.regionName || slug,
+        abbreviation: drafts.parentState || slug.toUpperCase().slice(0, 2),
+        description: "",
+        programs: (drafts.programs || []).map(draftToWaiverProgram),
+      };
       return {
-        type: "region" as const,
+        type: "region",
         regionName: drafts.regionName || slug,
-        parentState: drafts.parentState,
+        parentState: drafts.parentState || null,
         overview: drafts.stateOverview,
-        programs: drafts.programs,
-        slug: drafts.slug,
-        key,
+        state,
+        draftedAt: drafts.draftedAt,
       };
     }
   }
@@ -49,15 +118,11 @@ function resolveSlug(slug: string) {
 export async function generateStaticParams() {
   const slugs: { slug: string }[] = [];
 
-  // Add states that have v2 overviews
   for (const state of allStates) {
     const drafts = pipelineDrafts[state.abbreviation];
-    if (drafts?.stateOverview) {
-      slugs.push({ slug: state.id });
-    }
+    if (drafts?.stateOverview) slugs.push({ slug: state.id });
   }
 
-  // Add regions
   for (const [, drafts] of Object.entries(pipelineDrafts)) {
     if (drafts.isRegion && drafts.slug && drafts.stateOverview) {
       slugs.push({ slug: drafts.slug });
@@ -70,20 +135,14 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const resolved = resolveSlug(slug);
+  if (!resolved) return {};
 
-  if (!resolved || resolved.type === "state-redirect") return {};
+  const name = resolved.type === "state" ? resolved.state.name : resolved.regionName;
+  const programCount = resolved.state.programs.length;
+  const intro = resolved.overview.intro?.split(/[.!?]\s/)[0];
+  const description = intro ? `${intro}.` : `${programCount} senior benefit programs in ${name}. Find help paying for care, staying at home, food assistance, and more.`;
 
-  const name = resolved.type === "state"
-    ? resolved.state.name
-    : resolved.regionName;
-
-  const programCount = resolved.type === "state"
-    ? resolved.state.programs.length
-    : resolved.programs.length;
-
-  const title = `Senior Benefits in ${name} | Olera`;
-  const description = `${programCount} senior benefit programs in ${name}. Find help paying for care, staying at home, food assistance, and more.`;
-
+  const title = `Senior Benefits in ${name} — ${programCount} Programs | Olera`;
   return {
     title,
     description,
@@ -95,48 +154,96 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function BenefitsSlugPage({ params }: Props) {
   const { slug } = await params;
   const resolved = resolveSlug(slug);
-
   if (!resolved) notFound();
 
-  if (resolved.type === "state-redirect") {
-    redirect(`/senior-benefits/${resolved.stateId}`);
+  const state = resolved.state;
+  const overview = resolved.overview;
+  const draftedAt = resolved.draftedAt;
+
+  // Lightweight pipeline program refs for linking
+  const pipelinePrograms = state.programs.map((p) => ({
+    id: p.id,
+    name: p.name,
+    shortName: p.shortName,
+  }));
+
+  // Social proof: recent answered family questions
+  let familyQuestions: {
+    question: string;
+    answer: string;
+    providerName: string;
+    answeredAt: string;
+    providerSlug?: string;
+  }[] = [];
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("provider_questions")
+      .select("question, answer, answered_at, answered_by, provider_id")
+      .eq("status", "answered")
+      .eq("is_public", true)
+      .not("answer", "is", null)
+      .order("answered_at", { ascending: false })
+      .limit(6);
+
+    if (data) {
+      const providerIds = data.map((q) => q.provider_id).filter(Boolean);
+      const slugMap: Record<string, string> = {};
+      if (providerIds.length > 0) {
+        const { data: providers } = await supabase
+          .from("olera-providers")
+          .select("provider_id, slug")
+          .in("provider_id", providerIds);
+        if (providers) {
+          for (const p of providers) if (p.slug) slugMap[p.provider_id] = p.slug;
+        }
+      }
+      familyQuestions = data
+        .filter((q) => q.question && q.answer)
+        .slice(0, 3)
+        .map((q) => ({
+          question: q.question!,
+          answer: q.answer!,
+          providerName: q.answered_by || "Care provider",
+          answeredAt: q.answered_at || "",
+          providerSlug: q.provider_id ? slugMap[q.provider_id] : undefined,
+        }));
+    }
+  } catch {
+    // Silent — social proof is nice-to-have
   }
 
-  if (resolved.type === "state") {
-    return <StatePageV2 state={resolved.state} overview={resolved.overview} />;
-  }
-
-  // Region: build a state-like object from pipeline data
-  const regionAsState = {
-    id: resolved.slug,
-    name: resolved.regionName,
-    abbreviation: resolved.parentState || resolved.slug.toUpperCase().slice(0, 2),
-    description: "",
-    programs: resolved.programs.map((draft) => ({
-      id: draft.id,
-      name: draft.name,
-      shortName: draft.shortName,
-      tagline: draft.tagline,
-      description: draft.intro?.split(".")[0] || "",
-      savingsRange: draft.savingsRange || "",
-      savingsSource: draft.savingsSource || "",
-      savingsVerified: draft.savingsVerified || false,
-      eligibilityHighlights: draft.structuredEligibility?.summary || [],
-      applicationSteps: draft.applicationGuide?.steps || [],
-      forms: [],
-      programType: draft.programType as "benefit" | "resource" | "navigator" | "employment",
-      intro: draft.intro,
-      faqs: draft.faqs,
-      phone: draft.phone,
-      sourceUrl: draft.sourceUrl,
-      contentStatus: draft.contentStatus,
-    })),
+  // Structured data
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Benefits Hub", item: "https://olera.care/benefits" },
+      { "@type": "ListItem", position: 2, name: state.name, item: `https://olera.care/benefits/${slug}` },
+    ],
   };
 
+  const faqJsonLd = overview.quickFacts?.length ? {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: overview.quickFacts.map((fact) => ({
+      "@type": "Question",
+      name: fact.split("—")[0]?.trim() || fact.slice(0, 80),
+      acceptedAnswer: { "@type": "Answer", text: fact },
+    })),
+  } : null;
+
   return (
-    <StatePageV2
-      state={regionAsState as any}
-      overview={resolved.overview}
-    />
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
+      {faqJsonLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />}
+      <StatePageV3
+        state={state}
+        overview={overview}
+        pipelinePrograms={pipelinePrograms}
+        familyQuestions={familyQuestions}
+        draftedAt={draftedAt}
+      />
+    </>
   );
 }

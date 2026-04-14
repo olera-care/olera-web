@@ -6,7 +6,7 @@
   "successful": 13,
   "programs": [
     {
-      "id": "id-medicaid-abd-program",
+      "id": "medicaid-abd-program",
       "name": "Idaho Medicaid Aged, Blind, and Disabled (ABD) Program",
       "shortName": "Idaho Medicaid ABD",
       "tagline": "Health coverage and cash assistance for Idaho parents 65+ or disabled, with income below $1,047/month.",
@@ -171,7 +171,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "id-aged-disabled-waiver",
+      "id": "aged-disabled-waiver",
       "name": "Idaho Aged and Disabled Waiver",
       "shortName": "Aged & Disabled Waiver",
       "tagline": "Medicaid pays for home care services so your parent can avoid nursing home placement while staying in their own home.",
@@ -353,7 +353,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "id-pace-comprehensive-care",
+      "id": "pace-comprehensive-care",
       "name": "Program of All-Inclusive Care for the Elderly (PACE) - Idaho PACE",
       "shortName": "Idaho PACE",
       "tagline": "All your parent's medical care coordinated by one team — no copays, no provider juggling.",
@@ -538,7 +538,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "id-medicare-savings-programs",
+      "id": "medicare-savings-programs",
       "name": "Medicare Savings Programs (Qualified Medicare Beneficiary - QMB, Specified Low-Income Medicare Beneficiary - SLMB, Qualifying Individual - QI)",
       "shortName": "Medicare Savings Programs",
       "tagline": "Your parent could save $200–1,800/year on Medicare premiums, deductibles, and copays if their income is under $1,816/month.",
@@ -755,7 +755,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "id-snap-food-benefits",
+      "id": "snap-food-benefits",
       "name": "Supplemental Nutrition Assistance Program (SNAP)",
       "shortName": "SNAP",
       "tagline": "Monthly grocery assistance for seniors on fixed incomes — up to $300+ per month with no gross income limit in Idaho.",
@@ -954,7 +954,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "id-energy-assistance-liheap",
+      "id": "energy-assistance-liheap",
       "name": "Idaho Energy Assistance (LIHEAP)",
       "shortName": "Energy Assistance",
       "tagline": "Get $400–$1,800 per year to help cover your parent's heating bills if they're on a fixed income.",
@@ -1108,7 +1108,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "id-weatherization-assistance-program",
+      "id": "weatherization-assistance-program",
       "name": "Weatherization Assistance Program (WAP)",
       "shortName": "Weatherization Assistance",
       "tagline": "Free home energy improvements to reduce your parent's heating and cooling costs permanently",
@@ -1345,7 +1345,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "id-shiba-insurance-advisors",
+      "id": "shiba-insurance-advisors",
       "name": "Senior Health Insurance Benefits Advisors (SHIBA)",
       "shortName": "SHIBA",
       "tagline": "Free one-on-one help navigating Medicare, Medigap, and health insurance choices for your parent.",
@@ -1468,7 +1468,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "id-home-delivered-meals-title-iii",
+      "id": "home-delivered-meals-title-iii",
       "name": "Home-Delivered Meals (Title III-C-2)",
       "shortName": "Home-Delivered Meals",
       "tagline": "If your parent is homebound or too frail to cook, they can get hot meals delivered to their door at no cost.",
@@ -1624,7 +1624,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "id-nfcsp-caregiver-support",
+      "id": "nfcsp-caregiver-support",
       "name": "National Family Caregiver Support Program (NFCSP, Title III-E)",
       "shortName": "NFCSP Caregiver Support",
       "tagline": "Free respite care, training, and support groups for family caregivers in Idaho — no income limits.",
@@ -1783,7 +1783,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "id-senior-community-service-employment-program",
+      "id": "senior-community-service-employment-program",
       "name": "Senior Community Service Employment Program (SCSEP)",
       "shortName": "SCSEP Employment",
       "tagline": "Your parent can earn $580-$1,160/month through part-time community service work while getting job training and placement help.",
@@ -1964,7 +1964,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "id-long-term-care-ombudsman",
+      "id": "long-term-care-ombudsman",
       "name": "Long-Term Care Ombudsman Program (Title III-B & VII)",
       "shortName": "Ombudsman Program",
       "tagline": "Free advocate when your parent faces problems in nursing homes or assisted living facilities.",
@@ -2091,7 +2091,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "id-home-choice",
+      "id": "home-choice",
       "name": "Idaho Home Choice",
       "shortName": "Home Choice",
       "tagline": "Helps your parent transition from nursing home back to home with ongoing care services",

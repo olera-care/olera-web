@@ -6,7 +6,7 @@
   "successful": 11,
   "programs": [
     {
-      "id": "ga-ccsp-home-care",
+      "id": "ccsp-home-care",
       "name": "Community Care Services Program (CCSP)",
       "shortName": "CCSP Home Care",
       "tagline": "Home care services to help your parent avoid nursing home placement while staying on Medicaid",
@@ -203,7 +203,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ga-home-community-based-services",
+      "id": "home-community-based-services",
       "name": "Home & Community-Based Services Program",
       "shortName": "Georgia HCBS",
       "tagline": "Get personal care, homemaker services, and adult day care so your parent can stay home instead of entering a nursing home.",
@@ -384,7 +384,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ga-medicare-savings-programs",
+      "id": "medicare-savings-programs",
       "name": "Georgia Medicare Savings Programs (QMB, SLMB, QI)",
       "shortName": "Medicare Savings Programs",
       "tagline": "Get help paying Medicare premiums and costs if your parent's income is below $1,660/month",
@@ -640,7 +640,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ga-senior-snap",
+      "id": "senior-snap",
       "name": "Senior Supplemental Nutrition Assistance Program (Senior SNAP)",
       "shortName": "Senior SNAP",
       "tagline": "Grocery assistance for Georgia seniors 60+ who live on fixed income only",
@@ -829,7 +829,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ga-liheap-energy-assistance",
+      "id": "liheap-energy-assistance",
       "name": "Low Income Home Energy Assistance Program (LIHEAP)",
       "shortName": "LIHEAP",
       "tagline": "Get $350-400 applied directly to your parent's energy bills if they're on a limited income.",
@@ -993,7 +993,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ga-weatherization-assistance-program",
+      "id": "weatherization-assistance-program",
       "name": "Weatherization Assistance Program (WAP)",
       "shortName": "WAP Weatherization",
       "tagline": "Free home energy improvements to reduce your parent's utility bills if they qualify by income.",
@@ -1184,7 +1184,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ga-ship-medicare-counseling",
+      "id": "ship-medicare-counseling",
       "name": "Georgia State Health Insurance Assistance Program (Georgia SHIP)",
       "shortName": "Georgia SHIP",
       "tagline": "Free Medicare counseling to help your parent choose the right plan and avoid costly mistakes.",
@@ -1311,7 +1311,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ga-home-delivered-meals",
+      "id": "home-delivered-meals",
       "name": "Home-Delivered Meals",
       "shortName": "Meals on Wheels",
       "tagline": "Get nutritious meals delivered to your parent's home if they're 60+ and can't shop or cook safely.",
@@ -1465,7 +1465,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ga-respite-care-out-of-home",
+      "id": "respite-care-out-of-home",
       "name": "Caregiver Programs (Out-of-Home Respite Care)",
       "shortName": "Out-of-Home Respite",
       "tagline": "Temporary licensed facility care for your parent so you can rest and recharge",
@@ -1647,7 +1647,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ga-scsep-employment-program",
+      "id": "scsep-employment-program",
       "name": "Senior Community Service Employment Program (SCSEP)",
       "shortName": "SCSEP",
       "tagline": "Part-time paid work experience at nonprofits and public agencies to help your parent age 55+ transition back into employment.",
@@ -1826,7 +1826,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ga-elderly-legal-assistance-elap",
+      "id": "elderly-legal-assistance-elap",
       "name": "Elderly Legal Assistance Program (ELAP)",
       "shortName": "ELAP Legal Aid",
       "tagline": "Free legal help for Georgians 60+ facing civil issues like benefit denials, Medicare appeals, elder abuse, or housing problems.",

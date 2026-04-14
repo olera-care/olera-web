@@ -917,9 +917,9 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
         <HeaderAccent />
         <div className="relative max-w-2xl mx-auto px-6 lg:px-8">
           <nav className="flex items-center gap-1.5 text-sm text-gray-400 mb-6">
-            <Link href="/senior-benefits" className="hover:text-gray-600 transition-colors">Benefits Hub</Link>
+            <Link href="/benefits" className="hover:text-gray-600 transition-colors">Benefits Hub</Link>
             <span>›</span>
-            <Link href={`/senior-benefits/${state.id}`} className="hover:text-gray-600 transition-colors">{state.name}</Link>
+            <Link href={`/benefits/${state.id}`} className="hover:text-gray-600 transition-colors">{state.name}</Link>
             <span>›</span>
             <span className="text-gray-600">{program.shortName}</span>
           </nav>
@@ -1249,7 +1249,7 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
                   {relatedPrograms.map((name, i) => {
                     const slug = findProgramSlug(name, state);
                     return slug ? (
-                      <Link key={i} href={`/senior-benefits/${state.id}/${slug}`} className="text-sm font-medium text-primary-700 bg-primary-50 px-3 py-1.5 rounded-full hover:bg-primary-100 transition-colors">
+                      <Link key={i} href={`/benefits/${state.id}/${slug}`} className="text-sm font-medium text-primary-700 bg-primary-50 px-3 py-1.5 rounded-full hover:bg-primary-100 transition-colors">
                         {name}
                       </Link>
                     ) : (

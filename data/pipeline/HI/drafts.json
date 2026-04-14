@@ -6,7 +6,7 @@
   "successful": 21,
   "programs": [
     {
-      "id": "hi-medquest-medicaid-seniors-disabled",
+      "id": "medquest-medicaid-seniors-disabled",
       "name": "Med-QUEST (Medicaid for seniors/disabled)",
       "shortName": "Med-QUEST Medicaid",
       "tagline": "Free health coverage including nursing home care and home support services for Hawaii seniors and disabled adults with limited income",
@@ -187,7 +187,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "hi-kupuna-care-program",
+      "id": "kupuna-care-program",
       "name": "Kūpuna Care Program",
       "shortName": "Kūpuna Care",
       "tagline": "If your parent is 60+ in Hawaii and needs daily care help but doesn't qualify for Medicaid, this state program provides attendant care, meals, and transportation.",
@@ -367,7 +367,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "hi-sage-plus-medicare-counseling",
+      "id": "sage-plus-medicare-counseling",
       "name": "Sage PLUS Program (PACE equivalent)",
       "shortName": "Sage PLUS Medicare Counseling",
       "tagline": "Free one-on-one Medicare counseling to help navigate benefits and coverage decisions for your Hawaii parent.",
@@ -518,7 +518,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "hi-medicare-savings-programs-qmb-slmb-qi",
+      "id": "medicare-savings-programs-qmb-slmb-qi",
       "name": "Medicare Savings Programs (QMB, SLMB, QI)",
       "shortName": "Medicare Savings Programs",
       "tagline": "Get help paying Medicare premiums, deductibles, and copays if your parent's income is under $2,095/month",
@@ -735,7 +735,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "hi-snap-food-benefits",
+      "id": "snap-food-benefits",
       "name": "SNAP (Supplemental Nutrition Assistance Program)",
       "shortName": "SNAP Food Benefits",
       "tagline": "Monthly grocery assistance for seniors 60+ on fixed incomes — Hawaii residents may qualify for food aid even with higher incomes than other states.",
@@ -946,7 +946,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "hi-liheap-energy-assistance",
+      "id": "liheap-energy-assistance",
       "name": "Low Income Home Energy Assistance Program (LIHEAP)",
       "shortName": "LIHEAP",
       "tagline": "Help with electric and gas bills when your parent can't keep up with rising energy costs",
@@ -1181,7 +1181,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "hi-weatherization-assistance-program",
+      "id": "weatherization-assistance-program",
       "name": "Weatherization Assistance Program",
       "shortName": "Weatherization Assistance",
       "tagline": "Free home energy improvements for Hawaii families earning up to $31,200-$102,720 depending on household size.",
@@ -1400,7 +1400,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "hi-ship-medicare-counseling",
+      "id": "ship-medicare-counseling",
       "name": "Hawaii SHIP (State Health Insurance Assistance Program)",
       "shortName": "Hawaii SHIP",
       "tagline": "Free, expert Medicare counseling to help your parent navigate coverage options and find cost-saving programs.",
@@ -1527,7 +1527,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "hi-home-delivered-meals-kupuna",
+      "id": "home-delivered-meals-kupuna",
       "name": "Home-Delivered Meals (via Kūpuna Aging in Place grantees)",
       "shortName": "Home-Delivered Meals",
       "tagline": "If your parent can't shop or cook safely, they may qualify for free weekly meal delivery to their home.",
@@ -1713,7 +1713,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "hi-caregiver-support-eoa",
+      "id": "caregiver-support-eoa",
       "name": "Caregiver Support (via Executive Office on Aging)",
       "shortName": "Caregiver Support",
       "tagline": "Free respite care, training, and counseling for family caregivers of adults 60+ in Hawaii.",
@@ -1900,7 +1900,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "hi-scsep-employment-training",
+      "id": "scsep-employment-training",
       "name": "Retired Senior Volunteer Program (RSVP, related to SCSEP)",
       "shortName": "SCSEP Training",
       "tagline": "If your parent is 55+ and unemployed, they can earn Hawaii minimum wage while learning job skills through paid training placements.",
@@ -2085,7 +2085,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "hi-senior-legal-helpline",
+      "id": "senior-legal-helpline",
       "name": "Senior Legal Helpline (via Area Agencies on Aging)",
       "shortName": "Senior Legal Helpline",
       "tagline": "Free legal advice by phone for Hawaii seniors facing housing, benefits, or family law issues.",
@@ -2208,7 +2208,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "hi-ltc-ombudsman-program",
+      "id": "ltc-ombudsman-program",
       "name": "Long-Term Care Ombudsman Program (LTCOP)",
       "shortName": "LTC Ombudsman",
       "tagline": "Free advocacy and complaint resolution if your parent lives in a nursing home or assisted living facility.",
@@ -2335,7 +2335,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "hi-kahi-malama-care-coordination",
+      "id": "kahi-malama-care-coordination",
       "name": "Kahi Malama – A Place of Caring",
       "shortName": "Kahi Malama",
       "tagline": "Free care coordination to help your Big Island parent find and navigate aging services.",
@@ -2487,7 +2487,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "hi-ead-honolulu-adrc",
+      "id": "ead-honolulu-adrc",
       "name": "Elderly Affairs Division (EAD) / Honolulu ADRC",
       "shortName": "Honolulu EAD",
       "tagline": "Get home care services, meal delivery, and caregiver support for your aging parent in Honolulu County.",
@@ -2775,7 +2775,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "hi-home-community-services-eoa",
+      "id": "home-community-services-eoa",
       "name": "Home and Community Services (Statewide via EOA)",
       "shortName": "Home & Community Services",
       "tagline": "Keep your parent at home with Medicaid-funded care services instead of nursing home placement.",
@@ -2941,7 +2941,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "hi-transportation-friends-kupuna",
+      "id": "transportation-friends-kupuna",
       "name": "Transportation Friends for Kupuna (TFK)",
       "shortName": "TFK Transport",
       "tagline": "Free rides and companionship to appointments for Oahu seniors living alone with limited support.",
@@ -3073,7 +3073,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "hi-senior-companion-program",
+      "id": "senior-companion-program",
       "name": "Senior Companion Program",
       "shortName": "Senior Companion",
       "tagline": "Trained volunteer companions provide up to 20 hours weekly of in-home assistance for frail elders needing help to stay independent.",
@@ -3224,7 +3224,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "hi-foster-grandparent-program",
+      "id": "foster-grandparent-program",
       "name": "Foster Grandparent Program",
       "shortName": "Foster Grandparent",
       "tagline": "Paid volunteer work helping special needs children if your parent is 55+ and on a low income.",
@@ -3388,7 +3388,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "hi-memory-mentor-program",
+      "id": "memory-mentor-program",
       "name": "Memory Mentor Program",
       "shortName": "Memory Mentor",
       "tagline": "Free in-home visits, safety checks, and daily support for seniors with memory loss living alone.",

@@ -6,7 +6,7 @@
   "successful": 13,
   "programs": [
     {
-      "id": "mn-medical-assistance-medicaid",
+      "id": "medical-assistance-medicaid",
       "name": "Medical Assistance (Medicaid)",
       "shortName": "Medical Assistance",
       "tagline": "Free health coverage including nursing home care, home services, and all medical costs for parents who qualify.",
@@ -205,7 +205,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "mn-elderly-waiver",
+      "id": "elderly-waiver",
       "name": "Elderly Waiver (EW)",
       "shortName": "Elderly Waiver",
       "tagline": "Home care services to keep your parent out of nursing homes if they qualify for Medical Assistance long-term care.",
@@ -392,7 +392,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "mn-msho-senior-health-options",
+      "id": "msho-senior-health-options",
       "name": "Minnesota Senior Health Options (MSHO)",
       "shortName": "MSHO",
       "tagline": "One health plan combining Medicare and Medicaid for seniors with low income — simplified billing and extra benefits like dental and transportation.",
@@ -571,7 +571,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "mn-medicare-savings-programs",
+      "id": "medicare-savings-programs",
       "name": "Medicare Savings Programs (QMB, SLMB, QI)",
       "shortName": "Medicare Savings Programs",
       "tagline": "If your parent struggles to afford Medicare premiums and copays, these programs can cover $1,700–3,500 annually in out-of-pocket costs.",
@@ -799,7 +799,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "mn-snap-food-benefits",
+      "id": "snap-food-benefits",
       "name": "Minnesota SNAP (Supplemental Nutrition Assistance Program)",
       "shortName": "Minnesota SNAP",
       "tagline": "Monthly grocery assistance for parents 60+ on fixed incomes — up to $546/month with no gross income limits",
@@ -1025,7 +1025,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "mn-ship-medicare-counseling",
+      "id": "ship-medicare-counseling",
       "name": "Senior Health Insurance Assistance Program (SHIP)",
       "shortName": "SHIP",
       "tagline": "Free one-on-one Medicare counseling to help your parent navigate coverage options and save money.",
@@ -1145,7 +1145,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "mn-senior-nutrition-meals-on-wheels",
+      "id": "senior-nutrition-meals-on-wheels",
       "name": "Senior Nutrition Program (Meals on Wheels)",
       "shortName": "Meals on Wheels",
       "tagline": "Home-delivered meals up to 5 days a week for parents who can't cook or shop regularly.",
@@ -1308,7 +1308,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "mn-family-adult-assistance-alternative-care-grants",
+      "id": "family-adult-assistance-alternative-care-grants",
       "name": "Family Adult Assistance Program (FAA) / Alternative Care Grants",
       "shortName": "FAA Alternative Care",
       "tagline": "Home care services to help your parent avoid nursing home placement while staying in their own home",
@@ -1474,7 +1474,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "mn-scsep-employment",
+      "id": "scsep-employment",
       "name": "Senior Community Service Employment Program (SCSEP)",
       "shortName": "SCSEP",
       "tagline": "Part-time paid work training for adults 55+ who need income and job skills",
@@ -1668,7 +1668,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "mn-legal-assistance-seniors",
+      "id": "legal-assistance-seniors",
       "name": "Legal Assistance for Seniors",
       "shortName": "Legal Assistance",
       "tagline": "Free legal help for parents 60+ facing elder abuse, nursing home disputes, or denied benefits.",
@@ -1819,7 +1819,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "mn-long-term-care-ombudsman",
+      "id": "long-term-care-ombudsman",
       "name": "Office of Ombudsman for Long-Term Care",
       "shortName": "LTC Ombudsman",
       "tagline": "Free advocacy and complaint resolution if your parent is in a nursing home, assisted living, or receiving home care in Minnesota.",
@@ -1955,7 +1955,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "mn-ucare-senior-care-plus",
+      "id": "ucare-senior-care-plus",
       "name": "UCare Minnesota Senior Care Plus (MSC+)",
       "shortName": "UCare MSC+",
       "tagline": "If your parent is 65+ and on Minnesota Medicaid, this managed care plan covers all medical needs plus home care services under one program.",
@@ -2103,7 +2103,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "mn-aging-pathways",
+      "id": "aging-pathways",
       "name": "Minnesota Aging Pathways (formerly Senior LinkAge Line)",
       "shortName": "Aging Pathways",
       "tagline": "Free counseling and referrals to help your parent navigate Medicare, find home care, or transition between care settings.",

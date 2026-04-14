@@ -6,7 +6,7 @@
   "successful": 8,
   "programs": [
     {
-      "id": "nj-stay-nj-property-tax-relief",
+      "id": "stay-nj-property-tax-relief",
       "name": "Stay NJ",
       "shortName": "Stay NJ",
       "tagline": "Up to $6,500 back on property taxes for New Jersey homeowners 65 and older",
@@ -154,7 +154,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nj-senior-freeze-property-tax",
+      "id": "senior-freeze-property-tax",
       "name": "Senior Freeze (Property Tax Reimbursement)",
       "shortName": "Senior Freeze",
       "tagline": "Get reimbursed for property tax increases if your parent is 65+ and has lived in their New Jersey home for years",
@@ -291,7 +291,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nj-jacc-community-caregiving",
+      "id": "jacc-community-caregiving",
       "name": "Jersey Assistance for Community Caregiving (JACC)",
       "shortName": "JACC",
       "tagline": "Helps parents age 60+ who need nursing-level care stay at home when they don't qualify for Medicaid.",
@@ -481,7 +481,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nj-paad-prescription-assistance",
+      "id": "paad-prescription-assistance",
       "name": "Pharmaceutical Assistance to the Aged & Disabled (PAAD)",
       "shortName": "PAAD",
       "tagline": "If your parent lives in New Jersey and earns less than $54,943/year, they may qualify for $5-7 prescription copays instead of full drug prices.",
@@ -663,7 +663,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nj-lifeline-utility-credit",
+      "id": "lifeline-utility-credit",
       "name": "Lifeline Credit",
       "shortName": "Lifeline Credit",
       "tagline": "Up to $225/year off your parent's electric and gas bills if they're 65+ and qualify for prescription assistance.",
@@ -833,7 +833,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nj-statewide-respite-care",
+      "id": "statewide-respite-care",
       "name": "New Jersey Statewide Respite Care Program",
       "shortName": "Respite Care",
       "tagline": "If you're caring for a disabled parent in New Jersey, get paid companion care, overnight help, or adult day services to give you a break.",
@@ -1014,7 +1014,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nj-alzheimers-adult-day-services",
+      "id": "alzheimers-adult-day-services",
       "name": "Alzheimer's Adult Day Services Program",
       "shortName": "Adult Day Services",
       "tagline": "Subsidized dementia-specialized day care for your parent while you work or get respite",
@@ -1168,7 +1168,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nj-senior-ezpass-discount",
+      "id": "senior-ezpass-discount",
       "name": "Senior Citizen E-ZPass Discount",
       "shortName": "Senior E-ZPass Discount",
       "tagline": "If your parent drives and has an E-ZPass, they can get 10% off tolls on the NJ Turnpike and Garden State Parkway after age 65.",

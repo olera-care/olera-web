@@ -6,7 +6,7 @@
   "successful": 15,
   "programs": [
     {
-      "id": "nc-medicaid-hcbs-waivers",
+      "id": "medicaid-hcbs-waivers",
       "name": "NC Medicaid Home and Community-Based Services (HCBS) Waivers",
       "shortName": "NC HCBS Waivers",
       "tagline": "If your parent needs daily care help, NC's waiver programs can cover personal assistance, respite care, and home modifications to keep them safely at home.",
@@ -218,7 +218,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nc-pace-comprehensive-care",
+      "id": "pace-comprehensive-care",
       "name": "NC Program of All-Inclusive Care for the Elderly (PACE)",
       "shortName": "NC PACE",
       "tagline": "All-in-one healthcare team that keeps your parent at home instead of a nursing home — no copays or deductibles.",
@@ -403,7 +403,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nc-medicare-savings-programs",
+      "id": "medicare-savings-programs",
       "name": "NC Medicare Savings Programs (QMB, SLMB, QI)",
       "shortName": "Medicare Savings Programs",
       "tagline": "If your parent is on Medicare with limited income, they could save $2,400-$8,000 yearly on premiums and medical costs.",
@@ -622,7 +622,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nc-snap-food-benefits",
+      "id": "snap-food-benefits",
       "name": "NC Food and Nutrition Services (FNS)/SNAP",
       "shortName": "NC SNAP",
       "tagline": "Monthly grocery benefits for seniors 60+ on fixed incomes — up to $281/month on an EBT card",
@@ -824,7 +824,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nc-liheap-energy-assistance",
+      "id": "liheap-energy-assistance",
       "name": "NC Low-Income Energy Assistance Program (LIHEAP)",
       "shortName": "NC Energy Assistance",
       "tagline": "One-time payment of $300–500 sent directly to your parent's heating bill if they're on a fixed income.",
@@ -1006,7 +1006,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nc-weatherization-assistance-program",
+      "id": "weatherization-assistance-program",
       "name": "NC Weatherization Assistance Program",
       "shortName": "NC Weatherization",
       "tagline": "Free home energy improvements that can cut your parent's utility bills by $215-$372 per year",
@@ -1212,7 +1212,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nc-home-delivered-meals",
+      "id": "home-delivered-meals",
       "name": "NC Home-Delivered Meals (County-Specific Programs)",
       "shortName": "Home-Delivered Meals",
       "tagline": "Nutritious meals delivered to your parent's door if they're homebound and can't shop or cook.",
@@ -1378,7 +1378,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nc-lifespan-respite-family-caregiver-support",
+      "id": "lifespan-respite-family-caregiver-support",
       "name": "NC Lifespan Respite Program / Family Caregiver Support",
       "shortName": "Respite Care Vouchers",
       "tagline": "Get up to $750/year to hire someone to watch your parent so you can take a break from caregiving",
@@ -1551,7 +1551,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nc-senior-community-service-employment-program",
+      "id": "senior-community-service-employment-program",
       "name": "NC Senior Community Service Employment Program (SCSEP)",
       "shortName": "SCSEP",
       "tagline": "Part-time paid job training for adults 55+ to build skills and transition to permanent employment.",
@@ -1755,7 +1755,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nc-legal-assistance-for-older-adults",
+      "id": "legal-assistance-for-older-adults",
       "name": "NC Legal Assistance for Older Adults",
       "shortName": "NC Legal Assistance",
       "tagline": "Free legal help for North Carolina seniors with wills, benefits, housing, and consumer protection issues.",
@@ -1878,7 +1878,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nc-long-term-care-ombudsman",
+      "id": "long-term-care-ombudsman",
       "name": "NC Long-Term Care Ombudsman Program",
       "shortName": "NC Ombudsman",
       "tagline": "Free advocacy when your parent faces problems with their nursing home, assisted living, or care facility.",
@@ -2008,7 +2008,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nc-homestead-exemption",
+      "id": "homestead-exemption",
       "name": "North Carolina Homestead Exemption",
       "shortName": "Homestead Exemption",
       "tagline": "Your parent could save hundreds to thousands per year on property taxes if they're 65+ and own their home.",
@@ -2172,7 +2172,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nc-long-term-care-medicaid",
+      "id": "long-term-care-medicaid",
       "name": "North Carolina Long-Term Care Medicaid",
       "shortName": "NC LTC Medicaid",
       "tagline": "Covers nursing home, assisted living, and home care costs when your parent needs daily help with bathing, dressing, or medication management.",
@@ -2366,7 +2366,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nc-project-care-dementia-caregiver-support",
+      "id": "project-care-dementia-caregiver-support",
       "name": "Project C.A.R.E. (Caregiver Alternatives to Running on Empty)",
       "shortName": "Project C.A.R.E.",
       "tagline": "Free consultation and respite support for North Carolina families caring for someone with dementia.",
@@ -2535,7 +2535,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nc-special-assistance-in-home",
+      "id": "special-assistance-in-home",
       "name": "State-County Special Assistance - In Home",
       "shortName": "Special Assistance In-Home",
       "tagline": "Up to $1,700/month in cash assistance for North Carolina seniors who need care but want to stay home",
@@ -2746,22 +2746,22 @@
     "startHere": [
       {
         "name": "NC Medicare Savings Programs (QMB, SLMB, QI)",
-        "programId": "nc-medicare-savings-programs",
+        "programId": "medicare-savings-programs",
         "why": "Can save $2,400-$8,000 yearly on Medicare premiums and medical costs if your parent has limited income."
       },
       {
         "name": "NC Food and Nutrition Services (FNS)/SNAP",
-        "programId": "nc-food-nutrition-services-snap",
+        "programId": "food-nutrition-services-snap",
         "why": "Immediate monthly grocery benefits up to $281 that you can apply for online within days."
       },
       {
         "name": "North Carolina Long-Term Care Medicaid",
-        "programId": "nc-long-term-care-medicaid",
+        "programId": "long-term-care-medicaid",
         "why": "Covers expensive nursing home, assisted living, or home care costs when your parent needs daily personal assistance."
       },
       {
         "name": "North Carolina Homestead Exemption",
-        "programId": "nc-homestead-exemption",
+        "programId": "homestead-exemption",
         "why": "Automatic property tax savings of hundreds to thousands per year if your parent is 65+ and owns their home."
       }
     ],

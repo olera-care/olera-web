@@ -6,7 +6,7 @@
   "successful": 17,
   "programs": [
     {
-      "id": "mo-healthnet-medicaid",
+      "id": "healthnet-medicaid",
       "name": "MO HealthNet (Medicaid)",
       "shortName": "MO HealthNet",
       "tagline": "Free health coverage including doctor visits, prescriptions, and long-term care for Missouri seniors with limited income and assets.",
@@ -213,7 +213,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "mo-structured-family-caregiving-waiver",
+      "id": "structured-family-caregiving-waiver",
       "name": "Structured Family Caregiving Waiver",
       "shortName": "Family Caregiving Waiver",
       "tagline": "If your parent with dementia lives with a family caregiver, Missouri may pay that caregiver for providing daily care at home.",
@@ -396,7 +396,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "mo-pace-elderly-care",
+      "id": "pace-elderly-care",
       "name": "Missouri PACE (Program of All-Inclusive Care for the Elderly)",
       "shortName": "Missouri PACE",
       "tagline": "Complete medical care, adult day programs, and home support to help your parent avoid nursing home placement.",
@@ -597,7 +597,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "mo-medicare-savings-program",
+      "id": "medicare-savings-program",
       "name": "Medicare Savings Program (MSP)",
       "shortName": "Medicare Savings Program",
       "tagline": "Get help paying Medicare premiums and medical costs if your parent's income is under $1,781/month",
@@ -832,7 +832,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "mo-snap-food-benefits",
+      "id": "snap-food-benefits",
       "name": "Supplemental Nutrition Assistance Program (SNAP)",
       "shortName": "SNAP",
       "tagline": "Monthly food assistance of up to $415 for Missouri seniors on fixed incomes",
@@ -1013,7 +1013,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "mo-liheap-energy-assistance",
+      "id": "liheap-energy-assistance",
       "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
       "shortName": "LIHEAP Energy Assistance",
       "tagline": "Help paying heating and cooling bills when your parent's income makes utilities unaffordable",
@@ -1213,7 +1213,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "mo-weatherization-assistance-program",
+      "id": "weatherization-assistance-program",
       "name": "Weatherization Assistance Program (WAP)",
       "shortName": "WAP",
       "tagline": "Free home energy improvements that can save your parent $370/year on utilities",
@@ -1545,7 +1545,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "mo-csfp-commodity-food",
+      "id": "csfp-commodity-food",
       "name": "Commodity Supplemental Food Program (CSFP)",
       "shortName": "CSFP Food Package",
       "tagline": "Monthly food package worth about $50 for Missouri seniors 60+ with limited income",
@@ -1725,7 +1725,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "mo-alzheimers-caregiver-resource-program",
+      "id": "alzheimers-caregiver-resource-program",
       "name": "Alzheimer's Association Caregiver Resource Program",
       "shortName": "Caregiver Resource Program",
       "tagline": "Free respite care and support services for families caring for a parent with Alzheimer's or dementia at home.",
@@ -1868,7 +1868,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "mo-scsep-senior-employment",
+      "id": "scsep-senior-employment",
       "name": "Senior Community Service Employment Program (SCSEP)",
       "shortName": "SCSEP Employment",
       "tagline": "Part-time paid work and job training for unemployed adults 55+ to build skills and transition to permanent employment.",
@@ -2035,7 +2035,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "mo-legal-services-eastern-missouri-older-adults",
+      "id": "legal-services-eastern-missouri-older-adults",
       "name": "Legal Services of Eastern Missouri (Advocates for Older Adults Program)",
       "shortName": "LSEM Legal Aid",
       "tagline": "Free legal help for seniors with housing, benefits, consumer issues, and more in eastern Missouri.",
@@ -2168,7 +2168,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "mo-ltc-ombudsman",
+      "id": "ltc-ombudsman",
       "name": "Long-Term Care Ombudsman Program",
       "shortName": "Ombudsman Program",
       "tagline": "Free advocacy and complaint resolution if your parent lives in a nursing home or assisted living facility in Missouri.",
@@ -2285,7 +2285,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "mo-rx-prescription-assistance",
+      "id": "rx-prescription-assistance",
       "name": "Missouri Rx Program (MoRx)",
       "shortName": "MoRx",
       "tagline": "Cuts your parent's Medicare prescription costs in half if they qualify for Missouri Medicaid",
@@ -2462,7 +2462,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "mo-property-tax-credit-circuit-breaker",
+      "id": "property-tax-credit-circuit-breaker",
       "name": "Missouri Property Tax Credit (Circuit Breaker)",
       "shortName": "Property Tax Credit",
       "tagline": "If your parent is 65+ and owns or rents in Missouri, they may qualify for up to $1,100 back on their taxes to help with property tax or rent costs.",
@@ -2622,7 +2622,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "mo-aged-disabled-waiver",
+      "id": "aged-disabled-waiver",
       "name": "Aged and Disabled Waiver (ADW)",
       "shortName": "Missouri ADW",
       "tagline": "Home care services for parents 63+ who qualify for nursing home care but want to stay home",
@@ -2817,7 +2817,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "mo-silp-senior-independent-living",
+      "id": "silp-senior-independent-living",
       "name": "Senior Independent Living Program (SILP)",
       "shortName": "SILP",
       "tagline": "Wraparound services to help your parent age safely at home — but only available through 4 providers in select Missouri areas.",
@@ -2966,7 +2966,7 @@
     "startHere": [
       {
         "name": "MO HealthNet (Medicaid)",
-        "programId": "mo-healthnet-medicaid",
+        "programId": "healthnet-medicaid",
         "why": "Covers all medical costs including long-term care — the biggest expense most families face."
       },
       {

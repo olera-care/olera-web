@@ -6,7 +6,7 @@
   "successful": 10,
   "programs": [
     {
-      "id": "ia-medicaid-hcbs-elderly-waiver",
+      "id": "medicaid-hcbs-elderly-waiver",
       "name": "Iowa Medicaid Home & Community Based Services Elderly Waiver",
       "shortName": "Iowa HCBS Waiver",
       "tagline": "Comprehensive home care services for seniors who need nursing-level care but want to stay home.",
@@ -198,7 +198,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ia-hcbs-waiver-services",
+      "id": "hcbs-waiver-services",
       "name": "Home and Community-Based Services (HCBS)",
       "shortName": "HCBS Waiver",
       "tagline": "Medicaid services that keep your parent at home instead of a nursing facility — medical care, personal assistance, and support coordination under one program.",
@@ -379,7 +379,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ia-pace-elderly-care",
+      "id": "pace-elderly-care",
       "name": "Program of All-Inclusive Care for the Elderly (PACE)",
       "shortName": "PACE",
       "tagline": "Comprehensive medical care and support services for parents who need nursing-home-level care but want to stay at home",
@@ -561,7 +561,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ia-snap-food-benefits",
+      "id": "snap-food-benefits",
       "name": "Supplemental Nutrition Assistance Program (SNAP)",
       "shortName": "SNAP",
       "tagline": "Monthly grocery assistance for seniors 60+ on fixed incomes — $100-300/month loaded onto an EBT card",
@@ -779,7 +779,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ia-liheap-energy-assistance",
+      "id": "liheap-energy-assistance",
       "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
       "shortName": "LIHEAP",
       "tagline": "Get help paying heating bills with one-time payments sent directly to your parent's utility company.",
@@ -975,7 +975,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ia-shiip-medicare-counseling",
+      "id": "shiip-medicare-counseling",
       "name": "Senior Health Insurance Information Program (SHIIP) — Iowa's implementation of the national SHIP program",
       "shortName": "SHIIP Iowa",
       "tagline": "Free one-on-one counseling to help your parent navigate Medicare enrollment, supplements, and prescription drug plans.",
@@ -1123,7 +1123,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ia-meals-on-wheels",
+      "id": "meals-on-wheels",
       "name": "Meals on Wheels",
       "shortName": "Meals on Wheels",
       "tagline": "Free home-delivered meals for homebound seniors 60+ who can't safely prepare food.",
@@ -1302,7 +1302,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ia-legal-aid-seniors",
+      "id": "legal-aid-seniors",
       "name": "Iowa Legal Aid for Seniors",
       "shortName": "Legal Aid",
       "tagline": "Free legal help for Iowa seniors with housing, benefits, abuse prevention, and Medicaid planning",
@@ -1428,7 +1428,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ia-long-term-care-ombudsman",
+      "id": "long-term-care-ombudsman",
       "name": "Long-Term Care Ombudsman Program",
       "shortName": "LTC Ombudsman",
       "tagline": "Free advocacy when your parent faces problems in nursing homes, assisted living, or residential care facilities.",
@@ -1546,7 +1546,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ia-state-supplementary-assistance",
+      "id": "state-supplementary-assistance",
       "name": "State Supplementary Assistance (SSA)",
       "shortName": "Iowa SSA",
       "tagline": "Extra cash assistance for seniors on SSI or those who barely exceed SSI income limits",

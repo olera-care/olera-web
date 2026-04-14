@@ -6,7 +6,7 @@
   "successful": 10,
   "programs": [
     {
-      "id": "az-ahcccs-altcs",
+      "id": "ahcccs-altcs",
       "name": "AHCCCS (Arizona Long Term Care System - ALTCS)",
       "shortName": "ALTCS",
       "tagline": "Arizona's Medicaid program covering nursing home costs, home care, and assisted living for qualifying adults 65+ or disabled.",
@@ -196,7 +196,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "az-altcs-home-community-services",
+      "id": "altcs-home-community-services",
       "name": "ALTCS Home and Community-Based Services (HCBS) Waiver",
       "shortName": "ALTCS HCBS Waiver",
       "tagline": "If your parent needs daily help with bathing, dressing, or medication but wants to stay home instead of a nursing facility, Arizona may pay for up to 40 hours per week of in-home care.",
@@ -386,7 +386,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "az-pace-comprehensive-care",
+      "id": "pace-comprehensive-care",
       "name": "Arizona PACE (Program of All-Inclusive Care for the Elderly)",
       "shortName": "Arizona PACE",
       "tagline": "All-in-one medical care and daily support for parents who need nursing home level care but want to stay home.",
@@ -569,7 +569,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "az-medicare-savings-programs",
+      "id": "medicare-savings-programs",
       "name": "Arizona Medicare Savings Programs (QMB, SLMB, QI)",
       "shortName": "Medicare Savings Programs",
       "tagline": "If your parent is on Medicare with income under $1,796/month, Arizona can pay their Medicare premiums, deductibles, and copays.",
@@ -801,7 +801,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "az-snap-food-benefits",
+      "id": "snap-food-benefits",
       "name": "Nutrition Assistance (NA) / SNAP in Arizona",
       "shortName": "Arizona SNAP",
       "tagline": "Monthly food assistance of $24-$300+ to help your parent afford groceries on a fixed income.",
@@ -994,7 +994,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "az-liheap-energy-assistance",
+      "id": "liheap-energy-assistance",
       "name": "Low Income Home Energy Assistance Program (LIHEAP)",
       "shortName": "LIHEAP Energy Assistance",
       "tagline": "Up to $640/year toward your parent's electric and gas bills, plus emergency help during utility shutoffs.",
@@ -1185,7 +1185,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "az-weatherization-assistance-program",
+      "id": "weatherization-assistance-program",
       "name": "Arizona Weatherization Assistance Program (WAP)",
       "shortName": "Arizona WAP",
       "tagline": "Free home energy improvements that can reduce your parent's monthly utility bills and make their home more comfortable year-round.",
@@ -1417,7 +1417,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "az-ship-medicare-counseling",
+      "id": "ship-medicare-counseling",
       "name": "Arizona State Health Insurance Assistance Program (SHIP)",
       "shortName": "Arizona SHIP",
       "tagline": "Free Medicare counseling to help your parent understand coverage options and save money on healthcare costs.",
@@ -1543,7 +1543,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "az-congregate-home-delivered-meals",
+      "id": "congregate-home-delivered-meals",
       "name": "Congregate and Home-Delivered Meals",
       "shortName": "Meals Program",
       "tagline": "Free or low-cost nutritious meals delivered to your parent's home or served at senior centers statewide.",
@@ -1720,7 +1720,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "az-long-term-care-ombudsman",
+      "id": "long-term-care-ombudsman",
       "name": "Arizona Long Term Care Ombudsman Program",
       "shortName": "Ombudsman Program",
       "tagline": "Free advocate when your parent faces problems in their nursing home or assisted living facility.",

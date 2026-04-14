@@ -6,7 +6,7 @@
   "successful": 14,
   "programs": [
     {
-      "id": "ms-medicaid-elderly-disabled",
+      "id": "medicaid-elderly-disabled",
       "name": "Mississippi Medicaid (Elderly and Disabled)",
       "shortName": "MS Medicaid E&D",
       "tagline": "Home care services to help your parent avoid nursing home placement while staying on Medicaid.",
@@ -195,7 +195,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ms-elderly-disabled-waiver",
+      "id": "elderly-disabled-waiver",
       "name": "Mississippi Elderly and Disabled (E&D) Waiver",
       "shortName": "E&D Waiver",
       "tagline": "Free home care services for elderly and disabled Mississippi residents who qualify for nursing home care but want to stay home.",
@@ -379,7 +379,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ms-medicare-savings-programs",
+      "id": "medicare-savings-programs",
       "name": "Medicare Savings Programs",
       "shortName": "Medicare Savings Programs",
       "tagline": "If your parent is on Medicare and earning less than $1,816/month, Mississippi may cover their Medicare premiums, deductibles, and copays.",
@@ -571,7 +571,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ms-snap-food-benefits",
+      "id": "snap-food-benefits",
       "name": "SNAP (Supplemental Nutrition Assistance Program) in Mississippi",
       "shortName": "SNAP Mississippi",
       "tagline": "Up to $300/month in grocery assistance for aging parents on fixed incomes",
@@ -754,7 +754,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ms-liheap-energy-assistance",
+      "id": "liheap-energy-assistance",
       "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
       "shortName": "LIHEAP Energy Help",
       "tagline": "Help paying your parent's electric and gas bills when household income is at or below 60% of Mississippi's median income",
@@ -918,7 +918,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ms-weatherization-assistance-program",
+      "id": "weatherization-assistance-program",
       "name": "Weatherization Assistance Program (WAP)",
       "shortName": "Weatherization Assistance",
       "tagline": "Free home energy improvements that can save your parent $372+ per year on heating and cooling bills",
@@ -1083,7 +1083,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ms-ship-medicare-counseling",
+      "id": "ship-medicare-counseling",
       "name": "Mississippi State Health Insurance Assistance Program (SHIP)",
       "shortName": "MS SHIP",
       "tagline": "Free one-on-one counseling to help your parent navigate Medicare options and save money on health insurance.",
@@ -1207,7 +1207,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ms-home-delivered-meals",
+      "id": "home-delivered-meals",
       "name": "Home Delivered Meals (Meals on Wheels)",
       "shortName": "Meals on Wheels",
       "tagline": "If your parent can't leave home to shop or cook, they may get free daily meal delivery regardless of income.",
@@ -1353,7 +1353,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ms-family-caregiver-support",
+      "id": "family-caregiver-support",
       "name": "National Family Caregiver Support Program (Mississippi)",
       "shortName": "Caregiver Support Program",
       "tagline": "If you're caring for an aging parent in Mississippi, get free respite care, counseling, and support services through your local Area Agency on Aging.",
@@ -1516,7 +1516,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ms-scsep-employment",
+      "id": "scsep-employment",
       "name": "Senior Community Service Employment Program (SCSEP)",
       "shortName": "SCSEP Employment",
       "tagline": "Part-time paid work experience and job training for unemployed adults 55+ with limited income",
@@ -1697,7 +1697,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ms-legal-services-senior-aid",
+      "id": "legal-services-senior-aid",
       "name": "Mississippi Legal Services / Senior Legal Aid",
       "shortName": "Legal Aid",
       "tagline": "Free legal help for seniors facing housing, healthcare, or family law issues.",
@@ -1837,7 +1837,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ms-long-term-care-ombudsman",
+      "id": "long-term-care-ombudsman",
       "name": "State Long Term Care Ombudsman Program",
       "shortName": "Ombudsman Program",
       "tagline": "Free advocacy when your parent faces problems in nursing homes or assisted living facilities.",
@@ -1964,7 +1964,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ms-respite-voucher-program",
+      "id": "respite-voucher-program",
       "name": "Mississippi Respite Voucher Program",
       "shortName": "Respite Vouchers",
       "tagline": "Get $300 vouchers to pay for temporary care while you take a break from caregiving.",
@@ -2106,7 +2106,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ms-central-aaa-reassurance-program",
+      "id": "central-aaa-reassurance-program",
       "name": "Central Mississippi Area Agency on Aging Reassurance Program",
       "shortName": "Reassurance Program",
       "tagline": "Daily wellness check-in calls help keep your parent safe and connected at home.",

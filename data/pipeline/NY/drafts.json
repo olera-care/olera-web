@@ -6,7 +6,7 @@
   "successful": 17,
   "programs": [
     {
-      "id": "ny-community-medicaid",
+      "id": "community-medicaid",
       "name": "Community Medicaid",
       "shortName": "Community Medicaid",
       "tagline": "Medicaid coverage for home care services so your parent can stay in their own home instead of moving to a nursing facility",
@@ -200,7 +200,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ny-hcbs-developmental-disabilities-waiver",
+      "id": "hcbs-developmental-disabilities-waiver",
       "name": "New York State Home and Community-Based Services (HCBS) Waiver Programs",
       "shortName": "HCBS Developmental Disabilities",
       "tagline": "Home care services for adults with developmental disabilities, autism, or intellectual disabilities instead of institutional care",
@@ -374,7 +374,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ny-pace-elderly-care",
+      "id": "pace-elderly-care",
       "name": "Program of All-Inclusive Care for the Elderly (PACE)",
       "shortName": "PACE",
       "tagline": "All-in-one medical care, transportation, and daily services for parents who need nursing home-level care but want to stay home.",
@@ -534,7 +534,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ny-medicare-savings-program-qmb-slmb-qi",
+      "id": "medicare-savings-program-qmb-slmb-qi",
       "name": "Medicare Savings Program (MSP) - QMB, SLMB, QI",
       "shortName": "Medicare Savings Program",
       "tagline": "Get help paying Medicare premiums, deductibles, and copays if your parent's income is under $1,715/month",
@@ -765,7 +765,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ny-snap-food-benefits",
+      "id": "snap-food-benefits",
       "name": "Supplemental Nutrition Assistance Program (SNAP) / ESAP / NYSCAP",
       "shortName": "SNAP Food Benefits",
       "tagline": "Monthly food assistance for seniors 60+ on fixed incomes — up to hundreds of dollars per month on an EBT card",
@@ -980,7 +980,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ny-heap-energy-assistance",
+      "id": "heap-energy-assistance",
       "name": "Home Energy Assistance Program (HEAP)",
       "shortName": "HEAP",
       "tagline": "Up to $900+ toward heating bills if your parent pays for their own heat or electric.",
@@ -1171,7 +1171,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ny-wrap-weatherization",
+      "id": "wrap-weatherization",
       "name": "Weatherization Referral and Packaging Program (WRAP)",
       "shortName": "WRAP Weatherization",
       "tagline": "Free home weatherization services that can cut your parent's energy bills by 20% or more",
@@ -1348,7 +1348,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ny-hiicap-medicare-counseling",
+      "id": "hiicap-medicare-counseling",
       "name": "State Health Insurance Assistance Program (SHIP) / Health Insurance Information, Counseling and Assistance Program (HIICAP)",
       "shortName": "HIICAP Medicare Counseling",
       "tagline": "Free one-on-one help navigating Medicare options, understanding costs, and resolving insurance problems for your parent.",
@@ -1477,7 +1477,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ny-meals-on-wheels-eisep",
+      "id": "meals-on-wheels-eisep",
       "name": "Meals on Wheels (via Expanded In-Home Services for the Elderly Program - EISEP)",
       "shortName": "Meals on Wheels EISEP",
       "tagline": "Home-delivered meals 5 days a week for parents who need help with daily activities — suggested $4 per meal, no refusal for inability to pay.",
@@ -1650,7 +1650,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ny-nyfsc-respite-care",
+      "id": "nyfsc-respite-care",
       "name": "Respite Care Program (NYFSC) / Caregiver Resource Centers",
       "shortName": "NYFSC Respite Care",
       "tagline": "Get trained home attendants to care for your NYC parent while you take a break — starting at $7.15/hour or free for emergencies.",
@@ -1829,7 +1829,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ny-senior-community-service-employment",
+      "id": "senior-community-service-employment",
       "name": "Senior Community Service Employment Program (SCSEP)",
       "shortName": "SCSEP Employment",
       "tagline": "Part-time paid training positions for unemployed adults 55+ earning $300-400+ per week while building job skills",
@@ -2022,7 +2022,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ny-legal-services-seniors",
+      "id": "legal-services-seniors",
       "name": "Legal Services for Seniors",
       "shortName": "Legal Services",
       "tagline": "Free legal help for seniors 60+ facing eviction, benefit denials, Medicare issues, or financial exploitation.",
@@ -2173,7 +2173,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ny-nyc-senior-homeowners-exemption",
+      "id": "nyc-senior-homeowners-exemption",
       "name": "Senior Citizen Homeowners' Exemption (SCHE)",
       "shortName": "NYC Property Tax Exemption",
       "tagline": "If your parent owns their home in NYC and is 65+, they could cut their property taxes by 5% to 50% based on income.",
@@ -2386,7 +2386,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ny-scrie-rent-freeze",
+      "id": "scrie-rent-freeze",
       "name": "Senior Citizen Rent Increase Exemption (SCRIE)",
       "shortName": "SCRIE",
       "tagline": "If your parent is 62+ and pays more than a third of their income in rent, SCRIE can freeze their rent permanently.",
@@ -2533,7 +2533,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ny-enhanced-star-property-tax",
+      "id": "enhanced-star-property-tax",
       "name": "Enhanced STAR Program",
       "shortName": "Enhanced STAR",
       "tagline": "Property tax exemption on school taxes for homeowners 65+ with income under $110,750",
@@ -2681,7 +2681,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ny-eisep-home-services",
+      "id": "eisep-home-services",
       "name": "Expanded In-home Services for the Elderly Program (EISEP)",
       "shortName": "EISEP",
       "tagline": "Get case management and in-home help for your parent who needs daily assistance but doesn't qualify for Medicaid.",
@@ -2862,7 +2862,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ny-golden-park-program",
+      "id": "golden-park-program",
       "name": "Golden Park Program",
       "shortName": "Golden Park",
       "tagline": "Free weekday park access for your parent at 62+ with just a New York ID",

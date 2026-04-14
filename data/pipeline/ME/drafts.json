@@ -6,7 +6,7 @@
   "successful": 7,
   "programs": [
     {
-      "id": "me-hcbs-waivers",
+      "id": "hcbs-waivers",
       "name": "Home and Community-Based Services (HCBS) Waivers",
       "shortName": "HCBS Waivers",
       "tagline": "Services to help your parent stay at home instead of moving to a nursing facility, when they qualify for nursing home-level care.",
@@ -180,7 +180,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "me-snap-food-benefits",
+      "id": "snap-food-benefits",
       "name": "SNAP (Supplemental Nutrition Assistance Program)",
       "shortName": "SNAP",
       "tagline": "Monthly food assistance up to $298 for single seniors on fixed incomes",
@@ -402,7 +402,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "me-liheap-energy-assistance",
+      "id": "liheap-energy-assistance",
       "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
       "shortName": "LIHEAP",
       "tagline": "Your parent can get help paying heating bills if their monthly income is under $3,070 for a single-person household.",
@@ -588,7 +588,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "me-weatherization-assistance-program",
+      "id": "weatherization-assistance-program",
       "name": "Weatherization Assistance Program (WAP)",
       "shortName": "Weatherization Assistance",
       "tagline": "Free home energy improvements that can cut your parent's heating bills while making their home safer and more comfortable.",
@@ -763,7 +763,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "me-ship-medicare-counseling",
+      "id": "ship-medicare-counseling",
       "name": "State Health Insurance Assistance Program (SHIP) - Maine Senior Health Insurance Assistance Program",
       "shortName": "Maine SHIP",
       "tagline": "Free, expert help navigating Medicare choices, appeals, and cost-saving programs for your parent.",
@@ -893,7 +893,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "me-home-delivered-meals",
+      "id": "home-delivered-meals",
       "name": "Home Delivered Meals",
       "shortName": "Home Delivered Meals",
       "tagline": "Free nutritious meals delivered to your parent's door up to 5 days a week if they can't prepare food safely.",
@@ -1068,7 +1068,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "me-legal-services-elderly",
+      "id": "legal-services-elderly",
       "name": "Maine Legal Services for the Elderly",
       "shortName": "LSE Legal Aid",
       "tagline": "Free legal help for Maine seniors 60+ with health coverage disputes, elder abuse, housing issues, and Medicare problems.",

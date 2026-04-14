@@ -6,7 +6,7 @@
   "successful": 6,
   "programs": [
     {
-      "id": "mi-choice-waiver",
+      "id": "choice-waiver",
       "name": "Michigan Choice Waiver Program",
       "shortName": "MI Choice Waiver",
       "tagline": "Get comprehensive home care services if your parent needs nursing home-level care but wants to stay home.",
@@ -207,7 +207,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "mi-health-link-program",
+      "id": "health-link-program",
       "name": "MI Health Link Program",
       "shortName": "MI Health Link",
       "tagline": "If your parent has both Medicare and Medicaid in qualifying Michigan counties, one coordinated plan covers all their medical care and home services.",
@@ -376,7 +376,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "mi-options",
+      "id": "options",
       "name": "MI Options",
       "shortName": "MI Options",
       "tagline": "Free counseling to help your parent explore home care options, Medicare plans, and long-term care services in Michigan.",
@@ -494,7 +494,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "mi-senior-project-fresh",
+      "id": "senior-project-fresh",
       "name": "Senior Project Fresh Program",
       "shortName": "Project Fresh",
       "tagline": "If your parent is 60+ and on a limited income, they may qualify for $25 in fresh produce coupons from Michigan farmers markets.",
@@ -784,7 +784,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "mi-senior-companion-program",
+      "id": "senior-companion-program",
       "name": "Senior Companion Program",
       "shortName": "Senior Companion",
       "tagline": "Free companionship and daily living assistance for your parent from trained volunteers age 55+",
@@ -958,7 +958,7 @@
       },
       {
         "name": "MI Health Link Program",
-        "programId": "mi-health-link",
+        "programId": "health-link",
         "why": "Coordinates all medical care and home services under one plan if your parent has both Medicare and Medicaid."
       },
       {

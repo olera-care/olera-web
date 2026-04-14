@@ -6,7 +6,7 @@
   "successful": 12,
   "programs": [
     {
-      "id": "ar-choices-homecare",
+      "id": "choices-homecare",
       "name": "ARChoices in Homecare",
       "shortName": "ARChoices Homecare",
       "tagline": "If your parent needs nursing home level care but wants to stay home, Arkansas may cover personal care, housekeeping, and daily assistance.",
@@ -184,7 +184,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ar-pace-comprehensive-care",
+      "id": "pace-comprehensive-care",
       "name": "Program of All-Inclusive Care for the Elderly (PACE)",
       "shortName": "PACE",
       "tagline": "All your parent's medical care, transportation, and daily support through one team — available in select Arkansas counties.",
@@ -371,7 +371,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ar-medicare-savings-programs",
+      "id": "medicare-savings-programs",
       "name": "Medicare Savings Programs (QMB, SLMB, QI)",
       "shortName": "Medicare Savings Programs",
       "tagline": "Help your parent save $100-$2,400/year on Medicare premiums and costs if their income is below $1,660/month.",
@@ -586,7 +586,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ar-snap-food-benefits",
+      "id": "snap-food-benefits",
       "name": "SNAP (Supplemental Nutrition Assistance Program)",
       "shortName": "SNAP Food Benefits",
       "tagline": "Get $100-$300/month toward groceries if your parent is on a fixed income",
@@ -801,7 +801,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ar-liheap-energy-assistance",
+      "id": "liheap-energy-assistance",
       "name": "LIHEAP (Low-Income Home Energy Assistance Program)",
       "shortName": "LIHEAP Energy Assistance",
       "tagline": "Help your parent pay heating and cooling bills with up to $475 per season, plus emergency assistance up to $500.",
@@ -993,7 +993,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ar-weatherization-assistance-program",
+      "id": "weatherization-assistance-program",
       "name": "Weatherization Assistance Program (WAP)",
       "shortName": "Weatherization Assistance",
       "tagline": "Free home energy improvements that can cut your parent's heating and cooling bills by 20-30% permanently.",
@@ -1210,7 +1210,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ar-senior-medicare-patrol-ship",
+      "id": "senior-medicare-patrol-ship",
       "name": "Senior Medicare Patrol (SMP) / SHIP",
       "shortName": "SMP/SHIP Arkansas",
       "tagline": "Free help spotting Medicare fraud and getting answers about Medicare coverage — protecting your parent from scams and billing errors.",
@@ -1356,7 +1356,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ar-meals-on-wheels",
+      "id": "meals-on-wheels",
       "name": "Meals on Wheels",
       "shortName": "Meals on Wheels",
       "tagline": "If your parent is homebound and struggles to prepare meals, they may qualify for delivered nutritious meals at home.",
@@ -1518,7 +1518,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ar-family-caregiver-support",
+      "id": "family-caregiver-support",
       "name": "Family Caregiver Support Program",
       "shortName": "Caregiver Support",
       "tagline": "Get respite care and hands-on help so you can take breaks from caring for your aging parent.",
@@ -1681,7 +1681,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ar-scsep-employment-program",
+      "id": "scsep-employment-program",
       "name": "Senior Community Service Employment Program (SCSEP)",
       "shortName": "SCSEP Employment",
       "tagline": "If your parent is 55+ and unemployed, they may qualify for paid part-time work at local nonprofits while building skills for permanent employment.",
@@ -1830,7 +1830,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ar-legal-aid-seniors-multiple",
+      "id": "legal-aid-seniors-multiple",
       "name": "Legal Aid for Seniors in Arkansas (Multiple Programs)",
       "shortName": "Arkansas Legal Aid",
       "tagline": "Free legal help for seniors with debt, housing, benefits, and estate planning through multiple Arkansas organizations.",
@@ -1969,7 +1969,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ar-long-term-care-ombudsman",
+      "id": "long-term-care-ombudsman",
       "name": "Arkansas Long-Term Care Ombudsman Program",
       "shortName": "Long-Term Care Ombudsman",
       "tagline": "Free advocacy when your parent faces problems in their nursing home or assisted living facility",

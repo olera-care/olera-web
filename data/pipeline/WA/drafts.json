@@ -6,7 +6,7 @@
   "successful": 21,
   "programs": [
     {
-      "id": "wa-apple-health-medicaid",
+      "id": "apple-health-medicaid",
       "name": "Apple Health",
       "shortName": "Apple Health",
       "tagline": "Free comprehensive health coverage for Washington residents including doctor visits, prescriptions, and hospital care.",
@@ -171,7 +171,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "wa-medicaid-personal-care-mpc",
+      "id": "medicaid-personal-care-mpc",
       "name": "Medicaid Personal Care (MPC) Program",
       "shortName": "Medicaid Personal Care",
       "tagline": "In-home personal care assistance for Washington adults who need help with daily activities but don't qualify for nursing home care.",
@@ -376,7 +376,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "wa-mac-waiver",
+      "id": "mac-waiver",
       "name": "Medicaid Alternative Care (MAC) Waiver",
       "shortName": "MAC Waiver",
       "tagline": "If your parent needs nursing home-level care but wants to stay home, this waiver can pay for care services while they live with a family caregiver.",
@@ -546,7 +546,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "wa-pace-elderly-care",
+      "id": "pace-elderly-care",
       "name": "Program of All-Inclusive Care for the Elderly (PACE)",
       "shortName": "PACE",
       "tagline": "All medical and social care coordinated under one program to keep your parent living at home instead of a nursing home.",
@@ -743,7 +743,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "wa-medicare-savings-programs-qmb-slmb-qi",
+      "id": "medicare-savings-programs-qmb-slmb-qi",
       "name": "Medicare Savings Programs (QMB, SLMB, QI)",
       "shortName": "Medicare Savings Programs",
       "tagline": "State programs that pay your parent's Medicare premiums, deductibles, and copays if their income is under $1,835/month",
@@ -954,7 +954,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "wa-basic-food-program",
+      "id": "basic-food-program",
       "name": "Basic Food Program (Washington State SNAP)",
       "shortName": "Basic Food Program",
       "tagline": "Monthly food assistance from $292-$1,158 for Washington families based on income and household size.",
@@ -1151,7 +1151,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "wa-liheap-energy-assistance",
+      "id": "liheap-energy-assistance",
       "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
       "shortName": "LIHEAP",
       "tagline": "Help paying heating, cooling, and electric bills for households earning below 150% of federal poverty level",
@@ -1322,7 +1322,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "wa-weatherization-assistance-program",
+      "id": "weatherization-assistance-program",
       "name": "Weatherization Assistance Program (WAP)",
       "shortName": "Weatherization Assistance",
       "tagline": "Free home upgrades to lower your parent's energy bills and improve heating and cooling safety.",
@@ -1483,7 +1483,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "wa-ship-medicare-counseling",
+      "id": "ship-medicare-counseling",
       "name": "Health Insurance Counseling and Advocacy Program (HICAP/SHIP)",
       "shortName": "SHIP Medicare Counseling",
       "tagline": "Free, personalized help navigating Medicare options and reducing healthcare costs for your parent.",
@@ -1605,7 +1605,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "wa-home-delivered-meals",
+      "id": "home-delivered-meals",
       "name": "Home Delivered Meals",
       "shortName": "Home Delivered Meals",
       "tagline": "If your parent can't safely shop or cook, they may qualify for nutritious meals delivered to their door at little to no cost.",
@@ -1782,7 +1782,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "wa-family-caregiver-support",
+      "id": "family-caregiver-support",
       "name": "Family Caregiver Support Program",
       "shortName": "Caregiver Support",
       "tagline": "Free support services, training, and respite care for families caring for adults with disabilities or chronic conditions",
@@ -1927,7 +1927,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "wa-scsep-employment-program",
+      "id": "scsep-employment-program",
       "name": "Senior Community Service Employment Program (SCSEP)",
       "shortName": "SCSEP Employment",
       "tagline": "If your parent is 55+ and unemployed with low income, they can earn minimum wage while training for permanent employment through community service work.",
@@ -2106,7 +2106,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "wa-legal-aid-seniors",
+      "id": "legal-aid-seniors",
       "name": "Legal Aid for Seniors",
       "shortName": "Legal Aid",
       "tagline": "Free legal help for seniors 60+ with housing problems, benefits disputes, healthcare issues, and powers of attorney.",
@@ -2241,7 +2241,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "wa-long-term-care-ombudsman",
+      "id": "long-term-care-ombudsman",
       "name": "Washington State Long-Term Care Ombudsman Program (LTCOP)",
       "shortName": "LTC Ombudsman",
       "tagline": "Free advocate for your parent in nursing homes, assisted living, or adult family homes when care issues arise.",
@@ -2361,7 +2361,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "wa-state-parks-senior-limited-income-pass",
+      "id": "state-parks-senior-limited-income-pass",
       "name": "Washington State Parks Senior Citizen Limited Income Pass",
       "shortName": "WA Parks Senior Pass",
       "tagline": "If your parent is 62+ with limited income, they can get 50% off camping fees and free park access at all Washington State Parks.",
@@ -2474,7 +2474,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "wa-lifetime-disabled-veteran-pass",
+      "id": "lifetime-disabled-veteran-pass",
       "name": "Lifetime Disabled Veteran Pass",
       "shortName": "Veteran Park Pass",
       "tagline": "If your veteran parent has a 30%+ VA disability rating, they can get free lifetime access to all Washington State Parks.",
@@ -2601,7 +2601,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "wa-charity-care-program",
+      "id": "charity-care-program",
       "name": "Washington Charity Care Program",
       "shortName": "Charity Care",
       "tagline": "Free or discounted hospital bills if your parent's income is below $94,000 for a family of four",
@@ -2728,7 +2728,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "wa-hen-housing-assistance",
+      "id": "hen-housing-assistance",
       "name": "Housing and Essential Needs (HEN) Referral Program",
       "shortName": "HEN Program",
       "tagline": "Emergency rental assistance and essential needs help for low-income adults unable to work due to disability or health conditions.",
@@ -2913,7 +2913,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "wa-abd-cash-assistance",
+      "id": "abd-cash-assistance",
       "name": "Aged, Blind, or Disabled (ABD) Cash Assistance Program",
       "shortName": "ABD Cash Assistance",
       "tagline": "Monthly cash payments up to $450 while waiting for federal disability benefits to be approved.",
@@ -3093,7 +3093,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "wa-cares-fund",
+      "id": "cares-fund",
       "name": "WA Cares Fund",
       "shortName": "WA Cares Fund",
       "tagline": "Long-term care benefits for Washington workers who've paid into the system through payroll contributions.",
@@ -3229,7 +3229,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "wa-seattle-gold-card-discounts",
+      "id": "seattle-gold-card-discounts",
       "name": "Seattle Gold Card (Age-Friendly Discount Program)",
       "shortName": "Seattle Gold Card",
       "tagline": "Your parent can save money at over 110 Seattle-area businesses — no income limits required.",

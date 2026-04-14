@@ -6,7 +6,7 @@
   "successful": 9,
   "programs": [
     {
-      "id": "pa-community-healthchoices-chc",
+      "id": "community-healthchoices-chc",
       "name": "Community HealthChoices (CHC)",
       "shortName": "CHC",
       "tagline": "If your parent needs daily help at home or is dual eligible for Medicare and Medicaid, CHC covers up to 32 services including personal care, home health, and adult day programs.",
@@ -188,7 +188,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "pa-pace-prescription-assistance",
+      "id": "pace-prescription-assistance",
       "name": "PACE (Program of All-Inclusive Care for the Elderly)",
       "shortName": "PA PACE",
       "tagline": "Low-cost prescriptions for Pennsylvania seniors 65+ with limited income",
@@ -366,7 +366,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "pa-healthy-horizons-qmb-slmb-qi",
+      "id": "healthy-horizons-qmb-slmb-qi",
       "name": "Healthy Horizons (QMB, SLMB, QI)",
       "shortName": "Healthy Horizons",
       "tagline": "If your parent has Medicare and limited income, this program can cover their Medicare premiums, deductibles, and copays.",
@@ -570,7 +570,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "pa-snap-food-benefits",
+      "id": "snap-food-benefits",
       "name": "SNAP (Supplemental Nutrition Assistance Program)",
       "shortName": "SNAP Food Benefits",
       "tagline": "Up to $300/month toward groceries if your parent is 60+ and on a fixed income",
@@ -788,7 +788,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "pa-ship-medicare-counseling",
+      "id": "ship-medicare-counseling",
       "name": "SHIP (State Health Insurance Assistance Program)",
       "shortName": "SHIP Medicare Help",
       "tagline": "Free one-on-one counseling to help your parent navigate Medicare options and find cost savings.",
@@ -906,7 +906,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "pa-home-delivered-meals",
+      "id": "home-delivered-meals",
       "name": "Home-Delivered Meals (Meals on Wheels)",
       "shortName": "Meals on Wheels",
       "tagline": "If your parent can't safely shop or cook, they may qualify for free home-delivered meals 5 days a week.",
@@ -1083,7 +1083,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "pa-caregiver-support-program",
+      "id": "caregiver-support-program",
       "name": "Caregiver Support Program",
       "shortName": "Caregiver Support",
       "tagline": "Get reimbursed for respite care and supplies while caring for your aging parent in Pennsylvania.",
@@ -1246,7 +1246,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "pa-oplap-legal-assistance",
+      "id": "oplap-legal-assistance",
       "name": "Older Pennsylvanians Legal Assistance Program (OPLAP)",
       "shortName": "OPLAP Legal Aid",
       "tagline": "Free legal help for Pennsylvania seniors facing housing problems, benefit denials, or healthcare disputes.",
@@ -1395,7 +1395,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "pa-ltc-ombudsman",
+      "id": "ltc-ombudsman",
       "name": "Long-Term Care Ombudsman Program",
       "shortName": "LTC Ombudsman",
       "tagline": "Free advocate to resolve nursing home or assisted living complaints and protect your parent's rights.",

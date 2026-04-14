@@ -6,7 +6,7 @@
   "successful": 9,
   "programs": [
     {
-      "id": "la-medicaid-long-term-care",
+      "id": "medicaid-long-term-care",
       "name": "Louisiana Medicaid Long-Term Care Services",
       "shortName": "Medicaid Long-Term Care",
       "tagline": "If your parent needs help with bathing, dressing, or medication management, Louisiana Medicaid can cover nursing home care or in-home services.",
@@ -193,7 +193,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "la-community-choices-waiver",
+      "id": "community-choices-waiver",
       "name": "Community Choices Waiver (CCW)",
       "shortName": "CCW",
       "tagline": "Medicaid-funded home care services to help your parent avoid nursing home placement",
@@ -392,7 +392,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "la-pace-elder-care",
+      "id": "pace-elder-care",
       "name": "Program of All-Inclusive Care for the Elderly (PACE)",
       "shortName": "PACE",
       "tagline": "Complete medical care, home services, and social support to keep your high-need parent living at home instead of in a nursing facility.",
@@ -604,7 +604,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "la-medicare-savings-programs",
+      "id": "medicare-savings-programs",
       "name": "Medicare Savings Programs (QMB, SLMB, QI)",
       "shortName": "Medicare Savings Programs",
       "tagline": "Get help paying Medicare premiums, deductibles, and copays if your parent earns less than $1,816/month",
@@ -821,7 +821,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "la-snap-food-benefits",
+      "id": "snap-food-benefits",
       "name": "Supplemental Nutrition Assistance Program (SNAP)",
       "shortName": "SNAP",
       "tagline": "Monthly grocery benefits of $100–400 for Louisiana seniors on fixed incomes",
@@ -1019,7 +1019,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "la-csfp-senior-food-boxes",
+      "id": "csfp-senior-food-boxes",
       "name": "Commodity Supplemental Food Program (CSFP) - Senior Box Program",
       "shortName": "Senior Food Boxes",
       "tagline": "If your parent is 60+ and has limited income, they can get a free monthly box of 30-40 pounds of groceries delivered to their neighborhood.",
@@ -1208,7 +1208,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "la-spas-personal-assistance",
+      "id": "spas-personal-assistance",
       "name": "State Personal Assistance Services (SPAS) Program",
       "shortName": "SPAS Program",
       "tagline": "Personal care assistance and home modifications for adults with disabilities to stay in their community",
@@ -1369,7 +1369,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "la-adult-day-health-care-waiver",
+      "id": "adult-day-health-care-waiver",
       "name": "Adult Day Health Care Waiver",
       "shortName": "Adult Day Health",
       "tagline": "Daily care center services for parents at nursing home risk — medical supervision, meals, and activities during weekdays",
@@ -1545,7 +1545,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "la-caregiver-voucher-program",
+      "id": "caregiver-voucher-program",
       "name": "Caregiver Voucher Program",
       "shortName": "Caregiver Voucher",
       "tagline": "Get paid as your parent's caregiver through Louisiana's Community Choices Waiver while helping them avoid nursing home placement.",

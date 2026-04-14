@@ -6,7 +6,7 @@
   "successful": 16,
   "programs": [
     {
-      "id": "sd-medicaid-seniors-disabled",
+      "id": "medicaid-seniors-disabled",
       "name": "South Dakota Medicaid for Seniors/Disabled",
       "shortName": "SD Medicaid LTC",
       "tagline": "Comprehensive medical coverage plus nursing home care and home health services for seniors and disabled adults who meet income and asset limits.",
@@ -192,7 +192,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "sd-hope-waiver",
+      "id": "hope-waiver",
       "name": "HOPE Waiver (Home & Community-Based Options and Person Centered Excellence)",
       "shortName": "HOPE Waiver",
       "tagline": "Services to help your parent stay home instead of moving to a nursing facility",
@@ -372,7 +372,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "sd-pace-all-inclusive-care",
+      "id": "pace-all-inclusive-care",
       "name": "Program of All-Inclusive Care for the Elderly (PACE)",
       "shortName": "PACE",
       "tagline": "Comprehensive medical and social services that keep your parent living at home instead of a nursing home.",
@@ -509,7 +509,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "sd-medicare-savings-programs",
+      "id": "medicare-savings-programs",
       "name": "Medicare Savings Programs (QMB, SLMB, QI)",
       "shortName": "Medicare Savings Programs",
       "tagline": "Help paying Medicare premiums, deductibles, and copays if your parent's income is below $1,781/month",
@@ -735,7 +735,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "sd-csfp-senior-food-box",
+      "id": "csfp-senior-food-box",
       "name": "SNAP/Food Assistance (Senior Box Program/CSFP)",
       "shortName": "Senior Food Box",
       "tagline": "Free monthly box of USDA foods for South Dakota seniors 60+ with limited income",
@@ -897,7 +897,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "sd-lieap-energy-assistance",
+      "id": "lieap-energy-assistance",
       "name": "Low Income Energy Assistance Program (LIEAP)",
       "shortName": "LIEAP Energy Help",
       "tagline": "One-time payment help with heating bills for South Dakota families earning up to $2,152/month",
@@ -1071,7 +1071,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "sd-weatherization-assistance",
+      "id": "weatherization-assistance",
       "name": "Weatherization Assistance",
       "shortName": "Weatherization Help",
       "tagline": "Free home weatherization services that can save your parent $372 annually on energy bills — insulation, air sealing, and heating system repairs.",
@@ -1274,7 +1274,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "sd-shiine-medicare-counseling",
+      "id": "shiine-medicare-counseling",
       "name": "Senior Health Information and Insurance Education (SHIINE)",
       "shortName": "SHIINE Counseling",
       "tagline": "Free one-on-one help choosing Medicare plans and avoiding overpaying for coverage.",
@@ -1402,7 +1402,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "sd-meals-on-wheels",
+      "id": "meals-on-wheels",
       "name": "Meals on Wheels",
       "shortName": "Meals on Wheels",
       "tagline": "Hot, nutritious meals delivered to your parent's home Monday through Friday if they're 60+ and homebound.",
@@ -1561,7 +1561,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "sd-hope-waiver-respite-care",
+      "id": "hope-waiver-respite-care",
       "name": "Respite Care/Caregiver Support (HOPE Waiver & Family Support 360)",
       "shortName": "HOPE Waiver Respite",
       "tagline": "Get paid respite care and support services so your parent can stay home instead of entering a nursing facility",
@@ -1746,7 +1746,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "sd-scsep-employment",
+      "id": "scsep-employment",
       "name": "Senior Community Service Employment Program (SCSEP)",
       "shortName": "SCSEP",
       "tagline": "Part-time community service work at minimum wage for unemployed adults 55+ with very low income",
@@ -1912,7 +1912,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "sd-legal-aid-seniors",
+      "id": "legal-aid-seniors",
       "name": "Legal Aid for Seniors",
       "shortName": "Legal Aid",
       "tagline": "Free legal help for seniors facing elder abuse, guardianship issues, or long-term care problems.",
@@ -2066,7 +2066,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "sd-long-term-care-ombudsman",
+      "id": "long-term-care-ombudsman",
       "name": "Long-Term Care Ombudsman",
       "shortName": "Ombudsman",
       "tagline": "Free advocacy when your parent faces problems in nursing homes or assisted living facilities in South Dakota.",
@@ -2189,7 +2189,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "sd-senior-companions",
+      "id": "senior-companions",
       "name": "Senior Companions of South Dakota",
       "shortName": "Senior Companions",
       "tagline": "Free companionship visits and light help for aging parents who live alone or need caregiver relief.",
@@ -2319,7 +2319,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "sd-60s-plus-dining",
+      "id": "60s-plus-dining",
       "name": "60's Plus Dining",
       "shortName": "60's Plus Dining",
       "tagline": "If your parent lives in east-central South Dakota and is 60+, they can get nutritious meals delivered free or eat at community sites with just a suggested $5 donation.",
@@ -2465,7 +2465,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "sd-senior-box-program-csfp",
+      "id": "senior-box-program-csfp",
       "name": "Senior Box Program (CSFP)",
       "shortName": "Senior Box Program",
       "tagline": "Free monthly box of groceries for parents 60+ living on limited income in select South Dakota counties.",
@@ -2606,22 +2606,22 @@
     "startHere": [
       {
         "name": "South Dakota Medicaid for Seniors/Disabled",
-        "programId": "sd-medicaid-seniors",
+        "programId": "medicaid-seniors",
         "why": "Covers medical care plus nursing home and home health services if your parent meets income limits."
       },
       {
         "name": "Medicare Savings Programs",
-        "programId": "sd-medicare-savings",
+        "programId": "medicare-savings",
         "why": "Can eliminate Medicare premiums and copays if your parent's income is below $1,781/month."
       },
       {
         "name": "HOPE Waiver",
-        "programId": "sd-hope-waiver",
+        "programId": "hope-waiver",
         "why": "Pays for home care services to keep your parent out of nursing facilities."
       },
       {
         "name": "Senior Health Information and Insurance Education (SHIINE)",
-        "programId": "sd-shiine",
+        "programId": "shiine",
         "why": "Free help choosing Medicare plans — available to all seniors regardless of income."
       }
     ],

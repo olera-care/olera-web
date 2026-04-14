@@ -6,7 +6,7 @@
   "successful": 14,
   "programs": [
     {
-      "id": "ks-kancare-frail-elderly-waiver",
+      "id": "kancare-frail-elderly-waiver",
       "name": "KanCare Frail Elderly Waiver (FE Waiver)",
       "shortName": "FE Waiver",
       "tagline": "Home care services for your parent instead of nursing home placement — if they qualify for daily assistance needs.",
@@ -199,7 +199,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ks-pace-comprehensive-care",
+      "id": "pace-comprehensive-care",
       "name": "Program of All-Inclusive Care for the Elderly (PACE)",
       "shortName": "PACE",
       "tagline": "All-in-one medical and social care for parents who need nursing home level care but want to stay home",
@@ -400,7 +400,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ks-medicare-savings-programs-qmb-slmb-qi",
+      "id": "medicare-savings-programs-qmb-slmb-qi",
       "name": "Medicare Savings Programs (MSP) including QMB, SLMB, QI",
       "shortName": "Medicare Savings Programs",
       "tagline": "Get help paying Medicare premiums, deductibles, and copays — could save your parent $2,000+ per year.",
@@ -636,7 +636,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ks-snap-food-assistance",
+      "id": "snap-food-assistance",
       "name": "Food Assistance (SNAP)",
       "shortName": "SNAP Benefits",
       "tagline": "Up to $298 monthly for groceries if your parent is on a fixed income.",
@@ -833,7 +833,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ks-liheap-energy-assistance",
+      "id": "liheap-energy-assistance",
       "name": "Low-Income Energy Assistance Program (LIHEAP)",
       "shortName": "LIEAP Kansas",
       "tagline": "One-time payment to help cover heating bills if your parent's income is below $1,956/month",
@@ -1031,7 +1031,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ks-weatherization-assistance-program",
+      "id": "weatherization-assistance-program",
       "name": "Weatherization Assistance Program",
       "shortName": "Weatherization Assistance",
       "tagline": "Free home energy upgrades that can cut your parent's heating and cooling bills year-round.",
@@ -1222,7 +1222,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ks-shick-medicare-counseling",
+      "id": "shick-medicare-counseling",
       "name": "Senior Health Insurance Counseling for Kansas (SHICK)",
       "shortName": "SHICK",
       "tagline": "Free one-on-one Medicare counseling to help your parent navigate insurance options and avoid costly mistakes.",
@@ -1359,7 +1359,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ks-senior-nutrition-program",
+      "id": "senior-nutrition-program",
       "name": "Kansas Senior Nutrition Program (Home-Delivered and Congregate Meals)",
       "shortName": "Senior Nutrition Program",
       "tagline": "Free nutritious meals delivered to your parent's home or served at local centers for adults 60 and older",
@@ -1515,7 +1515,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ks-caregiver-support-programs",
+      "id": "caregiver-support-programs",
       "name": "Caregiver Support Programs",
       "shortName": "Caregiver Support",
       "tagline": "Get respite care and support services when you're caring for an aging parent or family member with disabilities.",
@@ -1692,7 +1692,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ks-scsep-senior-employment",
+      "id": "scsep-senior-employment",
       "name": "Senior Community Service Employment Program (SCSEP)",
       "shortName": "SCSEP",
       "tagline": "Part-time paid work and job training for unemployed parents 55+ with low income",
@@ -1850,7 +1850,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ks-legal-services-seniors",
+      "id": "legal-services-seniors",
       "name": "Kansas Legal Services (Legal Aid for Seniors)",
       "shortName": "Legal Aid for Seniors",
       "tagline": "Free legal help for seniors 60+ with estate planning, elder abuse protection, and consumer advocacy throughout Kansas.",
@@ -1989,7 +1989,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ks-long-term-care-ombudsman",
+      "id": "long-term-care-ombudsman",
       "name": "Long-Term Care Ombudsman Program",
       "shortName": "LTC Ombudsman",
       "tagline": "Free advocacy to resolve problems with your parent's nursing home or assisted living care",
@@ -2115,7 +2115,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ks-senior-care-act-services",
+      "id": "senior-care-act-services",
       "name": "Senior Care Act Services",
       "shortName": "SCA Services",
       "tagline": "In-home care services for Kansas seniors who need help staying independent but don't qualify for Medicaid",
@@ -2275,7 +2275,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ks-senior-citizen-law-project",
+      "id": "senior-citizen-law-project",
       "name": "Senior Citizen Law Project (SCLP)",
       "shortName": "SCLP Legal Aid",
       "tagline": "Free legal help for Kansas seniors facing elder abuse, benefit denials, or housing issues.",

@@ -6,7 +6,7 @@
   "successful": 16,
   "programs": [
     {
-      "id": "ma-masshealth-medicare-savings",
+      "id": "masshealth-medicare-savings",
       "name": "MassHealth Medicare Savings Program",
       "shortName": "Medicare Savings Program",
       "tagline": "Get help paying Medicare premiums, deductibles, and copays if your parent's income is under $2,993/month",
@@ -190,7 +190,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ma-frail-elder-waiver",
+      "id": "frail-elder-waiver",
       "name": "Frail Elder Waiver (FEW)",
       "shortName": "Frail Elder Waiver",
       "tagline": "Home care services for seniors who need nursing home-level care but want to stay home — up to thousands per month in covered services.",
@@ -370,7 +370,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ma-pace-elder-care",
+      "id": "pace-elder-care",
       "name": "Program of All-Inclusive Care for the Elderly (PACE)",
       "shortName": "PACE",
       "tagline": "All medical care under one team for frail elderly who need nursing home-level care but want to stay home",
@@ -581,7 +581,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ma-snap-food-benefits",
+      "id": "snap-food-benefits",
       "name": "SNAP (Food Stamps)",
       "shortName": "SNAP",
       "tagline": "Monthly grocery assistance for Massachusetts seniors on fixed incomes — typically $100-$300 per month.",
@@ -792,7 +792,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ma-weatherization-assistance",
+      "id": "weatherization-assistance",
       "name": "Residential Conservation Service (Weatherization)",
       "shortName": "Weatherization Assistance",
       "tagline": "Free home insulation and heating repairs that can cut your parent's heating bills by 25-35%",
@@ -969,7 +969,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ma-shine-health-insurance-counseling",
+      "id": "shine-health-insurance-counseling",
       "name": "SHINE (Serving Health Insurance Needs of Everyone)",
       "shortName": "SHINE Counseling",
       "tagline": "Free help navigating Medicare, Medigap, and health insurance options for your parent.",
@@ -1097,7 +1097,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ma-meals-on-wheels",
+      "id": "meals-on-wheels",
       "name": "Meals on Wheels",
       "shortName": "Meals on Wheels",
       "tagline": "If your parent can't shop or prepare meals, they may qualify for daily hot lunch delivery and safety check-ins",
@@ -1271,7 +1271,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ma-alzheimers-respite-care",
+      "id": "alzheimers-respite-care",
       "name": "Alzheimer's Respite Care Program",
       "shortName": "Alzheimer's Respite",
       "tagline": "Free respite care and support services if your parent has dementia and still lives at home.",
@@ -1435,7 +1435,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ma-scsep-employment-program",
+      "id": "scsep-employment-program",
       "name": "Senior Community Service Employment Program (SCSEP)",
       "shortName": "SCSEP",
       "tagline": "If your parent is 55+ and unemployed, they can earn minimum wage while training for permanent employment at nonprofits and public agencies.",
@@ -1612,7 +1612,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ma-senior-legal-helpline",
+      "id": "senior-legal-helpline",
       "name": "Massachusetts Senior Legal Helpline",
       "shortName": "Senior Legal Helpline",
       "tagline": "Free legal advice and attorney referrals for seniors facing Social Security, housing, or benefit issues.",
@@ -1730,7 +1730,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ma-long-term-care-ombudsman",
+      "id": "long-term-care-ombudsman",
       "name": "Long-Term Care Ombudsman Program",
       "shortName": "Ombudsman Program",
       "tagline": "Free advocacy when your parent faces problems in their nursing home or assisted living facility.",
@@ -1854,7 +1854,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ma-prescription-advantage",
+      "id": "prescription-advantage",
       "name": "Prescription Advantage",
       "shortName": "Prescription Advantage",
       "tagline": "Massachusetts prescription drug coverage that reduces medication costs based on your parent's income.",
@@ -2091,7 +2091,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ma-home-modification-loan",
+      "id": "home-modification-loan",
       "name": "Home Modification Loan Program",
       "shortName": "Home Modification Loan",
       "tagline": "Get up to $50,000 at 0% interest to make your parent's home safer with ramps, grab bars, and accessible bathrooms.",
@@ -2311,7 +2311,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ma-home-care-program",
+      "id": "home-care-program",
       "name": "Home Care Program (HCP)",
       "shortName": "Home Care Program",
       "tagline": "Get up to 20+ hours weekly of in-home assistance with bathing, meal prep, and medication management to help your parent stay home safely.",
@@ -2525,7 +2525,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ma-ecop-home-care",
+      "id": "ecop-home-care",
       "name": "Enhanced Community Options Program (ECOP)",
       "shortName": "ECOP",
       "tagline": "Up to 7.5 hours weekly of home care services for parents who need nursing home level care but have too many assets for MassHealth.",
@@ -2697,7 +2697,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ma-senior-care-options",
+      "id": "senior-care-options",
       "name": "Senior Care Options (SCO)",
       "shortName": "SCO",
       "tagline": "If your parent has Medicare and MassHealth, SCO combines everything into one card with no copays.",

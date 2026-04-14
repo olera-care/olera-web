@@ -6,7 +6,7 @@
   "successful": 16,
   "programs": [
     {
-      "id": "md-durable-medical-equipment-reuse",
+      "id": "durable-medical-equipment-reuse",
       "name": "Maryland Durable Medical Equipment Reuse Program (DME)",
       "shortName": "MD DME Reuse",
       "tagline": "Free medical equipment like wheelchairs, walkers, and hospital beds for Maryland residents with any health condition.",
@@ -151,7 +151,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "md-community-first-choice-cfc",
+      "id": "community-first-choice-cfc",
       "name": "Community First Choice (CFC)",
       "shortName": "Community First Choice",
       "tagline": "If your parent needs daily help but wants to stay home, CFC provides personal care, home modifications, and medical support — all covered by Medicaid.",
@@ -352,7 +352,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "md-pace-comprehensive-care",
+      "id": "pace-comprehensive-care",
       "name": "Maryland PACE",
       "shortName": "PACE",
       "tagline": "Complete medical and long-term care under one program for aging parents who need nursing home-level care but want to stay home.",
@@ -538,7 +538,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "md-medicare-savings-program",
+      "id": "medicare-savings-program",
       "name": "Maryland Medicare Savings Program (MSP)",
       "shortName": "Medicare Savings Program",
       "tagline": "If your parent qualifies, Maryland pays their Medicare premiums, deductibles, and coinsurance — saving up to $2,000+ annually.",
@@ -760,7 +760,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "md-snap-food-benefits",
+      "id": "snap-food-benefits",
       "name": "Supplemental Nutrition Assistance Program (SNAP)",
       "shortName": "SNAP Food Benefits",
       "tagline": "Monthly grocery assistance for seniors on fixed incomes — average $188/month, minimum $30 for those 62+.",
@@ -984,7 +984,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "md-liheap-energy-assistance",
+      "id": "liheap-energy-assistance",
       "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
       "shortName": "LIHEAP Energy Assistance",
       "tagline": "Get $25–750 toward heating bills plus year-round emergency utility help for low-income households.",
@@ -1186,7 +1186,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "md-weatherization-assistance",
+      "id": "weatherization-assistance",
       "name": "Maryland Weatherization Assistance Program",
       "shortName": "Weatherization Assistance",
       "tagline": "Free home energy upgrades that can cut your parent's heating and cooling bills by 30-35%.",
@@ -1367,7 +1367,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "md-ship-medicare-counseling",
+      "id": "ship-medicare-counseling",
       "name": "State Health Insurance Assistance Program (SHIP)",
       "shortName": "SHIP",
       "tagline": "Free Medicare counseling to help your parent understand options and save on premiums.",
@@ -1506,7 +1506,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "md-home-delivered-meals",
+      "id": "home-delivered-meals",
       "name": "Home Delivered Meals",
       "shortName": "Delivered Meals",
       "tagline": "Hot, nutritious meals delivered to your parent's door if they can't shop or cook safely.",
@@ -1683,7 +1683,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "md-national-family-caregiver-support",
+      "id": "national-family-caregiver-support",
       "name": "National Family Caregiver Support Program",
       "shortName": "Caregiver Support",
       "tagline": "Free respite care, counseling, and training for family caregivers — no income limits.",
@@ -1828,7 +1828,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "md-scsep-employment",
+      "id": "scsep-employment",
       "name": "Senior Community Service Employment Program (SCSEP)",
       "shortName": "SCSEP Employment",
       "tagline": "Part-time paid job training at minimum wage for unemployed adults 55+ with limited income.",
@@ -2016,7 +2016,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "md-senior-legal-assistance-program",
+      "id": "senior-legal-assistance-program",
       "name": "Senior Legal Assistance Program (Sixty Plus Legal Program)",
       "shortName": "Senior Legal Aid",
       "tagline": "Free legal help for seniors 60+ facing housing, benefits, or elder abuse issues in Maryland.",
@@ -2213,7 +2213,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "md-long-term-care-ombudsman",
+      "id": "long-term-care-ombudsman",
       "name": "Long-Term Care Ombudsman Program",
       "shortName": "LTC Ombudsman",
       "tagline": "Free advocacy when your parent faces problems in nursing homes or assisted living facilities.",
@@ -2338,7 +2338,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "md-senior-call-check-program",
+      "id": "senior-call-check-program",
       "name": "Maryland Senior Call Check Program (SCC)",
       "shortName": "Senior Call Check",
       "tagline": "Daily automated wellness check calls ensure someone is looking out for your parent's safety every day.",
@@ -2480,7 +2480,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "md-sals-assisted-living-subsidy",
+      "id": "sals-assisted-living-subsidy",
       "name": "Senior Assisted Living Subsidy Program (SALS)",
       "shortName": "SALS Subsidy",
       "tagline": "Help your parent afford assisted living in Maryland with up to $1,000/month toward care costs.",
@@ -2674,7 +2674,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "md-senior-care-program",
+      "id": "senior-care-program",
       "name": "Senior Care Program",
       "shortName": "Senior Care",
       "tagline": "In-home care services and funding for Maryland seniors 65+ who need help with daily activities to avoid nursing home placement.",

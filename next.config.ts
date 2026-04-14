@@ -119,16 +119,37 @@ const nextConfig: NextConfig = {
       { source: "/portal/matches", destination: "/portal/profile", permanent: true },
       { source: "/portal/matches/:id", destination: "/portal/inbox?id=:id", permanent: true },
 
-      // Tier 6: URL migration — /waiver-library → /senior-benefits (SEO rename)
-      { source: "/waiver-library", destination: "/senior-benefits", permanent: true },
-      { source: "/waiver-library/forms", destination: "/senior-benefits/forms", permanent: true },
-      { source: "/waiver-library/forms/:state", destination: "/senior-benefits/forms/:state", permanent: true },
-      { source: "/waiver-library/:state", destination: "/senior-benefits/:state", permanent: true },
-      { source: "/waiver-library/:state/current", destination: "/senior-benefits/:state/current", permanent: true },
-      { source: "/waiver-library/:state/:benefit", destination: "/senior-benefits/:state/:benefit", permanent: true },
-      { source: "/waiver-library/:state/:benefit/current", destination: "/senior-benefits/:state/:benefit/current", permanent: true },
-      { source: "/waiver-library/:state/:benefit/checklist", destination: "/senior-benefits/:state/:benefit/checklist", permanent: true },
-      { source: "/waiver-library/:state/:benefit/forms", destination: "/senior-benefits/:state/:benefit/forms", permanent: true },
+      // Tier 7: URL migration — /senior-benefits → /benefits (v1→v2 consolidation, 2026-04-14)
+      // The pipeline is now the source of truth for state + program content, served at
+      // /benefits/:state/:program. Old /senior-benefits state URLs redirect 1:1. Old
+      // program URLs graceful-degrade to the state page because waiver-library IDs
+      // don't 1:1 match new pipeline IDs (ID normalization would require a lookup map
+      // — TJ explicitly chose no middleware).
+      // NOTE: /senior-benefits root stays alive as the Benefits Hub landing page for
+      // now. A follow-up will move it under /benefits.
+      { source: "/senior-benefits/forms", destination: "/benefits", permanent: true },
+      { source: "/senior-benefits/forms/:state", destination: "/benefits/:state", permanent: true },
+      { source: "/senior-benefits/:state", destination: "/benefits/:state", permanent: true },
+      { source: "/senior-benefits/:state/current", destination: "/benefits/:state", permanent: true },
+      { source: "/senior-benefits/:state/:benefit", destination: "/benefits/:state", permanent: true },
+      { source: "/senior-benefits/:state/:benefit/current", destination: "/benefits/:state", permanent: true },
+      { source: "/senior-benefits/:state/:benefit/checklist", destination: "/benefits/:state", permanent: true },
+      { source: "/senior-benefits/:state/:benefit/forms", destination: "/benefits/:state", permanent: true },
+      // Texas shadow routes → /benefits/texas (state-level 1:1; program-level to state)
+      { source: "/texas/benefits", destination: "/benefits/texas", permanent: true },
+      { source: "/texas/benefits/:slug", destination: "/benefits/texas", permanent: true },
+      { source: "/texas/benefits/:slug/:sub(checklist|forms)", destination: "/benefits/texas", permanent: true },
+
+      // Tier 6: URL migration — /waiver-library → /benefits (SEO rename chain)
+      { source: "/waiver-library", destination: "/benefits", permanent: true },
+      { source: "/waiver-library/forms", destination: "/benefits", permanent: true },
+      { source: "/waiver-library/forms/:state", destination: "/benefits/:state", permanent: true },
+      { source: "/waiver-library/:state", destination: "/benefits/:state", permanent: true },
+      { source: "/waiver-library/:state/current", destination: "/benefits/:state", permanent: true },
+      { source: "/waiver-library/:state/:benefit", destination: "/benefits/:state/:benefit", permanent: true },
+      { source: "/waiver-library/:state/:benefit/current", destination: "/benefits/:state/:benefit", permanent: true },
+      { source: "/waiver-library/:state/:benefit/checklist", destination: "/benefits/:state/:benefit", permanent: true },
+      { source: "/waiver-library/:state/:benefit/forms", destination: "/benefits/:state/:benefit", permanent: true },
 
       // Tier 6b: Texas URL migration — /senior-benefits/texas → /texas/benefits
       { source: "/senior-benefits/texas", destination: "/texas/benefits", permanent: true },

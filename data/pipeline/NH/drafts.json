@@ -6,7 +6,7 @@
   "successful": 18,
   "programs": [
     {
-      "id": "nh-medicaid-aged-blind-disabled",
+      "id": "medicaid-aged-blind-disabled",
       "name": "Medicaid for Aged, Blind, Disabled (ABD)",
       "shortName": "ABD Medicaid",
       "tagline": "Medicaid health coverage and long-term care services for adults 65+, blind, or disabled in New Hampshire.",
@@ -187,7 +187,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nh-cfi-waiver",
+      "id": "cfi-waiver",
       "name": "Choices for Independence (CFI) Waiver",
       "shortName": "CFI Waiver",
       "tagline": "Home care services for parents who qualify medically for nursing home care but want to stay home",
@@ -361,7 +361,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nh-pace-comprehensive-care",
+      "id": "pace-comprehensive-care",
       "name": "NH PACE (Program of All-Inclusive Care for the Elderly)",
       "shortName": "PACE",
       "tagline": "All-inclusive medical and social care under one team — if your parent needs nursing home-level care but can live safely at home.",
@@ -502,7 +502,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nh-medicare-savings-programs",
+      "id": "medicare-savings-programs",
       "name": "Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), Qualified Individual (QI/SLMB-135)",
       "shortName": "Medicare Savings Programs",
       "tagline": "Cut your parent's Medicare costs by up to $4,000+ per year if their income is under $1,660/month.",
@@ -684,7 +684,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nh-snap-food-benefits",
+      "id": "snap-food-benefits",
       "name": "SNAP (Supplemental Nutrition Assistance Program)",
       "shortName": "SNAP Food Benefits",
       "tagline": "Monthly grocery assistance of $100-400+ for seniors on fixed incomes",
@@ -904,7 +904,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nh-liheap-energy-assistance",
+      "id": "liheap-energy-assistance",
       "name": "LIHEAP (Low-Income Home Energy Assistance Program)",
       "shortName": "LIHEAP Energy Assistance",
       "tagline": "Get $94 to $2,177 toward your parent's heating bills if their income is under $3,967/month.",
@@ -1122,7 +1122,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nh-weatherization-assistance-program",
+      "id": "weatherization-assistance-program",
       "name": "Weatherization Assistance Program (WAP)",
       "shortName": "WAP",
       "tagline": "Free energy-saving home improvements that can cut your parent's heating bills by hundreds of dollars each year.",
@@ -1300,7 +1300,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nh-ship-medicare-counseling",
+      "id": "ship-medicare-counseling",
       "name": "SHIP (State Health Insurance Assistance Program)",
       "shortName": "SHIP Medicare Counseling",
       "tagline": "Free one-on-one help understanding Medicare options, comparing plans, and avoiding overpayment.",
@@ -1416,7 +1416,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nh-meals-on-wheels",
+      "id": "meals-on-wheels",
       "name": "Meals on Wheels (Elderly Nutrition Program)",
       "shortName": "Meals on Wheels",
       "tagline": "Home-delivered meals for parents 60+ who have difficulty shopping or preparing food.",
@@ -1594,7 +1594,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nh-family-caregiver-support",
+      "id": "family-caregiver-support",
       "name": "Family Caregiver Support Program",
       "shortName": "Caregiver Support",
       "tagline": "Free respite care, counseling, and support services for family members caring for aging parents or relatives with disabilities.",
@@ -1749,7 +1749,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nh-scsep-employment",
+      "id": "scsep-employment",
       "name": "SCSEP (Senior Community Service Employment Program)",
       "shortName": "SCSEP",
       "tagline": "Part-time community service work for unemployed adults 55+ at minimum wage while building job skills.",
@@ -1913,7 +1913,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nh-legal-assistance-seniors",
+      "id": "legal-assistance-seniors",
       "name": "Legal Assistance for Older Adults",
       "shortName": "Legal Assistance",
       "tagline": "Free legal help for seniors 60+ with housing, benefits appeals, estate planning, and consumer protection.",
@@ -2037,7 +2037,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nh-long-term-care-ombudsman",
+      "id": "long-term-care-ombudsman",
       "name": "Long-Term Care Ombudsman Program",
       "shortName": "Care Ombudsman",
       "tagline": "Free advocate to resolve complaints and protect your parent's rights in nursing homes and assisted living facilities.",
@@ -2158,7 +2158,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nh-adult-day-services",
+      "id": "adult-day-services",
       "name": "Adult Day Services",
       "shortName": "Adult Day Services",
       "tagline": "Medical day care with nursing supervision to help your parent stay home longer while you work.",
@@ -2346,7 +2346,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nh-easterseals-in-home-care",
+      "id": "easterseals-in-home-care",
       "name": "Easterseals NH In-Home Care & Health Services",
       "shortName": "Easterseals NH",
       "tagline": "Professional in-home nursing, personal care, and homemaker services when your parent needs help staying at home safely.",
@@ -2495,7 +2495,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nh-caregiver-respite-volunteer-programs",
+      "id": "caregiver-respite-volunteer-programs",
       "name": "Caregiver Respite and Senior Volunteer Programs",
       "shortName": "Caregiver Respite",
       "tagline": "Get a break from caregiving with in-home help, adult day programs, or short-term stays for your parent.",
@@ -2663,7 +2663,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nh-americorps-senior-companion",
+      "id": "americorps-senior-companion",
       "name": "AmeriCorps Senior Companion Program (NH)",
       "shortName": "Senior Companion",
       "tagline": "Your parent can earn $3/hour helping homebound adults while gaining insurance coverage and meaningful work",
@@ -2803,7 +2803,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nh-monadnock-at-home-community-services",
+      "id": "monadnock-at-home-community-services",
       "name": "Monadnock at Home Community Services",
       "shortName": "Monadnock at Home",
       "tagline": "Comprehensive support network helping seniors in 12 Monadnock Region towns maintain independence at home",

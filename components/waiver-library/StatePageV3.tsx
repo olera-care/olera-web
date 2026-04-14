@@ -269,7 +269,7 @@ function InlineBenefitsCheck({ programs, stateId, stateName }: { programs: Waive
               {matchingPrograms.slice(0, 5).map((p) => (
                 <Link
                   key={p.id}
-                  href={`/senior-benefits/${stateId}/${p.id}`}
+                  href={`/benefits/${stateId}/${p.id}`}
                   className="text-xs font-medium text-primary-700 bg-primary-50 hover:bg-primary-100 px-3 py-1.5 rounded-full transition-colors"
                 >
                   {p.shortName}
@@ -379,7 +379,7 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
         <HeaderBlobs />
         <div className="relative max-w-3xl mx-auto px-6 lg:px-8">
           <nav className="flex items-center gap-1.5 text-xs text-gray-400 mb-8">
-            <Link href="/senior-benefits" className="hover:text-gray-600 transition-colors">Benefits Hub</Link>
+            <Link href="/benefits" className="hover:text-gray-600 transition-colors">Benefits Hub</Link>
             <span>&#8250;</span>
             <span className="text-gray-600">{state.name}</span>
           </nav>
@@ -464,7 +464,7 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
                       {displayPrograms.map((program, idx) => (
                         <Link
                           key={program.id}
-                          href={`/senior-benefits/${state.id}/${program.id}`}
+                          href={`/benefits/${state.id}/${program.id}`}
                           className="group block py-3 border-b border-gray-100 last:border-0"
                         >
                           <div className="flex items-start justify-between gap-3">
@@ -556,8 +556,8 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
                 const match = findProgramByName(pick.name);
                 const program = match?.program;
                 const href = match
-                  ? `/senior-benefits/${state.id}/${match.id}`
-                  : `/senior-benefits/${state.id}`;
+                  ? `/benefits/${state.id}/${match.id}`
+                  : `/benefits/${state.id}`;
                 const highlighted = !selectedArchetype || !match || (program && isProgramHighlighted(program));
 
                 return (
@@ -772,7 +772,7 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
                     return (
                       <Link
                         key={program.id}
-                        href={`/senior-benefits/${state.id}/${program.id}`}
+                        href={`/benefits/${state.id}/${program.id}`}
                         className={`group flex items-start justify-between gap-4 py-4 border-b border-gray-100 last:border-0 transition-opacity ${
                           highlighted ? "opacity-100" : "opacity-30"
                         }`}
@@ -833,7 +833,7 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
           {/* Explore other states */}
           <div className="flex items-center gap-4">
             <p className="text-sm text-gray-500">Looking at other states?</p>
-            <Link href="/senior-benefits" className="text-sm font-medium text-primary-600 hover:text-primary-500 transition-colors">
+            <Link href="/benefits" className="text-sm font-medium text-primary-600 hover:text-primary-500 transition-colors">
               Explore all 50 states &rarr;
             </Link>
           </div>

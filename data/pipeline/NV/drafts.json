@@ -6,7 +6,7 @@
   "successful": 18,
   "programs": [
     {
-      "id": "nv-medicaid-long-term-care",
+      "id": "medicaid-long-term-care",
       "name": "Nevada Medicaid",
       "shortName": "Nevada Medicaid",
       "tagline": "Covers nursing home care and home health services for Nevada seniors who qualify for long-term care.",
@@ -203,7 +203,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nv-hcbs-waiver",
+      "id": "hcbs-waiver",
       "name": "Home and Community-Based Services (HCBS) Waiver",
       "shortName": "HCBS Waiver",
       "tagline": "Keep your parent at home with help for personal care, meals, and household tasks instead of nursing home placement.",
@@ -389,7 +389,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nv-pace-comprehensive-care",
+      "id": "pace-comprehensive-care",
       "name": "Nevada Program of All-Inclusive Care for the Elderly (PACE)",
       "shortName": "Nevada PACE",
       "tagline": "If your parent needs nursing home-level care but wants to stay home, PACE provides all medical services under one team with no copays.",
@@ -549,7 +549,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nv-medicare-savings-programs",
+      "id": "medicare-savings-programs",
       "name": "Nevada Medicare Savings Programs (QMB, SLMB, QI)",
       "shortName": "Medicare Savings Programs",
       "tagline": "Nevada covers Medicare premiums and costs if your parent's income is below $1,660/month",
@@ -761,7 +761,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nv-snap-food-benefits",
+      "id": "snap-food-benefits",
       "name": "SNAP (Supplemental Nutrition Assistance Program)",
       "shortName": "SNAP Food Benefits",
       "tagline": "Monthly grocery money for seniors 60+ on fixed incomes — typically $100–400/month on an EBT card",
@@ -968,7 +968,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nv-energy-assistance-eap-liheap",
+      "id": "energy-assistance-eap-liheap",
       "name": "Nevada Energy Assistance Program (EAP) / LIHEAP",
       "shortName": "Nevada Energy Assistance",
       "tagline": "Help your parent pay heating bills with up to $3,136/year in assistance — no savings limits.",
@@ -1126,7 +1126,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nv-weatherization-assistance-program",
+      "id": "weatherization-assistance-program",
       "name": "Weatherization Assistance Program",
       "shortName": "Weatherization Assistance",
       "tagline": "Free home energy upgrades including insulation, windows, and HVAC repairs if your parent's income is below $2,500/month",
@@ -1340,7 +1340,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nv-ship-medicare-counseling",
+      "id": "ship-medicare-counseling",
       "name": "Nevada State Health Insurance Assistance Program (SHIP)",
       "shortName": "Nevada SHIP",
       "tagline": "Free one-on-one Medicare counseling to help your parent choose the right coverage and solve billing problems.",
@@ -1471,7 +1471,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nv-home-delivered-meals",
+      "id": "home-delivered-meals",
       "name": "Home Delivered Meals",
       "shortName": "Home Delivered Meals",
       "tagline": "If your parent is homebound and 60+, they can get free nutritious meals delivered to their door — 7 meals per week in most areas.",
@@ -1650,7 +1650,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nv-senior-respite-vouchers",
+      "id": "senior-respite-vouchers",
       "name": "Senior Respite Care and Respite Care Vouchers",
       "shortName": "Respite Care Vouchers",
       "tagline": "If you're caring for an aging parent at home in Northern Nevada, get $1,000 per year to hire temporary caregivers so you can take a break.",
@@ -1804,7 +1804,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nv-scsep-employment",
+      "id": "scsep-employment",
       "name": "Senior Community Service Employment Program (SCSEP)",
       "shortName": "SCSEP Employment",
       "tagline": "Part-time paid work experience for unemployed adults 55+ to build skills and transition to permanent employment",
@@ -1981,7 +1981,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nv-advocates-for-seniors",
+      "id": "advocates-for-seniors",
       "name": "Nevada Advocates for Seniors",
       "shortName": "Nevada Advocates",
       "tagline": "Professional care management and home safety coordination to help your parent remain independent at home",
@@ -2115,7 +2115,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nv-long-term-care-ombudsman",
+      "id": "long-term-care-ombudsman",
       "name": "Nevada Long-Term Care Ombudsman Program",
       "shortName": "LTC Ombudsman",
       "tagline": "Free advocates to resolve problems and protect your parent's rights in nursing homes or assisted living facilities.",
@@ -2253,7 +2253,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nv-senior-rx-program",
+      "id": "senior-rx-program",
       "name": "Nevada Senior Rx Program",
       "shortName": "Nevada Senior Rx",
       "tagline": "This prescription assistance program ended December 31, 2023 — families should contact Nevada MAP for current alternatives.",
@@ -2414,7 +2414,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nv-hcbw-fe-waiver",
+      "id": "hcbw-fe-waiver",
       "name": "Home and Community-Based Waiver for the Frail Elderly (HCBW-FE)",
       "shortName": "HCBW-FE Waiver",
       "tagline": "If your parent needs daily care to stay home safely, this Nevada waiver can pay for homemaker, respite, and companion services.",
@@ -2599,7 +2599,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nv-personal-care-services-program",
+      "id": "personal-care-services-program",
       "name": "Nevada Personal Care Services Program (PCS)",
       "shortName": "Nevada PCS",
       "tagline": "Get paid caregivers to help your parent with bathing, dressing, and household tasks so they can stay home safely.",
@@ -2796,7 +2796,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nv-cope-community-options-elderly",
+      "id": "cope-community-options-elderly",
       "name": "Community Options Program for the Elderly (COPE)",
       "shortName": "COPE",
       "tagline": "Free home care services for Nevada seniors 65+ at risk of nursing home placement.",
@@ -2968,7 +2968,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nv-tap-taxi-assistance",
+      "id": "tap-taxi-assistance",
       "name": "Taxi Assistance Program (TAP)",
       "shortName": "Taxi Assistance",
       "tagline": "If your parent lives in Las Vegas and struggles with transportation costs, they can get taxi rides for half price.",

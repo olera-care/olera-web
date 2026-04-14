@@ -6,7 +6,7 @@
   "successful": 17,
   "programs": [
     {
-      "id": "ne-aged-disabled-hcbs-waiver",
+      "id": "aged-disabled-hcbs-waiver",
       "name": "Aged and Disabled (AD) HCBS Waiver",
       "shortName": "AD HCBS Waiver",
       "tagline": "Home care services for parents who qualify for Medicaid and need nursing home-level care but want to stay home.",
@@ -197,7 +197,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ne-pace-elder-care",
+      "id": "pace-elder-care",
       "name": "Program of All-Inclusive Care for the Elderly (PACE)",
       "shortName": "PACE",
       "tagline": "All medical care, transportation, and daily support coordinated under one program for parents who need nursing home-level care but want to stay home.",
@@ -375,7 +375,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ne-medicare-savings-program",
+      "id": "medicare-savings-program",
       "name": "Medicare Savings Program (QMB, SLMB, QI)",
       "shortName": "Medicare Savings Program",
       "tagline": "If your parent qualifies, Nebraska will pay their Medicare premiums and possibly all Medicare out-of-pocket costs.",
@@ -601,7 +601,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ne-snap-food-benefits",
+      "id": "snap-food-benefits",
       "name": "Supplemental Nutrition Assistance Program (SNAP)",
       "shortName": "SNAP Food Benefits",
       "tagline": "Monthly grocery assistance for seniors on fixed incomes — up to $546/month for a couple",
@@ -797,7 +797,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ne-liheap-energy-assistance",
+      "id": "liheap-energy-assistance",
       "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
       "shortName": "LIHEAP Energy Assistance",
       "tagline": "Get help paying heating and cooling bills when your parent's income is tight",
@@ -998,7 +998,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ne-weatherization-assistance-program",
+      "id": "weatherization-assistance-program",
       "name": "Weatherization Assistance Program",
       "shortName": "Weatherization Assistance",
       "tagline": "Free home energy improvements like insulation and furnace repair if your parent's income is below $3,825/month for two people",
@@ -1208,7 +1208,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ne-ship-medicare-counseling",
+      "id": "ship-medicare-counseling",
       "name": "Nebraska SHIP (State Health Insurance Assistance Program)",
       "shortName": "Nebraska SHIP",
       "tagline": "Free one-on-one Medicare counseling to help your parent navigate plans, costs, and coverage options.",
@@ -1333,7 +1333,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ne-home-delivered-meals-aaa",
+      "id": "home-delivered-meals-aaa",
       "name": "Home-Delivered Meals (via Area Agencies on Aging)",
       "shortName": "Home-Delivered Meals",
       "tagline": "If your parent can't leave home for meals, they may qualify for free home-delivered meals Monday through Friday.",
@@ -1467,7 +1467,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ne-lifespan-respite-services",
+      "id": "lifespan-respite-services",
       "name": "Lifespan Respite Services",
       "shortName": "Lifespan Respite",
       "tagline": "Up to $125 monthly to hire respite care when you're caring for a family member with disabilities or chronic conditions.",
@@ -1651,7 +1651,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ne-scsep-employment",
+      "id": "scsep-employment",
       "name": "Nebraska Senior Community Service Employment Program (SCSEP)",
       "shortName": "SCSEP Employment",
       "tagline": "Part-time community service work at minimum wage that builds skills and leads to permanent employment for adults 55+",
@@ -1820,7 +1820,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ne-legal-services-seniors-aaa",
+      "id": "legal-services-seniors-aaa",
       "name": "Legal Services for Seniors (via AAAs)",
       "shortName": "Senior Legal Services",
       "tagline": "Free legal help for Nebraska seniors 60+ with wills, power of attorney, Medicaid questions, and consumer protection issues.",
@@ -1978,7 +1978,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ne-ltc-ombudsman",
+      "id": "ltc-ombudsman",
       "name": "Long-Term Care Ombudsman Program",
       "shortName": "LTC Ombudsman",
       "tagline": "Free advocacy when your parent has concerns about their nursing home or assisted living facility care.",
@@ -2095,7 +2095,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ne-aged-disabled-waiver",
+      "id": "aged-disabled-waiver",
       "name": "Aged and Disabled Waiver",
       "shortName": "AD Waiver",
       "tagline": "Nebraska Medicaid waiver that keeps your parent at home instead of a nursing facility by covering personal care, home modifications, and assisted living.",
@@ -2282,7 +2282,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ne-community-aging-services",
+      "id": "community-aging-services",
       "name": "Nebraska Community Aging Services Act",
       "shortName": "Aging Services",
       "tagline": "Home care, meals, and transportation services to help your parent stay independent at home.",
@@ -2450,7 +2450,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ne-aging-disability-resource-center",
+      "id": "aging-disability-resource-center",
       "name": "Aging & Disability Resource Center Act",
       "shortName": "ADRC Navigation",
       "tagline": "Free help finding and accessing long-term care services, benefits, and providers for your aging parent.",
@@ -2583,7 +2583,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ne-aabd-cash-medical",
+      "id": "aabd-cash-medical",
       "name": "Aid to the Aged, Blind, and Disabled (AABD)",
       "shortName": "AABD",
       "tagline": "Monthly cash payments and medical coverage for Nebraska seniors and disabled adults denied federal SSI",
@@ -2748,7 +2748,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ne-ssad-aged-disabled-services",
+      "id": "ssad-aged-disabled-services",
       "name": "Social Service for Aged and Disabled Adults (SSAD)",
       "shortName": "SSAD Services",
       "tagline": "Free in-home care, adult day programs, and transportation for Nebraska seniors who don't qualify for Medicaid.",

@@ -6,7 +6,7 @@
   "successful": 15,
   "programs": [
     {
-      "id": "vt-choices-for-care-waiver",
+      "id": "choices-for-care-waiver",
       "name": "Choices for Care (CFC) Waiver",
       "shortName": "CFC Waiver",
       "tagline": "Home care services that prevent nursing home placement for Vermont seniors who need daily help with bathing, dressing, or medications.",
@@ -207,7 +207,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "vt-medicaid-abd",
+      "id": "medicaid-abd",
       "name": "Medicaid for Aged, Blind, and Disabled (ABD)",
       "shortName": "Medicaid ABD",
       "tagline": "Comprehensive health coverage for your parent if they're 65+, blind, or disabled and on a limited income",
@@ -375,7 +375,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "vt-pace-comprehensive-care",
+      "id": "pace-comprehensive-care",
       "name": "Program of All-Inclusive Care for the Elderly (PACE)",
       "shortName": "PACE",
       "tagline": "All-in-one medical and social care for parents who qualify for nursing home care but want to stay home",
@@ -544,7 +544,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "vt-medicare-savings-programs",
+      "id": "medicare-savings-programs",
       "name": "Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), Qualified Individual (QI)",
       "shortName": "Medicare Savings Programs",
       "tagline": "Your parent could get their Medicare premiums and medical costs covered if they earn less than $1,781/month as a single person.",
@@ -756,7 +756,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "vt-3squaresvt-older-vermonters",
+      "id": "3squaresvt-older-vermonters",
       "name": "3SquaresVT for Older Vermonters",
       "shortName": "3SquaresVT",
       "tagline": "If your parent is 60+ and living on Social Security, they may qualify for monthly grocery assistance with a simplified 3-year application.",
@@ -924,7 +924,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "vt-fuel-assistance-heating-help",
+      "id": "fuel-assistance-heating-help",
       "name": "Fuel Assistance Program",
       "shortName": "Fuel Assistance",
       "tagline": "Get up to several hundred dollars toward your parent's annual heating costs — oil, propane, electricity, wood, or pellets.",
@@ -1100,7 +1100,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "vt-weatherization-assistance",
+      "id": "weatherization-assistance",
       "name": "Weatherization Assistance Program",
       "shortName": "Weatherization Assistance",
       "tagline": "Get up to $10,000 in free home energy improvements to cut your parent's heating bills.",
@@ -1332,7 +1332,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "vt-ship-medicare-counseling",
+      "id": "ship-medicare-counseling",
       "name": "State Health Insurance Assistance Program (SHIP)",
       "shortName": "SHIP Medicare Help",
       "tagline": "Free one-on-one help understanding your parent's Medicare options and maximizing their benefits.",
@@ -1468,7 +1468,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "vt-meals-on-wheels",
+      "id": "meals-on-wheels",
       "name": "Meals on Wheels (Vermont)",
       "shortName": "Meals on Wheels",
       "tagline": "Free hot meals delivered to your parent's home five days a week if they're 60+ and can't prepare their own food",
@@ -1645,7 +1645,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "vt-caregiver-support-program",
+      "id": "caregiver-support-program",
       "name": "Caregiver Support Program",
       "shortName": "Caregiver Support",
       "tagline": "Multiple programs help you get paid to care for your parent or access respite services.",
@@ -1784,7 +1784,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "vt-scsep-employment",
+      "id": "scsep-employment",
       "name": "Senior Community Service Employment Program (SCSEP)",
       "shortName": "SCSEP Employment",
       "tagline": "Part-time paid training positions for unemployed adults 55+ earning minimum wage while building job skills",
@@ -1933,7 +1933,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "vt-legal-assistance-seniors",
+      "id": "legal-assistance-seniors",
       "name": "Legal Assistance for Seniors (Vermont Legal Aid Elder Law Project)",
       "shortName": "Legal Assistance",
       "tagline": "Free legal help for low-income Vermont seniors facing housing problems, benefit denials, or elder abuse.",
@@ -2068,7 +2068,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "vt-long-term-care-ombudsman",
+      "id": "long-term-care-ombudsman",
       "name": "Long-Term Care Ombudsman",
       "shortName": "Care Ombudsman",
       "tagline": "Free advocacy when your parent has problems with nursing home care, assisted living, or home care services.",
@@ -2184,7 +2184,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "vt-senior-companion-program",
+      "id": "senior-companion-program",
       "name": "Vermont Senior Companion Program",
       "shortName": "Senior Companion",
       "tagline": "Free companionship and daily living assistance for your parent through trained volunteers",
@@ -2360,7 +2360,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "vt-senior-solutions-vet-to-vet",
+      "id": "senior-solutions-vet-to-vet",
       "name": "Senior Solutions Vet-to-Vet Program",
       "shortName": "Vet-to-Vet Program",
       "tagline": "Veteran volunteers provide companionship and support to senior veterans who need connection and understanding.",

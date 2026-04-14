@@ -6,7 +6,7 @@
   "successful": 4,
   "programs": [
     {
-      "id": "dc-epd-waiver-program",
+      "id": "epd-waiver-program",
       "name": "Elderly and Persons with Physical Disabilities (EPD) Waiver Program",
       "shortName": "EPD Waiver",
       "tagline": "If your parent needs daily help with bathing or dressing but wants to stay home, this DC program covers personal care aides and adult day services.",
@@ -197,7 +197,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "dc-safe-at-home-program",
+      "id": "safe-at-home-program",
       "name": "Safe at Home Program",
       "shortName": "Safe at Home",
       "tagline": "Your parent can get up to $7,000 in home safety modifications like grab bars, stair lifts, and bathtub cuts to prevent falls.",
@@ -377,7 +377,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "dc-dacl-benefits-assistance",
+      "id": "dacl-benefits-assistance",
       "name": "DACL Benefits Assistance",
       "shortName": "DACL Benefits Assistance",
       "tagline": "Get help enrolling your DC parent in Medicaid home care programs that could cover personal care aides and case management.",
@@ -571,7 +571,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "dc-senior-centers",
+      "id": "senior-centers",
       "name": "DC Senior Centers",
       "shortName": "DC Senior Centers",
       "tagline": "Free social activities, meals, health screenings, and support services for DC residents 60 and older.",
@@ -712,17 +712,17 @@
     "startHere": [
       {
         "name": "Elderly and Persons with Physical Disabilities (EPD) Waiver Program",
-        "programId": "dc-epd-waiver",
+        "programId": "epd-waiver",
         "why": "Covers personal care aides and adult day services if your parent needs nursing home level care but wants to stay home."
       },
       {
         "name": "Safe at Home Program",
-        "programId": "dc-safe-at-home",
+        "programId": "safe-at-home",
         "why": "Provides up to $7,000 in home modifications like grab bars and stair lifts to prevent falls."
       },
       {
         "name": "DACL Benefits Assistance",
-        "programId": "dc-dacl-benefits",
+        "programId": "dacl-benefits",
         "why": "Free help enrolling your parent in DC Medicaid home care programs that cover personal care and case management."
       }
     ],

@@ -6,7 +6,7 @@
   "successful": 15,
   "programs": [
     {
-      "id": "wv-medicare-savings-programs",
+      "id": "medicare-savings-programs",
       "name": "Medicaid Medicare Savings Programs (QMB, SLMB, QI)",
       "shortName": "Medicare Savings Programs",
       "tagline": "If your parent is on Medicare with limited income, West Virginia may pay their Medicare premiums and reduce their prescription costs.",
@@ -214,7 +214,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "wv-aged-disabled-waiver",
+      "id": "aged-disabled-waiver",
       "name": "Aged and Disabled Waiver (ADW)",
       "shortName": "ADW Waiver",
       "tagline": "If your parent needs daily help with bathing, dressing, or medication but wants to stay home instead of nursing care, this waiver pays for in-home personal care services.",
@@ -396,7 +396,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "wv-pace-comprehensive-care",
+      "id": "pace-comprehensive-care",
       "name": "Program of All-Inclusive Care for the Elderly (PACE)",
       "shortName": "PACE",
       "tagline": "All-in-one medical care that keeps your parent at home with one coordinated team managing everything.",
@@ -558,7 +558,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "wv-snap-food-benefits",
+      "id": "snap-food-benefits",
       "name": "SNAP (Supplemental Nutrition Assistance Program)",
       "shortName": "SNAP Food Benefits",
       "tagline": "Monthly grocery assistance of $100-300+ for West Virginia residents 60+ on fixed incomes",
@@ -766,7 +766,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "wv-liheap-energy-assistance",
+      "id": "liheap-energy-assistance",
       "name": "LIHEAP (Low-Income Home Energy Assistance Program)",
       "shortName": "LIHEAP Energy Assistance",
       "tagline": "Help paying heating and cooling bills when your parent's income is below $1,884/month (single person)",
@@ -969,7 +969,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "wv-weatherization-assistance-program",
+      "id": "weatherization-assistance-program",
       "name": "Weatherization Assistance Program (WAP)",
       "shortName": "Weatherization Assistance",
       "tagline": "Free energy-saving home improvements to reduce your parent's utility bills if their income is under $31,300 (or $42,300 for couples).",
@@ -1171,7 +1171,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "wv-ship-medicare-counseling",
+      "id": "ship-medicare-counseling",
       "name": "SHIP (State Health Insurance Assistance Program)",
       "shortName": "SHIP Counseling",
       "tagline": "Free one-on-one Medicare counseling to help your parent avoid overpaying for coverage and understand all their options.",
@@ -1287,7 +1287,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "wv-meals-on-wheels-home-delivered",
+      "id": "meals-on-wheels-home-delivered",
       "name": "Meals on Wheels (Home Delivered Meals)",
       "shortName": "Meals on Wheels",
       "tagline": "Daily hot meals delivered to your parent's door if they're 60+ and unable to cook or shop safely.",
@@ -1437,7 +1437,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "wv-nfcsp-caregiver-support",
+      "id": "nfcsp-caregiver-support",
       "name": "National Family Caregiver Support Program (NFCSP)",
       "shortName": "NFCSP",
       "tagline": "Free caregiver training, respite services, and support for families caring for aging parents 60+ in West Virginia",
@@ -1579,7 +1579,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "wv-senior-legal-aid",
+      "id": "senior-legal-aid",
       "name": "West Virginia Senior Legal Aid, Inc. (Senior Legal Services)",
       "shortName": "Senior Legal Aid",
       "tagline": "Free legal help for West Virginia seniors navigating benefits, long-term care, and protection from abuse or financial exploitation.",
@@ -1698,7 +1698,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "wv-long-term-care-ombudsman",
+      "id": "long-term-care-ombudsman",
       "name": "Long-Term Care Ombudsman Program",
       "shortName": "Ombudsman Program",
       "tagline": "Free advocate if your parent faces problems with care, safety, or rights in their nursing home or assisted living facility.",
@@ -1820,7 +1820,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "wv-lighthouse-in-home-care",
+      "id": "lighthouse-in-home-care",
       "name": "Lighthouse Program",
       "shortName": "Lighthouse Program",
       "tagline": "Up to 60 hours of monthly in-home care for West Virginia seniors who earn too much for Medicaid but still need help.",
@@ -1976,7 +1976,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "wv-take-me-home-program",
+      "id": "take-me-home-program",
       "name": "Take Me Home Program",
       "shortName": "Take Me Home",
       "tagline": "Helps your parent transition from a nursing home back to living at home or in the community with rental deposits, household items, and support services.",
@@ -2149,7 +2149,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "wv-visions-blind-services",
+      "id": "visions-blind-services",
       "name": "Visually Impaired Seniors In-Home Outreach and Networking Services (VISIONS)",
       "shortName": "VISIONS",
       "tagline": "Free in-home training to help your visually impaired parent live independently — from cooking safely to using technology.",
@@ -2291,7 +2291,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "wv-home-modification-accessibility-grant",
+      "id": "home-modification-accessibility-grant",
       "name": "WV Bureau of Senior Services Home Modification and Accessibility Grant Program (Aging Well, Safe at Home Initiative)",
       "shortName": "Home Modification Grant",
       "tagline": "Up to $3,000 grants help West Virginia seniors afford wheelchair ramps, bathroom modifications, and assistive devices to stay safely at home.",

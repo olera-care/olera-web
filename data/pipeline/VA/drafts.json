@@ -6,7 +6,7 @@
   "successful": 5,
   "programs": [
     {
-      "id": "va-ccc-plus-waiver",
+      "id": "ccc-plus-waiver",
       "name": "Commonwealth Coordinated Care Plus (CCC+) Waiver",
       "shortName": "CCC+ Waiver",
       "tagline": "If your parent needs daily help with bathing, dressing, or medications but wants to stay home, this Virginia program covers in-home care instead of nursing home placement.",
@@ -192,7 +192,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "va-adult-services-program",
+      "id": "adult-services-program",
       "name": "Virginia Adult Services Program",
       "shortName": "Adult Services Program",
       "tagline": "Free homemaker services, chore help, and protective services for at-risk Virginia seniors — up to 15 hours per week in some counties.",
@@ -354,7 +354,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "va-vicap-medicare-counseling",
+      "id": "vicap-medicare-counseling",
       "name": "Virginia Insurance Counseling and Assistance Program (VICAP)",
       "shortName": "VICAP",
       "tagline": "Free one-on-one Medicare counseling to help your parent choose the right plan and avoid costly mistakes.",
@@ -508,7 +508,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "va-seniornavigator",
+      "id": "seniornavigator",
       "name": "SeniorNavigator",
       "shortName": "SeniorNavigator",
       "tagline": "Free online directory to find over 27,000 local programs for health, housing, transportation, and financial help in Virginia.",
@@ -647,7 +647,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "va-scsep-senior-employment",
+      "id": "scsep-senior-employment",
       "name": "Senior Community Service Employment Program (SCSEP)",
       "shortName": "SCSEP",
       "tagline": "If your parent is 55+ and unemployed, they can earn up to $11,000/year while learning job skills through part-time community service work.",

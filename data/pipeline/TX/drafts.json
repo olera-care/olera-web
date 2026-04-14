@@ -6,7 +6,7 @@
   "successful": 12,
   "programs": [
     {
-      "id": "tx-medicaid-buy-in-qmb-slmb-qi",
+      "id": "medicaid-buy-in-qmb-slmb-qi",
       "name": "Medicaid Buy-In for Children (MBIC) / Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), Qualifying Individual (QI)",
       "shortName": "Medicaid Buy-In Programs",
       "tagline": "If your disabled child needs comprehensive health coverage or your parent struggles with Medicare costs, these programs provide full Medicaid benefits or pay Medicare premiums.",
@@ -260,7 +260,7 @@
       "draftedAt": "2026-04-10"
     },
     {
-      "id": "tx-star-plus-medicaid-hcbs",
+      "id": "star-plus-medicaid-hcbs",
       "name": "STAR+PLUS",
       "shortName": "STAR+PLUS",
       "tagline": "Comprehensive Medicaid coverage plus home care services for seniors at nursing home level of need",
@@ -474,7 +474,7 @@
       "draftedAt": "2026-04-10"
     },
     {
-      "id": "tx-pace-eldercare",
+      "id": "pace-eldercare",
       "name": "Program of All-Inclusive Care for the Elderly (PACE)",
       "shortName": "PACE",
       "tagline": "All medical care, adult day center, and home support coordinated under one team — no copays if your parent has Medicaid.",
@@ -658,7 +658,7 @@
       "draftedAt": "2026-04-10"
     },
     {
-      "id": "tx-snap-food-benefits",
+      "id": "snap-food-benefits",
       "name": "Supplemental Nutrition Assistance Program (SNAP)",
       "shortName": "SNAP Food Benefits",
       "tagline": "Up to $298/month on an EBT card to help your parent buy groceries if they're 60+ with limited income",
@@ -844,7 +844,7 @@
       "draftedAt": "2026-04-10"
     },
     {
-      "id": "tx-liheap-energy-assistance",
+      "id": "liheap-energy-assistance",
       "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
       "shortName": "LIHEAP",
       "tagline": "Get $1,000–12,300 paid directly to your parent's utility company to cover heating and cooling bills.",
@@ -1044,7 +1044,7 @@
       "draftedAt": "2026-04-10"
     },
     {
-      "id": "tx-weatherization-assistance-program",
+      "id": "weatherization-assistance-program",
       "name": "Weatherization Assistance Program",
       "shortName": "Weatherization Assistance",
       "tagline": "Free home energy efficiency improvements that can cut your parent's utility bills by hundreds of dollars annually.",
@@ -1217,7 +1217,7 @@
       "draftedAt": "2026-04-10"
     },
     {
-      "id": "tx-ship-medicare-counseling",
+      "id": "ship-medicare-counseling",
       "name": "Texas State Health Insurance Assistance Program (SHIP)",
       "shortName": "SHIP Medicare Help",
       "tagline": "Free one-on-one help choosing Medicare plans and applying for prescription drug savings.",
@@ -1333,7 +1333,7 @@
       "draftedAt": "2026-04-10"
     },
     {
-      "id": "tx-meals-on-wheels",
+      "id": "meals-on-wheels",
       "name": "Meals on Wheels",
       "shortName": "Meals on Wheels",
       "tagline": "Home-delivered meals and daily check-ins for homebound seniors 60+ across Texas.",
@@ -1510,7 +1510,7 @@
       "draftedAt": "2026-04-10"
     },
     {
-      "id": "tx-cba-waiver",
+      "id": "cba-waiver",
       "name": "Community Based Alternatives (CBA) Waiver",
       "shortName": "CBA Waiver",
       "tagline": "Help your parent avoid nursing home placement and receive care at home through this Texas Medicaid waiver program",
@@ -1722,7 +1722,7 @@
       "draftedAt": "2026-04-10"
     },
     {
-      "id": "tx-community-caregiver-support",
+      "id": "community-caregiver-support",
       "name": "Community Caregiver Support Program",
       "shortName": "Caregiver Support",
       "tagline": "Get help coordinating care for your aging parent through local support centers across Texas.",
@@ -1877,7 +1877,7 @@
       "draftedAt": "2026-04-10"
     },
     {
-      "id": "tx-legal-aid-seniors-aaa",
+      "id": "legal-aid-seniors-aaa",
       "name": "Legal Aid for Seniors through AAAs",
       "shortName": "Legal Aid Services",
       "tagline": "Free legal help for Texas seniors 60+ with Medicare, housing, and consumer issues through local Area Agencies on Aging.",
@@ -2020,7 +2020,7 @@
       "draftedAt": "2026-04-10"
     },
     {
-      "id": "tx-ltc-ombudsman",
+      "id": "ltc-ombudsman",
       "name": "Long-Term Care Ombudsman Program",
       "shortName": "LTC Ombudsman",
       "tagline": "Free advocacy and complaint resolution when your parent faces problems in their nursing home or assisted living facility.",

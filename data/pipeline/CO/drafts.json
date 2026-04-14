@@ -6,7 +6,7 @@
   "successful": 13,
   "programs": [
     {
-      "id": "co-medicare-savings-programs",
+      "id": "medicare-savings-programs",
       "name": "Health First Colorado Buy-In (QMB, SLMB, QI)",
       "shortName": "Medicare Savings Programs",
       "tagline": "Help paying Medicare premiums and out-of-pocket costs for parents on limited income",
@@ -231,7 +231,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "co-hcbs-waivers",
+      "id": "hcbs-waivers",
       "name": "Home and Community-Based Services (HCBS) Waivers in Colorado",
       "shortName": "HCBS Waivers",
       "tagline": "If your parent needs help with daily activities but wants to stay home, Colorado may cover personal care, home modifications, and other support services.",
@@ -402,7 +402,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "co-pace-comprehensive-elderly-care",
+      "id": "pace-comprehensive-elderly-care",
       "name": "Program of All-Inclusive Care for the Elderly (PACE)",
       "shortName": "PACE",
       "tagline": "All-in-one medical and social care for parents who need nursing home level help but want to stay home.",
@@ -586,7 +586,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "co-snap-food-benefits",
+      "id": "snap-food-benefits",
       "name": "Supplemental Nutrition Assistance Program (SNAP)",
       "shortName": "SNAP Food Benefits",
       "tagline": "Monthly grocery money for seniors and families with low incomes",
@@ -796,7 +796,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "co-weatherization-assistance-program",
+      "id": "weatherization-assistance-program",
       "name": "Weatherization Assistance Program (WAP)",
       "shortName": "WAP Weatherization",
       "tagline": "Free home energy upgrades that can cut your parent's heating and cooling bills by hundreds of dollars yearly",
@@ -976,7 +976,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "co-ship-medicare-counseling",
+      "id": "ship-medicare-counseling",
       "name": "State Health Insurance Assistance Program (SHIP)",
       "shortName": "SHIP",
       "tagline": "Free expert help navigating Medicare options and enrollment for your parent.",
@@ -1099,7 +1099,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "co-community-access-services-respite-care",
+      "id": "community-access-services-respite-care",
       "name": "Community Access Services (CAS) and Respite Care",
       "shortName": "CAS & Respite",
       "tagline": "Home and community services plus temporary caregiver relief for adults with disabilities",
@@ -1278,7 +1278,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "co-senior-community-service-employment-program",
+      "id": "senior-community-service-employment-program",
       "name": "Senior Community Service Employment Program (SCSEP)",
       "shortName": "SCSEP",
       "tagline": "If your parent is 55+ and unemployed with low income, they can earn a paycheck while learning job skills through nonprofit work placements.",
@@ -1473,7 +1473,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "co-legal-aid-seniors",
+      "id": "legal-aid-seniors",
       "name": "Colorado Legal Services (Legal Aid for Seniors)",
       "shortName": "Legal Aid",
       "tagline": "Free legal help for seniors 60+ facing housing, benefits, or elder abuse issues.",
@@ -1599,7 +1599,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "co-ltc-ombudsman",
+      "id": "ltc-ombudsman",
       "name": "Long-Term Care Ombudsman Program",
       "shortName": "LTC Ombudsman",
       "tagline": "Free advocacy if your parent is in a nursing home or assisted living and facing care problems, rights violations, or unsafe conditions.",
@@ -1734,7 +1734,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "co-old-age-pension",
+      "id": "old-age-pension",
       "name": "Old Age Pension (OAP)",
       "shortName": "Old Age Pension",
       "tagline": "Monthly cash assistance for Colorado residents 60+ with limited income and assets.",
@@ -1906,7 +1906,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "co-home-care-allowance-hca",
+      "id": "home-care-allowance-hca",
       "name": "Home Care Allowance (HCA)",
       "shortName": "Home Care Allowance",
       "tagline": "Get up to $1,500/month to help your parent pay for personal care, respite, and home modifications in Colorado.",
@@ -2101,7 +2101,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "co-older-coloradans-cash-fund",
+      "id": "older-coloradans-cash-fund",
       "name": "Older Coloradans Cash Fund",
       "shortName": "Cash Fund",
       "tagline": "One-time grants up to $1,200 for home safety repairs and equipment when your parent is 60+ and low-income",

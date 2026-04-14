@@ -6,7 +6,7 @@
   "successful": 5,
   "programs": [
     {
-      "id": "wi-seniorcare-prescription-assistance",
+      "id": "seniorcare-prescription-assistance",
       "name": "SeniorCare",
       "shortName": "SeniorCare",
       "tagline": "Help your parent save hundreds on prescriptions with $5 generics and $15 brand-name drugs.",
@@ -206,7 +206,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "wi-elder-benefit-specialist",
+      "id": "elder-benefit-specialist",
       "name": "Elder Benefit Specialist (EBS) Program",
       "shortName": "Elder Benefit Specialist",
       "tagline": "Free expert help navigating Medicare, Social Security, food stamps, and housing assistance for your parent.",
@@ -328,7 +328,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "wi-senior-employment-program-wise",
+      "id": "senior-employment-program-wise",
       "name": "Wisconsin Senior Employment Program (WISE)",
       "shortName": "WISE Employment",
       "tagline": "Paid part-time work and skills training for unemployed adults 55+ earning under $31,200/year for a family of two.",
@@ -510,7 +510,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "wi-family-care",
+      "id": "family-care",
       "name": "Family Care",
       "shortName": "Family Care",
       "tagline": "Home and community-based care services that help your parent avoid nursing home placement while staying in their own home or community.",
@@ -691,7 +691,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "wi-iris-self-directed-care",
+      "id": "iris-self-directed-care",
       "name": "IRIS (Include, Respect, I Self-Direct)",
       "shortName": "IRIS",
       "tagline": "Your parent controls their care budget to hire providers and buy services they choose.",

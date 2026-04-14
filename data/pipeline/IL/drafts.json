@@ -6,7 +6,7 @@
   "successful": 12,
   "programs": [
     {
-      "id": "il-medical-assistance-medicaid-seniors-disabled",
+      "id": "medical-assistance-medicaid-seniors-disabled",
       "name": "Medical Assistance (Medicaid) for Seniors/Disabled",
       "shortName": "Illinois Medicaid",
       "tagline": "If your parent is 65+ or disabled with limited income, this covers all medical care plus long-term care services to help them stay at home.",
@@ -214,7 +214,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "il-hsp-waiver-home-services",
+      "id": "hsp-waiver-home-services",
       "name": "Home Services Program (HSP) Waiver",
       "shortName": "HSP Waiver",
       "tagline": "Personal care services to help adults under 60 with severe disabilities stay home instead of moving to a nursing facility.",
@@ -403,7 +403,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "il-pace-comprehensive-care",
+      "id": "pace-comprehensive-care",
       "name": "Program of All-Inclusive Care for the Elderly (PACE)",
       "shortName": "PACE",
       "tagline": "If your parent needs nursing home level care but wants to stay home, PACE provides all medical and personal care services under one program.",
@@ -564,7 +564,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "il-medicare-savings-programs",
+      "id": "medicare-savings-programs",
       "name": "Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), Qualifying Individual (QI)",
       "shortName": "Medicare Savings Programs",
       "tagline": "Get help paying Medicare premiums, deductibles, and coinsurance if your parent's income is below $1,596/month.",
@@ -774,7 +774,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "il-snap-food-benefits",
+      "id": "snap-food-benefits",
       "name": "Supplemental Nutrition Assistance Program (SNAP)",
       "shortName": "SNAP Food Benefits",
       "tagline": "Monthly grocery assistance ranging from $100–500+ for Illinois seniors on fixed incomes",
@@ -976,7 +976,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "il-home-weatherization-assistance",
+      "id": "home-weatherization-assistance",
       "name": "Illinois Home Weatherization Assistance Program (IHWAP)",
       "shortName": "Home Weatherization",
       "tagline": "Free home repairs and insulation to cut your parent's energy bills by hundreds per year",
@@ -1180,7 +1180,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "il-ship-medicare-counseling",
+      "id": "ship-medicare-counseling",
       "name": "Senior Health Insurance Program (SHIP)",
       "shortName": "SHIP",
       "tagline": "Free one-on-one Medicare counseling to help your parent navigate coverage options and avoid costly mistakes.",
@@ -1314,7 +1314,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "il-ccp-home-delivered-meals",
+      "id": "ccp-home-delivered-meals",
       "name": "Community Care Program Home Delivered Meals",
       "shortName": "CCP Home Meals",
       "tagline": "Free daily meals delivered to your parent's door if they're at risk of nursing home placement and need help staying independent",
@@ -1535,7 +1535,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "il-community-care-program",
+      "id": "community-care-program",
       "name": "Community Care Program (CCP) - Illinois",
       "shortName": "Illinois CCP",
       "tagline": "Free in-home care services to help your parent avoid nursing home placement if they're 60+ and qualify financially.",
@@ -1684,7 +1684,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "il-scsep-employment-training",
+      "id": "scsep-employment-training",
       "name": "Senior Community Service Employment Program (SCSEP)",
       "shortName": "SCSEP",
       "tagline": "Part-time paid training at nonprofits for adults 55+ seeking employment after unemployment",
@@ -1872,7 +1872,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "il-long-term-care-ombudsman",
+      "id": "long-term-care-ombudsman",
       "name": "Illinois Long-Term Care Ombudsman Program (LTCOP)",
       "shortName": "LTCOP",
       "tagline": "Free advocacy and complaint resolution if your parent lives in a nursing home or assisted living facility.",
@@ -2003,7 +2003,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "il-legal-assistance-seniors",
+      "id": "legal-assistance-seniors",
       "name": "Legal Assistance for Seniors",
       "shortName": "Legal Assistance",
       "tagline": "Free legal help for seniors 60+ with housing disputes, benefits denials, guardianship issues, and estate planning in Illinois.",

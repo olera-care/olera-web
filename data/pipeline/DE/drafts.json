@@ -6,7 +6,7 @@
   "successful": 12,
   "programs": [
     {
-      "id": "de-diamond-state-health-plan",
+      "id": "diamond-state-health-plan",
       "name": "Diamond State Health Plan (DSHP and DSHP-Plus)",
       "shortName": "Diamond State Health Plan",
       "tagline": "Comprehensive Medicaid coverage for Delaware residents, including long-term care services for seniors who need daily assistance.",
@@ -182,7 +182,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "de-dsaapd-waivers",
+      "id": "dsaapd-waivers",
       "name": "Division of Services for Aging and Adults with Physical Disabilities (DSAAPD) Waivers",
       "shortName": "DSAAPD Waivers",
       "tagline": "Home care services that let your parent avoid nursing home placement while getting daily help with bathing, dressing, and mobility.",
@@ -365,7 +365,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "de-pace-comprehensive-care",
+      "id": "pace-comprehensive-care",
       "name": "Program of All-Inclusive Care for the Elderly (PACE) - Delaware PACE",
       "shortName": "Delaware PACE",
       "tagline": "All medical care, medications, and services under one program with no co-pays or deductibles for qualifying seniors 55+.",
@@ -557,7 +557,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "de-qmb-slmb-medicare-help",
+      "id": "qmb-slmb-medicare-help",
       "name": "Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB)",
       "shortName": "QMB/SLMB",
       "tagline": "Delaware pays your parent's Medicare premiums and co-pays if their income is under $1,585/month.",
@@ -728,7 +728,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "de-snap-food-benefits",
+      "id": "snap-food-benefits",
       "name": "Food Stamp Program (SNAP)",
       "shortName": "SNAP",
       "tagline": "Up to $291/month toward groceries for Delaware seniors on fixed incomes",
@@ -939,7 +939,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "de-liheap-energy-assistance",
+      "id": "liheap-energy-assistance",
       "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
       "shortName": "LIHEAP",
       "tagline": "Help paying heating and cooling bills for households earning under $3,278/month",
@@ -1129,7 +1129,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "de-weatherization-assistance-program",
+      "id": "weatherization-assistance-program",
       "name": "Weatherization Assistance Program (WAP)",
       "shortName": "WAP Weatherization",
       "tagline": "Free home weatherization services to cut your parent's heating and cooling costs if household income is under $30,120 (single person).",
@@ -1335,7 +1335,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "de-senior-medicare-patrol",
+      "id": "senior-medicare-patrol",
       "name": "Delaware Senior Medicare Patrol (SMP/SHIP)",
       "shortName": "Medicare Patrol",
       "tagline": "Free help protecting your parent from Medicare fraud and resolving billing disputes",
@@ -1481,7 +1481,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "de-home-delivered-meals",
+      "id": "home-delivered-meals",
       "name": "Home Delivered Meals (Meals on Wheels)",
       "shortName": "Meals on Wheels",
       "tagline": "Free home-delivered meals for homebound seniors who can't prepare food themselves",
@@ -1648,7 +1648,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "de-scsep-employment",
+      "id": "scsep-employment",
       "name": "Senior Community Service Employment Program (SCSEP)",
       "shortName": "SCSEP",
       "tagline": "Part-time paid work experience and job training for Delaware adults 55+ who need employment but face barriers to finding work.",
@@ -1814,7 +1814,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "de-legal-aid-seniors",
+      "id": "legal-aid-seniors",
       "name": "Legal Aid for Seniors",
       "shortName": "Legal Aid",
       "tagline": "Free legal help for seniors facing eviction, benefit denials, or financial abuse.",
@@ -1956,7 +1956,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "de-long-term-care-ombudsman",
+      "id": "long-term-care-ombudsman",
       "name": "Long-Term Care Ombudsman Program",
       "shortName": "Ombudsman Program",
       "tagline": "Free advocacy when your parent faces problems in their nursing home or assisted living facility.",

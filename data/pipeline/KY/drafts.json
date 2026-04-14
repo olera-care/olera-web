@@ -6,7 +6,7 @@
   "successful": 16,
   "programs": [
     {
-      "id": "ky-medicaid-long-term-care",
+      "id": "medicaid-long-term-care",
       "name": "Kentucky Medicaid",
       "shortName": "Kentucky Medicaid",
       "tagline": "If your parent needs daily care help and has limited income, Medicaid can cover nursing home costs or home-based services.",
@@ -178,7 +178,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ky-hcbs-waivers",
+      "id": "hcbs-waivers",
       "name": "Kentucky Home and Community-Based Services (HCBS) Waivers",
       "shortName": "HCBS Waivers",
       "tagline": "Get Medicaid-funded home care services so your parent can avoid nursing home placement while receiving daily assistance.",
@@ -480,7 +480,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ky-medicare-savings-programs-qmb-slmb-qi",
+      "id": "medicare-savings-programs-qmb-slmb-qi",
       "name": "Kentucky Medicare Savings Programs (QMB, SLMB, QI)",
       "shortName": "Medicare Savings Programs",
       "tagline": "If your parent has Medicare and low income, Kentucky can pay their premiums and out-of-pocket costs — up to thousands per year in savings.",
@@ -682,7 +682,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ky-snap-food-benefits",
+      "id": "snap-food-benefits",
       "name": "SNAP (Supplemental Nutrition Assistance Program)",
       "shortName": "SNAP",
       "tagline": "Monthly grocery assistance for Kentucky seniors 60+ on fixed incomes",
@@ -880,7 +880,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ky-energy-assistance-liheap",
+      "id": "energy-assistance-liheap",
       "name": "Kentucky Energy Assistance Program (LIHEAP)",
       "shortName": "Kentucky LIHEAP",
       "tagline": "Help paying heating and cooling bills if your parent's income is low and they're facing high energy costs",
@@ -1038,7 +1038,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ky-weatherization-assistance-program",
+      "id": "weatherization-assistance-program",
       "name": "Kentucky Weatherization Assistance Program",
       "shortName": "KY Weatherization",
       "tagline": "Free home energy improvements that can cut your parent's heating and cooling bills by hundreds of dollars annually.",
@@ -1229,7 +1229,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ky-ship-medicare-counseling",
+      "id": "ship-medicare-counseling",
       "name": "Kentucky State Health Insurance Assistance Program (SHIP)",
       "shortName": "Kentucky SHIP",
       "tagline": "Free Medicare counseling to help your parent navigate coverage options and save money on healthcare costs",
@@ -1367,7 +1367,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ky-meals-on-wheels",
+      "id": "meals-on-wheels",
       "name": "Kentucky Meals on Wheels",
       "shortName": "Meals on Wheels",
       "tagline": "Daily meal delivery to your parent's home when they can't cook for themselves",
@@ -1508,7 +1508,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ky-national-family-caregiver-support",
+      "id": "national-family-caregiver-support",
       "name": "National Family Caregiver Support Program / Kentucky Family Caregiver Program",
       "shortName": "Family Caregiver Support",
       "tagline": "Free respite care, support groups, and caregiver training for families caring for aging parents or raising grandchildren.",
@@ -1674,7 +1674,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ky-senior-community-service-employment",
+      "id": "senior-community-service-employment",
       "name": "Senior Community Service Employment Program (SCSEP)",
       "shortName": "SCSEP Kentucky",
       "tagline": "Part-time paid training at nonprofits for unemployed adults 55+ to build job skills and income",
@@ -1836,7 +1836,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ky-legal-aid-seniors",
+      "id": "legal-aid-seniors",
       "name": "Kentucky Legal Aid for Seniors",
       "shortName": "Legal Aid",
       "tagline": "Free legal help with Medicaid eligibility, asset transfers, and elder law issues for seniors 60+",
@@ -1993,7 +1993,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ky-long-term-care-ombudsman",
+      "id": "long-term-care-ombudsman",
       "name": "Kentucky Long-Term Care Ombudsman Program",
       "shortName": "LTC Ombudsman",
       "tagline": "Free advocacy if your parent is in a nursing home, personal care home, or family care home and facing problems with care or treatment.",
@@ -2123,7 +2123,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ky-hcb-waiver",
+      "id": "hcb-waiver",
       "name": "Home and Community Based (HCB) Waiver",
       "shortName": "HCB Waiver",
       "tagline": "Medicaid waiver covering home care, meal delivery, and home modifications so your parent can stay home instead of moving to a nursing facility",
@@ -2280,7 +2280,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ky-money-follows-person",
+      "id": "money-follows-person",
       "name": "Money Follows the Person (Kentucky Transitions)",
       "shortName": "Kentucky Transitions",
       "tagline": "Helps your parent move from a nursing home back to their own home with enhanced support services for one year.",
@@ -2439,7 +2439,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ky-senior-meals-program",
+      "id": "senior-meals-program",
       "name": "State-Funded Senior Meals Program",
       "shortName": "Senior Meals",
       "tagline": "Free daily meals delivered to your parent's home or at local senior centers throughout Kentucky.",

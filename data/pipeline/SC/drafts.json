@@ -6,7 +6,7 @@
   "successful": 14,
   "programs": [
     {
-      "id": "sc-community-choices-waiver",
+      "id": "community-choices-waiver",
       "name": "Community Choices Waiver",
       "shortName": "Community Choices",
       "tagline": "Medicaid waiver that pays for home care services so your parent can avoid nursing home placement",
@@ -194,7 +194,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "sc-medicare-savings-programs",
+      "id": "medicare-savings-programs",
       "name": "Medicare Savings Programs (QMB, SLMB, QI)",
       "shortName": "Medicare Savings Programs",
       "tagline": "If your parent's income is under $1,620/month, they could get their Medicare premiums and copays paid for free.",
@@ -438,7 +438,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "sc-snap-food-benefits",
+      "id": "snap-food-benefits",
       "name": "SNAP (Food Assistance)",
       "shortName": "SNAP Food Benefits",
       "tagline": "If your parent is 60+ and on a fixed income, they may qualify for $100–400/month toward groceries",
@@ -626,7 +626,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "sc-liheap-energy-assistance",
+      "id": "liheap-energy-assistance",
       "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
       "shortName": "LIHEAP",
       "tagline": "Up to $1,500/year toward your parent's heating and cooling bills, plus crisis help when utilities face disconnection",
@@ -871,7 +871,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "sc-weatherization-assistance",
+      "id": "weatherization-assistance",
       "name": "Weatherization Assistance Program",
       "shortName": "Weatherization Assistance",
       "tagline": "Free home insulation and energy improvements for low-income seniors to reduce utility bills permanently.",
@@ -1064,7 +1064,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "sc-ship-i-care",
+      "id": "ship-i-care",
       "name": "SHIP / I-Care",
       "shortName": "SHIP / I-Care",
       "tagline": "Free Medicare counseling to help your parent choose the right plan and resolve insurance problems.",
@@ -1197,7 +1197,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "sc-congregate-home-delivered-meals",
+      "id": "congregate-home-delivered-meals",
       "name": "Congregate Meals / Home Delivered Meals",
       "shortName": "Senior Meal Programs",
       "tagline": "If your parent is 60+ and struggles to shop or cook, they may qualify for daily delivered meals or group dining at local senior centers.",
@@ -1375,7 +1375,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "sc-legal-assistance-seniors",
+      "id": "legal-assistance-seniors",
       "name": "Legal Assistance for Seniors",
       "shortName": "Legal Assistance",
       "tagline": "Free legal help for seniors 60+ facing housing, healthcare, income protection, and elder abuse issues.",
@@ -1527,7 +1527,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "sc-long-term-care-ombudsman",
+      "id": "long-term-care-ombudsman",
       "name": "Long-Term Care Ombudsman Program",
       "shortName": "Ombudsman Program",
       "tagline": "Free advocacy when your parent faces problems with their nursing home or assisted living facility.",
@@ -1653,7 +1653,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "sc-homestead-exemption-property-tax",
+      "id": "homestead-exemption-property-tax",
       "name": "Homestead Exemption (State Property Tax Assistance)",
       "shortName": "Homestead Exemption",
       "tagline": "Reduce your parent's property taxes by up to $50,000 in assessed value if they're 65+ and own their home.",
@@ -1810,7 +1810,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "sc-esap-food-benefits",
+      "id": "esap-food-benefits",
       "name": "Elderly Simplified Application Project (ESAP)",
       "shortName": "ESAP Food Benefits",
       "tagline": "If your parent is 60+ with no work income, this simplified SNAP pathway provides monthly grocery assistance with minimal paperwork.",
@@ -1969,7 +1969,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "sc-senior-farmers-market-nutrition",
+      "id": "senior-farmers-market-nutrition",
       "name": "Senior Farmers Market Nutrition Program (SFMNP)",
       "shortName": "SFMNP",
       "tagline": "If your parent is 60+ and on a low income, they can get $50 worth of vouchers each year for fresh produce at farmers' markets.",
@@ -2128,7 +2128,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "sc-vantage-point",
+      "id": "vantage-point",
       "name": "Vantage Point",
       "shortName": "Vantage Point",
       "tagline": "Connects seniors in South Carolina's Pee Dee region to home-delivered meals, caregiver support, and health insurance counseling to help them stay independent.",
@@ -2272,7 +2272,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "sc-senior-medicare-patrol",
+      "id": "senior-medicare-patrol",
       "name": "Senior Medicare Patrol",
       "shortName": "Medicare Patrol",
       "tagline": "Get help spotting Medicare fraud and errors that could be costing your family hundreds of dollars.",

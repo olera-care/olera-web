@@ -6,7 +6,7 @@
   "successful": 13,
   "programs": [
     {
-      "id": "ak-medicaid-seniors-disabled",
+      "id": "medicaid-seniors-disabled",
       "name": "Medicaid for Seniors/Disabled",
       "shortName": "Alaska Medicaid",
       "tagline": "Comprehensive health coverage including nursing home care and home-based services for Alaskans 65+ or disabled with limited income.",
@@ -232,7 +232,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ak-hcbs-waiver",
+      "id": "hcbs-waiver",
       "name": "Home and Community-Based Services Waiver",
       "shortName": "HCBS Waiver",
       "tagline": "Comprehensive home care services to help your parent avoid nursing home placement while staying Medicaid-eligible.",
@@ -405,7 +405,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ak-pace-elderly-care",
+      "id": "pace-elderly-care",
       "name": "Program of All-Inclusive Care for the Elderly (PACE)",
       "shortName": "PACE",
       "tagline": "All-in-one medical care and support services to keep your parent out of a nursing home — if a provider operated in Alaska.",
@@ -557,7 +557,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ak-medicare-savings-programs",
+      "id": "medicare-savings-programs",
       "name": "Medicare Savings Programs (QMB, SLMB, QI)",
       "shortName": "Medicare Savings Programs",
       "tagline": "Help paying Medicare premiums, deductibles, and copays if your parent's income is below $2,245/month",
@@ -778,7 +778,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ak-snap-food-benefits",
+      "id": "snap-food-benefits",
       "name": "Supplemental Nutrition Assistance Program (SNAP)",
       "shortName": "SNAP Food Benefits",
       "tagline": "Monthly grocery assistance for seniors on fixed incomes — up to hundreds per month on an EBT card.",
@@ -996,7 +996,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ak-liheap-energy-assistance",
+      "id": "liheap-energy-assistance",
       "name": "Low Income Home Energy Assistance Program (LIHEAP)",
       "shortName": "LIHEAP Alaska",
       "tagline": "Get help paying heating bills and preventing utility shut-offs if your parent is on a fixed income.",
@@ -1209,7 +1209,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ak-weatherization-assistance-program",
+      "id": "weatherization-assistance-program",
       "name": "Weatherization Assistance Program",
       "shortName": "Weatherization Assistance",
       "tagline": "Get up to $4,000 in free home weatherization services to reduce your parent's energy bills",
@@ -1413,7 +1413,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ak-ship-medicare-counseling",
+      "id": "ship-medicare-counseling",
       "name": "State Health Insurance Assistance Program (SHIP)",
       "shortName": "SHIP Counseling",
       "tagline": "Free one-on-one help navigating your parent's Medicare options, appeals, and cost-saving programs.",
@@ -1551,7 +1551,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ak-meals-on-wheels",
+      "id": "meals-on-wheels",
       "name": "Meals on Wheels (Senior Meals Program)",
       "shortName": "Meals on Wheels",
       "tagline": "Free daily hot meals delivered to your parent's home if they have trouble shopping or cooking independently.",
@@ -1716,7 +1716,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ak-alzheimers-family-caregiver-support",
+      "id": "alzheimers-family-caregiver-support",
       "name": "Alzheimer's Family Caregiver Support Program",
       "shortName": "Alzheimer's Caregiver Support",
       "tagline": "Get respite care, counseling, and training when you're caring for a parent with Alzheimer's or dementia.",
@@ -1881,7 +1881,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ak-scsep-masst-employment",
+      "id": "scsep-masst-employment",
       "name": "Senior Community Service Employment Program (SCSEP) / Mature Alaskans Seeking Skills Training (MASST)",
       "shortName": "MASST Employment",
       "tagline": "Part-time paid work placement for unemployed Alaskans 55+ while building skills for permanent employment.",
@@ -2050,7 +2050,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ak-legal-services-senior-hotline",
+      "id": "legal-services-senior-hotline",
       "name": "Alaska Legal Services Corporation (ALSC) Senior Legal Hotline",
       "shortName": "ALSC Senior Legal",
       "tagline": "Free legal help for seniors 60+ with housing, benefits, healthcare, and other civil legal problems.",
@@ -2233,7 +2233,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ak-long-term-care-ombudsman",
+      "id": "long-term-care-ombudsman",
       "name": "Long-Term Care Ombudsman Program",
       "shortName": "Ombudsman Program",
       "tagline": "Free advocacy when your parent faces problems in their nursing home or assisted living facility.",

@@ -6,7 +6,7 @@
   "successful": 3,
   "programs": [
     {
-      "id": "wy-state-parks-senior-discounts",
+      "id": "state-parks-senior-discounts",
       "name": "Wyoming State Parks Senior Discounts",
       "shortName": "State Parks Senior Discounts",
       "tagline": "Save on camping, day passes, and cabin rentals at all Wyoming state parks and historic sites if your parent is 62+",
@@ -145,7 +145,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "wy-liheap-energy-assistance",
+      "id": "liheap-energy-assistance",
       "name": "Low Income Energy Assistance Program (LIHEAP)",
       "shortName": "LIHEAP",
       "tagline": "Help paying winter heating bills — up to $2,176 per year for qualifying Wyoming families.",
@@ -322,7 +322,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "wy-tax-refund-elderly-disabled",
+      "id": "tax-refund-elderly-disabled",
       "name": "Wyoming Tax Refund for Elderly & Disabled",
       "shortName": "Wyoming Tax Refund",
       "tagline": "Annual refunds of $250–900 to help Wyoming seniors cover property taxes and utility costs.",

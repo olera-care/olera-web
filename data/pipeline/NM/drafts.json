@@ -6,7 +6,7 @@
   "successful": 5,
   "programs": [
     {
-      "id": "nm-centennial-care-community-benefit",
+      "id": "centennial-care-community-benefit",
       "name": "Centennial Care Community Benefit Program",
       "shortName": "Community Benefit Program",
       "tagline": "Home care services for New Mexico seniors on Medicaid who need help with daily activities",
@@ -182,7 +182,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nm-pace-comprehensive-care",
+      "id": "pace-comprehensive-care",
       "name": "Program of All-Inclusive Care for the Elderly (PACE)",
       "shortName": "PACE",
       "tagline": "Complete medical care, meals, transportation, and home services under one program for parents who need nursing home level care but want to stay home.",
@@ -350,7 +350,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nm-community-benefit-program",
+      "id": "community-benefit-program",
       "name": "Community Benefit Program",
       "shortName": "Community Benefit",
       "tagline": "Home care services for your parent who needs daily help but wants to stay home instead of entering a nursing home.",
@@ -557,7 +557,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nm-senior-farmers-market-nutrition",
+      "id": "senior-farmers-market-nutrition",
       "name": "New Mexico Senior Farmers' Market Nutrition Program (SFMNP)",
       "shortName": "Senior Farmers Market",
       "tagline": "Up to $100/year toward fresh fruits and vegetables at local farmers markets for seniors on fixed incomes",
@@ -741,7 +741,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "nm-senior-employment-training-program",
+      "id": "senior-employment-training-program",
       "name": "Senior Community Service Employment Program (SCSEP)",
       "shortName": "SCSEP Training",
       "tagline": "Part-time subsidized training positions for unemployed parents 55+ earning below $19,000-$25,500 annually",

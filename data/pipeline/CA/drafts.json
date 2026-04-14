@@ -6,7 +6,7 @@
   "successful": 17,
   "programs": [
     {
-      "id": "ca-medi-cal-medicare-savings-programs",
+      "id": "medi-cal-medicare-savings-programs",
       "name": "Medi-Cal Medicare Savings Programs (QMB, SLMB, QI)",
       "shortName": "Medicare Savings Programs",
       "tagline": "California pays your parent's Medicare premiums and out-of-pocket costs if their income is under $1,762/month",
@@ -215,7 +215,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ca-mssp-waiver",
+      "id": "mssp-waiver",
       "name": "Multipurpose Senior Services Program Waiver (MSSP)",
       "shortName": "MSSP Waiver",
       "tagline": "If your parent needs daily care but wants to stay home, this California program provides nursing oversight, personal care, meals, and other services to avoid nursing home placement.",
@@ -403,7 +403,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ca-cbas-adult-day-services",
+      "id": "cbas-adult-day-services",
       "name": "Community Based Adult Services (CBAS)",
       "shortName": "CBAS Adult Day Services",
       "tagline": "Daytime health supervision and activities for adults who need help with daily care but live at home.",
@@ -563,7 +563,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ca-calfresh-food-benefits",
+      "id": "calfresh-food-benefits",
       "name": "CalFresh",
       "shortName": "CalFresh",
       "tagline": "Up to $298/month for groceries if your parent is 60+ and on a limited income.",
@@ -785,7 +785,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ca-liheap-energy-assistance",
+      "id": "liheap-energy-assistance",
       "name": "LIHEAP (Low-Income Home Energy Assistance Program)",
       "shortName": "LIHEAP Energy Assistance",
       "tagline": "Help paying your parent's heating and cooling bills if they're on a fixed income.",
@@ -994,7 +994,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ca-weatherization-assistance-program",
+      "id": "weatherization-assistance-program",
       "name": "Weatherization Assistance Program (WAP)",
       "shortName": "WAP",
       "tagline": "Free home energy efficiency upgrades that can save your parent over $400 per year on utility bills.",
@@ -1177,7 +1177,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ca-hicap-medicare-counseling",
+      "id": "hicap-medicare-counseling",
       "name": "Health Insurance Counseling and Advocacy Program (HICAP)",
       "shortName": "HICAP",
       "tagline": "Free Medicare counseling to help your parent understand their insurance options and find cost-saving programs.",
@@ -1309,7 +1309,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ca-meals-on-wheels-aaa",
+      "id": "meals-on-wheels-aaa",
       "name": "Meals on Wheels (via Older Americans Act / CA Dept. of Aging)",
       "shortName": "Meals on Wheels",
       "tagline": "Free home-delivered meals for homebound seniors 60+ who can't shop or cook safely",
@@ -1458,7 +1458,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ca-mssp-caregiver-support",
+      "id": "mssp-caregiver-support",
       "name": "Multipurpose Senior Services Program (MSSP) Caregiver Support",
       "shortName": "MSSP Caregiver Support",
       "tagline": "Comprehensive care coordination to help your parent stay at home instead of nursing facility placement.",
@@ -1608,7 +1608,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ca-scsep-employment-program",
+      "id": "scsep-employment-program",
       "name": "Senior Community Service Employment Program (SCSEP)",
       "shortName": "SCSEP Employment",
       "tagline": "Paid work training for unemployed seniors 55+ to build job skills and earn income while gaining experience.",
@@ -1813,7 +1813,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ca-senior-legal-services",
+      "id": "senior-legal-services",
       "name": "California Senior Legal Services (via Legal Services Inc. / Area Agencies)",
       "shortName": "Senior Legal Services",
       "tagline": "Free legal help for seniors 60+ facing housing, benefits, elder abuse, and consumer protection issues.",
@@ -1954,7 +1954,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ca-long-term-care-ombudsman",
+      "id": "long-term-care-ombudsman",
       "name": "Long-Term Care Ombudsman Program",
       "shortName": "Ombudsman Program",
       "tagline": "Free advocacy when your parent faces problems with nursing home or assisted living care quality, safety, or rights.",
@@ -2084,7 +2084,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ca-ssp-supplemental-payment",
+      "id": "ssp-supplemental-payment",
       "name": "State Supplementary Payment (SSP)",
       "shortName": "SSP",
       "tagline": "Extra cash assistance for California seniors and disabled adults receiving federal SSI benefits",
@@ -2269,7 +2269,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ca-property-tax-postponement",
+      "id": "property-tax-postponement",
       "name": "Property Tax Postponement Program",
       "shortName": "Property Tax Postponement",
       "tagline": "Defer your parent's property taxes if they're 62+ on fixed income — taxes postponed with 7% interest until the home is sold.",
@@ -2419,7 +2419,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ca-ihss-in-home-supportive-services",
+      "id": "ihss-in-home-supportive-services",
       "name": "In-Home Supportive Services (IHSS)",
       "shortName": "IHSS",
       "tagline": "If your parent needs daily help at home but doesn't qualify for nursing home care, IHSS provides up to 283 hours/month of personal care and housework support.",
@@ -2611,7 +2611,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ca-caregiver-resource-centers",
+      "id": "caregiver-resource-centers",
       "name": "Caregiver Resource Centers (CRC)",
       "shortName": "CRC",
       "tagline": "Free counseling, respite care funding, and support services for California families caring for adults with dementia, stroke, or other chronic conditions.",
@@ -2762,7 +2762,7 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "ca-cbas-adult-day-services",
+      "id": "cbas-adult-day-services",
       "name": "Community-Based Adult Services (CBAS)",
       "shortName": "CBAS Adult Day Services",
       "tagline": "Free adult day services at certified centers for parents who qualify for Medi-Cal and need daily care support",

@@ -113,25 +113,33 @@ function MedJobsOnboardContent() {
         // 1. Show interview card IMMEDIATELY (no auth required)
         setStep("interview");
 
-        // Verify the interviews API can see this interview before enabling
-        // the "View Interviews" button. Without this, a fast click races the
-        // placeholder-profile link commit and lands on an empty calendar.
-        const waitForInterviewVisible = async (): Promise<void> => {
-          for (let attempt = 0; attempt < 6; attempt++) {
+        // Pre-fetch the interviews list and stash it in sessionStorage so the
+        // calendar page can render immediately, even if its own API call
+        // races the placeholder-profile link commit. This is the only way to
+        // consistently dodge the race — a direct API poll here doesn't
+        // transfer state to the next page load.
+        const prefetchAndStash = async (): Promise<void> => {
+          for (let attempt = 0; attempt < 8; attempt++) {
             try {
               const res = await fetch("/api/medjobs/interviews", { cache: "no-store" });
               if (res.ok) {
                 const data = await res.json();
-                const found = (data.interviews ?? []).some(
-                  (iv: { id: string }) => iv.id === actionIdParam
-                );
-                if (found) return;
+                const list = (data.interviews ?? []) as Array<{ id: string }>;
+                const found = list.some((iv) => iv.id === actionIdParam);
+                if (found) {
+                  try {
+                    sessionStorage.setItem(
+                      "medjobs:pending_interviews",
+                      JSON.stringify({ list, at: Date.now() })
+                    );
+                  } catch { /* quota / private mode */ }
+                  return;
+                }
               }
             } catch { /* continue */ }
-            await new Promise((r) => setTimeout(r, 400));
+            await new Promise((r) => setTimeout(r, 500));
           }
-          // Timeout — proceed anyway; calendar will still render whatever
-          // it can fetch at render time.
+          // Timeout — proceed; calendar will rely on its own fetch.
         };
 
         // 2. Background auto-sign-in — invisible to the provider
@@ -152,8 +160,8 @@ function MedJobsOnboardContent() {
                   });
                   await refreshAccountData();
                   switchProfile(providerProfileId);
-                  await waitForInterviewVisible();
                 }
+                await prefetchAndStash();
                 setIsSignedIn(true);
                 console.log("[MedJobs OneClick] Already signed in as owner");
                 return;
@@ -205,7 +213,7 @@ function MedJobsOnboardContent() {
               console.log("[MedJobs OneClick] Profile linked");
               await refreshAccountData();
               switchProfile(providerProfileId);
-              await waitForInterviewVisible();
+              await prefetchAndStash();
               setIsSignedIn(true);
             } else {
               const linkData = await linkRes.json();

@@ -525,11 +525,77 @@ function DraftPreview({ draft, stateId, allReviews, onReviewAdded }: { draft: Pi
   );
 }
 
+// ─── Review Guide ──────────────────────────────────────────────────────────
+// Collapsible checklist shown in the admin dashboard to help reviewers spot-
+// check content. Two variants: "state" (cross-program review) and "program"
+// (factual precision on one program). Uses native <details> — no state, no
+// localStorage, zero height when collapsed. Intended to be quiet guidance
+// available when wanted, invisible when not.
+
+function ReviewGuide({ variant }: { variant: "state" | "program" }) {
+  const intro = variant === "state"
+    ? "Before approving this state, verify:"
+    : "For this program, verify:";
+
+  const items = variant === "state"
+    ? [
+        { label: "Intro tone", body: "Read the first paragraph. Does it sound like a thoughtful guide or a government pamphlet?" },
+        { label: "Where to start picks", body: "Do the 3–4 featured programs match what a caregiver would actually want first — not a bureaucratic top-down list?" },
+        { label: "Cross-program consistency", body: "Do age and income thresholds line up across related programs (Medicaid + MSP, SNAP + LIHEAP)?" },
+        { label: "Factcheck flags", body: "Open data/pipeline/FACTCHECK_TRIAGE_2026-04-14.md and scan for this state. Any high-severity flag needs eyes before approve." },
+        { label: "Sample one program deeply", body: "Expand any program row below and follow its spot-check guide." },
+      ]
+    : [
+        { label: "Age is the senior threshold", body: "If the program serves multiple populations (kids + elderly, or any-adult disability + senior pathway), confirm the draft captures the senior threshold (55/60/65), not a compound-program floor age." },
+        { label: "Income and asset limits are current", body: "Click the .gov source URL in the application guide and confirm the dollar amounts match what's on the state's page." },
+        { label: "Phone connects", body: "Dial one number from the program. Does it reach the right office? Hours match?" },
+        { label: "Application URL works", body: "Click through to the linked application page. Is it active, current, and the right program?" },
+        { label: "FAQs are decision-making, not definitional", body: "Good: \"Can my parent keep their house if assets are over $2,000?\" Bad: \"What is SNAP?\" The intro already explains what the program is." },
+      ];
+
+  return (
+    <details className="group">
+      <summary className="inline-flex items-center gap-1 text-[11px] font-medium text-gray-500 hover:text-gray-700 cursor-pointer select-none list-none">
+        <svg
+          className="w-3 h-3 transition-transform group-open:rotate-90"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        </svg>
+        Spot-check guide
+      </summary>
+      <div className="mt-3 p-4 rounded-lg bg-vanilla-50 border border-vanilla-200">
+        <p className="text-xs font-medium text-gray-700 mb-3">{intro}</p>
+        <ol className="space-y-2.5">
+          {items.map((item, i) => (
+            <li key={i} className="flex gap-2.5 text-xs text-gray-600 leading-relaxed">
+              <span className="flex-shrink-0 w-4 h-4 rounded-full bg-white border border-gray-300 text-[10px] font-semibold text-gray-500 flex items-center justify-center mt-0.5">
+                {i + 1}
+              </span>
+              <span>
+                <span className="font-semibold text-gray-700">{item.label}</span>
+                {" — "}
+                {item.body}
+              </span>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </details>
+  );
+}
+
 function ProgramPreview({ program, stateId, pipelineComparison, draft, allReviews, onReviewAdded }: { program: WaiverProgram; stateId: string; pipelineComparison?: PipelineComparison; draft?: PipelineDraft; allReviews?: DraftReview[]; onReviewAdded?: () => void }) {
   const [showDraft, setShowDraft] = useState(draft ? true : false);
 
   return (
     <div className="mt-4 pt-4 border-t border-gray-100 space-y-5">
+      {/* Spot-check guide — collapsed by default */}
+      <ReviewGuide variant="program" />
+
       {/* Draft toggle + preview */}
       {draft && (
         <div className="flex items-center justify-between">
@@ -1002,6 +1068,11 @@ function StateDetail({
             {stateOverview ? "Preview v2" : "Preview page"}
           </a>
         </div>
+      </div>
+
+      {/* Spot-check guide — collapsed by default */}
+      <div className="mb-5">
+        <ReviewGuide variant="state" />
       </div>
 
       {/* State overview — collapsed by default, inline disclosure */}

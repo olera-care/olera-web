@@ -236,9 +236,14 @@ export default function SmartDashboardShell({
           provider={provider}
           completenessPercent={completeness.overall}
           onReviewsClick={() => {
-            // Store intended destination for after claim
-            sessionStorage.setItem("olera_post_claim_redirect", "/provider/reviews");
-            onClaimClick();
+            if (isSignedIn) {
+              // Already signed in via magic link - redirect directly
+              window.location.href = "/provider/reviews";
+            } else {
+              // Need to auth first - store destination for after claim
+              sessionStorage.setItem("olera_post_claim_redirect", "/provider/reviews");
+              onClaimClick();
+            }
           }}
         />
       </div>

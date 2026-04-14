@@ -678,6 +678,9 @@ export default function ProviderOnboardPage() {
   const hasProviderProfile = (profiles || []).some((p) => p.type === "organization");
 
   const handleClaimClick = useCallback(async () => {
+    // Clear any stale redirect from previous attempts (e.g., if user cancelled auth modal)
+    sessionStorage.removeItem("olera_post_claim_redirect");
+
     // If user is signed in AND has a provider profile, call claim-listing API directly
     if (user && hasProviderProfile) {
       setStep("finalizing");
@@ -773,6 +776,7 @@ export default function ProviderOnboardPage() {
             <button
               onClick={() => {
                 clearClaimSession();
+                sessionStorage.removeItem("olera_post_claim_redirect");
                 window.location.reload();
               }}
               className="px-5 py-2.5 bg-primary-600 text-white font-semibold rounded-xl hover:bg-primary-700 transition-colors min-h-[44px]"
@@ -806,6 +810,13 @@ export default function ProviderOnboardPage() {
 
   // Get button text based on action type
   const getSuccessButtonText = () => {
+    // Check for stored redirect from reviews card click
+    const storedRedirect = typeof window !== "undefined"
+      ? sessionStorage.getItem("olera_post_claim_redirect")
+      : null;
+    if (storedRedirect === "/provider/reviews") {
+      return "Go to Reviews";
+    }
     if (actionParam === "lead" || actionParam === "message") {
       return "View Message";
     } else if (actionParam === "question") {

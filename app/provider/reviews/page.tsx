@@ -298,24 +298,22 @@ function LandingView({
   onRequestReview: () => void;
 }) {
   return (
-    <div className="flex flex-col">
-      {/* Hero image - compact aspect ratio */}
-      <div className="relative -mx-5 -mt-5 lg:-mx-6 lg:-mt-6 overflow-hidden">
-        <div className="aspect-[5/2] sm:aspect-[3/1] relative">
+    <div className="flex flex-col h-full min-h-[460px]">
+      {/* Hero image - contained within card padding */}
+      <div className="relative rounded-xl overflow-hidden mb-6">
+        <div className="aspect-[16/9] relative">
           <img
             src="/Reviews-image.png"
             alt="Caregiver helping senior"
             className="absolute inset-0 w-full h-full object-cover object-center"
           />
-          {/* Warm gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-white via-white/5 to-transparent" />
         </div>
       </div>
 
-      {/* Content */}
-      <div className="pt-5 pb-1 text-center">
-        {/* Compelling stat with subtle visual treatment */}
-        <div className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-amber-50/80 border border-amber-100/60 mb-6">
+      {/* Content - vertically stacked, centered */}
+      <div className="flex flex-col items-center flex-1 justify-center">
+        {/* Compelling stat badge */}
+        <div className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-amber-50/80 border border-amber-100/60 mb-5">
           <StarIcon className="w-4 h-4 text-amber-500 shrink-0" />
           <p className="text-sm text-gray-700">
             Providers{city ? ` in ${city.length > 20 ? city.slice(0, 18) + "…" : city}` : ""} with 10+ reviews get{" "}
@@ -323,7 +321,7 @@ function LandingView({
           </p>
         </div>
 
-        {/* CTA Button - content-width, centered */}
+        {/* CTA Button - stacked below badge */}
         <button
           type="button"
           onClick={onRequestReview}

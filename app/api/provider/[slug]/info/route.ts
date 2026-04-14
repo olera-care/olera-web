@@ -107,6 +107,7 @@ export async function GET(
         .from("olera-providers")
         .select("place_id")
         .eq("provider_id", profile.source_provider_id)
+        .not("deleted", "is", true)
         .maybeSingle();
 
       if (linkedProvider?.place_id) {

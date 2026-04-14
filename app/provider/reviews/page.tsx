@@ -1318,7 +1318,7 @@ export default function ProviderReviewsPage() {
               Reviews
             </h1>
             <p className="text-[15px] text-gray-500 mt-1.5 leading-relaxed">
-              Ask happy clients to leave a Google review.
+              Help families find you.
             </p>
           </div>
 

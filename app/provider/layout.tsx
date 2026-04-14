@@ -19,8 +19,7 @@ export default function ProviderLayout({ children }: { children: ReactNode }) {
 
   // Public provider pages that manage their own auth state — skip layout gates
   // Includes: /provider/[slug] (detail), /provider/[slug]/onboard, /provider/welcome
-  // Also: /provider/medjobs/onboard (magic link landing for interview scheduling)
-  const PUBLIC_ROUTES = ["/provider/welcome", "/provider/medjobs/onboard"];
+  const PUBLIC_ROUTES = ["/provider/welcome"];
   const isPublicRoute = PUBLIC_ROUTES.includes(pathname) ||
     (pathname.startsWith("/provider/") && !pathname.startsWith("/provider/connections") &&
      !pathname.startsWith("/provider/inbox") && !pathname.startsWith("/provider/reviews") &&

@@ -89,7 +89,9 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 
 **🚦 QUEUED FOR NEXT SESSION (2026-04-14): Shake down `pipeline-batch-v2.js` on a small city batch.**
 
-Context for the next-session Claude: PR #539 merged `scripts/pipeline-batch-v2.js` into staging yesterday (2026-04-13). It's an opt-in fork of the production pipeline with four improvements we want to validate before making it the default. Read `.claude/commands/city-pipeline.md` → "v2 script — opt-in shakedown" section for the full feature list and risks.
+Context for the next-session Claude: PR #539 merged `scripts/pipeline-batch-v2.js` into staging on 2026-04-13. It's an opt-in fork of the production pipeline with **three** improvements we want to validate before making it the default. Read `.claude/commands/city-pipeline.md` → "v2 script — opt-in shakedown" section for the full feature list and risks.
+
+**CRITICAL: do NOT try to set `NOTION_TOKEN` in `.env.local` to "fix" Notion writes.** The in-script Notion path has a history of silent failures in this repo — TJ has been burned by similar advice multiple times. Claude handles Notion via the `mcp__notion__*` MCP integration from subagents instead, which uses a different auth layer and works reliably. This is the canonical pattern. PR #540 (merged into staging 2026-04-14) removed the per-city Notion streaming feature that was in an earlier v2 draft for exactly this reason. Do not re-add it.
 
 **Shakedown plan:**
 1. **Pick a small batch first** — 5-10 cities, not the usual 150+. Good candidates: a fresh batch from the expansion map tool filtered to under 10 rows, or a hand-picked list of 5 thin cities that haven't been touched.
@@ -105,10 +107,10 @@ Context for the next-session Claude: PR #539 merged `scripts/pipeline-batch-v2.j
    - **Live site check noise**: will log loud failures on fresh cities before Vercel ISR warms. Non-fatal but will clutter the final report. Expected.
    - **Pooled AI batches of 80**: if Perplexity returns truncated/malformed JSON, too many providers fall into the "keep to be safe" fallback and dilute filter quality. If you notice many more providers surviving classify than usual (compare to v1 baselines in past sessions), drop the batch size to 60 in `pipeline-batch-v2.js`.
 5. **Fallback**: if anything goes sideways, `scripts/pipeline-batch.js` (v1) is untouched. Just re-run with the v1 script.
-6. **Report after the run**: how each of the four v2 features behaved, whether pooled classify quality matched v1, whether the live site check caught anything useful, whether per-city Notion status updates fired (requires `NOTION_TOKEN` in `.env.local` — if absent, that feature is silent but harmless).
+6. **Report after the run**: how each of the three v2 features behaved, whether pooled classify quality matched v1, and whether the live site check caught anything useful.
 7. **If v2 runs clean on 2-3 batches**: promote by renaming `pipeline-batch.js → pipeline-batch-v1.js` and `pipeline-batch-v2.js → pipeline-batch.js`, then update the skill file.
 
-**Note**: Notion page creation for new cities still needs the subagent pattern (`NOTION_TOKEN` is not in env). Don't skip it — spawn an Agent in parallel to the clean phase to create pages via `mcp__notion__API-post-page` and report a one-line summary. This worked perfectly yesterday.
+**Notion workflow (always)**: Notion page creation and status updates are handled by Claude via subagent, not by the script. When the batch starts, spawn an Agent in parallel to the clean phase to create pages via `mcp__notion__API-post-page` (one-line report). After the pipeline finishes, spawn a second Agent to patch pages to "Complete" via `mcp__notion__API-patch-page`. Both patterns validated on the 184-city batch. Do not touch `NOTION_TOKEN` in env.
 
 ---
 

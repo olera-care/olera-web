@@ -2214,16 +2214,16 @@
       "contentSections": [],
       "faqs": [
         {
-          "q": "Can I call on behalf of my elderly parent?",
-          "a": "Yes, you can call CLEAR*Sr at 1-888-387-7111 to get advice about your parent's legal situation. The attorneys can guide you on what documents to gather and whether your parent needs direct representation. Some situations may require your parent's direct consent or participation."
+          "question": "Can I call on behalf of my elderly parent?",
+          "answer": "Yes, you can call CLEAR*Sr at 1-888-387-7111 to get advice about your parent's legal situation. The attorneys can guide you on what documents to gather and whether your parent needs direct representation. Some situations may require your parent's direct consent or participation."
         },
         {
-          "q": "What if my parent's legal problem is complicated and needs ongoing help?",
-          "a": "CLEAR*Sr provides initial consultation and advice, but can also refer to local legal aid partners for ongoing representation if the case qualifies. Partners like Rural Resources, Columbia Legal Services, and county-specific programs may take complex cases requiring extended attorney involvement."
+          "question": "What if my parent's legal problem is complicated and needs ongoing help?",
+          "answer": "CLEAR*Sr provides initial consultation and advice, but can also refer to local legal aid partners for ongoing representation if the case qualifies. Partners like Rural Resources, Columbia Legal Services, and county-specific programs may take complex cases requiring extended attorney involvement."
         },
         {
-          "q": "Does my parent have to be low-income to qualify?",
-          "a": "No, seniors 60+ are eligible regardless of income in most Washington counties through CLEAR*Sr. However, some regional partners may still apply income screening, and asset limits may apply for certain services. Call 1-888-387-7111 to confirm eligibility for your specific situation."
+          "question": "Does my parent have to be low-income to qualify?",
+          "answer": "No, seniors 60+ are eligible regardless of income in most Washington counties through CLEAR*Sr. However, some regional partners may still apply income screening, and asset limits may apply for certain services. Call 1-888-387-7111 to confirm eligibility for your specific situation."
         }
       ],
       "layoutIntent": {

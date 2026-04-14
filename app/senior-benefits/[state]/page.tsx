@@ -168,7 +168,7 @@ export default async function StatePage({ params }: Props) {
       <>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
         {faqJsonLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />}
-        <StatePageV3 state={state} overview={stateDrafts.stateOverview} pipelinePrograms={pipelinePrograms} familyQuestions={familyQuestions} />
+        <StatePageV3 state={state} overview={stateDrafts.stateOverview} pipelinePrograms={pipelinePrograms} familyQuestions={familyQuestions} draftedAt={stateDrafts.draftedAt} />
       </>
     );
   }

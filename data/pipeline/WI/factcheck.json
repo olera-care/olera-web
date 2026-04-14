@@ -1,14 +1,14 @@
 {
   "state": "WI",
   "stateName": "Wisconsin",
-  "checkedAt": "2026-04-14T01:24:34.911Z",
+  "checkedAt": "2026-04-14T10:11:41.823Z",
   "total": 5,
   "skipped": 0,
   "parseErrors": 0,
   "errors": 0,
   "programsWithFlags": 1,
-  "totalFlags": 2,
-  "highSeverityFlags": 1,
+  "totalFlags": 1,
+  "highSeverityFlags": 0,
   "programs": [
     {
       "programId": "wi-seniorcare-prescription-assistance",
@@ -34,14 +34,14 @@
         "phone": "8006572038",
         "sources": {
           "age": "https://www.dhs.wisconsin.gov/seniorcare/index.htm",
-          "income": "https://www.dhs.wisconsin.gov/seniorcare/fpl.htm",
+          "income": null,
           "assets": null,
-          "phone": "https://www.dhs.wisconsin.gov/seniorcare/faqs.htm"
+          "phone": "https://www.dhs.wisconsin.gov/seniorcare/index.htm"
         },
-        "notes": "Program active in 2026 per official DHS sources; income has tiered limits but no single values requested; no asset test found"
+        "notes": "Program is active and current as of April 2026. Income limits exist but are tiered by participation level (Level 1, 2A, 2B) rather than single thresholds; see https://www.dhs.wisconsin.gov/seniorcare/fpl.htm for current limits. No asset limits found in official sources. Program requires $30 annual enrollment fee and annual renewal."
       },
       "flags": [],
-      "notes": "Program active in 2026 per official DHS sources; income has tiered limits but no single values requested; no asset test found"
+      "notes": "Program is active and current as of April 2026. Income limits exist but are tiered by participation level (Level 1, 2A, 2B) rather than single thresholds; see https://www.dhs.wisconsin.gov/seniorcare/fpl.htm for current limits. No asset limits found in official sources. Program requires $30 annual enrollment fee and annual renewal."
     },
     {
       "programId": "wi-elder-benefit-specialist",
@@ -71,10 +71,10 @@
           "assets": null,
           "phone": null
         },
-        "notes": "Program is active as of 2026. Age requirement is 60+ for primary eligibility; tribal EBS serves 55+. No income or asset limits found in authoritative sources. No statewide main phone number identified; services accessed through county-level Aging and Disability Resource Centers (ADRC). Program has not been renamed or discontinued."
+        "notes": "Program provides counseling assistance with no income or asset tests; no statewide application phone found"
       },
       "flags": [],
-      "notes": "Program is active as of 2026. Age requirement is 60+ for primary eligibility; tribal EBS serves 55+. No income or asset limits found in authoritative sources. No statewide main phone number identified; services accessed through county-level Aging and Disability Resource Centers (ADRC). Program has not been renamed or discontinued."
+      "notes": "Program provides counseling assistance with no income or asset tests; no statewide application phone found"
     },
     {
       "programId": "wi-senior-employment-program-wise",
@@ -98,17 +98,17 @@
         "income_2": null,
         "assets_individual": null,
         "assets_couple": null,
-        "phone": null,
+        "phone": "6082424928",
         "sources": {
           "age": "https://www.dhs.wisconsin.gov/wise/index.htm",
           "income": null,
           "assets": null,
-          "phone": null
+          "phone": "https://liftwisconsin.org/directory/wisconsin-senior-employment-program-wise/"
         },
-        "notes": "Program now implemented by Wisconsin Department of Workforce Development; contact detwise@dwd.wisconsin.gov. No phone number or specific income/asset limits found in sources."
+        "notes": "Age requirement clearly documented as 55+ across multiple official sources. Income limit stated as 125% of federal poverty level in official DHS and Job Center sources, but specific dollar amounts not provided in search results. No asset limits found in available sources. Phone number sourced from GWAAR (Greater Wisconsin Agency for Aging Resources Inc.), the parent organization administering WISE in Dane County; primary contact email detwise@dwd.wisconsin.gov provided by DHS. Program remains active as of February 26, 2026 per DHS website revision date."
       },
       "flags": [],
-      "notes": "Program now implemented by Wisconsin Department of Workforce Development; contact detwise@dwd.wisconsin.gov. No phone number or specific income/asset limits found in sources."
+      "notes": "Age requirement clearly documented as 55+ across multiple official sources. Income limit stated as 125% of federal poverty level in official DHS and Job Center sources, but specific dollar amounts not provided in search results. No asset limits found in available sources. Phone number sourced from GWAAR (Greater Wisconsin Agency for Aging Resources Inc.), the parent organization administering WISE in Dane County; primary contact email detwise@dwd.wisconsin.gov provided by DHS. Program remains active as of February 26, 2026 per DHS website revision date."
     },
     {
       "programId": "wi-family-care",
@@ -125,27 +125,21 @@
         "hasVerifiableFacts": true
       },
       "verified": {
-        "age": 18,
+        "age": 65,
         "income_1": null,
         "income_2": null,
         "assets_individual": null,
         "assets_couple": null,
         "phone": "8003623002",
         "sources": {
-          "age": "https://www.dhs.wisconsin.gov/familycare/index.htm",
+          "age": "https://www.medicaidplanningassistance.org/wisconsin-family-care-partnership-programs/",
           "income": null,
           "assets": null,
           "phone": "https://www.medicaidplanningassistance.org/wisconsin-family-care-partnership-programs/"
         },
-        "notes": "No asset or income limits specified in sources as program uses Medicaid financial eligibility; phone from nonprofit citing official info"
+        "notes": "Program eligibility tied to Medicaid financial criteria (no specific asset limits stated for seniors); age 65+ specified for elderly in senior pathway per secondary source citing official programs. Official DHS pages confirm age 18+ overall but frail elder pathway; no explicit senior age threshold or asset test found in .gov sources."
       },
       "flags": [
-        {
-          "field": "age",
-          "severity": "high",
-          "draftValue": 65,
-          "verifiedValue": 18
-        },
         {
           "field": "phone",
           "severity": "medium",
@@ -155,7 +149,7 @@
           "verifiedValue": "8003623002"
         }
       ],
-      "notes": "No asset or income limits specified in sources as program uses Medicaid financial eligibility; phone from nonprofit citing official info"
+      "notes": "Program eligibility tied to Medicaid financial criteria (no specific asset limits stated for seniors); age 65+ specified for elderly in senior pathway per secondary source citing official programs. Official DHS pages confirm age 18+ overall but frail elder pathway; no explicit senior age threshold or asset test found in .gov sources."
     },
     {
       "programId": "wi-iris-self-directed-care",
@@ -173,22 +167,22 @@
         "hasVerifiableFacts": true
       },
       "verified": {
-        "age": 18,
+        "age": null,
         "income_1": null,
         "income_2": null,
         "assets_individual": null,
         "assets_couple": null,
         "phone": null,
         "sources": {
-          "age": "https://www.dhs.wisconsin.gov/iris/index.htm",
-          "income": null,
+          "age": null,
+          "income": "https://www.dhs.wisconsin.gov/iris/enroll.htm",
           "assets": null,
           "phone": null
         },
-        "notes": "No income, assets, or phone details found in official sources; IRIS waiver renewed effective 2026 with no indicated eligibility changes"
+        "notes": "IRIS serves both older adults AND adults with disabilities without age-specific thresholds in available sources. Program eligibility requires: Wisconsin residency, age 18+, Medicaid enrollment, functional eligibility via Long-Term Care Functional Screen, and residence in home/apartment/adult family home/RCAC. No minimum age for seniors (55+) is specified in official sources. Income limits are determined by Medicaid eligibility, not IRIS-specific thresholds. No asset limits, income thresholds, or main application phone number found in provided .gov sources. Contact local ADRC (Aging and Disability Resource Center) per https://www.dhs.wisconsin.gov/iris/enroll.htm for application assistance and eligibility screening."
       },
       "flags": [],
-      "notes": "No income, assets, or phone details found in official sources; IRIS waiver renewed effective 2026 with no indicated eligibility changes"
+      "notes": "IRIS serves both older adults AND adults with disabilities without age-specific thresholds in available sources. Program eligibility requires: Wisconsin residency, age 18+, Medicaid enrollment, functional eligibility via Long-Term Care Functional Screen, and residence in home/apartment/adult family home/RCAC. No minimum age for seniors (55+) is specified in official sources. Income limits are determined by Medicaid eligibility, not IRIS-specific thresholds. No asset limits, income thresholds, or main application phone number found in provided .gov sources. Contact local ADRC (Aging and Disability Resource Center) per https://www.dhs.wisconsin.gov/iris/enroll.htm for application assistance and eligibility screening."
     }
   ]
 }

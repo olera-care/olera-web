@@ -1,14 +1,14 @@
 {
   "state": "VT",
   "stateName": "Vermont",
-  "checkedAt": "2026-04-14T01:23:25.265Z",
+  "checkedAt": "2026-04-14T10:10:30.632Z",
   "total": 15,
   "skipped": 0,
   "parseErrors": 0,
   "errors": 0,
   "programsWithFlags": 4,
-  "totalFlags": 7,
-  "highSeverityFlags": 2,
+  "totalFlags": 4,
+  "highSeverityFlags": 1,
   "programs": [
     {
       "programId": "vt-choices-for-care-waiver",
@@ -26,7 +26,7 @@
         "hasVerifiableFacts": true
       },
       "verified": {
-        "age": 18,
+        "age": null,
         "income_1": null,
         "income_2": null,
         "assets_individual": 2000,
@@ -38,15 +38,9 @@
           "assets": "https://www.medicaidplanningassistance.org/vermont-choices-for-care-high-need/",
           "phone": null
         },
-        "notes": "No official .gov source found for 2026 asset limits or phone; used current non-gov sources citing program details. No income limits specified in query fields. No minimum age beyond 18."
+        "notes": "No official .gov source found for 2026 values; used 2025 data from cited source. No age minimum specified for seniors (adults 18+ with NFLOC). No phone number found. No explicit income limits in results."
       },
       "flags": [
-        {
-          "field": "age",
-          "severity": "high",
-          "draftValue": 65,
-          "verifiedValue": 18
-        },
         {
           "field": "assets_individual",
           "severity": "high",
@@ -55,7 +49,7 @@
           "pctDiff": 80
         }
       ],
-      "notes": "No official .gov source found for 2026 asset limits or phone; used current non-gov sources citing program details. No income limits specified in query fields. No minimum age beyond 18."
+      "notes": "No official .gov source found for 2026 values; used 2025 data from cited source. No age minimum specified for seniors (adults 18+ with NFLOC). No phone number found. No explicit income limits in results."
     },
     {
       "programId": "vt-medicaid-abd",
@@ -72,23 +66,11 @@
         ],
         "hasVerifiableFacts": true
       },
-      "verified": {
-        "age": 65,
-        "income_1": null,
-        "income_2": null,
-        "assets_individual": 2000,
-        "assets_couple": null,
-        "phone": "18002508427",
-        "sources": {
-          "age": "https://www.vtlawhelp.org/income-limits-medicaid",
-          "income": null,
-          "assets": "https://medicaideligibilitycalculator.com/medicaid-eligibility/vermont/",
-          "phone": "https://medicaideligibilitycalculator.com/medicaid-eligibility/vermont/"
-        },
-        "notes": "No official .gov sources found for 2026 ABD/MABD details; income varies by county ($1333 outside/$1441 inside Chittenden per vtlawhelp 2025 data); assets standard $2000 individual per multiple sources"
-      },
+      "verified": [
+        7
+      ],
       "flags": [],
-      "notes": "No official .gov sources found for 2026 ABD/MABD details; income varies by county ($1333 outside/$1441 inside Chittenden per vtlawhelp 2025 data); assets standard $2000 individual per multiple sources"
+      "notes": null
     },
     {
       "programId": "vt-pace-comprehensive-care",
@@ -105,11 +87,23 @@
         ],
         "hasVerifiableFacts": true
       },
-      "verified": [
-        1
-      ],
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No PACE program found in Vermont; NPA search yields no results and no Vermont state agency or .gov source confirms existence as of 2026"
+      },
       "flags": [],
-      "notes": null
+      "notes": "No PACE program found in Vermont; NPA search yields no results and no Vermont state agency or .gov source confirms existence as of 2026"
     },
     {
       "programId": "vt-medicare-savings-programs",
@@ -129,21 +123,21 @@
       },
       "verified": {
         "age": null,
-        "income_1": null,
-        "income_2": null,
+        "income_1": 1350,
+        "income_2": 1824,
         "assets_individual": 9950,
         "assets_couple": 14910,
         "phone": null,
         "sources": {
           "age": null,
-          "income": null,
+          "income": "https://www.medicare.gov/basics/costs/help/medicare-savings-programs",
           "assets": "https://www.medicare.gov/basics/costs/help/medicare-savings-programs",
           "phone": null
         },
-        "notes": "No Vermont-specific 2026 income limits found in authoritative sources; federal 2026 asset limits apply. VTLawHelp cites 2026 QMB incomes but lacks official source citation and conflicts with federal data."
+        "notes": "Federal 2026 limits shown; Vermont bill proposes higher FPL thresholds but no confirmation of enactment or exact 2026 figures from official VT source. Programs apply nationally with uniform federal standards administered by states."
       },
       "flags": [],
-      "notes": "No Vermont-specific 2026 income limits found in authoritative sources; federal 2026 asset limits apply. VTLawHelp cites 2026 QMB incomes but lacks official source citation and conflicts with federal data."
+      "notes": "Federal 2026 limits shown; Vermont bill proposes higher FPL thresholds but no confirmation of enactment or exact 2026 figures from official VT source. Programs apply nationally with uniform federal standards administered by states."
     },
     {
       "programId": "vt-3squaresvt-older-vermonters",
@@ -164,15 +158,15 @@
         "income_1": null,
         "income_2": null,
         "assets_individual": 4500,
-        "assets_couple": 4500,
-        "phone": "8558556181",
+        "assets_couple": null,
+        "phone": null,
         "sources": {
           "age": "https://vermontfoodhelp.com/learn-more/applicants-participants/older-vermonters",
           "income": null,
           "assets": "https://vermontfoodhelp.com/learn-more/applicants-participants/older-vermonters",
-          "phone": "https://www.vtfoodbank.org/2026/03/04/understanding-new-3squaresvt-work-requirements-we-can-help-you-keep-your-benefits/"
+          "phone": null
         },
-        "notes": "Age 60+ qualifies for simplified eligibility rules with no income limit requirement; resource test of $4,500 applies if income exceeds limit (limit amount not specified in sources). Asset limit does not include home or primary vehicle value. No separate couple asset limit found; $4,500 figure applies to households. Phone number is Vermont Foodbank support line for 3SquaresVT assistance as of March 2026."
+        "notes": "3SquaresVT for Older Vermonters (age 60+) has no income test but applies $4500 resource test if income exceeds limit; no couple asset limit specified; no official phone found in sources"
       },
       "flags": [
         {
@@ -181,24 +175,9 @@
           "draftValue": 4250,
           "verifiedValue": 4500,
           "pctDiff": 5.6
-        },
-        {
-          "field": "assets_couple",
-          "severity": "medium",
-          "draftValue": 4250,
-          "verifiedValue": 4500,
-          "pctDiff": 5.6
-        },
-        {
-          "field": "phone",
-          "severity": "medium",
-          "draftValue": [
-            "211"
-          ],
-          "verifiedValue": "8558556181"
         }
       ],
-      "notes": "Age 60+ qualifies for simplified eligibility rules with no income limit requirement; resource test of $4,500 applies if income exceeds limit (limit amount not specified in sources). Asset limit does not include home or primary vehicle value. No separate couple asset limit found; $4,500 figure applies to households. Phone number is Vermont Foodbank support line for 3SquaresVT assistance as of March 2026."
+      "notes": "3SquaresVT for Older Vermonters (age 60+) has no income test but applies $4500 resource test if income exceeds limit; no couple asset limit specified; no official phone found in sources"
     },
     {
       "programId": "vt-fuel-assistance-heating-help",
@@ -217,11 +196,35 @@
         ],
         "hasVerifiableFacts": true
       },
-      "verified": [
-        1
+      "verified": {
+        "age": null,
+        "income_1": 2412,
+        "income_2": 3260,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "18007750516",
+        "sources": {
+          "age": null,
+          "income": "https://vtlawhelp.org/energy-assistance-programs",
+          "assets": null,
+          "phone": "https://vgsvt.com/savings/assistance-programs/"
+        },
+        "notes": "Income values represent 185% of Federal Poverty Guidelines for 2025 (monthly threshold for 1 and 2 person households). Program has no stated age requirement or asset limits in available sources. Phone number is Vermont Department for Children and Families Energy Assistance Office. No age-specific pathway identified for senior caregivers; program serves all eligible households regardless of age."
+      },
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "8004796151",
+            "8024791053",
+            "8006391053",
+            "8028887993"
+          ],
+          "verifiedValue": "18007750516"
+        }
       ],
-      "flags": [],
-      "notes": null
+      "notes": "Income values represent 185% of Federal Poverty Guidelines for 2025 (monthly threshold for 1 and 2 person households). Program has no stated age requirement or asset limits in available sources. Phone number is Vermont Department for Children and Families Energy Assistance Office. No age-specific pathway identified for senior caregivers; program serves all eligible households regardless of age."
     },
     {
       "programId": "vt-weatherization-assistance",
@@ -255,10 +258,10 @@
           "assets": null,
           "phone": null
         },
-        "notes": "No authoritative current data found for Weatherization Assistance Program (WAP) income limits or phone in Vermont as of 2026; results describe WRAP (different program) and Income Qualified Weatherization Assistance Program without specific monthly income limits or phone numbers"
+        "notes": "No authoritative current income limits, age requirements, assets, or phone found in search results for Vermont Weatherization Assistance Program as of 2026; sources mention general low-income or moderate-income (e.g., <120% AMI for WRAP) but no specific USD figures or senior pathway details with URLs providing exact values."
       },
       "flags": [],
-      "notes": "No authoritative current data found for Weatherization Assistance Program (WAP) income limits or phone in Vermont as of 2026; results describe WRAP (different program) and Income Qualified Weatherization Assistance Program without specific monthly income limits or phone numbers"
+      "notes": "No authoritative current income limits, age requirements, assets, or phone found in search results for Vermont Weatherization Assistance Program as of 2026; sources mention general low-income or moderate-income (e.g., <120% AMI for WRAP) but no specific USD figures or senior pathway details with URLs providing exact values."
     },
     {
       "programId": "vt-ship-medicare-counseling",
@@ -288,10 +291,10 @@
           "assets": null,
           "phone": "https://www.cms.gov/contacts/vermont-state-health-insurance-assistance-program/general-beneficiary-contact/1562221"
         },
-        "notes": "SHIP has no age, income, or asset limits; it provides free counseling to Medicare beneficiaries, families, and caregivers"
+        "notes": "SHIP has no age, income, or asset eligibility limits; open to Medicare beneficiaries, families, caregivers"
       },
       "flags": [],
-      "notes": "SHIP has no age, income, or asset limits; it provides free counseling to Medicare beneficiaries, families, and caregivers"
+      "notes": "SHIP has no age, income, or asset eligibility limits; open to Medicare beneficiaries, families, caregivers"
     },
     {
       "programId": "vt-meals-on-wheels",
@@ -308,33 +311,11 @@
         ],
         "hasVerifiableFacts": true
       },
-      "verified": {
-        "age": 60,
-        "income_1": null,
-        "income_2": null,
-        "assets_individual": null,
-        "assets_couple": null,
-        "phone": "8006425119",
-        "sources": {
-          "age": "https://www.agewellvt.org/services/food-meal-delivery/meals-on-wheels/",
-          "income": null,
-          "assets": null,
-          "phone": "https://www.agewellvt.org/services/food-meal-delivery/meals-on-wheels/"
-        },
-        "notes": "Vermont has multiple Meals on Wheels programs with different eligibility criteria. Age Well (largest provider) serves age 60+. VCIL serves under-60 individuals with chronic conditions or disabilities. No income or asset limits found in search results for either program. Phone number is Age Well's main helpline. Note: Program eligibility varies by provider and region; no single unified state program found."
-      },
-      "flags": [
-        {
-          "field": "phone",
-          "severity": "medium",
-          "draftValue": [
-            "8024657293",
-            "8022241825"
-          ],
-          "verifiedValue": "8006425119"
-        }
+      "verified": [
+        3
       ],
-      "notes": "Vermont has multiple Meals on Wheels programs with different eligibility criteria. Age Well (largest provider) serves age 60+. VCIL serves under-60 individuals with chronic conditions or disabilities. No income or asset limits found in search results for either program. Phone number is Age Well's main helpline. Note: Program eligibility varies by provider and region; no single unified state program found."
+      "flags": [],
+      "notes": null
     },
     {
       "programId": "vt-caregiver-support-program",
@@ -364,7 +345,7 @@
           "assets": null,
           "phone": "https://cpfamilynetwork.org/resources/resources-guide/vermont-family-caregiver-support-program/"
         },
-        "notes": "No age, income, or asset limits found in sources; program appears means-tested free with no explicit eligibility thresholds stated. Multiple phone numbers exist across AAAs (e.g., 1-800-642-5119 helpline); provided main state office number."
+        "notes": "No age, income, or asset limits found for seniors in authoritative sources; program supports caregivers of adults 60+ per NFCSP but no senior-specific age test confirmed. Phone from state agency-linked source."
       },
       "flags": [
         {
@@ -377,7 +358,7 @@
           "verifiedValue": "8022413738"
         }
       ],
-      "notes": "No age, income, or asset limits found in sources; program appears means-tested free with no explicit eligibility thresholds stated. Multiple phone numbers exist across AAAs (e.g., 1-800-642-5119 helpline); provided main state office number."
+      "notes": "No age, income, or asset limits found for seniors in authoritative sources; program supports caregivers of adults 60+ per NFCSP but no senior-specific age test confirmed. Phone from state agency-linked source."
     },
     {
       "programId": "vt-scsep-employment",
@@ -401,15 +382,15 @@
         "assets_couple": null,
         "phone": null,
         "sources": {
-          "age": "https://www.dol.gov/agencies/eta/seniors",
-          "income": "https://www.dol.gov/agencies/eta/seniors",
+          "age": "https://a4td.org/scs-employment-program/",
+          "income": null,
           "assets": null,
           "phone": null
         },
-        "notes": "Age requirement (55+) confirmed from U.S. Department of Labor official source. Income limit is 125% of federal poverty level (not a fixed dollar amount, varies annually by household size). No asset limits found in search results. Official phone number for Vermont SCSEP not provided in search results; contact A4TD directly or Vermont state workforce agency for current contact information."
+        "notes": "No phone number or income details found in sources; A4TD administers SCSEP in Vermont"
       },
       "flags": [],
-      "notes": "Age requirement (55+) confirmed from U.S. Department of Labor official source. Income limit is 125% of federal poverty level (not a fixed dollar amount, varies annually by household size). No asset limits found in search results. Official phone number for Vermont SCSEP not provided in search results; contact A4TD directly or Vermont state workforce agency for current contact information."
+      "notes": "No phone number or income details found in sources; A4TD administers SCSEP in Vermont"
     },
     {
       "programId": "vt-legal-assistance-seniors",
@@ -439,10 +420,10 @@
           "assets": null,
           "phone": null
         },
-        "notes": "No authoritative data found for income, assets, or phone; program active as of 2026 per sources"
+        "notes": "No income, assets, or phone details found in sources for Elder Law Project; serves low-income but no specific limits given"
       },
       "flags": [],
-      "notes": "No authoritative data found for income, assets, or phone; program active as of 2026 per sources"
+      "notes": "No income, assets, or phone details found in sources for Elder Law Project; serves low-income but no specific limits given"
     },
     {
       "programId": "vt-long-term-care-ombudsman",
@@ -472,10 +453,10 @@
           "assets": null,
           "phone": "https://www.cms.gov/contacts/vermont-long-term-care-ombudsman-project/general-beneficiary-contact/1553991"
         },
-        "notes": "Program is free service with no age, income, or asset limits"
+        "notes": "Program is free service with no income, assets, or age eligibility requirements"
       },
       "flags": [],
-      "notes": "Program is free service with no age, income, or asset limits"
+      "notes": "Program is free service with no income, assets, or age eligibility requirements"
     },
     {
       "programId": "vt-senior-companion-program",
@@ -496,21 +477,21 @@
       },
       "verified": {
         "age": 55,
-        "income_1": 30120,
-        "income_2": 40880,
+        "income_1": 31300,
+        "income_2": 42300,
         "assets_individual": null,
         "assets_couple": null,
         "phone": "8006425119",
         "sources": {
-          "age": "https://cvcoa.org/senior-companion-program",
-          "income": "https://cvcoa.org/senior-companion-program",
+          "age": "https://www.agewellvt.org/information/faqs-about-the-senior-companion-program/",
+          "income": "https://vermontmaturity.com/blogs/senior-companion-vermont/",
           "assets": null,
           "phone": "https://cvcoa.org/senior-companion-program"
         },
-        "notes": "Income levels from nonprofit sources citing AmeriCorps; no assets test mentioned; no 2026 updates found; prefer official verification"
+        "notes": "Income eligibility varies slightly across sources (2022 guidelines show $27,180 single/$36,620 couple; 2026 sources show $31,300 single/$42,300 couple). Phone number 800-642-5119 is the official statewide HelpLine cited by multiple Area Agencies on Aging. Program is active and administered through Vermont's four Area Agencies on Aging as part of AmeriCorps Seniors. No asset limits found in search results."
       },
       "flags": [],
-      "notes": "Income levels from nonprofit sources citing AmeriCorps; no assets test mentioned; no 2026 updates found; prefer official verification"
+      "notes": "Income eligibility varies slightly across sources (2022 guidelines show $27,180 single/$36,620 couple; 2026 sources show $31,300 single/$42,300 couple). Phone number 800-642-5119 is the official statewide HelpLine cited by multiple Area Agencies on Aging. Program is active and administered through Vermont's four Area Agencies on Aging as part of AmeriCorps Seniors. No asset limits found in search results."
     },
     {
       "programId": "vt-senior-solutions-vet-to-vet",
@@ -528,22 +509,22 @@
         "hasVerifiableFacts": true
       },
       "verified": {
-        "age": null,
+        "age": 60,
         "income_1": null,
         "income_2": null,
         "assets_individual": null,
         "assets_couple": null,
         "phone": "8028852669",
         "sources": {
-          "age": null,
+          "age": "https://www.seniorsolutionsvt.org/services/pet-assistance/",
           "income": null,
           "assets": null,
           "phone": "https://www.seniorsolutionsvt.org/services/veterans/"
         },
-        "notes": "No age, income, or asset requirements found for Vet-to-Vet program; explicitly states 'all veterans, regardless of age'. Phone from program page; no .gov sources for program details."
+        "notes": "Vet-to-Vet program lacks explicit eligibility details like age or income on official pages; age from related Senior Solutions senior services (over 60). No .gov sources found for this specific program. Phone from volunteer coordinator context."
       },
       "flags": [],
-      "notes": "No age, income, or asset requirements found for Vet-to-Vet program; explicitly states 'all veterans, regardless of age'. Phone from program page; no .gov sources for program details."
+      "notes": "Vet-to-Vet program lacks explicit eligibility details like age or income on official pages; age from related Senior Solutions senior services (over 60). No .gov sources found for this specific program. Phone from volunteer coordinator context."
     }
   ]
 }

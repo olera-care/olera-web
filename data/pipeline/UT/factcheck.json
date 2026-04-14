@@ -1,14 +1,14 @@
 {
   "state": "UT",
   "stateName": "Utah",
-  "checkedAt": "2026-04-14T01:16:05.466Z",
+  "checkedAt": "2026-04-14T10:10:13.204Z",
   "total": 13,
   "skipped": 0,
   "parseErrors": 0,
   "errors": 0,
-  "programsWithFlags": 5,
-  "totalFlags": 6,
-  "highSeverityFlags": 2,
+  "programsWithFlags": 3,
+  "totalFlags": 4,
+  "highSeverityFlags": 1,
   "programs": [
     {
       "programId": "ut-medicaid-program",
@@ -27,27 +27,21 @@
         "hasVerifiableFacts": true
       },
       "verified": {
-        "age": 19,
+        "age": null,
         "income_1": null,
         "income_2": null,
         "assets_individual": null,
         "assets_couple": null,
-        "phone": "1-866-608-9422",
+        "phone": "18666089422",
         "sources": {
-          "age": "https://medicaid.utah.gov/expansion/",
-          "income": "https://medicaid.utah.gov/expansion/",
+          "age": null,
+          "income": null,
           "assets": null,
           "phone": "https://medicaid.utah.gov/expansion/"
         },
-        "notes": "Utah Medicaid is a multi-program system with varying eligibility rules by category. Age 19 is the minimum for Adult Expansion Medicaid (authorized 12/23/2019, up to 138% FPL). Other categories (children, pregnant women, elderly, disabled) have different age requirements and income thresholds. Asset limits not specified in provided official sources. Income limits vary by household size and category (55%-133% FPL depending on category per https://medicaid.utah.gov/who-eligible/). Phone number provided is for Health Program Representatives regarding benefits. Effective fall 2026, citizenship requirements will change per OBBBA bill (https://medicaid.utah.gov/obbba/)."
+        "notes": "Utah Medicaid has multiple programs; no senior-specific (55+) thresholds or asset limits found in official sources for 2026. General expansion targets ages 19-64 with income limits only. Assets mentioned in non-official source as $2000 but no .gov confirmation."
       },
       "flags": [
-        {
-          "field": "age",
-          "severity": "high",
-          "draftValue": 65,
-          "verifiedValue": 19
-        },
         {
           "field": "phone",
           "severity": "medium",
@@ -59,7 +53,7 @@
           "verifiedValue": "18666089422"
         }
       ],
-      "notes": "Utah Medicaid is a multi-program system with varying eligibility rules by category. Age 19 is the minimum for Adult Expansion Medicaid (authorized 12/23/2019, up to 138% FPL). Other categories (children, pregnant women, elderly, disabled) have different age requirements and income thresholds. Asset limits not specified in provided official sources. Income limits vary by household size and category (55%-133% FPL depending on category per https://medicaid.utah.gov/who-eligible/). Phone number provided is for Health Program Representatives regarding benefits. Effective fall 2026, citizenship requirements will change per OBBBA bill (https://medicaid.utah.gov/obbba/)."
+      "notes": "Utah Medicaid has multiple programs; no senior-specific (55+) thresholds or asset limits found in official sources for 2026. General expansion targets ages 19-64 with income limits only. Assets mentioned in non-official source as $2000 but no .gov confirmation."
     },
     {
       "programId": "ut-pace-elder-care",
@@ -89,10 +83,10 @@
           "assets": null,
           "phone": null
         },
-        "notes": "No Utah-specific PACE program found in search results as of 2026; general PACE age from nonprofit source citing federal standards. No official Utah .gov source located for program details, income/assets/phone. Search results mostly reference Utah C-PACE (commercial energy financing) or other unrelated programs."
+        "notes": "PACE (Program of All-Inclusive Care for the Elderly) operates in 33 states but Utah is NOT listed as a participating state as of February 2026. Search results explicitly state: 'States without a PACE program: Alaska, Arizona, Connecticut, Georgia, Hawaii, Idaho, Maine, Minnesota, Mississippi, Montana, Nevada, New Hampshire, South Dakota, Utah, Vermont, West Virginia, and Wyoming.' Utah has C-PACE (Commercial Property Assessed Clean Energy), which is a different program for commercial/industrial property energy efficiency financing, not a senior care program. No Utah PACE program for seniors exists to fact-check. Age requirement (55+) is the national PACE standard but does not apply in Utah."
       },
       "flags": [],
-      "notes": "No Utah-specific PACE program found in search results as of 2026; general PACE age from nonprofit source citing federal standards. No official Utah .gov source located for program details, income/assets/phone. Search results mostly reference Utah C-PACE (commercial energy financing) or other unrelated programs."
+      "notes": "PACE (Program of All-Inclusive Care for the Elderly) operates in 33 states but Utah is NOT listed as a participating state as of February 2026. Search results explicitly state: 'States without a PACE program: Alaska, Arizona, Connecticut, Georgia, Hawaii, Idaho, Maine, Minnesota, Mississippi, Montana, Nevada, New Hampshire, South Dakota, Utah, Vermont, West Virginia, and Wyoming.' Utah has C-PACE (Commercial Property Assessed Clean Energy), which is a different program for commercial/industrial property energy efficiency financing, not a senior care program. No Utah PACE program for seniors exists to fact-check. Age requirement (55+) is the national PACE standard but does not apply in Utah."
     },
     {
       "programId": "ut-medicare-savings-programs",
@@ -110,21 +104,21 @@
       },
       "verified": {
         "age": null,
-        "income_1": 1325,
-        "income_2": 1783,
-        "assets_individual": 9660,
-        "assets_couple": 14470,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": 9950,
+        "assets_couple": 14910,
         "phone": null,
         "sources": {
           "age": null,
-          "income": "https://www.medicareresources.org/states/utah-guide-content/",
-          "assets": "https://www.medicareresources.org/states/utah-guide-content/",
+          "income": null,
+          "assets": "https://www.humana.com/medicare/medicare-resources/medicare-savings-programs",
           "phone": null
         },
-        "notes": "Income and asset limits from nonprofit source citing federal standards used in Utah; no 2026-specific Utah official limits found; official Utah site lacks numeric values"
+        "notes": "No 2026 Utah-specific income limits found in official sources; federal asset limits consistent across sources ($9,950 individual, $14,910 couple) apply in Utah per [4]; state site [5] lacks numeric limits"
       },
       "flags": [],
-      "notes": "Income and asset limits from nonprofit source citing federal standards used in Utah; no 2026-specific Utah official limits found; official Utah site lacks numeric values"
+      "notes": "No 2026 Utah-specific income limits found in official sources; federal asset limits consistent across sources ($9,950 individual, $14,910 couple) apply in Utah per [4]; state site [5] lacks numeric limits"
     },
     {
       "programId": "ut-snap-food-benefits",
@@ -154,10 +148,10 @@
           "assets": null,
           "phone": null
         },
-        "notes": "The provided search results contain only information about Utah SNAP soft drink purchase restrictions effective January 1, 2026, and general application procedures. No data on income limits, asset limits, age requirements, or phone numbers for Utah SNAP are present in the search results. Additional authoritative sources from the Utah Department of Workforce Services or USDA would be required to provide the requested values."
+        "notes": "No authoritative 2026 data found in search results for senior-specific age threshold, income limits, or asset limits for Utah SNAP; federal SNAP eliminated asset test in 2008 and has no senior age minimum beyond general rules"
       },
       "flags": [],
-      "notes": "The provided search results contain only information about Utah SNAP soft drink purchase restrictions effective January 1, 2026, and general application procedures. No data on income limits, asset limits, age requirements, or phone numbers for Utah SNAP are present in the search results. Additional authoritative sources from the Utah Department of Workforce Services or USDA would be required to provide the requested values."
+      "notes": "No authoritative 2026 data found in search results for senior-specific age threshold, income limits, or asset limits for Utah SNAP; federal SNAP eliminated asset test in 2008 and has no senior age minimum beyond general rules"
     },
     {
       "programId": "ut-liheap-heat-energy-assistance",
@@ -175,22 +169,22 @@
         "hasVerifiableFacts": true
       },
       "verified": {
-        "age": null,
+        "age": 60,
         "income_1": null,
         "income_2": null,
         "assets_individual": null,
         "assets_couple": null,
         "phone": null,
         "sources": {
-          "age": null,
+          "age": "https://jobs.utah.gov/housing/scso/seal/heat.html",
           "income": "https://jobs.utah.gov/housing/scso/seal/heat.html",
           "assets": null,
           "phone": null
         },
-        "notes": "Utah LIHEAP is administered as HEAT Program with income limit at 150% FPL (no specific USD values or phone found in sources; refer to HEAT Policy Manual for details)"
+        "notes": "Utah LIHEAP operates as HEAT program; income limit is 150% FPL (monthly preceding application) but no specific USD figures published in sources for 2026; no assets test; phone not listed (local offices vary)"
       },
       "flags": [],
-      "notes": "Utah LIHEAP is administered as HEAT Program with income limit at 150% FPL (no specific USD values or phone found in sources; refer to HEAT Policy Manual for details)"
+      "notes": "Utah LIHEAP operates as HEAT program; income limit is 150% FPL (monthly preceding application) but no specific USD figures published in sources for 2026; no assets test; phone not listed (local offices vary)"
     },
     {
       "programId": "ut-weatherization-assistance-program",
@@ -217,15 +211,15 @@
         "assets_couple": null,
         "phone": null,
         "sources": {
-          "age": null,
+          "age": "https://jobs.utah.gov/housing/scso/wap/index.html",
           "income": "https://jobs.utah.gov/housing/scso/wap/index.html",
           "assets": null,
           "phone": null
         },
-        "notes": "No specific monthly income dollar amounts or official statewide phone found in sources; eligibility is 200% FPL (varies by year); contact county-specific agencies"
+        "notes": "No specific 2026 income numbers or central phone found in sources; eligibility is 200% FPL (requires current FPL table from HHS.gov, linked via https://jobs.utah.gov/housing/scso/wap/iwtc/notices.html); no assets test; apply via county agencies (https://jobs.utah.gov/housing/scso/wap/how.html)"
       },
       "flags": [],
-      "notes": "No specific monthly income dollar amounts or official statewide phone found in sources; eligibility is 200% FPL (varies by year); contact county-specific agencies"
+      "notes": "No specific 2026 income numbers or central phone found in sources; eligibility is 200% FPL (requires current FPL table from HHS.gov, linked via https://jobs.utah.gov/housing/scso/wap/iwtc/notices.html); no assets test; apply via county agencies (https://jobs.utah.gov/housing/scso/wap/how.html)"
     },
     {
       "programId": "ut-ship-medicare-counseling",
@@ -243,7 +237,7 @@
         "hasVerifiableFacts": true
       },
       "verified": {
-        "age": 60,
+        "age": null,
         "income_1": null,
         "income_2": null,
         "assets_individual": null,
@@ -255,17 +249,10 @@
           "assets": null,
           "phone": "https://www.cms.gov/contacts/senior-health-insurance-information-program-ship/general-beneficiary-contact/1565301"
         },
-        "notes": "Phone number confirmed from official CMS and shiphelp.org sources. Age requirement of 60 is standard for SHIP programs nationally but not explicitly stated in Utah-specific search results provided; inferred from SHIP program design but cannot be definitively sourced from provided results. Income and asset limits not found in provided search results. Recommend contacting program directly at phone number or visiting daas.utah.gov/seniors/ for complete eligibility requirements."
+        "notes": "SHIP provides free counseling to Medicare-eligible seniors (age 65+) and caregivers with no income or asset tests found in sources"
       },
-      "flags": [
-        {
-          "field": "age",
-          "severity": "high",
-          "draftValue": 65,
-          "verifiedValue": 60
-        }
-      ],
-      "notes": "Phone number confirmed from official CMS and shiphelp.org sources. Age requirement of 60 is standard for SHIP programs nationally but not explicitly stated in Utah-specific search results provided; inferred from SHIP program design but cannot be definitively sourced from provided results. Income and asset limits not found in provided search results. Recommend contacting program directly at phone number or visiting daas.utah.gov/seniors/ for complete eligibility requirements."
+      "flags": [],
+      "notes": "SHIP provides free counseling to Medicare-eligible seniors (age 65+) and caregivers with no income or asset tests found in sources"
     },
     {
       "programId": "ut-meals-on-wheels",
@@ -285,34 +272,22 @@
         "hasVerifiableFacts": true
       },
       "verified": {
-        "age": null,
+        "age": 60,
         "income_1": null,
         "income_2": null,
         "assets_individual": null,
         "assets_couple": null,
-        "phone": "8012293804",
+        "phone": "8012293802",
         "sources": {
-          "age": null,
+          "age": "https://magutah.gov/meals/",
           "income": null,
           "assets": null,
-          "phone": "https://magutah.gov/mow/"
+          "phone": "https://magutah.gov/meals/"
         },
-        "notes": "No authoritative data found on age, income, or asset eligibility requirements; program serves homebound seniors but no specific criteria detailed in sources. Phone from official MAG site (Mountainland Association of Governments, operator for Utah County area)"
+        "notes": "Age requirement is 60+ for seniors. Phone number is for Utah County (primary service area); Wasatch County (435-654-4920) and Summit County (801-229-3802) also served. Program requires homebound status in addition to age. No income or asset limits found in search results; program may be needs-based but specific thresholds not documented in retrieved sources."
       },
-      "flags": [
-        {
-          "field": "phone",
-          "severity": "medium",
-          "draftValue": [
-            "8015383910",
-            "8015255099",
-            "8012293802",
-            "4357551720"
-          ],
-          "verifiedValue": "8012293804"
-        }
-      ],
-      "notes": "No authoritative data found on age, income, or asset eligibility requirements; program serves homebound seniors but no specific criteria detailed in sources. Phone from official MAG site (Mountainland Association of Governments, operator for Utah County area)"
+      "flags": [],
+      "notes": "Age requirement is 60+ for seniors. Phone number is for Utah County (primary service area); Wasatch County (435-654-4920) and Summit County (801-229-3802) also served. Program requires homebound status in addition to age. No income or asset limits found in search results; program may be needs-based but specific thresholds not documented in retrieved sources."
     },
     {
       "programId": "ut-caregiver-support-program",
@@ -331,21 +306,27 @@
         "hasVerifiableFacts": true
       },
       "verified": {
-        "age": 18,
+        "age": 60,
         "income_1": null,
         "income_2": null,
         "assets_individual": null,
         "assets_couple": null,
         "phone": "8012293804",
         "sources": {
-          "age": "https://daas.utah.gov/seniors/",
-          "income": "https://daas.utah.gov/seniors/",
-          "assets": null,
+          "age": "https://magutah.gov/cgsupport/",
+          "income": "https://magutah.gov/cgsupport/",
+          "assets": "https://magutah.gov/cgsupport/",
           "phone": "https://magutah.gov/cgsupport/"
         },
-        "notes": "Program has no income requirement or asset limits. Minimum age is 18 for most caregivers, though older relatives (55+) can be caregivers for children under 18 or adults 18-59 with disabilities. Care recipients must be 60+, any age with Alzheimer's/related neurological disorder, or disabled individuals 18+. Phone number from MAG (Mountainland Association of Governments) official page; also confirmed on state DAAS website."
+        "notes": ""
       },
       "flags": [
+        {
+          "field": "age",
+          "severity": "high",
+          "draftValue": 18,
+          "verifiedValue": 60
+        },
         {
           "field": "phone",
           "severity": "medium",
@@ -357,7 +338,7 @@
           "verifiedValue": "8012293804"
         }
       ],
-      "notes": "Program has no income requirement or asset limits. Minimum age is 18 for most caregivers, though older relatives (55+) can be caregivers for children under 18 or adults 18-59 with disabilities. Care recipients must be 60+, any age with Alzheimer's/related neurological disorder, or disabled individuals 18+. Phone number from MAG (Mountainland Association of Governments) official page; also confirmed on state DAAS website."
+      "notes": null
     },
     {
       "programId": "ut-scsep-employment",
@@ -383,14 +364,14 @@
         "phone": null,
         "sources": {
           "age": "https://www.dol.gov/agencies/eta/seniors",
-          "income": null,
+          "income": "https://daas.utah.gov/wp-content/uploads/2026/02/Utah-SCSEP-Four-Year-State-Plan-Update-2026-2.23.26-1.pdf",
           "assets": null,
           "phone": null
         },
-        "notes": "No specific 2026 income limits or phone number found in sources; federal income eligibility is 125% FPL but exact monthly USD values not provided"
+        "notes": "Income limit is 125% FPL per TEGL 16-24 (2025 guidelines cited in Utah plan); specific 2026 monthly USD not found in sources. No assets test or phone in results."
       },
       "flags": [],
-      "notes": "No specific 2026 income limits or phone number found in sources; federal income eligibility is 125% FPL but exact monthly USD values not provided"
+      "notes": "Income limit is 125% FPL per TEGL 16-24 (2025 guidelines cited in Utah plan); specific 2026 monthly USD not found in sources. No assets test or phone in results."
     },
     {
       "programId": "ut-legal-services-seniors",
@@ -421,7 +402,7 @@
           "assets": null,
           "phone": "https://www.utahlegalservices.org/node/16/who-qualifies-get-help-utah-legal-services"
         },
-        "notes": "No specific income or asset limits found for seniors; program notes seniors may qualify without regard to financial circumstances. Utah Legal Services provides specialized services for seniors age 60+."
+        "notes": "Seniors (60+) may qualify without regard to income; general eligibility is 125% FPL but no current specific monthly limits published"
       },
       "flags": [
         {
@@ -435,7 +416,7 @@
           "verifiedValue": "8013288891"
         }
       ],
-      "notes": "No specific income or asset limits found for seniors; program notes seniors may qualify without regard to financial circumstances. Utah Legal Services provides specialized services for seniors age 60+."
+      "notes": "Seniors (60+) may qualify without regard to income; general eligibility is 125% FPL but no current specific monthly limits published"
     },
     {
       "programId": "ut-long-term-care-ombudsman",
@@ -462,12 +443,12 @@
           "age": null,
           "income": null,
           "assets": null,
-          "phone": "https://daas.utah.gov/long-term-care-ombudsman/"
+          "phone": "https://daas.utah.gov/ombudsman-locations-3/"
         },
-        "notes": "Program has no age, income, or asset eligibility requirements; services are free to all residents of long-term care facilities. No single statewide phone number; contacts are county-specific with state coordinator at 385-222-1273."
+        "notes": "No statewide main phone; local ombudsman phones by county listed at source (e.g., 385-222-1273 state level). Program serves seniors in long-term care facilities with no age/income/assets eligibility requirements found."
       },
       "flags": [],
-      "notes": "Program has no age, income, or asset eligibility requirements; services are free to all residents of long-term care facilities. No single statewide phone number; contacts are county-specific with state coordinator at 385-222-1273."
+      "notes": "No statewide main phone; local ombudsman phones by county listed at source (e.g., 385-222-1273 state level). Program serves seniors in long-term care facilities with no age/income/assets eligibility requirements found."
     },
     {
       "programId": "ut-aging-waiver",
@@ -483,21 +464,21 @@
       },
       "verified": {
         "age": 65,
-        "income_1": 1330,
-        "income_2": 2660,
-        "assets_individual": 2000,
-        "assets_couple": 4000,
-        "phone": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8006629651",
         "sources": {
-          "age": "https://www.medicaidlongtermcare.org/eligibility/utah/",
-          "income": "https://www.medicaidlongtermcare.org/eligibility/utah/",
-          "assets": "https://www.medicaidlongtermcare.org/eligibility/utah/",
-          "phone": null
+          "age": "https://medicaid.utah.gov/ltc-2/ag/",
+          "income": null,
+          "assets": null,
+          "phone": "https://medicaid.utah.gov/ltc-2/nc/"
         },
-        "notes": "Values from non-.gov source citing March 2026-Feb 2027 limits; no official .gov eligibility details found with financial limits"
+        "notes": "Age requirement (65+) confirmed from official Utah DHHS Medicaid source. Income and asset limits not disclosed in available search results; program eligibility is based on functional need (Nursing Facility Level of Care) assessed via MDS-HC tool, not financial means testing. Phone number is for New Choices Waiver program; Aging Waiver-specific contact not found in search results. Recommend contacting local Area Agency on Aging for complete eligibility details."
       },
       "flags": [],
-      "notes": "Values from non-.gov source citing March 2026-Feb 2027 limits; no official .gov eligibility details found with financial limits"
+      "notes": "Age requirement (65+) confirmed from official Utah DHHS Medicaid source. Income and asset limits not disclosed in available search results; program eligibility is based on functional need (Nursing Facility Level of Care) assessed via MDS-HC tool, not financial means testing. Phone number is for New Choices Waiver program; Aging Waiver-specific contact not found in search results. Recommend contacting local Area Agency on Aging for complete eligibility details."
     }
   ]
 }

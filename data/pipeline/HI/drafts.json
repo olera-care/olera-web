@@ -479,28 +479,28 @@
       "contentSections": [],
       "faqs": [
         {
-          "q": "Can I get help choosing between different Medicare Advantage plans in Hawaii?",
-          "a": "Yes, Sage PLUS counselors can explain the differences between available Medicare Advantage plans in Hawaii, compare costs and benefits, and help you understand network restrictions. They cannot recommend specific plans but will provide objective information to help you decide."
+          "question": "Can I get help choosing between different Medicare Advantage plans in Hawaii?",
+          "answer": "Yes, Sage PLUS counselors can explain the differences between available Medicare Advantage plans in Hawaii, compare costs and benefits, and help you understand network restrictions. They cannot recommend specific plans but will provide objective information to help you decide."
         },
         {
-          "q": "What if my parent needs actual medical care, not just Medicare counseling?",
-          "a": "Sage PLUS only provides counseling and education about Medicare benefits — it's not a healthcare program. For comprehensive medical care similar to traditional PACE, you'll need to explore other Hawaii programs or work with your parent's existing healthcare providers."
+          "question": "What if my parent needs actual medical care, not just Medicare counseling?",
+          "answer": "Sage PLUS only provides counseling and education about Medicare benefits — it's not a healthcare program. For comprehensive medical care similar to traditional PACE, you'll need to explore other Hawaii programs or work with your parent's existing healthcare providers."
         },
         {
-          "q": "Can a family member call on behalf of an elderly parent?",
-          "a": "Yes, family members and caregivers can contact Hawaii SHIP for information and to schedule counseling sessions. However, your parent may need to be present or provide consent for discussions about their specific Medicare coverage and personal information."
+          "question": "Can a family member call on behalf of an elderly parent?",
+          "answer": "Yes, family members and caregivers can contact Hawaii SHIP for information and to schedule counseling sessions. However, your parent may need to be present or provide consent for discussions about their specific Medicare coverage and personal information."
         },
         {
-          "q": "Is there a cost for Medicare counseling through Sage PLUS?",
-          "a": "No, all Medicare counseling through Hawaii SHIP is completely free. Counselors are trained volunteers who provide unbiased information without any sales pressure or enrollment fees."
+          "question": "Is there a cost for Medicare counseling through Sage PLUS?",
+          "answer": "No, all Medicare counseling through Hawaii SHIP is completely free. Counselors are trained volunteers who provide unbiased information without any sales pressure or enrollment fees."
         },
         {
-          "q": "How long does a typical counseling session last?",
-          "a": "Session length varies based on your needs and questions, but most one-on-one counseling sessions last 30-60 minutes. More complex situations involving multiple Medicare programs may require longer sessions or follow-up meetings."
+          "question": "How long does a typical counseling session last?",
+          "answer": "Session length varies based on your needs and questions, but most one-on-one counseling sessions last 30-60 minutes. More complex situations involving multiple Medicare programs may require longer sessions or follow-up meetings."
         },
         {
-          "q": "Can I get help if my parent is already enrolled in Medicare but having problems with coverage?",
-          "a": "Yes, Sage PLUS counselors can help with ongoing Medicare questions, coverage problems, billing issues, and understanding benefits even after enrollment. They can also explain appeal processes and help you understand your rights under Medicare."
+          "question": "Can I get help if my parent is already enrolled in Medicare but having problems with coverage?",
+          "answer": "Yes, Sage PLUS counselors can help with ongoing Medicare questions, coverage problems, billing issues, and understanding benefits even after enrollment. They can also explain appeal processes and help you understand your rights under Medicare."
         }
       ],
       "layoutIntent": {

@@ -1,13 +1,13 @@
 {
   "state": "ND",
   "stateName": "North Dakota",
-  "checkedAt": "2026-04-14T01:01:32.960Z",
+  "checkedAt": "2026-04-14T10:06:58.833Z",
   "total": 3,
   "skipped": 0,
   "parseErrors": 0,
   "errors": 0,
-  "programsWithFlags": 2,
-  "totalFlags": 2,
+  "programsWithFlags": 1,
+  "totalFlags": 1,
   "highSeverityFlags": 0,
   "programs": [
     {
@@ -24,23 +24,11 @@
         ],
         "hasVerifiableFacts": true
       },
-      "verified": {
-        "age": null,
-        "income_1": null,
-        "income_2": null,
-        "assets_individual": null,
-        "assets_couple": null,
-        "phone": null,
-        "sources": {
-          "age": "https://www.hhs.nd.gov/adults-and-aging/services/basic-care-assistance-program-bcap",
-          "income": "https://www.hhs.nd.gov/adults-and-aging/services/basic-care-assistance-program-bcap",
-          "assets": "https://www.hhs.nd.gov/adults-and-aging/services/basic-care-assistance-program-bcap",
-          "phone": null
-        },
-        "notes": "Program active as of 2026; eligibility tied to ND Medicaid (no specific BCAP asset limit found; Medicaid typically $3,000 individual for LTC per non-gov sources); age is 65+ or 18+ blind/disabled but structured as null per schema; no phone digits found"
-      },
+      "verified": [
+        6
+      ],
       "flags": [],
-      "notes": "Program active as of 2026; eligibility tied to ND Medicaid (no specific BCAP asset limit found; Medicaid typically $3,000 individual for LTC per non-gov sources); age is 65+ or 18+ blind/disabled but structured as null per schema; no phone digits found"
+      "notes": null
     },
     {
       "programId": "nd-aging-in-community-project",
@@ -62,26 +50,17 @@
         "income_2": null,
         "assets_individual": null,
         "assets_couple": null,
-        "phone": "8554625465",
+        "phone": null,
         "sources": {
           "age": null,
           "income": null,
           "assets": null,
-          "phone": "https://www.hhs.nd.gov/human-services/adults-and-aging/nd-symposium"
+          "phone": null
         },
-        "notes": "Program appears active as of 2026. Age requirement not specified in available sources. Income and asset limits not found in search results. Phone number (855-462-5465) is for North Dakota's Aging & Disability Resource Link, the state agency contact for aging services; specific AIC application phone not located in provided sources."
+        "notes": "No eligibility criteria (age threshold, income, assets) or phone number found in sources; program appears open to older adults in rural areas without specified tests. Prefer official NDSU source: https://www.ndsu.edu/agriculture/extension/programs/aging-community-program"
       },
-      "flags": [
-        {
-          "field": "phone",
-          "severity": "medium",
-          "draftValue": [
-            "211"
-          ],
-          "verifiedValue": "8554625465"
-        }
-      ],
-      "notes": "Program appears active as of 2026. Age requirement not specified in available sources. Income and asset limits not found in search results. Phone number (855-462-5465) is for North Dakota's Aging & Disability Resource Link, the state agency contact for aging services; specific AIC application phone not located in provided sources."
+      "flags": [],
+      "notes": "No eligibility criteria (age threshold, income, assets) or phone number found in sources; program appears open to older adults in rural areas without specified tests. Prefer official NDSU source: https://www.ndsu.edu/agriculture/extension/programs/aging-community-program"
     },
     {
       "programId": "nd-assistive-senior-safety-program",
@@ -110,7 +89,7 @@
           "assets": null,
           "phone": "https://ndassistive.org/senior-safety-program/"
         },
-        "notes": "Program eligibility based on age (60+), North Dakota residency, and not residing in nursing facility. No income or asset limits found in search results. Funding is limited and need-based; program is not an entitlement. Phone number is official ND Assistive contact for Senior Safety Program."
+        "notes": "No income or asset limits mentioned in sources; program funded via Older Americans Act through ND Dept of Human Services."
       },
       "flags": [
         {
@@ -122,7 +101,7 @@
           "verifiedValue": "8008954728"
         }
       ],
-      "notes": "Program eligibility based on age (60+), North Dakota residency, and not residing in nursing facility. No income or asset limits found in search results. Funding is limited and need-based; program is not an entitlement. Phone number is official ND Assistive contact for Senior Safety Program."
+      "notes": "No income or asset limits mentioned in sources; program funded via Older Americans Act through ND Dept of Human Services."
     }
   ]
 }

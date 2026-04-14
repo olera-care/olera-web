@@ -1,14 +1,14 @@
 {
   "state": "IL",
   "stateName": "Illinois",
-  "checkedAt": "2026-04-14T00:54:55.713Z",
+  "checkedAt": "2026-04-14T10:01:19.027Z",
   "total": 12,
   "skipped": 0,
   "parseErrors": 0,
   "errors": 0,
   "programsWithFlags": 3,
-  "totalFlags": 5,
-  "highSeverityFlags": 3,
+  "totalFlags": 4,
+  "highSeverityFlags": 2,
   "programs": [
     {
       "programId": "il-medical-assistance-medicaid-seniors-disabled",
@@ -38,10 +38,10 @@
           "assets": "https://ilaging.illinois.gov/content/dam/soi/en/web/aging/ship/documents/medicaidincomeassetlimits.pdf",
           "phone": null
         },
-        "notes": "Income limits effective April 2025–March 2026 per source[2]; assets from state aging PDF[7]; no official phone found in results"
+        "notes": "Income limits effective April 2025–March 2026 per source[2]; assets from state PDF[7]. No official phone found in results."
       },
       "flags": [],
-      "notes": "Income limits effective April 2025–March 2026 per source[2]; assets from state aging PDF[7]; no official phone found in results"
+      "notes": "Income limits effective April 2025–March 2026 per source[2]; assets from state PDF[7]. No official phone found in results."
     },
     {
       "programId": "il-hsp-waiver-home-services",
@@ -64,17 +64,27 @@
         "income_2": null,
         "assets_individual": null,
         "assets_couple": null,
-        "phone": null,
+        "phone": "8775813690",
         "sources": {
           "age": null,
           "income": null,
           "assets": null,
-          "phone": null
+          "phone": "https://www.dhs.state.il.us/page.aspx?item=67182"
         },
-        "notes": "No countable asset limit or phone number found in official sources; eligibility requires meeting Medicaid financial criteria but specific limits not detailed"
+        "notes": "No asset or income limits found in sources; HSP requires meeting Medicaid financial eligibility criteria but specific countable asset maximums not detailed. Program merging into combined waiver effective 07/01/2026 per official sources."
       },
-      "flags": [],
-      "notes": "No countable asset limit or phone number found in official sources; eligibility requires meeting Medicaid financial criteria but specific limits not detailed"
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "8008436154",
+            "211"
+          ],
+          "verifiedValue": "8775813690"
+        }
+      ],
+      "notes": "No asset or income limits found in sources; HSP requires meeting Medicaid financial eligibility criteria but specific countable asset maximums not detailed. Program merging into combined waiver effective 07/01/2026 per official sources."
     },
     {
       "programId": "il-pace-comprehensive-care",
@@ -98,15 +108,15 @@
         "assets_couple": null,
         "phone": null,
         "sources": {
-          "age": "https://www.cms.gov/medicare/medicaid-coordination/about/pace",
+          "age": "https://hfs.illinois.gov/medicalproviders/pace.html",
           "income": null,
           "assets": null,
           "phone": null
         },
-        "notes": "Illinois PACE program active per state HFS site as of 2026; standard federal minimum age 55 confirmed via CMS; no IL-specific income/assets limits or phone found in official sources; worldpopulationreview outdated"
+        "notes": "Age 55+ inferred from program description as 'seniors' and context of elderly care, but search results do not explicitly state minimum age threshold. Income and asset limits not found in provided search results. Official contact phone number not available in search results. PACE program is operational in Illinois as of 2026 with five regional organizations. Recommend contacting Illinois Department of Healthcare and Family Services directly for eligibility details and application phone number."
       },
       "flags": [],
-      "notes": "Illinois PACE program active per state HFS site as of 2026; standard federal minimum age 55 confirmed via CMS; no IL-specific income/assets limits or phone found in official sources; worldpopulationreview outdated"
+      "notes": "Age 55+ inferred from program description as 'seniors' and context of elderly care, but search results do not explicitly state minimum age threshold. Income and asset limits not found in provided search results. Official contact phone number not available in search results. PACE program is operational in Illinois as of 2026 with five regional organizations. Recommend contacting Illinois Department of Healthcare and Family Services directly for eligibility details and application phone number."
     },
     {
       "programId": "il-medicare-savings-programs",
@@ -125,36 +135,21 @@
       },
       "verified": {
         "age": null,
-        "income_1": 1215,
-        "income_2": 1643,
+        "income_1": null,
+        "income_2": null,
         "assets_individual": null,
         "assets_couple": null,
-        "phone": "8008436154",
+        "phone": null,
         "sources": {
           "age": null,
           "income": "https://hfs.illinois.gov/info/brochures-and-forms/brochures/hfs3757.html",
           "assets": null,
-          "phone": "https://il.db101.org/il/programs/health_coverage/how_health/program2c.htm"
+          "phone": null
         },
-        "notes": "Income limits from Illinois HFS official site (undated but most state-specific); no 2026 Illinois-specific asset limits or phone on .gov found; federal 2026 values on Medicare.gov but states may differ; DB101 cites state info"
+        "notes": "Illinois-specific 2026 limits not found in authoritative sources; state site [3] has older QMB $1215/$1643, SLMB $1457/$1971, QI $1639/$2218 monthly income (no assets listed); federal 2026 in [7] higher but states vary; no asset or phone data with URL for IL 2026"
       },
-      "flags": [
-        {
-          "field": "income_1",
-          "severity": "medium",
-          "draftValue": 1330,
-          "verifiedValue": 1215,
-          "pctDiff": 8.6
-        },
-        {
-          "field": "income_2",
-          "severity": "medium",
-          "draftValue": 1803,
-          "verifiedValue": 1643,
-          "pctDiff": 8.9
-        }
-      ],
-      "notes": "Income limits from Illinois HFS official site (undated but most state-specific); no 2026 Illinois-specific asset limits or phone on .gov found; federal 2026 values on Medicare.gov but states may differ; DB101 cites state info"
+      "flags": [],
+      "notes": "Illinois-specific 2026 limits not found in authoritative sources; state site [3] has older QMB $1215/$1643, SLMB $1457/$1971, QI $1639/$2218 monthly income (no assets listed); federal 2026 in [7] higher but states vary; no asset or phone data with URL for IL 2026"
     },
     {
       "programId": "il-snap-food-benefits",
@@ -180,14 +175,14 @@
         "phone": "8008436154",
         "sources": {
           "age": null,
-          "income": "https://www.dhs.state.il.us/page.aspx?item=30357",
+          "income": null,
           "assets": null,
-          "phone": "https://www.cps.edu/media/community-updates/2025/december/changes-delayed/"
+          "phone": "https://www.endhungerillinois.org/snap-requirements"
         },
-        "notes": "No current 2026 income or asset limits found in sources; IDHS page has Oct 2024 data without specific numbers extractable; SNAP has no minimum age requirement but work rules apply to 18-64; phone from IDHS reference."
+        "notes": "SNAP has no age-specific eligibility threshold for seniors. The program serves all low-income individuals regardless of age. Recent 2026 changes expanded work requirements to ages 18-64 (with exceptions for parents of children under 14 and pregnant individuals), but this is a work requirement, not an age eligibility criterion. Income and asset limits are not provided in the search results retrieved. The phone number provided is the Illinois Department of Human Services SNAP line. For complete eligibility details including income and asset limits, contact IDHS directly or consult the official SNAP Federal Impact Center at snapfederalimpact.illinois.gov."
       },
       "flags": [],
-      "notes": "No current 2026 income or asset limits found in sources; IDHS page has Oct 2024 data without specific numbers extractable; SNAP has no minimum age requirement but work rules apply to 18-64; phone from IDHS reference."
+      "notes": "SNAP has no age-specific eligibility threshold for seniors. The program serves all low-income individuals regardless of age. Recent 2026 changes expanded work requirements to ages 18-64 (with exceptions for parents of children under 14 and pregnant individuals), but this is a work requirement, not an age eligibility criterion. Income and asset limits are not provided in the search results retrieved. The phone number provided is the Illinois Department of Human Services SNAP line. For complete eligibility details including income and asset limits, contact IDHS directly or consult the official SNAP Federal Impact Center at snapfederalimpact.illinois.gov."
     },
     {
       "programId": "il-home-weatherization-assistance",
@@ -214,11 +209,11 @@
         "phone": "18774119276",
         "sources": {
           "age": null,
-          "income": "https://www.citizensutilityboard.org/illinois-home-weatherization-assistance-program-ihwap/",
+          "income": "https://dceo.illinois.gov/communityservices/homeweatherization.html",
           "assets": null,
           "phone": "https://www.citizensutilityboard.org/illinois-home-weatherization-assistance-program-ihwap/"
         },
-        "notes": "Annual income limits converted to monthly (÷12). Source [1] provides PY2025 annual limits ($25,520 for household of 1; $34,480 for household of 2). Source [2] references PY2026 guidelines but does not provide specific dollar amounts in retrievable text. No age or asset limits found in search results. Phone number 1-877-411-WARM (9276) is the official application line per source [1]."
+        "notes": "Income calculated as 200% FPL for 2026 (annual $25,520/12=2126.67→2127 for HH1; $34,480/12=2873.33→2873 for HH2) per state agency PY2026 guidelines; phone from cited source; no age requirement or assets test found; elderly households prioritized"
       },
       "flags": [
         {
@@ -236,7 +231,7 @@
           "pctDiff": 18.5
         }
       ],
-      "notes": "Annual income limits converted to monthly (÷12). Source [1] provides PY2025 annual limits ($25,520 for household of 1; $34,480 for household of 2). Source [2] references PY2026 guidelines but does not provide specific dollar amounts in retrievable text. No age or asset limits found in search results. Phone number 1-877-411-WARM (9276) is the official application line per source [1]."
+      "notes": "Income calculated as 200% FPL for 2026 (annual $25,520/12=2126.67→2127 for HH1; $34,480/12=2873.33→2873 for HH2) per state agency PY2026 guidelines; phone from cited source; no age requirement or assets test found; elderly households prioritized"
     },
     {
       "programId": "il-ship-medicare-counseling",
@@ -266,10 +261,10 @@
           "assets": null,
           "phone": "https://ilaging.illinois.gov/ship.html"
         },
-        "notes": "SHIP is a free counseling service with no age, income, or asset eligibility limits"
+        "notes": "SHIP is a free counseling service for Medicare beneficiaries; no age, income, or asset limits apply"
       },
       "flags": [],
-      "notes": "SHIP is a free counseling service with no age, income, or asset eligibility limits"
+      "notes": "SHIP is a free counseling service for Medicare beneficiaries; no age, income, or asset limits apply"
     },
     {
       "programId": "il-ccp-home-delivered-meals",
@@ -295,17 +290,30 @@
         "income_2": null,
         "assets_individual": null,
         "assets_couple": null,
-        "phone": null,
+        "phone": "8009423412",
         "sources": {
-          "age": "https://ageguide.org/wp-content/uploads/2025/03/FY26-C2-Home-Delivered-Meals-Service-Description.pdf",
+          "age": "https://ilaging.illinois.gov/programs/nutrition/nutrition.html",
           "income": null,
           "assets": null,
-          "phone": null
+          "phone": "https://ageguide.org/senior-nutrition-programs/"
         },
-        "notes": "Program eligibility based on assessment by Care Coordination Unit; no specific income or asset limits found in sources. Multiple local CCU phone numbers exist but no single official main phone."
+        "notes": "Age requirement (60+) confirmed from Illinois Department on Aging official source. Income and asset limits not disclosed in available search results; program appears to use needs-based assessment rather than published financial thresholds. Phone number is DuPage County CCU contact; other counties have different numbers. Program eligibility determined via in-home assessment by Care Coordination Unit rather than published income/asset caps."
       },
-      "flags": [],
-      "notes": "Program eligibility based on assessment by Care Coordination Unit; no specific income or asset limits found in sources. Multiple local CCU phone numbers exist but no single official main phone."
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "8002528966",
+            "8009429412",
+            "8159413404",
+            "8003393200",
+            "8157239713"
+          ],
+          "verifiedValue": "8009423412"
+        }
+      ],
+      "notes": "Age requirement (60+) confirmed from Illinois Department on Aging official source. Income and asset limits not disclosed in available search results; program appears to use needs-based assessment rather than published financial thresholds. Phone number is DuPage County CCU contact; other counties have different numbers. Program eligibility determined via in-home assessment by Care Coordination Unit rather than published income/asset caps."
     },
     {
       "programId": "il-community-care-program",
@@ -327,7 +335,7 @@
         "income_1": null,
         "income_2": null,
         "assets_individual": 17500,
-        "assets_couple": 35000,
+        "assets_couple": null,
         "phone": "8002528966",
         "sources": {
           "age": "https://ilaging.illinois.gov/programs/ccp.html",
@@ -335,10 +343,10 @@
           "assets": "https://ilaging.illinois.gov/programs/ccp.html",
           "phone": "https://www.illinoislegalaid.org/legal-information/community-care-program-basics"
         },
-        "notes": "No specific income limits found in sources; assets refer to non-exempt assets. Data from official IL Dept on Aging site, current as of search."
+        "notes": "No specific income limits found in sources; assets refer to non-exempt (countable) at $17,500 for individual"
       },
       "flags": [],
-      "notes": "No specific income limits found in sources; assets refer to non-exempt assets. Data from official IL Dept on Aging site, current as of search."
+      "notes": "No specific income limits found in sources; assets refer to non-exempt (countable) at $17,500 for individual"
     },
     {
       "programId": "il-scsep-employment-training",
@@ -363,15 +371,15 @@
         "assets_couple": null,
         "phone": null,
         "sources": {
-          "age": "https://www.dhs.state.il.us/page.aspx?item=170739",
-          "income": "https://ilaging.illinois.gov/programs/employ.html",
+          "age": "https://ilaging.illinois.gov/programs/employ.html",
+          "income": null,
           "assets": null,
           "phone": null
         },
-        "notes": "Age requirement (55+) confirmed from multiple official IL state sources. Income limit stated as '125% of federal poverty level' but specific monthly dollar amounts for household sizes not provided in search results. Phone number for Illinois Department on Aging Senior HelpLine referenced but not included in search results. No asset limits found in sources. Program active as of April 2026."
+        "notes": "Income limit is 125% of federal poverty level (no specific 2026 monthly USD figures found); contact Illinois Department on Aging Senior HelpLine for exact income and phone"
       },
       "flags": [],
-      "notes": "Age requirement (55+) confirmed from multiple official IL state sources. Income limit stated as '125% of federal poverty level' but specific monthly dollar amounts for household sizes not provided in search results. Phone number for Illinois Department on Aging Senior HelpLine referenced but not included in search results. No asset limits found in sources. Program active as of April 2026."
+      "notes": "Income limit is 125% of federal poverty level (no specific 2026 monthly USD figures found); contact Illinois Department on Aging Senior HelpLine for exact income and phone"
     },
     {
       "programId": "il-long-term-care-ombudsman",
@@ -390,7 +398,7 @@
         "hasVerifiableFacts": true
       },
       "verified": {
-        "age": 18,
+        "age": 60,
         "income_1": null,
         "income_2": null,
         "assets_individual": null,
@@ -402,17 +410,10 @@
           "assets": null,
           "phone": null
         },
-        "notes": "No income or asset requirements; program provides free advocacy services without financial eligibility tests. No statewide main phone found in official sources; local contacts vary."
+        "notes": "No income or asset tests; no statewide phone in official sources, local numbers only; serves seniors 60+ and adults with disabilities in LTC facilities"
       },
-      "flags": [
-        {
-          "field": "age",
-          "severity": "high",
-          "draftValue": 60,
-          "verifiedValue": 18
-        }
-      ],
-      "notes": "No income or asset requirements; program provides free advocacy services without financial eligibility tests. No statewide main phone found in official sources; local contacts vary."
+      "flags": [],
+      "notes": "No income or asset tests; no statewide phone in official sources, local numbers only; serves seniors 60+ and adults with disabilities in LTC facilities"
     },
     {
       "programId": "il-legal-assistance-seniors",
@@ -443,10 +444,10 @@
           "assets": null,
           "phone": null
         },
-        "notes": "No statewide income or asset limits found in official sources; eligibility often based on economic/social need and determined locally by Area Agencies on Aging. Age from nonprofit source citing program details."
+        "notes": "No statewide phone number found; contact local AAA. No income or asset limits specified in sources."
       },
       "flags": [],
-      "notes": "No statewide income or asset limits found in official sources; eligibility often based on economic/social need and determined locally by Area Agencies on Aging. Age from nonprofit source citing program details."
+      "notes": "No statewide phone number found; contact local AAA. No income or asset limits specified in sources."
     }
   ]
 }

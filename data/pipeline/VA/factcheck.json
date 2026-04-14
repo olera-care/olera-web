@@ -1,14 +1,14 @@
 {
   "state": "VA",
   "stateName": "Virginia",
-  "checkedAt": "2026-04-14T01:23:31.771Z",
+  "checkedAt": "2026-04-14T10:10:38.065Z",
   "total": 5,
   "skipped": 1,
   "parseErrors": 0,
   "errors": 0,
   "programsWithFlags": 1,
-  "totalFlags": 1,
-  "highSeverityFlags": 1,
+  "totalFlags": 3,
+  "highSeverityFlags": 0,
   "programs": [
     {
       "programId": "va-ccc-plus-waiver",
@@ -33,17 +33,17 @@
         "income_2": null,
         "assets_individual": null,
         "assets_couple": null,
-        "phone": "18335225582",
+        "phone": "8335225582",
         "sources": {
-          "age": "https://www.dmas.virginia.gov/for-members/benefits-and-services/waivers/ccc-plus-waiver/",
+          "age": null,
           "income": null,
           "assets": null,
           "phone": "https://www.dmas.virginia.gov/for-members/benefits-and-services/waivers/ccc-plus-waiver/"
         },
-        "notes": "No minimum age requirement (open to older adults, any age with disability, or chronically ill); no specific income/asset limits found in sources (requires Medicaid eligibility); official phone for Medicaid/CCC+ application"
+        "notes": "CCC Plus Waiver serves older adults, individuals with physical disabilities, and chronically ill/severely impaired individuals of any age—no age minimum specified for seniors. Program has no stated income or asset limits in available official sources. Phone number is Cover Virginia Call Center from official DMAS source. Program remains active as of April 2026 (waiver approval expires 09/30/2028)."
       },
       "flags": [],
-      "notes": "No minimum age requirement (open to older adults, any age with disability, or chronically ill); no specific income/asset limits found in sources (requires Medicaid eligibility); official phone for Medicaid/CCC+ application"
+      "notes": "CCC Plus Waiver serves older adults, individuals with physical disabilities, and chronically ill/severely impaired individuals of any age—no age minimum specified for seniors. Program has no stated income or asset limits in available official sources. Phone number is Cover Virginia Call Center from official DMAS source. Program remains active as of April 2026 (waiver approval expires 09/30/2028)."
     },
     {
       "programId": "va-adult-services-program",
@@ -58,7 +58,7 @@
         "hasVerifiableFacts": true
       },
       "verified": {
-        "age": 18,
+        "age": 60,
         "income_1": null,
         "income_2": null,
         "assets_individual": null,
@@ -70,17 +70,10 @@
           "assets": null,
           "phone": null
         },
-        "notes": "Virginia Adult Services Program appears to refer to Adult Protective Services (APS); minimum age is 18 for incapacitated adults (official .gov source), but no financial eligibility criteria found in sources"
+        "notes": "Virginia Adult Services Program appears to refer to Adult Protective Services (APS); no income or asset limits found in official sources for seniors"
       },
-      "flags": [
-        {
-          "field": "age",
-          "severity": "high",
-          "draftValue": 60,
-          "verifiedValue": 18
-        }
-      ],
-      "notes": "Virginia Adult Services Program appears to refer to Adult Protective Services (APS); minimum age is 18 for incapacitated adults (official .gov source), but no financial eligibility criteria found in sources"
+      "flags": [],
+      "notes": "Virginia Adult Services Program appears to refer to Adult Protective Services (APS); no income or asset limits found in official sources for seniors"
     },
     {
       "programId": "va-vicap-medicare-counseling",
@@ -111,10 +104,10 @@
           "assets": null,
           "phone": "https://www.cms.gov/contacts/virginia-insurance-counseling-and-assistance-program-vicap/general-beneficiary-contact/1562236"
         },
-        "notes": "VICAP is a SHIP (State Health Insurance Assistance Program) offering free counseling on Medicare and health insurance options. No eligibility restrictions (age, income, or asset limits) are documented in available sources; the program serves all Medicare beneficiaries including those under 65 with disabilities. Phone number confirmed from official CMS and Virginia DARS sources."
+        "notes": "VICAP is a free counseling program with no age, income, or asset eligibility requirements; serves Medicare beneficiaries including those under 65 with disabilities"
       },
       "flags": [],
-      "notes": "VICAP is a SHIP (State Health Insurance Assistance Program) offering free counseling on Medicare and health insurance options. No eligibility restrictions (age, income, or asset limits) are documented in available sources; the program serves all Medicare beneficiaries including those under 65 with disabilities. Phone number confirmed from official CMS and Virginia DARS sources."
+      "notes": "VICAP is a free counseling program with no age, income, or asset eligibility requirements; serves Medicare beneficiaries including those under 65 with disabilities"
     },
     {
       "programId": "va-seniornavigator",
@@ -140,21 +133,45 @@
       },
       "verified": {
         "age": 55,
-        "income_1": null,
-        "income_2": null,
+        "income_1": 1302,
+        "income_2": 1755,
         "assets_individual": null,
         "assets_couple": null,
-        "phone": "5713637688",
+        "phone": "8778725627",
         "sources": {
           "age": "https://dars.virginia.gov/aging/senior-employment-program/",
-          "income": null,
+          "income": "https://www.dol.gov/agencies/eta/seniors",
           "assets": null,
-          "phone": "https://vcwnorthern.com/scsep/"
+          "phone": "https://www.dol.gov/agencies/eta/seniors"
         },
-        "notes": "No specific monthly income limits found; eligibility is income-based at 125% FPL per federal guidelines but exact 2026 USD figures unavailable in sources"
+        "notes": "Income limits based on 125% of federal poverty level (effective January 15, 2025 per DOL source). 2025 HHS poverty guidelines: $14,430 annual for individual, $21,060 for couple of 2. Calculated as 125% of these figures divided by 12 months. Virginia DARS and DOL sources confirm program is active and accepting participants as of 2026. No asset limits found in authoritative sources."
       },
-      "flags": [],
-      "notes": "No specific monthly income limits found; eligibility is income-based at 125% FPL per federal guidelines but exact 2026 USD figures unavailable in sources"
+      "flags": [
+        {
+          "field": "income_1",
+          "severity": "medium",
+          "draftValue": 1416,
+          "verifiedValue": 1302,
+          "pctDiff": 8.1
+        },
+        {
+          "field": "income_2",
+          "severity": "medium",
+          "draftValue": 1907,
+          "verifiedValue": 1755,
+          "pctDiff": 8
+        },
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "5713637688",
+            "8043433000"
+          ],
+          "verifiedValue": "8778725627"
+        }
+      ],
+      "notes": "Income limits based on 125% of federal poverty level (effective January 15, 2025 per DOL source). 2025 HHS poverty guidelines: $14,430 annual for individual, $21,060 for couple of 2. Calculated as 125% of these figures divided by 12 months. Virginia DARS and DOL sources confirm program is active and accepting participants as of 2026. No asset limits found in authoritative sources."
     }
   ]
 }

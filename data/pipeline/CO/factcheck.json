@@ -1,14 +1,14 @@
 {
   "state": "CO",
   "stateName": "Colorado",
-  "checkedAt": "2026-04-14T00:53:02.499Z",
+  "checkedAt": "2026-04-14T09:59:20.563Z",
   "total": 13,
   "skipped": 0,
   "parseErrors": 0,
   "errors": 0,
   "programsWithFlags": 3,
-  "totalFlags": 3,
-  "highSeverityFlags": 0,
+  "totalFlags": 4,
+  "highSeverityFlags": 2,
   "programs": [
     {
       "programId": "co-medicare-savings-programs",
@@ -26,22 +26,22 @@
         "hasVerifiableFacts": true
       },
       "verified": {
-        "age": 65,
+        "age": null,
         "income_1": null,
         "income_2": null,
-        "assets_individual": 9430,
-        "assets_couple": 14130,
+        "assets_individual": null,
+        "assets_couple": null,
         "phone": null,
         "sources": {
-          "age": "https://www.medicare.gov/basics/costs/help/medicare-savings-programs",
+          "age": null,
           "income": null,
-          "assets": "https://www.selectquote.com/medicare/lower-medicare-costs/medicare-savings-program",
+          "assets": null,
           "phone": null
         },
-        "notes": "No official Colorado-specific 2026 asset limits found in state sources; values from non-.gov source citing general MSP limits. Medicare Savings Programs (QMB/SLMB/QI) implicitly require Medicare eligibility (age 65+ or disabled). No phone number located."
+        "notes": "The provided search results do not contain specific eligibility details for Health First Colorado Buy-In (QMB, SLMB, QI) programs. The results discuss general Health First Colorado changes for 2026-2027 (work requirements, immigration restrictions, retroactive coverage changes) but do not address Buy-In program age thresholds, asset limits, or application phone numbers. To obtain authoritative data on QMB/SLMB/QI eligibility for seniors, contact Health First Colorado directly or consult official Colorado Department of Health Care Policy & Financing documentation."
       },
       "flags": [],
-      "notes": "No official Colorado-specific 2026 asset limits found in state sources; values from non-.gov source citing general MSP limits. Medicare Savings Programs (QMB/SLMB/QI) implicitly require Medicare eligibility (age 65+ or disabled). No phone number located."
+      "notes": "The provided search results do not contain specific eligibility details for Health First Colorado Buy-In (QMB, SLMB, QI) programs. The results discuss general Health First Colorado changes for 2026-2027 (work requirements, immigration restrictions, retroactive coverage changes) but do not address Buy-In program age thresholds, asset limits, or application phone numbers. To obtain authoritative data on QMB/SLMB/QI eligibility for seniors, contact Health First Colorado directly or consult official Colorado Department of Health Care Policy & Financing documentation."
     },
     {
       "programId": "co-hcbs-waivers",
@@ -59,22 +59,22 @@
         "hasVerifiableFacts": true
       },
       "verified": {
-        "age": null,
+        "age": 65,
         "income_1": null,
         "income_2": null,
         "assets_individual": null,
         "assets_couple": null,
         "phone": null,
         "sources": {
-          "age": null,
+          "age": "https://www.medicaid.gov/medicaid/section-1115-demo/demonstration-and-waiver-list/Waiver-Descript-Factsheet/CO",
           "income": null,
           "assets": null,
           "phone": null
         },
-        "notes": "HCBS Waivers in Colorado encompass multiple programs (e.g., EBD, SLS, CHRP) with varying age requirements but no universal minimum age, asset limits, or income tests across all; no countable asset limits found in sources; contact local Case Management Agency (CMA) by county for application"
+        "notes": "HCBS-EBD Waiver is the senior pathway (age 65+); no financial eligibility details found in sources for 2026"
       },
       "flags": [],
-      "notes": "HCBS Waivers in Colorado encompass multiple programs (e.g., EBD, SLS, CHRP) with varying age requirements but no universal minimum age, asset limits, or income tests across all; no countable asset limits found in sources; contact local Case Management Agency (CMA) by county for application"
+      "notes": "HCBS-EBD Waiver is the senior pathway (age 65+); no financial eligibility details found in sources for 2026"
     },
     {
       "programId": "co-pace-comprehensive-elderly-care",
@@ -88,11 +88,23 @@
         "phones": [],
         "hasVerifiableFacts": true
       },
-      "verified": [
-        6
-      ],
+      "verified": {
+        "age": 55,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://seniorsbluebook.com/articles/a-stepbystep-guide-to-the-colorado-pace-enrollment-process",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No authoritative financial eligibility details (income/assets) found in provided sources; PACE typically uses Medicaid eligibility which has no asset test for seniors but requires nursing home level of care and dual eligibility"
+      },
       "flags": [],
-      "notes": null
+      "notes": "No authoritative financial eligibility details (income/assets) found in provided sources; PACE typically uses Medicaid eligibility which has no asset test for seniors but requires nursing home level of care and dual eligibility"
     },
     {
       "programId": "co-snap-food-benefits",
@@ -115,17 +127,27 @@
         "income_2": 3526,
         "assets_individual": null,
         "assets_couple": null,
-        "phone": null,
+        "phone": "8558554626",
         "sources": {
           "age": null,
           "income": "https://hungerfreecolorado.org/getting-snap/",
           "assets": null,
-          "phone": null
+          "phone": "https://hungerfreecolorado.org/getting-snap/"
         },
-        "notes": "Income limits are gross monthly at 200% FPL effective Oct 1, 2025-Sep 30, 2026 from nonprofit citing federal standards; no current authoritative asset limits found as many households are categorically eligible; no age minimum; phone not in results"
+        "notes": "SNAP has no age requirement for seniors or any population; eligibility is based on income (200% FPL) and household composition only. No asset test found in search results for SNAP. Income limits effective October 1, 2025 through September 30, 2026. Phone number is Hunger Free Colorado's SNAP hotline; official state CDHS application portal is Colorado PEAK or MyCoBenefits app. Search results do not contain asset limit information for SNAP in Colorado."
       },
-      "flags": [],
-      "notes": "Income limits are gross monthly at 200% FPL effective Oct 1, 2025-Sep 30, 2026 from nonprofit citing federal standards; no current authoritative asset limits found as many households are categorically eligible; no age minimum; phone not in results"
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "8883282656",
+            "211"
+          ],
+          "verifiedValue": "8558554626"
+        }
+      ],
+      "notes": "SNAP has no age requirement for seniors or any population; eligibility is based on income (200% FPL) and household composition only. No asset test found in search results for SNAP. Income limits effective October 1, 2025 through September 30, 2026. Phone number is Hunger Free Colorado's SNAP hotline; official state CDHS application portal is Colorado PEAK or MyCoBenefits app. Search results do not contain asset limit information for SNAP in Colorado."
     },
     {
       "programId": "co-weatherization-assistance-program",
@@ -155,10 +177,10 @@
           "assets": null,
           "phone": "https://aging.networkofcare.org/denverregion-co/services/agency?pid=ColoradoEnergyOfficeWeatherizationAssistanceProgram_965_1_0"
         },
-        "notes": "Phone from state-affiliated site citing CEO WAP; local numbers like 7195836315 exist but state-level preferred; no age/assets/income limits with URL in results"
+        "notes": "No age, income, or asset limits specified for seniors in sources; income eligibility by county/household size or assistance programs"
       },
       "flags": [],
-      "notes": "Phone from state-affiliated site citing CEO WAP; local numbers like 7195836315 exist but state-level preferred; no age/assets/income limits with URL in results"
+      "notes": "No age, income, or asset limits specified for seniors in sources; income eligibility by county/household size or assistance programs"
     },
     {
       "programId": "co-ship-medicare-counseling",
@@ -188,10 +210,10 @@
           "assets": null,
           "phone": "https://www.cms.gov/contacts/senior-health-insurance-assistance-program-ship/general-beneficiary-contact/1562026"
         },
-        "notes": "SHIP is a counseling program with no age, income, or asset limits; phone from official CMS source"
+        "notes": "SHIP has no age, income, or asset eligibility limits; it provides free counseling to Medicare beneficiaries, families, and caregivers"
       },
       "flags": [],
-      "notes": "SHIP is a counseling program with no age, income, or asset limits; phone from official CMS source"
+      "notes": "SHIP has no age, income, or asset eligibility limits; it provides free counseling to Medicare beneficiaries, families, and caregivers"
     },
     {
       "programId": "co-community-access-services-respite-care",
@@ -220,10 +242,10 @@
           "assets": null,
           "phone": null
         },
-        "notes": "No authoritative current data found for 'Community Access Services (CAS) and Respite Care' as a specific program with eligibility values; respite is a service within multiple Medicaid HCBS waivers without uniform income/assets limits specified in sources"
+        "notes": "No authoritative data found for 'Community Access Services (CAS) and Respite Care' as a specific program; respite is a service within multiple Medicaid HCBS waivers with varying eligibility by population (e.g., seniors via HCBS-CIH waiver for 65+), but no centralized phone, income/assets limits specified in sources for senior pathway"
       },
       "flags": [],
-      "notes": "No authoritative current data found for 'Community Access Services (CAS) and Respite Care' as a specific program with eligibility values; respite is a service within multiple Medicaid HCBS waivers without uniform income/assets limits specified in sources"
+      "notes": "No authoritative data found for 'Community Access Services (CAS) and Respite Care' as a specific program; respite is a service within multiple Medicaid HCBS waivers with varying eligibility by population (e.g., seniors via HCBS-CIH waiver for 65+), but no centralized phone, income/assets limits specified in sources for senior pathway"
     },
     {
       "programId": "co-senior-community-service-employment-program",
@@ -245,26 +267,17 @@
         "income_2": null,
         "assets_individual": null,
         "assets_couple": null,
-        "phone": "8778725627",
+        "phone": null,
         "sources": {
           "age": "https://www.dol.gov/agencies/eta/seniors",
-          "income": null,
+          "income": "https://www.dol.gov/agencies/eta/seniors",
           "assets": null,
-          "phone": "https://www.dol.gov/agencies/eta/seniors"
+          "phone": null
         },
-        "notes": "Program is active as of 2026. Income requirement exists (125% of federal poverty level) but specific dollar amounts are not provided in search results and vary by family size and year. No asset limits found in search results. Phone number is official DOL toll-free helpline for SCSEP."
+        "notes": "Age requirement (55+) confirmed from U.S. Department of Labor official source. Income limit is 125% of federal poverty level (not a fixed dollar amount; varies annually). No asset test found in search results. Official phone number for Colorado SCSEP not provided in search results; Colorado DHHS referral URL available at https://cdhs.colorado.gov/benefits-assistance/employment-assistance/senior-community-service-employment-program. Program is active as of 2026 per NCOA source noting recent federal funding transitions."
       },
-      "flags": [
-        {
-          "field": "phone",
-          "severity": "medium",
-          "draftValue": [
-            "211"
-          ],
-          "verifiedValue": "8778725627"
-        }
-      ],
-      "notes": "Program is active as of 2026. Income requirement exists (125% of federal poverty level) but specific dollar amounts are not provided in search results and vary by family size and year. No asset limits found in search results. Phone number is official DOL toll-free helpline for SCSEP."
+      "flags": [],
+      "notes": "Age requirement (55+) confirmed from U.S. Department of Labor official source. Income limit is 125% of federal poverty level (not a fixed dollar amount; varies annually). No asset test found in search results. Official phone number for Colorado SCSEP not provided in search results; Colorado DHHS referral URL available at https://cdhs.colorado.gov/benefits-assistance/employment-assistance/senior-community-service-employment-program. Program is active as of 2026 per NCOA source noting recent federal funding transitions."
     },
     {
       "programId": "co-legal-aid-seniors",
@@ -286,26 +299,17 @@
         "income_2": null,
         "assets_individual": null,
         "assets_couple": null,
-        "phone": "18005216968",
+        "phone": null,
         "sources": {
           "age": "https://www.coloradolegalservices.org",
           "income": null,
           "assets": null,
-          "phone": "https://www.coloradolegalservices.org/get-help/"
+          "phone": null
         },
-        "notes": "Age requirement of 60+ confirmed from official CLS website. Income eligibility based on federal poverty guidelines (125% with exceptions up to 200%) is stated but specific dollar thresholds not provided in search results. No asset limits found in available sources. Phone number 1-800-521-6968 is listed for Northwest Colorado office; main statewide intake process available via online pre-application or by calling local offices. Program is active and current as of 2025-2026 reporting."
+        "notes": "No single statewide phone number found; multiple local office numbers listed. Income based on federal poverty guidelines (125-200% FPL) but no specific dollar values. No assets test specified. Data current as of 2025."
       },
-      "flags": [
-        {
-          "field": "phone",
-          "severity": "medium",
-          "draftValue": [
-            "211"
-          ],
-          "verifiedValue": "18005216968"
-        }
-      ],
-      "notes": "Age requirement of 60+ confirmed from official CLS website. Income eligibility based on federal poverty guidelines (125% with exceptions up to 200%) is stated but specific dollar thresholds not provided in search results. No asset limits found in available sources. Phone number 1-800-521-6968 is listed for Northwest Colorado office; main statewide intake process available via online pre-application or by calling local offices. Program is active and current as of 2025-2026 reporting."
+      "flags": [],
+      "notes": "No single statewide phone number found; multiple local office numbers listed. Income based on federal poverty guidelines (125-200% FPL) but no specific dollar values. No assets test specified. Data current as of 2025."
     },
     {
       "programId": "co-ltc-ombudsman",
@@ -334,12 +338,12 @@
           "age": null,
           "income": null,
           "assets": null,
-          "phone": null
+          "phone": "https://www.coombudsman.org/resources/find-an-ombudsman/"
         },
-        "notes": "Program has no age, income, or asset eligibility requirements; services are free and available to residents of long-term care facilities, their representatives, and the public. No single statewide phone number found; contact via regional offices at https://www.coombudsman.org/resources/find-an-ombudsman/"
+        "notes": "Program has no age, income, or asset eligibility requirements; services are free and available to residents of long-term care facilities (primarily seniors), their families, and others without financial tests. No single statewide phone; contact regional offices via listed site."
       },
       "flags": [],
-      "notes": "Program has no age, income, or asset eligibility requirements; services are free and available to residents of long-term care facilities, their representatives, and the public. No single statewide phone number found; contact via regional offices at https://www.coombudsman.org/resources/find-an-ombudsman/"
+      "notes": "Program has no age, income, or asset eligibility requirements; services are free and available to residents of long-term care facilities (primarily seniors), their families, and others without financial tests. No single statewide phone; contact regional offices via listed site."
     },
     {
       "programId": "co-old-age-pension",
@@ -369,7 +373,7 @@
           "assets": "https://www.senioranswers.org/financial-resources/oap/",
           "phone": "https://www.douglas.co.us/human-services/assistance/financial-assistance/old-age-pension/"
         },
-        "notes": "Income limits vary by source and appear to change annually (e.g., $952, $1005, $1032, $750); no 2026 values found. Official state site preferred but not in results."
+        "notes": "No asset test details explicitly exclude bank accounts/stocks etc., but sources describe countable resources matching definition. No 2026 updates found; values consistent across sources."
       },
       "flags": [
         {
@@ -382,7 +386,7 @@
           "verifiedValue": "8558554626"
         }
       ],
-      "notes": "Income limits vary by source and appear to change annually (e.g., $952, $1005, $1032, $750); no 2026 values found. Official state site preferred but not in results."
+      "notes": "No asset test details explicitly exclude bank accounts/stocks etc., but sources describe countable resources matching definition. No 2026 updates found; values consistent across sources."
     },
     {
       "programId": "co-home-care-allowance-hca",
@@ -400,11 +404,23 @@
         ],
         "hasVerifiableFacts": true
       },
-      "verified": [
-        6
-      ],
+      "verified": {
+        "age": null,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "8558554626",
+        "sources": {
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://www.douglas.co.us/human-services/assistance/financial-assistance/home-care-allowance/"
+        },
+        "notes": "Program active as of 2026 per state docs; eligibility tied to SSI/OAP/AND-SO (no explicit age/assets thresholds found for seniors); phone from county site (Douglas County); no statewide official financial details retrieved"
+      },
       "flags": [],
-      "notes": null
+      "notes": "Program active as of 2026 per state docs; eligibility tied to SSI/OAP/AND-SO (no explicit age/assets thresholds found for seniors); phone from county site (Douglas County); no statewide official financial details retrieved"
     },
     {
       "programId": "co-older-coloradans-cash-fund",
@@ -422,22 +438,36 @@
         "hasVerifiableFacts": true
       },
       "verified": {
-        "age": 60,
-        "income_1": 2400,
+        "age": 65,
+        "income_1": 3200,
         "income_2": null,
-        "assets_individual": null,
+        "assets_individual": 2000,
         "assets_couple": null,
         "phone": null,
         "sources": {
           "age": "https://carepatrol.com/south-metro-denver/understanding-colorados-elder-care-financial-assistance-programs-2025-guide/",
           "income": "https://carepatrol.com/south-metro-denver/understanding-colorados-elder-care-financial-assistance-programs-2025-guide/",
-          "assets": null,
+          "assets": "https://carepatrol.com/south-metro-denver/understanding-colorados-elder-care-financial-assistance-programs-2025-guide/",
           "phone": null
         },
-        "notes": "No official .gov source found with current eligibility details; values from 2025 nonprofit guide citing approximate FPL (assets not considered per source)"
+        "notes": "No official .gov source found with eligibility details; values from 2025 nonprofit guide citing state program. Cannot confirm 2026 updates or authoritative data."
       },
-      "flags": [],
-      "notes": "No official .gov source found with current eligibility details; values from 2025 nonprofit guide citing approximate FPL (assets not considered per source)"
+      "flags": [
+        {
+          "field": "age",
+          "severity": "high",
+          "draftValue": 60,
+          "verifiedValue": 65
+        },
+        {
+          "field": "income_1",
+          "severity": "high",
+          "draftValue": 2400,
+          "verifiedValue": 3200,
+          "pctDiff": 25
+        }
+      ],
+      "notes": "No official .gov source found with eligibility details; values from 2025 nonprofit guide citing state program. Cannot confirm 2026 updates or authoritative data."
     }
   ]
 }

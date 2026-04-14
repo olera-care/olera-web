@@ -1781,16 +1781,24 @@ function extractFactsFromDraft(prog) {
 function buildFactcheckPrompt(programName, stateName, facts) {
   const year = new Date().getFullYear();
   const asks = [];
-  if (facts.age !== null) asks.push(`- Minimum age requirement for the program (integer, or null if no age requirement)`);
-  if (facts.income_1 !== null || facts.income_2 !== null) {
-    asks.push(`- Current monthly income limit for a household of 1 (integer USD, or null)`);
-    asks.push(`- Current monthly income limit for a household of 2 (integer USD, or null)`);
+  if (facts.age !== null) {
+    asks.push(`- Minimum age for SENIORS (adults age 55+) to qualify for this program. If the program serves multiple populations (e.g. disabled adults AND seniors, or children AND elderly), return the senior-specific threshold — typically 55, 60, or 65. Do NOT return the lowest age across all populations. If the program has no age test for seniors, return null.`);
   }
-  if (facts.assets_individual !== null) asks.push(`- Current countable asset limit for an individual applicant (integer USD, or null)`);
-  if (facts.assets_couple !== null) asks.push(`- Current countable asset limit for a couple (integer USD, or null)`);
+  if (facts.income_1 !== null || facts.income_2 !== null) {
+    asks.push(`- Current MONTHLY income limit for a household of 1 (integer USD). If the official source publishes an ANNUAL figure (common for LIHEAP, Weatherization, and energy-assistance programs), divide by 12 and round to integer. Return a monthly value, not annual. If no income test, null.`);
+    asks.push(`- Current MONTHLY income limit for a household of 2 (integer USD). Same annual-to-monthly conversion rule. Return monthly, not annual.`);
+  }
+  if (facts.assets_individual !== null) {
+    asks.push(`- Maximum COUNTABLE FINANCIAL ASSETS for an individual applicant to qualify (integer USD). Countable means: bank accounts, stocks, bonds, cash, CDs. Do NOT return: home equity cap, vehicle exemption, burial plan exemption, or 5-year look-back transfer amount. Those are different limits. If no asset test, null.`);
+  }
+  if (facts.assets_couple !== null) {
+    asks.push(`- Maximum COUNTABLE FINANCIAL ASSETS for a couple to qualify (integer USD). Same "countable financial assets only" definition. Do not return home equity, vehicle, or look-back amounts.`);
+  }
   if (facts.phones.length > 0) asks.push(`- The official main phone number to apply or get help (digits only, e.g. "8005551234")`);
 
   return `I am fact-checking program details for "${programName}" in ${stateName} as of ${year}. Prefer official .gov, state agency, or federal agency sources. Non-government sources (nonprofit clearinghouses, advocacy org guides) are acceptable if they cite an official source and are clearly current. Always return a URL for each value you provide.
+
+CRITICAL CONTEXT: This program content targets families caring for aging parents. Interpret eligibility questions from the senior-caregiver perspective. For programs that serve multiple populations, return values that apply to the SENIOR pathway.
 
 Tell me the CURRENT values for each of the following:
 ${asks.join("\n")}
@@ -1822,16 +1830,55 @@ Rules:
 function compareFacts(drafted, verified) {
   const flags = [];
 
-  const cmpExact = (field, d, v) => {
+  // Age comparison: handles compound programs that serve both seniors and younger
+  // disabled adults. If drafted is in senior range [55, 75] and verified is
+  // under 22, this is almost certainly a compound program — not a real error.
+  // Downgrade to "info" severity instead of raising a high flag.
+  const cmpAge = (d, v) => {
     if (d === null || d === undefined) return;
     if (v === null || v === undefined) return;
-    if (d !== v) flags.push({ field, severity: "high", draftValue: d, verifiedValue: v });
+    if (d === v) return;
+    const isCompoundProgram = d >= 55 && d <= 75 && v < 22;
+    if (isCompoundProgram) {
+      flags.push({
+        field: "age",
+        severity: "info",
+        draftValue: d,
+        verifiedValue: v,
+        note: "likely compound program — drafted senior threshold, verified returned floor age for other population",
+      });
+      return;
+    }
+    flags.push({ field: "age", severity: "high", draftValue: d, verifiedValue: v });
   };
 
+  // Numeric comparison with unit-mismatch detection. If verified is almost
+  // exactly 12x drafted (or 12x-ish), the verified value is annual and our
+  // draft is monthly — not a real drift, just a unit confusion from the source.
   const cmpNumericTolerant = (field, d, v) => {
     if (d === null || d === undefined) return;
     if (v === null || v === undefined) return;
     if (typeof d !== "number" || typeof v !== "number") return;
+
+    // Unit mismatch detection (monthly vs annual): if the larger value is
+    // between 11x and 13x the smaller, it's almost certainly the same figure
+    // in a different unit. Downgrade.
+    const bigger = Math.max(d, v);
+    const smaller = Math.min(d, v);
+    if (smaller > 0) {
+      const ratio = bigger / smaller;
+      if (ratio >= 11 && ratio <= 13) {
+        flags.push({
+          field,
+          severity: "info",
+          draftValue: d,
+          verifiedValue: v,
+          note: "likely unit mismatch (monthly vs annual) — ratio ~12x",
+        });
+        return;
+      }
+    }
+
     const diff = Math.abs(d - v);
     const denom = Math.max(Math.abs(d), Math.abs(v)) || 1;
     const pct = diff / denom;
@@ -1846,7 +1893,7 @@ function compareFacts(drafted, verified) {
     }
   };
 
-  cmpExact("age", drafted.age, verified.age);
+  cmpAge(drafted.age, verified.age);
   cmpNumericTolerant("income_1", drafted.income_1, verified.income_1);
   cmpNumericTolerant("income_2", drafted.income_2, verified.income_2);
   cmpNumericTolerant("assets_individual", drafted.assets_individual, verified.assets_individual);
@@ -1953,10 +2000,17 @@ async function phaseFactcheck(entity, draftData) {
     }
   }, FACTCHECK_CONCURRENCY);
 
-  const withFlags = results.filter((r) => r.flags && r.flags.length > 0);
-  const totalFlags = withFlags.reduce((n, r) => n + r.flags.length, 0);
-  const highSeverity = withFlags.reduce(
-    (n, r) => n + r.flags.filter((f) => f.severity === "high").length,
+  const withFlags = results.filter((r) => r.flags && r.flags.some((f) => f.severity !== "info"));
+  const totalFlags = results.reduce(
+    (n, r) => n + (r.flags || []).filter((f) => f.severity !== "info").length,
+    0,
+  );
+  const highSeverity = results.reduce(
+    (n, r) => n + (r.flags || []).filter((f) => f.severity === "high").length,
+    0,
+  );
+  const infoFlags = results.reduce(
+    (n, r) => n + (r.flags || []).filter((f) => f.severity === "info").length,
     0,
   );
   const skipped = results.filter((r) => r.skipped).length;
@@ -1968,8 +2022,11 @@ async function phaseFactcheck(entity, draftData) {
   console.log(`  Skipped (no verifiable facts): ${skipped}`);
   console.log(`  Parse errors: ${parseErrors}`);
   console.log(`  API errors: ${errors}`);
-  console.log(`  Programs with flags: ${withFlags.length}`);
-  console.log(`  Total flags: ${totalFlags} (${highSeverity} high severity)`);
+  console.log(`  Programs with actionable flags: ${withFlags.length}`);
+  console.log(`  Total actionable flags: ${totalFlags} (${highSeverity} high severity)`);
+  if (infoFlags > 0) {
+    console.log(`  Info-only flags (auto-filtered false positives): ${infoFlags}`);
+  }
 
   // If most programs are skipped, that's suspicious — could be legitimate (many
   // resource-type programs with no income test) or symptomatic of thin/broken drafts.
@@ -1984,8 +2041,9 @@ async function phaseFactcheck(entity, draftData) {
   if (withFlags.length > 0) {
     console.log(`\n  Flagged programs:`);
     for (const r of withFlags) {
-      console.log(`    - ${r.programName}: ${r.flags.length} flag${r.flags.length > 1 ? "s" : ""}`);
-      for (const f of r.flags) {
+      const actionable = (r.flags || []).filter((f) => f.severity !== "info");
+      console.log(`    - ${r.programName}: ${actionable.length} flag${actionable.length > 1 ? "s" : ""}`);
+      for (const f of actionable) {
         const d = typeof f.draftValue === "object" ? JSON.stringify(f.draftValue) : f.draftValue;
         const v = typeof f.verifiedValue === "object" ? JSON.stringify(f.verifiedValue) : f.verifiedValue;
         console.log(`        [${f.severity}] ${f.field}: drafted=${d} verified=${v}${f.pctDiff ? ` (${f.pctDiff}% diff)` : ""}`);

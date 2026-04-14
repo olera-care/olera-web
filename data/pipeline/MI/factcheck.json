@@ -1,14 +1,14 @@
 {
   "state": "MI",
   "stateName": "Michigan",
-  "checkedAt": "2026-04-14T00:57:27.782Z",
+  "checkedAt": "2026-04-14T10:03:40.568Z",
   "total": 6,
   "skipped": 0,
   "parseErrors": 0,
   "errors": 0,
-  "programsWithFlags": 3,
-  "totalFlags": 5,
-  "highSeverityFlags": 4,
+  "programsWithFlags": 1,
+  "totalFlags": 1,
+  "highSeverityFlags": 1,
   "programs": [
     {
       "programId": "mi-choice-waiver",
@@ -26,29 +26,22 @@
         "hasVerifiableFacts": true
       },
       "verified": {
-        "age": 18,
+        "age": 65,
         "income_1": null,
         "income_2": null,
-        "assets_individual": 9650,
+        "assets_individual": 9660,
         "assets_couple": null,
         "phone": null,
         "sources": {
-          "age": "https://thesenioralliance.org/services/mi-choice-waiver-program/",
+          "age": "https://www.detroitseniorsolution.org/clinical-services/mi-choice-waiver-mich/",
           "income": null,
-          "assets": "https://thesenioralliance.org/services/mi-choice-waiver-program/",
+          "assets": "https://www.medicaidplanningassistance.org/michigan-choice-waiver/",
           "phone": null
         },
-        "notes": "No official .gov source found with exact 2026 numerical limits; used most recent nonprofit source citing state program. Income limit mentioned but not mapped to fields. No statewide main phone; regional contacts only."
+        "notes": "Values from 2025 sources; no 2026 updates found in official sources. Income limits mentioned but not used per instructions. No statewide phone; regional contacts only. Assets are countable financial limit."
       },
-      "flags": [
-        {
-          "field": "age",
-          "severity": "high",
-          "draftValue": 65,
-          "verifiedValue": 18
-        }
-      ],
-      "notes": "No official .gov source found with exact 2026 numerical limits; used most recent nonprofit source citing state program. Income limit mentioned but not mapped to fields. No statewide main phone; regional contacts only."
+      "flags": [],
+      "notes": "Values from 2025 sources; no 2026 updates found in official sources. Income limits mentioned but not used per instructions. No statewide phone; regional contacts only. Assets are countable financial limit."
     },
     {
       "programId": "mi-health-link-program",
@@ -65,7 +58,7 @@
         "hasVerifiableFacts": true
       },
       "verified": {
-        "age": 21,
+        "age": null,
         "income_1": null,
         "income_2": null,
         "assets_individual": null,
@@ -77,10 +70,10 @@
           "assets": null,
           "phone": null
         },
-        "notes": "Program ends December 31, 2025; transitions to MI Coordinated Health on January 1, 2026. No income or asset limits found as eligibility is based on dual Medicare-Medicaid enrollment."
+        "notes": "Program transitioned to MI Coordinated Health on Jan 1, 2026; no age test for seniors (duals aged 21+); no income/asset limits as eligibility is dual Medicare-Medicaid"
       },
       "flags": [],
-      "notes": "Program ends December 31, 2025; transitions to MI Coordinated Health on January 1, 2026. No income or asset limits found as eligibility is based on dual Medicare-Medicaid enrollment."
+      "notes": "Program transitioned to MI Coordinated Health on Jan 1, 2026; no age test for seniors (duals aged 21+); no income/asset limits as eligibility is dual Medicare-Medicaid"
     },
     {
       "programId": "mi-options",
@@ -99,22 +92,22 @@
         "hasVerifiableFacts": true
       },
       "verified": {
-        "age": 18,
+        "age": null,
         "income_1": null,
         "income_2": null,
         "assets_individual": null,
         "assets_couple": null,
         "phone": "8008037174",
         "sources": {
-          "age": "https://thesenioralliance.org/blog/your-guide-to-mi-options-free-support-for-medicare-and-long-term-care-in-michigan/",
+          "age": null,
           "income": null,
           "assets": null,
           "phone": "https://www.michigan.gov/mdhhs/inside-mdhhs/newsroom/2025/08/22/mi-options"
         },
-        "notes": "No income or asset limits per sources; program is counseling/information service open to adults 18+ regardless of income/assets"
+        "notes": "MI Options is a free counseling program with no age, income, or asset eligibility tests for seniors; open to adults including older adults and people with disabilities"
       },
       "flags": [],
-      "notes": "No income or asset limits per sources; program is counseling/information service open to adults 18+ regardless of income/assets"
+      "notes": "MI Options is a free counseling program with no age, income, or asset eligibility tests for seniors; open to adults including older adults and people with disabilities"
     },
     {
       "programId": "mi-senior-project-fresh",
@@ -132,8 +125,8 @@
       },
       "verified": {
         "age": 60,
-        "income_1": 28952,
-        "income_2": 39127,
+        "income_1": 2413,
+        "income_2": 3261,
         "assets_individual": null,
         "assets_couple": null,
         "phone": null,
@@ -143,25 +136,10 @@
           "assets": null,
           "phone": null
         },
-        "notes": "Income limits are annual, not monthly; no assets test or phone found in sources"
+        "notes": "Income limits from March 2026 update are annual figures divided by 12 and rounded ($28,952.50/12=2412.71→2413; $39,127.50/12=3260.625→3261). No assets test or main phone found. Tribal members 55+ also eligible."
       },
-      "flags": [
-        {
-          "field": "income_1",
-          "severity": "high",
-          "draftValue": 2322,
-          "verifiedValue": 28952,
-          "pctDiff": 92
-        },
-        {
-          "field": "income_2",
-          "severity": "high",
-          "draftValue": 3151,
-          "verifiedValue": 39127,
-          "pctDiff": 91.9
-        }
-      ],
-      "notes": "Income limits are annual, not monthly; no assets test or phone found in sources"
+      "flags": [],
+      "notes": "Income limits from March 2026 update are annual figures divided by 12 and rounded ($28,952.50/12=2412.71→2413; $39,127.50/12=3260.625→3261). No assets test or main phone found. Tribal members 55+ also eligible."
     },
     {
       "programId": "michigan-micafe-food-access",
@@ -192,10 +170,10 @@
           "assets": null,
           "phone": "https://www.ageways.org/caregiver_service/micafe-michigans-coordinated-access-to-food-for-the-elderly/"
         },
-        "notes": "MiCAFE is an assistance program for SNAP eligibility (age 60+ per state site); no income/assets limits found in sources as it refers to SNAP criteria which vary; phone consistent across multiple current nonprofit sources citing the program"
+        "notes": "MiCAFE is an assistance program for SNAP eligibility (age 60+); no specific income/assets limits found in sources as it refers to SNAP criteria"
       },
       "flags": [],
-      "notes": "MiCAFE is an assistance program for SNAP eligibility (age 60+ per state site); no income/assets limits found in sources as it refers to SNAP criteria which vary; phone consistent across multiple current nonprofit sources citing the program"
+      "notes": "MiCAFE is an assistance program for SNAP eligibility (age 60+); no specific income/assets limits found in sources as it refers to SNAP criteria"
     },
     {
       "programId": "mi-senior-companion-program",
@@ -220,14 +198,14 @@
         "income_2": null,
         "assets_individual": null,
         "assets_couple": null,
-        "phone": "9893584660",
+        "phone": null,
         "sources": {
           "age": "https://www.michigan.gov/mdhhs/adult-child-serv/adults-and-seniors/acls/special-programs",
           "income": null,
           "assets": null,
-          "phone": "https://www.nemcsa.org/get-involved/senior-companion-program.html"
+          "phone": null
         },
-        "notes": "Program is active as of 2026. Age requirement is 55 or older (confirmed across multiple official Michigan state sources). Income eligibility is mentioned as a requirement but specific thresholds are not disclosed in available sources. Phone number sourced from NEMCSA (Northeast Michigan Community Service Employment Area), a regional AmeriCorps Senior program administrator. Multiple regional coordinators exist; this is one primary contact. No specific income or asset limits found in retrieved sources."
+        "notes": "Program is a volunteer opportunity for low-income seniors age 55+ to provide companionship; no central application phone or senior recipient eligibility found from official sources"
       },
       "flags": [
         {
@@ -235,20 +213,9 @@
           "severity": "high",
           "draftValue": 21,
           "verifiedValue": 55
-        },
-        {
-          "field": "phone",
-          "severity": "medium",
-          "draftValue": [
-            "2485373300",
-            "8102573769",
-            "2693820515",
-            "5173738230"
-          ],
-          "verifiedValue": "9893584660"
         }
       ],
-      "notes": "Program is active as of 2026. Age requirement is 55 or older (confirmed across multiple official Michigan state sources). Income eligibility is mentioned as a requirement but specific thresholds are not disclosed in available sources. Phone number sourced from NEMCSA (Northeast Michigan Community Service Employment Area), a regional AmeriCorps Senior program administrator. Multiple regional coordinators exist; this is one primary contact. No specific income or asset limits found in retrieved sources."
+      "notes": "Program is a volunteer opportunity for low-income seniors age 55+ to provide companionship; no central application phone or senior recipient eligibility found from official sources"
     }
   ]
 }

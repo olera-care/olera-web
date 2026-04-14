@@ -1,14 +1,14 @@
 {
   "state": "PA",
   "stateName": "Pennsylvania",
-  "checkedAt": "2026-04-14T01:03:01.249Z",
+  "checkedAt": "2026-04-14T10:08:07.013Z",
   "total": 9,
   "skipped": 0,
   "parseErrors": 0,
   "errors": 0,
-  "programsWithFlags": 2,
-  "totalFlags": 3,
-  "highSeverityFlags": 2,
+  "programsWithFlags": 1,
+  "totalFlags": 1,
+  "highSeverityFlags": 0,
   "programs": [
     {
       "programId": "pa-community-healthchoices-chc",
@@ -38,10 +38,10 @@
           "assets": null,
           "phone": null
         },
-        "notes": "No authoritative data found for income or assets limits; CHC eligibility based on Medicaid eligibility and specific LTSS criteria, not standard income/asset tests listed. No official main application phone number identified."
+        "notes": "Program serves adults 21+ including seniors; no senior-specific minimum age threshold found. No income/assets limits or official application phone in sources."
       },
       "flags": [],
-      "notes": "No authoritative data found for income or assets limits; CHC eligibility based on Medicaid eligibility and specific LTSS criteria, not standard income/asset tests listed. No official main application phone number identified."
+      "notes": "Program serves adults 21+ including seniors; no senior-specific minimum age threshold found. No income/assets limits or official application phone in sources."
     },
     {
       "programId": "pa-pace-prescription-assistance",
@@ -60,22 +60,22 @@
         "hasVerifiableFacts": true
       },
       "verified": {
-        "age": null,
+        "age": 65,
         "income_1": null,
         "income_2": null,
         "assets_individual": null,
         "assets_couple": null,
         "phone": "18002257223",
         "sources": {
-          "age": "https://zenlycare.com/pace",
+          "age": "https://www.pa.gov/agencies/aging/aging-programs-and-services/pace-program",
           "income": null,
           "assets": null,
-          "phone": "https://libertymedicare.com/plans-by-state/pennsylvania-health-insurance-plans/pace/"
+          "phone": "https://www.pasenategop.com/wp-content/uploads/2022/03/pace-pacenet.pdf"
         },
-        "notes": "Search results confuse PACE (Pharmaceutical Assistance Contract for the Elderly, age 65+, income limits ~$14,500/$17,700 annual) with federal PACE (Program of All-Inclusive Care for the Elderly, age 55+). No authoritative 2026 PA-specific data found for federal PACE income/assets/phone; official .gov pages describe prescription program only."
+        "notes": "Search results describe Pennsylvania's PACE as a prescription drug assistance program (Pharmaceutical Assistance Contract for the Elderly), not the national PACE long-term care program. No 2026 updates found; income limits from 2022 sources. Cannot find authoritative data on national PACE (Program of All-Inclusive Care for the Elderly) details in PA."
       },
       "flags": [],
-      "notes": "Search results confuse PACE (Pharmaceutical Assistance Contract for the Elderly, age 65+, income limits ~$14,500/$17,700 annual) with federal PACE (Program of All-Inclusive Care for the Elderly, age 55+). No authoritative 2026 PA-specific data found for federal PACE income/assets/phone; official .gov pages describe prescription program only."
+      "notes": "Search results describe Pennsylvania's PACE as a prescription drug assistance program (Pharmaceutical Assistance Contract for the Elderly), not the national PACE long-term care program. No 2026 updates found; income limits from 2022 sources. Cannot find authoritative data on national PACE (Program of All-Inclusive Care for the Elderly) details in PA."
     },
     {
       "programId": "pa-healthy-horizons-qmb-slmb-qi",
@@ -93,37 +93,22 @@
         "hasVerifiableFacts": true
       },
       "verified": {
-        "age": null,
+        "age": 65,
         "income_1": 1350,
         "income_2": 1824,
-        "assets_individual": 9950,
-        "assets_couple": 14910,
+        "assets_individual": 2000,
+        "assets_couple": 3000,
         "phone": null,
         "sources": {
-          "age": null,
+          "age": "https://www.aidslawpa.org/wp-content/uploads/2026/01/2026-AIDS-Law-Project-Benefit-Income-and-Resource-Limits-1-20-26.pdf",
           "income": "https://www.pa.gov/agencies/dhs/resources/aging-physical-disabilities/medicaid-older-people-and-people-with-disabilities",
           "assets": "https://www.pa.gov/agencies/dhs/resources/aging-physical-disabilities/medicaid-older-people-and-people-with-disabilities",
           "phone": null
         },
-        "notes": "Values reflect QMB Medicare Cost-Sharing Program limits from official PA.gov source dated 2026. Program includes three tiers (QMB, SLMB, QI) with different income thresholds; values provided are for QMB tier (100% FPL). No minimum age requirement found in search results, though program targets elderly and disabled. Official phone number for application not found in provided sources."
+        "notes": "Values from 2025 QMB Categorically Needy (Healthy Horizons); no 2026-specific official updates found. Age from senior-specific reference (disabled or 65+). QMB has two tiers with different assets; using Categorically Needy as primary."
       },
-      "flags": [
-        {
-          "field": "assets_individual",
-          "severity": "high",
-          "draftValue": 2000,
-          "verifiedValue": 9950,
-          "pctDiff": 79.9
-        },
-        {
-          "field": "assets_couple",
-          "severity": "high",
-          "draftValue": 3000,
-          "verifiedValue": 14910,
-          "pctDiff": 79.9
-        }
-      ],
-      "notes": "Values reflect QMB Medicare Cost-Sharing Program limits from official PA.gov source dated 2026. Program includes three tiers (QMB, SLMB, QI) with different income thresholds; values provided are for QMB tier (100% FPL). No minimum age requirement found in search results, though program targets elderly and disabled. Official phone number for application not found in provided sources."
+      "flags": [],
+      "notes": "Values from 2025 QMB Categorically Needy (Healthy Horizons); no 2026-specific official updates found. Age from senior-specific reference (disabled or 65+). QMB has two tiers with different assets; using Categorically Needy as primary."
     },
     {
       "programId": "pa-snap-food-benefits",
@@ -154,10 +139,10 @@
           "assets": null,
           "phone": null
         },
-        "notes": "Official PA DHS site lists maximum gross monthly income limits (not net); no asset limits or age requirement found in sources; SNAP active in PA as of 2026"
+        "notes": "SNAP has no age-based eligibility threshold for seniors; eligibility is based on household income, household size, and work requirements (as of Sept 1, 2025). Income limits shown are maximum gross monthly income for 2026. Asset limits and official application phone number not found in provided search results. Age consideration: seniors 60+ or disabled household members may qualify for higher income thresholds under federal rules, but this is not an age-based eligibility floor—it affects benefit calculation. Work requirements (20 hrs/week) apply to adults 18-54 without dependents; exemptions exist for those 55-64 in certain circumstances (as of Nov 1, 2025 changes). For senior-specific guidance, contact PA DHS directly."
       },
       "flags": [],
-      "notes": "Official PA DHS site lists maximum gross monthly income limits (not net); no asset limits or age requirement found in sources; SNAP active in PA as of 2026"
+      "notes": "SNAP has no age-based eligibility threshold for seniors; eligibility is based on household income, household size, and work requirements (as of Sept 1, 2025). Income limits shown are maximum gross monthly income for 2026. Asset limits and official application phone number not found in provided search results. Age consideration: seniors 60+ or disabled household members may qualify for higher income thresholds under federal rules, but this is not an age-based eligibility floor—it affects benefit calculation. Work requirements (20 hrs/week) apply to adults 18-54 without dependents; exemptions exist for those 55-64 in certain circumstances (as of Nov 1, 2025 changes). For senior-specific guidance, contact PA DHS directly."
     },
     {
       "programId": "pa-ship-medicare-counseling",
@@ -187,10 +172,10 @@
           "assets": null,
           "phone": "https://www.shiphelp.org/ships/pennsylvania/"
         },
-        "notes": "SHIP/PA MEDI is counseling program with no age/income/asset eligibility limits; phone from shiphelp.org citing official program"
+        "notes": "SHIP has no age, income, or asset eligibility limits; it provides free counseling to Medicare beneficiaries, families, and caregivers"
       },
       "flags": [],
-      "notes": "SHIP/PA MEDI is counseling program with no age/income/asset eligibility limits; phone from shiphelp.org citing official program"
+      "notes": "SHIP has no age, income, or asset eligibility limits; it provides free counseling to Medicare beneficiaries, families, and caregivers"
     },
     {
       "programId": "pa-home-delivered-meals",
@@ -220,7 +205,7 @@
           "assets": null,
           "phone": "https://www.dauphincounty.gov/government/human-services/area-agency-on-aging/services/HomeDeliveredMeals"
         },
-        "notes": "Age requirement of 60+ found in official PA Department of Aging source. Phone number (717-780-6130) is for Dauphin County Area Agency on Aging; search results do not provide a single statewide application phone number—eligibility and application vary by county/provider. No income or asset limits found in search results; program appears to be need-based but not means-tested. Program remains active as of 2026."
+        "notes": "Age 60+ confirmed from PA Department of Aging official source. Phone number from Dauphin County Area Agency on Aging; individual county AAAs manage enrollment. Income and asset limits not specified in available official sources; program documentation indicates eligibility based on functional need (inability to safely manage meal prep/shopping) rather than means testing. Montgomery County source notes donations are welcome but program serves without regard to income."
       },
       "flags": [
         {
@@ -233,7 +218,7 @@
           "verifiedValue": "7177806130"
         }
       ],
-      "notes": "Age requirement of 60+ found in official PA Department of Aging source. Phone number (717-780-6130) is for Dauphin County Area Agency on Aging; search results do not provide a single statewide application phone number—eligibility and application vary by county/provider. No income or asset limits found in search results; program appears to be need-based but not means-tested. Program remains active as of 2026."
+      "notes": "Age 60+ confirmed from PA Department of Aging official source. Phone number from Dauphin County Area Agency on Aging; individual county AAAs manage enrollment. Income and asset limits not specified in available official sources; program documentation indicates eligibility based on functional need (inability to safely manage meal prep/shopping) rather than means testing. Montgomery County source notes donations are welcome but program serves without regard to income."
     },
     {
       "programId": "pa-caregiver-support-program",
@@ -255,17 +240,17 @@
         "income_2": null,
         "assets_individual": null,
         "assets_couple": null,
-        "phone": null,
+        "phone": "7177831550",
         "sources": {
           "age": null,
           "income": null,
           "assets": null,
-          "phone": "https://www.pa.gov/agencies/aging/aging-programs-and-services/caregiver-support-program"
+          "phone": "https://www.aarp.org/states/pennsylvania/caregiver-resources/"
         },
-        "notes": "No statewide main phone number found; contact local Area Agency on Aging. No age, income, or asset limits specified in sources."
+        "notes": "Program is active as of January 2026. Search results do not contain specific age, income, or asset limits for eligibility. Eligibility is based on caregiver age (18+, or 55+ for certain categories) and care receiver status (60+, or any age with Alzheimer's/dementia, or adult with disability). Financial assistance uses cost-sharing approach based on household income, but specific thresholds not provided in available sources. Phone number sourced from AARP official state resource page citing Pennsylvania Department of Aging."
       },
       "flags": [],
-      "notes": "No statewide main phone number found; contact local Area Agency on Aging. No age, income, or asset limits specified in sources."
+      "notes": "Program is active as of January 2026. Search results do not contain specific age, income, or asset limits for eligibility. Eligibility is based on caregiver age (18+, or 55+ for certain categories) and care receiver status (60+, or any age with Alzheimer's/dementia, or adult with disability). Financial assistance uses cost-sharing approach based on household income, but specific thresholds not provided in available sources. Phone number sourced from AARP official state resource page citing Pennsylvania Department of Aging."
     },
     {
       "programId": "pa-oplap-legal-assistance",
@@ -295,10 +280,10 @@
           "assets": null,
           "phone": "https://www.pa.gov/services/aging/apply-for-the-older-pennsylvanians-legal-assistance-program"
         },
-        "notes": "No income or asset limits found in sources; program prioritizes those with greatest economic/social needs but open regardless of income per related helpline"
+        "notes": "No income or asset limits specified; program open to age 60+ with focus on greatest economic/social needs but available regardless of income per related helpline"
       },
       "flags": [],
-      "notes": "No income or asset limits found in sources; program prioritizes those with greatest economic/social needs but open regardless of income per related helpline"
+      "notes": "No income or asset limits specified; program open to age 60+ with focus on greatest economic/social needs but available regardless of income per related helpline"
     },
     {
       "programId": "pa-ltc-ombudsman",
@@ -327,10 +312,10 @@
           "assets": null,
           "phone": "https://www.pa.gov/services/aging/request-assistance-from-a-long-term-care-ombudsman"
         },
-        "notes": "Program has no age, income, or asset eligibility requirements; it is an advocacy service open to all long-term care residents and families. No statewide main phone number found in official sources."
+        "notes": "No statewide main phone number found in sources; program has no age, income, or asset eligibility requirements as it serves long-term care residents and families without financial tests"
       },
       "flags": [],
-      "notes": "Program has no age, income, or asset eligibility requirements; it is an advocacy service open to all long-term care residents and families. No statewide main phone number found in official sources."
+      "notes": "No statewide main phone number found in sources; program has no age, income, or asset eligibility requirements as it serves long-term care residents and families without financial tests"
     }
   ]
 }

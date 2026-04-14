@@ -1,14 +1,14 @@
 {
   "state": "NM",
   "stateName": "New Mexico",
-  "checkedAt": "2026-04-14T01:00:42.813Z",
+  "checkedAt": "2026-04-14T10:06:16.809Z",
   "total": 5,
   "skipped": 0,
   "parseErrors": 0,
   "errors": 0,
-  "programsWithFlags": 2,
-  "totalFlags": 2,
-  "highSeverityFlags": 1,
+  "programsWithFlags": 0,
+  "totalFlags": 0,
+  "highSeverityFlags": 0,
   "programs": [
     {
       "programId": "nm-centennial-care-community-benefit",
@@ -26,29 +26,22 @@
         "hasVerifiableFacts": true
       },
       "verified": {
-        "age": 0,
+        "age": 65,
         "income_1": null,
         "income_2": null,
-        "assets_individual": 2000,
+        "assets_individual": null,
         "assets_couple": null,
         "phone": "18002834465",
         "sources": {
           "age": "https://www.medicaidplanningassistance.org/mexico-centennial-care/",
           "income": null,
-          "assets": "https://medicaideligibilitycalculator.com/medicaid-eligibility/new-mexico/",
+          "assets": null,
           "phone": "https://www.hca.nm.gov/community-benefit-program/"
         },
-        "notes": "Age minimum is 0 (program serves disabled persons aged 0-64 and elderly aged 65+). Income limits not specified in search results; asset limit of $2000 found but couple limit not provided. Phone number is general Centennial Care/Community Benefit inquiry line. Functional eligibility (Nursing Facility Level of Care + 2+ ADLs) also required but not captured in this schema."
+        "notes": "Program eligibility tied to full Medicaid ABD criteria (no specific income/assets stated for Community Benefit); age from senior pathway. Official site lacks detailed thresholds."
       },
-      "flags": [
-        {
-          "field": "age",
-          "severity": "high",
-          "draftValue": 65,
-          "verifiedValue": 0
-        }
-      ],
-      "notes": "Age minimum is 0 (program serves disabled persons aged 0-64 and elderly aged 65+). Income limits not specified in search results; asset limit of $2000 found but couple limit not provided. Phone number is general Centennial Care/Community Benefit inquiry line. Functional eligibility (Nursing Facility Level of Care + 2+ ADLs) also required but not captured in this schema."
+      "flags": [],
+      "notes": "Program eligibility tied to full Medicaid ABD criteria (no specific income/assets stated for Community Benefit); age from senior pathway. Official site lacks detailed thresholds."
     },
     {
       "programId": "nm-pace-comprehensive-care",
@@ -80,10 +73,10 @@
           "assets": null,
           "phone": null
         },
-        "notes": "No authoritative data found for income/assets limits or phone number; PACE nationally has no standard income/asset tests beyond Medicare/Medicaid eligibility"
+        "notes": "No income or asset limits found in sources; PACE eligibility based on nursing facility level of care and community living ability, not financial tests. Official NM state page at https://www.hca.nm.gov/lookingforinformation/pace/ lacks details."
       },
       "flags": [],
-      "notes": "No authoritative data found for income/assets limits or phone number; PACE nationally has no standard income/asset tests beyond Medicare/Medicaid eligibility"
+      "notes": "No income or asset limits found in sources; PACE eligibility based on nursing facility level of care and community living ability, not financial tests. Official NM state page at https://www.hca.nm.gov/lookingforinformation/pace/ lacks details."
     },
     {
       "programId": "nm-community-benefit-program",
@@ -107,17 +100,17 @@
         "income_2": null,
         "assets_individual": null,
         "assets_couple": null,
-        "phone": "8002834465",
+        "phone": "18002834465",
         "sources": {
           "age": null,
           "income": null,
           "assets": null,
           "phone": "https://www.hca.nm.gov/community-benefit-program/"
         },
-        "notes": "Search results provide only the general phone number (1-800-283-4465) for MCO enrollment inquiries. Specific eligibility criteria including age, income limits, and asset limits are not detailed in the provided search results. The HCA website references 'Click here for more information and a list of the services available' but the linked page content is not included in search results. Program appears active as of 2026 with no indication of discontinuation or renaming."
+        "notes": "Program is Medicaid-based; eligibility follows general Medicaid financial rules (income up to ~138% FPL, no age minimum for adults, no countable asset test), but no senior-specific thresholds or exact 2026 figures found in official sources"
       },
       "flags": [],
-      "notes": "Search results provide only the general phone number (1-800-283-4465) for MCO enrollment inquiries. Specific eligibility criteria including age, income limits, and asset limits are not detailed in the provided search results. The HCA website references 'Click here for more information and a list of the services available' but the linked page content is not included in search results. Program appears active as of 2026 with no indication of discontinuation or renaming."
+      "notes": "Program is Medicaid-based; eligibility follows general Medicaid financial rules (income up to ~138% FPL, no age minimum for adults, no countable asset test), but no senior-specific thresholds or exact 2026 figures found in official sources"
     },
     {
       "programId": "nm-senior-farmers-market-nutrition",
@@ -136,7 +129,7 @@
         "hasVerifiableFacts": true
       },
       "verified": {
-        "age": null,
+        "age": 60,
         "income_1": null,
         "income_2": null,
         "assets_individual": null,
@@ -148,10 +141,10 @@
           "assets": null,
           "phone": "https://www.nmhealth.org/news/awareness/2026/2/?view=2317"
         },
-        "notes": "Age is 60 (non-Native American) or 55 (Native American); income at or below 185% FPL (no specific monthly USD amounts found); no asset test mentioned; phone from official NMDOH press release."
+        "notes": "Age is 60 for non-Native Americans, 55 for Native Americans; no specific monthly income limits published (185% FPL referenced but no USD figures found); no assets test"
       },
       "flags": [],
-      "notes": "Age is 60 (non-Native American) or 55 (Native American); income at or below 185% FPL (no specific monthly USD amounts found); no asset test mentioned; phone from official NMDOH press release."
+      "notes": "Age is 60 for non-Native Americans, 55 for Native Americans; no specific monthly income limits published (185% FPL referenced but no USD figures found); no assets test"
     },
     {
       "programId": "nm-senior-employment-training-program",
@@ -176,29 +169,17 @@
         "income_2": null,
         "assets_individual": null,
         "assets_couple": null,
-        "phone": "1-877-872-5627",
+        "phone": null,
         "sources": {
-          "age": "https://www.dol.gov/agencies/eta/seniors",
+          "age": "https://www.aging.nm.gov/aging-network/senior-employment-programs/",
           "income": null,
           "assets": null,
-          "phone": "https://www.dol.gov/agencies/eta/seniors"
+          "phone": null
         },
-        "notes": "Age requirement (55+) confirmed from federal DOL source. Income requirement exists (125% of federal poverty level per DOL source) but specific dollar amounts not provided in search results. No asset limits found in search results. Phone number is federal DOL help line for SCSEP program finder; New Mexico state-specific application phone not found in results."
+        "notes": "No income, assets, or phone found in NM-specific official sources; federal SCSEP uses 125% FPL income limit per DOL"
       },
-      "flags": [
-        {
-          "field": "phone",
-          "severity": "medium",
-          "draftValue": [
-            "5054764799",
-            "5052922001",
-            "5058816401",
-            "8004322080"
-          ],
-          "verifiedValue": "18778725627"
-        }
-      ],
-      "notes": "Age requirement (55+) confirmed from federal DOL source. Income requirement exists (125% of federal poverty level per DOL source) but specific dollar amounts not provided in search results. No asset limits found in search results. Phone number is federal DOL help line for SCSEP program finder; New Mexico state-specific application phone not found in results."
+      "flags": [],
+      "notes": "No income, assets, or phone found in NM-specific official sources; federal SCSEP uses 125% FPL income limit per DOL"
     }
   ]
 }

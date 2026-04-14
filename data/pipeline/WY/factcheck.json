@@ -1,14 +1,14 @@
 {
   "state": "WY",
   "stateName": "Wyoming",
-  "checkedAt": "2026-04-14T01:24:39.022Z",
+  "checkedAt": "2026-04-14T10:11:48.328Z",
   "total": 3,
   "skipped": 0,
   "parseErrors": 0,
   "errors": 0,
   "programsWithFlags": 2,
   "totalFlags": 2,
-  "highSeverityFlags": 0,
+  "highSeverityFlags": 1,
   "programs": [
     {
       "programId": "wy-state-parks-senior-discounts",
@@ -25,19 +25,19 @@
         "hasVerifiableFacts": true
       },
       "verified": {
-        "age": null,
+        "age": 62,
         "income_1": null,
         "income_2": null,
         "assets_individual": null,
         "assets_couple": null,
-        "phone": "877996275",
+        "phone": "3077773680",
         "sources": {
-          "age": null,
+          "age": "https://wyoparks.wyo.gov/index.php/permits-reservations/permits-fees",
           "income": null,
           "assets": null,
-          "phone": "https://wyoparks.wyo.gov/index.php/permits-reservations/permits-fees"
+          "phone": "https://wyospcr.wyo.gov/index.php/news-events/press-releases"
         },
-        "notes": "No Wyoming State Parks senior discount program found in official sources; annual passes available to all residents without age, income, or assets test. Some historic sites offer flat senior rates (e.g., $9 at Wyoming Territorial Prison) but no dedicated senior program."
+        "notes": "Wyoming State Parks offers senior discounts for ages 62+. No income or asset limits found in official sources. Senior lifetime pass price increased to $80 as of 2026 (previously $10). Phone number is for Wyoming Department of State Parks and Cultural Resources main contact. Program appears active as of April 2026."
       },
       "flags": [
         {
@@ -46,10 +46,10 @@
           "draftValue": [
             "8779967275"
           ],
-          "verifiedValue": "877996275"
+          "verifiedValue": "3077773680"
         }
       ],
-      "notes": "No Wyoming State Parks senior discount program found in official sources; annual passes available to all residents without age, income, or assets test. Some historic sites offer flat senior rates (e.g., $9 at Wyoming Territorial Prison) but no dedicated senior program."
+      "notes": "Wyoming State Parks offers senior discounts for ages 62+. No income or asset limits found in official sources. Senior lifetime pass price increased to $80 as of 2026 (previously $10). Phone number is for Wyoming Department of State Parks and Cultural Resources main contact. Program appears active as of April 2026."
     },
     {
       "programId": "wy-liheap-energy-assistance",
@@ -78,10 +78,10 @@
           "assets": null,
           "phone": "https://dfs.wyo.gov/assistance-programs/home-utilities-energy-assistance/low-income-energy-assistance-program-lieap/"
         },
-        "notes": "Income from non-.gov source citing limits; official state site confirms 60% SMI eligibility but no exact figures; program active for 2025-2026 as LIEAP; no assets test found"
+        "notes": "Income from nonprofit citing official limits; official state site confirms 60% SMI but no table. Program active for 2025-2026 season. Priority for elderly 60+ but no age minimum."
       },
       "flags": [],
-      "notes": "Income from non-.gov source citing limits; official state site confirms 60% SMI eligibility but no exact figures; program active for 2025-2026 as LIEAP; no assets test found"
+      "notes": "Income from nonprofit citing official limits; official state site confirms 60% SMI but no table. Program active for 2025-2026 season. Priority for elderly 60+ but no age minimum."
     },
     {
       "programId": "wy-tax-refund-elderly-disabled",
@@ -98,31 +98,29 @@
         "hasVerifiableFacts": true
       },
       "verified": {
-        "age": 65,
-        "income_1": 17500,
-        "income_2": 28500,
+        "age": 62,
+        "income_1": null,
+        "income_2": null,
         "assets_individual": null,
         "assets_couple": null,
-        "phone": "18669898901",
+        "phone": null,
         "sources": {
-          "age": "https://www.lincolninst.edu/app/uploads/legacy-files/gwipp/upload/sources/Wyoming/2017/WY_Tax_Refund_for_Elderly_and_Disabled_Wyoming_Department_of_Health_2013.pdf",
-          "income": "https://www.lincolninst.edu/app/uploads/legacy-files/gwipp/upload/sources/Wyoming/2017/WY_Tax_Refund_for_Elderly_and_Disabled_Wyoming_Department_of_Health_2013.pdf",
+          "age": null,
+          "income": null,
           "assets": null,
-          "phone": "https://www.lincolninst.edu/app/uploads/legacy-files/gwipp/upload/sources/Wyoming/2017/WY_Tax_Refund_for_Elderly_and_Disabled_Wyoming_Department_of_Health_2013.pdf"
+          "phone": null
         },
-        "notes": "Data from 2013 WY Dept of Health source; no current 2026 authoritative data found in results; asset limit mentioned as $29,950 per adult but lacks current confirmation"
+        "notes": "No authoritative 2026 details found on eligibility (age, income, assets) or phone in search results; program administered by Wyoming Dept. of Health per county site, but no official specs retrievable"
       },
       "flags": [
         {
-          "field": "phone",
-          "severity": "medium",
-          "draftValue": [
-            "211"
-          ],
-          "verifiedValue": "18669898901"
+          "field": "age",
+          "severity": "high",
+          "draftValue": 65,
+          "verifiedValue": 62
         }
       ],
-      "notes": "Data from 2013 WY Dept of Health source; no current 2026 authoritative data found in results; asset limit mentioned as $29,950 per adult but lacks current confirmation"
+      "notes": "No authoritative 2026 details found on eligibility (age, income, assets) or phone in search results; program administered by Wyoming Dept. of Health per county site, but no official specs retrievable"
     }
   ]
 }

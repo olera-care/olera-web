@@ -1,14 +1,14 @@
 {
   "state": "ID",
   "stateName": "Idaho",
-  "checkedAt": "2026-04-14T00:54:41.662Z",
+  "checkedAt": "2026-04-14T10:01:02.587Z",
   "total": 13,
   "skipped": 0,
   "parseErrors": 0,
   "errors": 0,
-  "programsWithFlags": 3,
-  "totalFlags": 6,
-  "highSeverityFlags": 2,
+  "programsWithFlags": 2,
+  "totalFlags": 3,
+  "highSeverityFlags": 0,
   "programs": [
     {
       "programId": "id-medicaid-abd-program",
@@ -27,18 +27,18 @@
         "income_1": null,
         "income_2": null,
         "assets_individual": 2000,
-        "assets_couple": 3000,
+        "assets_couple": null,
         "phone": null,
         "sources": {
-          "age": "https://healthandwelfare.idaho.gov/services-programs/medicaid-health/about-medicaid-elderly-or-adults-disabilities",
+          "age": "https://www.medicaidlongtermcare.org/eligibility/idaho/",
           "income": null,
-          "assets": "https://www.medicaidplanningassistance.org/idaho-aged-and-disabled-waiver/",
+          "assets": "https://www.medicaidlongtermcare.org/eligibility/idaho/",
           "phone": null
         },
-        "notes": "Official Idaho site confirms age 65 or older, blind, or disabled; no specific current monthly income limits found in provided sources; assets from 2026-dated non-gov source citing program rules"
+        "notes": "Search results confirm age 65+ and $2,000 asset limit for single applicants in 2026. Monthly income limits not published in retrieved sources; only annual LTC limit of $2,901 mentioned in one non-gov source. Couple asset limit not found. Phone number not located in search results. Official state sources (healthandwelfare.idaho.gov) do not provide specific monthly income thresholds in retrieved excerpts."
       },
       "flags": [],
-      "notes": "Official Idaho site confirms age 65 or older, blind, or disabled; no specific current monthly income limits found in provided sources; assets from 2026-dated non-gov source citing program rules"
+      "notes": "Search results confirm age 65+ and $2,000 asset limit for single applicants in 2026. Monthly income limits not published in retrieved sources; only annual LTC limit of $2,901 mentioned in one non-gov source. Couple asset limit not found. Phone number not located in search results. Official state sources (healthandwelfare.idaho.gov) do not provide specific monthly income thresholds in retrieved excerpts."
     },
     {
       "programId": "id-aged-disabled-waiver",
@@ -55,7 +55,7 @@
         "hasVerifiableFacts": true
       },
       "verified": {
-        "age": null,
+        "age": 65,
         "income_1": 3002,
         "income_2": 5984,
         "assets_individual": 2000,
@@ -64,10 +64,10 @@
         "sources": {
           "age": "https://www.medicaidplanningassistance.org/idaho-aged-and-disabled-waiver/",
           "income": "https://www.medicaidplanningassistance.org/idaho-aged-and-disabled-waiver/",
-          "assets": "https://www.medicaidplanningassistance.org/idaho-aged-and-disabled-waiver/",
+          "assets": "https://legacynavigate.com/medicaid-planning-idaho/aged-and-disabled-waiver/",
           "phone": "https://www.youtube.com/watch?v=celh3Gv32_M"
         },
-        "notes": "No minimum age; program for 18+ disabled or 65+; values from non-.gov citing 2026 FBR; no official .gov eligibility details found"
+        "notes": "No official .gov sources found for financial limits or phone; values from nonprofit sites citing 2026 figures"
       },
       "flags": [
         {
@@ -79,7 +79,7 @@
           "verifiedValue": "8774561233"
         }
       ],
-      "notes": "No minimum age; program for 18+ disabled or 65+; values from non-.gov citing 2026 FBR; no official .gov eligibility details found"
+      "notes": "No official .gov sources found for financial limits or phone; values from nonprofit sites citing 2026 figures"
     },
     {
       "programId": "id-pace-comprehensive-care",
@@ -96,22 +96,22 @@
         "hasVerifiableFacts": true
       },
       "verified": {
-        "age": 55,
+        "age": null,
         "income_1": null,
         "income_2": null,
         "assets_individual": null,
         "assets_couple": null,
         "phone": null,
         "sources": {
-          "age": "https://www.retirementlivingsourcebook.com/articles/pace-programs-nationwide-comprehensive-directory-of-186-providers-across-33-states",
+          "age": null,
           "income": null,
           "assets": null,
           "phone": null
         },
-        "notes": "Search results confirm PACE operates in Idaho (listed in state directory at https://www.medicaid.gov/medicaid/long-term-services-supports/downloads/state-website-list.pdf). Age requirement (55+) sourced from non-government provider directory but reflects standard PACE eligibility. Income limits, asset limits, and official Idaho PACE phone number not found in provided search results. Recommend contacting Idaho Department of Health and Welfare directly or visiting the state PACE website for current eligibility details and application assistance."
+        "notes": "No PACE program operating in Idaho as of 2026 per multiple sources; program discontinued or never launched"
       },
       "flags": [],
-      "notes": "Search results confirm PACE operates in Idaho (listed in state directory at https://www.medicaid.gov/medicaid/long-term-services-supports/downloads/state-website-list.pdf). Age requirement (55+) sourced from non-government provider directory but reflects standard PACE eligibility. Income limits, asset limits, and official Idaho PACE phone number not found in provided search results. Recommend contacting Idaho Department of Health and Welfare directly or visiting the state PACE website for current eligibility details and application assistance."
+      "notes": "No PACE program operating in Idaho as of 2026 per multiple sources; program discontinued or never launched"
     },
     {
       "programId": "id-medicare-savings-programs",
@@ -130,34 +130,20 @@
       },
       "verified": {
         "age": 65,
-        "income_1": 1694,
-        "income_2": 2300,
+        "income_1": null,
+        "income_2": null,
         "assets_individual": 9090,
         "assets_couple": 13630,
         "phone": null,
         "sources": {
           "age": "https://healthandwelfare.idaho.gov/services-programs/medicaid-health/medicare-savings-program",
-          "income": "https://benefitsnow.ai/benefits/idaho/medicare-savings-programs",
+          "income": null,
           "assets": "https://www.medicareresources.org/states/idaho-guide-content/",
           "phone": null
         },
-        "notes": "Income limits provided are for QMB program (most restrictive of the three programs). SLMB and QI have higher income limits but asset limits are the same across all three programs. Official phone number for Idaho application not found in search results; contact Idaho Department of Health and Welfare or Centers for Medicare & Medicaid Services directly."
+        "notes": "Income limits vary by QMB ($1235/1, $1663/2 per [2]), SLMB ($1478/1, $1992/2 per [2]), QI ($1660/1, $2239/2 per [2]); federal 2026 limits shown in [4],[5] but Idaho-specific current income not found in official source; assets from [2] citing federal/Idaho; no 2026 Idaho update or phone in results"
       },
       "flags": [
-        {
-          "field": "income_1",
-          "severity": "high",
-          "draftValue": 1350,
-          "verifiedValue": 1694,
-          "pctDiff": 20.3
-        },
-        {
-          "field": "income_2",
-          "severity": "high",
-          "draftValue": 1824,
-          "verifiedValue": 2300,
-          "pctDiff": 20.7
-        },
         {
           "field": "assets_individual",
           "severity": "medium",
@@ -173,7 +159,7 @@
           "pctDiff": 8.6
         }
       ],
-      "notes": "Income limits provided are for QMB program (most restrictive of the three programs). SLMB and QI have higher income limits but asset limits are the same across all three programs. Official phone number for Idaho application not found in search results; contact Idaho Department of Health and Welfare or Centers for Medicare & Medicaid Services directly."
+      "notes": "Income limits vary by QMB ($1235/1, $1663/2 per [2]), SLMB ($1478/1, $1992/2 per [2]), QI ($1660/1, $2239/2 per [2]); federal 2026 limits shown in [4],[5] but Idaho-specific current income not found in official source; assets from [2] citing federal/Idaho; no 2026 Idaho update or phone in results"
     },
     {
       "programId": "id-snap-food-benefits",
@@ -203,10 +189,10 @@
           "assets": null,
           "phone": null
         },
-        "notes": "No authoritative current 2026 values found in search results for income limits, asset limits, age requirements, or phone number; sources discuss changes to work requirements, purchases, and costs but lack specific eligibility numbers."
+        "notes": "No authoritative 2026 data found in search results for senior-specific age threshold, income limits, or asset limits for SNAP in Idaho; federal SNAP generally has no asset test and income at 130% FPL (not specified here)"
       },
       "flags": [],
-      "notes": "No authoritative current 2026 values found in search results for income limits, asset limits, age requirements, or phone number; sources discuss changes to work requirements, purchases, and costs but lack specific eligibility numbers."
+      "notes": "No authoritative 2026 data found in search results for senior-specific age threshold, income limits, or asset limits for SNAP in Idaho; federal SNAP generally has no asset test and income at 130% FPL (not specified here)"
     },
     {
       "programId": "id-energy-assistance-liheap",
@@ -236,10 +222,10 @@
           "assets": null,
           "phone": null
         },
-        "notes": "No statewide official phone number found; program administered by local Community Action Agencies with varying contacts (e.g., 8889007361 from WICAP[3], 2085428178 from EICAP[4]). No age, income, or asset limits with URLs in results."
+        "notes": "No statewide official main phone number found; program administered locally by Community Action Agencies with no single digits-only contact in sources. Official state site refers to local CAP agencies without statewide number. https://healthandwelfare.idaho.gov/services-programs/financial-assistance/home-heating-and-utility-assistance/apply-heating-assistance"
       },
       "flags": [],
-      "notes": "No statewide official phone number found; program administered by local Community Action Agencies with varying contacts (e.g., 8889007361 from WICAP[3], 2085428178 from EICAP[4]). No age, income, or asset limits with URLs in results."
+      "notes": "No statewide official main phone number found; program administered locally by Community Action Agencies with no single digits-only contact in sources. Official state site refers to local CAP agencies without statewide number. https://healthandwelfare.idaho.gov/services-programs/financial-assistance/home-heating-and-utility-assistance/apply-heating-assistance"
     },
     {
       "programId": "id-weatherization-assistance-program",
@@ -266,14 +252,14 @@
         "phone": null,
         "sources": {
           "age": null,
-          "income": null,
+          "income": "https://healthandwelfare.idaho.gov/services-programs/financial-assistance/home-heating-and-utility-assistance/about-weatherization",
           "assets": null,
           "phone": null
         },
-        "notes": "No specific current income limits or phone number found in official Idaho sources; program confirms income guidelines exist but values not listed"
+        "notes": "No specific income limits or phone number found in official Idaho sources; program requires meeting 'certain income guidelines' but values not published on state site. Priority for elderly."
       },
       "flags": [],
-      "notes": "No specific current income limits or phone number found in official Idaho sources; program confirms income guidelines exist but values not listed"
+      "notes": "No specific income limits or phone number found in official Idaho sources; program requires meeting 'certain income guidelines' but values not published on state site. Priority for elderly."
     },
     {
       "programId": "id-shiba-insurance-advisors",
@@ -302,10 +288,10 @@
           "assets": null,
           "phone": "https://doi.idaho.gov/shiba/about-shiba/"
         },
-        "notes": "SHIBA is a free Medicare counseling program with no age, income, or asset eligibility requirements"
+        "notes": "SHIBA is a Medicare counseling and information program, not an assistance program with eligibility criteria. It provides free, unbiased Medicare benefits information and counseling to all Idahoans with Medicare regardless of age, income, or assets. No application process exists; seniors contact the helpline for information and counseling services. Program remains active as of April 2026."
       },
       "flags": [],
-      "notes": "SHIBA is a free Medicare counseling program with no age, income, or asset eligibility requirements"
+      "notes": "SHIBA is a Medicare counseling and information program, not an assistance program with eligibility criteria. It provides free, unbiased Medicare benefits information and counseling to all Idahoans with Medicare regardless of age, income, or assets. No application process exists; seniors contact the helpline for information and counseling services. Program remains active as of April 2026."
     },
     {
       "programId": "id-home-delivered-meals-title-iii",
@@ -322,23 +308,11 @@
         ],
         "hasVerifiableFacts": true
       },
-      "verified": {
-        "age": 60,
-        "income_1": null,
-        "income_2": null,
-        "assets_individual": null,
-        "assets_couple": null,
-        "phone": null,
-        "sources": {
-          "age": "https://ageguide.org/wp-content/uploads/2025/03/FY26-C2-Home-Delivered-Meals-Service-Description.pdf",
-          "income": null,
-          "assets": null,
-          "phone": null
-        },
-        "notes": "Age inferred from OAA Title III-C2 targeting 'older adults' (typically 60+); no Idaho-specific age, income, assets, or phone found in official sources. Program active per FY2026 federal awards."
-      },
+      "verified": [
+        4
+      ],
       "flags": [],
-      "notes": "Age inferred from OAA Title III-C2 targeting 'older adults' (typically 60+); no Idaho-specific age, income, assets, or phone found in official sources. Program active per FY2026 federal awards."
+      "notes": null
     },
     {
       "programId": "id-nfcsp-caregiver-support",
@@ -355,11 +329,23 @@
         ],
         "hasVerifiableFacts": true
       },
-      "verified": [
-        6
-      ],
+      "verified": {
+        "age": 60,
+        "income_1": null,
+        "income_2": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": null,
+        "sources": {
+          "age": "https://learnidaho.org/caring-for-aging-parents-idaho-613568/",
+          "income": null,
+          "assets": null,
+          "phone": null
+        },
+        "notes": "No official phone number or income/assets limits found in sources; no authoritative Idaho .gov page with full details located"
+      },
       "flags": [],
-      "notes": null
+      "notes": "No official phone number or income/assets limits found in sources; no authoritative Idaho .gov page with full details located"
     },
     {
       "programId": "id-senior-community-service-employment-program",
@@ -383,17 +369,17 @@
         "income_2": null,
         "assets_individual": null,
         "assets_couple": null,
-        "phone": null,
+        "phone": "2084548555",
         "sources": {
-          "age": "https://aging.idaho.gov/stay-connected/stay-connected-senior-community-service-employment-program/",
+          "age": "https://www.dol.gov/agencies/eta/seniors",
           "income": null,
           "assets": null,
-          "phone": null
+          "phone": "https://www.esgw.org/scsep/"
         },
-        "notes": "No specific monthly income limits or phone number found in Idaho sources; income is <=125% FPL per federal rules but exact 2026 USD values unavailable. No assets test mentioned."
+        "notes": "Income limit is 125% FPL (no specific monthly USD figure found for 2026); no assets test mentioned"
       },
       "flags": [],
-      "notes": "No specific monthly income limits or phone number found in Idaho sources; income is <=125% FPL per federal rules but exact 2026 USD values unavailable. No assets test mentioned."
+      "notes": "Income limit is 125% FPL (no specific monthly USD figure found for 2026); no assets test mentioned"
     },
     {
       "programId": "id-long-term-care-ombudsman",
@@ -416,27 +402,17 @@
         "income_2": null,
         "assets_individual": null,
         "assets_couple": null,
-        "phone": "8008773206",
+        "phone": null,
         "sources": {
           "age": "https://www.cap4action.org/aaa/omb/",
           "income": null,
           "assets": null,
-          "phone": "https://www.cap4action.org/aaa/omb/"
+          "phone": null
         },
-        "notes": "Program has no income or asset requirements; services are free. Official ICOA site (https://aging.idaho.gov/ombudsman-program/) confirms program but lacks specific details."
+        "notes": "Program protects residents 60+ in long-term care facilities (nursing homes, assisted living). This is an ombudsman advocacy program, not a benefits program—no income or asset tests apply. Phone number not found in search results; contact through local Area Agency on Aging or Idaho Commission on Aging (aging.idaho.gov). Program is federally mandated under Older Americans Act Title VII, Sections 711/712, and operates statewide through State and Local Ombudsmen."
       },
-      "flags": [
-        {
-          "field": "phone",
-          "severity": "medium",
-          "draftValue": [
-            "2087362122",
-            "18005748656"
-          ],
-          "verifiedValue": "8008773206"
-        }
-      ],
-      "notes": "Program has no income or asset requirements; services are free. Official ICOA site (https://aging.idaho.gov/ombudsman-program/) confirms program but lacks specific details."
+      "flags": [],
+      "notes": "Program protects residents 60+ in long-term care facilities (nursing homes, assisted living). This is an ombudsman advocacy program, not a benefits program—no income or asset tests apply. Phone number not found in search results; contact through local Area Agency on Aging or Idaho Commission on Aging (aging.idaho.gov). Program is federally mandated under Older Americans Act Title VII, Sections 711/712, and operates statewide through State and Local Ombudsmen."
     },
     {
       "programId": "id-home-choice",
@@ -455,21 +431,21 @@
       },
       "verified": {
         "age": null,
-        "income_1": 3002,
+        "income_1": null,
         "income_2": null,
         "assets_individual": 2000,
         "assets_couple": null,
         "phone": null,
         "sources": {
-          "age": null,
-          "income": "https://www.medicaidplanningassistance.org/medicaid-eligibility-idaho/",
-          "assets": "https://www.medicaidplanningassistance.org/medicaid-eligibility-idaho/",
+          "age": "https://healthandwelfare.idaho.gov/services-programs/medicaid-health/idaho-home-choice[1]",
+          "income": "https://healthandwelfare.idaho.gov/services-programs/medicaid-health/idaho-home-choice[1]",
+          "assets": "https://www.medicaidplanningassistance.org/medicaid-eligibility-idaho/[3]",
           "phone": null
         },
-        "notes": "Idaho Home Choice is a Medicaid long-term care transition program (Money Follows the Person). Income and asset limits provided are for nursing home Medicaid eligibility as of 2026. No household-of-2 income limit, age requirement, or official phone number found in available sources. Program details available at https://healthandwelfare.idaho.gov/services-programs/medicaid-health/idaho-home-choice"
+        "notes": "Idaho Home Choice requires Medicaid eligibility under Aged and Disabled waiver; no program-specific income/assets stated on official site. Assets from secondary source citing 2026 Medicaid nursing home limit applicable to waiver."
       },
       "flags": [],
-      "notes": "Idaho Home Choice is a Medicaid long-term care transition program (Money Follows the Person). Income and asset limits provided are for nursing home Medicaid eligibility as of 2026. No household-of-2 income limit, age requirement, or official phone number found in available sources. Program details available at https://healthandwelfare.idaho.gov/services-programs/medicaid-health/idaho-home-choice"
+      "notes": "Idaho Home Choice requires Medicaid eligibility under Aged and Disabled waiver; no program-specific income/assets stated on official site. Assets from secondary source citing 2026 Medicaid nursing home limit applicable to waiver."
     }
   ]
 }

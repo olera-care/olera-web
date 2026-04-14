@@ -8,6 +8,7 @@ import { useSavedPrograms, type SaveProgramData } from "@/hooks/use-saved-progra
 import { getCategory, type Category } from "@/lib/waiver-category";
 import { House, CurrencyDollar, Compass, HandHeart, BookmarkSimple, ShareNetwork, Calculator, ArrowRight, CaretRight } from "@phosphor-icons/react";
 import { ProgramIcon } from "@/lib/program-icon";
+import { ContentStatusBadge } from "@/components/waiver-library/ContentStatusBadge";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Archetypes — the conceptual backbone. Each archetype maps a family situation
@@ -316,10 +317,12 @@ interface StatePageV3Props {
   overview: PipelineStateOverview;
   pipelinePrograms?: PipelineProgramRef[];
   familyQuestions?: FamilyQuestion[];
+  /** When the pipeline last drafted this state's content — surfaces as a trust signal. */
+  draftedAt?: string;
 }
 
 
-export function StatePageV3({ state, overview, pipelinePrograms = [], familyQuestions = [] }: StatePageV3Props) {
+export function StatePageV3({ state, overview, pipelinePrograms = [], familyQuestions = [], draftedAt }: StatePageV3Props) {
   const [activeArchetype, setActiveArchetype] = useState<ArchetypeId>(null);
   const [showAll, setShowAll] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<Category | "all">("all");
@@ -531,6 +534,14 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
               <p key={i}>{para}</p>
             ))}
           </div>
+          {draftedAt && (
+            <ContentStatusBadge
+              contentStatus="pipeline-draft"
+              draftedAt={draftedAt}
+              variant="state"
+              className="mt-4"
+            />
+          )}
         </section>
 
         <WavyDivider className="my-12 max-w-3xl mx-auto px-6" />

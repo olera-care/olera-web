@@ -1,14 +1,14 @@
 {
   "state": "GA",
   "stateName": "Georgia",
-  "checkedAt": "2026-04-14T00:54:02.356Z",
+  "checkedAt": "2026-04-14T10:00:18.426Z",
   "total": 11,
   "skipped": 0,
   "parseErrors": 0,
   "errors": 0,
   "programsWithFlags": 2,
   "totalFlags": 3,
-  "highSeverityFlags": 2,
+  "highSeverityFlags": 1,
   "programs": [
     {
       "programId": "ga-ccsp-home-care",
@@ -30,27 +30,19 @@
         "age": null,
         "income_1": null,
         "income_2": null,
-        "assets_individual": 2000,
-        "assets_couple": 3000,
-        "phone": null,
+        "assets_individual": null,
+        "assets_couple": null,
+        "phone": "18005806860",
         "sources": {
-          "age": "https://passiontocarehc.com/georgia/georgias-source-ccsp-requirements/[1]",
-          "income": "https://passiontocarehc.com/georgia/georgias-source-ccsp-requirements/[1]",
-          "assets": "https://passiontocarehc.com/georgia/georgias-source-ccsp-requirements/[1]",
-          "phone": null
+          "age": null,
+          "income": null,
+          "assets": null,
+          "phone": "https://coastalhealthdistrict.org/community_care_services_progra/"
         },
-        "notes": "Program renamed to Elderly and Disabled Waiver Program (formerly CCSP); no official .gov financial details found; assets from 2026 non-gov source citing Medicaid rules; no age minimum specified (aged or disabled); no phone in results"
+        "notes": "Program renamed to Elderly and Disabled Waiver Program (formerly CCSP); no senior-specific age threshold or financial details (income/assets) found in sources for seniors 55+"
       },
-      "flags": [
-        {
-          "field": "assets_couple",
-          "severity": "high",
-          "draftValue": 121220,
-          "verifiedValue": 3000,
-          "pctDiff": 97.5
-        }
-      ],
-      "notes": "Program renamed to Elderly and Disabled Waiver Program (formerly CCSP); no official .gov financial details found; assets from 2026 non-gov source citing Medicaid rules; no age minimum specified (aged or disabled); no phone in results"
+      "flags": [],
+      "notes": "Program renamed to Elderly and Disabled Waiver Program (formerly CCSP); no senior-specific age threshold or financial details (income/assets) found in sources for seniors 55+"
     },
     {
       "programId": "ga-home-community-based-services",
@@ -66,23 +58,11 @@
         ],
         "hasVerifiableFacts": true
       },
-      "verified": {
-        "age": null,
-        "income_1": null,
-        "income_2": null,
-        "assets_individual": null,
-        "assets_couple": null,
-        "phone": null,
-        "sources": {
-          "age": null,
-          "income": null,
-          "assets": null,
-          "phone": null
-        },
-        "notes": "No authoritative current data found on age minimum, income limits, assets, or phone for SOURCE program as of 2026 from .gov or cited official sources; program active under Elderly and Disabled Waiver per state site."
-      },
+      "verified": [
+        1
+      ],
       "flags": [],
-      "notes": "No authoritative current data found on age minimum, income limits, assets, or phone for SOURCE program as of 2026 from .gov or cited official sources; program active under Elderly and Disabled Waiver per state site."
+      "notes": null
     },
     {
       "programId": "ga-medicare-savings-programs",
@@ -109,14 +89,14 @@
         "phone": null,
         "sources": {
           "age": null,
-          "income": null,
+          "income": "https://medicaid.georgia.gov/medicare-savings-plans-programs-faqs",
           "assets": "https://www.medicareresources.org/states/georgia-guide-content/",
           "phone": null
         },
-        "notes": "No current 2026 income limits from official .gov sources; values vary across sources (e.g., QMB 1325-1694 for 1; assets consistent at federal limits from non-.gov citing state/federal)"
+        "notes": "Multiple programs (QMB, SLMB, QI) with different income limits; no single value and no current official GA income limits found for 2026. Assets from cited source citing federal limits used in GA."
       },
       "flags": [],
-      "notes": "No current 2026 income limits from official .gov sources; values vary across sources (e.g., QMB 1325-1694 for 1; assets consistent at federal limits from non-.gov citing state/federal)"
+      "notes": "Multiple programs (QMB, SLMB, QI) with different income limits; no single value and no current official GA income limits found for 2026. Assets from cited source citing federal limits used in GA."
     },
     {
       "programId": "ga-senior-snap",
@@ -146,7 +126,7 @@
           "assets": null,
           "phone": "https://dfcs.georgia.gov/services/snap/senior-snap"
         },
-        "notes": "Age requirement increased to 66 years or older effective February 2, 2026 (previously 60+). Income limits, asset limits, and specific eligibility thresholds are not provided in available search results. Search results confirm Senior SNAP has income limits but do not specify dollar amounts. Phone number is the DFCS Customer Contact Center main number for Senior SNAP inquiries."
+        "notes": "Age requirement updated to 66 effective February 2, 2026; income follows standard SNAP limits (not specified here); no asset test found"
       },
       "flags": [
         {
@@ -165,7 +145,7 @@
           "verifiedValue": "8774234746"
         }
       ],
-      "notes": "Age requirement increased to 66 years or older effective February 2, 2026 (previously 60+). Income limits, asset limits, and specific eligibility thresholds are not provided in available search results. Search results confirm Senior SNAP has income limits but do not specify dollar amounts. Phone number is the DFCS Customer Contact Center main number for Senior SNAP inquiries."
+      "notes": "Age requirement updated to 66 effective February 2, 2026; income follows standard SNAP limits (not specified here); no asset test found"
     },
     {
       "programId": "ga-liheap-energy-assistance",
@@ -182,22 +162,22 @@
         "hasVerifiableFacts": true
       },
       "verified": {
-        "age": null,
-        "income_1": null,
+        "age": 65,
+        "income_1": 34549,
         "income_2": null,
         "assets_individual": null,
         "assets_couple": null,
         "phone": null,
         "sources": {
-          "age": "https://dfcs.georgia.gov/services/low-income-home-energy-assistance-program-liheap",
-          "income": "https://dfcs.georgia.gov/services/low-income-home-energy-assistance-program-liheap",
+          "age": "https://dhs.georgia.gov/press-releases/2026-04-06/liheap-cooling-open",
+          "income": "https://dhs.georgia.gov/press-releases/2026-04-06/liheap-cooling-open",
           "assets": null,
-          "phone": "https://psc.ga.gov/about-the-psc/consumer-corner/consumer-advisories/utility-assistance-programs/"
+          "phone": null
         },
-        "notes": "No single statewide official main phone number found; varies by county or region. Official state site dfcs.georgia.gov provides CAA contact list and map but no central phone. Program active as of 2026 per local CAA schedules."
+        "notes": "No statewide main phone number found; contact local CAA. No assets test. Income for household of 1 (senior pathway priority)"
       },
       "flags": [],
-      "notes": "No single statewide official main phone number found; varies by county or region. Official state site dfcs.georgia.gov provides CAA contact list and map but no central phone. Program active as of 2026 per local CAA schedules."
+      "notes": "No statewide main phone number found; contact local CAA. No assets test. Income for household of 1 (senior pathway priority)"
     },
     {
       "programId": "ga-weatherization-assistance-program",
@@ -227,10 +207,10 @@
           "assets": null,
           "phone": null
         },
-        "notes": "Income limit is 200% of federal poverty level (not specified as monthly dollar amounts for household sizes); no central phone number found, contact local agencies by county via https://gefa.georgia.gov/how-do-i-apply-weatherization; no age or asset limits specified"
+        "notes": "Income limit is 200% FPL (no specific USD figures or monthly values published in sources for 2026); preference for elderly but no age minimum; apply via local agency, no central phone listed"
       },
       "flags": [],
-      "notes": "Income limit is 200% of federal poverty level (not specified as monthly dollar amounts for household sizes); no central phone number found, contact local agencies by county via https://gefa.georgia.gov/how-do-i-apply-weatherization; no age or asset limits specified"
+      "notes": "Income limit is 200% FPL (no specific USD figures or monthly values published in sources for 2026); preference for elderly but no age minimum; apply via local agency, no central phone listed"
     },
     {
       "programId": "ga-ship-medicare-counseling",
@@ -253,17 +233,17 @@
         "income_2": null,
         "assets_individual": null,
         "assets_couple": null,
-        "phone": "8665524464",
+        "phone": "18665524464",
         "sources": {
           "age": null,
           "income": null,
           "assets": null,
-          "phone": "https://www.cms.gov/contacts/georgia-ship/general-beneficiary-contact/1562041|https://aging.georgia.gov/georgia-ship-0"
+          "phone": "https://aging.georgia.gov/georgia-ship-0"
         },
-        "notes": "Georgia SHIP is a free counseling service open to all Medicare beneficiaries with no age, income, or asset limits"
+        "notes": "Georgia SHIP is a counseling and assistance program, not a benefits program with eligibility criteria. It provides free information and enrollment help to all Medicare beneficiaries and caregivers regardless of age, income, or assets. No age, income, or asset limits apply. Phone number confirmed from official Georgia Department of Human Services source (select option 4)."
       },
       "flags": [],
-      "notes": "Georgia SHIP is a free counseling service open to all Medicare beneficiaries with no age, income, or asset limits"
+      "notes": "Georgia SHIP is a counseling and assistance program, not a benefits program with eligibility criteria. It provides free information and enrollment help to all Medicare beneficiaries and caregivers regardless of age, income, or assets. No age, income, or asset limits apply. Phone number confirmed from official Georgia Department of Human Services source (select option 4)."
     },
     {
       "programId": "ga-home-delivered-meals",
@@ -293,10 +273,10 @@
           "assets": null,
           "phone": null
         },
-        "notes": "No statewide centralized phone number or income/assets limits found; program administered via 12 Area Agencies on Aging with voluntary contributions and priority for greatest need but no strict tests"
+        "notes": "Statewide program under Older Americans Act via Georgia Division of Aging; no income/assets test or central phone specified in official sources"
       },
       "flags": [],
-      "notes": "No statewide centralized phone number or income/assets limits found; program administered via 12 Area Agencies on Aging with voluntary contributions and priority for greatest need but no strict tests"
+      "notes": "Statewide program under Older Americans Act via Georgia Division of Aging; no income/assets test or central phone specified in official sources"
     },
     {
       "programId": "ga-respite-care-out-of-home",
@@ -327,10 +307,10 @@
           "assets": null,
           "phone": null
         },
-        "notes": "No authoritative current data found on eligibility criteria (age, income, assets) or official main phone number for 'Caregiver Programs (Out-of-Home Respite Care)' in Georgia as of 2026 from .gov or cited official sources; program appears embedded in waivers like CCSP, SOURCE, COMP, NOW without centralized application phone"
+        "notes": "No authoritative current data found on eligibility criteria (age, income, assets) or official phone for 'Caregiver Programs (Out-of-Home Respite Care)' specific to seniors from .gov or cited official sources as of 2026; NFCSP mentions possible income limits but no specifics"
       },
       "flags": [],
-      "notes": "No authoritative current data found on eligibility criteria (age, income, assets) or official main phone number for 'Caregiver Programs (Out-of-Home Respite Care)' in Georgia as of 2026 from .gov or cited official sources; program appears embedded in waivers like CCSP, SOURCE, COMP, NOW without centralized application phone"
+      "notes": "No authoritative current data found on eligibility criteria (age, income, assets) or official phone for 'Caregiver Programs (Out-of-Home Respite Care)' specific to seniors from .gov or cited official sources as of 2026; NFCSP mentions possible income limits but no specifics"
     },
     {
       "programId": "ga-scsep-employment-program",
@@ -354,17 +334,28 @@
         "income_2": null,
         "assets_individual": null,
         "assets_couple": null,
-        "phone": null,
+        "phone": "7705382657",
         "sources": {
-          "age": "https://www.dol.gov/agencies/eta/seniors",
-          "income": "https://www.dol.gov/agencies/eta/seniors",
+          "age": "https://dhs.georgia.gov/senior-community-service-employment-program",
+          "income": null,
           "assets": null,
-          "phone": null
+          "phone": "https://legacylink.org/program/senior-community-service-employment-program-scsep/"
         },
-        "notes": "CRITICAL: As of July 1, 2025, the State of Georgia no longer offers SCSEP. The Georgia Department of Human Services discontinued the program. Federal funding was halted in July 2025. Legacy Link and AARP continue to operate SCSEP in some Georgia counties, but the state program is discontinued. Income limit is 125% of federal poverty level (not provided as fixed dollar amounts in sources; varies annually by federal guidelines). No asset limits found in sources. No official Georgia SCSEP phone number available; program no longer state-administered."
+        "notes": "State of Georgia no longer offers SCSEP as of July 1, 2025; program paused due to federal funding delays. Current providers: Legacy Link and AARP. Income is 125% FPL (no specific monthly figure found for 2026)."
       },
-      "flags": [],
-      "notes": "CRITICAL: As of July 1, 2025, the State of Georgia no longer offers SCSEP. The Georgia Department of Human Services discontinued the program. Federal funding was halted in July 2025. Legacy Link and AARP continue to operate SCSEP in some Georgia counties, but the state program is discontinued. Income limit is 125% of federal poverty level (not provided as fixed dollar amounts in sources; varies annually by federal guidelines). No asset limits found in sources. No official Georgia SCSEP phone number available; program no longer state-administered."
+      "flags": [
+        {
+          "field": "phone",
+          "severity": "medium",
+          "draftValue": [
+            "8558502525",
+            "7065494850",
+            "211"
+          ],
+          "verifiedValue": "7705382657"
+        }
+      ],
+      "notes": "State of Georgia no longer offers SCSEP as of July 1, 2025; program paused due to federal funding delays. Current providers: Legacy Link and AARP. Income is 125% FPL (no specific monthly figure found for 2026)."
     },
     {
       "programId": "ga-elderly-legal-assistance-elap",
@@ -389,17 +380,17 @@
         "income_2": null,
         "assets_individual": null,
         "assets_couple": null,
-        "phone": null,
+        "phone": "4046575258",
         "sources": {
-          "age": "https://pamms.dhs.ga.gov/das/administration-5600-manual/5026/",
-          "income": "https://pamms.dhs.ga.gov/das/administration-5600-manual/5026/",
-          "assets": "https://pamms.dhs.ga.gov/das/administration-5600-manual/5026/",
-          "phone": null
+          "age": "https://aging.georgia.gov/tools-resources/elderly-legal-assistance-program",
+          "income": null,
+          "assets": null,
+          "phone": "https://libguides.law.gsu.edu/c.php?g=1004525&p=7276790"
         },
-        "notes": "No single statewide official main phone number found; contact local AAA or law firm via https://aging.georgia.gov/tools-resources/elderly-legal-assistance-program. Program active with no means test per federal law."
+        "notes": "Program explicitly does not check income to qualify for services. No asset limits found in official sources. Age requirement is 60+ for seniors. Phone number sourced from GSU Law library guide citing official ELAP contact; primary .gov source does not list phone on main program page but GSU guide provides verified contact."
       },
       "flags": [],
-      "notes": "No single statewide official main phone number found; contact local AAA or law firm via https://aging.georgia.gov/tools-resources/elderly-legal-assistance-program. Program active with no means test per federal law."
+      "notes": "Program explicitly does not check income to qualify for services. No asset limits found in official sources. Age requirement is 60+ for seniors. Phone number sourced from GSU Law library guide citing official ELAP contact; primary .gov source does not list phone on main program page but GSU guide provides verified contact."
     }
   ]
 }

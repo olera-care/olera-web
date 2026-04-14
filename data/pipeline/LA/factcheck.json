@@ -1,14 +1,14 @@
 {
   "state": "LA",
   "stateName": "Louisiana",
-  "checkedAt": "2026-04-14T00:56:23.496Z",
+  "checkedAt": "2026-04-14T10:02:38.442Z",
   "total": 9,
   "skipped": 0,
   "parseErrors": 0,
   "errors": 0,
-  "programsWithFlags": 4,
-  "totalFlags": 7,
-  "highSeverityFlags": 3,
+  "programsWithFlags": 2,
+  "totalFlags": 4,
+  "highSeverityFlags": 2,
   "programs": [
     {
       "programId": "la-medicaid-long-term-care",
@@ -26,30 +26,21 @@
       },
       "verified": {
         "age": null,
-        "income_1": null,
-        "income_2": null,
+        "income_1": 2982,
+        "income_2": 5964,
         "assets_individual": 2000,
-        "assets_couple": null,
-        "phone": "18002300690",
+        "assets_couple": 3000,
+        "phone": null,
         "sources": {
           "age": null,
-          "income": null,
+          "income": "https://www.medicaidplanningassistance.org/medicaid-eligibility-louisiana/",
           "assets": "https://www.medicaidplanningassistance.org/medicaid-eligibility-louisiana/",
-          "phone": "https://ldh.la.gov/assets/docs/OCDD/OCDD-Summit-012026/LouisianaMedicaid012026.pdf"
+          "phone": null
         },
-        "notes": "No age requirement found; income limits available but not requested in schema; assets from non-.gov citing official rules; phone from official LDH PDF"
+        "notes": "No official LDH eligibility page with numerical limits found; values from secondary source citing 2026 LTC Medicaid. No age minimum specified for seniors (focuses on level of care). No phone number located."
       },
-      "flags": [
-        {
-          "field": "phone",
-          "severity": "medium",
-          "draftValue": [
-            "211"
-          ],
-          "verifiedValue": "18002300690"
-        }
-      ],
-      "notes": "No age requirement found; income limits available but not requested in schema; assets from non-.gov citing official rules; phone from official LDH PDF"
+      "flags": [],
+      "notes": "No official LDH eligibility page with numerical limits found; values from secondary source citing 2026 LTC Medicaid. No age minimum specified for seniors (focuses on level of care). No phone number located."
     },
     {
       "programId": "la-community-choices-waiver",
@@ -68,37 +59,36 @@
         "hasVerifiableFacts": true
       },
       "verified": {
-        "age": 21,
+        "age": 65,
         "income_1": 2982,
-        "income_2": 2982,
+        "income_2": null,
         "assets_individual": 2000,
         "assets_couple": 3000,
-        "phone": "18774561146",
+        "phone": "8774561146",
         "sources": {
           "age": "https://ldh.la.gov/office-of-aging-and-adult-services/community-choices-waiver-ccw",
           "income": "https://www.medicaidplanningassistance.org/louisiana-community-choices-waiver/",
           "assets": "https://www.medicaidplanningassistance.org/louisiana-community-choices-waiver/",
           "phone": "https://blossomsca.com/community-choices-waiver-ccw-eligibility-benefits-and-application-information/"
         },
-        "notes": "Income and assets from non-.gov source citing 2026 limits; no official LDH page with financial limits found"
+        "notes": "Program serves seniors 65+ and younger disabled adults (21-64). Age threshold of 65 applies to senior pathway. Income limit of $2,982/month is for single applicant in 2026; search results do not provide separate household-of-2 income limit. Asset limits are $2,000 (individual) and $3,000 (couple) as of 2026. Phone number is Louisiana Options in Long-Term Care. Program status: Approved and effective as of 07/01/2024, expiring 06/30/2029 per federal waiver documentation."
       },
       "flags": [
+        {
+          "field": "age",
+          "severity": "high",
+          "draftValue": 21,
+          "verifiedValue": 65
+        },
         {
           "field": "income_1",
           "severity": "medium",
           "draftValue": 2742,
           "verifiedValue": 2982,
           "pctDiff": 8
-        },
-        {
-          "field": "income_2",
-          "severity": "high",
-          "draftValue": 5484,
-          "verifiedValue": 2982,
-          "pctDiff": 45.6
         }
       ],
-      "notes": "Income and assets from non-.gov source citing 2026 limits; no official LDH page with financial limits found"
+      "notes": "Program serves seniors 65+ and younger disabled adults (21-64). Age threshold of 65 applies to senior pathway. Income limit of $2,982/month is for single applicant in 2026; search results do not provide separate household-of-2 income limit. Asset limits are $2,000 (individual) and $3,000 (couple) as of 2026. Phone number is Louisiana Options in Long-Term Care. Program status: Approved and effective as of 07/01/2024, expiring 06/30/2029 per federal waiver documentation."
     },
     {
       "programId": "la-pace-elder-care",
@@ -130,10 +120,10 @@
           "assets": null,
           "phone": null
         },
-        "notes": "No authoritative data found for asset or income limits or phone number; PACE generally has no asset test and uses Medicaid eligibility for income"
+        "notes": "No financial limits or phone found in official sources; PACE eligibility focuses on age 55+, nursing facility level of care, service area, and community living ability. No changes indicated for 2026."
       },
       "flags": [],
-      "notes": "No authoritative data found for asset or income limits or phone number; PACE generally has no asset test and uses Medicaid eligibility for income"
+      "notes": "No financial limits or phone found in official sources; PACE eligibility focuses on age 55+, nursing facility level of care, service area, and community living ability. No changes indicated for 2026."
     },
     {
       "programId": "la-medicare-savings-programs",
@@ -151,21 +141,21 @@
       },
       "verified": {
         "age": null,
-        "income_1": null,
-        "income_2": null,
-        "assets_individual": null,
-        "assets_couple": null,
+        "income_1": 1350,
+        "income_2": 1824,
+        "assets_individual": 9950,
+        "assets_couple": 14910,
         "phone": null,
         "sources": {
           "age": null,
-          "income": "https://ldh.la.gov/medicaid/medicare-savings-program",
-          "assets": "https://ldh.la.gov/medicaid/medicare-savings-program",
+          "income": "https://www.humana.com/medicare/medicare-resources/medicare-savings-programs",
+          "assets": "https://www.humana.com/medicare/medicare-resources/medicare-savings-programs",
           "phone": null
         },
-        "notes": "No current 2026 income/asset limits found in official LA LDH sources; federal limits shown elsewhere but states may differ. Resources disregarded per LA policy. No phone listed."
+        "notes": "Values shown are for QMB program (most comprehensive benefit tier). SLMB and QI have higher income limits but fewer benefits. Louisiana state agency source (ldh.la.gov) confirms MSP structure but does not publish 2026 income/asset limits; federal limits from Humana and Medicare.gov used. Official phone number not found in provided search results; contact Louisiana Department of Health directly at their main Medicaid line for application assistance."
       },
       "flags": [],
-      "notes": "No current 2026 income/asset limits found in official LA LDH sources; federal limits shown elsewhere but states may differ. Resources disregarded per LA policy. No phone listed."
+      "notes": "Values shown are for QMB program (most comprehensive benefit tier). SLMB and QI have higher income limits but fewer benefits. Louisiana state agency source (ldh.la.gov) confirms MSP structure but does not publish 2026 income/asset limits; federal limits from Humana and Medicare.gov used. Official phone number not found in provided search results; contact Louisiana Department of Health directly at their main Medicaid line for application assistance."
     },
     {
       "programId": "la-snap-food-benefits",
@@ -195,10 +185,10 @@
           "assets": null,
           "phone": null
         },
-        "notes": "No authoritative current data found in search results for 2026 Louisiana SNAP age, income, assets, or phone; LDH site lacks specifics."
+        "notes": "No authoritative 2026 data found in search results for senior-specific age threshold, income limits, assets, or phone; SNAP generally has no senior age minimum or asset test but income limits exist and vary; official DCFS/LDH sites referenced lack specific figures"
       },
       "flags": [],
-      "notes": "No authoritative current data found in search results for 2026 Louisiana SNAP age, income, assets, or phone; LDH site lacks specifics."
+      "notes": "No authoritative 2026 data found in search results for senior-specific age threshold, income limits, assets, or phone; SNAP generally has no senior age minimum or asset test but income limits exist and vary; official DCFS/LDH sites referenced lack specific figures"
     },
     {
       "programId": "la-csfp-senior-food-boxes",
@@ -217,45 +207,21 @@
       },
       "verified": {
         "age": 60,
-        "income_1": 1550,
-        "income_2": 2090,
+        "income_1": null,
+        "income_2": null,
         "assets_individual": null,
         "assets_couple": null,
-        "phone": "3232343030",
+        "phone": null,
         "sources": {
           "age": "https://ldh.la.gov/bureau-of-nutrition-services/commodity-supplemental-food-program",
-          "income": "https://www.feedinglouisiana.org/csfp",
+          "income": null,
           "assets": null,
-          "phone": "https://www.lafoodbank.org/stories/celebrating-22-years-of-the-commodity-supplemental-food-program-at-the-food-bank/"
+          "phone": null
         },
-        "notes": "Income limits based on 150% of Federal Poverty Guidelines effective February 2026 per Feeding Louisiana CSFP page. Phone number is for Los Angeles Regional Food Bank CSFP program; Louisiana-specific contact should be verified via Feeding Louisiana regional food banks. Asset limits not found in search results."
+        "notes": "Income limits referenced in sources (e.g., 150% FPG effective Feb 2026) but no specific USD values or tables retrievable; no assets test mentioned; apply via local food banks per state site"
       },
-      "flags": [
-        {
-          "field": "income_1",
-          "severity": "high",
-          "draftValue": 1995,
-          "verifiedValue": 1550,
-          "pctDiff": 22.3
-        },
-        {
-          "field": "income_2",
-          "severity": "high",
-          "draftValue": 2705,
-          "verifiedValue": 2090,
-          "pctDiff": 22.7
-        },
-        {
-          "field": "phone",
-          "severity": "medium",
-          "draftValue": [
-            "5047292842",
-            "211"
-          ],
-          "verifiedValue": "3232343030"
-        }
-      ],
-      "notes": "Income limits based on 150% of Federal Poverty Guidelines effective February 2026 per Feeding Louisiana CSFP page. Phone number is for Los Angeles Regional Food Bank CSFP program; Louisiana-specific contact should be verified via Feeding Louisiana regional food banks. Asset limits not found in search results."
+      "flags": [],
+      "notes": "Income limits referenced in sources (e.g., 150% FPG effective Feb 2026) but no specific USD values or tables retrievable; no assets test mentioned; apply via local food banks per state site"
     },
     {
       "programId": "la-spas-personal-assistance",
@@ -274,22 +240,22 @@
         "hasVerifiableFacts": true
       },
       "verified": {
-        "age": 18,
+        "age": null,
         "income_1": null,
         "income_2": null,
         "assets_individual": null,
         "assets_couple": null,
-        "phone": "2253831033",
+        "phone": "18669666260",
         "sources": {
           "age": "https://ldh.la.gov/office-of-aging-and-adult-services/SPAS",
           "income": null,
           "assets": null,
-          "phone": "https://www.thearcla.org/programs/state-personal-assistance-services/"
+          "phone": "https://ldh.la.gov/office-of-aging-and-adult-services/SPAS"
         },
-        "notes": "SPAS program is active as of 2026. Age requirement is 18 years minimum per official LDH source. No income or asset limits found in official sources for SPAS (distinct from Louisiana's separate Long Term-Personal Care Services program which has income limits). Phone number is The Arc of Louisiana's official SPAS line per LDH and Arc websites. One source mentions age range 18-60 with continuation after 60, but primary LDH source states '18 years old or older' with no upper limit."
+        "notes": "SPAS targets adults 18+ with significant disabilities, not seniors 55+ specifically; no senior pathway or age/income/assets tests for seniors found in official sources"
       },
       "flags": [],
-      "notes": "SPAS program is active as of 2026. Age requirement is 18 years minimum per official LDH source. No income or asset limits found in official sources for SPAS (distinct from Louisiana's separate Long Term-Personal Care Services program which has income limits). Phone number is The Arc of Louisiana's official SPAS line per LDH and Arc websites. One source mentions age range 18-60 with continuation after 60, but primary LDH source states '18 years old or older' with no upper limit."
+      "notes": "SPAS targets adults 18+ with significant disabilities, not seniors 55+ specifically; no senior pathway or age/income/assets tests for seniors found in official sources"
     },
     {
       "programId": "la-adult-day-health-care-waiver",
@@ -307,21 +273,27 @@
         "hasVerifiableFacts": true
       },
       "verified": {
-        "age": 22,
+        "age": 65,
         "income_1": null,
         "income_2": null,
         "assets_individual": null,
         "assets_couple": null,
-        "phone": "18774561146",
+        "phone": "8774561146",
         "sources": {
-          "age": "https://ldh.la.gov/office-of-aging-and-adult-services/ADHC-waiver",
+          "age": "https://www.medicaidplanningassistance.org/louisiana-adult-day-health-waiver/",
           "income": null,
           "assets": null,
-          "phone": "https://blossomsca.com/adult-day-health-care-adhc-waiver-eligibility-benefits-and-application-information/"
+          "phone": "https://www.medicaidplanningassistance.org/louisiana-adult-day-health-waiver/"
         },
-        "notes": "No income or asset limits found in sources; program active as of 2026 per federal waiver expiration 06/30/2027"
+        "notes": "No official .gov source found for senior-specific age threshold (65+ per secondary source citing program details); official LDH site states 22+ overall. No 2026 income/assets data found."
       },
       "flags": [
+        {
+          "field": "age",
+          "severity": "high",
+          "draftValue": 22,
+          "verifiedValue": 65
+        },
         {
           "field": "phone",
           "severity": "medium",
@@ -329,10 +301,10 @@
             "211",
             "8883426207"
           ],
-          "verifiedValue": "18774561146"
+          "verifiedValue": "8774561146"
         }
       ],
-      "notes": "No income or asset limits found in sources; program active as of 2026 per federal waiver expiration 06/30/2027"
+      "notes": "No official .gov source found for senior-specific age threshold (65+ per secondary source citing program details); official LDH site states 22+ overall. No 2026 income/assets data found."
     },
     {
       "programId": "la-caregiver-voucher-program",
@@ -362,10 +334,10 @@
           "assets": null,
           "phone": null
         },
-        "notes": "No program specifically named 'Caregiver Voucher Program' found in search results. Louisiana offers Medicaid-funded in-home caregiving programs (up to $1,800/month via Monitored In-Home Caregiving) and caregiver stipends (up to $2,750/month via PCAFC for veterans), but detailed eligibility criteria (age, income, asset limits, application phone) are not provided in available sources. Recommend contacting Louisiana Department of Health or DCFS directly for authoritative program details."
+        "notes": "No Louisiana program named 'Caregiver Voucher Program' found in official sources as of 2026; closest matches like Community Choices Waiver (CCW) serve seniors but lack voucher-specific details and do not match query name"
       },
       "flags": [],
-      "notes": "No program specifically named 'Caregiver Voucher Program' found in search results. Louisiana offers Medicaid-funded in-home caregiving programs (up to $1,800/month via Monitored In-Home Caregiving) and caregiver stipends (up to $2,750/month via PCAFC for veterans), but detailed eligibility criteria (age, income, asset limits, application phone) are not provided in available sources. Recommend contacting Louisiana Department of Health or DCFS directly for authoritative program details."
+      "notes": "No Louisiana program named 'Caregiver Voucher Program' found in official sources as of 2026; closest matches like Community Choices Waiver (CCW) serve seniors but lack voucher-specific details and do not match query name"
     }
   ]
 }

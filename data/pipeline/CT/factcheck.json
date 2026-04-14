@@ -1,13 +1,13 @@
 {
   "state": "CT",
   "stateName": "Connecticut",
-  "checkedAt": "2026-04-14T00:53:14.943Z",
+  "checkedAt": "2026-04-14T09:59:32.760Z",
   "total": 10,
   "skipped": 0,
   "parseErrors": 0,
   "errors": 0,
-  "programsWithFlags": 3,
-  "totalFlags": 5,
+  "programsWithFlags": 2,
+  "totalFlags": 4,
   "highSeverityFlags": 2,
   "programs": [
     {
@@ -28,21 +28,21 @@
       },
       "verified": {
         "age": 65,
-        "income_1": null,
-        "income_2": null,
+        "income_1": 851,
+        "income_2": 1153,
         "assets_individual": 1600,
         "assets_couple": 2400,
         "phone": null,
         "sources": {
           "age": "https://portal.ct.gov/HUSKY/How-to-Qualify",
-          "income": null,
+          "income": "https://portal.ct.gov/HUSKY/How-to-Qualify",
           "assets": "https://portal.ct.gov/HUSKY/How-to-Qualify",
           "phone": null
         },
-        "notes": "Program is HUSKY C (Medicaid for Aged/Blind/Disabled); income limits vary by subcategory and are not requested; no phone number found; asset limits unchanged as of 2026 per official source"
+        "notes": "Income is monthly; assets are countable financial assets. No 2026 changes confirmed in sources; phone not found."
       },
       "flags": [],
-      "notes": "Program is HUSKY C (Medicaid for Aged/Blind/Disabled); income limits vary by subcategory and are not requested; no phone number found; asset limits unchanged as of 2026 per official source"
+      "notes": "Income is monthly; assets are countable financial assets. No 2026 changes confirmed in sources; phone not found."
     },
     {
       "programId": "ct-chcpe-medicare-savings",
@@ -73,7 +73,7 @@
           "assets": "https://www.sharinglaw.net/~sharingl/elder/HomeCareCT.htm",
           "phone": "https://www.sharinglaw.net/~sharingl/elder/HomeCareCT.htm"
         },
-        "notes": "State-funded CHCPE (Category 2); asset limits from 2026 nonprofit source citing state program; no monthly income limits specified in sources; Medicaid waiver CHCPE (Category 3) has separate stricter limits"
+        "notes": "CHCPE has state-funded and Medicaid waiver components with different financial rules; state-funded assets from 2026-cited source. Income limits not found in official sources. Medicare Savings Program is separate."
       },
       "flags": [
         {
@@ -101,7 +101,7 @@
           "verifiedValue": "8004455394"
         }
       ],
-      "notes": "State-funded CHCPE (Category 2); asset limits from 2026 nonprofit source citing state program; no monthly income limits specified in sources; Medicaid waiver CHCPE (Category 3) has separate stricter limits"
+      "notes": "CHCPE has state-funded and Medicaid waiver components with different financial rules; state-funded assets from 2026-cited source. Income limits not found in official sources. Medicare Savings Program is separate."
     },
     {
       "programId": "ct-pace-comprehensive-care",
@@ -126,15 +126,15 @@
         "assets_couple": null,
         "phone": null,
         "sources": {
-          "age": "https://www.ncbi.nlm.nih.gov/books/NBK597375/",
+          "age": "https://www.ncbi.nlm.nih.gov/sites/books/NBK597375/",
           "income": null,
           "assets": null,
           "phone": null
         },
-        "notes": "Age requirement (55+) found in federal NCBI/StatPearls source citing PACE eligibility criteria. Income and asset limits not specified in provided search results. Official phone number for Connecticut PACE program not found in search results. Connecticut is evaluating PACE program fit as of April 2025 per state documentation; program status and application procedures may be in development."
+        "notes": "No operational CT PACE program as of 2026; planning/pilot stage only. Age from national PACE standard."
       },
       "flags": [],
-      "notes": "Age requirement (55+) found in federal NCBI/StatPearls source citing PACE eligibility criteria. Income and asset limits not specified in provided search results. Official phone number for Connecticut PACE program not found in search results. Connecticut is evaluating PACE program fit as of April 2025 per state documentation; program status and application procedures may be in development."
+      "notes": "No operational CT PACE program as of 2026; planning/pilot stage only. Age from national PACE standard."
     },
     {
       "programId": "ct-snap-food-benefits",
@@ -153,19 +153,19 @@
         "hasVerifiableFacts": true
       },
       "verified": {
-        "age": null,
-        "income_1": null,
-        "income_2": null,
+        "age": 60,
+        "income_1": 2608,
+        "income_2": 3526,
         "assets_individual": null,
         "assets_couple": null,
-        "phone": "855626632",
+        "phone": "8556263632",
         "sources": {
-          "age": null,
-          "income": null,
+          "age": "https://portal.ct.gov/dss/snap/supplemental-nutrition-assistance-program---snap",
+          "income": "https://www.snapscreener.com/guides/connecticut",
           "assets": null,
-          "phone": "https://portal.ct.gov/dss/snap/supplemental-nutrition-assistance-program---snap"
+          "phone": "https://portal.ct.gov/dss/knowledge-base/articles/general-information/federal-updates-hr1?language=en_US"
         },
-        "notes": "No authoritative current income or asset limits found in search results; SNAP active in CT as of 2026 with work requirement changes to ages 18-64"
+        "notes": "Age 60+ qualifies for alternative eligibility pathway (Net Income and Asset tests) if over gross income limit. Gross income limits shown are 200% of federal poverty level for Oct. 1, 2025–Sept. 30, 2026. Asset limits not specified in retrieved official Connecticut SNAP sources; federal SNAP has asset limits but Connecticut sources do not explicitly state countable asset thresholds. Phone number extracted from video transcript (855-626-3632)."
       },
       "flags": [
         {
@@ -176,10 +176,10 @@
             "8774234746",
             "8556266632"
           ],
-          "verifiedValue": "855626632"
+          "verifiedValue": "8556263632"
         }
       ],
-      "notes": "No authoritative current income or asset limits found in search results; SNAP active in CT as of 2026 with work requirement changes to ages 18-64"
+      "notes": "Age 60+ qualifies for alternative eligibility pathway (Net Income and Asset tests) if over gross income limit. Gross income limits shown are 200% of federal poverty level for Oct. 1, 2025–Sept. 30, 2026. Asset limits not specified in retrieved official Connecticut SNAP sources; federal SNAP has asset limits but Connecticut sources do not explicitly state countable asset thresholds. Phone number extracted from video transcript (855-626-3632)."
     },
     {
       "programId": "ct-energy-assistance-ceap",
@@ -207,14 +207,14 @@
         "phone": null,
         "sources": {
           "age": null,
-          "income": "https://portal.ct.gov/dss/economic-security/winter-heating-assistance/energy-assistance---winter-heating",
+          "income": "https://uwc.211ct.org/connecticut-energy-assistance-program-2023-2024/",
           "assets": "https://uwc.211ct.org/connecticut-energy-assistance-program-2023-2024/",
-          "phone": null
+          "phone": "https://portal.ct.gov/heatinghelp/connecticut-energy-assistance-program-ceap"
         },
-        "notes": "Income eligibility is based on 60% of state median income by household size (not fixed monthly limits). Search results show household of 4 threshold ($75,052 annual) but do not provide specific monthly limits for households of 1 or 2. No age requirement found. Asset limit: no liquid assets test for 2025-2026. No single authoritative phone number for statewide applications found; residents must contact local Community Action Agencies by region. Official application portal: ct.gov/heatinghelp/apply."
+        "notes": "No specific monthly income limits or phone number found in sources for 2025-2026; income based on 60% SMI (annual figures not detailed); no assets test; contact local CAA for phone/help"
       },
       "flags": [],
-      "notes": "Income eligibility is based on 60% of state median income by household size (not fixed monthly limits). Search results show household of 4 threshold ($75,052 annual) but do not provide specific monthly limits for households of 1 or 2. No age requirement found. Asset limit: no liquid assets test for 2025-2026. No single authoritative phone number for statewide applications found; residents must contact local Community Action Agencies by region. Official application portal: ct.gov/heatinghelp/apply."
+      "notes": "No specific monthly income limits or phone number found in sources for 2025-2026; income based on 60% SMI (annual figures not detailed); no assets test; contact local CAA for phone/help"
     },
     {
       "programId": "ct-weatherization-assistance",
@@ -243,10 +243,10 @@
           "assets": null,
           "phone": null
         },
-        "notes": "Program eligibility is 60% State Median Income (SMI), same as Connecticut Energy Assistance Program (CEAP); no specific dollar income limits or phone number found in sources for 2026"
+        "notes": "Program active for PY2026 with 60% SMI eligibility (same as CEAP/LIHEAP); no specific 2026 monthly income figures or SMI table found in sources; no age/assets tests; apply via 211 or DEEP.Weatherization@ct.gov"
       },
       "flags": [],
-      "notes": "Program eligibility is 60% State Median Income (SMI), same as Connecticut Energy Assistance Program (CEAP); no specific dollar income limits or phone number found in sources for 2026"
+      "notes": "Program active for PY2026 with 60% SMI eligibility (same as CEAP/LIHEAP); no specific 2026 monthly income figures or SMI table found in sources; no age/assets tests; apply via 211 or DEEP.Weatherization@ct.gov"
     },
     {
       "programId": "ct-choices-ship",
@@ -276,10 +276,10 @@
           "assets": null,
           "phone": "https://portal.ct.gov/ads/programs-and-services/choices"
         },
-        "notes": "CHOICES (CT SHIP) is free counseling for Medicare beneficiaries of all ages and income levels; no eligibility tests apply"
+        "notes": "CHOICES (CT SHIP) is a free counseling program with no age, income, or asset eligibility limits; it serves Medicare beneficiaries, families, and caregivers of all ages and income levels"
       },
       "flags": [],
-      "notes": "CHOICES (CT SHIP) is free counseling for Medicare beneficiaries of all ages and income levels; no eligibility tests apply"
+      "notes": "CHOICES (CT SHIP) is a free counseling program with no age, income, or asset eligibility limits; it serves Medicare beneficiaries, families, and caregivers of all ages and income levels"
     },
     {
       "programId": "ct-statewide-respite-care",
@@ -299,21 +299,21 @@
       },
       "verified": {
         "age": null,
-        "income_1": null,
+        "income_1": 57339,
         "income_2": null,
         "assets_individual": 152442,
         "assets_couple": null,
-        "phone": "8009949422",
+        "phone": "18009949422",
         "sources": {
           "age": null,
-          "income": null,
+          "income": "https://uwc.211ct.org/connecticut-statewide-respite-care-program/",
           "assets": "https://uwc.211ct.org/connecticut-statewide-respite-care-program/",
           "phone": "https://portal.ct.gov/ads/knowledge-base/articles/independent-living-services/healthy-living-services/connecticut-statewide-respite-care"
         },
-        "notes": "Program has no age requirement. Income limits exist but vary by source and date (ranging $51,114–$57,339); most recent official .gov source (portal.ct.gov) does not specify current income limit. Asset limit of $152,442 from 211CT citing Connecticut Department of Aging and Disability Services (August 2025 review date). Phone number from official CT.gov portal. Program remains active as of April 2026."
+        "notes": "Income and assets from 211ct.org (reviewed Aug 2025, cites CT Dept of Aging); appears current as of 2026. No age specified; targets Alzheimer's/related dementia."
       },
       "flags": [],
-      "notes": "Program has no age requirement. Income limits exist but vary by source and date (ranging $51,114–$57,339); most recent official .gov source (portal.ct.gov) does not specify current income limit. Asset limit of $152,442 from 211CT citing Connecticut Department of Aging and Disability Services (August 2025 review date). Phone number from official CT.gov portal. Program remains active as of April 2026."
+      "notes": "Income and assets from 211ct.org (reviewed Aug 2025, cites CT Dept of Aging); appears current as of 2026. No age specified; targets Alzheimer's/related dementia."
     },
     {
       "programId": "ct-scsep-employment-training",
@@ -336,27 +336,17 @@
         "income_2": null,
         "assets_individual": null,
         "assets_couple": null,
-        "phone": "2039533752",
+        "phone": null,
         "sources": {
           "age": "https://portal.ct.gov/ads/knowledge-base/articles/employment-services/for-job-seekers/jobs-for-older-adults",
-          "income": "https://portal.ct.gov/ads/knowledge-base/articles/employment-services/for-job-seekers/jobs-for-older-adults",
+          "income": null,
           "assets": null,
-          "phone": "https://portal.ct.gov/ads/knowledge-base/articles/employment-services/for-job-seekers/jobs-for-older-adults"
+          "phone": null
         },
-        "notes": "No specific income or asset dollar amounts found; eligibility is family income <=125% federal poverty guidelines. No assets test mentioned. Multiple providers in CT."
+        "notes": "Income limit is 125% FPL per sources but specific dollar values not provided; no statewide main phone found, only local contacts"
       },
-      "flags": [
-        {
-          "field": "phone",
-          "severity": "medium",
-          "draftValue": [
-            "2034612154",
-            "211"
-          ],
-          "verifiedValue": "2039533752"
-        }
-      ],
-      "notes": "No specific income or asset dollar amounts found; eligibility is family income <=125% federal poverty guidelines. No assets test mentioned. Multiple providers in CT."
+      "flags": [],
+      "notes": "Income limit is 125% FPL per sources but specific dollar values not provided; no statewide main phone found, only local contacts"
     },
     {
       "programId": "ct-long-term-care-ombudsman",
@@ -387,10 +377,10 @@
           "assets": null,
           "phone": "https://portal.ct.gov/ltcop/ombudsman"
         },
-        "notes": "Program has no age, income, or asset eligibility requirements; it serves residents of long-term care facilities without financial tests"
+        "notes": "No age, income, or asset eligibility requirements; program open to residents of long-term care facilities (seniors and individuals with disabilities) with no financial tests"
       },
       "flags": [],
-      "notes": "Program has no age, income, or asset eligibility requirements; it serves residents of long-term care facilities without financial tests"
+      "notes": "No age, income, or asset eligibility requirements; program open to residents of long-term care facilities (seniors and individuals with disabilities) with no financial tests"
     }
   ]
 }

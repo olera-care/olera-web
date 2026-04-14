@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { Suspense, useState, useEffect, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import InterviewCalendar from "@/components/medjobs/InterviewCalendar";
@@ -13,7 +13,16 @@ type InterviewWithProfiles = Interview & {
   student?: { id: string; slug?: string; display_name: string; image_url?: string; email?: string; metadata?: Record<string, unknown> };
 };
 
+// useSearchParams requires a Suspense boundary for Next.js static prerender.
 export default function ProviderCaregiversPage() {
+  return (
+    <Suspense fallback={null}>
+      <ProviderCaregiversContent />
+    </Suspense>
+  );
+}
+
+function ProviderCaregiversContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   // Capture once on mount — we strip this param via router.replace after

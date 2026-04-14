@@ -678,9 +678,6 @@ export default function ProviderOnboardPage() {
   const hasProviderProfile = (profiles || []).some((p) => p.type === "organization");
 
   const handleClaimClick = useCallback(async () => {
-    // Clear any stale redirect from previous attempts (e.g., if user cancelled auth modal)
-    sessionStorage.removeItem("olera_post_claim_redirect");
-
     // If user is signed in AND has a provider profile, call claim-listing API directly
     if (user && hasProviderProfile) {
       setStep("finalizing");

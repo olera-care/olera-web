@@ -86,34 +86,6 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 - All 50 states + DC explored and researched
 
 ### What's next
-
-**🚦 QUEUED FOR NEXT SESSION (2026-04-14): Shake down `pipeline-batch-v2.js` on a small city batch.**
-
-Context for the next-session Claude: PR #539 merged `scripts/pipeline-batch-v2.js` into staging on 2026-04-13. It's an opt-in fork of the production pipeline with **three** improvements we want to validate before making it the default. Read `.claude/commands/city-pipeline.md` → "v2 script — opt-in shakedown" section for the full feature list and risks.
-
-**CRITICAL: do NOT try to set `NOTION_TOKEN` in `.env.local` to "fix" Notion writes.** The in-script Notion path has a history of silent failures in this repo — TJ has been burned by similar advice multiple times. Claude handles Notion via the `mcp__notion__*` MCP integration from subagents instead, which uses a different auth layer and works reliably. This is the canonical pattern. PR #540 (merged into staging 2026-04-14) removed the per-city Notion streaming feature that was in an earlier v2 draft for exactly this reason. Do not re-add it.
-
-**Shakedown plan:**
-1. **Pick a small batch first** — 5-10 cities, not the usual 150+. Good candidates: a fresh batch from the expansion map tool filtered to under 10 rows, or a hand-picked list of 5 thin cities that haven't been touched.
-2. **Run v2, not v1.** The invocation differs only by script name:
-   ```
-   cd ~/Desktop/olera-web && python3 scripts/discovery-batch.py --batch <cities.csv> --mode quick --auto-confirm
-   # wait for discovery to finish (or run v2 with --watch to overlap — see below)
-   cd ~/Desktop/olera-web && node scripts/pipeline-batch-v2.js --batch <cities.csv> --phase all --resume
-   ```
-3. **Test `--watch` mode separately.** For a true streaming test, kick off discovery in the background and immediately run `pipeline-batch-v2.js --batch <cities.csv> --phase all --watch --resume` in parallel. The clean phase should start consuming city 1 the moment its discovery CSV lands.
-4. **Watch for the 3 known risks** (from the subagent that built v2):
-   - **Watch mode hang**: if discovery crashes silently, the current city slot hangs for up to 90 min. Monitor the discovery background task; if it dies, kill v2's watch and restart.
-   - **Live site check noise**: will log loud failures on fresh cities before Vercel ISR warms. Non-fatal but will clutter the final report. Expected.
-   - **Pooled AI batches of 80**: if Perplexity returns truncated/malformed JSON, too many providers fall into the "keep to be safe" fallback and dilute filter quality. If you notice many more providers surviving classify than usual (compare to v1 baselines in past sessions), drop the batch size to 60 in `pipeline-batch-v2.js`.
-5. **Fallback**: if anything goes sideways, `scripts/pipeline-batch.js` (v1) is untouched. Just re-run with the v1 script.
-6. **Report after the run**: how each of the three v2 features behaved, whether pooled classify quality matched v1, and whether the live site check caught anything useful.
-7. **If v2 runs clean on 2-3 batches**: promote by renaming `pipeline-batch.js → pipeline-batch-v1.js` and `pipeline-batch-v2.js → pipeline-batch.js`, then update the skill file.
-
-**Notion workflow (always)**: Notion page creation and status updates are handled by Claude via subagent, not by the script. When the batch starts, spawn an Agent in parallel to the clean phase to create pages via `mcp__notion__API-post-page` (one-line report). After the pipeline finishes, spawn a second Agent to patch pages to "Complete" via `mcp__notion__API-patch-page`. Both patterns validated on the 184-city batch. Do not touch `NOTION_TOKEN` in env.
-
----
-
 1. **Merge PR #536 to staging** — the benefits module + welcome page + Slack/activity integration + latency fix are all working now. Ready for QA on staging.
 2. **Fix profile completeness for intake users** (deferred bug) — currently shows ~24% because checks don't count `state`, `income_range`, `medicaid_status`. Fix would either add new field checks OR write `care_types`/`payment_methods` from the intake API.
 3. **Add `plainLabel` to pipeline prompt** — auto-generate a 4-5 word plain-English label per program (e.g., "Help paying for home care") so provider page descriptions are human-first, not tagline-derived.
@@ -122,6 +94,14 @@ Context for the next-session Claude: PR #539 merged `scripts/pipeline-batch-v2.j
 4. **Admin review guide** — embed quality-check directions directly in the admin dashboard.
 5. Apply approved MI drafts
 6. Review draft quality with Chantel
+
+### Session 79 (2026-04-14): City pipeline architecture cleanup
+
+- **Killed the v1/v2 split.** Yesterday's shakedown fork created more friction than it solved — when a fresh session spun up a new worktree from staging, the "queue" I wrote in speedy-shaw's SCRATCHPAD.md was invisible (scratchpad is per-branch), the next session confused which script to run, and the whole coordination was fragile.
+- **New architecture**: single script, single source of truth (the skill file), no cross-session state in scratchpad. PR #541+ promotes v2's three features (streaming discovery→clean via `--watch`, pooled AI classify, live site check) into `scripts/pipeline-batch.js`, deletes `pipeline-batch-v2.js`, and rewrites the skill file's v2 shakedown section into permanent "Known gotchas" + "Canonical workflows" sections.
+- **Permanent warnings now in the skill file** (not scratchpad, not my head): NOTION_TOKEN has a history of silent failures in this repo — always handle Notion via `mcp__notion__*` subagent pattern. Start shakedowns with 5-10 city batches whenever the script changes. Watch-mode poll blocks slot for up to 90 min if discovery dies. Live site check logs noise on fresh cities before ISR warms.
+- **Pattern change**: SCRATCHPAD.md is session-local flow memory only. Never use it to queue instructions for future sessions — they won't see it. Cross-session instructions go in the skill file, which lives on staging and is pulled by every fresh worktree.
+- **PRs merged today**: #539 (initial v2 fork, 2026-04-13), #540 (stripped v2 per-city Notion streaming — the NOTION_TOKEN path was never going to fire), #538 (MedJobs Pro: Reviews, Subscriptions & Interview Scheduling — unrelated but cleanly merged).
 
 ### Session 78 (2026-04-13): City expansion batch — 184 cities
 

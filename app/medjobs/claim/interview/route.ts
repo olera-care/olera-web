@@ -101,17 +101,31 @@ export async function GET(request: NextRequest) {
   if (!userId) userId = linkData.user?.id;
   const tokenHash = linkData.properties.hashed_token;
 
-  // 5. Build the redirect response FIRST so the cookie adapter can write
-  //    Set-Cookie headers onto it during verifyOtp
+  // 5. Verify the OTP on a plain @supabase/supabase-js client with implicit
+  //    flow. @supabase/ssr's createServerClient may force PKCE, which would
+  //    reject token_hash verification (see lib/supabase/auth-client.ts for
+  //    the matching client-side workaround).
+  const otpClient = createClient(supabaseUrl, anonKey, {
+    auth: { flowType: "implicit", persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+  });
+  const { data: otpData, error: otpError } = await otpClient.auth.verifyOtp({
+    token_hash: tokenHash,
+    type: "magiclink",
+  });
+  if (otpError || !otpData?.session) {
+    console.error("[medjobs/claim/interview] verifyOtp failed:", otpError?.message);
+    return errorResponse("Could not sign you in. Please try again.");
+  }
+
+  // 6. Build the redirect response and write the session cookies onto it
+  //    via the SSR cookie adapter. setSession doesn't involve PKCE, so it
+  //    works regardless of the forced flow type on createServerClient.
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || url.origin;
   const redirectTarget = new URL(`${siteUrl}/provider/caregivers`);
   redirectTarget.searchParams.set("newInterview", interviewId);
   const response = NextResponse.redirect(redirectTarget, { status: 303 });
 
-  // Implicit flow so verifyOtp with token_hash works (matches the
-  // lib/supabase/auth-client.ts workaround, but server-side with cookies)
-  const supabase = createServerClient(supabaseUrl, anonKey, {
-    auth: { flowType: "implicit" },
+  const ssrClient = createServerClient(supabaseUrl, anonKey, {
     cookies: {
       getAll() {
         return request.cookies.getAll();
@@ -123,17 +137,16 @@ export async function GET(request: NextRequest) {
       },
     },
   });
-
-  const { error: otpError } = await supabase.auth.verifyOtp({
-    token_hash: tokenHash,
-    type: "magiclink",
+  const { error: setSessionError } = await ssrClient.auth.setSession({
+    access_token: otpData.session.access_token,
+    refresh_token: otpData.session.refresh_token,
   });
-  if (otpError) {
-    console.error("[medjobs/claim/interview] verifyOtp failed:", otpError.message);
-    return errorResponse("Could not sign you in. Please try again.");
+  if (setSessionError) {
+    console.error("[medjobs/claim/interview] setSession failed:", setSessionError.message);
+    return errorResponse("Could not establish session. Please try again.");
   }
 
-  // 6. Ensure an account row, then link the placeholder profile to it.
+  // 7. Ensure an account row, then link the placeholder profile to it.
   //    Idempotent: no-op if already linked to this account.
   if (!userId) {
     return errorResponse("Could not resolve user.");

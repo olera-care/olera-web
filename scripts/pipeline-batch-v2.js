@@ -982,20 +982,10 @@ async function phaseLoad(cities, opts) {
     const geocoded = (toGeocode || []).length - skippedGeocode;
     console.log(`    Geocode: ${skippedGeocode} skipped (coords OK), ${geocoded} checked, ${corrections} corrected, ${outOfArea} out-of-area → ${activeCount} active`);
 
-    // v2: stream Notion "Complete" update as each city finishes load (except Fetch Email & Contact Info)
-    if (process.env.NOTION_TOKEN || process.env.NOTION_API_KEY) {
-      if (c.notionPageId) {
-        try {
-          await notionCompletePage(c.notionPageId);
-          c._notionCompleted = true;
-          console.log(`    Notion: marked Complete (page ${c.notionPageId.slice(0, 8)})`);
-        } catch (e) {
-          console.log(`    WARN: Notion update failed for ${c.city}, ${c.state}: ${e.message}`);
-        }
-      } else {
-        console.log(`    Notion: no page for ${c.city}, ${c.state} — skipping`);
-      }
-    }
+    // Notion status updates are handled outside this script by Claude subagents
+    // using the mcp__notion__* integration. The in-script NOTION_TOKEN path has
+    // a history of silent failures, so we don't rely on it. See
+    // .claude/commands/city-pipeline.md → "Parallel subagent work during long phases".
 
     // Track loaded provider count for live site verification
     c._loadedActive = activeCount || 0;
@@ -1318,15 +1308,7 @@ async function phaseFinalize(cities, opts) {
       cats, hasDesc, hasReviews, hasTrust, hasImages,
     });
 
-    // Update Notion — one call checks all boxes + sets Complete
-    // v2: skip if phaseLoad already streamed the Complete update for this city
-    if (c.notionPageId && !c._notionCompleted) {
-      try {
-        await notionCompletePage(c.notionPageId);
-      } catch (e) {
-        console.log(`    WARN: Notion update failed for ${c.city}, ${c.state}: ${e.message}`);
-      }
-    }
+    // Notion is handled outside this script via Claude subagents — see phaseLoad comment.
   }
 
   // Print final batch summary table

@@ -86,6 +86,32 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 - All 50 states + DC explored and researched
 
 ### What's next
+
+**🚦 QUEUED FOR NEXT SESSION (2026-04-14): Shake down `pipeline-batch-v2.js` on a small city batch.**
+
+Context for the next-session Claude: PR #539 merged `scripts/pipeline-batch-v2.js` into staging yesterday (2026-04-13). It's an opt-in fork of the production pipeline with four improvements we want to validate before making it the default. Read `.claude/commands/city-pipeline.md` → "v2 script — opt-in shakedown" section for the full feature list and risks.
+
+**Shakedown plan:**
+1. **Pick a small batch first** — 5-10 cities, not the usual 150+. Good candidates: a fresh batch from the expansion map tool filtered to under 10 rows, or a hand-picked list of 5 thin cities that haven't been touched.
+2. **Run v2, not v1.** The invocation differs only by script name:
+   ```
+   cd ~/Desktop/olera-web && python3 scripts/discovery-batch.py --batch <cities.csv> --mode quick --auto-confirm
+   # wait for discovery to finish (or run v2 with --watch to overlap — see below)
+   cd ~/Desktop/olera-web && node scripts/pipeline-batch-v2.js --batch <cities.csv> --phase all --resume
+   ```
+3. **Test `--watch` mode separately.** For a true streaming test, kick off discovery in the background and immediately run `pipeline-batch-v2.js --batch <cities.csv> --phase all --watch --resume` in parallel. The clean phase should start consuming city 1 the moment its discovery CSV lands.
+4. **Watch for the 3 known risks** (from the subagent that built v2):
+   - **Watch mode hang**: if discovery crashes silently, the current city slot hangs for up to 90 min. Monitor the discovery background task; if it dies, kill v2's watch and restart.
+   - **Live site check noise**: will log loud failures on fresh cities before Vercel ISR warms. Non-fatal but will clutter the final report. Expected.
+   - **Pooled AI batches of 80**: if Perplexity returns truncated/malformed JSON, too many providers fall into the "keep to be safe" fallback and dilute filter quality. If you notice many more providers surviving classify than usual (compare to v1 baselines in past sessions), drop the batch size to 60 in `pipeline-batch-v2.js`.
+5. **Fallback**: if anything goes sideways, `scripts/pipeline-batch.js` (v1) is untouched. Just re-run with the v1 script.
+6. **Report after the run**: how each of the four v2 features behaved, whether pooled classify quality matched v1, whether the live site check caught anything useful, whether per-city Notion status updates fired (requires `NOTION_TOKEN` in `.env.local` — if absent, that feature is silent but harmless).
+7. **If v2 runs clean on 2-3 batches**: promote by renaming `pipeline-batch.js → pipeline-batch-v1.js` and `pipeline-batch-v2.js → pipeline-batch.js`, then update the skill file.
+
+**Note**: Notion page creation for new cities still needs the subagent pattern (`NOTION_TOKEN` is not in env). Don't skip it — spawn an Agent in parallel to the clean phase to create pages via `mcp__notion__API-post-page` and report a one-line summary. This worked perfectly yesterday.
+
+---
+
 1. **Merge PR #536 to staging** — the benefits module + welcome page + Slack/activity integration + latency fix are all working now. Ready for QA on staging.
 2. **Fix profile completeness for intake users** (deferred bug) — currently shows ~24% because checks don't count `state`, `income_range`, `medicaid_status`. Fix would either add new field checks OR write `care_types`/`payment_methods` from the intake API.
 3. **Add `plainLabel` to pipeline prompt** — auto-generate a 4-5 word plain-English label per program (e.g., "Help paying for home care") so provider page descriptions are human-first, not tagline-derived.

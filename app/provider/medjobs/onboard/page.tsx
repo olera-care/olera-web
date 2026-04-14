@@ -113,6 +113,27 @@ function MedJobsOnboardContent() {
         // 1. Show interview card IMMEDIATELY (no auth required)
         setStep("interview");
 
+        // Verify the interviews API can see this interview before enabling
+        // the "View Interviews" button. Without this, a fast click races the
+        // placeholder-profile link commit and lands on an empty calendar.
+        const waitForInterviewVisible = async (): Promise<void> => {
+          for (let attempt = 0; attempt < 6; attempt++) {
+            try {
+              const res = await fetch("/api/medjobs/interviews", { cache: "no-store" });
+              if (res.ok) {
+                const data = await res.json();
+                const found = (data.interviews ?? []).some(
+                  (iv: { id: string }) => iv.id === actionIdParam
+                );
+                if (found) return;
+              }
+            } catch { /* continue */ }
+            await new Promise((r) => setTimeout(r, 400));
+          }
+          // Timeout — proceed anyway; calendar will still render whatever
+          // it can fetch at render time.
+        };
+
         // 2. Background auto-sign-in — invisible to the provider
         (async () => {
           try {
@@ -131,6 +152,7 @@ function MedJobsOnboardContent() {
                   });
                   await refreshAccountData();
                   switchProfile(providerProfileId);
+                  await waitForInterviewVisible();
                 }
                 setIsSignedIn(true);
                 console.log("[MedJobs OneClick] Already signed in as owner");
@@ -183,6 +205,7 @@ function MedJobsOnboardContent() {
               console.log("[MedJobs OneClick] Profile linked");
               await refreshAccountData();
               switchProfile(providerProfileId);
+              await waitForInterviewVisible();
               setIsSignedIn(true);
             } else {
               const linkData = await linkRes.json();

@@ -13,7 +13,7 @@ type InterviewWithProfiles = Interview & {
 };
 
 export default function ProviderCaregiversPage() {
-  const { user, activeProfile, isLoading: authLoading } = useAuth();
+  const { activeProfile, isLoading: authLoading } = useAuth();
   const [interviews, setInterviews] = useState<InterviewWithProfiles[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -32,14 +32,12 @@ export default function ProviderCaregiversPage() {
     finally { setLoading(false); }
   }, []);
 
-  // Re-fetch when auth resolves AND when the user/profile becomes available.
-  // This self-heals the post-magic-link race where the page first mounts
-  // before the session cookie or placeholder-profile link has settled.
+  // Wait for auth to complete before fetching interviews
   useEffect(() => {
     if (!authLoading) {
       fetchInterviews();
     }
-  }, [fetchInterviews, authLoading, user?.id, activeProfile?.id]);
+  }, [fetchInterviews, authLoading]);
 
   const updateStatus = async (interviewId: string, status: string) => {
     setActionLoading(interviewId);

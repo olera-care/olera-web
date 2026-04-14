@@ -298,22 +298,24 @@ function LandingView({
   onRequestReview: () => void;
 }) {
   return (
-    <div className="flex flex-col h-full min-h-[460px]">
-      {/* Hero image - contained within card padding */}
-      <div className="relative rounded-xl overflow-hidden mb-6">
-        <div className="aspect-[16/9] relative">
+    <div className="flex flex-col h-full">
+      {/* Hero image with gradient blend */}
+      <div className="relative rounded-xl overflow-hidden mb-8">
+        <div className="aspect-[2/1] sm:aspect-[5/2] relative">
           <img
             src="/Reviews-image.png"
             alt="Caregiver helping senior"
             className="absolute inset-0 w-full h-full object-cover object-center"
           />
+          {/* Soft gradient to blend into content */}
+          <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-white/80 to-transparent" />
         </div>
       </div>
 
       {/* Content - vertically stacked, centered */}
-      <div className="flex flex-col items-center flex-1 justify-center">
+      <div className="flex flex-col items-center flex-1 justify-center pb-4">
         {/* Compelling stat badge */}
-        <div className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-amber-50/80 border border-amber-100/60 mb-5">
+        <div className="inline-flex items-center gap-2.5 px-5 py-3 rounded-full bg-amber-50/80 border border-amber-100/60 mb-6">
           <StarIcon className="w-4 h-4 text-amber-500 shrink-0" />
           <p className="text-sm text-gray-700">
             Providers{city ? ` in ${city.length > 20 ? city.slice(0, 18) + "…" : city}` : ""} with 10+ reviews get{" "}
@@ -321,11 +323,11 @@ function LandingView({
           </p>
         </div>
 
-        {/* CTA Button - stacked below badge */}
+        {/* CTA Button - larger, more prominent */}
         <button
           type="button"
           onClick={onRequestReview}
-          className="px-8 py-3 rounded-xl bg-primary-600 text-white text-[15px] font-semibold hover:bg-primary-700 transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 shadow-sm hover:shadow-md"
+          className="px-10 py-3.5 rounded-xl bg-primary-600 text-white text-base font-semibold hover:bg-primary-700 transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 shadow-md hover:shadow-lg"
         >
           Request a Review
         </button>
@@ -1491,7 +1493,7 @@ export default function ProviderReviewsPage() {
           </div>
 
           {/* Content grid */}
-          <div className="lg:grid lg:grid-cols-[1fr,340px] lg:gap-8 lg:items-start">
+          <div className="lg:grid lg:grid-cols-[1fr,340px] lg:gap-8 lg:items-stretch">
             {/* Main content card - overflow-hidden for hero image clipping */}
             <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-5 lg:p-6 mb-6 lg:mb-0 overflow-hidden">
               {view === "landing" ? (

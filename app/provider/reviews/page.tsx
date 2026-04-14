@@ -182,9 +182,11 @@ function NewReviewCard({
       </div>
 
       {/* Review text */}
-      <p className="text-[15px] text-gray-700 leading-relaxed mb-5">
-        "{review.comment}"
-      </p>
+      {review.comment && (
+        <p className="text-[15px] text-gray-700 leading-relaxed mb-5">
+          "{review.comment}"
+        </p>
+      )}
 
       {/* Actions */}
       <div className="flex items-center justify-between">
@@ -1311,10 +1313,13 @@ export default function ProviderReviewsPage() {
   useEffect(() => {
     if (!reviewIdParam) return;
 
+    let cancelled = false;
+
     async function fetchHighlightedReview() {
       try {
         // Try fetching from reviews table first (authenticated reviews)
         let res = await fetch(`/api/reviews/${reviewIdParam}`);
+        if (cancelled) return;
         if (res.ok) {
           const data = await res.json();
           if (data.review) {
@@ -1331,6 +1336,7 @@ export default function ProviderReviewsPage() {
 
         // Fallback: try olera_reviews table
         res = await fetch(`/api/olera-reviews/${reviewIdParam}`);
+        if (cancelled) return;
         if (res.ok) {
           const data = await res.json();
           if (data.review) {
@@ -1344,11 +1350,17 @@ export default function ProviderReviewsPage() {
           }
         }
       } catch (err) {
-        console.error("Failed to fetch highlighted review:", err);
+        if (!cancelled) {
+          console.error("Failed to fetch highlighted review:", err);
+        }
       }
     }
 
     fetchHighlightedReview();
+
+    return () => {
+      cancelled = true;
+    };
   }, [reviewIdParam]);
 
   // Dismiss the highlighted review and clear URL param
